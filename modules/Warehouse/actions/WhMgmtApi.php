@@ -207,13 +207,21 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 				case 'search_return_sources':
 					require_once 'modules/Warehouse/helpers/ReturnHelper.php';
 					$q = trim((string) $request->get('q'));
-					if ($q === '') {
-						$payload = $this->decodePayload($request);
-						$q = isset($payload['q']) ? trim((string) $payload['q']) : '';
+					$whId = trim((string) $request->get('whId'));
+					if ($whId === '') {
+						$whId = trim((string) $request->get('id'));
+					}
+					$payload = $this->decodePayload($request);
+					if ($q === '' && isset($payload['q'])) {
+						$q = trim((string) $payload['q']);
+					}
+					if ($whId === '' && isset($payload['whId'])) {
+						$whId = trim((string) $payload['whId']);
 					}
 					$response->setResult(array(
 						'success' => true,
-						'sources' => Warehouse_Return_Helper::searchSources($q),
+						'issues' => Warehouse_Return_Helper::searchOutboundIssues($whId, $q),
+						'sources' => array(),
 					));
 					break;
 

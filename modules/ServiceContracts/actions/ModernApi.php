@@ -24,7 +24,7 @@ class ServiceContracts_ModernApi_Action extends Vtiger_Action_Controller {
 		$mode = strtolower((string) $request->get('mode'));
 		if (in_array($mode, array(
 			'delete', 'save_tags', 'save_next_action', 'save', 'save_franchise', 'save_inline', 'last_touch_call_log',
-			'generate_affiliate', 'create_affiliate',
+			'generate_affiliate', 'create_affiliate', 'set_affiliate_visible',
 		), true)) {
 			$request->validateWriteAccess();
 		}
@@ -196,13 +196,24 @@ class ServiceContracts_ModernApi_Action extends Vtiger_Action_Controller {
 					}
 					$before = ServiceContracts_ModernService::getAffiliateCode($recordId);
 					$code = ServiceContracts_ModernService::generateAffiliateCode($recordId);
+					ServiceContracts_ModernService::setAffiliateVisible($recordId, true);
 					$contract = ServiceContracts_ModernService::getFranchise($recordId);
 					$response->setResult(array(
 						'success' => true,
 						'affiliate_code' => $code,
 						'already_existed' => ($before !== ''),
+						'affiliate_visible' => 1,
 						'contract' => $contract,
 					));
+					break;
+				case 'set_affiliate_visible':
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$visibleRaw = $request->get('visible');
+					$visible = !($visibleRaw === '0' || $visibleRaw === 0 || $visibleRaw === false || $visibleRaw === 'false');
+					$response->setResult(ServiceContracts_ModernService::setAffiliateVisible($recordId, $visible));
 					break;
 				case 'check_duplicate':
 					$phone = (string) $request->get('phone');

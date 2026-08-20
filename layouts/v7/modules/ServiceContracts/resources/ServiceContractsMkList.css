@@ -339,12 +339,13 @@ body[data-view="List"][data-app="SALES"] .mk-lead-lt-modal .mk-lead-lt-modal__se
 	overflow: visible;
 }
 
-/* Row ⋮ actions: Tạo báo giá / Tạo mã AFF */
+/* Row actions live in the right panel — hide leftover ⋯ column */
+.mk-sc-th--actions,
 .mk-sc-td--actions {
-  width: 52px;
-  text-align: center;
-  vertical-align: middle !important;
-  overflow: visible !important;
+  display: none !important;
+  width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
 }
 .mk-sc-row-actions {
   position: relative;

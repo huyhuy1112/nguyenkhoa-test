@@ -72,16 +72,12 @@
 		$root.prop("hidden", false);
 
 		var aff = data.affiliate_code || "";
+		var affVisible = Number(data.affiliate_visible) !== 0 && !!aff;
 		var recordId = String($root.attr("data-record") || data.id || data.crmid || "").trim();
 		var $aff = $("#mkScMkAff");
-		var $btn = $("#mkScMkCreateAffBtn");
-		if (aff) {
-			$aff.prop("hidden", false).text(aff);
-			$btn.prop("hidden", true).prop("disabled", true);
-		} else {
-			$aff.prop("hidden", true).text("");
-			$btn.prop("hidden", false).prop("disabled", false).text("Tạo mã AFF");
-		}
+		var $toggle = $("#mkScMkAffVisible");
+		$aff.prop("hidden", !affVisible).text(affVisible ? aff : "");
+		$toggle.prop("checked", affVisible).prop("disabled", !recordId);
 
 		var rows = [
 			["Ngày tiếp nhận", data.received_date],
@@ -92,7 +88,7 @@
 			["Nguồn data", data.data_source],
 			["Người giới thiệu", data.referrer],
 			["Liên hệ", data.contact_status],
-			["Mã AFF (mã giới thiệu của khách)", aff || "— Chưa tạo"],
+			["Mã AFF (mã giới thiệu của khách)", affVisible ? aff : "— Đang ẩn / chưa bật"],
 			[
 				"Hạng mã AFF",
 				(data.affiliate_tier_prefix || "") +
@@ -163,12 +159,13 @@
 		window.setTimeout(hideStock, 400);
 		window.setTimeout(hideStock, 1200);
 
-		$btn.off("click.mkScAff").on("click.mkScAff", function (e) {
+		$toggle.off("change.mkScAff").on("change.mkScAff", function (e) {
 			e.preventDefault();
-			if (!recordId || $btn.prop("disabled")) return;
-			$btn.prop("disabled", true).text("Đang tạo…");
+			if (!recordId || $toggle.prop("disabled")) return;
+			var visible = !!$toggle.prop("checked");
+			$toggle.prop("disabled", true);
 			if (!window.app || !app.request || !app.request.post) {
-				$btn.prop("disabled", false).text("Tạo mã AFF");
+				$toggle.prop("disabled", false).prop("checked", !visible);
 				return;
 			}
 			app.request
@@ -176,23 +173,28 @@
 					data: {
 						module: "ServiceContracts",
 						action: "ModernApi",
-						mode: "generate_affiliate",
+						mode: "set_affiliate_visible",
 						record: recordId,
+						visible: visible ? 1 : 0,
 					},
 				})
 				.then(function (err, res) {
 					if (err || !res || res.success === false) {
-						$btn.prop("disabled", false).text("Tạo mã AFF");
+						$toggle.prop("disabled", false).prop("checked", !visible);
 						window.alert(
 							(res && (res.error || res.message)) ||
 								(err && err.message) ||
-								"Không tạo được mã AFF."
+								"Không cập nhật được AFF."
 						);
 						return;
 					}
-					// Reload full franchise so badge + fields persist cleanly
 					apiGet(recordId).then(render).catch(function () {
-						render((res.contract) || { affiliate_code: res.affiliate_code || "" });
+						render(
+							(res.contract) || {
+								affiliate_code: res.affiliate_code || aff,
+								affiliate_visible: res.affiliate_visible,
+							}
+						);
 					});
 				});
 		});

@@ -25,7 +25,7 @@
 			return !!document.querySelector(c.enabledSelector);
 		}
 		return !!document.querySelector(
-			'#listViewContent .mk-so-pos-list-enabled, .mk-so-pos-page, [data-mk-leads-list], [data-mk-opps-list], [data-mk-opportunity-list], [data-mk-contacts-list], [data-mk-accounts-list], [data-mk-ps-list]'
+			'#listViewContent .mk-so-pos-list-enabled, .mk-so-pos-page, [data-mk-leads-list], [data-mk-opps-list], [data-mk-opportunity-list], [data-mk-contacts-list], [data-mk-accounts-list], [data-mk-ps-list], [data-mk-sc-list], [data-mk-quotes-list], [data-mk-sales-order-list], [data-mk-invoice-list]'
 		);
 	}
 
@@ -71,6 +71,24 @@
 		return '';
 	}
 
+	function drawerModules() {
+		return {
+			Leads: { kicker: 'LEAD', prev: 'Trước', next: 'Sau', label: 'Chi tiết lead' },
+			Potentials: { kicker: 'CƠ HỘI', prev: 'Trước', next: 'Sau', label: 'Chi tiết cơ hội' },
+			Contacts: { kicker: 'KHÁCH', prev: 'Trước', next: 'Sau', label: 'Chi tiết khách hàng' },
+			Quotes: { kicker: 'BÁO GIÁ', prev: 'Trước', next: 'Sau', label: 'Chi tiết báo giá' },
+			SalesOrder: { kicker: 'ĐƠN HÀNG', prev: 'Trước', next: 'Sau', label: 'Chi tiết đơn hàng' },
+			Invoice: { kicker: 'HÓA ĐƠN', prev: 'Trước', next: 'Sau', label: 'Chi tiết hóa đơn' },
+			ServiceContracts: { kicker: 'NQ', prev: 'Trước', next: 'Sau', label: 'Chi tiết khách nhượng quyền' },
+			Accounts: { kicker: 'HĐ NQ', prev: 'Trước', next: 'Sau', label: 'Chi tiết hợp đồng nhượng quyền' },
+			ProductsServices: { kicker: 'HÀNG HOÁ', prev: 'Trước', next: 'Sau', label: 'Chi tiết hàng hoá' }
+		};
+	}
+
+	function drawerMeta() {
+		return drawerModules()[moduleName()] || { kicker: 'CRM', prev: 'Trước', next: 'Sau', label: 'Chi tiết' };
+	}
+
 	function useDrawer() {
 		var c = cfg();
 		if (c.drawer === false) {
@@ -79,17 +97,83 @@
 		if (c.drawer === true) {
 			return true;
 		}
-		return moduleName() === 'Leads';
+		return !!drawerModules()[moduleName()];
+	}
+
+	function applyDrawerChrome() {
+		var $drawer = $('#mk-crm-inline-drawer');
+		if (!$drawer.length) {
+			return;
+		}
+		var meta = drawerMeta();
+		$drawer.find('.mk-crm-inline-drawer__kicker').text(meta.kicker);
+		$drawer.find('.mk-crm-inline-drawer__panel').attr('aria-label', meta.label);
+		$drawer.find('[data-mk-drawer-prev="1"]').attr('title', meta.prev).attr('aria-label', meta.prev);
+		$drawer.find('[data-mk-drawer-next="1"]').attr('title', meta.next).attr('aria-label', meta.next);
+	}
+
+	function layoutDrawerPanel($host) {
+		var $panel = $host && $host.find ? $host.find('.mk-so-inline-detail').first() : $();
+		if (!$panel.length) {
+			return $panel;
+		}
+		$panel.addClass('mk-so-inline-detail--drawer');
+		var $hero = $panel.find('.mk-so-inline-detail__hero-main').first();
+		if ($hero.length && !$hero.find('.mk-so-inline-detail__avatar').length) {
+			var name = String($panel.find('.mk-so-inline-detail__customer-name').first().text() || '').trim();
+			var parts = name.split(/\s+/).filter(Boolean);
+			var initials = '?';
+			if (parts.length === 1) {
+				initials = parts[0].charAt(0).toUpperCase();
+			} else if (parts.length > 1) {
+				initials = (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+			}
+			$hero.prepend('<span class="mk-so-inline-detail__avatar" aria-hidden="true">' + $('<div/>').text(initials).html() + '</span>');
+		}
+		if ($panel.children('.mk-so-inline-detail__scroll').length) {
+			return $panel;
+		}
+		var $actions = $panel.children('.mk-so-inline-detail__actions');
+		var $scroll = $('<div class="mk-so-inline-detail__scroll"></div>');
+		$panel.children().not($actions).appendTo($scroll);
+		$panel.prepend($scroll);
+		if ($actions.length) {
+			$panel.append($actions);
+		}
+		return $panel;
 	}
 
 	function closeDrawerUi() {
 		var $drawer = $('#mk-crm-inline-drawer');
-		if (!$drawer.length) {
+		if (!$drawer.length || !$drawer.hasClass('is-open')) {
 			return;
 		}
 		$drawer.removeClass('is-open').attr('aria-hidden', 'true');
 		$('body').removeClass('mk-crm-inline-drawer-open');
 		$drawer.find('.mk-crm-inline-drawer__body').empty();
+		$(document).trigger('mkCrmInlineDrawerClosed');
+	}
+
+	function openDrawerHost(recordId, $row, loadingHtml) {
+		var c = cfg();
+		var $drawer = ensureDrawer();
+		applyDrawerChrome();
+		var $body = $drawer.find('.mk-crm-inline-drawer__body');
+		$body.html(
+			loadingHtml ||
+				'<div class="mk-so-inline-detail mk-so-inline-detail--loading mk-so-inline-detail--drawer">' +
+					'<span class="mk-so-inline-detail__spinner" aria-hidden="true"></span>' +
+					'<span>' + (c.loadingText || 'Đang tải chi tiết...') + '</span>' +
+				'</div>'
+		);
+		$drawer.addClass('is-open').attr('aria-hidden', 'false');
+		$('body').addClass('mk-crm-inline-drawer-open');
+		if ($row && $row.length) {
+			$row.addClass('mk-so-row-expanded');
+		}
+		expandedId = String(recordId || '');
+		updateDrawerNav(recordId);
+		return $body;
 	}
 
 	function updateDrawerNav(recordId) {
@@ -127,25 +211,31 @@
 		if (!next || !next.el) {
 			return;
 		}
+		if (cfg().bindClicks === false) {
+			$(document).trigger('mkCrmInlineDrawerNeighbor', [next.id, $(next.el)]);
+			return;
+		}
 		toggle(next.id, $(next.el));
 	}
 
 	function ensureDrawer() {
 		var $drawer = $('#mk-crm-inline-drawer');
 		if ($drawer.length) {
+			applyDrawerChrome();
 			return $drawer;
 		}
+		var meta = drawerMeta();
 		$drawer = $(
 			'<div id="mk-crm-inline-drawer" class="mk-crm-inline-drawer" aria-hidden="true">' +
 				'<div class="mk-crm-inline-drawer__backdrop" data-mk-drawer-close="1"></div>' +
-				'<aside class="mk-crm-inline-drawer__panel" role="dialog" aria-modal="true" aria-label="Chi tiết lead">' +
+				'<aside class="mk-crm-inline-drawer__panel" role="dialog" aria-modal="true" aria-label="' + meta.label + '">' +
 					'<div class="mk-crm-inline-drawer__toolbar">' +
-						'<span class="mk-crm-inline-drawer__kicker">LEAD</span>' +
+						'<span class="mk-crm-inline-drawer__kicker">' + meta.kicker + '</span>' +
 						'<div class="mk-crm-inline-drawer__nav">' +
-							'<button type="button" class="mk-crm-inline-drawer__nav-btn" data-mk-drawer-prev="1" title="Lead trước" aria-label="Lead trước">' +
+							'<button type="button" class="mk-crm-inline-drawer__nav-btn" data-mk-drawer-prev="1" title="' + meta.prev + '" aria-label="' + meta.prev + '">' +
 								'<i class="fa fa-chevron-left" aria-hidden="true"></i>' +
 							'</button>' +
-							'<button type="button" class="mk-crm-inline-drawer__nav-btn" data-mk-drawer-next="1" title="Lead sau" aria-label="Lead sau">' +
+							'<button type="button" class="mk-crm-inline-drawer__nav-btn" data-mk-drawer-next="1" title="' + meta.next + '" aria-label="' + meta.next + '">' +
 								'<i class="fa fa-chevron-right" aria-hidden="true"></i>' +
 							'</button>' +
 						'</div>' +
@@ -891,28 +981,52 @@
 				}).promise();
 		}
 
-		// SC: create affiliate code once (belongs to this customer)
-		$panel.on('click', '.mk-so-inline-detail__create-aff-btn', function (e) {
-			e.preventDefault();
-			e.stopPropagation();
+		function paintScAffiliate($p, code, visible) {
+			var shown = !!(visible && code);
+			$p.attr('data-affiliate-code', code || '').attr('data-affiliate-visible', shown ? '1' : '0');
+			$p.find('.mk-so-inline-detail__aff-visible-input').prop('checked', !!visible);
+			var $pill = $p.find('.mk-so-inline-detail__aff-pill');
+			if (!$pill.length && code) {
+				$p.find('.mk-so-inline-detail__aff-toggle').after(
+					$('<span class="mk-so-inline-detail__aff-pill"></span>')
+				);
+				$pill = $p.find('.mk-so-inline-detail__aff-pill');
+			}
+			if ($pill.length) {
+				$pill.text(code || '').attr('hidden', shown ? null : 'hidden').prop('hidden', !shown);
+			}
+			var $sub = $p.find('.mk-so-inline-detail__order-no');
+			if (shown) {
+				if ($sub.length) {
+					$sub.text(code);
+				} else {
+					$p.find('.mk-so-inline-detail__customer').after(
+						$('<div class="mk-so-inline-detail__order-no"></div>').text(code)
+					);
+				}
+			}
+		}
+
+		$panel.on('change', '.mk-so-inline-detail__aff-visible-input', function () {
 			if (!recordId || mod !== 'ServiceContracts') return;
-			var $btn = $(this);
-			if ($btn.prop('disabled') || $btn.data('busy')) return;
-			$btn.data('busy', true).prop('disabled', true);
-			var label = $btn.find('span').first();
-			var prev = label.text();
-			label.text('Đang tạo…');
+			var $input = $(this);
+			if ($input.data('busy')) {
+				$input.prop('checked', !$input.prop('checked'));
+				return;
+			}
+			var visible = $input.prop('checked');
+			$input.data('busy', true).prop('disabled', true);
 			scApiPost({
 				module: 'ServiceContracts',
 				action: 'ModernApi',
-				mode: 'generate_affiliate',
-				record: recordId
+				mode: 'set_affiliate_visible',
+				record: recordId,
+				visible: visible ? 1 : 0
 			}).then(function (err, res) {
-				$btn.data('busy', false);
+				$input.data('busy', false).prop('disabled', false);
 				if (err || !res || res.success === false) {
-					$btn.prop('disabled', false);
-					label.text(prev || 'Tạo mã AFF');
-					var msg = (res && (res.error || res.message)) || (err && err.message) || 'Không tạo được mã AFF.';
+					$input.prop('checked', !visible);
+					var msg = (res && (res.error || res.message)) || (err && err.message) || 'Không cập nhật được AFF.';
 					if (typeof app !== 'undefined' && app.helper && app.helper.showErrorNotification) {
 						app.helper.showErrorNotification({ message: msg });
 					} else {
@@ -923,32 +1037,22 @@
 				var code =
 					(res && res.affiliate_code) ||
 					(res && res.contract && res.contract.affiliate_code) ||
+					$panel.attr('data-affiliate-code') ||
 					'';
-				$panel.attr('data-affiliate-code', code).attr('data-can-create-aff', '0');
-				$btn.replaceWith(
-					$('<span class="mk-so-inline-detail__aff-pill"></span>').text(code).attr('title', 'Mã AFF đã tạo')
-				);
-				var $sub = $panel.find('.mk-so-inline-detail__order-no');
-				if ($sub.length) {
-					$sub.text(code);
-				} else {
-					$panel.find('.mk-so-inline-detail__customer').after(
-						$('<div class="mk-so-inline-detail__order-no"></div>').text(code)
-					);
-				}
+				var vis = res.affiliate_visible != null ? Number(res.affiliate_visible) !== 0 : visible;
+				paintScAffiliate($panel, code, vis);
 				try {
 					document.dispatchEvent(new CustomEvent('mk-sc-inline-saved', {
 						detail: {
 							id: String(recordId),
-							contract: (res && res.contract) || { affiliate_code: code, id: recordId }
+							contract: (res && res.contract) || {
+								affiliate_code: code,
+								affiliate_visible: vis ? 1 : 0,
+								id: recordId
+							}
 						}
 					}));
 				} catch (ev2) { /* ignore */ }
-				if (typeof app !== 'undefined' && app.helper && app.helper.showSuccessNotification) {
-					app.helper.showSuccessNotification({
-						message: res.already_existed ? ('Khách đã có mã ' + code) : ('Đã tạo mã ' + code)
-					});
-				}
 			});
 		});
 
@@ -1807,17 +1911,7 @@
 
 	function loadDrawerDetail(recordId, $row, $table) {
 		var c = cfg();
-		var $drawer = ensureDrawer();
-		var $body = $drawer.find('.mk-crm-inline-drawer__body');
-		$body.html(
-			'<div class="mk-so-inline-detail mk-so-inline-detail--loading mk-so-inline-detail--drawer">' +
-				'<span class="mk-so-inline-detail__spinner" aria-hidden="true"></span>' +
-				'<span>' + (c.loadingText || 'Đang tải chi tiết...') + '</span>' +
-			'</div>'
-		);
-		$drawer.addClass('is-open').attr('aria-hidden', 'false');
-		$('body').addClass('mk-crm-inline-drawer-open');
-		updateDrawerNav(recordId);
+		var $body = openDrawerHost(recordId, $row);
 
 		$.ajax({
 			url: 'index.php',
@@ -1835,7 +1929,7 @@
 				return;
 			}
 			$body.html(html);
-			$body.find('.mk-so-inline-detail').addClass('mk-so-inline-detail--drawer');
+			layoutDrawerPanel($body);
 			initPanel($body);
 			updateDrawerNav(recordId);
 		}).fail(function () {
@@ -1985,6 +2079,9 @@
 			return;
 		}
 		document.documentElement.setAttribute('data-mk-pos-inline-bound', '1');
+		if (cfg().bindClicks === false) {
+			return;
+		}
 		document.addEventListener('click', onClick, true);
 	}
 
@@ -1993,6 +2090,11 @@
 		bind: bind,
 		collapse: collapse,
 		toggle: toggle,
+		usesDrawer: useDrawer,
+		layoutDrawerPanel: layoutDrawerPanel,
+		openDrawerHost: openDrawerHost,
+		closeDrawerShell: closeDrawerUi,
+		updateDrawerNav: updateDrawerNav,
 		openFranchisePrint: openFranchisePrint,
 		openFranchisePreview: openFranchisePreview,
 		openInlinePrintPreview: openInlinePrintPreview,

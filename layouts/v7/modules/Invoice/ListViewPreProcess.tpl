@@ -51,7 +51,21 @@ window.__mkInvSupportListConfig = window.__mkInvSupportListConfig || window.__mk
 </script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 {if $MK_INV_IS_SALES}
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceList.js')}?mk_v=20260804_inv_del1"></script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260820_panel2" />
+<script type="text/javascript">
+window.__mkSalesPosInlineConfig = {
+	module: 'Invoice',
+	drawer: true,
+	bindClicks: false,
+	tableSelector: '#listview-table',
+	rowSelector: 'tr.listViewEntries',
+	enabledSelector: '[data-mk-invoice-list]',
+	loadingText: 'Đang tải chi tiết hóa đơn...',
+	errorText: 'Không tải được chi tiết hóa đơn.'
+};
+</script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260820_panel2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceList.js')}?mk_v=20260820_panel2"></script>
 {else}
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Invoice/resources/ListSupportBoot.js')}?mk_v=20260605_inv_search1"></script>
 {/if}

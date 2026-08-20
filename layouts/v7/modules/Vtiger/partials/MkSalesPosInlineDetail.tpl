@@ -1,6 +1,6 @@
 {* Lightweight POS inline detail dropdown (Accounts / Leads / Opp / Contacts) *}
 {strip}
-<div class="mk-so-inline-detail is-edit-mode" data-always-edit="1" data-record-id="{$RECORD->getId()}" data-module="{$MODULE|escape}" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-edit-url="{$INLINE_EDIT_URL|escape}"{if $MODULE eq 'ServiceContracts'} data-affiliate-code="{$INLINE_SC_AFFILIATE_CODE|default:''|escape}" data-can-create-aff="{if !empty($INLINE_SC_CAN_CREATE_AFF)}1{else}0{/if}"{/if}>
+<div class="mk-so-inline-detail is-edit-mode" data-always-edit="1" data-record-id="{$RECORD->getId()}" data-module="{$MODULE|escape}" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-edit-url="{$INLINE_EDIT_URL|escape}"{if $MODULE eq 'ServiceContracts'} data-affiliate-code="{$INLINE_SC_AFFILIATE_CODE|default:''|escape}" data-affiliate-visible="{if !empty($INLINE_SC_AFF_VISIBLE)}1{else}0{/if}"{/if}>
 	<div class="mk-so-inline-detail__tabs" role="tablist">
 		<button type="button" class="mk-so-inline-detail__tab is-active" role="tab" aria-selected="true">Thông tin</button>
 	</div>
@@ -247,14 +247,12 @@
 				<i class="fa fa-file-text-o" aria-hidden="true"></i>
 				<span>Báo giá</span>
 			</a>
-			{if !empty($INLINE_SC_CAN_CREATE_AFF)}
-			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__create-aff-btn" data-record-id="{$RECORD->getId()|escape}" title="Tạo mã AFF cho khách này">
-				<i class="fa fa-qrcode" aria-hidden="true"></i>
-				<span>Tạo mã AFF</span>
-			</button>
-			{elseif !empty($INLINE_SC_AFFILIATE_CODE)}
-			<span class="mk-so-inline-detail__aff-pill" title="Mã AFF đã tạo">{$INLINE_SC_AFFILIATE_CODE|escape}</span>
-			{/if}
+			<label class="mk-so-inline-detail__aff-toggle" title="Tắt chỉ ẩn mã, không xóa">
+				<input type="checkbox" class="mk-so-inline-detail__aff-visible-input"{if !empty($INLINE_SC_AFF_VISIBLE)} checked="checked"{/if} />
+				<span class="mk-so-inline-detail__aff-toggle-ui" aria-hidden="true"></span>
+				<span class="mk-so-inline-detail__aff-toggle-label">Cho phép giới thiệu</span>
+			</label>
+			<span class="mk-so-inline-detail__aff-pill"{if empty($INLINE_SC_AFF_VISIBLE) || empty($INLINE_SC_AFFILIATE_CODE)} hidden="hidden"{/if} title="Mã AFF">{$INLINE_SC_AFFILIATE_CODE|escape}</span>
 			{/if}
 			{if $MODULE eq 'Leads'}
 				{assign var=INLINE_CAN_CONVERT value=$INLINE_CAN_CONVERT|default:true}

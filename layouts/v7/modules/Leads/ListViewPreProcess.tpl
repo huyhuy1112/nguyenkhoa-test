@@ -29,7 +29,7 @@
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLeadsLogic.js')}&mk_v=20260811_sheetmap_gui1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkIcons.js')}?mk_v=20260711_i18n_tags1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.js')}&mk_v=20260811_sheetmap_gui1"></script>
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260819_lead_drawer1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260820_panel2" />
 <script type="text/javascript">
 window.__mkSalesPosInlineConfig = {
 	module: 'Leads',
@@ -42,7 +42,7 @@ window.__mkSalesPosInlineConfig = {
 	errorText: 'Không tải được chi tiết lead.'
 };
 </script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260819_lead_drawer1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260820_panel2"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-leads-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

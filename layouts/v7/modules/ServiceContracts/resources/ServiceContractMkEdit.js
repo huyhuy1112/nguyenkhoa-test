@@ -259,66 +259,51 @@
 		fillSelect($("#mkScPaymentCondition"), PAYMENT_OPTIONS, selected.payment_condition || "Chuyển khoản", false);
 	}
 
-	function setAffiliateBadge(code) {
+	function setAffiliateBadge(code, visible) {
 		var $badge = $("#mkScAffiliateBadge");
 		var $hint = $("#mkScAffiliateHint");
-		var $btn = $("#mkScCreateAffBtn");
+		var $toggle = $("#mkScAffVisible");
 		var id = recordId();
 		var hasCode = !!(code && String(code).trim());
+		var vis = visible === true || visible === 1 || visible === "1";
+		var shown = hasCode && vis;
 
-		if (hasCode) {
-			$badge.prop("hidden", false).text(String(code).trim().toUpperCase());
-			if ($hint.length && id) {
-				$hint.text(String(code).trim().toUpperCase());
-			}
-			$btn.prop("hidden", true).prop("disabled", true);
-			return;
-		}
-
-		$badge.prop("hidden", true).text("");
-		// Show "Tạo mã" only after customer is saved (has record id)
-		if (id) {
-			$btn.prop("hidden", false).prop("disabled", false).text("Tạo mã AFF");
-		} else {
-			// Still visible on create empty form but disabled until saved
-			$btn
-				.prop("hidden", false)
-				.prop("disabled", true)
-				.attr("title", "Lưu khách hàng trước khi tạo mã")
-				.text("Tạo mã AFF");
+		$toggle.prop("disabled", !id);
+		$toggle.prop("checked", vis);
+		$badge.prop("hidden", !shown).text(shown ? String(code).trim().toUpperCase() : "");
+		if ($hint.length && id && shown) {
+			$hint.text(String(code).trim().toUpperCase());
 		}
 	}
 
-	function createAffiliateCode() {
+	function setAffiliateVisible(visible) {
 		var id = recordId();
 		if (!id) {
-			showError("Vui lòng lưu khách hàng trước, rồi tạo mã AFF.");
+			showError("Vui lòng lưu khách hàng trước.");
+			$("#mkScAffVisible").prop("checked", false);
 			return Promise.resolve(null);
 		}
-		var $btn = $("#mkScCreateAffBtn");
-		if ($btn.prop("disabled")) return Promise.resolve(null);
-		$btn.prop("disabled", true).text("Đang tạo…");
-		return apiRequest("generate_affiliate", { record: id })
+		var $toggle = $("#mkScAffVisible");
+		$toggle.prop("disabled", true);
+		return apiRequest("set_affiliate_visible", { record: id, visible: visible ? 1 : 0 })
 			.then(function (res) {
 				var code =
 					(res && res.affiliate_code) ||
 					(res && res.contract && res.contract.affiliate_code) ||
 					"";
-				if (!code) {
-					throw new Error("Không nhận được mã AFF.");
-				}
-				setAffiliateBadge(code);
+				var vis = res && res.affiliate_visible != null ? Number(res.affiliate_visible) !== 0 : !!visible;
+				setAffiliateBadge(code, vis);
 				showError("");
-				if (res && res.already_existed) {
-					// already minted earlier — just show it
-					return code;
-				}
 				return code;
 			})
 			.catch(function (err) {
-				setAffiliateBadge("");
-				showError((err && err.message) || "Không tạo được mã AFF.");
+				$toggle.prop("checked", !visible);
+				showError((err && err.message) || "Không cập nhật được AFF.");
 				return null;
+			})
+			.then(function (code) {
+				$toggle.prop("disabled", false);
+				return code;
 			});
 	}
 
@@ -871,7 +856,7 @@
 		}
 		lockAutoFields();
 		fillUserSelect(data.sale_owner_id || "", data.sale_owner || "");
-		setAffiliateBadge(data.affiliate_code || "");
+		setAffiliateBadge(data.affiliate_code || "", Number(data.affiliate_visible) !== 0);
 
 		if (!$("#mkScRegistrationDate").val()) ensureRegistrationDate();
 		if (!$("#mkScRetentionExpires").val()) recomputeRetentionExpiry();
@@ -1089,11 +1074,10 @@
 		// Nguồn data + Người GT locked — referral code drives them
 		$("#mkScReferrerAff").off("change.mkScRef");
 
-		$("#mkScCreateAffBtn")
-			.off("click.mkScAff")
-			.on("click.mkScAff", function (e) {
-				e.preventDefault();
-				createAffiliateCode();
+		$("#mkScAffVisible")
+			.off("change.mkScAff")
+			.on("change.mkScAff", function () {
+				setAffiliateVisible(!!this.checked);
 			});
 
 		var referralTimer = null;
@@ -1172,7 +1156,6 @@
 		window.__MK_SC_FRANCHISE_BUILD__ = MK_BUILD;
 		hideLegacyChrome();
 		bindActions();
-		// Default UI for create (no record): show disabled create AFF button
 		setAffiliateBadge("");
 		loadForEdit();
 	}

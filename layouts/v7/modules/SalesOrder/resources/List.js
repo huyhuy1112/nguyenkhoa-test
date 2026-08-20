@@ -301,19 +301,52 @@
     return count > 0 ? count : 1;
   }
 
-  function collapsePosInlineDetail($table) {
-    if (!$table || !$table.length) {
-      posExpandedRecordId = null;
+  function usesRightDrawer() {
+    return !!(
+      window.MkSalesPosInline &&
+      typeof MkSalesPosInline.usesDrawer === "function" &&
+      MkSalesPosInline.usesDrawer()
+    );
+  }
+
+  function bindInlineDrawerBridge() {
+    if (document.documentElement.getAttribute("data-mk-so-drawer-bridge")) {
       return;
     }
-    closeInlineFullView();
-    closeInlineExcelPreview();
-    closeInlinePrintPreview();
-    $table.find("tr.mk-so-inline-detail-row").remove();
-    $table
-      .find("tr.listViewEntries.mk-so-row-expanded")
-      .removeClass("mk-so-row-expanded");
+    document.documentElement.setAttribute("data-mk-so-drawer-bridge", "1");
+    $(document).on("mkCrmInlineDrawerClosed", function () {
+      posExpandedRecordId = null;
+      posInlineDetailLoading = false;
+      $("#listview-table tr.listViewEntries.mk-so-row-expanded").removeClass(
+        "mk-so-row-expanded",
+      );
+      $("#listview-table tr.mk-so-inline-detail-row").remove();
+    });
+    $(document).on("mkCrmInlineDrawerNeighbor", function (e, recordId, $row) {
+      if ($row && $row.length) {
+        togglePosInlineDetail(recordId, $row);
+      }
+    });
+  }
+
+  function collapsePosInlineDetail($table, keepDrawer) {
+    if ($table && $table.length) {
+      closeInlineFullView();
+      closeInlineExcelPreview();
+      closeInlinePrintPreview();
+      $table.find("tr.mk-so-inline-detail-row").remove();
+      $table
+        .find("tr.listViewEntries.mk-so-row-expanded")
+        .removeClass("mk-so-row-expanded");
+    }
     posExpandedRecordId = null;
+    if (
+      !keepDrawer &&
+      window.MkSalesPosInline &&
+      MkSalesPosInline.closeDrawerShell
+    ) {
+      MkSalesPosInline.closeDrawerShell();
+    }
   }
 
   function ensureInlineDetailBackdrop() {
@@ -1002,7 +1035,7 @@
     }
     if (
       $target.closest(
-        ".mk-so-inline-detail, .mk-so-inline-detail-row, .mk-so-pos-star-btn, .mk-so-pos-delete-btn, .mk-so-pos-dup-btn, .mk-so-pos-check, .mk-so-pos-control-td",
+        ".mk-crm-inline-drawer, .mk-so-inline-detail, .mk-so-inline-detail-row, .mk-so-pos-star-btn, .mk-so-pos-delete-btn, .mk-so-pos-dup-btn, .mk-so-pos-check, .mk-so-pos-control-td",
       ).length
     ) {
       return true;
@@ -1800,20 +1833,31 @@
   }
 
   function loadPosInlineDetail(recordId, $row, $table) {
-    var colspan = getTableColspan($table);
-    var $detailRow = $(
-      '<tr class="mk-so-inline-detail-row">' +
-        '<td colspan="' +
-        colspan +
-        '">' +
-        '<div class="mk-so-inline-detail mk-so-inline-detail--loading">' +
-        '<span class="mk-so-inline-detail__spinner" aria-hidden="true"></span>' +
-        "<span>Đang tải chi tiết đơn...</span>" +
-        "</div>" +
-        "</td>" +
-        "</tr>",
-    );
-    $row.after($detailRow);
+    var drawer = usesRightDrawer();
+    var loadingHtml =
+      '<div class="mk-so-inline-detail mk-so-inline-detail--loading' +
+      (drawer ? " mk-so-inline-detail--drawer" : "") +
+      '">' +
+      '<span class="mk-so-inline-detail__spinner" aria-hidden="true"></span>' +
+      "<span>Đang tải chi tiết đơn...</span>" +
+      "</div>";
+    var $host;
+    if (drawer) {
+      $host = MkSalesPosInline.openDrawerHost(recordId, $row, loadingHtml);
+    } else {
+      var colspan = getTableColspan($table);
+      var $detailRow = $(
+        '<tr class="mk-so-inline-detail-row">' +
+          '<td colspan="' +
+          colspan +
+          '">' +
+          loadingHtml +
+          "</td>" +
+          "</tr>",
+      );
+      $row.after($detailRow);
+      $host = $detailRow.find("td");
+    }
 
     $.ajax({
       url: "index.php",
@@ -1831,26 +1875,32 @@
         if (posExpandedRecordId !== String(recordId)) {
           return;
         }
-        $detailRow.find("td").html(html);
-        if (typeof vtUtils !== "undefined" && vtUtils.applyFieldElementsView) {
-          vtUtils.applyFieldElementsView($detailRow);
+        $host.html(html);
+        if (drawer && MkSalesPosInline.layoutDrawerPanel) {
+          MkSalesPosInline.layoutDrawerPanel($host);
         }
-        initPosInlineDetailPanel($detailRow);
+        if (typeof vtUtils !== "undefined" && vtUtils.applyFieldElementsView) {
+          vtUtils.applyFieldElementsView($host);
+        }
+        initPosInlineDetailPanel($host);
+        if (drawer && MkSalesPosInline.updateDrawerNav) {
+          MkSalesPosInline.updateDrawerNav(recordId);
+        }
       })
       .fail(function () {
         if (posExpandedRecordId !== String(recordId)) {
           return;
         }
-        $detailRow
-          .find("td")
-          .html(
-            '<div class="mk-so-inline-detail mk-so-inline-detail--error">' +
-              "Không tải được chi tiết đơn. " +
-              '<a href="' +
-              ($row.data("recordurl") || "#") +
-              '">Mở trang chi tiết</a>.' +
-              "</div>",
-          );
+        $host.html(
+          '<div class="mk-so-inline-detail mk-so-inline-detail--error' +
+            (drawer ? " mk-so-inline-detail--drawer" : "") +
+            '">' +
+            "Không tải được chi tiết đơn. " +
+            '<a href="' +
+            ($row.data("recordurl") || "#") +
+            '">Mở trang chi tiết</a>.' +
+            "</div>",
+        );
       })
       .always(function () {
         posInlineDetailLoading = false;
@@ -1873,7 +1923,7 @@
     if (posInlineDetailLoading) {
       return;
     }
-    collapsePosInlineDetail($table);
+    collapsePosInlineDetail($table, usesRightDrawer());
     posExpandedRecordId = recordId;
     posInlineDetailLoading = true;
     $row.addClass("mk-so-row-expanded");
@@ -2486,6 +2536,7 @@
       "data-mk-so-inline-detail-bound",
       "1",
     );
+    bindInlineDrawerBridge();
     document.addEventListener(
       "click",
       function (e) {

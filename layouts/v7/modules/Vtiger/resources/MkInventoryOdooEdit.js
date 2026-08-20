@@ -91,7 +91,7 @@
     { className: "mk-inv-col-qty", label: "Số lượng" },
     { className: "mk-inv-col-unit-head mk-inv-col-unit", label: "Đơn vị tính" },
     { className: "mk-inv-col-price", label: "Đơn giá" },
-    { className: "mk-inv-col-tax-head mk-inv-col-tax mk-inv-col-discount", label: "Chiết khấu (%)" },
+    { className: "mk-inv-col-tax-head mk-inv-col-tax mk-inv-col-discount", label: "Chiết khấu" },
     { className: "mk-inv-col-amount", label: "Thành tiền" },
     { className: "mk-inv-col-afterck", label: "Sau CK" },
     { className: "mk-inv-col-note", label: "Ghi chú" },
@@ -2410,6 +2410,108 @@
     return Math.round(n * 100) / 100;
   }
 
+  function getDiscountMode($row) {
+    return $row && $row.data("mkDiscountMode") === "amount" ? "amount" : "percentage";
+  }
+
+  function looksLikeMoneyAmount(raw) {
+    var s = String(raw == null ? "" : raw).trim();
+    if (!s) {
+      return false;
+    }
+    if (/[đd₫]/i.test(s)) {
+      return true;
+    }
+    if (/\.\d{3}(\D|$)/.test(s) || /,\d{3}(\D|$)/.test(s)) {
+      return true;
+    }
+    return parseMoney(s) > 100;
+  }
+
+  function inferDiscountModeFromInput(raw, currentMode) {
+    var s = String(raw == null ? "" : raw).trim();
+    if (s.indexOf("%") >= 0) {
+      return "percentage";
+    }
+    if (/[đd₫]/i.test(s)) {
+      return "amount";
+    }
+    if (currentMode === "amount") {
+      return "amount";
+    }
+    if (looksLikeMoneyAmount(s)) {
+      return "amount";
+    }
+    return "percentage";
+  }
+
+  function readLegacyDiscountMode($row) {
+    if (!$row || !$row.length) {
+      return "percentage";
+    }
+    var rowNo = getRowNumberValue($row) || "";
+    var $discUI = $row.find("div.discountUI").first();
+    var $scope = $discUI.length ? $discUI : $row;
+    var $type = $scope
+      .find(
+        "#discount_type" +
+          rowNo +
+          ', input.discount_type, input[name="discount_type' +
+          rowNo +
+          '"]',
+      )
+      .first();
+    if (!$type.length) {
+      $type = $row
+        .find(
+          "#discount_type" +
+            rowNo +
+            ', input.discount_type, input[name="discount_type' +
+            rowNo +
+            '"]',
+        )
+        .first();
+    }
+    var type = String($type.val() || "").toLowerCase();
+    if (type === "amount") {
+      return "amount";
+    }
+    var $checked = $scope.find("input.discounts").filter(":checked").first();
+    if (
+      $checked.length &&
+      String($checked.attr("data-discount-type") || "").toLowerCase() === "amount"
+    ) {
+      return "amount";
+    }
+    return "percentage";
+  }
+
+  function readLegacyDiscountAmount($row) {
+    if (!$row || !$row.length) {
+      return 0;
+    }
+    var rowNo = getRowNumberValue($row) || "";
+    var $amt = $row
+      .find("#discount_amount" + rowNo + ", .discount_amount")
+      .first();
+    return Math.max(0, parseMoney($amt.val()));
+  }
+
+  function getRowDiscountAmount($row) {
+    if (!$row || !$row.length) {
+      return 0;
+    }
+    var cached = $row.data("mkDiscountAmount");
+    if (cached != null && cached !== "") {
+      return Math.max(0, parseMoney(cached));
+    }
+    var $inp = $row.find(".mk-inv-discount-custom, .mk-inv-discount-pct").first();
+    if ($inp.length) {
+      return Math.max(0, parseMoney($inp.val()));
+    }
+    return readLegacyDiscountAmount($row);
+  }
+
   function isDiscountPresetValue(pct) {
     pct = clampDiscountPercent(pct);
     var key = String(pct);
@@ -2605,12 +2707,116 @@
     return 0;
   }
 
+  function applyLineDiscountAmount($row, amount) {
+    amount = Math.max(0, Math.round(parseMoney(amount)));
+    $row.data("mkDiscountMode", "amount");
+    $row.data("mkDiscountAmount", amount);
+    var rowNo = getRowNumberValue($row) || "";
+    var $discUI = $row.find("div.discountUI").first();
+    var $scope = $discUI.length ? $discUI : $row;
+    var typeVal = amount > 0 ? "amount" : "zero";
+
+    var $type = $scope
+      .find(
+        "#discount_type" +
+          rowNo +
+          ', input.discount_type, input[name="discount_type' +
+          rowNo +
+          '"]',
+      )
+      .first();
+    if (!$type.length) {
+      $type = $row
+        .find(
+          "#discount_type" +
+            rowNo +
+            ', input.discount_type, input[name="discount_type' +
+            rowNo +
+            '"]',
+        )
+        .first();
+    }
+    if ($type.length) {
+      $type.val(typeVal).prop("disabled", false).removeAttr("disabled");
+    } else if (rowNo) {
+      $type = $('<input type="hidden" class="discount_type" />')
+        .attr("id", "discount_type" + rowNo)
+        .attr("name", "discount_type" + rowNo)
+        .val(typeVal);
+      ($discUI.length ? $discUI : $row).append($type);
+    }
+
+    var $amt = $scope
+      .find("#discount_amount" + rowNo + ", .discount_amount")
+      .add($row.find("#discount_amount" + rowNo + ", .discount_amount"));
+    if ($amt.length) {
+      $amt
+        .val(amount > 0 ? amount : "0")
+        .removeClass("hide")
+        .prop("disabled", false)
+        .removeAttr("disabled");
+    } else if (rowNo) {
+      $amt = $('<input type="hidden" class="discount_amount discountVal" />')
+        .attr("id", "discount_amount" + rowNo)
+        .attr("name", "discount_amount" + rowNo)
+        .val(amount > 0 ? amount : "0");
+      ($discUI.length ? $discUI : $row).append($amt);
+    }
+
+    var $pct = $scope
+      .find(
+        "#discount_percentage" +
+          rowNo +
+          ", .discount_percentage, input[name='discount_percentage" +
+          rowNo +
+          "']",
+      )
+      .add(
+        $row.find(
+          "#discount_percentage" +
+            rowNo +
+            ", .discount_percentage, input[name='discount_percentage" +
+            rowNo +
+            "']",
+        ),
+      );
+    if ($pct.length) {
+      $pct.val("0");
+    }
+
+    var $radios = $scope.find("input.discounts");
+    if (rowNo && $radios.length) {
+      $radios.attr("name", "discount" + rowNo);
+    }
+    $scope.find('input.discounts[data-discount-type="zero"]').prop("checked", amount <= 0);
+    $scope.find('input.discounts[data-discount-type="percentage"]').prop("checked", false);
+    $scope.find('input.discounts[data-discount-type="amount"]').prop("checked", amount > 0);
+
+    var qty = parseMoney($row.find(".qty").val());
+    var price = parseMoney($row.find(".listPrice").val());
+    var base = qty * price;
+    var after = Math.max(0, base - amount);
+    var $discTotal = $row.find(".discountTotal");
+    if ($discTotal.length) {
+      $discTotal.text(amount);
+    }
+    var $tad = $row.find(".totalAfterDiscount");
+    if ($tad.length) {
+      writeAmountDisplay($tad, after);
+    }
+    return after;
+  }
+
   /**
-   * Write % into Vtiger fields the save path expects (discount_type / discount_percentage).
-   * Scopes into discountUI so Inventory recalculate cannot leave radios out of sync.
+   * Write % or amount into Vtiger fields the save path expects.
    */
-  function applyLineDiscountFields($row, pct) {
-    pct = clampDiscountPercent(pct);
+  function applyLineDiscountFields($row, value, mode) {
+    mode = mode || getDiscountMode($row);
+    if (mode === "amount") {
+      return applyLineDiscountAmount($row, value);
+    }
+    var pct = clampDiscountPercent(value);
+    $row.data("mkDiscountMode", "percentage");
     $row.data("mkDiscountPct", pct);
     var rowNo = getRowNumberValue($row) || "";
     var $discUI = $row.find("div.discountUI").first();
@@ -2771,8 +2977,8 @@
     return legacy || fromControls || 0;
   }
 
-  function paintDiscountUi($row, pct) {
-    pct = clampDiscountPercent(pct);
+  function paintDiscountUi($row, value) {
+    var mode = getDiscountMode($row);
     var $sel = $row.find(".mk-inv-discount-select").first();
     var $custom = $row.find(".mk-inv-discount-custom").first();
     var $suffix = $row.find(".mk-inv-discount-suffix").first();
@@ -2784,7 +2990,20 @@
       .css({ display: "", visibility: "" })
       .prop("disabled", false)
       .prop("readonly", false);
-    $suffix.css({ display: "", visibility: "" });
+    $suffix
+      .css({ display: "", visibility: "", cursor: "pointer" })
+      .attr("title", "Bấm để đổi % / đ")
+      .text(mode === "amount" ? "đ" : "%");
+    $row.toggleClass("mk-inv-discount--amount", mode === "amount");
+    if (mode === "amount") {
+      var amount = value != null ? parseMoney(value) : getRowDiscountAmount($row);
+      if (document.activeElement !== $custom[0]) {
+        $custom.val(amount > 0 ? formatVndNumber(amount) : "0");
+      }
+      $row.addClass("mk-inv-discount--custom");
+      return;
+    }
+    var pct = clampDiscountPercent(value != null ? value : getRowDiscountPercent($row));
     if (document.activeElement !== $custom[0]) {
       $custom.val(String(pct));
     }
@@ -2801,14 +3020,15 @@
     }
   }
 
-  function commitRowDiscount($row, $form, pct) {
-    pct = clampDiscountPercent(pct);
+  function commitRowDiscount($row, $form, value, mode) {
+    mode = mode || getDiscountMode($row);
+    $row.data("mkDiscountMode", mode);
     $row.data("mkDiscUserSet", true);
     $row.removeData("mkAfterCkManual");
     clearManualGrandTotal($form);
-    applyLineDiscountFields($row, pct);
+    applyLineDiscountFields($row, value, mode);
     applyLineTaxZero($row, $form);
-    paintDiscountUi($row, pct);
+    paintDiscountUi($row, value);
     setTimeout(function () {
       syncRowAmounts($row, $form);
       syncTotalsDisplay($form);
@@ -2920,19 +3140,28 @@
         .addClass("mk-inv-hide-legacy")
         .css({ display: "none", visibility: "hidden" });
       if (!$row.data("mkDiscUserSet")) {
-        currentPct = readLegacyDiscountPercent($row);
-        if (
-          currentPct <= 0 &&
-          $row.data("mkDiscountPct") != null &&
-          $row.data("mkDiscountPct") !== ""
-        ) {
-          currentPct = clampDiscountPercent($row.data("mkDiscountPct"));
+        var seededMode = readLegacyDiscountMode($row);
+        $row.data("mkDiscountMode", seededMode);
+        if (seededMode === "amount") {
+          currentPct = readLegacyDiscountAmount($row);
+          $row.data("mkDiscountAmount", currentPct);
+        } else {
+          currentPct = readLegacyDiscountPercent($row);
+          if (
+            currentPct <= 0 &&
+            $row.data("mkDiscountPct") != null &&
+            $row.data("mkDiscountPct") !== ""
+          ) {
+            currentPct = clampDiscountPercent($row.data("mkDiscountPct"));
+          }
         }
+      } else if (getDiscountMode($row) === "amount") {
+        currentPct = getRowDiscountAmount($row);
       } else {
         currentPct = getRowDiscountPercent($row);
       }
       paintDiscountUi($row, currentPct);
-      applyLineDiscountFields($row, currentPct);
+      applyLineDiscountFields($row, currentPct, getDiscountMode($row));
       return;
     }
 
@@ -2941,11 +3170,11 @@
 
     var $wrap = $(
       '<div class="mk-inv-discount-wrap mk-inv-discount-wrap--combo">' +
-        '<input type="text" inputmode="decimal" class="mk-inv-discount-custom mk-inv-discount-pct inputElement" title="Nhập % chiết khấu hoặc chọn từ menu" placeholder="0" autocomplete="off" />' +
+        '<input type="text" inputmode="decimal" class="mk-inv-discount-custom mk-inv-discount-pct inputElement" title="Nhập % hoặc số tiền chiết khấu" placeholder="0" autocomplete="off" />' +
         '<button type="button" class="mk-inv-discount-caret" tabindex="-1" title="Chọn % nhanh" aria-label="Chọn % nhanh">' +
         '<i class="fa fa-caret-down" aria-hidden="true"></i></button>' +
         '<select class="mk-inv-discount-select inputElement mk-inv-hide-legacy" title="Chọn % chiết khấu" tabindex="-1" aria-hidden="true"></select>' +
-        '<span class="mk-inv-discount-suffix">%</span>' +
+        '<span class="mk-inv-discount-suffix" title="Bấm để đổi % / đ">%</span>' +
         "</div>",
     );
     var $sel = $wrap.find(".mk-inv-discount-select");
@@ -2956,20 +3185,28 @@
     });
     var $custom = $wrap.find(".mk-inv-discount-custom");
     var $caret = $wrap.find(".mk-inv-discount-caret");
+    var $suffix = $wrap.find(".mk-inv-discount-suffix");
 
     // Seed from DB before DOM defaults to 0%
     if (!$row.data("mkDiscUserSet")) {
-      currentPct = readLegacyDiscountPercent($row);
-      if (
-        currentPct <= 0 &&
-        $row.data("mkDiscountPct") != null &&
-        $row.data("mkDiscountPct") !== ""
-      ) {
-        currentPct = clampDiscountPercent($row.data("mkDiscountPct"));
+      var seedMode = readLegacyDiscountMode($row);
+      $row.data("mkDiscountMode", seedMode);
+      if (seedMode === "amount") {
+        currentPct = readLegacyDiscountAmount($row);
+        $row.data("mkDiscountAmount", currentPct);
+      } else {
+        currentPct = readLegacyDiscountPercent($row);
+        if (
+          currentPct <= 0 &&
+          $row.data("mkDiscountPct") != null &&
+          $row.data("mkDiscountPct") !== ""
+        ) {
+          currentPct = clampDiscountPercent($row.data("mkDiscountPct"));
+        }
       }
     }
 
-    applyLineDiscountFields($row, currentPct);
+    applyLineDiscountFields($row, currentPct, getDiscountMode($row));
 
     function openDiscountSelectMenu() {
       try {
@@ -3012,7 +3249,7 @@
       if (v === "" || v == null) {
         return;
       }
-      commitRowDiscount($row, $form, v);
+      commitRowDiscount($row, $form, v, "percentage");
       $sel.css({ opacity: 0, "pointer-events": "none", "z-index": 0 });
     });
     $sel.on("blur.mkInvDisc", function () {
@@ -3030,20 +3267,39 @@
     $custom.on(
       "input.mkInvDisc change.mkInvDisc focusout.mkInvDisc",
       function () {
-        var pct = clampDiscountPercent($custom.val());
+        var raw = $custom.val();
+        var mode = inferDiscountModeFromInput(raw, getDiscountMode($row));
+        var value =
+          mode === "amount"
+            ? Math.max(0, parseMoney(raw))
+            : clampDiscountPercent(raw);
         if (document.activeElement !== $custom[0]) {
-          $custom.val(String(pct));
+          $custom.val(mode === "amount" ? (value > 0 ? formatVndNumber(value) : "0") : String(value));
         }
-        if (isDiscountPresetValue(pct)) {
+        if (mode === "percentage" && isDiscountPresetValue(value)) {
           var key =
-            Math.abs(pct - Math.round(pct)) < 0.001
-              ? String(Math.round(pct))
-              : String(pct);
+            Math.abs(value - Math.round(value)) < 0.001
+              ? String(Math.round(value))
+              : String(value);
           $sel.val(key);
         }
-        commitRowDiscount($row, $form, pct);
+        commitRowDiscount($row, $form, value, mode);
       },
     );
+    $suffix.on("mousedown.mkInvDisc click.mkInvDisc", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var base = calcLineRowTotal($row, $form);
+      var mode = getDiscountMode($row);
+      if (mode === "percentage") {
+        var pct = getRowDiscountPercent($row);
+        commitRowDiscount($row, $form, Math.round((base * pct) / 100), "amount");
+      } else {
+        var amt = getRowDiscountAmount($row);
+        var nextPct = base > 0 ? (amt / base) * 100 : 0;
+        commitRowDiscount($row, $form, clampDiscountPercent(nextPct), "percentage");
+      }
+    });
 
     $taxTd
       .children()
@@ -3053,7 +3309,7 @@
     $taxTd.prepend($wrap);
     // repaint now that DOM is under $row
     paintDiscountUi($row, currentPct);
-    applyLineDiscountFields($row, currentPct);
+    applyLineDiscountFields($row, currentPct, getDiscountMode($row));
   }
 
   function injectNoteColumn($row, $form) {
@@ -3138,6 +3394,9 @@
 
   function calcLineAfterDiscount($row, $form) {
     var base = calcLineRowTotal($row, $form);
+    if (getDiscountMode($row) === "amount") {
+      return Math.max(0, base - getRowDiscountAmount($row));
+    }
     var disc = getRowDiscountPercent($row);
     var after = base - Math.round((base * disc) / 100);
     return after < 0 ? 0 : after;
@@ -3280,35 +3539,25 @@
     var afterCk = calcLineAfterDiscount($row, $form);
     var $inp = $ckTd.find(".mk-inv-afterck-input");
     if (!$inp.length) {
-      $inp = $('<input type="text" class="mk-inv-afterck-input inputElement" inputmode="numeric" />');
+      $inp = $(
+        '<input type="text" class="mk-inv-afterck-input inputElement is-readonly" inputmode="numeric" readonly="readonly" tabindex="-1" />',
+      );
       $ckTd.empty().append(
         $('<div class="mk-inv-money-wrap mk-inv-money-wrap--afterck"></div>')
           .append('<span class="mk-inv-money-prefix">₫</span>')
           .append($inp)
       );
-      $inp.on("change blur", function () {
-        var typed = parseMoney($(this).val());
-        if (typed >= 0) {
-          $row.data("mkAfterCkManual", typed);
-        }
-        syncTotalsDisplay($form || $row.closest("form"));
-      });
+    } else {
+      $inp.prop("readonly", true).attr("tabindex", "-1").addClass("is-readonly");
+      $inp.off("change.blur.mkAfterCk");
     }
+    $row.removeData("mkAfterCkManual");
     if (document.activeElement !== $inp[0]) {
-      var manual = $row.data("mkAfterCkManual");
-      if (manual != null && manual !== "") {
-        $inp.val(formatVndNumber(parseMoney(manual)));
-      } else {
-        $inp.val(formatVndNumber(afterCk));
-      }
+      $inp.val(formatVndNumber(afterCk));
     }
   }
 
   function getRowAfterCk($row, $form) {
-    var manual = $row.data("mkAfterCkManual");
-    if (manual != null && manual !== "") {
-      return parseMoney(manual);
-    }
     return calcLineAfterDiscount($row, $form);
   }
 
@@ -3360,7 +3609,7 @@
         ".mk-inv-discount-select, .mk-inv-discount-pct, .mk-inv-tax-select",
       ).length
     ) {
-      return "Chiết khấu (%)";
+      return "Chiết khấu";
     }
     if (
       $cell.hasClass("mk-inv-col-note") ||
@@ -3384,7 +3633,7 @@
       var text = $.trim($td.text());
       if (/thuế|tax/i.test(text) && !/gtgt/i.test(text)) {
         $td
-          .html('<span class="mk-inv-th-label">Chiết khấu (%)</span>')
+          .html('<span class="mk-inv-th-label">Chiết khấu</span>')
           .removeClass("mk-inv-col-net-hide mk-inv-hide-legacy")
           .addClass("mk-inv-col-tax-head mk-inv-col-tax mk-inv-col-discount");
       }
@@ -3417,7 +3666,7 @@
         .eq(lastIdx)
         .removeClass("mk-inv-col-net-hide mk-inv-hide-legacy mk-inv-col-amount")
         .addClass("mk-inv-col-tax-head mk-inv-col-tax mk-inv-col-discount")
-        .html('<span class="mk-inv-th-label">Chiết khấu (%)</span>');
+        .html('<span class="mk-inv-th-label">Chiết khấu</span>');
     }
   }
 

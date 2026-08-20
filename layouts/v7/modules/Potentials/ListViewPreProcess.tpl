@@ -37,10 +37,11 @@ html.mk-opps-ui-ready body[data-module="Potentials"][data-view="List"] #mk-dash-
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsConvertCustomerTier.js')}&mk_v=20260724_vi_force1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkLastTouchCall.js')}?mk_v=20260805_lt1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsMkList.js')}&mk_v=20260810_pager1"></script>
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260805_care_2r_sc" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260820_panel2" />
 <script type="text/javascript">
 window.__mkSalesPosInlineConfig = {
 	module: 'Potentials',
+	drawer: true,
 	tableSelector: '#mk-opps-table',
 	rowSelector: 'tr.mk-leads-row',
 	colspan: 16,
@@ -49,7 +50,7 @@ window.__mkSalesPosInlineConfig = {
 	errorText: 'Không tải được chi tiết cơ hội.'
 };
 </script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260805_care_2r_sc"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260820_panel2"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-opportunity-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

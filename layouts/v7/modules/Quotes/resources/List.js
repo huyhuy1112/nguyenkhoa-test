@@ -493,16 +493,49 @@
     return count > 0 ? count : 1;
   }
 
-  function collapseInlineDetail($table) {
-    if (!$table || !$table.length) {
-      qtExpandedRecordId = null;
+  function usesRightDrawer() {
+    return !!(
+      window.MkSalesPosInline &&
+      typeof MkSalesPosInline.usesDrawer === "function" &&
+      MkSalesPosInline.usesDrawer()
+    );
+  }
+
+  function bindInlineDrawerBridge() {
+    if (document.documentElement.getAttribute("data-mk-qt-drawer-bridge")) {
       return;
     }
-    $table.find("tr.mk-so-inline-detail-row").remove();
-    $table
-      .find("tr.listViewEntries.mk-so-row-expanded")
-      .removeClass("mk-so-row-expanded");
+    document.documentElement.setAttribute("data-mk-qt-drawer-bridge", "1");
+    $(document).on("mkCrmInlineDrawerClosed", function () {
+      qtExpandedRecordId = null;
+      qtInlineLoading = false;
+      $("#listview-table tr.listViewEntries.mk-so-row-expanded").removeClass(
+        "mk-so-row-expanded",
+      );
+      $("#listview-table tr.mk-so-inline-detail-row").remove();
+    });
+    $(document).on("mkCrmInlineDrawerNeighbor", function (e, recordId, $row) {
+      if ($row && $row.length) {
+        toggleInlineDetail(recordId, $row);
+      }
+    });
+  }
+
+  function collapseInlineDetail($table, keepDrawer) {
+    if ($table && $table.length) {
+      $table.find("tr.mk-so-inline-detail-row").remove();
+      $table
+        .find("tr.listViewEntries.mk-so-row-expanded")
+        .removeClass("mk-so-row-expanded");
+    }
     qtExpandedRecordId = null;
+    if (
+      !keepDrawer &&
+      window.MkSalesPosInline &&
+      MkSalesPosInline.closeDrawerShell
+    ) {
+      MkSalesPosInline.closeDrawerShell();
+    }
   }
 
   function getRowRecordId($row) {
@@ -539,7 +572,7 @@
     }
     if (
       $target.closest(
-        ".mk-so-inline-detail, .mk-so-inline-detail-row, .mk-so-pos-star-btn, .mk-so-pos-dup-btn, .mk-so-pos-check, .mk-so-pos-control-td, .listViewEntriesCheckBox, .listViewEntriesMainCheckBox",
+        ".mk-crm-inline-drawer, .mk-so-inline-detail, .mk-so-inline-detail-row, .mk-so-pos-star-btn, .mk-so-pos-dup-btn, .mk-so-pos-check, .mk-so-pos-control-td, .listViewEntriesCheckBox, .listViewEntriesMainCheckBox",
       ).length
     ) {
       return true;
@@ -1517,20 +1550,31 @@
   }
 
   function loadInlineDetail(recordId, $row, $table) {
-    var colspan = getTableColspan($table);
-    var $detailRow = $(
-      '<tr class="mk-so-inline-detail-row">' +
-        '<td colspan="' +
-        colspan +
-        '">' +
-        '<div class="mk-so-inline-detail mk-so-inline-detail--loading">' +
-        '<span class="mk-so-inline-detail__spinner" aria-hidden="true"></span>' +
-        "<span>Đang tải chi tiết báo giá...</span>" +
-        "</div>" +
-        "</td>" +
-        "</tr>",
-    );
-    $row.after($detailRow);
+    var drawer = usesRightDrawer();
+    var loadingHtml =
+      '<div class="mk-so-inline-detail mk-so-inline-detail--loading' +
+      (drawer ? " mk-so-inline-detail--drawer" : "") +
+      '">' +
+      '<span class="mk-so-inline-detail__spinner" aria-hidden="true"></span>' +
+      "<span>Đang tải chi tiết báo giá...</span>" +
+      "</div>";
+    var $host;
+    if (drawer) {
+      $host = MkSalesPosInline.openDrawerHost(recordId, $row, loadingHtml);
+    } else {
+      var colspan = getTableColspan($table);
+      var $detailRow = $(
+        '<tr class="mk-so-inline-detail-row">' +
+          '<td colspan="' +
+          colspan +
+          '">' +
+          loadingHtml +
+          "</td>" +
+          "</tr>",
+      );
+      $row.after($detailRow);
+      $host = $detailRow.find("td");
+    }
 
     $.ajax({
       url: "index.php",
@@ -1548,23 +1592,29 @@
         if (qtExpandedRecordId !== String(recordId)) {
           return;
         }
-        $detailRow.find("td").html(html);
-        initInlineDetailPanel($detailRow);
+        $host.html(html);
+        if (drawer && MkSalesPosInline.layoutDrawerPanel) {
+          MkSalesPosInline.layoutDrawerPanel($host);
+        }
+        initInlineDetailPanel($host);
+        if (drawer && MkSalesPosInline.updateDrawerNav) {
+          MkSalesPosInline.updateDrawerNav(recordId);
+        }
       })
       .fail(function () {
         if (qtExpandedRecordId !== String(recordId)) {
           return;
         }
-        $detailRow
-          .find("td")
-          .html(
-            '<div class="mk-so-inline-detail mk-so-inline-detail--error">' +
-              "Không tải được chi tiết báo giá. " +
-              '<a href="' +
-              ($row.data("recordurl") || "#") +
-              '">Mở trang chi tiết</a>.' +
-              "</div>",
-          );
+        $host.html(
+          '<div class="mk-so-inline-detail mk-so-inline-detail--error' +
+            (drawer ? " mk-so-inline-detail--drawer" : "") +
+            '">' +
+            "Không tải được chi tiết báo giá. " +
+            '<a href="' +
+            ($row.data("recordurl") || "#") +
+            '">Mở trang chi tiết</a>.' +
+            "</div>",
+        );
       })
       .always(function () {
         qtInlineLoading = false;
@@ -1587,7 +1637,7 @@
     if (qtInlineLoading) {
       return;
     }
-    collapseInlineDetail($table);
+    collapseInlineDetail($table, usesRightDrawer());
     qtExpandedRecordId = recordId;
     qtInlineLoading = true;
     $row.addClass("mk-so-row-expanded");
@@ -1686,6 +1736,7 @@
       "data-mk-qt-inline-detail-bound",
       "1",
     );
+    bindInlineDrawerBridge();
     document.addEventListener(
       "click",
       function (e) {

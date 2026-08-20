@@ -22,7 +22,7 @@ html.mk-sales-list-guard:not(.mk-sales-list-ready) .essentials-toggle {
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260810_list_pager_leads1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosList.css')}?mk_v=20260710_pos2" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260805_care_2r_sc" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260820_panel2" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260810_list_pager_leads1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript">
@@ -34,12 +34,13 @@ window.__mkSalesPosListConfig = {
 };
 window.__mkSalesPosInlineConfig = {
 	module: 'Accounts',
+	drawer: true,
 	loadingText: 'Đang tải chi tiết Tuibao...',
 	errorText: 'Không tải được chi tiết Tuibao.'
 };
 </script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosList.js')}?mk_v=20260710_pos2"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260805_care_2r_sc"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260820_panel2"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsList.js')}?mk_v=20260723_tb_list1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-accounts-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}

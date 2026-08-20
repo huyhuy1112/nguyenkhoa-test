@@ -2118,13 +2118,23 @@
       }
     });
 
+    document.addEventListener(
+      "click",
+      function (e) {
+        var inlineCallBtn =
+          e.target.closest && e.target.closest(".mk-so-inline-detail__call-btn");
+        if (!inlineCallBtn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        openListLastTouchModal(inlineCallBtn);
+      },
+      true
+    );
+
     document.addEventListener("click", function (e) {
       var inlineCallBtn =
         e.target.closest && e.target.closest(".mk-so-inline-detail__call-btn");
       if (inlineCallBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        openListLastTouchModal(inlineCallBtn);
         return;
       }
       var inlineConvertBtn =

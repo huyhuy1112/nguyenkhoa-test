@@ -11,7 +11,21 @@
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosList.css')}?mk_v=20260812_sku_cols1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260811_vat_sku_ui1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-  <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/List.js')}?mk_v=20260819_fix8"></script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260820_panel2" />
+<script type="text/javascript">
+window.__mkSalesPosInlineConfig = {
+	module: 'Quotes',
+	drawer: true,
+	bindClicks: false,
+	tableSelector: '#listview-table',
+	rowSelector: 'tr.listViewEntries',
+	enabledSelector: '[data-mk-quotes-list]',
+	loadingText: 'Đang tải chi tiết báo giá...',
+	errorText: 'Không tải được chi tiết báo giá.'
+};
+</script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260820_panel2"></script>
+  <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/List.js')}?mk_v=20260820_panel2"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-quotes-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

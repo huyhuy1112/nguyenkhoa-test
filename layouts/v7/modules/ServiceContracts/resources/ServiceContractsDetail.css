@@ -1714,27 +1714,56 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 	font-weight: 700;
 }
 
-body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] #mkScMkCreateAffBtn {
-	appearance: none;
-	border: none;
-	border-radius: 10px;
-	min-height: 34px;
-	padding: 6px 14px;
-	font-size: 13px;
-	font-weight: 700;
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-aff-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	padding: 4px 10px;
+	border-radius: 999px;
+	border: 1px solid #e2e8f0;
+	background: #fff;
 	cursor: pointer;
-	background: linear-gradient(135deg, #08a045 0%, #0b6e4f 100%);
-	color: #fff;
-	box-shadow: 0 2px 8px rgba(8, 160, 69, 0.28);
+	font-size: 12px;
+	font-weight: 700;
+	color: #334155;
 }
 
-body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] #mkScMkCreateAffBtn:hover:not(:disabled) {
-	filter: brightness(1.04);
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-aff-toggle input {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
 }
 
-body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] #mkScMkCreateAffBtn:disabled {
-	opacity: 0.55;
-	cursor: not-allowed;
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-aff-toggle__ui {
+	width: 32px;
+	height: 18px;
+	border-radius: 999px;
+	background: #cbd5e1;
+	position: relative;
+	flex: 0 0 32px;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-aff-toggle__ui::after {
+	content: "";
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2);
+	transition: transform 0.18s ease;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-aff-toggle input:checked + .mk-sc-aff-toggle__ui {
+	background: #16a34a;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-aff-toggle input:checked + .mk-sc-aff-toggle__ui::after {
+	transform: translateX(14px);
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-mk-detail__grid {

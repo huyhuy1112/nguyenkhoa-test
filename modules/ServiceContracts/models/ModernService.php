@@ -133,6 +133,7 @@ class ServiceContracts_ModernService {
 			'payment_date' => 'DATE DEFAULT NULL',
 			/** Hạng A/B/C/D của chính khách này — dùng khi người khác nhập mã AFF của họ. */
 			'affiliate_tier_prefix' => "CHAR(1) DEFAULT 'D'",
+			'affiliate_visible' => 'TINYINT(1) NOT NULL DEFAULT 1',
 		);
 		foreach ($cols as $name => $def) {
 			$check = $adb->pquery("SHOW COLUMNS FROM bace_sc_profile LIKE ?", array($name));
@@ -287,6 +288,61 @@ class ServiceContracts_ModernService {
 	}
 
 	/**
+	 * Toggle whether AFF code is shown / usable for referral. Does not delete the code.
+	 */
+	public static function setAffiliateVisible($contractId, $visible) {
+		$contractId = (int) $contractId;
+		if ($contractId <= 0) {
+			throw new Exception('Record not found.');
+		}
+		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $contractId)) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		self::ensureProfileRow($contractId);
+		$flag = $visible ? 1 : 0;
+		$now = date('Y-m-d H:i:s');
+		$code = self::getAffiliateCode($contractId);
+		if ($flag === 1 && $code === '') {
+			$code = self::generateAffiliateCode($contractId);
+		}
+		$adb->pquery(
+			'UPDATE bace_sc_profile SET affiliate_visible = ?, modified_at = ? WHERE servicecontractsid = ?',
+			array($flag, $now, $contractId)
+		);
+		$contract = self::getFranchise($contractId);
+		return array(
+			'success' => true,
+			'affiliate_code' => $code,
+			'affiliate_visible' => $flag,
+			'contract' => $contract,
+		);
+	}
+
+	public static function isAffiliateVisible($contractId) {
+		$contractId = (int) $contractId;
+		if ($contractId <= 0) {
+			return false;
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$res = $adb->pquery(
+			'SELECT affiliate_visible, affiliate_code FROM bace_sc_profile WHERE servicecontractsid = ?',
+			array($contractId)
+		);
+		if (!$res || $adb->num_rows($res) <= 0) {
+			return false;
+		}
+		$code = trim((string) $adb->query_result($res, 0, 'affiliate_code'));
+		$vis = $adb->query_result($res, 0, 'affiliate_visible');
+		if ($vis === null || $vis === '') {
+			$vis = 1;
+		}
+		return $code !== '' && (int) $vis !== 0;
+	}
+
+	/**
 	 * @deprecated Prefer ensureProfileRow + generateAffiliateCode.
 	 * Kept for safety: only creates profile row, never auto-mints AFF codes.
 	 * @return string existing code or empty
@@ -354,7 +410,7 @@ class ServiceContracts_ModernService {
 
 		$sql = "SELECT sc.servicecontractsid, sc.subject, sc.contract_no, sc.contract_status, sc.contract_type,
 				sc.priority, sc.sc_related_to, sc.start_date, sc.end_date,
-				p.affiliate_code, p.phone, p.email, p.cccd, p.segment, p.district, p.address_line, p.area,
+				p.affiliate_code, p.affiliate_visible, p.phone, p.email, p.cccd, p.segment, p.district, p.address_line, p.area,
 				p.sc_value, p.last_touch, p.next_action, p.customer_type,
 				p.received_date, p.business_note, p.franchise_status, p.fanpage, p.data_source, p.referrer,
 				p.referral_code, p.contact_status, p.interaction_1, p.interaction_2, p.interaction_3, p.interaction_materials,
@@ -501,6 +557,7 @@ class ServiceContracts_ModernService {
 			'name' => $name,
 			'contract_no' => self::decodeText(isset($row['contract_no']) ? $row['contract_no'] : ''),
 			'affiliate_code' => $affiliate,
+			'affiliate_visible' => ($affiliate !== '' && (isset($row['affiliate_visible']) ? (int) $row['affiliate_visible'] : 1) !== 0) ? 1 : 0,
 			'phone' => ($phone === '' || $phone === '--') ? '' : $phone,
 			'email' => ($email === '' || $email === '--') ? '' : $email,
 			'cccd' => self::decodeText(isset($row['cccd']) ? $row['cccd'] : ''),
@@ -672,7 +729,7 @@ class ServiceContracts_ModernService {
 		self::ensureProfileRow($contractId);
 
 		$res = $adb->pquery(
-			"SELECT sc.subject, p.affiliate_code, p.affiliate_tier_prefix, p.phone, p.email, p.received_date, p.business_note,
+			"SELECT sc.subject, p.affiliate_code, p.affiliate_visible, p.affiliate_tier_prefix, p.phone, p.email, p.received_date, p.business_note,
 				p.franchise_status, p.fanpage, p.data_source, p.referrer, p.contact_status,
 				p.interaction_1, p.interaction_2, p.interaction_3, p.interaction_materials,
 				p.referral_code, p.referral_tier_name, p.referral_reward_amount,
@@ -744,6 +801,7 @@ class ServiceContracts_ModernService {
 			'id' => (string) $contractId,
 			'crmid' => $contractId,
 			'affiliate_code' => $affiliateCode,
+			'affiliate_visible' => ($affiliateCode !== '' && (isset($row['affiliate_visible']) ? (int) $row['affiliate_visible'] : 1) !== 0) ? 1 : 0,
 			'affiliate_tier_prefix' => $ownTierPrefix,
 			'affiliate_tier_name' => $ownTier ? $ownTier['tier_name'] : '',
 			'affiliate_reward_amount' => $ownTier ? (float) $ownTier['reward_amount'] : null,

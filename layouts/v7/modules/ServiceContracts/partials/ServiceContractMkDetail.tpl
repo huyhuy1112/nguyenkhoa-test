@@ -6,9 +6,11 @@
 			<h2>Chi tiết khách chuyển nhượng</h2>
 			<div class="mk-sc-mk-detail__aff-slot">
 				<span class="mk-sc-mk-detail__aff" id="mkScMkAff" hidden></span>
-				<button type="button" class="mk-sc-btn mk-sc-btn--primary mk-sc-btn--sm" id="mkScMkCreateAffBtn" hidden>
-					Tạo mã AFF
-				</button>
+				<label class="mk-sc-aff-toggle" title="Tắt chỉ ẩn mã, không xóa">
+					<input type="checkbox" id="mkScMkAffVisible" />
+					<span class="mk-sc-aff-toggle__ui" aria-hidden="true"></span>
+					<span class="mk-sc-aff-toggle__label">Cho phép giới thiệu</span>
+				</label>
 			</div>
 		</header>
 		<div class="mk-sc-mk-detail__grid" id="mkScMkFields"></div>

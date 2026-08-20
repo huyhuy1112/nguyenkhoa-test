@@ -236,6 +236,98 @@ class Warehouse_Return_Helper {
 		return $out;
 	}
 
+	/**
+	 * Search outbound issues of this warehouse so returns pick already-exported products.
+	 */
+	public static function searchOutboundIssues($warehouseCode, $query) {
+		$db = PearDatabase::getInstance();
+		$warehouseCode = trim((string) $warehouseCode);
+		$q = trim((string) $query);
+		if ($warehouseCode === '') {
+			return array();
+		}
+
+		$sql = 'SELECT issueid, code, destination, status, createdtime, mk_meta_json, salesorder_id
+			 FROM vtiger_goodsissue
+			 WHERE deleted = 0 AND warehouse_id = ?
+			   AND LOWER(IFNULL(status, \'\')) NOT IN (\'cancelled\', \'canceled\', \'cancelled_by_user\', \'rejected\')';
+		$params = array($warehouseCode);
+		if ($q !== '') {
+			$like = '%' . $q . '%';
+			$sql .= ' AND (code LIKE ? OR destination LIKE ?)';
+			$params[] = $like;
+			$params[] = $like;
+		}
+		$sql .= ' ORDER BY createdtime DESC, issueid DESC LIMIT 40';
+		$rs = $db->pquery($sql, $params);
+		$out = array();
+		while ($row = $db->fetchByAssoc($rs)) {
+			$issueId = (int) $row['issueid'];
+			$code = trim((string) $row['code']);
+			$lines = self::issueLines($db, $issueId, $code);
+			if (empty($lines)) {
+				continue;
+			}
+			$customer = Warehouse_WhMgmtService::publicDecode((string) (isset($row['destination']) ? $row['destination'] : ''));
+			$soId = (int) (isset($row['salesorder_id']) ? $row['salesorder_id'] : 0);
+			$created = isset($row['createdtime']) ? $row['createdtime'] : '';
+			$out[] = array(
+				'kind' => 'issue',
+				'issueId' => $issueId,
+				'issueCode' => $code,
+				'salesorderId' => $soId,
+				'servicecontractId' => 0,
+				'customer' => $customer,
+				'status' => (string) (isset($row['status']) ? $row['status'] : ''),
+				'createdAt' => $created,
+				'label' => $code . ($customer !== '' ? (' — ' . $customer) : ''),
+				'lines' => $lines,
+			);
+		}
+		return $out;
+	}
+
+	protected static function issueLines(PearDatabase $db, $issueId, $issueCode) {
+		$issueId = (int) $issueId;
+		if ($issueId <= 0) {
+			return array();
+		}
+		static $hasUnitPrice = null;
+		if ($hasUnitPrice === null) {
+			$colRs = $db->pquery("SHOW COLUMNS FROM vtiger_goodsissue_items LIKE 'unit_price'", array());
+			$hasUnitPrice = $colRs && $db->num_rows($colRs) > 0;
+		}
+		$cols = 'productid, product_name, quantity, serial_number, line_note';
+		if ($hasUnitPrice) {
+			$cols .= ', unit_price';
+		}
+		$rs = $db->pquery(
+			'SELECT ' . $cols . ' FROM vtiger_goodsissue_items WHERE issueid = ? ORDER BY itemid ASC',
+			array($issueId)
+		);
+		$out = array();
+		while ($row = $db->fetchByAssoc($rs)) {
+			$qty = (float) $row['quantity'];
+			if ($qty <= 0) {
+				continue;
+			}
+			$name = trim((string) (isset($row['product_name']) ? $row['product_name'] : ''));
+			$sku = trim((string) (isset($row['line_note']) ? $row['line_note'] : ''));
+			$out[] = array(
+				'product_id' => (int) (isset($row['productid']) ? $row['productid'] : 0),
+				'name' => $name !== '' ? Warehouse_WhMgmtService::publicDecode($name) : ('SP #' . (int) $row['productid']),
+				'sku' => $sku,
+				'lot' => (string) (isset($row['serial_number']) ? $row['serial_number'] : ''),
+				'qty' => $qty,
+				'max_qty' => $qty,
+				'price' => $hasUnitPrice ? (float) (isset($row['unit_price']) ? $row['unit_price'] : 0) : 0,
+				'issue_code' => (string) $issueCode,
+				'issue_id' => $issueId,
+			);
+		}
+		return $out;
+	}
+
 	protected static function soLines($soId) {
 		$db = PearDatabase::getInstance();
 		$soId = (int) $soId;
@@ -295,6 +387,16 @@ class Warehouse_Return_Helper {
 		$sourceLabel = trim((string) (isset($payload['sourceLabel']) ? $payload['sourceLabel'] : ''));
 		$soId = (int) (isset($payload['salesorderId']) ? $payload['salesorderId'] : 0);
 		$scId = (int) (isset($payload['servicecontractId']) ? $payload['servicecontractId'] : 0);
+		$issueCodes = array();
+		if (isset($payload['issueCodes']) && is_array($payload['issueCodes'])) {
+			foreach ($payload['issueCodes'] as $code) {
+				$code = trim((string) $code);
+				if ($code !== '') {
+					$issueCodes[] = $code;
+				}
+			}
+		}
+		$issueCodes = array_values(array_unique($issueCodes));
 		$refund = !empty($payload['refund']);
 		$note = trim((string) (isset($payload['note']) ? $payload['note'] : ''));
 		$lines = isset($payload['lines']) && is_array($payload['lines']) ? $payload['lines'] : array();
@@ -329,8 +431,13 @@ class Warehouse_Return_Helper {
 			throw new Exception('Thiếu dòng hàng thu hồi / trả.');
 		}
 		if ($sourceLabel === '') {
-			$sourceLabel = $soId > 0 ? ('ĐH #' . $soId) : ($scId > 0 ? ('NQ #' . $scId) : 'Khách lẻ');
+			if (!empty($issueCodes)) {
+				$sourceLabel = implode(', ', $issueCodes);
+			} else {
+				$sourceLabel = $soId > 0 ? ('ĐH #' . $soId) : ($scId > 0 ? ('NQ #' . $scId) : 'Khách lẻ');
+			}
 		}
+		$metaJson = json_encode(array('issueCodes' => $issueCodes), JSON_UNESCAPED_UNICODE);
 
 		$refundAmount = 0.0;
 		if ($refund && $soId > 0) {
@@ -350,12 +457,12 @@ class Warehouse_Return_Helper {
 		$db->pquery(
 			'INSERT INTO vtiger_warehouse_return
 			 (code, warehouse_id, doc_type, source_type, source_label, salesorderid, servicecontractsid,
-			  refund, refund_amount, status, note, createdby, createdtime, updatedtime, deleted)
-			 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)',
+			  refund, refund_amount, status, note, meta, createdby, createdtime, updatedtime, deleted)
+			 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)',
 			array(
 				$code, $warehouseCode, $docType, $sourceType, $sourceLabel,
 				$soId > 0 ? $soId : null, $scId > 0 ? $scId : null,
-				$refund ? 1 : 0, $refundAmount, 'draft', $note,
+				$refund ? 1 : 0, $refundAmount, 'draft', $note, $metaJson,
 				(int) $userId, $now, $now,
 			)
 		);

@@ -165,8 +165,10 @@ class ServiceContracts_Detail_View extends Vtiger_Detail_View {
 		$viewer->assign('INLINE_SC_INTERACTIONS', array());
 		$viewer->assign('INLINE_SC_MATERIALS', $materialsField);
 		$viewer->assign('INLINE_SC_OWNER', $ownerField ? $ownerField : null);
+		$affVisible = ($affCode !== '' && !empty($franchise['affiliate_visible']));
 		$viewer->assign('INLINE_SC_AFFILIATE_CODE', $affCode);
-		$viewer->assign('INLINE_SC_CAN_CREATE_AFF', $affCode === '');
+		$viewer->assign('INLINE_SC_AFF_VISIBLE', $affVisible ? 1 : 0);
+		$viewer->assign('INLINE_SC_CAN_CREATE_AFF', false);
 
 		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}

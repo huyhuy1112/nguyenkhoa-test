@@ -145,32 +145,8 @@
     );
   }
 
-  function rowActionsHtml(c) {
-    var hasAff = !!(c.affiliate_code && String(c.affiliate_code).trim());
-    var affItem = hasAff
-      ? '<li role="presentation" class="disabled"><a role="menuitem" href="javascript:void(0)" class="mk-sc-aff-menu-item is-done" title="Đã có mã AFF">' +
-        '<i class="fa fa-check-circle"></i> ' +
-        esc(String(c.affiliate_code).trim()) +
-        "</a></li>"
-      : '<li role="presentation"><a role="menuitem" href="javascript:void(0)" class="mk-sc-create-aff-btn" data-sc-create-aff="' +
-        esc(c.crmid || c.id) +
-        '"><i class="fa fa-qrcode"></i> Tạo mã AFF</a></li>';
-    return (
-      '<td class="mk-leads-td mk-sc-td--actions">' +
-      '<div class="dropdown mk-sc-row-actions">' +
-      '<button type="button" class="mk-sc-row-actions__btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Thao tác">' +
-      '<i class="fa fa-ellipsis-v" aria-hidden="true"></i>' +
-      "</button>" +
-      '<ul class="dropdown-menu dropdown-menu-right mk-sc-row-actions__menu" role="menu">' +
-      '<li role="presentation"><a role="menuitem" href="' +
-      createQuoteUrl(c) +
-      '"><i class="fa fa-file-text-o"></i> Tạo báo giá</a></li>' +
-      affItem +
-      '<li role="presentation"><a role="menuitem" href="' +
-      detailUrl(c.crmid || c.id) +
-      '"><i class="fa fa-eye"></i> Chi tiết</a></li>' +
-      "</ul></div></td>"
-    );
+  function rowActionsHtml() {
+    return '<td class="mk-leads-td mk-sc-td--actions" aria-hidden="true"></td>';
   }
 
   function createAffiliateForRow(recordId, triggerEl) {
@@ -211,11 +187,15 @@
         (res && res.contract && res.contract.affiliate_code) ||
         "";
       if (store && typeof store.patchContract === "function") {
-        store.patchContract(String(id), { affiliate_code: code });
+        store.patchContract(String(id), {
+          affiliate_code: code,
+          affiliate_visible: res && res.affiliate_visible != null ? Number(res.affiliate_visible) : 1,
+        });
       } else {
         getContracts().forEach(function (c) {
           if (String(c.id) === id || String(c.crmid) === id) {
             c.affiliate_code = code;
+            c.affiliate_visible = res && res.affiliate_visible != null ? Number(res.affiliate_visible) : 1;
           }
         });
       }
@@ -778,7 +758,7 @@
       return !!c.phone;
     }).length;
     var withAff = rows.filter(function (c) {
-      return !!c.affiliate_code;
+      return !!c.affiliate_code && Number(c.affiliate_visible) !== 0;
     }).length;
     var caring = rows.filter(function (c) {
       return String(c.franchise_status || "") === "Đang chăm sóc";
@@ -1180,7 +1160,7 @@
             '">' +
             esc(c.name) +
             "</a>" +
-            (c.affiliate_code
+            (c.affiliate_code && Number(c.affiliate_visible) !== 0
               ? '<div class="mk-leads-sub"><code class="mk-sc-aff-code">' + esc(c.affiliate_code) + "</code></div>"
               : c.contract_no
                 ? '<div class="mk-leads-sub">' + esc(c.contract_no) + "</div>"
@@ -1716,7 +1696,7 @@
       var c = detail.contract || {};
       var id = String(detail.id || c.id || "");
       if (!id || !store || typeof store.patchContract !== "function") return;
-      store.patchContract(id, {
+      var patch = {
         franchise_status: c.franchise_status || "",
         contact_status: c.contact_status || "",
         data_source: c.data_source || "",
@@ -1730,19 +1710,29 @@
         interaction_3: c.interaction_3 || "",
         interaction_materials: c.interaction_materials || "",
         lastTouchCalls: c.lastTouchCalls || detail.lastTouchCalls || undefined,
-      });
+      };
+      if (c.affiliate_code != null) {
+        patch.affiliate_code = c.affiliate_code;
+      }
+      if (c.affiliate_visible != null && c.affiliate_visible !== "") {
+        patch.affiliate_visible = Number(c.affiliate_visible);
+      }
+      store.patchContract(id, patch);
       renderTable();
     });
 
-    document.addEventListener("click", function (e) {
-      var callBtn =
-        e.target && e.target.closest && e.target.closest(".mk-so-inline-detail__call-btn");
-      if (callBtn) {
+    document.addEventListener(
+      "click",
+      function (e) {
+        var callBtn =
+          e.target && e.target.closest && e.target.closest(".mk-so-inline-detail__call-btn");
+        if (!callBtn) return;
         e.preventDefault();
         e.stopPropagation();
         openScLastTouchModal(callBtn);
-      }
-    });
+      },
+      true
+    );
 
     document.addEventListener("change", function (e) {
       var el = e.target;

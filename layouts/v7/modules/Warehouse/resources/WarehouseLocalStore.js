@@ -519,11 +519,11 @@
 	}
 
 	var returnActions = {
-		searchSources: function (q) {
+		searchSources: function (q, whId) {
 			if (!useDb) {
-				return $.Deferred().resolve({ success: true, sources: [] }).promise();
+				return $.Deferred().resolve({ success: true, issues: [], sources: [] }).promise();
 			}
-			return apiPost({ mode: 'search_return_sources', q: q || '' });
+			return apiPost({ mode: 'search_return_sources', q: q || '', whId: whId || '' });
 		},
 		save: function (whId, payload) {
 			if (!useDb) {
