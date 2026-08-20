@@ -421,10 +421,24 @@ class Leads_ConvertService {
 
 	public static function storePotentialId($leadId, $potentialId) {
 		$adb = PearDatabase::getInstance();
+		$leadId = (int)$leadId;
+		$potentialId = (int)$potentialId;
 		$adb->pquery(
 			"UPDATE bace_lead_profile SET potential_id = ? WHERE leadid = ?",
-			array((int)$potentialId, (int)$leadId)
+			array($potentialId, $leadId)
 		);
+		if ($leadId > 0 && $potentialId > 0) {
+			try {
+				$res = $adb->pquery('SELECT business_model FROM bace_lead_profile WHERE leadid = ?', array($leadId));
+				$biz = ($res && $adb->num_rows($res) > 0) ? $adb->query_result($res, 0, 'business_model') : '';
+				if ($biz !== '' && $biz !== null) {
+					require_once 'modules/Potentials/models/ModernService.php';
+					Potentials_ModernService::saveInlineBusinessModel($potentialId, $biz);
+				}
+			} catch (Exception $e) {
+				// best-effort copy
+			}
+		}
 	}
 
 	public static function storeContactId($leadId, $contactId) {
@@ -440,6 +454,16 @@ class Leads_ConvertService {
 			"UPDATE bace_lead_profile SET contact_id = ? WHERE leadid = ?",
 			array($contactId, $leadId)
 		);
+		try {
+			$res = $adb->pquery('SELECT business_model FROM bace_lead_profile WHERE leadid = ?', array($leadId));
+			$biz = ($res && $adb->num_rows($res) > 0) ? $adb->query_result($res, 0, 'business_model') : '';
+			if ($biz !== '' && $biz !== null) {
+				require_once 'modules/Contacts/models/ModernService.php';
+				Contacts_ModernService::upsertBusinessModel($contactId, $biz);
+			}
+		} catch (Exception $e) {
+			// best-effort copy
+		}
 	}
 
 	public static function getLinkedPotentialIdsByContact($contactId) {

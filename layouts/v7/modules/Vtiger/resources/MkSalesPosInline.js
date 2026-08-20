@@ -112,33 +112,64 @@
 		$drawer.find('[data-mk-drawer-next="1"]').attr('title', meta.next).attr('aria-label', meta.next);
 	}
 
+	function drawerInitials(name) {
+		var parts = String(name || '').split(/\s+/).filter(Boolean);
+		if (!parts.length) {
+			return '?';
+		}
+		if (parts.length === 1) {
+			return parts[0].charAt(0).toUpperCase();
+		}
+		return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+	}
+
+	function fillDrawerIdentity($panel) {
+		var $drawer = $('#mk-crm-inline-drawer');
+		if (!$drawer.length || !$panel.length) {
+			return;
+		}
+		var name = String($panel.find('.mk-so-inline-detail__customer-name').first().text() || '').trim();
+		var sub = String($panel.find('.mk-so-inline-detail__order-no').first().text() || '').trim();
+		if (!sub) {
+			sub = String($panel.find('.mk-so-inline-detail__hero-note').first().text() || '').trim();
+		}
+		if (!sub) {
+			var $phone = $panel.find('.mk-so-inline-detail__field[data-field-name="phone"]');
+			var phoneVal = String(
+				$phone.find(':input').val() || $phone.find('.mk-so-inline-detail__field-view').text() || ''
+			).trim();
+			if (phoneVal && phoneVal !== '--') {
+				sub = phoneVal;
+			}
+		}
+		$drawer.find('.mk-crm-inline-drawer__title').text(name || drawerMeta().label);
+		var $sub = $drawer.find('.mk-crm-inline-drawer__sub');
+		$sub.text(sub);
+		if (sub) {
+			$sub.removeAttr('hidden').show();
+		} else {
+			$sub.attr('hidden', 'hidden').hide();
+		}
+		$drawer.find('.mk-crm-inline-drawer__avatar').text(drawerInitials(name));
+	}
+
 	function layoutDrawerPanel($host) {
 		var $panel = $host && $host.find ? $host.find('.mk-so-inline-detail').first() : $();
 		if (!$panel.length) {
 			return $panel;
 		}
 		$panel.addClass('mk-so-inline-detail--drawer');
-		var $hero = $panel.find('.mk-so-inline-detail__hero-main').first();
-		if ($hero.length && !$hero.find('.mk-so-inline-detail__avatar').length) {
-			var name = String($panel.find('.mk-so-inline-detail__customer-name').first().text() || '').trim();
-			var parts = name.split(/\s+/).filter(Boolean);
-			var initials = '?';
-			if (parts.length === 1) {
-				initials = parts[0].charAt(0).toUpperCase();
-			} else if (parts.length > 1) {
-				initials = (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+		$panel.find('.mk-so-inline-detail__tabs').attr('hidden', 'hidden');
+		$panel.find('.mk-so-inline-detail__cancel-edit').attr('hidden', 'hidden');
+		fillDrawerIdentity($panel);
+		if (!$panel.children('.mk-so-inline-detail__scroll').length) {
+			var $actions = $panel.children('.mk-so-inline-detail__actions');
+			var $scroll = $('<div class="mk-so-inline-detail__scroll"></div>');
+			$panel.children().not($actions).appendTo($scroll);
+			$panel.prepend($scroll);
+			if ($actions.length) {
+				$panel.append($actions);
 			}
-			$hero.prepend('<span class="mk-so-inline-detail__avatar" aria-hidden="true">' + $('<div/>').text(initials).html() + '</span>');
-		}
-		if ($panel.children('.mk-so-inline-detail__scroll').length) {
-			return $panel;
-		}
-		var $actions = $panel.children('.mk-so-inline-detail__actions');
-		var $scroll = $('<div class="mk-so-inline-detail__scroll"></div>');
-		$panel.children().not($actions).appendTo($scroll);
-		$panel.prepend($scroll);
-		if ($actions.length) {
-			$panel.append($actions);
 		}
 		return $panel;
 	}
@@ -158,6 +189,9 @@
 		var c = cfg();
 		var $drawer = ensureDrawer();
 		applyDrawerChrome();
+		$drawer.find('.mk-crm-inline-drawer__title').text('Đang tải…');
+		$drawer.find('.mk-crm-inline-drawer__sub').text('').hide();
+		$drawer.find('.mk-crm-inline-drawer__avatar').text('…');
 		var $body = $drawer.find('.mk-crm-inline-drawer__body');
 		$body.html(
 			loadingHtml ||
@@ -220,6 +254,10 @@
 
 	function ensureDrawer() {
 		var $drawer = $('#mk-crm-inline-drawer');
+		if ($drawer.length && !$drawer.find('.mk-crm-inline-drawer__head').length) {
+			$drawer.remove();
+			$drawer = $();
+		}
 		if ($drawer.length) {
 			applyDrawerChrome();
 			return $drawer;
@@ -229,18 +267,25 @@
 			'<div id="mk-crm-inline-drawer" class="mk-crm-inline-drawer" aria-hidden="true">' +
 				'<div class="mk-crm-inline-drawer__backdrop" data-mk-drawer-close="1"></div>' +
 				'<aside class="mk-crm-inline-drawer__panel" role="dialog" aria-modal="true" aria-label="' + meta.label + '">' +
-					'<div class="mk-crm-inline-drawer__toolbar">' +
-						'<span class="mk-crm-inline-drawer__kicker">' + meta.kicker + '</span>' +
-						'<div class="mk-crm-inline-drawer__nav">' +
+					'<header class="mk-crm-inline-drawer__head">' +
+						'<div class="mk-crm-inline-drawer__who">' +
+							'<span class="mk-crm-inline-drawer__avatar" aria-hidden="true">?</span>' +
+							'<div class="mk-crm-inline-drawer__who-text">' +
+								'<span class="mk-crm-inline-drawer__kicker">' + meta.kicker + '</span>' +
+								'<h2 class="mk-crm-inline-drawer__title">' + meta.label + '</h2>' +
+								'<p class="mk-crm-inline-drawer__sub" hidden></p>' +
+							'</div>' +
+						'</div>' +
+						'<div class="mk-crm-inline-drawer__tools">' +
 							'<button type="button" class="mk-crm-inline-drawer__nav-btn" data-mk-drawer-prev="1" title="' + meta.prev + '" aria-label="' + meta.prev + '">' +
 								'<i class="fa fa-chevron-left" aria-hidden="true"></i>' +
 							'</button>' +
 							'<button type="button" class="mk-crm-inline-drawer__nav-btn" data-mk-drawer-next="1" title="' + meta.next + '" aria-label="' + meta.next + '">' +
 								'<i class="fa fa-chevron-right" aria-hidden="true"></i>' +
 							'</button>' +
+							'<button type="button" class="mk-crm-inline-drawer__close" data-mk-drawer-close="1" aria-label="Đóng">&times;</button>' +
 						'</div>' +
-						'<button type="button" class="mk-crm-inline-drawer__close" data-mk-drawer-close="1" aria-label="Đóng">&times;</button>' +
-					'</div>' +
+					'</header>' +
 					'<div class="mk-crm-inline-drawer__body"></div>' +
 				'</aside>' +
 			'</div>'

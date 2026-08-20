@@ -20,17 +20,20 @@ class Contacts_ModernService {
 		}
 		$adb = PearDatabase::getInstance();
 		self::ensureEventTimeColumns($adb);
+		self::ensureBusinessModelSchema($adb);
 		$sql = "SELECT cd.contactid, cd.firstname, cd.lastname, cd.title, cd.email, cd.phone, cd.mobile,
 				cd.accountid, ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description,
 				acc.accountname,
 				ca.mailingstreet, ca.mailingcity, ca.mailingstate, ca.mailingcountry,
 				cf.thoigian_dangky, cf.thoigian_pcth, cf.thoigian_mqbb,
-				cf.da_cap_bang, cf.da_cap_tai_khoan
+				cf.da_cap_bang, cf.da_cap_tai_khoan,
+				cp.business_model AS contact_business_model
 			FROM vtiger_contactdetails cd
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid AND ce.deleted = 0
 			LEFT JOIN vtiger_account acc ON acc.accountid = cd.accountid
 			LEFT JOIN vtiger_contactaddress ca ON ca.contactaddressid = cd.contactid
 			LEFT JOIN vtiger_contactscf cf ON cf.contactid = cd.contactid
+			LEFT JOIN bace_contact_profile cp ON cp.contactid = cd.contactid
 			ORDER BY ce.modifiedtime DESC, cd.contactid DESC";
 		$res = $adb->pquery($sql, array());
 		$rows = array();
@@ -42,6 +45,7 @@ class Contacts_ModernService {
 		}
 		$tagsByContact = self::getTagsForContactIds($contactIds, $userId);
 		$segmentsByContact = self::getLeadSegmentsForContactIds($contactIds);
+		$bizByContact = self::getLeadBusinessModelsForContactIds($contactIds);
 		$ltById = array();
 		try {
 			require_once 'modules/Contacts/models/LastTouchCallService.php';
@@ -59,6 +63,9 @@ class Contacts_ModernService {
 				$rawTags[] = $segment;
 			}
 			$tags = Contacts_ContactTagCatalog::filterTagNames($rawTags);
+			if (empty($row['contact_business_model']) && isset($bizByContact[$contactId])) {
+				$row['lead_business_model'] = $bizByContact[$contactId];
+			}
 			$out[] = self::composeCacheRow(
 				$row,
 				$tags,
@@ -150,6 +157,53 @@ class Contacts_ModernService {
 		}
 
 		self::ensureCredentialFields($adb, $tabid, $blockid);
+	}
+
+	public static function ensureBusinessModelSchema($adb = null) {
+		static $done = false;
+		if ($done) {
+			return;
+		}
+		$done = true;
+		if ($adb === null) {
+			$adb = PearDatabase::getInstance();
+		}
+		$adb->pquery(
+			"CREATE TABLE IF NOT EXISTS bace_contact_profile (
+				contactid INT UNSIGNED NOT NULL PRIMARY KEY,
+				business_model VARCHAR(80) DEFAULT NULL,
+				modified_at DATETIME NULL
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+			array()
+		);
+	}
+
+	/**
+	 * Dedicated picklist: Mô hình kinh doanh (not a tag).
+	 */
+	public static function upsertBusinessModel($contactId, $businessModel) {
+		$contactId = (int) $contactId;
+		if ($contactId <= 0) {
+			return '';
+		}
+		require_once 'modules/Vtiger/helpers/BusinessModelHelper.php';
+		$businessModel = Vtiger_BusinessModel_Helper::normalize($businessModel);
+		$adb = PearDatabase::getInstance();
+		self::ensureBusinessModelSchema($adb);
+		$now = date('Y-m-d H:i:s');
+		$exists = $adb->pquery('SELECT contactid FROM bace_contact_profile WHERE contactid = ?', array($contactId));
+		if ($exists && $adb->num_rows($exists) > 0) {
+			$adb->pquery(
+				'UPDATE bace_contact_profile SET business_model = ?, modified_at = ? WHERE contactid = ?',
+				array($businessModel !== '' ? $businessModel : null, $now, $contactId)
+			);
+		} else {
+			$adb->pquery(
+				'INSERT INTO bace_contact_profile (contactid, business_model, modified_at) VALUES (?,?,?)',
+				array($contactId, $businessModel !== '' ? $businessModel : null, $now)
+			);
+		}
+		return $businessModel;
 	}
 
 	/**
@@ -444,6 +498,42 @@ class Contacts_ModernService {
 	}
 
 	/**
+	 * Map contactId → lead business_model when contact profile is empty.
+	 */
+	protected static function getLeadBusinessModelsForContactIds(array $contactIds) {
+		$map = array();
+		if (empty($contactIds)) {
+			return $map;
+		}
+		$adb = PearDatabase::getInstance();
+		try {
+			require_once 'modules/Leads/models/ModernService.php';
+			Leads_ModernService::installSchema($adb);
+		} catch (Exception $e) {
+			return $map;
+		}
+		require_once 'modules/Vtiger/helpers/BusinessModelHelper.php';
+		$res = $adb->pquery(
+			"SELECT contact_id, business_model FROM bace_lead_profile
+			 WHERE contact_id IN (" . generateQuestionMarks($contactIds) . ")
+			   AND contact_id > 0 AND business_model IS NOT NULL AND TRIM(business_model) <> ''
+			 ORDER BY leadid DESC",
+			$contactIds
+		);
+		if ($res) {
+			for ($i = 0; $i < $adb->num_rows($res); $i++) {
+				$cid = (int)$adb->query_result($res, $i, 'contact_id');
+				$biz = Vtiger_BusinessModel_Helper::normalize($adb->query_result($res, $i, 'business_model'));
+				if ($cid <= 0 || isset($map[$cid]) || $biz === '') {
+					continue;
+				}
+				$map[$cid] = $biz;
+			}
+		}
+		return $map;
+	}
+
+	/**
 	 * CCCD entered on Lead (bace_lead_profile) for a converted Contact.
 	 *
 	 * @param int $contactId
@@ -543,6 +633,12 @@ class Contacts_ModernService {
 		}
 		$address = implode(', ', $addressParts);
 		$convertedAt = !empty($row['createdtime']) ? date('c', strtotime($row['createdtime'])) : '';
+		require_once 'modules/Vtiger/helpers/BusinessModelHelper.php';
+		$businessModel = Vtiger_BusinessModel_Helper::normalize(
+			!empty($row['contact_business_model'])
+				? $row['contact_business_model']
+				: (isset($row['lead_business_model']) ? $row['lead_business_model'] : '')
+		);
 
 		return array(
 			'id' => (string)$contactId,
@@ -555,6 +651,7 @@ class Contacts_ModernService {
 			'phone' => ($phone === '' || $phone === '--') ? '' : $phone,
 			'account' => ($accountName === '' || $accountName === '-') ? '' : $accountName,
 			'address' => $address,
+			'business_model' => $businessModel,
 			'converted_at' => $convertedAt,
 			'owner' => self::getOwnerLabel((int)$row['smownerid']),
 			'tags' => array_values($tags),
@@ -1357,10 +1454,10 @@ class Contacts_ModernService {
 	}
 
 	/**
-	 * Inline list save for phone + mailing address.
-	 * @return array{success:bool,phone:string,address:string}
+	 * Inline list save for phone, mailing address, and business model.
+	 * @return array{success:bool,phone:string,address:string,business_model:string}
 	 */
-	public static function saveInlineFields($contactId, $phone = null, $address = null) {
+	public static function saveInlineFields($contactId, $phone = null, $address = null, $businessModel = null) {
 		$contactId = (int) $contactId;
 		if ($contactId <= 0) {
 			throw new Exception('Contact not found.');
@@ -1368,33 +1465,51 @@ class Contacts_ModernService {
 		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $contactId)) {
 			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
 		}
-		$recordModel = Vtiger_Record_Model::getInstanceById($contactId, self::MODULE);
-		$recordModel->set('id', $contactId);
-		$recordModel->set('mode', 'edit');
-		$outPhone = decode_html((string) $recordModel->get('phone'));
-		if ($outPhone === '' || $outPhone === '--') {
-			$outPhone = decode_html((string) $recordModel->get('mobile'));
-		}
-		$outAddress = decode_html((string) $recordModel->get('mailingstreet'));
-		if ($phone !== null) {
-			$digits = preg_replace('/\D+/', '', (string) $phone);
-			$digits = substr((string) $digits, 0, 10);
-			if ($digits !== '' && strlen($digits) !== 10) {
-				throw new Exception('Số điện thoại phải đủ 10 số.');
+		$outPhone = '';
+		$outAddress = '';
+		$needRecordSave = ($phone !== null || $address !== null);
+		if ($needRecordSave) {
+			$recordModel = Vtiger_Record_Model::getInstanceById($contactId, self::MODULE);
+			$recordModel->set('id', $contactId);
+			$recordModel->set('mode', 'edit');
+			$outPhone = decode_html((string) $recordModel->get('phone'));
+			if ($outPhone === '' || $outPhone === '--') {
+				$outPhone = decode_html((string) $recordModel->get('mobile'));
 			}
-			$recordModel->set('phone', $digits);
-			$outPhone = $digits;
+			$outAddress = decode_html((string) $recordModel->get('mailingstreet'));
+			if ($phone !== null) {
+				$digits = preg_replace('/\D+/', '', (string) $phone);
+				$digits = substr((string) $digits, 0, 10);
+				if ($digits !== '' && strlen($digits) !== 10) {
+					throw new Exception('Số điện thoại phải đủ 10 số.');
+				}
+				$recordModel->set('phone', $digits);
+				$outPhone = $digits;
+			}
+			if ($address !== null) {
+				$addr = trim(decode_html((string) $address));
+				$recordModel->set('mailingstreet', $addr);
+				$outAddress = $addr;
+			}
+			$recordModel->save();
 		}
-		if ($address !== null) {
-			$addr = trim(decode_html((string) $address));
-			$recordModel->set('mailingstreet', $addr);
-			$outAddress = $addr;
+		$savedBiz = '';
+		if ($businessModel !== null) {
+			$savedBiz = self::upsertBusinessModel($contactId, $businessModel);
+		} else {
+			$adb = PearDatabase::getInstance();
+			self::ensureBusinessModelSchema($adb);
+			$bizRes = $adb->pquery('SELECT business_model FROM bace_contact_profile WHERE contactid = ?', array($contactId));
+			if ($bizRes && $adb->num_rows($bizRes) > 0) {
+				require_once 'modules/Vtiger/helpers/BusinessModelHelper.php';
+				$savedBiz = Vtiger_BusinessModel_Helper::normalize($adb->query_result($bizRes, 0, 'business_model'));
+			}
 		}
-		$recordModel->save();
 		return array(
 			'success' => true,
 			'phone' => $outPhone === '--' ? '' : $outPhone,
 			'address' => $outAddress === '--' ? '' : $outAddress,
+			'business_model' => $savedBiz,
 		);
 	}
 

@@ -160,5 +160,17 @@
         return res;
       });
     },
+    saveInlineBusinessModel: function (id, businessModel) {
+      var oid = String(id || "");
+      return apiRequest("save_inline_business_model", {
+        record: oid,
+        business_model: businessModel || "",
+      }).then(function (res) {
+        root.PotentialsLocalStore.patchOpportunity(oid, {
+          business_model: res && res.business_model != null ? res.business_model : businessModel || "",
+        });
+        return res;
+      });
+    },
   };
 })(window);

@@ -1145,6 +1145,10 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
     border-color: #93c5fd;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
+.mk-leads-biz-select {
+    min-width: 148px;
+    max-width: 210px;
+}
 /* Force full text for call-attempt tags — never circle/number-only */
 .mk-leads-page--lovable .mk-tag[data-tag^="goi_lan_"],
 .mk-leads-page--lovable .mk-leads-td--tags .mk-tag {

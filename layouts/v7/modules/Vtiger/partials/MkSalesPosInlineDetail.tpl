@@ -21,6 +21,7 @@
 
 	{if isset($INLINE_INFO_FIELDS) && $INLINE_INFO_FIELDS|@count gt 0}
 		<div class="mk-so-inline-detail__fields">
+			<h3 class="mk-so-inline-detail__sec-title">Thông tin</h3>
 			{foreach from=$INLINE_INFO_FIELDS item=INFO_FIELD}
 				<div class="mk-so-inline-detail__field" data-field-name="{$INFO_FIELD.name|escape}" data-field-type="{$INFO_FIELD.data_type|default:'string'|escape}" data-editable="{if !empty($INFO_FIELD.editable)}1{else}0{/if}">
 					<label class="mk-so-inline-detail__field-label">{$INFO_FIELD.label|escape}</label>
@@ -70,13 +71,13 @@
 	{if empty($INLINE_HIDE_TAGS)}
 	<div class="mk-so-inline-detail__tags{if $MK_EDITABLE_TAGS} is-editable{/if}"{if $MK_EDITABLE_TAGS} data-editable-tags="1"{/if}>
 		<div class="mk-so-inline-detail__tags-head">
+			<h3 class="mk-so-inline-detail__sec-title">Thẻ</h3>
+			{if $MK_EDITABLE_TAGS}
 			<label class="mk-so-inline-detail__field-label">
-				Tags
-				{if $MK_EDITABLE_TAGS}
-					<button type="button" class="mk-so-inline-detail__tags-toggle" data-role="tag-edit-toggle" aria-expanded="false">Sửa thẻ</button>
-					<span class="mk-so-inline-detail__tags-hint">(chọn theo nhóm)</span>
-				{/if}
+				<button type="button" class="mk-so-inline-detail__tags-toggle" data-role="tag-edit-toggle" aria-expanded="false">Sửa thẻ</button>
+				<span class="mk-so-inline-detail__tags-hint">(chọn theo nhóm)</span>
 			</label>
+			{/if}
 		</div>
 		<div class="mk-so-inline-detail__tags-list" data-role="selected-tags">
 			{if isset($INLINE_TAGS) && $INLINE_TAGS|@count gt 0}
@@ -114,7 +115,7 @@
 			{if empty($LT_CAN_ADD)} data-lt-locked="1"{/if}>
 			<div class="mk-so-inline-detail__last-touch-head">
 				<div class="mk-so-inline-detail__last-touch-title-wrap">
-					<strong class="mk-so-inline-detail__last-touch-title">{if $MODULE eq 'ServiceContracts' || $MODULE eq 'Leads' || $MODULE eq 'Potentials'}Tương tác gần đây{else}Last Touch (Call){/if}</strong>
+					<h3 class="mk-so-inline-detail__sec-title">{if $MODULE eq 'ServiceContracts' || $MODULE eq 'Leads' || $MODULE eq 'Potentials'}Tương tác{else}Cuộc gọi{/if}</h3>
 					<span class="mk-so-inline-detail__last-touch-badge{if empty($LT_CAN_ADD)} is-done{else} is-open{/if}" data-role="lt-badge">{$LT_COUNT|escape}/{$LT_MAX|escape}</span>
 				</div>
 				<button type="button"

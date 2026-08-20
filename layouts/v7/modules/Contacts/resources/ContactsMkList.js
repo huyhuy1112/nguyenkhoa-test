@@ -7,7 +7,7 @@
   var ref = window.ContactsLovableRef;
   var store = window.ContactsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 14;
+  var COL_COUNT = 15;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -19,6 +19,59 @@
 
   function pick(vi, en) {
     return ref && ref.pickLabel ? ref.pickLabel(vi, en) : vi;
+  }
+
+  var BUSINESS_MODELS = [
+    "TS Topping",
+    "Xe đẩy",
+    "Cà phê máy lạnh",
+    "Cà phê sân vườn",
+    "TS Pha máy",
+    "Cà phê không gian mở",
+  ];
+
+  function businessModelSelectHtml(recordId, value) {
+    var current = String(value || "").trim();
+    var opts = [['', "—"]].concat(
+      BUSINESS_MODELS.map(function (label) {
+        return [label, label];
+      })
+    );
+    return (
+      '<select class="mk-leads-region-select mk-leads-biz-select" data-field="business_model" data-contact-id="' +
+      esc(recordId) +
+      '" title="Mô hình kinh doanh">' +
+      opts
+        .map(function (o) {
+          return (
+            '<option value="' +
+            esc(o[0]) +
+            '"' +
+            (current === o[0] ? " selected" : "") +
+            ">" +
+            esc(o[1]) +
+            "</option>"
+          );
+        })
+        .join("") +
+      "</select>"
+    );
+  }
+
+  function commitBusinessModelChange(select) {
+    if (!select || !store || !store.saveInlineFields) return;
+    var recordId = select.getAttribute("data-contact-id");
+    if (!recordId) return;
+    select.disabled = true;
+    store
+      .saveInlineFields(recordId, { business_model: select.value || "" })
+      .then(function () {
+        renderTable();
+      })
+      .catch(function () {
+        window.alert("Không lưu được mô hình kinh doanh.");
+        renderTable();
+      });
   }
 
   /** Loại khách chips — khớp Trạng thái khách trên Lead */
@@ -653,6 +706,9 @@
             '<td class="mk-leads-td">' +
             editableCellHtml("address", c.address, c.crmid || c.id, "Nhập địa chỉ") +
             "</td>" +
+            '<td class="mk-leads-td mk-leads-td--biz">' +
+            businessModelSelectHtml(c.crmid || c.id, c.business_model) +
+            "</td>" +
             '<td class="mk-leads-td mk-leads-td--tags"><button type="button" class="mk-leads-tags-edit" data-contact-id="' +
             esc(c.id) +
             '" title="Sửa thẻ">' +
@@ -877,6 +933,11 @@
     document.addEventListener("change", function (e) {
       var el = e.target;
       if (!el) return;
+      if (el.classList && el.classList.contains("mk-leads-biz-select")) {
+        e.stopPropagation();
+        commitBusinessModelChange(el);
+        return;
+      }
       if (el.classList && el.classList.contains("mk-contacts-cred-select")) {
         var contactId = el.getAttribute("data-contact-id");
         var field = el.getAttribute("data-cred-field");

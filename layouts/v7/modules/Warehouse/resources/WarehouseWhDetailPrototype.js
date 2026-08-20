@@ -1912,40 +1912,48 @@
 			});
 		}
 		var form = qs('#mkWhReturnForm');
+		function submitReturnForm(e) {
+			if (e) e.preventDefault();
+			var whId = getWhId();
+			var selected = selectedReturnIssues(modal);
+			if (!selected.length) {
+				showError('Chọn ít nhất một phiếu xuất.');
+				return;
+			}
+			var lines = collectReturnLines();
+			if (!lines.length) {
+				showError('Chọn sản phẩm và số lượng cần trả (nhiều dòng có thể để 0).');
+				return;
+			}
+			if (!S.returnActions) {
+				showError('Chế độ lưu database chưa sẵn sàng.');
+				return;
+			}
+			S.returnActions.save(whId, {
+				docType: qs('#mkWhReturnDocType') ? qs('#mkWhReturnDocType').value : 'return',
+				sourceType: qs('#mkWhReturnSourceType') ? qs('#mkWhReturnSourceType').value : 'retail',
+				sourceLabel: qs('#mkWhReturnSourceLabel') ? qs('#mkWhReturnSourceLabel').value : '',
+				salesorderId: parseInt(qs('#mkWhReturnSoId') ? qs('#mkWhReturnSoId').value : '0', 10) || 0,
+				servicecontractId: parseInt(qs('#mkWhReturnScId') ? qs('#mkWhReturnScId').value : '0', 10) || 0,
+				issueCodes: selected.map(function (s) { return s.issueCode; }),
+				refund: !!(qs('#mkWhReturnRefund') && qs('#mkWhReturnRefund').checked),
+				note: qs('#mkWhReturnNote') ? qs('#mkWhReturnNote').value : '',
+				lines: lines,
+			}).then(function () {
+				closeReturnModal();
+				refreshWarehouseUi();
+			}).fail(function (err) {
+				showError((err && err.message) || 'Không lưu được phiếu.');
+			});
+		}
 		if (form) {
-			form.addEventListener('submit', function (e) {
+			form.addEventListener('submit', submitReturnForm);
+		}
+		var saveBtn = qs('#mkWhReturnSave');
+		if (saveBtn) {
+			saveBtn.addEventListener('click', function (e) {
 				e.preventDefault();
-				var whId = getWhId();
-				var selected = selectedReturnIssues(modal);
-				if (!selected.length) {
-					showError('Chọn ít nhất một phiếu xuất.');
-					return;
-				}
-				var lines = collectReturnLines();
-				if (!lines.length) {
-					showError('Chọn sản phẩm và số lượng cần trả (nhiều dòng có thể để 0).');
-					return;
-				}
-				if (!S.returnActions) {
-					showError('Chế độ lưu database chưa sẵn sàng.');
-					return;
-				}
-				S.returnActions.save(whId, {
-					docType: qs('#mkWhReturnDocType') ? qs('#mkWhReturnDocType').value : 'return',
-					sourceType: qs('#mkWhReturnSourceType') ? qs('#mkWhReturnSourceType').value : 'retail',
-					sourceLabel: qs('#mkWhReturnSourceLabel') ? qs('#mkWhReturnSourceLabel').value : '',
-					salesorderId: parseInt(qs('#mkWhReturnSoId') ? qs('#mkWhReturnSoId').value : '0', 10) || 0,
-					servicecontractId: parseInt(qs('#mkWhReturnScId') ? qs('#mkWhReturnScId').value : '0', 10) || 0,
-					issueCodes: selected.map(function (s) { return s.issueCode; }),
-					refund: !!(qs('#mkWhReturnRefund') && qs('#mkWhReturnRefund').checked),
-					note: qs('#mkWhReturnNote') ? qs('#mkWhReturnNote').value : '',
-					lines: lines,
-				}).then(function () {
-					closeReturnModal();
-					refreshWarehouseUi();
-				}).fail(function (err) {
-					showError((err && err.message) || 'Không lưu được phiếu.');
-				});
+				submitReturnForm(e);
 			});
 		}
 	}

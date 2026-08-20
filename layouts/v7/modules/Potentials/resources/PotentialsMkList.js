@@ -7,7 +7,7 @@
   var ref = window.PotentialsLovableRef;
   var store = window.PotentialsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 15;
+  var COL_COUNT = 16;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -19,6 +19,43 @@
 
   function pick(vi, en) {
     return ref && ref.pickLabel ? ref.pickLabel(vi, en) : vi;
+  }
+
+  var BUSINESS_MODELS = [
+    "TS Topping",
+    "Xe đẩy",
+    "Cà phê máy lạnh",
+    "Cà phê sân vườn",
+    "TS Pha máy",
+    "Cà phê không gian mở",
+  ];
+
+  function businessModelSelectHtml(recordId, value) {
+    var current = String(value || "").trim();
+    var opts = [['', "—"]].concat(
+      BUSINESS_MODELS.map(function (label) {
+        return [label, label];
+      })
+    );
+    return (
+      '<select class="mk-leads-region-select mk-leads-biz-select" data-field="business_model" data-opp-id="' +
+      esc(recordId) +
+      '" title="Mô hình kinh doanh">' +
+      opts
+        .map(function (o) {
+          return (
+            '<option value="' +
+            esc(o[0]) +
+            '"' +
+            (current === o[0] ? " selected" : "") +
+            ">" +
+            esc(o[1]) +
+            "</option>"
+          );
+        })
+        .join("") +
+      "</select>"
+    );
   }
 
   /** Phân nhóm theo tag/BA của Cơ hội — UI giống Leads (segment-btn) */
@@ -391,6 +428,22 @@
       })
       .catch(function (err) {
         window.alert((err && err.message) || "Không lưu được khu vực.");
+        renderTable();
+      });
+  }
+
+  function commitBusinessModelChange(select) {
+    if (!select || !store || !store.saveInlineBusinessModel) return;
+    var recordId = select.getAttribute("data-opp-id");
+    if (!recordId) return;
+    select.disabled = true;
+    store
+      .saveInlineBusinessModel(recordId, select.value || "")
+      .then(function () {
+        renderTable();
+      })
+      .catch(function (err) {
+        window.alert((err && err.message) || "Không lưu được mô hình kinh doanh.");
         renderTable();
       });
   }
@@ -790,6 +843,9 @@
             "</td>" +
             '<td class="mk-leads-td" data-col="source">' + tagBadgeHtml(cats.source) + "</td>" +
             '<td class="mk-leads-td" data-col="customer">' + tagBadgeHtml(cats.customer) + "</td>" +
+            '<td class="mk-leads-td mk-leads-td--biz">' +
+            businessModelSelectHtml(o.crmid || o.id, o.business_model) +
+            "</td>" +
             '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner">' +
             '<span class="mk-owner-avatar" style="background:' + ownerColor(o.owner) + '">' + esc(ownerInitials(o.owner)) + "</span>" +
             "<span>" + esc(o.owner || "—") + "</span></span></td>" +
@@ -1194,6 +1250,11 @@
     document.addEventListener("change", function (e) {
       var el = e.target;
       if (!el) return;
+      if (el.classList && el.classList.contains("mk-leads-biz-select") && el.getAttribute("data-opp-id")) {
+        e.stopPropagation();
+        commitBusinessModelChange(el);
+        return;
+      }
       if (el.classList && el.classList.contains("mk-leads-region-select") && el.getAttribute("data-opp-id")) {
         e.stopPropagation();
         commitRegionChange(el);

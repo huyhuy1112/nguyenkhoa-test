@@ -91,6 +91,10 @@ class Leads_ModernService {
 		if (!$colRes || $adb->num_rows($colRes) < 1) {
 			$adb->pquery("ALTER TABLE bace_lead_profile ADD COLUMN contact_id INT(19) DEFAULT NULL AFTER potential_id", array());
 		}
+		$colRes = $adb->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE 'business_model'", array());
+		if (!$colRes || $adb->num_rows($colRes) < 1) {
+			$adb->pquery("ALTER TABLE bace_lead_profile ADD COLUMN business_model VARCHAR(80) DEFAULT NULL AFTER area", array());
+		}
 		try {
 			require_once 'modules/Leads/models/LastTouchCallService.php';
 			Leads_LastTouchCallService::ensureSchema($adb);
@@ -118,7 +122,7 @@ class Leads_ModernService {
 		self::installSchema($adb);
 		self::ensureModernProfilesForAliveLeads();
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
-				p.segment, p.district, p.address_line, p.area, p.cccd, p.customer_type, p.purchase_reason,
+				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
 				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw,
 				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
 				la.phone, ce.smownerid, ce.createdtime, ce.description
@@ -158,7 +162,7 @@ class Leads_ModernService {
 		}
 		self::installSchema($adb);
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
-				p.segment, p.district, p.address_line, p.area, p.cccd, p.customer_type, p.purchase_reason,
+				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
 				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw,
 				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
 				la.phone, ce.smownerid, ce.createdtime, ce.description
@@ -256,7 +260,7 @@ class Leads_ModernService {
 		$adb = PearDatabase::getInstance();
 		$res = $adb->pquery(
 			"SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
-				p.segment, p.district, p.address_line, p.area, p.cccd, p.customer_type, p.purchase_reason,
+				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
 				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw,
 				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
 				la.phone, ce.smownerid, ce.createdtime
@@ -272,7 +276,7 @@ class Leads_ModernService {
 				self::ensureModernProfile($leadId);
 				$res = $adb->pquery(
 					"SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
-						p.segment, p.district, p.address_line, p.area, p.cccd, p.customer_type, p.purchase_reason,
+						p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
 						p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw,
 						ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
 						la.phone, ce.smownerid, ce.createdtime
@@ -543,6 +547,16 @@ class Leads_ModernService {
 				$qaRaw = (string) $payload['qa_raw'];
 			}
 		}
+		$businessModel = '';
+		if (array_key_exists('business_model', $payload)) {
+			$businessModel = self::normalizeBusinessModel($payload['business_model']);
+		} elseif ($leadId && !$isNew) {
+			$bizRes = $adb->pquery('SELECT business_model FROM bace_lead_profile WHERE leadid = ?', array($leadId));
+			if ($bizRes && $adb->num_rows($bizRes) > 0) {
+				$businessModel = self::normalizeBusinessModel($adb->query_result($bizRes, 0, 'business_model'));
+			}
+		}
+
 		$profile = array(
 			'mk_cache_id' => $mkCacheId,
 			'cccd' => isset($payload['cccd']) ? $payload['cccd'] : '',
@@ -550,6 +564,7 @@ class Leads_ModernService {
 			'district' => isset($payload['district']) ? $payload['district'] : '',
 			'address_line' => isset($payload['address']) ? $payload['address'] : '',
 			'area' => isset($payload['area']) ? $payload['area'] : '',
+			'business_model' => $businessModel,
 			'lead_value' => isset($payload['value']) ? (float)$payload['value'] : 0,
 			'last_touch' => $lastTouch,
 			'next_action' => isset($payload['next_action']) ? $payload['next_action'] : '',
@@ -1189,6 +1204,7 @@ class Leads_ModernService {
 			'district' => self::decodeText(isset($row['district']) ? $row['district'] : ''),
 			'address' => self::decodeText(isset($row['address_line']) ? $row['address_line'] : ''),
 			'area' => self::decodeText(isset($row['area']) ? $row['area'] : ''),
+			'business_model' => self::normalizeBusinessModel(isset($row['business_model']) ? $row['business_model'] : ''),
 			'openTickets' => (int)$row['open_tickets'],
 			'purchases' => $purchases,
 			'calendarTasks' => $calendarTasks,
@@ -1204,6 +1220,11 @@ class Leads_ModernService {
 		);
 	}
 
+	public static function normalizeBusinessModel($value) {
+		require_once 'modules/Vtiger/helpers/BusinessModelHelper.php';
+		return Vtiger_BusinessModel_Helper::normalize($value);
+	}
+
 	protected static function upsertProfile($leadId, array $profile) {
 		$adb = PearDatabase::getInstance();
 		self::installSchema($adb);
@@ -1213,35 +1234,43 @@ class Leads_ModernService {
 		$sheetSource = !empty($profile['sheet_source']) ? 1 : 0;
 		$sheetRowKey = isset($profile['sheet_row_key']) ? $profile['sheet_row_key'] : null;
 		$qaRaw = isset($profile['qa_raw']) ? $profile['qa_raw'] : null;
+		$hasBiz = array_key_exists('business_model', $profile);
+		$businessModel = $hasBiz ? self::normalizeBusinessModel($profile['business_model']) : '';
 		if ($exists && $adb->num_rows($exists) > 0) {
-			$adb->pquery(
-				"UPDATE bace_lead_profile SET mk_cache_id=?, cccd=?, segment=?, district=?, address_line=?, area=?,
+			$sql = "UPDATE bace_lead_profile SET mk_cache_id=?, cccd=?, segment=?, district=?, address_line=?, area=?,
 				 lead_value=?, last_touch=?, next_action=?, open_tickets=?, customer_type=?, purchase_reason=?,
-				 screening_result=?, sheet_source=?, sheet_row_key=?, qa_raw=?, modified_at=?
-				 WHERE leadid=?",
-				array(
-					$profile['mk_cache_id'], $profile['cccd'], $profile['segment'], $profile['district'],
-					$profile['address_line'], $profile['area'], $profile['lead_value'], $profile['last_touch'],
-					$profile['next_action'], $profile['open_tickets'], $profile['customer_type'],
-					$profile['purchase_reason'],
-					$screening !== '' ? $screening : null,
-					$sheetSource,
-					$sheetRowKey !== '' ? $sheetRowKey : null,
-					$qaRaw !== '' ? $qaRaw : null,
-					$now, $leadId,
-				)
+				 screening_result=?, sheet_source=?, sheet_row_key=?, qa_raw=?, modified_at=?";
+			$params = array(
+				$profile['mk_cache_id'], $profile['cccd'], $profile['segment'], $profile['district'],
+				$profile['address_line'], $profile['area'], $profile['lead_value'], $profile['last_touch'],
+				$profile['next_action'], $profile['open_tickets'], $profile['customer_type'],
+				$profile['purchase_reason'],
+				$screening !== '' ? $screening : null,
+				$sheetSource,
+				$sheetRowKey !== '' ? $sheetRowKey : null,
+				$qaRaw !== '' ? $qaRaw : null,
+				$now,
 			);
+			if ($hasBiz) {
+				$sql .= ", business_model=?";
+				$params[] = $businessModel !== '' ? $businessModel : null;
+			}
+			$sql .= " WHERE leadid=?";
+			$params[] = $leadId;
+			$adb->pquery($sql, $params);
 			return;
 		}
 		$adb->pquery(
-			"INSERT INTO bace_lead_profile(leadid, mk_cache_id, cccd, segment, district, address_line, area, lead_value,
+			"INSERT INTO bace_lead_profile(leadid, mk_cache_id, cccd, segment, district, address_line, area, business_model, lead_value,
 			 last_touch, next_action, open_tickets, customer_type, purchase_reason,
 			 screening_result, sheet_source, sheet_row_key, qa_raw,
 			 is_modern, created_at, modified_at)
-			 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,?)",
+			 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,?)",
 			array(
 				$leadId, $profile['mk_cache_id'], $profile['cccd'], $profile['segment'], $profile['district'],
-				$profile['address_line'], $profile['area'], $profile['lead_value'], $profile['last_touch'],
+				$profile['address_line'], $profile['area'],
+				$businessModel !== '' ? $businessModel : null,
+				$profile['lead_value'], $profile['last_touch'],
 				$profile['next_action'], $profile['open_tickets'], $profile['customer_type'],
 				$profile['purchase_reason'],
 				$screening !== '' ? $screening : null,
@@ -1304,6 +1333,9 @@ class Leads_ModernService {
 				if ((!isset($payload[$field]) || $payload[$field] === '' || $payload[$field] === null) && isset($existing[$field]) && $existing[$field] !== '' && $existing[$field] !== null) {
 					$payload[$field] = $existing[$field];
 				}
+			}
+			if (!array_key_exists('business_model', $payload) && isset($existing['business_model'])) {
+				$payload['business_model'] = $existing['business_model'];
 			}
 			if (!isset($payload['tags']) || !is_array($payload['tags'])) {
 				if (!empty($existing['tags'])) {

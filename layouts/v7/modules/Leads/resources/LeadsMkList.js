@@ -19,6 +19,14 @@
   var TIER_TAGS = ["vang", "bac", "dong"];
   var CUSTOMER_TAGS = ["individual", "company", "ca_nhan", "co_quan", "chuan_bi_mo", "gia_dinh"];
   var REGION_TAGS = ["kv1", "kv2", "kv3"];
+  var BUSINESS_MODELS = [
+    "TS Topping",
+    "Xe đẩy",
+    "Cà phê máy lạnh",
+    "Cà phê sân vườn",
+    "TS Pha máy",
+    "Cà phê không gian mở",
+  ];
   // Hide tags that already have dedicated list columns.
   var COLUMN_TAG_KEYS = SOURCE_TAGS.concat(CUSTOMER_TAGS, REGION_TAGS);
 
@@ -252,6 +260,34 @@
     );
   }
 
+  function businessModelSelectHtml(leadId, value) {
+    var current = String(value || "").trim();
+    var opts = [['', "—"]].concat(
+      BUSINESS_MODELS.map(function (label) {
+        return [label, label];
+      })
+    );
+    return (
+      '<select class="mk-leads-region-select mk-leads-biz-select" data-field="business_model" data-lead-id="' +
+      esc(leadId) +
+      '" title="Mô hình kinh doanh">' +
+      opts
+        .map(function (o) {
+          return (
+            '<option value="' +
+            esc(o[0]) +
+            '"' +
+            (current === o[0] ? " selected" : "") +
+            ">" +
+            esc(o[1]) +
+            "</option>"
+          );
+        })
+        .join("") +
+      "</select>"
+    );
+  }
+
   function editableCellHtml(field, value, leadId, placeholder) {
     var shown = value;
     if (field === "phone" && value && window.MkPhoneFormat && typeof window.MkPhoneFormat.format === "function") {
@@ -344,6 +380,23 @@
       .catch(function (err) {
         console.error(err);
         window.alert("Không lưu được khu vực.");
+        renderTable();
+      });
+  }
+
+  function commitBusinessModelChange(select) {
+    if (!select || !store || !store.update) return;
+    var leadId = select.getAttribute("data-lead-id");
+    if (!leadId) return;
+    select.disabled = true;
+    store
+      .update(leadId, { business_model: select.value || "" })
+      .then(function () {
+        renderTable();
+      })
+      .catch(function (err) {
+        console.error(err);
+        window.alert("Không lưu được mô hình kinh doanh.");
         renderTable();
       });
   }
@@ -1535,7 +1588,7 @@
           '<div style="margin-top:12px"><button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-leads-clear-filters-empty">Xóa bộ lọc</button></div>';
       }
       tbody.innerHTML =
-        '<tr><td colspan="13" class="mk-leads-empty">' + esc(emptyMsg) + extraBtn + "</td></tr>";
+        '<tr><td colspan="14" class="mk-leads-empty">' + esc(emptyMsg) + extraBtn + "</td></tr>";
     } else {
       tbody.innerHTML = pageRows
         .map(function (l) {
@@ -1641,6 +1694,9 @@
             "</td>" +
             '<td class="mk-leads-td mk-leads-td--address">' +
             editableCellHtml("address", addressOf(l), l.id, "Nhập địa chỉ") +
+            "</td>" +
+            '<td class="mk-leads-td mk-leads-td--biz">' +
+            businessModelSelectHtml(l.id, l.business_model) +
             "</td>" +
             '<td class="mk-leads-td">' +
             (src ? tagBadgeHtml(src) : '<span class="mk-leads-muted">—</span>') +
@@ -1956,6 +2012,11 @@
     document.addEventListener("change", function (e) {
       var t = e.target;
       if (!t || !t.getAttribute) return;
+      if (t.classList && t.classList.contains("mk-leads-biz-select")) {
+        e.stopPropagation();
+        commitBusinessModelChange(t);
+        return;
+      }
       if (t.classList && t.classList.contains("mk-leads-region-select")) {
         e.stopPropagation();
         commitRegionChange(t);

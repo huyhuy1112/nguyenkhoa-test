@@ -297,7 +297,7 @@
 
 <div class="mk-wh-proto-modal" id="mkWhReturnModal" aria-hidden="true">
 	<div class="mk-wh-proto-modal__backdrop" data-mk-return-close="1"></div>
-	<div class="mk-wh-proto-modal__dialog mk-wh-proto-modal__dialog--lux mk-wh-proto-modal__dialog--workspace mk-wh-proto-modal__dialog--return" role="dialog" aria-modal="true" aria-labelledby="mkWhReturnModalTitle">
+	<div class="mk-wh-proto-modal__dialog mk-wh-proto-modal__dialog--lux mk-wh-proto-modal__dialog--compact mk-wh-proto-modal__dialog--workspace mk-wh-proto-modal__dialog--return" role="dialog" aria-modal="true" aria-labelledby="mkWhReturnModalTitle">
 		<header class="mk-wh-proto-modal__head">
 			<div class="mk-wh-proto-modal__head-main">
 				<span class="mk-wh-proto-modal__eyebrow">KHO</span>
@@ -380,11 +380,11 @@
 					</div>
 				</section>
 			</div>
-			<div class="mk-wh-proto-modal__foot">
-				<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost" data-mk-return-close="1">Hủy</button>
-				<button type="submit" class="mk-wh-proto-btn mk-wh-proto-btn--primary" id="mkWhReturnSave">Lưu nháp</button>
-			</div>
 		</form>
+		<div class="mk-wh-proto-modal__foot">
+			<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost" data-mk-return-close="1">Hủy</button>
+			<button type="submit" class="mk-wh-proto-btn mk-wh-proto-btn--primary" id="mkWhReturnSave" form="mkWhReturnForm">Lưu phiếu</button>
+		</div>
 	</div>
 </div>
 

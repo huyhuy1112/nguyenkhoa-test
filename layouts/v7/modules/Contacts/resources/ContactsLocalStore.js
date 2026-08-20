@@ -105,11 +105,21 @@
       if (patch && Object.prototype.hasOwnProperty.call(patch, "address")) {
         data.address = patch.address;
       }
+      if (patch && Object.prototype.hasOwnProperty.call(patch, "business_model")) {
+        data.business_model = patch.business_model;
+      }
       return apiRequest("save_inline_fields", data).then(function (res) {
-        root.ContactsLocalStore.patchContact(oid, {
-          phone: res && res.phone != null ? res.phone : patch.phone,
-          address: res && res.address != null ? res.address : patch.address,
-        });
+        var next = {};
+        if (Object.prototype.hasOwnProperty.call(data, "phone")) {
+          next.phone = res && res.phone != null ? res.phone : patch.phone;
+        }
+        if (Object.prototype.hasOwnProperty.call(data, "address")) {
+          next.address = res && res.address != null ? res.address : patch.address;
+        }
+        if (Object.prototype.hasOwnProperty.call(data, "business_model")) {
+          next.business_model = res && res.business_model != null ? res.business_model : patch.business_model;
+        }
+        root.ContactsLocalStore.patchContact(oid, next);
         return res;
       });
     },

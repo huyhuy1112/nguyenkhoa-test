@@ -132,7 +132,8 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 					} elseif (array_key_exists('mailingstreet', $all)) {
 						$addressArg = $request->get('mailingstreet');
 					}
-					$response->setResult(Contacts_ModernService::saveInlineFields($recordId, $phoneArg, $addressArg));
+					$bizArg = array_key_exists('business_model', $all) ? $request->get('business_model') : null;
+					$response->setResult(Contacts_ModernService::saveInlineFields($recordId, $phoneArg, $addressArg, $bizArg));
 					break;
 				case 'delete':
 					$recordId = $request->get('record');

@@ -31,6 +31,7 @@ class Potentials_ModernService {
 		self::ensureProfileColumn($adb, 'converted_to_customer_at', 'DATETIME NULL');
 		self::ensureProfileColumn($adb, 'contact_customer_id', 'INT UNSIGNED DEFAULT NULL');
 		self::ensureProfileColumn($adb, 'last_touch', 'DATETIME NULL');
+		self::ensureProfileColumn($adb, 'business_model', 'VARCHAR(80) DEFAULT NULL');
 	}
 
 	protected static function ensureProfileColumn(PearDatabase $adb, $column, $definition) {
@@ -48,6 +49,12 @@ class Potentials_ModernService {
 		}
 		$adb = PearDatabase::getInstance();
 		self::ensureProfileSchema($adb);
+		try {
+			require_once 'modules/Leads/models/ModernService.php';
+			Leads_ModernService::installSchema($adb);
+		} catch (Exception $e) {
+			// lead profile column is best-effort for business_model fallback
+		}
 		$sql = "SELECT p.potentialid, p.potentialname, p.sales_stage, p.closingdate, p.amount,
 				p.leadsource, p.order_category, p.related_to, p.contact_id,
 				ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description,
@@ -55,7 +62,9 @@ class Potentials_ModernService {
 				cd.firstname AS contact_firstname, cd.lastname AS contact_lastname,
 				cd.phone AS contact_phone, cd.mobile AS contact_mobile,
 				pp.district AS pot_district, pp.address_line AS pot_address, pp.confirmed_at, pp.last_touch AS pot_last_touch,
-				lp.district AS lead_district, lp.address_line AS lead_address, lp.area AS lead_area
+				pp.business_model AS pot_business_model,
+				lp.district AS lead_district, lp.address_line AS lead_address, lp.area AS lead_area,
+				lp.business_model AS lead_business_model
 			FROM vtiger_potential p
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid AND ce.deleted = 0
 			LEFT JOIN vtiger_account acc ON acc.accountid = p.related_to
@@ -117,6 +126,10 @@ class Potentials_ModernService {
 		}
 		$district = decode_html((string)(!empty($row['pot_district']) ? $row['pot_district'] : $row['lead_district']));
 		$address = decode_html((string)(!empty($row['pot_address']) ? $row['pot_address'] : $row['lead_address']));
+		require_once 'modules/Vtiger/helpers/BusinessModelHelper.php';
+		$businessModel = Vtiger_BusinessModel_Helper::normalize(
+			!empty($row['pot_business_model']) ? $row['pot_business_model'] : (isset($row['lead_business_model']) ? $row['lead_business_model'] : '')
+		);
 		$notes = decode_html(trim((string)$row['description']));
 
 		$confirmedAt = '';
@@ -195,6 +208,7 @@ class Potentials_ModernService {
 			'phone' => $phone,
 			'district' => $district,
 			'address' => $address,
+			'business_model' => $businessModel,
 			'notes' => $notes,
 			'createdtime' => $created,
 			'converted_at' => $created,
@@ -485,6 +499,42 @@ class Potentials_ModernService {
 			'address' => $address,
 			'region' => $regionKey,
 			'tags' => isset($tagsMap[$potentialId]) ? array_values($tagsMap[$potentialId]) : array(),
+		);
+	}
+
+	/**
+	 * Dedicated picklist: Mô hình kinh doanh (not a tag).
+	 * @return array{success:bool,business_model:string}
+	 */
+	public static function saveInlineBusinessModel($potentialId, $businessModel) {
+		$potentialId = (int) $potentialId;
+		if ($potentialId <= 0) {
+			throw new Exception('Opportunity not found.');
+		}
+		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $potentialId)
+			&& !Users_Privileges_Model::isPermitted(self::MODULE, 'DetailView', $potentialId)) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		require_once 'modules/Vtiger/helpers/BusinessModelHelper.php';
+		$businessModel = Vtiger_BusinessModel_Helper::normalize($businessModel);
+		self::ensureProfileSchema();
+		$adb = PearDatabase::getInstance();
+		$now = date('Y-m-d H:i:s');
+		$exists = $adb->pquery('SELECT potentialid FROM bace_potential_profile WHERE potentialid = ?', array($potentialId));
+		if ($exists && $adb->num_rows($exists) > 0) {
+			$adb->pquery(
+				'UPDATE bace_potential_profile SET business_model = ?, modified_at = ? WHERE potentialid = ?',
+				array($businessModel !== '' ? $businessModel : null, $now, $potentialId)
+			);
+		} else {
+			$adb->pquery(
+				'INSERT INTO bace_potential_profile (potentialid, business_model, modified_at) VALUES (?,?,?)',
+				array($potentialId, $businessModel !== '' ? $businessModel : null, $now)
+			);
+		}
+		return array(
+			'success' => true,
+			'business_model' => $businessModel,
 		);
 	}
 
