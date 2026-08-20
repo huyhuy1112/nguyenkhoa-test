@@ -27,8 +27,8 @@ html.mk-sc-ui-ready body[data-module="ServiceContracts"][data-view="List"] #mk-d
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkIcons.js')}&mk_v=20260711_segments_ui2"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsLovableRef.js')}&mk_v=20260725_sc_list1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsLocalStore.js')}&mk_v=20260810_sc_inline3"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsMkList.js')}&mk_v=20260810_sc_inline3"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsLocalStore.js')}&mk_v=20260819_fix8"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsMkList.js')}&mk_v=20260819_fix8"></script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260811_sc_like_lead1" />
 <script type="text/javascript">
 window.__mkSalesPosInlineConfig = {

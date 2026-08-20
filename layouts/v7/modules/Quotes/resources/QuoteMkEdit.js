@@ -2412,9 +2412,9 @@
 
 		function quotePrintPreviewUrl(recordId) {
 			return (
-				'index.php?module=Quotes&action=ExportPDF&record=' +
+				'index.php?module=Quotes&view=Print&record=' +
 				encodeURIComponent(recordId) +
-				'&preview=1&app=SALES'
+				'&app=SALES'
 			);
 		}
 
@@ -2502,11 +2502,47 @@
 			if (!recordId || !/^\d+$/.test(String(recordId))) {
 				return;
 			}
-			var $modal = ensureCreatePrintPreviewModal();
-			$modal.data('mkPrintRecordId', String(recordId));
-			$modal.find('iframe').attr('src', quotePrintPreviewUrl(recordId));
-			$modal.addClass('is-open').attr('aria-hidden', 'false');
-			$('body').addClass('mk-qt-create-print-open');
+			var printUrl = quotePrintPreviewUrl(recordId);
+			var $frame = $('#mk-qt-create-print-launch-frame');
+			if (!$frame.length) {
+				$frame = $(
+					'<iframe id="mk-qt-create-print-launch-frame" class="mk-qt-create-print-download-frame" title="In phiếu báo giá" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;"></iframe>'
+				);
+				$('body').append($frame);
+			}
+			$.ajax({
+				url: printUrl,
+				method: 'GET',
+				dataType: 'html',
+				cache: false,
+			})
+				.done(function (html) {
+					try {
+						var frame = $frame.get(0);
+						var frameWindow = frame && frame.contentWindow;
+						if (!frameWindow || !frameWindow.document) {
+							window.open(printUrl, '_blank');
+							return;
+						}
+						frameWindow.document.open();
+						frameWindow.document.write(html);
+						frameWindow.document.close();
+						window.setTimeout(function () {
+							try {
+								frameWindow.document.title = '';
+								frameWindow.focus();
+								frameWindow.print();
+							} catch (err) {
+								window.open(printUrl, '_blank');
+							}
+						}, 220);
+					} catch (err) {
+						window.open(printUrl, '_blank');
+					}
+				})
+				.fail(function () {
+					window.open(printUrl, '_blank');
+				});
 		}
 		window.__mkQtOpenPrintPreview = openCreatePrintPreview;
 

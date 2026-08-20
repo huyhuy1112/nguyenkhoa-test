@@ -13,6 +13,9 @@ class Warehouse_WhMgmtService {
 		Warehouse_WorkflowSetup_Helper::runAll();
 		self::ensureProductSkuField();
 		self::ensureProductNeedsQcField();
+		self::ensureProductExpiryWarnDaysField();
+		require_once 'modules/Warehouse/helpers/ReturnHelper.php';
+		Warehouse_Return_Helper::ensureSchema($db);
 		if (!Warehouse_WorkflowSetup_Helper::isInstalled($db)) {
 			self::seedAll($db);
 		}
@@ -111,8 +114,62 @@ class Warehouse_WhMgmtService {
 		$field->typeofdata = 'C~O';
 		$field->defaultvalue = '0';
 		$block->addField($field);
-		// Clear column cache so subsequent catalog/routing sees the new column.
 		self::resetNeedsQcColumnCache();
+	}
+
+	/**
+	 * Per-product expiry warning window (days). Empty/0 = use system default.
+	 */
+	public static function ensureProductExpiryWarnDaysField() {
+		static $done = false;
+		if ($done) {
+			return;
+		}
+		$done = true;
+		require_once 'vtlib/Vtiger/Module.php';
+		$module = Vtiger_Module::getInstance('ProductsServices');
+		if (!$module) {
+			return;
+		}
+		if (Vtiger_Field::getInstance('expiry_warn_days', $module)) {
+			return;
+		}
+		$block = Vtiger_Block::getInstance('LBL_PRODUCT_INFORMATION', $module);
+		if (!$block) {
+			$block = Vtiger_Block::getInstance('LBL_PRODUCTS_SERVICES_INFORMATION', $module);
+		}
+		if (!$block) {
+			return;
+		}
+		$field = new Vtiger_Field();
+		$field->name = 'expiry_warn_days';
+		$field->label = 'Expiry warn days';
+		$field->uitype = 7;
+		$field->column = 'expiry_warn_days';
+		$field->columntype = 'INT(11) DEFAULT NULL';
+		$field->typeofdata = 'I~O';
+		$block->addField($field);
+		self::$expiryWarnDaysColumnExists = null;
+	}
+
+	public static function publicDecode($value) {
+		return self::decodeDisplayTextDeep($value);
+	}
+
+	public static function publicApplyInboundStockLine(PearDatabase $db, $whCode, $whName, array $line, $userId) {
+		if (empty($line['sku']) && !empty($line['product_id'])) {
+			$line['sku'] = self::resolveProductSku($db, (int) $line['product_id']);
+		}
+		if (empty($line['sku'])) {
+			$line['sku'] = self::guessSkuFromName(isset($line['name']) ? $line['name'] : '');
+		}
+		if (!isset($line['product_id'])) {
+			$line['product_id'] = 0;
+		}
+		if (!isset($line['price'])) {
+			$line['price'] = 0;
+		}
+		self::applyInboundStockLine($db, $whCode, $whName, $line, $userId);
 	}
 
 	/**
@@ -125,6 +182,9 @@ class Warehouse_WhMgmtService {
 
 	/** @var bool|null */
 	protected static $needsQcColumnExists = null;
+
+	/** @var bool|null */
+	protected static $expiryWarnDaysColumnExists = null;
 
 	protected static function hasNeedsQcColumn(PearDatabase $db = null) {
 		if (self::$needsQcColumnExists !== null) {
@@ -140,6 +200,22 @@ class Warehouse_WhMgmtService {
 			self::$needsQcColumnExists = false;
 		}
 		return self::$needsQcColumnExists;
+	}
+
+	protected static function hasExpiryWarnDaysColumn(PearDatabase $db = null) {
+		if (self::$expiryWarnDaysColumnExists !== null) {
+			return self::$expiryWarnDaysColumnExists;
+		}
+		if ($db === null) {
+			$db = PearDatabase::getInstance();
+		}
+		try {
+			$rs = $db->pquery('SHOW COLUMNS FROM vtiger_productsservices LIKE ?', array('expiry_warn_days'));
+			self::$expiryWarnDaysColumnExists = ($rs && $db->num_rows($rs) > 0);
+		} catch (Exception $e) {
+			self::$expiryWarnDaysColumnExists = false;
+		}
+		return self::$expiryWarnDaysColumnExists;
 	}
 
 	/**
@@ -520,6 +596,15 @@ class Warehouse_WhMgmtService {
 			'warehouses' => $warehouses,
 			'transfers' => self::listTransfers($db),
 			'data' => $data,
+			'settings' => self::publicSettings(),
+		);
+	}
+
+	public static function publicSettings() {
+		require_once 'modules/Warehouse/helpers/SettingsHelper.php';
+		return array(
+			'wh_allow_negative_stock' => Warehouse_Settings_Helper::allowNegativeStock() ? 1 : 0,
+			'wh_expiry_warn_days' => Warehouse_Settings_Helper::expiryWarnDays(),
 		);
 	}
 
@@ -622,7 +707,13 @@ class Warehouse_WhMgmtService {
 			'receipts' => self::loadReceipts($db, $warehouseCode),
 			'issues' => self::loadIssues($db, $warehouseCode),
 			'stock' => self::loadStock($db, $warehouseCode),
+			'returns' => self::loadReturns($warehouseCode),
 		);
+	}
+
+	protected static function loadReturns($warehouseCode) {
+		require_once 'modules/Warehouse/helpers/ReturnHelper.php';
+		return Warehouse_Return_Helper::listByWarehouse($warehouseCode);
 	}
 
 	protected static function decodeMeta($json) {
@@ -2495,8 +2586,13 @@ class Warehouse_WhMgmtService {
 			array($warehouseCode)
 		);
 		$out = array();
+		$productIds = array();
 		while ($row = $db->fetchByAssoc($rs)) {
 			$parsed = self::parseStockIdentity($db, $row);
+			$productId = (int) $parsed['productId'];
+			if ($productId > 0) {
+				$productIds[$productId] = $productId;
+			}
 			$out[] = array(
 				'sku' => $parsed['sku'],
 				'name' => $parsed['name'],
@@ -2506,7 +2602,133 @@ class Warehouse_WhMgmtService {
 				'qty' => (float) $row['quantity'],
 				'location' => self::decodeDisplayTextDeep((string) (isset($row['storage_location']) ? $row['storage_location'] : '')),
 				'price' => (float) (isset($row['last_price']) ? $row['last_price'] : 0),
+				'productId' => $productId,
+				'expiryWarnDays' => 0,
+				'avgDailySales' => 0.0,
+				'daysToStockout' => null,
 			);
+		}
+
+		$warnMap = self::productExpiryWarnDaysMap($db, array_values($productIds));
+		$velocity = self::salesVelocityMap($db);
+		$onHandByKey = array();
+		foreach ($out as $item) {
+			$key = self::stockVelocityKey($item['productId'], $item['sku']);
+			if (!isset($onHandByKey[$key])) {
+				$onHandByKey[$key] = 0.0;
+			}
+			$onHandByKey[$key] += (float) $item['qty'];
+		}
+
+		foreach ($out as $i => $item) {
+			$pid = (int) $item['productId'];
+			if ($pid > 0 && isset($warnMap[$pid])) {
+				$out[$i]['expiryWarnDays'] = (int) $warnMap[$pid];
+			}
+			$avg = 0.0;
+			if ($pid > 0 && isset($velocity['byId'][$pid])) {
+				$avg = (float) $velocity['byId'][$pid];
+			} else {
+				$skuKey = strtolower(trim((string) $item['sku']));
+				if ($skuKey !== '' && isset($velocity['bySku'][$skuKey])) {
+					$avg = (float) $velocity['bySku'][$skuKey];
+				}
+			}
+			$out[$i]['avgDailySales'] = $avg;
+			$groupKey = self::stockVelocityKey($pid, $item['sku']);
+			$onHand = isset($onHandByKey[$groupKey]) ? (float) $onHandByKey[$groupKey] : (float) $item['qty'];
+			if ($avg > 0) {
+				$out[$i]['daysToStockout'] = round($onHand / $avg, 1);
+			} else {
+				$out[$i]['daysToStockout'] = null;
+			}
+		}
+		return $out;
+	}
+
+	protected static function stockVelocityKey($productId, $sku) {
+		$productId = (int) $productId;
+		if ($productId > 0) {
+			return 'id:' . $productId;
+		}
+		$sku = strtolower(trim((string) $sku));
+		return $sku !== '' ? ('sku:' . $sku) : 'none';
+	}
+
+	/**
+	 * Avg daily sales over last 30 days from confirmed/shipped SOs (not draft/cancelled).
+	 * @return array{byId: array<int,float>, bySku: array<string,float>}
+	 */
+	protected static function salesVelocityMap(PearDatabase $db) {
+		static $cache = null;
+		if ($cache !== null) {
+			return $cache;
+		}
+		$cache = array('byId' => array(), 'bySku' => array());
+		$since = date('Y-m-d H:i:s', strtotime('-30 days'));
+		try {
+			$rs = $db->pquery(
+				'SELECT ip.productid, ps.sku, SUM(ip.quantity) AS qty_sold
+				 FROM vtiger_inventoryproductrel ip
+				 INNER JOIN vtiger_salesorder so ON so.salesorderid = ip.id
+				 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+				 LEFT JOIN vtiger_productsservices ps ON ps.productsservicesid = ip.productid
+				 WHERE ce.createdtime >= ?
+				   AND LOWER(IFNULL(so.sostatus, \'\')) NOT IN (\'cancelled\', \'created\', \'draft\', \'nháp\', \'nhap\')
+				 GROUP BY ip.productid, ps.sku',
+				array($since)
+			);
+		} catch (Exception $e) {
+			return $cache;
+		}
+		while ($row = $db->fetchByAssoc($rs)) {
+			$qty = (float) (isset($row['qty_sold']) ? $row['qty_sold'] : 0);
+			$avg = $qty / 30.0;
+			$pid = (int) (isset($row['productid']) ? $row['productid'] : 0);
+			if ($pid > 0) {
+				if (!isset($cache['byId'][$pid])) {
+					$cache['byId'][$pid] = 0.0;
+				}
+				$cache['byId'][$pid] += $avg;
+			}
+			$sku = strtolower(trim((string) (isset($row['sku']) ? $row['sku'] : '')));
+			if ($sku !== '') {
+				if (!isset($cache['bySku'][$sku])) {
+					$cache['bySku'][$sku] = 0.0;
+				}
+				$cache['bySku'][$sku] += $avg;
+			}
+		}
+		return $cache;
+	}
+
+	/**
+	 * @param int[] $productIds
+	 * @return array<int,int>
+	 */
+	protected static function productExpiryWarnDaysMap(PearDatabase $db, array $productIds) {
+		$out = array();
+		if (empty($productIds) || !self::hasExpiryWarnDaysColumn($db)) {
+			return $out;
+		}
+		$ids = array();
+		foreach ($productIds as $id) {
+			$id = (int) $id;
+			if ($id > 0) {
+				$ids[$id] = $id;
+			}
+		}
+		if (empty($ids)) {
+			return $out;
+		}
+		$placeholders = implode(',', array_fill(0, count($ids), '?'));
+		$rs = $db->pquery(
+			'SELECT productsservicesid, expiry_warn_days FROM vtiger_productsservices
+			 WHERE productsservicesid IN (' . $placeholders . ')',
+			array_values($ids)
+		);
+		while ($row = $db->fetchByAssoc($rs)) {
+			$out[(int) $row['productsservicesid']] = (int) (isset($row['expiry_warn_days']) ? $row['expiry_warn_days'] : 0);
 		}
 		return $out;
 	}
@@ -2568,6 +2790,7 @@ class Warehouse_WhMgmtService {
 			'lot' => $lot,
 			'mfg' => $mfg,
 			'expiry' => $expiry,
+			'productId' => $productId,
 		);
 	}
 
@@ -2805,9 +3028,11 @@ class Warehouse_WhMgmtService {
 			$db = PearDatabase::getInstance();
 		}
 		self::ensureProductNeedsQcField();
+		self::ensureProductExpiryWarnDaysField();
 		$needsQcSelect = self::hasNeedsQcColumn($db) ? ', ps.needs_qc' : '';
+		$expirySelect = self::hasExpiryWarnDaysColumn($db) ? ', ps.expiry_warn_days' : '';
 		$rs = $db->pquery(
-			'SELECT ps.productsservicesid, ps.productsservicesname, ps.price, ps.item_type, ps.sku, ps.unit' . $needsQcSelect . '
+			'SELECT ps.productsservicesid, ps.productsservicesname, ps.price, ps.item_type, ps.sku, ps.unit' . $needsQcSelect . $expirySelect . '
 			 FROM vtiger_productsservices ps
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
 			 ORDER BY ps.productsservicesname ASC
@@ -2829,6 +3054,10 @@ class Warehouse_WhMgmtService {
 			$unit = self::decodeDisplayTextDeep(trim((string) (isset($row['unit']) ? $row['unit'] : '')));
 			$needsQcRaw = isset($row['needs_qc']) ? $row['needs_qc'] : 0;
 			$needsQc = ($needsQcRaw === 1 || $needsQcRaw === '1' || $needsQcRaw === true || $needsQcRaw === 'on');
+			$expiryWarnDays = (int) (isset($row['expiry_warn_days']) ? $row['expiry_warn_days'] : 0);
+			if ($expiryWarnDays < 0) {
+				$expiryWarnDays = 0;
+			}
 			$out[] = array(
 				'id' => $id,
 				'name' => $name,
@@ -2837,6 +3066,7 @@ class Warehouse_WhMgmtService {
 				'sku' => $sku,
 				'unit' => $unit,
 				'needsQc' => $needsQc,
+				'expiryWarnDays' => $expiryWarnDays,
 			);
 		}
 		return $out;

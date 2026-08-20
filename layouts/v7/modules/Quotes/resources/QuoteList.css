@@ -2098,14 +2098,15 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-det
 	font-weight: 700;
 }
 
-body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__grand-input {
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__grand-input,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__grand-value {
 	width: 100%;
 	max-width: 100%;
 	min-width: 0;
 	padding: 6px 8px;
 	border: 1px solid #bbf7d0;
 	border-radius: 8px;
-	background: #fff;
+	background: #f8fafc;
 	color: #08a045 !important;
 	font-weight: 700;
 	font-size: 14px !important;
@@ -2114,6 +2115,8 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-det
 	box-sizing: border-box;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	display: block;
+	text-align: right;
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__grand-input:focus {

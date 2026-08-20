@@ -5,7 +5,7 @@
 		<header class="mk-wh-proto-head">
 			<div class="mk-wh-proto-title">
 				<h1 class="mk-wh-proto-title__h1">Danh sách kho</h1>
-				<p class="mk-wh-proto-title__sub">Quản lý nhiều kho — mỗi kho có tồn kho và quy trình độc lập. Dữ liệu lưu trên cơ sở dữ liệu.</p>
+				<p class="mk-wh-proto-title__sub">Quản lý nhiều kho — tồn kho, hạn dùng và dự kiến hết hàng theo từng kho.</p>
 			</div>
 			<div class="mk-wh-mgmt-toolbar">
 				<a class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline" href="index.php?module=Warehouse&amp;view=WhDashboard&amp;app=INVENTORY">Bảng điều khiển kho</a>
@@ -34,6 +34,8 @@
 							<th>Quản lý</th>
 							<th class="mk-wh-mgmt-td-right">SKU</th>
 							<th class="mk-wh-mgmt-td-right">Tồn</th>
+							<th class="mk-wh-mgmt-td-right">HSD</th>
+							<th class="mk-wh-mgmt-td-right">Hết hàng</th>
 							<th>Trạng thái</th>
 							<th>Ngày tạo</th>
 							<th class="mk-wh-mgmt-td-right">Thao tác</th>

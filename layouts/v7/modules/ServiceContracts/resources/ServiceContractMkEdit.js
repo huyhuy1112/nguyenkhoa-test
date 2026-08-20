@@ -14,8 +14,9 @@
 			"Đang chăm sóc",
 			"Chuyển sang Nguyên Khoa",
 		],
-		// BA: Nguồn data = Được giới thiệu (Affiliate) hoặc trống
-		data_source: ["Được giới thiệu"],
+		// BA: Nguồn data = kênh (Website/Zalo/Facebook/TikTok) hoặc "Được giới thiệu".
+		// "Được giới thiệu" chỉ tự set khi nhập mã giới thiệu hợp lệ.
+		data_source: ["Website", "Zalo", "Facebook", "TikTok", "Được giới thiệu"],
 		contact_status: ["Chưa gọi", "Đã gửi tư vấn", "Thuê bao", "Ko nghe Máy Lần 1", "Ko nghe Máy Lần 2", "Ko nghe Máy Lần 3"],
 	};
 	var PAYMENT_OPTIONS = ["Chuyển khoản", "Tiền mặt", "Thẻ", "Ví"];
@@ -24,6 +25,7 @@
 	var referrerOptions = [];
 	var affiliateTiers = [];
 	var lastRetentionDays = DEFAULT_RETENTION_DAYS;
+	var lastManualDataSource = "";
 	var dupState = { result: "", in_retention: false, match: null };
 
 	function isScoped() {
@@ -380,18 +382,35 @@
 	}
 
 	function lockAutoFields() {
+		// Default (no referral code): data_source editable, referrer hidden.
 		$("#mkScDataSource")
-			.prop("disabled", true)
-			.attr("aria-disabled", "true")
-			.addClass("mk-sc-input--readonly");
+			.prop("disabled", false)
+			.attr("aria-disabled", "false")
+			.removeClass("mk-sc-input--readonly");
+
+		$("#mkScReferrerAffField")
+			.prop("hidden", true)
+			.attr("aria-hidden", "true");
+
 		$("#mkScReferrerAff")
 			.prop("disabled", true)
 			.attr("aria-disabled", "true")
 			.addClass("mk-sc-input--readonly");
-		$("#mkScReferralCode").prop("readonly", false).removeAttr("tabindex").removeClass("mk-sc-input--readonly");
+
+		$("#mkScReferralCode")
+			.prop("readonly", false)
+			.removeAttr("tabindex")
+			.removeClass("mk-sc-input--readonly");
 	}
 
-	function setDataSourceValue(value) {
+	function setReferrerFieldVisible(show) {
+		$("#mkScReferrerAffField")
+			.prop("hidden", !show)
+			.attr("aria-hidden", show ? "false" : "true");
+	}
+
+	function setDataSourceValue(value, lock) {
+		lock = !!lock;
 		var $ds = $("#mkScDataSource");
 		if (!$ds.length) return;
 		var v = String(value || "").trim();
@@ -403,8 +422,10 @@
 			);
 		}
 		$ds.val(v);
-		if (!$ds.prop("disabled")) {
+		if (lock) {
 			$ds.prop("disabled", true).attr("aria-disabled", "true").addClass("mk-sc-input--readonly");
+		} else {
+			$ds.prop("disabled", false).attr("aria-disabled", "false").removeClass("mk-sc-input--readonly");
 		}
 	}
 
@@ -453,8 +474,15 @@
 		var name = $opt.attr("data-name") || "";
 		$("#mkScReferralCode").val(code);
 		$("#mkScReferrer").val(name || code);
-		// BA: có mã AFF giới thiệu → Nguồn data = "Được giới thiệu"; không → trống ("-")
-		setDataSourceValue(code ? "Được giới thiệu" : "");
+		if (code) {
+			setReferrerFieldVisible(true);
+			// Có mã giới thiệu → Nguồn data = "Được giới thiệu" (locked)
+			setDataSourceValue("Được giới thiệu", true);
+		} else {
+			setReferrerFieldVisible(false);
+			// Không có mã giới thiệu → revert lại chọn tay trước đó
+			setDataSourceValue(lastManualDataSource || "", false);
+		}
 		if (!code) {
 			clearRewardOnly();
 			lastRetentionDays = DEFAULT_RETENTION_DAYS;
@@ -484,7 +512,8 @@
 		if (!code) {
 			fillReferrerAffSelect("");
 			$("#mkScReferrer").val("");
-			setDataSourceValue("");
+			setReferrerFieldVisible(false);
+			setDataSourceValue(lastManualDataSource || "", false);
 			clearRewardOnly();
 			lastRetentionDays = DEFAULT_RETENTION_DAYS;
 			recomputeRetentionExpiry();
@@ -500,8 +529,9 @@
 
 		if (match) {
 			fillReferrerAffSelect(code);
+			setReferrerFieldVisible(true);
 			$("#mkScReferrer").val(match.full_name || code);
-			setDataSourceValue("Được giới thiệu");
+			setDataSourceValue("Được giới thiệu", true);
 			if (match.reward_amount != null && match.reward_amount !== "") {
 				lastRetentionDays = parseInt(match.retention_days, 10) || DEFAULT_RETENTION_DAYS;
 				$("#mkScReferralRewardAmount").val(String(match.reward_amount));
@@ -516,6 +546,7 @@
 		return resolveReferralCode().then(function (tier) {
 			var name = tier && tier.referrer_name ? String(tier.referrer_name) : "";
 			if (tier && name) {
+				setReferrerFieldVisible(true);
 				var $sel = $("#mkScReferrerAff");
 				var hasOpt = $sel.find("option").filter(function () {
 					return String($(this).val() || "").toUpperCase() === code;
@@ -538,12 +569,16 @@
 				}
 				$sel.val(code);
 				$("#mkScReferrer").val(name);
-				setDataSourceValue("Được giới thiệu");
-			} else if (forceResolve) {
+				setDataSourceValue("Được giới thiệu", true);
+			} else if (forceResolve || !name) {
 				// Invalid code: clear auto fields but keep typed code for user to fix
 				fillReferrerAffSelect("");
 				$("#mkScReferrer").val("");
-				setDataSourceValue("");
+				setReferrerFieldVisible(false);
+				setDataSourceValue(lastManualDataSource || "", false);
+				clearRewardOnly();
+				lastRetentionDays = DEFAULT_RETENTION_DAYS;
+				recomputeRetentionExpiry();
 			}
 			return tier;
 		});
@@ -829,6 +864,11 @@
 		$("#mkScPaymentDate").val(data.payment_date || "");
 
 		applyPicklists(data.picklists || DEFAULT_PICKLISTS, data);
+		// Remember manual channel so we can revert when referral code is cleared/invalid.
+		lastManualDataSource = String(data.data_source || "").trim();
+		if (!lastManualDataSource || lastManualDataSource === "Được giới thiệu") {
+			lastManualDataSource = "Website";
+		}
 		lockAutoFields();
 		fillUserSelect(data.sale_owner_id || "", data.sale_owner || "");
 		setAffiliateBadge(data.affiliate_code || "");
@@ -864,9 +904,14 @@
 		$("#mkScReferrer").val(referrerName);
 		// Disabled selects still readable via jQuery .val()
 		var dataSource = String($("#mkScDataSource").val() || "").trim();
-		if (affCode && !dataSource) {
+		if (
+			affCode &&
+			!dataSource &&
+			$("#mkScReferrerAffField").length &&
+			!$("#mkScReferrerAffField").prop("hidden")
+		) {
 			dataSource = "Được giới thiệu";
-			setDataSourceValue(dataSource);
+			setDataSourceValue(dataSource, true);
 		}
 		return {
 			id: recordId(),
@@ -997,7 +1042,8 @@
 			lockAutoFields();
 			if (!id) {
 				$("#mkScPaymentCondition").val("Chuyển khoản");
-				setDataSourceValue("");
+				lastManualDataSource = "Website";
+				setDataSourceValue(lastManualDataSource, false);
 				ensureRegistrationDate();
 				recomputeRetentionExpiry();
 				return;
@@ -1028,6 +1074,16 @@
 			.on("submit.mkScSave", function (e) {
 				e.preventDefault();
 				saveForm();
+			});
+
+		// Remember manual data_source when not in referral mode.
+		$("#mkScDataSource")
+			.off("change.mkScDS")
+			.on("change.mkScDS", function () {
+				var $field = $("#mkScReferrerAffField");
+				if ($field.length && !$field.prop("hidden")) return;
+				lastManualDataSource = String($(this).val() || "").trim();
+				if (!lastManualDataSource) lastManualDataSource = "Website";
 			});
 
 		// Nguồn data + Người GT locked — referral code drives them

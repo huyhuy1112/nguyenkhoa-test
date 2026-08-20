@@ -1,45 +1,39 @@
 /**
- * ProductsServices list — Leads-style client search (no Vtiger search_params / URL churn).
+ * ProductsServices list — BA / KiotViet-style content (filters + catalog table).
+ * Scope: body[data-module="ProductsServices"][data-view="List"] app SALES|INVENTORY
  */
 (function ($) {
 	'use strict';
 
-	var CANONICAL_HEADERS = ['productsservicesname', 'sku', 'product_group', 'item_type', 'price', 'price_tuibao', 'unit'];
+	var CANONICAL_HEADERS = ['sku', 'productsservicesname', 'price_lt_1m', 'price_tuibao'];
 	var PAGE_SIZE = 20;
 	var SEARCH_DEBOUNCE_MS = 180;
+	var COL_COUNT = 10;
+	var FILTER_PANEL_STORAGE_KEY = 'mk_ps_filters_open_v1';
 
 	var catalogItems = [];
 	var catalogLoaded = false;
 	var catalogLoading = false;
+	var warehouseOptions = [];
+	var groupOptions = [];
 	var searchQuery = '';
 	var searchTimer = null;
 	var searchEventsBound = false;
+	var filterEventsBound = false;
+	var starEventsBound = false;
 	var pageIndex = 1;
 	var postLoadPatched = false;
 	var eventsBound = false;
 	var bulkEventsBound = false;
+	var filtersOpen = readFiltersOpenPref();
 
-	var COL_CLASS_BY_FIELD = {
-		productsservicesname: 'mk-col-ps-name',
-		sku: 'mk-col-ps-sku',
-		product_group: 'mk-col-ps-group',
-		item_type: 'mk-col-ps-type',
-		price: 'mk-col-ps-price',
-		price_tuibao: 'mk-col-ps-tuibao',
-		unit: 'mk-col-ps-unit'
-	};
-
-	var MK_COL_CLASS_NAMES =
-		'mk-col-control mk-col-ps-name mk-col-ps-sku mk-col-ps-group mk-col-ps-type mk-col-ps-price mk-col-ps-tuibao mk-col-ps-unit';
-
-	var HEADER_LABELS = {
-		productsservicesname: 'Tên sản phẩm',
-		sku: 'SKU',
-		product_group: 'Nhóm',
-		item_type: 'Loại',
-		price: 'Giá',
-		price_tuibao: 'Giá Tuibao',
-		unit: 'Đơn vị'
+	var filters = {
+		groups: {},
+		stock: 'all',
+		warehouse: '',
+		created: 'all',
+		createdFrom: '',
+		createdTo: ''
 	};
 
 	function isPsSalesList() {
@@ -88,27 +82,49 @@
 	}
 
 	function formatMoney(n) {
+		if (n === null || n === undefined || n === '') {
+			return '—';
+		}
 		n = Math.round(Number(n) || 0);
 		var neg = n < 0;
 		var abs = Math.abs(n);
 		var body = String(abs).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-		return (neg ? '-' : '') + 'đ' + body;
+		return (neg ? '-' : '') + body;
 	}
 
-	function typeLabel(raw) {
-		var t = String(raw || '').toLowerCase();
-		if (t.indexOf('service') >= 0 || t.indexOf('dịch vụ') >= 0) {
-			return { key: 'service', text: 'Dịch vụ' };
+	function formatQty(n) {
+		n = Number(n) || 0;
+		if (Math.abs(n - Math.round(n)) < 0.001) {
+			return String(Math.round(n));
 		}
-		if (t.indexOf('product') >= 0 || t.indexOf('sản phẩm') >= 0 || t === '') {
-			return { key: 'product', text: 'Sản phẩm' };
-		}
-		return { key: 'other', text: String(raw || '—') };
+		return String(Math.round(n * 100) / 100);
 	}
 
-	/* ------------------------------------------------------------------ */
-	/* Catalog (Leads-style)                                              */
-	/* ------------------------------------------------------------------ */
+	function formatCreated(raw) {
+		var s = String(raw || '').trim();
+		if (!s) {
+			return '—';
+		}
+		// "YYYY-MM-DD HH:MM:SS" → "DD/MM/YYYY HH:MM"
+		var m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/);
+		if (m) {
+			return m[3] + '/' + m[2] + '/' + m[1] + (m[4] ? ' ' + m[4] + ':' + m[5] : '');
+		}
+		return s;
+	}
+
+	function parseCreatedMs(raw) {
+		var s = String(raw || '').trim();
+		if (!s) {
+			return 0;
+		}
+		var t = Date.parse(s.replace(' ', 'T'));
+		return isNaN(t) ? 0 : t;
+	}
+
+	function startOfDay(d) {
+		return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+	}
 
 	function withCsrf(params) {
 		params = params || {};
@@ -141,6 +157,25 @@
 				items = payload.result.items;
 			}
 			catalogItems = items || [];
+			warehouseOptions =
+				(payload && payload.warehouses) ||
+				(payload && payload.result && payload.result.warehouses) ||
+				[];
+			groupOptions =
+				(payload && payload.groups) ||
+				(payload && payload.result && payload.result.groups) ||
+				[];
+			if (!groupOptions.length) {
+				var seen = {};
+				catalogItems.forEach(function (it) {
+					var g = String(it.product_group || '').trim();
+					if (g && !seen[g]) {
+						seen[g] = true;
+						groupOptions.push(g);
+					}
+				});
+				groupOptions.sort();
+			}
 			catalogLoaded = true;
 			deferred.resolve(catalogItems);
 		};
@@ -170,18 +205,172 @@
 		return deferred.promise();
 	}
 
+	function itemStock(it) {
+		var wh = filters.warehouse;
+		if (wh && it.stock_by_wh && typeof it.stock_by_wh === 'object') {
+			if (Object.prototype.hasOwnProperty.call(it.stock_by_wh, wh)) {
+				return Number(it.stock_by_wh[wh]) || 0;
+			}
+			return 0;
+		}
+		return Number(it.stock) || 0;
+	}
+
+	function readFiltersOpenPref() {
+		try {
+			var v = window.localStorage.getItem(FILTER_PANEL_STORAGE_KEY);
+			if (v === '1') {
+				return true;
+			}
+			if (v === '0') {
+				return false;
+			}
+		} catch (e) {
+			/* ignore */
+		}
+		// Default closed — open when user needs to filter.
+		return false;
+	}
+
+	function writeFiltersOpenPref(open) {
+		try {
+			window.localStorage.setItem(FILTER_PANEL_STORAGE_KEY, open ? '1' : '0');
+		} catch (e) {
+			/* ignore */
+		}
+	}
+
+	function activeGroupFilters() {
+		return Object.keys(filters.groups).filter(function (k) {
+			return filters.groups[k];
+		});
+	}
+
+	function activePanelFilterCount() {
+		var n = activeGroupFilters().length;
+		if (filters.stock !== 'all') {
+			n += 1;
+		}
+		if (filters.warehouse) {
+			n += 1;
+		}
+		if (filters.created !== 'all') {
+			n += 1;
+		}
+		return n;
+	}
+
+	function hasActiveFilters() {
+		if (searchQuery) {
+			return true;
+		}
+		return activePanelFilterCount() > 0;
+	}
+
+	function applyFiltersPanelState() {
+		var $layout = $('.mk-ps-ba-layout').first();
+		var $aside = $('#mk-ps-filters');
+		var $btn = $('#mk-ps-filters-toggle');
+		if ($layout.length) {
+			$layout.toggleClass('mk-ps-filters-collapsed', !filtersOpen);
+			$layout.toggleClass('mk-ps-filters-open', filtersOpen);
+		}
+		if ($aside.length) {
+			$aside.attr('aria-hidden', filtersOpen ? 'false' : 'true');
+			$aside.removeAttr('hidden');
+		}
+		if ($btn.length) {
+			$btn.attr('aria-expanded', filtersOpen ? 'true' : 'false');
+			$btn.toggleClass('is-active', filtersOpen);
+			$btn.find('.mk-ps-filters-toggle__label').text(filtersOpen ? 'Ẩn lọc' : 'Bộ lọc');
+		}
+		updateFilterToggleBadge();
+	}
+
+	function updateFilterToggleBadge() {
+		var n = activePanelFilterCount();
+		var $badge = $('#mk-ps-filters-toggle-count');
+		if (!$badge.length) {
+			return;
+		}
+		if (n > 0) {
+			$badge.text(String(n)).removeAttr('hidden');
+		} else {
+			$badge.attr('hidden', 'hidden').text('0');
+		}
+	}
+
+	function setFiltersOpen(open) {
+		filtersOpen = !!open;
+		writeFiltersOpenPref(filtersOpen);
+		applyFiltersPanelState();
+	}
+
 	function filteredItems() {
 		var q = String(searchQuery || '')
 			.trim()
 			.toLowerCase();
-		if (!q) {
-			return catalogItems.slice();
-		}
+		var groups = activeGroupFilters();
+		var now = new Date();
+		var todayStart = startOfDay(now);
+		var weekStart = todayStart - now.getDay() * 86400000;
+		var monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
 		return catalogItems.filter(function (it) {
-			var name = String(it.name || '').toLowerCase();
-			var sku = String(it.sku || '').toLowerCase();
-			var group = String(it.product_group || '').toLowerCase();
-			return name.indexOf(q) >= 0 || sku.indexOf(q) >= 0 || group.indexOf(q) >= 0;
+			if (q) {
+				var name = String(it.name || '').toLowerCase();
+				var sku = String(it.sku || '').toLowerCase();
+				var group = String(it.product_group || '').toLowerCase();
+				if (name.indexOf(q) < 0 && sku.indexOf(q) < 0 && group.indexOf(q) < 0) {
+					return false;
+				}
+			}
+			if (groups.length) {
+				var g = String(it.product_group || '').trim();
+				if (groups.indexOf(g) < 0) {
+					return false;
+				}
+			}
+			var stock = itemStock(it);
+			if (filters.stock === 'in' && !(stock > 0)) {
+				return false;
+			}
+			if (filters.stock === 'out' && !(stock <= 0)) {
+				return false;
+			}
+			if (filters.stock === 'below_order' && !(stock < (Number(it.qty_so) || 0))) {
+				return false;
+			}
+			if (filters.created !== 'all') {
+				var ms = parseCreatedMs(it.createdtime);
+				if (!ms) {
+					return false;
+				}
+				if (filters.created === 'today' && ms < todayStart) {
+					return false;
+				}
+				if (filters.created === 'week' && ms < weekStart) {
+					return false;
+				}
+				if (filters.created === 'month' && ms < monthStart) {
+					return false;
+				}
+				if (filters.created === 'range') {
+					if (filters.createdFrom) {
+						var fromMs = Date.parse(filters.createdFrom + 'T00:00:00');
+						if (!isNaN(fromMs) && ms < fromMs) {
+							return false;
+						}
+					}
+					if (filters.createdTo) {
+						var toMs = Date.parse(filters.createdTo + 'T23:59:59');
+						if (!isNaN(toMs) && ms > toMs) {
+							return false;
+						}
+					}
+				}
+			}
+			return true;
 		});
 	}
 
@@ -194,20 +383,83 @@
 		);
 	}
 
+	function ensureBaThead() {
+		var $table = $('#listViewContent #listview-table');
+		if (!$table.length) {
+			return;
+		}
+		var $thead = $table.find('thead').first();
+		if (!$thead.length) {
+			$table.prepend('<thead></thead>');
+			$thead = $table.find('thead').first();
+		}
+		$thead.html(
+			'<tr class="listViewContentHeader mk-ps-ba-thead">' +
+				'<th class="mk-col-control" scope="col">' +
+				'<label class="mk-ps-check">' +
+				'<input type="checkbox" class="listViewEntriesMainCheckBox mk-ps-check__input" aria-label="Chọn tất cả" />' +
+				'<span class="mk-ps-check__ui" aria-hidden="true">' +
+				'<svg class="mk-ps-check__tick" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+				'<path d="M1.75 5.2L4.05 7.35L8.25 2.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>' +
+				'</svg></span></label></th>' +
+				'<th class="mk-col-ps-star" scope="col" title="Yêu thích">★</th>' +
+				'<th class="mk-col-ps-sku" scope="col">Mã hàng</th>' +
+				'<th class="mk-col-ps-name" scope="col">Tên hàng</th>' +
+				'<th class="mk-col-ps-price" scope="col">Giá bán</th>' +
+				'<th class="mk-col-ps-tuibao" scope="col">Giá Tuibao</th>' +
+				'<th class="mk-col-ps-stock" scope="col">Tồn kho</th>' +
+				'<th class="mk-col-ps-order" scope="col">Khách đặt</th>' +
+				'<th class="mk-col-ps-created" scope="col">Thời gian tạo</th>' +
+				'<th class="mk-col-ps-stockout" scope="col">Dự kiến hết hàng</th>' +
+				'</tr>'
+		);
+		$table.find('colgroup').remove();
+		$table.prepend(
+			'<colgroup>' +
+				'<col style="width:48px" />' +
+				'<col style="width:44px" />' +
+				'<col style="width:110px" />' +
+				'<col style="width:28%" />' +
+				'<col style="width:110px" />' +
+				'<col style="width:110px" />' +
+				'<col style="width:90px" />' +
+				'<col style="width:90px" />' +
+				'<col style="width:140px" />' +
+				'<col style="width:120px" />' +
+				'</colgroup>'
+		);
+	}
+
 	function buildRowHtml(it) {
 		var id = it.id;
-		var typ = typeLabel(it.item_type);
-		var typeCls = 'mk-ps-type-pill';
-		if (typ.key === 'product') {
-			typeCls += ' mk-ps-type-pill--product';
-		} else if (typ.key === 'service') {
-			typeCls += ' mk-ps-type-pill--service';
-		}
-		var unit = String(it.unit || '').trim();
-		var unitHtml = unit
-			? '<span class="mk-ps-unit-chip">' + esc(unit) + '</span>'
-			: '—';
 		var name = String(it.name || '').trim() || '—';
+		var stock = itemStock(it);
+		var qtySo = Number(it.qty_so) || 0;
+		var thumb = String(it.image_url || it.imageUrl || '').trim();
+		var thumbHtml = thumb
+			? '<img class="mk-ps-thumb" src="' +
+			  esc(thumb) +
+			  '" alt="" loading="lazy" onerror="this.onerror=null;var s=document.createElement(\'span\');s.className=\'mk-ps-thumb mk-ps-thumb--empty\';s.setAttribute(\'aria-hidden\',\'true\');this.parentNode.replaceChild(s,this);" />'
+			: '<span class="mk-ps-thumb mk-ps-thumb--empty" aria-hidden="true"></span>';
+		var stockCls = stock > 0 ? 'mk-ps-num mk-ps-num--ok' : 'mk-ps-num mk-ps-num--out';
+		var orderCls = qtySo > 0 ? 'mk-ps-num mk-ps-num--order' : 'mk-ps-num';
+		var isStarred = !!(Number(it.starred) || it.starred === true || it.starred === '1');
+		var starTitle = isStarred ? 'Bỏ theo dõi' : 'Theo dõi';
+		var starHtml =
+			'<button type="button" class="mk-ps-star' +
+			(isStarred ? ' active' : '') +
+			'" data-starred="' +
+			(isStarred ? '1' : '0') +
+			'" title="' +
+			esc(starTitle) +
+			'" aria-label="' +
+			esc(starTitle) +
+			'" aria-pressed="' +
+			(isStarred ? 'true' : 'false') +
+			'">' +
+			(isStarred ? '★' : '☆') +
+			'</button>';
+
 		return (
 			'<tr class="listViewEntries mk-ps-client-row" data-id="' +
 			esc(id) +
@@ -223,33 +475,40 @@
 			'<svg class="mk-ps-check__tick" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">' +
 			'<path d="M1.75 5.2L4.05 7.35L8.25 2.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>' +
 			'</svg></span></label></td>' +
-			'<td class="listViewEntryValue mk-col-ps-name" data-name="productsservicesname" data-field-type="string">' +
-			'<span class="fieldValue"><span class="value"><span class="mk-marquee" title="' +
-			esc(name) +
-			'">' +
-			esc(name) +
-			'</span></span></span></td>' +
+			'<td class="mk-col-ps-star" data-name="starred">' +
+			starHtml +
+			'</td>' +
 			'<td class="listViewEntryValue mk-col-ps-sku" data-name="sku"><span class="fieldValue"><span class="value">' +
 			esc(it.sku || '—') +
 			'</span></span></td>' +
-			'<td class="listViewEntryValue mk-col-ps-group" data-name="product_group"><span class="fieldValue"><span class="value">' +
-			esc(it.product_group || '—') +
-			'</span></span></td>' +
-			'<td class="listViewEntryValue mk-col-ps-type" data-name="item_type"><span class="fieldValue"><span class="value">' +
-			'<span class="' +
-			typeCls +
+			'<td class="listViewEntryValue mk-col-ps-name" data-name="productsservicesname">' +
+			'<div class="mk-ps-name-cell">' +
+			thumbHtml +
+			'<span class="mk-ps-name-text" title="' +
+			esc(name) +
 			'">' +
-			esc(typ.text) +
-			'</span></span></span></td>' +
-			'<td class="listViewEntryValue mk-col-ps-price" data-name="price"><span class="fieldValue"><span class="value">' +
-			esc(formatMoney(it.price)) +
-			'</span></span></td>' +
-			'<td class="listViewEntryValue mk-col-ps-tuibao" data-name="price_tuibao"><span class="fieldValue"><span class="value">' +
+			esc(name) +
+			'</span></div></td>' +
+			'<td class="listViewEntryValue mk-col-ps-price" data-name="price_lt_1m"><span class="value">' +
+			esc(formatMoney(it.price_lt_1m != null ? it.price_lt_1m : it.price)) +
+			'</span></td>' +
+			'<td class="listViewEntryValue mk-col-ps-tuibao" data-name="price_tuibao"><span class="value">' +
 			esc(formatMoney(it.price_tuibao)) +
-			'</span></span></td>' +
-			'<td class="listViewEntryValue mk-col-ps-unit" data-name="unit"><span class="fieldValue"><span class="value">' +
-			unitHtml +
-			'</span></span></td>' +
+			'</span></td>' +
+			'<td class="listViewEntryValue mk-col-ps-stock"><span class="' +
+			stockCls +
+			'">' +
+			esc(formatQty(stock)) +
+			'</span></td>' +
+			'<td class="listViewEntryValue mk-col-ps-order"><span class="' +
+			orderCls +
+			'">' +
+			esc(formatQty(qtySo)) +
+			'</span></td>' +
+			'<td class="listViewEntryValue mk-col-ps-created"><span class="value">' +
+			esc(formatCreated(it.createdtime)) +
+			'</span></td>' +
+			'<td class="listViewEntryValue mk-col-ps-stockout"><span class="mk-ps-muted">---</span></td>' +
 			'</tr>'
 		);
 	}
@@ -312,11 +571,38 @@
 		);
 	}
 
+	function renderTotalsBar(rows) {
+		var $card = $('.mk-ps-table-card').first();
+		if (!$card.length) {
+			return;
+		}
+		var $bar = $('#mk-ps-totals');
+		if (!$bar.length) {
+			$card.prepend('<div id="mk-ps-totals" class="mk-ps-totals" aria-live="polite"></div>');
+			$bar = $('#mk-ps-totals');
+		}
+		var stockSum = 0;
+		var orderSum = 0;
+		rows.forEach(function (it) {
+			stockSum += itemStock(it);
+			orderSum += Number(it.qty_so) || 0;
+		});
+		$bar.html(
+			'<span>Tổng tồn: <strong>' +
+				esc(formatQty(stockSum)) +
+				'</strong></span>' +
+				'<span>Tổng khách đặt: <strong>' +
+				esc(formatQty(orderSum)) +
+				'</strong></span>'
+		);
+	}
+
 	function renderCatalogPage() {
 		var $table = $('#listViewContent #listview-table');
 		if (!$table.length) {
 			return;
 		}
+		ensureBaThead();
 		var rows = filteredItems();
 		var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE) || 1);
 		if (pageIndex > totalPages) {
@@ -329,21 +615,22 @@
 			$table.append('<tbody></tbody>');
 			$tbody = $table.find('tbody').first();
 		}
-		// Drop Vtiger search row clones that may linger in tbody
 		$tbody.find('tr.searchRow').remove();
 		if (!pageRows.length) {
 			$tbody.html(
-				'<tr class="mk-ps-empty-row"><td colspan="8" class="mk-ps-empty-cell">Không tìm thấy mặt hàng phù hợp.</td></tr>'
+				'<tr class="mk-ps-empty-row"><td colspan="' +
+					COL_COUNT +
+					'" class="mk-ps-empty-cell">Không tìm thấy mặt hàng phù hợp.</td></tr>'
 			);
 		} else {
 			$tbody.html(pageRows.map(buildRowHtml).join(''));
 		}
 		hideVtigerPaging();
 		renderClientPagination(rows.length);
-		assignColumnClasses();
-		applyAlignedColgroup();
+		renderTotalsBar(rows);
 		enhanceCircularChecks();
 		renderBulkBar();
+		updateFilterResetVisibility();
 	}
 
 	function applySearch(query) {
@@ -352,6 +639,7 @@
 		$('#mk-ps-search-clear').prop('hidden', !searchQuery);
 		if (!catalogLoaded) {
 			fetchCatalog().done(function () {
+				renderFilters();
 				renderCatalogPage();
 			});
 			return;
@@ -359,8 +647,22 @@
 		renderCatalogPage();
 	}
 
+	function filtersToggleHtml() {
+		return (
+			'<button type="button" class="mk-ps-filters-toggle" id="mk-ps-filters-toggle" ' +
+			'aria-controls="mk-ps-filters" aria-expanded="' +
+			(filtersOpen ? 'true' : 'false') +
+			'">' +
+			'<span class="mk-ps-filters-toggle__ic" aria-hidden="true"><i class="fa fa-filter"></i></span>' +
+			'<span class="mk-ps-filters-toggle__label">' +
+			(filtersOpen ? 'Ẩn lọc' : 'Bộ lọc') +
+			'</span>' +
+			'<span class="mk-ps-filters-toggle__count" id="mk-ps-filters-toggle-count" hidden>0</span>' +
+			'</button>'
+		);
+	}
+
 	function ensureSearchBar() {
-		// Strip Shared / Vtiger search widgets
 		$('#listview-actions')
 			.find(
 				'#mk-so-global-search, .mk-so-global-search, .mk-so-filter-row__search, ' +
@@ -382,26 +684,365 @@
 		if (!$start.length) {
 			return;
 		}
-		if ($('#mk-ps-search').length) {
-			if (!$start.find('#mk-ps-search').length) {
-				var $bar = $('#mk-ps-search').closest('.mk-ps-search');
-				if ($bar.length) {
-					$start.prepend($bar);
-				}
+
+		var $tools = $start.find('.mk-ps-toolbar-tools').first();
+		if (!$tools.length) {
+			$tools = $('<div class="mk-ps-toolbar-tools"></div>');
+			$start.prepend($tools);
+		}
+
+		if (!$('#mk-ps-search').length) {
+			$tools.append(
+				'<div class="mk-ps-search" role="search">' +
+					'<span class="mk-ps-search__ic" aria-hidden="true"><i class="fa fa-search"></i></span>' +
+					'<input id="mk-ps-search" class="mk-ps-search__input" type="search" ' +
+					'placeholder="Theo mã hoặc tên hàng…" autocomplete="off" spellcheck="false" />' +
+					'<button type="button" class="mk-ps-search__clear" id="mk-ps-search-clear" aria-label="Xóa tìm kiếm" hidden>' +
+					'<i class="fa fa-times" aria-hidden="true"></i>' +
+					'</button></div>'
+			);
+		} else if (!$tools.find('#mk-ps-search').length) {
+			var $bar = $('#mk-ps-search').closest('.mk-ps-search');
+			if ($bar.length) {
+				$tools.prepend($bar);
 			}
-			$('#mk-ps-search').val(searchQuery);
-			$('#mk-ps-search-clear').prop('hidden', !searchQuery);
+		}
+
+		if (!$('#mk-ps-filters-toggle').length) {
+			$tools.append(filtersToggleHtml());
+		} else if (!$tools.find('#mk-ps-filters-toggle').length) {
+			$tools.append($('#mk-ps-filters-toggle'));
+		}
+
+		$('#mk-ps-search').val(searchQuery);
+		$('#mk-ps-search-clear').prop('hidden', !searchQuery);
+		applyFiltersPanelState();
+	}
+
+	function radioGroup(name, options, current) {
+		return options
+			.map(function (opt) {
+				var id = name + '_' + opt.value;
+				return (
+					'<label class="mk-ps-filter-opt" for="' +
+					esc(id) +
+					'">' +
+					'<input type="radio" name="' +
+					esc(name) +
+					'" id="' +
+					esc(id) +
+					'" value="' +
+					esc(opt.value) +
+					'"' +
+					(current === opt.value ? ' checked' : '') +
+					' />' +
+					'<span>' +
+					esc(opt.label) +
+					'</span></label>'
+				);
+			})
+			.join('');
+	}
+
+	function renderFilters() {
+		var $body = $('#mk-ps-filters-body');
+		if (!$body.length) {
 			return;
 		}
-		$start.prepend(
-			'<div class="mk-ps-search" role="search">' +
-				'<span class="mk-ps-search__ic" aria-hidden="true"><i class="fa fa-search"></i></span>' +
-				'<input id="mk-ps-search" class="mk-ps-search__input" type="search" ' +
-				'placeholder="Tìm theo tên hoặc SKU…" autocomplete="off" spellcheck="false" />' +
-				'<button type="button" class="mk-ps-search__clear" id="mk-ps-search-clear" aria-label="Xóa tìm kiếm" hidden>' +
-				'<i class="fa fa-times" aria-hidden="true"></i>' +
-				'</button></div>'
+		var groupChecks = groupOptions
+			.map(function (g) {
+				var id = 'mk_ps_g_' + encodeURIComponent(g).replace(/%/g, '_');
+				return (
+					'<label class="mk-ps-filter-opt" for="' +
+					esc(id) +
+					'">' +
+					'<input type="checkbox" class="mk-ps-filter-group" id="' +
+					esc(id) +
+					'" value="' +
+					esc(g) +
+					'"' +
+					(filters.groups[g] ? ' checked' : '') +
+					' />' +
+					'<span>' +
+					esc(g) +
+					'</span></label>'
+				);
+			})
+			.join('');
+		if (!groupChecks) {
+			groupChecks = '<div class="mk-ps-filter-empty">Chưa có nhóm</div>';
+		}
+
+		var whOpts = [{ value: '', label: 'Tất cả' }].concat(
+			(warehouseOptions || []).map(function (w) {
+				return {
+					value: String(w.id || w.code || ''),
+					label: String(w.name || w.code || w.id || '')
+				};
+			})
 		);
+
+		$body.html(
+			'<section class="mk-ps-filter-section" data-section="group">' +
+				'<h3 class="mk-ps-filter-section__title">Nhóm hàng</h3>' +
+				'<div class="mk-ps-filter-section__list mk-ps-filter-section__list--scroll">' +
+				groupChecks +
+				'</div></section>' +
+				'<section class="mk-ps-filter-section" data-section="stock">' +
+				'<h3 class="mk-ps-filter-section__title">Tồn kho</h3>' +
+				'<div class="mk-ps-filter-section__list">' +
+				radioGroup(
+					'mk_ps_stock',
+					[
+						{ value: 'all', label: 'Tất cả' },
+						{ value: 'in', label: 'Còn hàng trong kho' },
+						{ value: 'out', label: 'Hết hàng trong kho' },
+						{ value: 'below_order', label: 'Tồn dưới khách đặt' }
+					],
+					filters.stock
+				) +
+				'</div></section>' +
+				'<section class="mk-ps-filter-section" data-section="warehouse">' +
+				'<h3 class="mk-ps-filter-section__title">Kho hàng</h3>' +
+				'<div class="mk-ps-filter-section__list">' +
+				radioGroup('mk_ps_wh', whOpts, filters.warehouse || '') +
+				'</div></section>' +
+				'<section class="mk-ps-filter-section" data-section="stockout">' +
+				'<h3 class="mk-ps-filter-section__title">Dự kiến hết hàng</h3>' +
+				'<div class="mk-ps-filter-empty">Sẽ bổ sung theo công thức BA</div></section>' +
+				'<section class="mk-ps-filter-section" data-section="created">' +
+				'<h3 class="mk-ps-filter-section__title">Thời gian tạo</h3>' +
+				'<div class="mk-ps-filter-section__list">' +
+				radioGroup(
+					'mk_ps_created',
+					[
+						{ value: 'all', label: 'Toàn thời gian' },
+						{ value: 'today', label: 'Hôm nay' },
+						{ value: 'week', label: 'Tuần này' },
+						{ value: 'month', label: 'Tháng này' },
+						{ value: 'range', label: 'Tuỳ chọn' }
+					],
+					filters.created
+				) +
+				'<div class="mk-ps-filter-range"' +
+				(filters.created === 'range' ? '' : ' hidden') +
+				'>' +
+				'<label>Từ <input type="date" id="mk-ps-created-from" value="' +
+				esc(filters.createdFrom) +
+				'" /></label>' +
+				'<label>Đến <input type="date" id="mk-ps-created-to" value="' +
+				esc(filters.createdTo) +
+				'" /></label></div></div></section>'
+		);
+		updateFilterResetVisibility();
+	}
+
+	function updateFilterResetVisibility() {
+		$('#mk-ps-filters-reset').prop('hidden', activePanelFilterCount() === 0);
+		updateFilterToggleBadge();
+	}
+
+	function resetFilters() {
+		filters = {
+			groups: {},
+			stock: 'all',
+			warehouse: '',
+			created: 'all',
+			createdFrom: '',
+			createdTo: ''
+		};
+		searchQuery = '';
+		$('#mk-ps-search').val('');
+		pageIndex = 1;
+		renderFilters();
+		renderCatalogPage();
+	}
+
+	function setStarUi($btn, starred) {
+		var on = !!starred;
+		$btn.removeClass('fa fa-star fa-star-o markStar');
+		$btn.toggleClass('active', on);
+		$btn.attr('data-starred', on ? '1' : '0');
+		$btn.attr('aria-pressed', on ? 'true' : 'false');
+		$btn.attr('title', on ? 'Bỏ theo dõi' : 'Theo dõi');
+		$btn.attr('aria-label', on ? 'Bỏ theo dõi' : 'Theo dõi');
+		$btn.text(on ? '★' : '☆');
+	}
+
+	function getListViewContainer() {
+		return $('#listViewContent');
+	}
+
+	function unregisterVtigerRowNavigation($container) {
+		if (!$container || !$container.length) {
+			return;
+		}
+		$container.off('click', '.listViewEntries');
+		$container.off('click', '.listViewEntries a');
+		$container.off('click', '.markStar');
+		$container.find('.listViewEntries a').each(function () {
+			var $link = $(this);
+			var timer = $link.data('timer');
+			if (timer) {
+				clearTimeout(timer);
+				$link.removeData('timer');
+			}
+		});
+	}
+
+	function saveStarToggle($btn) {
+		if ($btn.hasClass('processing')) {
+			return;
+		}
+		var $row = $btn.closest('tr.listViewEntries');
+		var recordId = $row.data('id') || $row.attr('data-id');
+		if (!recordId) {
+			return;
+		}
+		var next = !$btn.hasClass('active');
+		$btn.addClass('processing');
+		setStarUi($btn, next);
+		updateCatalogStar(recordId, next);
+
+		var params = withCsrf({
+			module: 'ProductsServices',
+			action: 'SaveStar',
+			record: recordId,
+			value: next ? 1 : 0,
+			_timeStampNoChangeMode: true
+		});
+
+		function fail() {
+			setStarUi($btn, !next);
+			updateCatalogStar(recordId, !next);
+			$btn.removeClass('processing');
+			if (window.app && app.helper && app.helper.showErrorNotification) {
+				app.helper.showErrorNotification({ message: 'Không lưu được theo dõi.' });
+			}
+		}
+
+		function ok() {
+			$btn.removeClass('processing');
+			if (window.app && app.helper && app.helper.showSuccessNotification) {
+				app.helper.showSuccessNotification({
+					message: next ? 'Đã theo dõi hàng hoá.' : 'Đã bỏ theo dõi.'
+				});
+			}
+		}
+
+		if (window.app && app.request && typeof app.request.post === 'function') {
+			app.request.post({ data: params }).then(function (err, data) {
+				if (err || data === false) {
+					fail();
+					return;
+				}
+				ok();
+			});
+		} else {
+			$.post('index.php', params)
+				.done(function () {
+					ok();
+				})
+				.fail(fail);
+		}
+	}
+
+	function onStarClickCapture(e) {
+		if (!isPsSalesList()) {
+			return;
+		}
+		var target = e.target;
+		if (!target || !target.closest) {
+			return;
+		}
+		var btn = target.closest('#listViewContent #listview-table .mk-ps-star');
+		if (!btn) {
+			var td = target.closest('#listViewContent #listview-table td.mk-col-ps-star');
+			if (td) {
+				btn = td.querySelector('.mk-ps-star');
+			}
+		}
+		if (!btn) {
+			return;
+		}
+
+		e.preventDefault();
+		e.stopPropagation();
+		if (typeof e.stopImmediatePropagation === 'function') {
+			e.stopImmediatePropagation();
+		}
+		saveStarToggle($(btn));
+	}
+
+	function updateCatalogStar(recordId, starred) {
+		var id = Number(recordId) || 0;
+		if (!id) {
+			return;
+		}
+		for (var i = 0; i < catalogItems.length; i++) {
+			if (Number(catalogItems[i].id) === id) {
+				catalogItems[i].starred = starred ? 1 : 0;
+				break;
+			}
+		}
+	}
+
+	function bindStarEvents() {
+		if (starEventsBound || document.documentElement.getAttribute('data-mk-ps-star-bound')) {
+			return;
+		}
+		starEventsBound = true;
+		document.documentElement.setAttribute('data-mk-ps-star-bound', '1');
+		document.addEventListener('click', onStarClickCapture, true);
+	}
+
+	function bindFilterEvents() {
+		if (filterEventsBound) {
+			return;
+		}
+		filterEventsBound = true;
+		$(document)
+			.on('change.mkPsFilterGroup', '.mk-ps-filter-group', function () {
+				var g = $(this).val();
+				if ($(this).is(':checked')) {
+					filters.groups[g] = true;
+				} else {
+					delete filters.groups[g];
+				}
+				pageIndex = 1;
+				renderCatalogPage();
+			})
+			.on('change.mkPsFilterStock', 'input[name="mk_ps_stock"]', function () {
+				filters.stock = $(this).val() || 'all';
+				pageIndex = 1;
+				renderCatalogPage();
+			})
+			.on('change.mkPsFilterWh', 'input[name="mk_ps_wh"]', function () {
+				filters.warehouse = $(this).val() || '';
+				pageIndex = 1;
+				renderCatalogPage();
+			})
+			.on('change.mkPsFilterCreated', 'input[name="mk_ps_created"]', function () {
+				filters.created = $(this).val() || 'all';
+				$('.mk-ps-filter-range').prop('hidden', filters.created !== 'range');
+				pageIndex = 1;
+				renderCatalogPage();
+			})
+			.on('change.mkPsFilterRange', '#mk-ps-created-from, #mk-ps-created-to', function () {
+				filters.createdFrom = $('#mk-ps-created-from').val() || '';
+				filters.createdTo = $('#mk-ps-created-to').val() || '';
+				filters.created = 'range';
+				pageIndex = 1;
+				renderCatalogPage();
+			})
+			.on('click.mkPsFilterReset', '#mk-ps-filters-reset', function (e) {
+				e.preventDefault();
+				resetFilters();
+			})
+			.on('click.mkPsFilterToggle', '#mk-ps-filters-toggle', function (e) {
+				e.preventDefault();
+				setFiltersOpen(!filtersOpen);
+			});
 	}
 
 	function bindSearchEvents() {
@@ -451,104 +1092,39 @@
 					renderCatalogPage();
 				}
 			})
-			.on('click.mkPsClientRow', '#listViewContent #listview-table tbody tr.listViewEntries td:not(.listViewRecordActions)', function (e) {
-				if ($(e.target).closest('a,button,input,label,.mk-ps-check').length) {
-					return;
+			.on(
+				'click.mkPsClientRow',
+				'#listViewContent #listview-table tbody tr.listViewEntries td:not(.listViewRecordActions):not(.mk-col-ps-star)',
+				function (e) {
+					if ($(e.target).closest('a,button,input,label,.mk-ps-check,.mk-ps-star').length) {
+						return;
+					}
+					var url = $(this).closest('tr').attr('data-recordurl');
+					if (url) {
+						window.location.href = url;
+					}
 				}
-				var url = $(this).closest('tr').attr('data-recordurl');
-				if (url) {
-					window.location.href = url;
-				}
-			});
+			);
 	}
 
 	function bootClientCatalog() {
 		ensureSearchBar();
 		bindSearchEvents();
+		bindFilterEvents();
+		bindStarEvents();
 		hideVtigerPaging();
 		fetchCatalog()
 			.done(function () {
+				renderFilters();
 				renderCatalogPage();
+				setReadyState();
 			})
 			.fail(function () {
 				ensureClientPaginationHost().html(
 					'<span class="mk-ps-client-pagination__info">Không tải được danh mục hàng hoá.</span>'
 				);
+				setReadyState();
 			});
-	}
-
-	/* ------------------------------------------------------------------ */
-	/* Layout helpers (existing table chrome)                             */
-	/* ------------------------------------------------------------------ */
-
-	function fieldFromHeaderTh($th) {
-		var $a = $th.find('a.listViewContentHeaderValues').first();
-		return $a.length ? $a.data('columnname') || $a.attr('data-columnname') || '' : '';
-	}
-
-	function assignColumnClasses() {
-		var $table = $('#listViewContent #listview-table');
-		if (!$table.length) {
-			return;
-		}
-		$table.find('th, td').removeClass(MK_COL_CLASS_NAMES);
-		var $headerCells = $table.find('thead tr.listViewContentHeader th');
-		$headerCells.each(function () {
-			var $th = $(this);
-			var field = fieldFromHeaderTh($th);
-			if (field && COL_CLASS_BY_FIELD[field]) {
-				$th.addClass(COL_CLASS_BY_FIELD[field]);
-			}
-			if ($th.find('.listViewEntriesMainCheckBox, .table-actions, .mk-ps-check').length) {
-				$th.addClass('mk-col-control');
-			}
-		});
-		$table.find('tbody tr.listViewEntries').each(function () {
-			$(this)
-				.children('td')
-				.each(function () {
-					var $td = $(this);
-					var field = $td.data('name') || $td.attr('data-name');
-					if (field && COL_CLASS_BY_FIELD[field]) {
-						$td.addClass(COL_CLASS_BY_FIELD[field]);
-					}
-					if ($td.hasClass('listViewRecordActions')) {
-						$td.addClass('mk-col-control');
-					}
-				});
-		});
-	}
-
-	function applyAlignedColgroup() {
-		var $table = $('#listViewContent #listview-table');
-		if (!$table.length) {
-			return;
-		}
-		var $headerCells = $table.find('thead tr.listViewContentHeader th');
-		$table.find('colgroup').remove();
-		var $colgroup = $('<colgroup>');
-		$headerCells.each(function () {
-			var $th = $(this);
-			var field = fieldFromHeaderTh($th);
-			var $col = $('<col>');
-			if ($th.hasClass('mk-col-control') || $th.find('.listViewEntriesMainCheckBox, .mk-ps-check').length) {
-				$col.css({ width: '52px' });
-			} else if (field === 'sku' || $th.hasClass('mk-col-ps-sku')) {
-				$col.css({ width: '12%' });
-			} else if (field === 'item_type' || $th.hasClass('mk-col-ps-type')) {
-				$col.css({ width: '12%' });
-			} else if (field === 'price' || $th.hasClass('mk-col-ps-price')) {
-				$col.css({ width: '14%' });
-			} else if (field === 'unit' || $th.hasClass('mk-col-ps-unit')) {
-				$col.css({ width: '10%' });
-			} else if (field === 'productsservicesname' || $th.hasClass('mk-col-ps-name')) {
-				$col.css({ width: '28%' });
-			} else {
-				$col.css({ width: 'auto' });
-			}
-			$colgroup.append($col);
-		});
-		$table.prepend($colgroup);
 	}
 
 	function stripRowActionChrome() {
@@ -581,27 +1157,6 @@
 			});
 	}
 
-	function ensureHeaderTitles() {
-		$('#listViewContent #listview-table thead tr.listViewContentHeader th').each(function () {
-			var $th = $(this);
-			var $a = $th.find('a.listViewContentHeaderValues').first();
-			if (!$a.length) {
-				return;
-			}
-			var field = $a.data('columnname') || $a.attr('data-columnname') || '';
-			var label = HEADER_LABELS[field];
-			if (!label) {
-				return;
-			}
-			var $icons = $a.children('i').detach();
-			$a.empty();
-			if ($icons.length) {
-				$a.append($icons);
-			}
-			$a.append(document.createTextNode('\u00a0' + label + '\u00a0'));
-		});
-	}
-
 	function destroyFloatTheadArtifacts() {
 		var $table = $('#listViewContent #listview-table');
 		if (!$table.length) {
@@ -623,6 +1178,77 @@
 				/* ignore */
 			}
 		}
+	}
+
+	function patchRowClickForStar() {
+		if (typeof Vtiger_List_Js === 'undefined' || Vtiger_List_Js.prototype.__mkPsRowClickPatched) {
+			return;
+		}
+		Vtiger_List_Js.prototype.__mkPsRowClickPatched = true;
+		var origRegisterRowClick = Vtiger_List_Js.prototype.registerRowClickEvent;
+		if (typeof origRegisterRowClick !== 'function') {
+			return;
+		}
+		Vtiger_List_Js.prototype.registerRowClickEvent = function () {
+			if (!isPsSalesList()) {
+				return origRegisterRowClick.apply(this, arguments);
+			}
+			var listViewContentDiv = this.getListViewContainer();
+			unregisterVtigerRowNavigation(listViewContentDiv);
+			listViewContentDiv.on('click', '.listViewEntries a', function (e) {
+				var currentAElement = jQuery(e.currentTarget);
+				var href = currentAElement.attr('href');
+				var target = jQuery(e.target);
+				if (!target.hasClass('js-reference-display-value')) {
+					if (!currentAElement.data('timer') && typeof href !== 'undefined') {
+						currentAElement.data(
+							'timer',
+							setTimeout(function () {
+								window.location = href;
+							}, 500)
+						);
+					}
+					e.preventDefault();
+				}
+				e.stopPropagation();
+			});
+			// Row → detail: List.js mkPsClientRow handles td clicks; skip core tr handler (star column conflict).
+		};
+	}
+
+	function patchRegisterStarToggle() {
+		if (typeof Vtiger_List_Js === 'undefined' || Vtiger_List_Js.prototype.__mkPsStarTogglePatched) {
+			return;
+		}
+		Vtiger_List_Js.prototype.__mkPsStarTogglePatched = true;
+		var origRegisterStarToggle = Vtiger_List_Js.prototype.registerStarToggle;
+		if (typeof origRegisterStarToggle !== 'function') {
+			return;
+		}
+		Vtiger_List_Js.prototype.registerStarToggle = function () {
+			if (isPsSalesList()) {
+				return;
+			}
+			return origRegisterStarToggle.apply(this, arguments);
+		};
+	}
+
+	function patchRegisterEventsForStar() {
+		if (typeof Vtiger_List_Js === 'undefined' || Vtiger_List_Js.prototype.__mkPsRegisterEventsPatched) {
+			return;
+		}
+		Vtiger_List_Js.prototype.__mkPsRegisterEventsPatched = true;
+		var origRegisterEvents = Vtiger_List_Js.prototype.registerEvents;
+		if (typeof origRegisterEvents !== 'function') {
+			return;
+		}
+		Vtiger_List_Js.prototype.registerEvents = function () {
+			var result = origRegisterEvents.apply(this, arguments);
+			if (isPsSalesList()) {
+				unregisterVtigerRowNavigation(this.getListViewContainer());
+			}
+			return result;
+		};
 	}
 
 	function patchDisableFloatThead() {
@@ -667,7 +1293,6 @@
 				return params;
 			};
 		}
-		// Block stock list reload from wiping client catalog (Next/Prev/searchVtiger)
 		var origLoad = Vtiger_List_Js.prototype.loadListViewRecords;
 		if (typeof origLoad === 'function') {
 			Vtiger_List_Js.prototype.loadListViewRecords = function () {
@@ -746,12 +1371,12 @@
 				'<span class="mk-ps-bulk-badge" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5.2L4.1 7.2L8 2.8" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>' +
 				'<span class="mk-ps-bulk-bar__count"><strong>' +
 				n +
-				'</strong> selected</span></div>' +
+				'</strong> đã chọn</span></div>' +
 				'<div class="mk-ps-bulk-bar__actions">' +
-				'<button type="button" class="mk-ps-bulk-btn" data-ps-bulk="export"><span>Export</span></button>' +
+				'<button type="button" class="mk-ps-bulk-btn" data-ps-bulk="export"><span>Xuất file</span></button>' +
 				'<button type="button" class="mk-ps-bulk-btn mk-ps-bulk-btn--danger" data-ps-bulk="delete"><span>Xóa</span></button>' +
 				'</div>' +
-				'<button type="button" class="mk-ps-bulk-clear" data-ps-bulk="clear">Clear</button></div>'
+				'<button type="button" class="mk-ps-bulk-clear" data-ps-bulk="clear">Bỏ chọn</button></div>'
 		);
 	}
 
@@ -810,8 +1435,8 @@
 
 	function setReadyState() {
 		document.body.classList.remove('mk-ps-ui-loading');
-		document.body.classList.add('mk-ps-ui-ready', 'mk-ps-list-v2');
-		document.documentElement.classList.add('mk-ps-ui-ready', 'mk-ps-list-ready', 'mk-ps-list-v2');
+		document.body.classList.add('mk-ps-ui-ready', 'mk-ps-list-v2', 'mk-ps-ba-list');
+		document.documentElement.classList.add('mk-ps-ui-ready', 'mk-ps-list-ready', 'mk-ps-list-v2', 'mk-ps-ba-list');
 	}
 
 	function afterListLayout() {
@@ -819,27 +1444,26 @@
 			return;
 		}
 		try {
-			document.body.classList.add('mk-ps-list-v2');
-			document.documentElement.classList.add('mk-ps-list-v2');
+			document.body.classList.add('mk-ps-list-v2', 'mk-ps-ba-list');
+			document.documentElement.classList.add('mk-ps-list-v2', 'mk-ps-ba-list');
 			destroyFloatTheadArtifacts();
 			mirrorToolbarClasses();
 			ensureSearchBar();
 			bindSearchEvents();
+			bindFilterEvents();
+			bindStarEvents();
 			bindBulkSelectionEvents();
-			$('#listViewContent #listview-table').addClass('mk-ps-table mk-ps-table-v2');
-			assignColumnClasses();
+			$('#listViewContent #listview-table').addClass('mk-ps-table mk-ps-table-v2 mk-ps-ba-table');
 			stripRowActionChrome();
+			ensureBaThead();
 			enhanceCircularChecks();
-			ensureHeaderTitles();
-			applyAlignedColgroup();
 			hideVtigerPaging();
 			renderBulkBar();
+			unregisterVtigerRowNavigation(getListViewContainer());
 		} catch (err) {
 			if (window.console && console.warn) {
 				console.warn('[ProductsServices List] layout error', err);
 			}
-		} finally {
-			setReadyState();
 		}
 	}
 
@@ -851,9 +1475,16 @@
 		if (!isPsSalesList()) {
 			return;
 		}
-		document.body.classList.add('mk-ps-ui-loading', 'mk-ps-list-v2');
-		document.documentElement.classList.add('mk-ps-list-v2');
+		if (window.__mkPsListInitDone) {
+			return;
+		}
+		window.__mkPsListInitDone = true;
+		document.body.classList.add('mk-ps-ui-loading', 'mk-ps-list-v2', 'mk-ps-ba-list');
+		document.documentElement.classList.add('mk-ps-list-v2', 'mk-ps-ba-list');
 		patchDisableFloatThead();
+		patchRowClickForStar();
+		patchRegisterStarToggle();
+		patchRegisterEventsForStar();
 		patchListHeadersOnly();
 		patchPostLoadListViewRecords();
 		ensureListHeadersInput();
@@ -874,7 +1505,6 @@
 		} else {
 			setTimeout(run, 0);
 		}
-		setTimeout(setReadyState, 1800);
 	}
 
 	if (document.readyState === 'loading') {

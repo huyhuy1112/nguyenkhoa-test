@@ -8,16 +8,19 @@
 document.documentElement.classList.add('mk-ps-list-sales','mk-ps-list-v2');
 if (document.body) { document.body.classList.add('mk-ps-list-v2'); }
 else { document.addEventListener('DOMContentLoaded', function () { document.body.classList.add('mk-ps-list-v2'); }); }
-/* Fallback: never keep list hidden if List.js fails after crash */
+/* Fallback: only unhide if List.js never finishes (avoid old-table flash) */
 setTimeout(function () {
+	if (document.documentElement.classList.contains('mk-ps-list-ready')) {
+		return;
+	}
 	document.documentElement.classList.add('mk-ps-list-ready', 'mk-ps-ui-ready');
 	if (document.body) {
 		document.body.classList.add('mk-ps-ui-ready', 'mk-ps-list-v2');
 	}
-}, 2200);
+}, 12000);
 </script>
 {* Critical CSS first — hide until ready; lock column grid so old CSS cannot flash *}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesListTable.css')}?mk_v=20260812_ps_leads_search1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesListTable.css')}?mk_v=20260817_ps_star5" />
 <style type="text/css">
 html.mk-ps-list-v2:not(.mk-ps-list-ready) #listViewContent,
 html.mk-ps-list-sales:not(.mk-ps-list-ready) #listViewContent {
@@ -66,14 +69,14 @@ html.mk-ps-list-v2 #listview-table tr.searchRow {
 	display: none !important;
 }
 </style>
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260812_ps_leads_search1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260817_ps_star5" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesList.css')}?mk_v=20260812_ps_leads_search1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesInventoryTheme.css')}?mk_v=20260812_ps_leads_search1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesList.css')}?mk_v=20260817_ps_star5" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesInventoryTheme.css')}?mk_v=20260817_ps_star5" />
 {* Re-assert v2 table last so it beats MkSalesListTable / List.css *}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesListTable.css')}?mk_v=20260812_ps_leads_search1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260812_ps_leads_search1" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260812_ps_leads_search1"></script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesListTable.css')}?mk_v=20260817_ps_star5" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260817_ps_star5" />
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260817_ps_star5"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript">
 window.__mkSalesPosInlineConfig = {
@@ -85,8 +88,8 @@ window.__mkSalesPosInlineConfig = {
 	rowSelector: 'tr.listViewEntries'
 };
 </script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260812_ps_leads_search1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/List.js')}?mk_v=20260812_ps_leads_search1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260817_ps_star5"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/List.js')}?mk_v=20260817_ps_star5"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-ps-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

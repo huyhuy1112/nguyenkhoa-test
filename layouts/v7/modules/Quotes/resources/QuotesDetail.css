@@ -2119,13 +2119,20 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-d
 	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 	padding: 0;
 	margin: 0;
-	overflow: hidden;
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+	overflow-x: auto;
+	overflow-y: hidden;
+	-webkit-overflow-scrolling: touch;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv .lineItemsTable {
 	margin: 0 !important;
 	border: none !important;
-	width: 100%;
+	width: max-content;
+	min-width: 100%;
+	table-layout: auto;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row .lineItemTableDiv .lineItemsTable thead th.lineItemBlockHeader {

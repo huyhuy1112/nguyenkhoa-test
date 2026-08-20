@@ -483,7 +483,7 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 
 .mk-wh-proto-kpis {
 	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+	grid-template-columns: repeat(5, minmax(0, 1fr));
 	gap: 10px;
 	margin-bottom: 12px;
 }
@@ -1850,5 +1850,38 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 		justify-content: flex-start;
 		flex-wrap: wrap;
 	}
+	.mk-wh-proto-kpis {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.mk-wh-return-results {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-top: 8px;
+	max-height: 180px;
+	overflow: auto;
+}
+.mk-wh-return-source {
+	text-align: left;
+	border: 1px solid #e2e8f0;
+	background: #fff;
+	border-radius: 8px;
+	padding: 8px 10px;
+	cursor: pointer;
+	font-size: 13px;
+}
+.mk-wh-return-source:hover {
+	border-color: #818cf8;
+	background: #eef2ff;
+}
+#mkWhReturnLinesBody input {
+	width: 100%;
+	min-width: 0;
+	height: 32px;
+	border: 1px solid #e2e8f0;
+	border-radius: 6px;
+	padding: 0 6px;
 }
 

@@ -81,13 +81,13 @@
 							<option value="">—</option>
 						</select>
 					</label>
-					<label class="mk-sc-field mk-sc-field--hidden-source" hidden aria-hidden="true">
+					<label class="mk-sc-field" id="mkScDataSourceField">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_DATA_SOURCE', $MODULE)}</span>
-						<select class="mk-sc-input mk-sc-select mk-sc-input--readonly" name="data_source" id="mkScDataSource" disabled aria-disabled="true" tabindex="-1">
+						<select class="mk-sc-input mk-sc-select" name="data_source" id="mkScDataSource" aria-disabled="false">
 							<option value="">—</option>
 						</select>
 					</label>
-					<label class="mk-sc-field">
+					<label class="mk-sc-field" id="mkScReferrerAffField" hidden aria-hidden="true">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_REFERRER', $MODULE)}</span>
 						<select class="mk-sc-input mk-sc-select mk-sc-input--readonly" name="referrer_aff" id="mkScReferrerAff" disabled aria-disabled="true" tabindex="-1">
 							<option value="">— Chọn mã AFF người giới thiệu —</option>
@@ -103,7 +103,7 @@
 
 					<label class="mk-sc-field">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_REFERRAL_CODE', $MODULE)}</span>
-						<input type="text" class="mk-sc-input" name="referral_code" id="mkScReferralCode" maxlength="64" autocomplete="off" style="text-transform:uppercase" placeholder="AFF-######" />
+						<input type="text" class="mk-sc-input" name="referral_code" id="mkScReferralCode" maxlength="16" autocomplete="off" style="text-transform:uppercase" placeholder="A0906345551" />
 					</label>
 					<label class="mk-sc-field">
 						<span class="mk-sc-field__label">{vtranslate('LBL_MK_SC_REFERRAL_REWARD', $MODULE)}</span>

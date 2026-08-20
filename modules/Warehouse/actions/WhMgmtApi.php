@@ -22,7 +22,7 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'save_issue', 'receipt_action', 'issue_action', 'set_settings', 'qc_upload_image', 'qc_delete_image', 'qc_update'), true)) {
+		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'save_issue', 'receipt_action', 'issue_action', 'save_return', 'return_action', 'set_settings', 'qc_upload_image', 'qc_delete_image', 'qc_update'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -164,12 +164,9 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					break;
 
 				case 'get_settings':
-					require_once 'modules/Warehouse/helpers/SettingsHelper.php';
 					$response->setResult(array(
 						'success' => true,
-						'settings' => array(
-							'wh_allow_negative_stock' => Warehouse_Settings_Helper::allowNegativeStock() ? 1 : 0,
-						),
+						'settings' => Warehouse_WhMgmtService::publicSettings(),
 					));
 					break;
 
@@ -184,18 +181,73 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					} else if ($request->has('wh_allow_negative_stock')) {
 						$allow = $request->get('wh_allow_negative_stock');
 					}
-					if ($allow === null) {
-						throw new Exception('Thiếu cấu hình wh_allow_negative_stock.');
+					$expiryDays = null;
+					if (array_key_exists('wh_expiry_warn_days', $payload)) {
+						$expiryDays = $payload['wh_expiry_warn_days'];
+					} else if ($request->has('wh_expiry_warn_days')) {
+						$expiryDays = $request->get('wh_expiry_warn_days');
 					}
-					$enabled = in_array(strtolower(trim((string) $allow)), array('1', 'true', 'yes', 'on'), true)
-						|| $allow === 1 || $allow === true;
-					Warehouse_Settings_Helper::setAllowNegativeStock($enabled, $userId);
+					if ($allow === null && $expiryDays === null) {
+						throw new Exception('Thiếu cấu hình kho.');
+					}
+					if ($allow !== null) {
+						$enabled = in_array(strtolower(trim((string) $allow)), array('1', 'true', 'yes', 'on'), true)
+							|| $allow === 1 || $allow === true;
+						Warehouse_Settings_Helper::setAllowNegativeStock($enabled, $userId);
+					}
+					if ($expiryDays !== null && $expiryDays !== '') {
+						Warehouse_Settings_Helper::setExpiryWarnDays((int) $expiryDays, $userId);
+					}
 					$response->setResult(array(
 						'success' => true,
-						'settings' => array(
-							'wh_allow_negative_stock' => Warehouse_Settings_Helper::allowNegativeStock() ? 1 : 0,
-						),
+						'settings' => Warehouse_WhMgmtService::publicSettings(),
 					));
+					break;
+
+				case 'search_return_sources':
+					require_once 'modules/Warehouse/helpers/ReturnHelper.php';
+					$q = trim((string) $request->get('q'));
+					if ($q === '') {
+						$payload = $this->decodePayload($request);
+						$q = isset($payload['q']) ? trim((string) $payload['q']) : '';
+					}
+					$response->setResult(array(
+						'success' => true,
+						'sources' => Warehouse_Return_Helper::searchSources($q),
+					));
+					break;
+
+				case 'save_return':
+					require_once 'modules/Warehouse/helpers/ReturnHelper.php';
+					global $current_user;
+					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
+					$whId = trim((string) $request->get('whId'));
+					if ($whId === '') {
+						$whId = trim((string) $request->get('id'));
+					}
+					$payload = $this->decodePayload($request);
+					$result = Warehouse_Return_Helper::save($whId, $payload, $userId);
+					$response->setResult(array_merge(array('success' => true), $result));
+					break;
+
+				case 'return_action':
+					require_once 'modules/Warehouse/helpers/ReturnHelper.php';
+					global $current_user;
+					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
+					$whId = trim((string) $request->get('whId'));
+					if ($whId === '') {
+						$whId = trim((string) $request->get('id'));
+					}
+					$code = trim((string) $request->get('code'));
+					$action = strtolower(trim((string) $request->get('actionKey')));
+					if ($action === 'confirm') {
+						$result = Warehouse_Return_Helper::confirm($whId, $code, $userId);
+					} else if ($action === 'cancel') {
+						$result = Warehouse_Return_Helper::cancel($whId, $code);
+					} else {
+						throw new Exception('Hành động phiếu thu hồi không hợp lệ.');
+					}
+					$response->setResult(array_merge(array('success' => true), $result));
 					break;
 
 				case 'qc_upload_image':

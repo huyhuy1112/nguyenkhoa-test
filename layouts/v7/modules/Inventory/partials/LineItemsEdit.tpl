@@ -159,15 +159,15 @@
 				<table class="table table-bordered" id="lineItemTab">
 					{if !empty($MK_MODERN_QUOTE_CREATE) || !empty($MK_MODERN_SALES_ORDER_CREATE)}
 					<colgroup class="mk-inv-colgroup">
-						<col style="width:48px" />
-						<col style="width:18%" />
-						<col style="width:68px" />
-						<col style="width:88px" />
-						<col style="width:120px" />
-						<col style="width:100px" />
-						<col style="width:120px" />
-						<col style="width:120px" />
-						<col style="width:140px" />
+						<col style="width:44px" />
+						<col style="width:260px" />
+						<col style="width:92px" />
+						<col style="width:110px" />
+						<col style="width:148px" />
+						<col style="width:108px" />
+						<col style="width:148px" />
+						<col style="width:148px" />
+						<col style="width:180px" />
 					</colgroup>
 					<tr class="mk-inv-header-row">
 						<td class="mk-inv-col-drag"></td>
@@ -232,16 +232,16 @@
 					</tr>
 					{/if}
 					<tr id="row0" class="hide lineItemCloneCopy" data-row-num="0">
-						{include file="partials/LineItemsContent.tpl"|@vtemplate_path:'Inventory' row_no=0 data=[] IGNORE_UI_REGISTRATION=true}
+						{include file="partials/LineItemsContent.tpl"|@vtemplate_path:'Inventory' row_no=0 data=[] IGNORE_UI_REGISTRATION=true MK_MODERN_LINE_ITEMS=$MK_MODERN_LINE_ITEMS}
 					</tr>
 					{foreach key=row_no item=data from=$RELATED_PRODUCTS}
 						<tr id="row{$row_no}" data-row-num="{$row_no}" class="lineItemRow" {if isset($data["entityType$row_no"]) && $data["entityType$row_no"] eq 'Products'}data-quantity-in-stock={(isset($data["qtyInStock$row_no"])) ? $data["qtyInStock$row_no"] : ''}{/if}>
-							{include file="partials/LineItemsContent.tpl"|@vtemplate_path:'Inventory' row_no=$row_no data=$data}
+							{include file="partials/LineItemsContent.tpl"|@vtemplate_path:'Inventory' row_no=$row_no data=$data MK_MODERN_LINE_ITEMS=$MK_MODERN_LINE_ITEMS}
 						</tr>
 					{/foreach}
 					{if $RELATED_PRODUCTS && php7_count($RELATED_PRODUCTS) eq 0 and ($PRODUCT_ACTIVE eq 'true' || $SERVICE_ACTIVE eq 'true')}
 						<tr id="row1" class="lineItemRow" data-row-num="1">
-							{include file="partials/LineItemsContent.tpl"|@vtemplate_path:'Inventory' row_no=1 data=[] IGNORE_UI_REGISTRATION=false}
+							{include file="partials/LineItemsContent.tpl"|@vtemplate_path:'Inventory' row_no=1 data=[] IGNORE_UI_REGISTRATION=false MK_MODERN_LINE_ITEMS=$MK_MODERN_LINE_ITEMS}
 						</tr>
 					{/if}
 				</table>

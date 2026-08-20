@@ -28,7 +28,7 @@
     "Đang chăm sóc",
     "Chuyển sang Nguyên Khoa",
   ];
-  var DATA_SOURCE_OPTS = ["Được giới thiệu"];
+  var DATA_SOURCE_OPTS = ["Website", "Zalo", "Facebook", "TikTok", "Được giới thiệu"];
   var CONTACT_STATUS_OPTS = ["Chưa gọi", "Đã gửi tư vấn", "Thuê bao", "Ko nghe Máy Lần 1"];
 
   function getPresetSegments() {

@@ -2351,9 +2351,9 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines {
-	width: 100%;
-	min-width: 980px;
-	table-layout: fixed;
+	width: max-content;
+	min-width: 1080px;
+	table-layout: auto;
 	border-collapse: collapse;
 }
 
@@ -2374,20 +2374,23 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline
 	font-size: 13px;
 	color: #1e293b;
 	vertical-align: middle;
-	overflow: hidden;
+	overflow: visible;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines th:nth-child(1),
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines td.is-code {
-	width: 22%;
-	min-width: 168px;
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines td.is-name {
+	min-width: 220px;
+	white-space: nowrap;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines th:nth-child(2),
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines td.is-name {
-	width: 24%;
-	overflow: hidden;
-	text-overflow: ellipsis;
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines th:nth-child(3),
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines th:nth-child(4),
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines th:nth-child(5),
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines th:nth-child(6),
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines td.is-num,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines td.is-total {
+	min-width: 110px;
 	white-space: nowrap;
 }
 
@@ -2571,7 +2574,8 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline
 	color: #64748b;
 }
 
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__grand-input {
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__grand-input,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__grand-value {
 	width: 100%;
 	max-width: 180px;
 	padding: 6px 8px;

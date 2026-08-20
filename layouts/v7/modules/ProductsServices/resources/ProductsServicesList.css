@@ -1515,3 +1515,541 @@ body[data-module="ProductsServices"] .mk-so-global-search,
 body[data-module="ProductsServices"] .mk-so-filter-row__search {
 	display: none !important;
 }
+
+/* ==========================================================================
+ * BA / KiotViet-style content layout (filters left + table)
+ * Theme: NK green — do not change sidebar/topbar
+ * ========================================================================== */
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-ba-layout,
+html.mk-ps-ba-list body[data-module="ProductsServices"][data-view="List"] .mk-ps-ba-layout {
+	display: flex;
+	align-items: stretch;
+	gap: 16px;
+	width: 100%;
+	box-sizing: border-box;
+	min-height: 0;
+	transition: gap 0.28s ease;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters {
+	flex: 0 0 248px;
+	width: 248px;
+	max-width: 248px;
+	background: #fff;
+	border: 1px solid #d7e5db;
+	border-radius: 12px;
+	box-shadow: 0 1px 2px rgba(20, 35, 26, 0.04);
+	padding: 12px 12px 16px;
+	box-sizing: border-box;
+	align-self: flex-start;
+	position: sticky;
+	top: 12px;
+	max-height: calc(100vh - 140px);
+	overflow: hidden;
+	opacity: 1;
+	min-width: 0;
+	transform: translateX(0);
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 10px;
+	padding: 0 2px 8px;
+	border-bottom: 1px solid #e7f0ea;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters__title {
+	font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+	font-size: 13px;
+	font-weight: 700;
+	color: #1f4d32;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters__reset {
+	border: 0;
+	background: transparent;
+	color: #2f7a4a;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	padding: 0;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters__reset[hidden] {
+	display: none !important;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filter-section {
+	margin-bottom: 14px;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filter-section__title {
+	margin: 0 0 8px;
+	font-size: 13px;
+	font-weight: 700;
+	color: #24352a;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filter-section__list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filter-section__list--scroll {
+	max-height: 180px;
+	overflow: auto;
+	padding-right: 4px;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filter-opt {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin: 0;
+	padding: 5px 6px;
+	border-radius: 6px;
+	font-size: 13px;
+	font-weight: 500;
+	color: #2a3b31;
+	cursor: pointer;
+	line-height: 1.35;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filter-opt:hover {
+	background: #f3faf5;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filter-opt input {
+	margin-top: 2px;
+	accent-color: #2f7a4a;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filter-empty {
+	font-size: 12px;
+	color: #7a8c81;
+	padding: 4px 6px;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filter-range {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-top: 8px;
+	padding: 0 6px;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filter-range[hidden] {
+	display: none !important;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filter-range label {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 12px;
+	color: #516357;
+	font-weight: 600;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filter-range input[type="date"] {
+	border: 1px solid #c9ddd0;
+	border-radius: 6px;
+	padding: 5px 8px;
+	font-size: 12px;
+	color: #24352a;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-ba-main {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-totals {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	padding: 10px 14px;
+	border-bottom: 1px solid #e7f0ea;
+	background: linear-gradient(180deg, #f7faf8 0%, #f2f7f3 100%);
+	font-size: 13px;
+	color: #3a5244;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-totals strong {
+	color: #1f4d32;
+	font-weight: 700;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-name-cell {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-thumb {
+	width: 36px;
+	height: 36px;
+	border-radius: 6px;
+	object-fit: contain;
+	background: #f4f7f5;
+	border: 1px solid #e0ebe3;
+	flex: 0 0 36px;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-thumb--empty {
+	display: inline-block;
+	background:
+		linear-gradient(135deg, #eef5f0 25%, transparent 25%) -6px 0 / 12px 12px,
+		linear-gradient(225deg, #eef5f0 25%, transparent 25%) -6px 0 / 12px 12px,
+		linear-gradient(45deg, #eef5f0 25%, transparent 25%) 0 0 / 12px 12px,
+		linear-gradient(315deg, #eef5f0 25%, #f7faf8 25%) 0 0 / 12px 12px;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-name-text {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-weight: 600;
+	color: #14231a;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-star {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	margin: 0;
+	border: 0;
+	background: transparent;
+	color: #c5d4ca;
+	font-size: 16px;
+	line-height: 1;
+	cursor: pointer;
+	border-radius: 6px;
+	transition: color 0.15s ease, background 0.15s ease, transform 0.12s ease;
+	font-family: inherit;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-star::before,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-star::after {
+	content: none !important;
+	display: none !important;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-star.fa,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-star.fa-star,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-star.fa-star-o {
+	font-family: inherit !important;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-star:hover {
+	color: #e6a700;
+	background: #fff8e6;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-star.active {
+	color: #e6a700;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-star.processing {
+	opacity: 0.55;
+	pointer-events: none;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-num {
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+	color: #24352a;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-num--ok {
+	color: #1f6b3a;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-num--out {
+	color: #b42318;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-num--order {
+	color: #b54708;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-muted {
+	color: #9aab9f;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table.mk-ps-ba-table {
+	min-width: 960px !important;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table .mk-col-ps-price,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table .mk-col-ps-tuibao,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table .mk-col-ps-stock,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table .mk-col-ps-order {
+	text-align: right !important;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table .mk-col-ps-star {
+	text-align: center !important;
+	width: 44px !important;
+	min-width: 44px !important;
+	max-width: 44px !important;
+	padding: 0 !important;
+	overflow: hidden !important;
+	text-overflow: clip !important;
+	white-space: nowrap !important;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table th.mk-col-ps-star,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table td.mk-col-ps-star {
+	vertical-align: middle !important;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table th.mk-col-ps-star {
+	font-size: 14px;
+	line-height: 1;
+	color: #1f4d32;
+	padding: 0 !important;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table td.mk-col-ps-star {
+	cursor: default;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table td.mk-col-ps-star .mk-ps-star {
+	display: inline-flex;
+	margin: 0 auto;
+}
+
+@media (max-width: 1100px) {
+	body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-ba-layout {
+		flex-direction: column;
+	}
+	body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters {
+		position: relative;
+		top: 0;
+		width: 100%;
+		max-width: none;
+		flex: 1 1 auto;
+		max-height: 70vh;
+		transform: none;
+		transition:
+			max-height 0.28s ease,
+			opacity 0.2s ease,
+			padding 0.28s ease,
+			margin 0.28s ease,
+			border-width 0.28s ease;
+	}
+	body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-ba-layout.mk-ps-filters-collapsed .mk-ps-filters {
+		max-height: 0 !important;
+		flex: 0 0 auto !important;
+		width: 100% !important;
+		max-width: none !important;
+		padding: 0 !important;
+		transform: none;
+		opacity: 0;
+		visibility: hidden;
+		transition:
+			max-height 0.28s ease,
+			opacity 0.18s ease,
+			padding 0.28s ease,
+			margin 0.28s ease,
+			border-width 0.28s ease,
+			visibility 0s linear 0.28s;
+	}
+}
+
+/* ---- Filter panel toggle (next to search) ---- */
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-toolbar-tools {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	flex: 1 1 auto;
+	min-width: 0;
+	flex-wrap: wrap;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	height: 42px;
+	padding: 0 14px;
+	border: 1px solid #c9ddd0;
+	border-radius: 10px;
+	background: #fff;
+	color: #1f4d32;
+	font-size: 13px;
+	font-weight: 600;
+	font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+	cursor: pointer;
+	box-shadow: 0 1px 2px rgba(20, 35, 26, 0.04);
+	flex: 0 0 auto;
+	transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters-toggle:hover {
+	border-color: #2f7a4a;
+	background: #f3faf5;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters-toggle.is-active {
+	border-color: #2f7a4a;
+	background: #e8f5ec;
+	color: #14532d;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters-toggle__ic {
+	font-size: 13px;
+	opacity: 0.9;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters-toggle__count {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 20px;
+	height: 20px;
+	padding: 0 6px;
+	border-radius: 999px;
+	background: #2f7a4a;
+	color: #fff;
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 1;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters-toggle__count[hidden] {
+	display: none !important;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-ba-layout {
+	gap: 16px;
+	transition: gap 0.28s ease;
+}
+
+/* Keep panel in flex flow — animate width (never display:none / [hidden] jump). */
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters[hidden] {
+	display: block !important;
+	flex: 0 0 248px;
+	width: 248px;
+	max-width: 248px;
+	min-width: 0;
+	opacity: 1;
+	overflow: hidden;
+	transform: translateX(0);
+	visibility: visible;
+	transition:
+		width 0.28s ease,
+		max-width 0.28s ease,
+		flex-basis 0.28s ease,
+		opacity 0.2s ease,
+		padding 0.28s ease,
+		margin 0.28s ease,
+		border-width 0.28s ease,
+		transform 0.28s ease;
+}
+
+/* Prevent inner reflow while the panel width animates. */
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters__head,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters__body {
+	min-width: 224px;
+	box-sizing: border-box;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters__body {
+	max-height: calc(100vh - 200px);
+	overflow: auto;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-ba-layout.mk-ps-filters-collapsed {
+	gap: 0;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-ba-layout.mk-ps-filters-collapsed .mk-ps-filters {
+	flex: 0 0 0;
+	flex-basis: 0;
+	width: 0;
+	max-width: 0;
+	min-width: 0;
+	opacity: 0;
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin: 0 !important;
+	border-width: 0 !important;
+	overflow: hidden !important;
+	pointer-events: none !important;
+	transform: translateX(-6px);
+	visibility: hidden;
+	transition:
+		width 0.28s ease,
+		max-width 0.28s ease,
+		flex-basis 0.28s ease,
+		opacity 0.18s ease,
+		padding 0.28s ease,
+		margin 0.28s ease,
+		border-width 0.28s ease,
+		transform 0.28s ease,
+		visibility 0s linear 0.28s;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-ba-layout.mk-ps-filters-collapsed .mk-ps-ba-main {
+	flex: 1 1 100%;
+	width: 100%;
+}
+
+@media (max-width: 1100px) {
+	body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-ba-layout {
+		flex-direction: column;
+	}
+	body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters,
+	body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters[hidden] {
+		position: relative;
+		top: 0;
+		flex: 1 1 auto;
+		width: 100%;
+		max-width: none;
+		max-height: 70vh;
+		transform: none;
+		transition:
+			max-height 0.28s ease,
+			opacity 0.2s ease,
+			padding 0.28s ease,
+			margin 0.28s ease,
+			border-width 0.28s ease,
+			visibility 0s;
+	}
+	body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters__head,
+	body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-filters__body {
+		min-width: 0;
+	}
+	body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-ba-layout.mk-ps-filters-collapsed .mk-ps-filters {
+		max-height: 0;
+		flex: 0 0 auto;
+		width: 100%;
+		max-width: none;
+		transform: none;
+		opacity: 0;
+		visibility: hidden;
+		transition:
+			max-height 0.28s ease,
+			opacity 0.18s ease,
+			padding 0.28s ease,
+			margin 0.28s ease,
+			border-width 0.28s ease,
+			visibility 0s linear 0.28s;
+	}
+}

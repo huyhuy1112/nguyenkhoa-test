@@ -68,10 +68,12 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 		if (!is_array($displayProducts) || empty($displayProducts) || !$recordModel) {
 			return;
 		}
-		$moduleName = $request->getModule() ?: 'Quotes';
-		$rawProducts = Inventory_Record_Model::getInstanceById($recordModel->getId(), $moduleName)->getProducts();
+		$rawProducts = $viewer->getTemplateVars('MK_INLINE_RAW_PRODUCTS');
 		if (!is_array($rawProducts) || empty($rawProducts)) {
-			$rawProducts = $displayProducts;
+			$rawProducts = $recordModel->getProducts();
+			if (!is_array($rawProducts) || empty($rawProducts)) {
+				$rawProducts = $displayProducts;
+			}
 		}
 		$displayProducts = $this->normalizeInlineMoneyTotals($displayProducts, $rawProducts, $recordModel);
 		$displayProducts = $this->enrichLineUsageUnits($displayProducts);
@@ -93,16 +95,18 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 		$recordModel = Inventory_Record_Model::getInstanceById($recordId, $moduleName);
 		$rawProducts = $recordModel->getProducts();
 
+		$viewer = $this->getViewer($request);
+		$viewer->assign('RECORD', $recordModel);
+		$viewer->assign('MK_INLINE_RAW_PRODUCTS', unserialize(serialize($rawProducts)));
+		$viewer->assign('MK_INLINE_RELATED_PRODUCTS', $rawProducts);
+
 		$this->showLineItemDetails($request);
 
-		$viewer = $this->getViewer($request);
 		$relatedProducts = $viewer->getTemplateVars('RELATED_PRODUCTS');
 		if (!is_array($relatedProducts) || empty($relatedProducts)) {
 			$relatedProducts = $rawProducts;
+			$viewer->assign('RELATED_PRODUCTS', $relatedProducts);
 		}
-		$relatedProducts = $this->normalizeInlineMoneyTotals($relatedProducts, $rawProducts, $recordModel);
-		$relatedProducts = $this->enrichLineUsageUnits($relatedProducts);
-		$viewer->assign('RELATED_PRODUCTS', $relatedProducts);
 
 		$viewer->assign('RECORD', $recordModel);
 		$viewer->assign('MODULE', $moduleName);
@@ -120,8 +124,8 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 		$quoteStage = (string) $recordModel->get('quotestage');
 		$viewer->assign('INLINE_QUOTE_STAGE', $quoteStage);
 		$viewer->assign('INLINE_CAN_CONFIRM_ORDER', Quotes_QuoteBaService_Helper::isConfirmedQuoteStage($quoteStage));
-		$viewer->assign('INLINE_PRINT_URL', 'index.php?module=Quotes&action=ExportPDF&record=' . (int) $recordId . '&preview=1');
-		$viewer->assign('INLINE_PRINT_DOWNLOAD_URL', 'index.php?module=Quotes&action=ExportPDF&record=' . (int) $recordId);
+		$viewer->assign('INLINE_PRINT_URL', 'index.php?module=Quotes&view=Print&record=' . (int) $recordId . '&app=SALES');
+		$viewer->assign('INLINE_PRINT_DOWNLOAD_URL', 'index.php?module=Quotes&action=ExportPDF&record=' . (int) $recordId . '&app=SALES');
 		$currentUser = Users_Record_Model::getCurrentUserModel();
 		$viewer->assign('INLINE_ASSIGNED_USERS', $currentUser->getAccessibleUsersForModule($moduleName));
 

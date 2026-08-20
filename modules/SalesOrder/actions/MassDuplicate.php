@@ -7,12 +7,15 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 
 	public function requiresPermission(Vtiger_Request $request) {
 		$permissions = parent::requiresPermission($request);
-		$permissions[] = array('module_parameter' => 'module', 'action' => 'CreateView');
+		$permissions[] = array('module_parameter' => 'module', 'action' => 'DetailView');
 		return $permissions;
 	}
 
 	public function checkPermission(Vtiger_Request $request) {
-		if (!Users_Privileges_Model::isPermitted('SalesOrder', 'CreateView')) {
+		if (!Users_Privileges_Model::isPermitted('SalesOrder', 'DetailView')) {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		if (!Users_Privileges_Model::isPermitted('Quotes', 'CreateView')) {
 			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
 		}
 	}
@@ -61,6 +64,8 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 					$errors[] = 'Không nhân bản được đơn hàng #' . $recordId;
 				}
 			} catch (Exception $e) {
+				$errors[] = $e->getMessage() ? $e->getMessage() : ('Lỗi nhân bản #' . $recordId);
+			} catch (Error $e) {
 				$errors[] = $e->getMessage() ? $e->getMessage() : ('Lỗi nhân bản #' . $recordId);
 			}
 		}
@@ -116,7 +121,15 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 		$newModel->set('id', '');
 		$newModel->set('record', '');
 		$newModel->set('quote_no', '');
-		$newModel->set('quotestage', 'Created');
+		$draftStage = 'Created';
+		$baHelper = 'modules/Quotes/helpers/QuoteBaService.php';
+		if (file_exists($baHelper)) {
+			require_once $baHelper;
+			if (class_exists('Quotes_QuoteBaService_Helper') && method_exists('Quotes_QuoteBaService_Helper', 'resolveDraftQuoteStage')) {
+				$draftStage = Quotes_QuoteBaService_Helper::resolveDraftQuoteStage();
+			}
+		}
+		$newModel->set('quotestage', $draftStage);
 		$newModel->set('validtill', date('Y-m-d', strtotime('+30 days')));
 
 		$rate = $this->sanitizeConversionRate($source->get('conversion_rate'));
@@ -134,6 +147,11 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 			if ($cleanSubject !== '') {
 				$newModel->set('subject', $cleanSubject);
 			}
+		}
+		if (trim((string) $newModel->get('subject')) === '') {
+			$soNo = trim((string) $source->get('salesorder_no'));
+			$fallbackSubject = $soNo !== '' ? ('Báo giá từ ' . $soNo) : ('Báo giá từ ĐH #' . $sourceId);
+			$newModel->set('subject', $fallbackSubject);
 		}
 
 		$currentUser = Users_Record_Model::getCurrentUserModel();
@@ -155,6 +173,7 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 				}
 			}
 		}
+		$requestBackup = $_REQUEST;
 		$_REQUEST['totalProductCount'] = 0;
 		$_REQUEST['action'] = 'SaveAjax';
 		$_REQUEST['module'] = 'Quotes';
@@ -164,19 +183,35 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 			}
 		}
 
-		$newModel->save();
+		try {
+			$newModel->save();
+		} finally {
+			$_REQUEST = $requestBackup;
+		}
 		$newId = (int) $newModel->getId();
 		if ($newId <= 0) {
 			throw new Exception('Không lưu được Báo giá.');
 		}
 
 		$this->copyInventoryLines($sourceId, $newId);
-		$this->syncLinePricesFromSource($sourceId, $newId);
-		$this->repairZeroLinePrices($newId, $sourceId);
-		$this->copySalesOrderTotals($sourceId, $newId);
-		$this->ensureTotalsFromLines($newId, $sourceId);
-		$this->fixInflatedMoney($sourceId, $newId);
-		$this->ensureNextDocNumber($newId);
+		try {
+			$this->syncLinePricesFromSource($sourceId, $newId);
+			$this->repairZeroLinePrices($newId, $sourceId);
+			$this->copyQuoteTotalsFromSalesOrder($sourceId, $newId);
+			$this->ensureQuoteTotalsFromLines($newId, $sourceId);
+			$this->fixQuoteInflatedMoney($sourceId, $newId);
+			$this->ensureQuoteDocNumber($newId);
+			$this->clearFranchiseQuoteLink($newId);
+			$this->touchQuoteModifiedTime($newId);
+		} catch (Exception $e) {
+			$this->ensureQuoteDocNumber($newId);
+			$this->clearFranchiseQuoteLink($newId);
+			$this->touchQuoteModifiedTime($newId);
+		} catch (Error $e) {
+			$this->ensureQuoteDocNumber($newId);
+			$this->clearFranchiseQuoteLink($newId);
+			$this->touchQuoteModifiedTime($newId);
+		}
 
 		return $newId;
 	}
@@ -319,10 +354,10 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 	/**
 	 * If duplicate money was inflated (~1e8 from VN dot-strip), restore from source.
 	 */
-	protected function fixInflatedMoney($sourceId, $newId) {
+	protected function fixQuoteInflatedMoney($sourceId, $newId) {
 		$db = PearDatabase::getInstance();
 		$src = $db->pquery('SELECT total, subtotal, conversion_rate FROM vtiger_salesorder WHERE salesorderid = ?', array($sourceId));
-		$dst = $db->pquery('SELECT total, subtotal, conversion_rate FROM vtiger_salesorder WHERE salesorderid = ?', array($newId));
+		$dst = $db->pquery('SELECT total, subtotal, conversion_rate FROM vtiger_quotes WHERE quoteid = ?', array($newId));
 		if (!$src || !$dst || $db->num_rows($src) <= 0 || $db->num_rows($dst) <= 0) {
 			return;
 		}
@@ -347,10 +382,10 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 
 		if ($inflated) {
 			$this->syncLinePricesFromSource($sourceId, $newId);
-			$this->copySalesOrderTotals($sourceId, $newId);
+			$this->copyQuoteTotalsFromSalesOrder($sourceId, $newId);
 		} else {
 			$db->pquery(
-				'UPDATE vtiger_salesorder SET conversion_rate = ? WHERE salesorderid = ?',
+				'UPDATE vtiger_quotes SET conversion_rate = ? WHERE quoteid = ?',
 				array($rate, $newId)
 			);
 		}
@@ -458,11 +493,14 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 		return 0.0;
 	}
 
-	protected function copySalesOrderTotals($sourceId, $newId) {
+	/**
+	 * Copy header totals from source Sales Order into the new Quote record.
+	 */
+	protected function copyQuoteTotalsFromSalesOrder($sourceId, $newId) {
 		$db = PearDatabase::getInstance();
 		$rs = $db->pquery(
 			'SELECT subtotal, total, taxtype, discount_percent, discount_amount, s_h_amount, adjustment, pre_tax_total,
-			        currency_id, conversion_rate, accountid, contactid, potentialid, quoteid
+			        currency_id, conversion_rate, accountid, contactid, potentialid
 			 FROM vtiger_salesorder WHERE salesorderid = ?',
 			array($sourceId)
 		);
@@ -478,31 +516,26 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 		$adjustment = $this->toPlainMoney($db->query_result($rs, 0, 'adjustment'));
 		$rate = $this->sanitizeConversionRate($db->query_result($rs, 0, 'conversion_rate'));
 
-		// Source often stores total == subtotal; rebuild grand with VAT so copy list matches panel.
 		if ($subtotal > 0 && $total <= ($subtotal + 1)) {
 			$discount = $discountAmount;
 			if ($discount <= 0 && $discountPercent > 0) {
 				$discount = $subtotal * $discountPercent / 100;
 			}
-			$tax = round(($subtotal - $discount) * 0.08);
-			$total = $subtotal - $discount + $tax + $shipping + $adjustment;
+			$total = $subtotal - $discount + $shipping + $adjustment;
 		}
 		if ($preTax <= 0) {
 			$preTax = $subtotal;
 		}
 
 		$db->pquery(
-			'UPDATE vtiger_salesorder SET
+			'UPDATE vtiger_quotes SET
 				subtotal = ?, total = ?, taxtype = ?, discount_percent = ?, discount_amount = ?,
 				s_h_amount = ?, adjustment = ?, pre_tax_total = ?,
 				currency_id = ?, conversion_rate = ?,
-				received = 0, balance = ?,
-				sostatus = ?,
 				accountid = IF(? > 0, ?, accountid),
 				contactid = IF(? > 0, ?, contactid),
-				potentialid = IF(? > 0, ?, potentialid),
-				quoteid = IF(? > 0, ?, quoteid)
-			 WHERE salesorderid = ?',
+				potentialid = IF(? > 0, ?, potentialid)
+			 WHERE quoteid = ?',
 			array(
 				$subtotal,
 				$total,
@@ -514,23 +547,20 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 				$preTax > 0 ? $preTax : $subtotal,
 				(int) $db->query_result($rs, 0, 'currency_id'),
 				$rate,
-				$total,
-				'Created',
 				(int) $db->query_result($rs, 0, 'accountid'), (int) $db->query_result($rs, 0, 'accountid'),
 				(int) $db->query_result($rs, 0, 'contactid'), (int) $db->query_result($rs, 0, 'contactid'),
 				(int) $db->query_result($rs, 0, 'potentialid'), (int) $db->query_result($rs, 0, 'potentialid'),
-				(int) $db->query_result($rs, 0, 'quoteid'), (int) $db->query_result($rs, 0, 'quoteid'),
 				$newId,
 			)
 		);
 	}
 
 	/**
-	 * If header totals are still 0 / missing tax after copy, rebuild from lines + source tax.
+	 * Rebuild Quote header totals from line items when copy left zeros.
 	 */
-	protected function ensureTotalsFromLines($newId, $sourceId) {
+	protected function ensureQuoteTotalsFromLines($newId, $sourceId) {
 		$db = PearDatabase::getInstance();
-		$cur = $db->pquery('SELECT subtotal, total FROM vtiger_salesorder WHERE salesorderid = ?', array($newId));
+		$cur = $db->pquery('SELECT subtotal, total FROM vtiger_quotes WHERE quoteid = ?', array($newId));
 		$subtotal = $cur ? $this->toPlainMoney($db->query_result($cur, 0, 'subtotal')) : 0;
 		$total = $cur ? $this->toPlainMoney($db->query_result($cur, 0, 'total')) : 0;
 
@@ -557,91 +587,93 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 			$discount = $lineSub * $discountPct / 100;
 		}
 
-		// Prefer exact source grand total when it already includes tax (total > subtotal).
-		// If source total ≈ subtotal, fall through and apply VAT — otherwise copy keeps "tiền hàng" as tổng cộng.
-		if ($srcTotal > 0 && $srcSub > 0 && abs($lineSub - $srcSub) < 1 && $srcTotal > ($srcSub + 1)) {
+		if ($srcTotal > 0 && $srcSub > 0 && abs($lineSub - $srcSub) < 1) {
 			$db->pquery(
-				'UPDATE vtiger_salesorder SET subtotal = ?, pre_tax_total = ?, total = ?, balance = ?,
+				'UPDATE vtiger_quotes SET subtotal = ?, pre_tax_total = ?, total = ?,
 					discount_amount = ?, s_h_amount = ?, adjustment = ?
-				 WHERE salesorderid = ?',
-				array($lineSub, $lineSub, $srcTotal, $srcTotal, $discount, $shipping, $adjustment, $newId)
+				 WHERE quoteid = ?',
+				array($lineSub, $lineSub, $srcTotal, $discount, $shipping, $adjustment, $newId)
 			);
 			return;
 		}
 
-		$tax = 0.0;
-		if ($srcSub > 0 && $srcTotal > ($srcSub - $discount)) {
-			$tax = $srcTotal - ($srcSub - $discount) - $shipping - $adjustment;
-		}
-		if ($tax < 0) {
-			$tax = 0;
-		}
-		if ($tax <= 0 && $srcSub > 0 && $srcTotal > 0) {
-			$tax = max(0, $srcTotal - $srcSub + $discount - $shipping - $adjustment);
-		}
-		if ($tax <= 0) {
-			$tax = round(($lineSub - $discount) * 0.08);
-		}
-
-		$newTotal = $lineSub - $discount + $tax + $shipping + $adjustment;
-		// Keep source total when it already looks correct (has tax on top of lines).
-		if ($srcTotal > $lineSub && $total >= $srcTotal && abs($subtotal - $lineSub) < 1) {
-			return;
-		}
-		if ($subtotal > 0 && $total > $lineSub && abs($subtotal - $lineSub) < 1 && abs($total - $newTotal) < 1) {
+		$newTotal = $lineSub - $discount + $shipping + $adjustment;
+		if ($subtotal > 0 && $total > 0 && abs($subtotal - $lineSub) < 1 && abs($total - $newTotal) < 1) {
 			return;
 		}
 
 		$db->pquery(
-			'UPDATE vtiger_salesorder SET subtotal = ?, pre_tax_total = ?, total = ?, balance = ?,
+			'UPDATE vtiger_quotes SET subtotal = ?, pre_tax_total = ?, total = ?,
 				discount_amount = ?, s_h_amount = ?, adjustment = ?
-			 WHERE salesorderid = ?',
-			array($lineSub, $lineSub, $newTotal, $newTotal, $discount, $shipping, $adjustment, $newId)
+			 WHERE quoteid = ?',
+			array($lineSub, $lineSub, $newTotal, $discount, $shipping, $adjustment, $newId)
 		);
 	}
 
 	/**
-	 * Keep the auto-incremented salesorder_no from save (SO34, …).
-	 * Only fill if save left it blank / still looks like a legacy "(copy)" label.
+	 * Assign next quote_no sequence (BGxx) — never "{source} (copy)".
 	 */
-	protected function ensureNextDocNumber($newId) {
+	protected function ensureQuoteDocNumber($newId) {
 		$newId = (int) $newId;
 		if ($newId <= 0) {
 			return;
 		}
 		$db = PearDatabase::getInstance();
 		$rs = $db->pquery(
-			'SELECT salesorder_no FROM vtiger_salesorder WHERE salesorderid = ? LIMIT 1',
+			'SELECT quote_no FROM vtiger_quotes WHERE quoteid = ? LIMIT 1',
 			array($newId)
 		);
 		$current = ($rs && $db->num_rows($rs) > 0)
-			? trim((string) $db->query_result($rs, 0, 'salesorder_no'))
+			? trim((string) $db->query_result($rs, 0, 'quote_no'))
 			: '';
 		if ($current !== '' && !preg_match('/\s*\(copy(?:\s+\d+)?\)\s*$/i', $current)) {
 			$db->pquery('UPDATE vtiger_crmentity SET label = ? WHERE crmid = ?', array($current, $newId));
 			return;
 		}
 
-		$focus = CRMEntity::getInstance('SalesOrder');
+		$focus = CRMEntity::getInstance('Quotes');
 		if ($focus && method_exists($focus, 'setModuleSeqNumber')) {
 			require_once 'include/utils/MkEntityNumbering.php';
-			MkEntityNumbering::ensureModuleSequence('SalesOrder');
-			$seq = $focus->setModuleSeqNumber('increment', 'SalesOrder');
+			MkEntityNumbering::ensureModuleSequence('Quotes');
+			$seq = $focus->setModuleSeqNumber('increment', 'Quotes');
 			if (is_string($seq) && $seq !== '') {
-				$db->pquery('UPDATE vtiger_salesorder SET salesorder_no = ? WHERE salesorderid = ?', array($seq, $newId));
+				$db->pquery('UPDATE vtiger_quotes SET quote_no = ? WHERE quoteid = ?', array($seq, $newId));
 				$db->pquery('UPDATE vtiger_crmentity SET label = ? WHERE crmid = ?', array($seq, $newId));
 			}
 		}
 	}
 
-	protected function docNumberExists($docNo, $excludeId) {
+	/**
+	 * Duplicate from SO is always a retail quote (not franchise / Tuibao).
+	 */
+	protected function clearFranchiseQuoteLink($newId) {
+		$newId = (int) $newId;
+		if ($newId <= 0) {
+			return;
+		}
 		$db = PearDatabase::getInstance();
-		$rs = $db->pquery(
-			'SELECT salesorderid FROM vtiger_salesorder
-			 INNER JOIN vtiger_crmentity ON vtiger_crmentity.crmid = vtiger_salesorder.salesorderid
-			 WHERE vtiger_crmentity.deleted = 0 AND salesorder_no = ? AND salesorderid <> ? LIMIT 1',
-			array($docNo, (int) $excludeId)
+		$cols = $db->pquery('SHOW COLUMNS FROM vtiger_quotes LIKE ?', array('mk_servicecontract_id'));
+		if ($cols && $db->num_rows($cols) > 0) {
+			$db->pquery(
+				'UPDATE vtiger_quotes SET mk_servicecontract_id = NULL WHERE quoteid = ?',
+				array($newId)
+			);
+		}
+	}
+
+	/**
+	 * Bump modifiedtime so new quote appears at top when sorted by quote_no / modifiedtime.
+	 */
+	protected function touchQuoteModifiedTime($newId) {
+		$newId = (int) $newId;
+		if ($newId <= 0) {
+			return;
+		}
+		$db = PearDatabase::getInstance();
+		$now = date('Y-m-d H:i:s');
+		$db->pquery(
+			'UPDATE vtiger_crmentity SET modifiedtime = ? WHERE crmid = ?',
+			array($now, $newId)
 		);
-		return $rs && $db->num_rows($rs) > 0;
 	}
 }

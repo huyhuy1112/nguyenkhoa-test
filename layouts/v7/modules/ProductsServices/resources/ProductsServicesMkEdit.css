@@ -2873,6 +2873,26 @@ html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .
 	height: 100%;
 }
 
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-block--image {
+	grid-column: 1 / -1;
+	margin-top: 4px;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-compact-field--image {
+	grid-column: 1 / -1;
+}
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-block--image img {
+	max-width: 280px;
+	max-height: 220px;
+	width: auto;
+	height: auto;
+	object-fit: contain;
+	border-radius: 10px;
+	border: 1px solid #e0ebe3;
+	background: #f7faf8;
+}
+
 html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-form-host .mk-ps-block .fieldBlockHeader,
 html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-create--v4 .mk-ps-form-host .mk-ps-block .mk-ps-block__header {
 	display: flex !important;

@@ -119,7 +119,7 @@
 			</div>
 			<div class="mk-so-inline-detail__total-row mk-so-inline-detail__total-row--grand">
 				<span class="mk-so-inline-detail__total-label">Tổng cộng</span>
-				<input type="text" class="mk-so-inline-detail__total-value mk-so-inline-detail__grand-input inputElement" name="hdnGrandTotal_manual" value="{$FINAL_DETAILS.grandTotal|default:'0'|escape}" inputmode="numeric" autocomplete="off" title="Có thể sửa tay tổng cộng" aria-label="Tổng cộng" />
+				<strong class="mk-so-inline-detail__total-value mk-so-inline-detail__grand-value">{$FINAL_DETAILS.grandTotal|default:'0'}</strong>
 			</div>
 		</div>
 	</div>

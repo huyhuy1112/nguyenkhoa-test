@@ -341,7 +341,11 @@
 	</td>
 	{/if}
 
-	<td{if !empty($MK_MODERN_LINE_ITEMS)} class="mk-inv-col-net-slot"{/if}>
+	<td{if !empty($MK_MODERN_LINE_ITEMS)} class="mk-inv-col-net-slot mk-inv-col-net-hide mk-inv-hide-legacy"{/if}>
 		<span id="netPrice{$row_no}" class="pull-right netPrice">{if isset($data.$netPrice) && $data.$netPrice}{$data.$netPrice}{else}0{/if}</span>
 	</td>
+	{if !empty($MK_MODERN_LINE_ITEMS)}
+		<td class="mk-inv-col-afterck"></td>
+		<td class="mk-inv-col-note"></td>
+	{/if}
 {/strip}

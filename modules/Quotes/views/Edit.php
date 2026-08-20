@@ -146,18 +146,14 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 	}
 
 	public function getHeaderCss(Vtiger_Request $request) {
-		$headerCssInstances = parent::getHeaderCss($request);
-		$cssFileNames = array(
-			'~layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css',
-		);
-		return array_merge($headerCssInstances, $this->checkAndConvertCssStyles($cssFileNames));
+		// Modern Quotes edit already loads its inventory CSS in EditViewPreProcess.tpl.
+		// Avoid loading the same asset twice to prevent flash from legacy/default styles.
+		return parent::getHeaderCss($request);
 	}
 
 	public function getHeaderScripts(Vtiger_Request $request) {
-		$headerScriptInstances = parent::getHeaderScripts($request);
-		$jsFileNames = array(
-			'~layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js',
-		);
-		return array_merge($headerScriptInstances, $this->checkAndConvertJsScripts($jsFileNames));
+		// Modern Quotes edit already loads its inventory JS in EditViewPreProcess.tpl.
+		// Avoid duplicate init / re-render after first paint.
+		return parent::getHeaderScripts($request);
 	}
 }

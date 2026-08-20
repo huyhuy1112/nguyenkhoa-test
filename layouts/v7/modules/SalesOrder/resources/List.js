@@ -1317,7 +1317,8 @@
       $panel.find(".mk-so-inline-detail__notes-input").val() || "";
     snapshot.description = snapshot.mk_list_note;
     snapshot.paid = $panel.find(".mk-so-inline-detail__paid-input").val() || "";
-    snapshot.grand = $panel.find(".mk-so-inline-detail__grand-input").val() || "";
+    snapshot.grand =
+      $panel.find(".mk-so-inline-detail__grand-value").text() || "";
     $panel.find(".mk-so-inline-detail__line-note").each(function () {
       var seq = $(this).attr("data-sequence");
       if (seq) snapshot.lineNotes[seq] = $(this).val() || "";
@@ -1338,7 +1339,9 @@
       .find(".mk-so-inline-detail__notes-input")
       .val(snapshot.mk_list_note || snapshot.description || "");
     if (snapshot.grand !== undefined) {
-      $panel.find(".mk-so-inline-detail__grand-input").val(snapshot.grand || "");
+      $panel
+        .find(".mk-so-inline-detail__grand-value")
+        .text(snapshot.grand || "");
     }
     $.each(snapshot.lineNotes || {}, function (seq, value) {
       $panel
@@ -1376,11 +1379,11 @@
   }
 
   function getInlineGrandRaw($panel) {
-    var $grandInput = $panel.find(".mk-so-inline-detail__grand-input");
-    if ($grandInput.length) {
-      var fromInput = parseInlineMoney($grandInput.val());
-      if (fromInput > 0 || String($grandInput.val() || "").trim() === "0") {
-        return fromInput;
+    var $grandValue = $panel.find(".mk-so-inline-detail__grand-value").first();
+    if ($grandValue.length) {
+      var fromText = parseInlineMoney($grandValue.text());
+      if (fromText > 0 || String($grandValue.text() || "").trim() === "0") {
+        return fromText;
       }
     }
     var raw =
@@ -1461,11 +1464,6 @@
     // Send as real object (jQuery posts line_comments[1]=...) AND JSON backup
     data.line_comments = lineComments;
     data.line_comments_json = JSON.stringify(lineComments);
-    var grandRaw = $panel.find(".mk-so-inline-detail__grand-input").val();
-    if (grandRaw != null && String(grandRaw).length) {
-      data.hdnGrandTotal_manual = grandRaw;
-      data.grand_total = grandRaw;
-    }
     return data;
   }
 
@@ -1485,7 +1483,6 @@
     $panel.find(".mk-so-inline-detail__notes-input").prop("readonly", !isEdit);
     $panel.find(".mk-so-inline-detail__paid-input").prop("readonly", !isEdit);
     $panel.find(".mk-so-inline-detail__line-note").prop("readonly", !isEdit);
-    $panel.find(".mk-so-inline-detail__grand-input").prop("readonly", !isEdit);
     if (
       isEdit &&
       typeof vtUtils !== "undefined" &&
@@ -1602,7 +1599,8 @@
         }
         if (response.hdnGrandTotal && response.hdnGrandTotal.display_value != null) {
           $panel
-            .find(".mk-so-inline-detail__grand-input")
+            .find(".mk-so-inline-detail__grand-value, .mk-so-inline-detail__grand-input")
+            .text(response.hdnGrandTotal.display_value)
             .val(response.hdnGrandTotal.display_value);
           $panel.attr("data-grand-raw", response.hdnGrandTotal.value);
           $panel
@@ -2006,6 +2004,66 @@
     loadPosListRecords(params);
   }
 
+  function notifyUser(kind, message) {
+    message = String(message || "").trim();
+    if (!message) {
+      return;
+    }
+    try {
+      if (kind === "error") {
+        if (app.helper && app.helper.showErrorNotification) {
+          app.helper.showErrorNotification({ message: message });
+          return;
+        }
+      } else if (app.helper && app.helper.showSuccessNotification) {
+        app.helper.showSuccessNotification({ message: message });
+        return;
+      }
+    } catch (e) {
+      /* fall through */
+    }
+    try {
+      window.alert(message);
+    } catch (e2) {
+      /* ignore */
+    }
+  }
+
+  function persistQuoteDupFlash(payload) {
+    try {
+      window.sessionStorage.setItem(
+        "mk_so_to_quote_flash",
+        JSON.stringify(payload || {}),
+      );
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function unwrapMassDupResult(res) {
+    if (!res || typeof res !== "object") {
+      return {};
+    }
+    if (res.result && typeof res.result === "object" && (res.result.created || res.result.created_count != null || res.result.message)) {
+      return res.result;
+    }
+    return res;
+  }
+
+  function collectCreatedIds(result) {
+    var raw = result.created || result.createdIds || result.record || [];
+    if (!Array.isArray(raw)) {
+      raw = raw ? [raw] : [];
+    }
+    return raw
+      .map(function (id) {
+        return parseInt(id, 10);
+      })
+      .filter(function (id) {
+        return id > 0;
+      });
+  }
+
   function runSalesOrdersMassDuplicate(ids, options) {
     options = options || {};
     ids = (ids || [])
@@ -2016,11 +2074,7 @@
         return id > 0;
       });
     if (!ids.length) {
-      if (app.helper && app.helper.showErrorNotification) {
-        app.helper.showErrorNotification({
-          message: "Chọn ít nhất 1 đơn hàng để nhân bản.",
-        });
-      }
+      notifyUser("error", "Chọn ít nhất 1 đơn hàng để nhân bản.");
       return;
     }
     var skipConfirm = !!options.skipConfirm;
@@ -2037,6 +2091,9 @@
         viewname: getCurrentCvIdForMassAction(),
         app: "SALES",
       };
+      if (typeof csrfMagicName !== "undefined" && typeof csrfMagicToken !== "undefined") {
+        postData[csrfMagicName] = csrfMagicToken;
+      }
       if (app.helper && app.helper.showProgress) {
         app.helper.showProgress();
       }
@@ -2045,33 +2102,54 @@
           app.helper.hideProgress();
         }
         if (err) {
-          if (app.helper && app.helper.showErrorNotification) {
-            app.helper.showErrorNotification({
-              message: (err && err.message) || "Không nhân bản được.",
-            });
+          var ajaxErr =
+            (err && (err.message || err.error)) || "Không nhân bản được.";
+          if (typeof ajaxErr === "object" && ajaxErr.message) {
+            ajaxErr = ajaxErr.message;
           }
+          notifyUser("error", ajaxErr);
           return;
         }
-        var result = res || {};
-        if (result.success === false) {
-          if (app.helper && app.helper.showErrorNotification) {
-            app.helper.showErrorNotification({
-              message: result.message || "Không nhân bản được.",
-            });
+        var result = unwrapMassDupResult(res);
+        var createdIds = collectCreatedIds(result);
+        var ok =
+          createdIds.length > 0 ||
+          result.success === true ||
+          parseInt(result.created_count, 10) > 0;
+        if (!ok || result.success === false) {
+          var errMsg = result.message || "Không nhân bản được.";
+          if (result.errors && result.errors.length) {
+            errMsg = result.errors.join(" ");
           }
-          return;
+          notifyUser("error", errMsg);
+          if (!createdIds.length) {
+            collapsePosInlineDetail(getPrimaryTable());
+            refreshSalesOrdersListQuiet({ page: "1" });
+            return;
+          }
         }
-        if (app.helper && app.helper.showSuccessNotification) {
-          app.helper.showSuccessNotification({
-            message: result.message || "Đã tạo Báo giá.",
-          });
-        }
-        var createdIds = result.created || [];
-        if (createdIds.length === 1) {
-          window.location.href = "index.php?module=Quotes&view=Detail&record=" + createdIds[0];
-        } else if (createdIds.length > 1) {
-          window.location.href = "index.php?module=Quotes&view=List";
+        var okMsg =
+          result.message ||
+          (createdIds.length
+            ? "Đã tạo " + createdIds.length + " Báo giá từ Đơn hàng."
+            : "Đã tạo Báo giá.");
+        persistQuoteDupFlash({
+          type: "success",
+          message: okMsg,
+          highlight: createdIds[0] || "",
+        });
+        notifyUser("ok", okMsg);
+        if (createdIds.length > 0) {
+          var listUrl =
+            "index.php?module=Quotes&view=List&app=SALES&mk_quote_scope=all&orderby=quote_no&sortorder=DESC&page=1&nolistcache=1";
+          if (createdIds.length === 1) {
+            listUrl += "&mk_highlight=" + encodeURIComponent(createdIds[0]);
+          }
+          window.setTimeout(function () {
+            window.location.href = listUrl;
+          }, 120);
         } else {
+          notifyUser("error", "Không tạo được Báo giá.");
           collapsePosInlineDetail(getPrimaryTable());
           refreshSalesOrdersListQuiet({ page: "1" });
         }
@@ -2082,7 +2160,7 @@
       return;
     }
     if (app.helper && app.helper.showConfirmationBox) {
-      app.helper.showConfirmationBox({ message: message }).then(run);
+      app.helper.showConfirmationBox({ message: message }).then(run, function () {});
     } else if (window.confirm(message)) {
       run();
     }

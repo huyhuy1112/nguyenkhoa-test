@@ -71,11 +71,137 @@
 		return '';
 	}
 
-	function collapse($table) {
-		$table.find('tr.mk-so-inline-detail-row').remove();
-		$table.find('tr.mk-so-row-expanded, tr.mk-leads-row.mk-so-row-expanded').removeClass('mk-so-row-expanded');
+	function useDrawer() {
+		var c = cfg();
+		if (c.drawer === false) {
+			return false;
+		}
+		if (c.drawer === true) {
+			return true;
+		}
+		return moduleName() === 'Leads';
+	}
+
+	function closeDrawerUi() {
+		var $drawer = $('#mk-crm-inline-drawer');
+		if (!$drawer.length) {
+			return;
+		}
+		$drawer.removeClass('is-open').attr('aria-hidden', 'true');
+		$('body').removeClass('mk-crm-inline-drawer-open');
+		$drawer.find('.mk-crm-inline-drawer__body').empty();
+	}
+
+	function updateDrawerNav(recordId) {
+		var $drawer = $('#mk-crm-inline-drawer');
+		if (!$drawer.length) {
+			return;
+		}
+		var rows = document.querySelectorAll(tableSelector() + ' ' + rowSelector());
+		var ids = [];
+		for (var i = 0; i < rows.length; i++) {
+			var id = resolveRecordId(rows[i]);
+			if (id) {
+				ids.push({ id: id, el: rows[i] });
+			}
+		}
+		var idx = -1;
+		var current = String(recordId || '');
+		for (var j = 0; j < ids.length; j++) {
+			if (ids[j].id === current) {
+				idx = j;
+				break;
+			}
+		}
+		$drawer.data('mkDrawerIds', ids);
+		$drawer.data('mkDrawerIndex', idx);
+		$drawer.find('[data-mk-drawer-prev="1"]').prop('disabled', idx <= 0);
+		$drawer.find('[data-mk-drawer-next="1"]').prop('disabled', idx < 0 || idx >= ids.length - 1);
+	}
+
+	function openDrawerNeighbor(dir) {
+		var $drawer = $('#mk-crm-inline-drawer');
+		var ids = ($drawer.data('mkDrawerIds') || []);
+		var idx = Number($drawer.data('mkDrawerIndex'));
+		var next = ids[idx + dir];
+		if (!next || !next.el) {
+			return;
+		}
+		toggle(next.id, $(next.el));
+	}
+
+	function ensureDrawer() {
+		var $drawer = $('#mk-crm-inline-drawer');
+		if ($drawer.length) {
+			return $drawer;
+		}
+		$drawer = $(
+			'<div id="mk-crm-inline-drawer" class="mk-crm-inline-drawer" aria-hidden="true">' +
+				'<div class="mk-crm-inline-drawer__backdrop" data-mk-drawer-close="1"></div>' +
+				'<aside class="mk-crm-inline-drawer__panel" role="dialog" aria-modal="true" aria-label="Chi tiết lead">' +
+					'<div class="mk-crm-inline-drawer__toolbar">' +
+						'<span class="mk-crm-inline-drawer__kicker">LEAD</span>' +
+						'<div class="mk-crm-inline-drawer__nav">' +
+							'<button type="button" class="mk-crm-inline-drawer__nav-btn" data-mk-drawer-prev="1" title="Lead trước" aria-label="Lead trước">' +
+								'<i class="fa fa-chevron-left" aria-hidden="true"></i>' +
+							'</button>' +
+							'<button type="button" class="mk-crm-inline-drawer__nav-btn" data-mk-drawer-next="1" title="Lead sau" aria-label="Lead sau">' +
+								'<i class="fa fa-chevron-right" aria-hidden="true"></i>' +
+							'</button>' +
+						'</div>' +
+						'<button type="button" class="mk-crm-inline-drawer__close" data-mk-drawer-close="1" aria-label="Đóng">&times;</button>' +
+					'</div>' +
+					'<div class="mk-crm-inline-drawer__body"></div>' +
+				'</aside>' +
+			'</div>'
+		);
+		$('body').append($drawer);
+		$drawer.on('click', '[data-mk-drawer-close="1"]', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			collapse($(tableSelector()));
+		});
+		$drawer.on('click', '[data-mk-drawer-prev="1"]', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			openDrawerNeighbor(-1);
+		});
+		$drawer.on('click', '[data-mk-drawer-next="1"]', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			openDrawerNeighbor(1);
+		});
+		$drawer.on('click', '.mk-crm-inline-drawer__panel', function (e) {
+			e.stopPropagation();
+		});
+		if (!document.documentElement.getAttribute('data-mk-inline-drawer-esc')) {
+			document.documentElement.setAttribute('data-mk-inline-drawer-esc', '1');
+			document.addEventListener('keydown', function (e) {
+				if (e.key !== 'Escape') {
+					return;
+				}
+				if (!$('#mk-crm-inline-drawer').hasClass('is-open')) {
+					return;
+				}
+				collapse($(tableSelector()));
+			});
+		}
+		return $drawer;
+	}
+
+	function collapse($table, keepDrawer) {
+		var $tbl = ($table && $table.length) ? $table : $(tableSelector());
+		if ($tbl.length) {
+			$tbl.find('tr.mk-so-inline-detail-row').remove();
+			$tbl.find('tr.mk-so-row-expanded, tr.mk-leads-row.mk-so-row-expanded').removeClass('mk-so-row-expanded');
+		} else {
+			$(rowSelector() + '.mk-so-row-expanded').removeClass('mk-so-row-expanded');
+		}
 		expandedId = '';
 		loading = false;
+		if (!keepDrawer) {
+			closeDrawerUi();
+		}
 	}
 
 	function isAlwaysEdit($panel) {
@@ -1679,7 +1805,59 @@
 		});
 	}
 
+	function loadDrawerDetail(recordId, $row, $table) {
+		var c = cfg();
+		var $drawer = ensureDrawer();
+		var $body = $drawer.find('.mk-crm-inline-drawer__body');
+		$body.html(
+			'<div class="mk-so-inline-detail mk-so-inline-detail--loading mk-so-inline-detail--drawer">' +
+				'<span class="mk-so-inline-detail__spinner" aria-hidden="true"></span>' +
+				'<span>' + (c.loadingText || 'Đang tải chi tiết...') + '</span>' +
+			'</div>'
+		);
+		$drawer.addClass('is-open').attr('aria-hidden', 'false');
+		$('body').addClass('mk-crm-inline-drawer-open');
+		updateDrawerNav(recordId);
+
+		$.ajax({
+			url: 'index.php',
+			type: 'GET',
+			dataType: 'html',
+			data: {
+				module: moduleName(),
+				view: 'Detail',
+				mode: 'showListInlineDetail',
+				record: recordId,
+				app: (document.body.getAttribute('data-app') || 'SALES')
+			}
+		}).done(function (html) {
+			if (expandedId !== String(recordId)) {
+				return;
+			}
+			$body.html(html);
+			$body.find('.mk-so-inline-detail').addClass('mk-so-inline-detail--drawer');
+			initPanel($body);
+			updateDrawerNav(recordId);
+		}).fail(function () {
+			if (expandedId !== String(recordId)) {
+				return;
+			}
+			$body.html(
+				'<div class="mk-so-inline-detail mk-so-inline-detail--error mk-so-inline-detail--drawer">' +
+					(c.errorText || 'Không tải được chi tiết.') +
+					' <a href="' + ($row.data('recordurl') || '#') + '">Mở trang chi tiết</a>.' +
+				'</div>'
+			);
+		}).always(function () {
+			loading = false;
+		});
+	}
+
 	function loadDetail(recordId, $row, $table) {
+		if (useDrawer()) {
+			loadDrawerDetail(recordId, $row, $table);
+			return;
+		}
 		var c = cfg();
 		var colspan = getColspan($table);
 		var $detailRow = $(
@@ -1745,7 +1923,7 @@
 		if (loading) {
 			return;
 		}
-		collapse($table);
+		collapse($table, useDrawer());
 		expandedId = recordId;
 		loading = true;
 		$row.addClass('mk-so-row-expanded');
@@ -1758,13 +1936,13 @@
 		}
 		// Name / cell links expand the panel (Leads / products style) instead of navigating away.
 		if (
-			target.closest('#listview-table td.listViewEntryValue a, #listview-table a.listViewEntryValue') &&
+			target.closest('#listview-table td.listViewEntryValue a, #listview-table a.listViewEntryValue, a.mk-leads-name') &&
 			!target.closest('.listViewRecordActions, .table-actions, .dropdown-menu, .more, .mk-list-row-actions')
 		) {
 			return false;
 		}
 		return !!(target.closest(
-			'.mk-so-inline-detail, .mk-so-inline-detail-row, .mk-so-pos-star-btn, .mk-so-pos-control-td, .mk-leads-td--check, .mk-leads-inline-edit, .mk-leads-inline-input, .mk-leads-region-select, .mk-leads-tags-edit, #mk-leads-tag-popover, a, button, input, select, textarea, .dropdown-menu, label.mk-leads-check, label.mk-ps-check, .mk-ps-check, .listViewRecordActions, .table-actions, .mk-list-row-actions, .js-mk-ps-needs-qc, .mk-ps-qc-chip'
+			'.mk-crm-inline-drawer, .mk-so-inline-detail, .mk-so-inline-detail-row, .mk-so-pos-star-btn, .mk-so-pos-control-td, .mk-col-ps-star, .mk-ps-star, .markStar, .mk-leads-td--check, .mk-leads-inline-edit, .mk-leads-inline-input, .mk-leads-region-select, .mk-leads-tags-edit, #mk-leads-tag-popover, a, button, input, select, textarea, .dropdown-menu, label.mk-leads-check, label.mk-ps-check, .mk-ps-check, .listViewRecordActions, .table-actions, .mk-list-row-actions, .js-mk-ps-needs-qc, .mk-ps-qc-chip'
 		));
 	}
 

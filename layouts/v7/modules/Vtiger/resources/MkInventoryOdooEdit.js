@@ -98,15 +98,15 @@
   ];
 
   var MODERN_LINE_COLGROUP_WIDTHS = [
-    "48px",
-    "18%",
-    "68px",
-    "88px",
-    "120px",
-    "100px",
-    "120px",
-    "120px",
-    "140px",
+    "3.5%",
+    "26%",
+    "7%",
+    "8%",
+    "11%",
+    "9%",
+    "11.5%",
+    "11.5%",
+    "12.5%",
   ];
 
   /** BA mode: unit prices include VAT; line tax column is discount % instead. */
@@ -1875,12 +1875,17 @@
     if (!label) {
       return;
     }
-    var $chosen = $sel
-      .siblings(".select2-container")
-      .find(".select2-chosen")
-      .first();
+    var $container = $sel.siblings(".select2-container").first();
+    var $chosen = $container.find(".select2-chosen").first();
     if ($chosen.length && $.trim($chosen.text()) !== label) {
       $chosen.text(label);
+    }
+    $sel.attr("title", label);
+    if ($container.length) {
+      $container.attr("title", label);
+    }
+    if ($chosen.length) {
+      $chosen.attr("title", label);
     }
   }
 
@@ -3074,8 +3079,11 @@
     var $noteTd = $row.find("> td.mk-inv-col-note").first();
     if (!$noteTd.length) {
       $noteTd = $('<td class="mk-inv-col-note"></td>');
+      var $afterCkTd = $row.find("> td.mk-inv-col-afterck").first();
       var $amountTd = $row.find("> td.mk-inv-col-amount").first();
-      if ($amountTd.length) {
+      if ($afterCkTd.length) {
+        $afterCkTd.after($noteTd);
+      } else if ($amountTd.length) {
         $amountTd.after($noteTd);
       } else {
         $row.append($noteTd);
@@ -3103,8 +3111,11 @@
         visibility: "visible",
         width: "100%",
         opacity: 1,
-        height: "",
-        maxHeight: "",
+        height: "42px",
+        minHeight: "42px",
+        maxHeight: "42px",
+        resize: "none",
+        overflow: "hidden",
       });
     $row.addClass("mk-inv-line-row--show-note");
     // hide under-product read-only desc mirror if empty note UI covers storage
@@ -3238,6 +3249,12 @@
     var $amountTd = $row.find("> td.mk-inv-col-amount").first();
     var $noteTd = $row.find("> td.mk-inv-col-note").first();
     var $ckTd = $row.find("> td.mk-inv-col-afterck").first();
+    $row.children("td.mk-inv-col-afterck").each(function () {
+      if ($ckTd.length && this !== $ckTd[0] && !$(this).find(".mk-inv-afterck-input").length) {
+        $(this).remove();
+      }
+    });
+    $ckTd = $row.find("> td.mk-inv-col-afterck").first();
     if (!$ckTd.length) {
       $ckTd = $('<td class="mk-inv-col-afterck"></td>');
       if ($noteTd.length) {
@@ -3247,14 +3264,26 @@
       } else {
         $row.append($ckTd);
       }
+    } else if ($noteTd.length && $ckTd.next()[0] !== $noteTd[0]) {
+      $ckTd.insertBefore($noteTd);
+    } else if (
+      !$noteTd.length &&
+      $amountTd.length &&
+      $ckTd.prev()[0] !== $amountTd[0]
+    ) {
+      $ckTd.insertAfter($amountTd);
     }
+    $ckTd
+      .addClass("mk-inv-col-afterck")
+      .removeClass("mk-inv-col-net-hide mk-inv-hide-legacy")
+      .css({ display: "table-cell", visibility: "visible" });
     var afterCk = calcLineAfterDiscount($row, $form);
     var $inp = $ckTd.find(".mk-inv-afterck-input");
     if (!$inp.length) {
       $inp = $('<input type="text" class="mk-inv-afterck-input inputElement" inputmode="numeric" />');
       $ckTd.empty().append(
-        $('<div class="mk-inv-money-wrap"></div>')
-          .append('<span class="mk-inv-currency-prefix">đ</span>')
+        $('<div class="mk-inv-money-wrap mk-inv-money-wrap--afterck"></div>')
+          .append('<span class="mk-inv-money-prefix">₫</span>')
           .append($inp)
       );
       $inp.on("change blur", function () {
@@ -3314,6 +3343,12 @@
     }
     if ($cell.find("input.listPrice").length) {
       return "Đơn giá";
+    }
+    if (
+      $cell.hasClass("mk-inv-col-afterck") ||
+      $cell.find(".mk-inv-afterck-input").length
+    ) {
+      return "Sau CK";
     }
     if ($cell.find(".productTotal").length) {
       return "Thành tiền";
@@ -3391,7 +3426,7 @@
       var $h = $(this);
       var $b = $sample.children("td").eq(idx);
       $h.removeClass(
-        "mk-inv-col-product mk-inv-col-qty mk-inv-col-unit mk-inv-col-unit-head mk-inv-col-price mk-inv-col-amount mk-inv-col-tax mk-inv-col-tax-head mk-inv-col-discount mk-inv-col-note mk-inv-col-drag",
+        "mk-inv-col-product mk-inv-col-qty mk-inv-col-unit mk-inv-col-unit-head mk-inv-col-price mk-inv-col-amount mk-inv-col-tax mk-inv-col-tax-head mk-inv-col-discount mk-inv-col-afterck mk-inv-col-note mk-inv-col-drag",
       );
       if (idx === 0) {
         $h.addClass("mk-inv-col-drag");
@@ -3432,6 +3467,12 @@
         ).length
       ) {
         $h.addClass("mk-inv-col-tax-head mk-inv-col-tax mk-inv-col-discount");
+      }
+      if (
+        $b.hasClass("mk-inv-col-afterck") ||
+        $b.find(".mk-inv-afterck-input").length
+      ) {
+        $h.addClass("mk-inv-col-afterck");
       }
       if (
         $b.hasClass("mk-inv-col-note") ||
@@ -3502,6 +3543,8 @@
         widths.push("140px");
       } else if ($(this).hasClass("mk-inv-col-tax")) {
         widths.push("96px");
+      } else if ($(this).hasClass("mk-inv-col-afterck")) {
+        widths.push("138px");
       } else {
         widths.push("auto");
       }
@@ -3719,7 +3762,12 @@
     var $hint = $row.find(".mk-inv-stock-hint");
     if (!$hint.length) {
       $hint = $('<div class="mk-inv-stock-hint"></div>');
-      $row.find("input.qty").closest("td").append($hint);
+      var $stack = ensureQtyStack($row);
+      if ($stack.length) {
+        $stack.append($hint);
+      } else {
+        $row.find("input.qty").closest("td").append($hint);
+      }
     }
     if (
       $row.data("mkStockCacheKey") === cacheKey &&
@@ -3780,10 +3828,28 @@
     return null;
   }
 
+  function ensureQtyStack($row) {
+    var $qty = $row.find("input.qty, input[name^='qty']").first();
+    if (!$qty.length) {
+      return $();
+    }
+    var $stack = $qty.closest(".mk-inv-qty-stack");
+    if ($stack.length) {
+      return $stack;
+    }
+    $qty.wrap('<div class="mk-inv-qty-stack"></div>');
+    return $qty.closest(".mk-inv-qty-stack");
+  }
+
   function paintStockHint($row, available, ok) {
+    var $stack = ensureQtyStack($row);
     var $hint = $row.find(".mk-inv-stock-hint");
     if (!$hint.length) {
       $hint = $('<div class="mk-inv-stock-hint"></div>');
+    }
+    if ($stack.length) {
+      $stack.append($hint);
+    } else if (!$hint.parent().length) {
       $row.find("input.qty").closest("td").append($hint);
     }
     var stockLabel = formatQtyShort(available);
@@ -4027,15 +4093,29 @@
       return;
     }
 
+    ensureAfterCkCell($row, $form);
+
     var $drag = $row.children("td").first();
     var $product = $row
       .find("input.productName, select.mk-inv-product-native")
       .closest("td")
       .first();
-    var $qty = $row.find("input.qty, .qty").closest("td").first();
-    var $unit = $row.find("> td.mk-inv-col-unit").first();
+    var $qty = $row.find("input.qty").closest("td").first();
+    if ($qty.length && $product.length && $qty[0] === $product[0]) {
+      $qty = $row.children("td.mk-inv-col-qty").first();
+      if ($qty.length && $qty[0] === $product[0]) {
+        $qty = $();
+      }
+    }
+    var $unit = $row.find(".mk-inv-unit-select").closest("td").first();
     if (!$unit.length) {
-      $unit = $row.find(".mk-inv-unit-select").closest("td").first();
+      $unit = $row.find("> td.mk-inv-col-unit").first();
+    }
+    if ($unit.length && $product.length && $unit[0] === $product[0]) {
+      $unit = $();
+    }
+    if ($unit.length && $qty.length && $unit[0] === $qty[0]) {
+      $unit = $();
     }
     var $price = paintPriceCell($row);
     var $tax = $row
@@ -4046,6 +4126,7 @@
       $tax = $row.find("> td.mk-inv-col-tax, > td.mk-inv-col-discount").first();
     }
     var $amount = paintAmountCell($row, $form);
+    var $afterck = $row.find("> td.mk-inv-col-afterck").first();
     var $note = $row.find("> td.mk-inv-col-note").first();
     if (!$note.length) {
       $note = $row
@@ -4053,20 +4134,30 @@
         .closest("td")
         .first();
     }
+    if ($note.length && $product.length && $note[0] === $product[0]) {
+      $note = $();
+    }
 
     var ordered = [];
-    // Đơn giá → Chiết khấu → Thành tiền → Ghi chú
-    [$drag, $product, $qty, $unit, $price, $tax, $amount, $note].forEach(
-      function ($td) {
-        if (!$td || !$td.length) {
-          return;
-        }
-        var el = $td[0];
-        if (ordered.indexOf(el) === -1) {
-          ordered.push(el);
-        }
-      },
-    );
+    [
+      $drag,
+      $product,
+      $qty,
+      $unit,
+      $price,
+      $tax,
+      $amount,
+      $afterck,
+      $note,
+    ].forEach(function ($td) {
+      if (!$td || !$td.length) {
+        return;
+      }
+      var el = $td[0];
+      if (ordered.indexOf(el) === -1) {
+        ordered.push(el);
+      }
+    });
 
     ordered.forEach(function (el) {
       $row.append(el);
@@ -4076,6 +4167,10 @@
       var $td = $(this);
       if (ordered.indexOf(this) === -1) {
         $td.addClass("mk-inv-col-net-hide mk-inv-hide-legacy");
+      } else {
+        $td
+          .removeClass("mk-inv-col-net-hide mk-inv-hide-legacy")
+          .css({ display: "table-cell", visibility: "visible" });
       }
     });
 
@@ -4086,7 +4181,8 @@
 
   function tagLineItemColumnClasses($row) {
     $row.find("input.productName").closest("td").addClass("mk-inv-col-product");
-    $row.find("input.qty, .qty").closest("td").addClass("mk-inv-col-qty");
+    $row.find("input.qty").closest("td").addClass("mk-inv-col-qty");
+    ensureQtyStack($row);
     $row.find("input.listPrice").closest("td").addClass("mk-inv-col-price");
     $row.find(".productTotal").closest("td").addClass("mk-inv-col-amount");
     $row
@@ -4095,6 +4191,7 @@
       )
       .closest("td")
       .addClass("mk-inv-col-tax mk-inv-col-discount");
+    $row.find("> td.mk-inv-col-afterck").addClass("mk-inv-col-afterck");
     $row
       .find(".lineItemCommentBox, .mk-inv-note-input")
       .closest("td")
@@ -4120,14 +4217,60 @@
       $taxCols.slice(1).remove();
     }
 
-    var $qtyTd = $row.find("input.qty, .qty").first().closest("td");
-    var $unitTd = $row.find("> td.mk-inv-col-unit").first();
+    var $qtyTd = $row.find("input.qty").first().closest("td");
+    var $productTd = $row
+      .find("input.productName, select.mk-inv-product-native")
+      .closest("td")
+      .first();
+    if (
+      $qtyTd.length &&
+      $productTd.length &&
+      $qtyTd[0] === $productTd[0]
+    ) {
+      $qtyTd = $();
+    }
+    var $unitTd = $row.find(".mk-inv-unit-select").closest("td").first();
+    if (
+      $unitTd.length &&
+      (($productTd.length && $unitTd[0] === $productTd[0]) ||
+        ($qtyTd.length && $unitTd[0] === $qtyTd[0]))
+    ) {
+      $unitTd = $();
+    }
+    if (!$unitTd.length && $qtyTd.length) {
+      $unitTd = $qtyTd.nextAll("td.mk-inv-col-unit").first();
+    }
+    if (!$unitTd.length) {
+      $unitTd = $row
+        .children("td.mk-inv-col-unit")
+        .filter(function () {
+          return (
+            (!$productTd.length || this !== $productTd[0]) &&
+            (!$qtyTd.length || this !== $qtyTd[0])
+          );
+        })
+        .first();
+    }
     if ($qtyTd.length && !$unitTd.length) {
       $qtyTd.after('<td class="mk-inv-col-unit"></td>');
+      $unitTd = $qtyTd.next("td.mk-inv-col-unit");
+    }
+    $row.children("td.mk-inv-col-unit").each(function () {
+      var $td = $(this);
+      if ($unitTd.length && this === $unitTd[0]) {
+        return;
+      }
+      if ($td.find("input.qty, input.listPrice, input.productName").length) {
+        $td.removeClass("mk-inv-col-unit");
+        return;
+      }
+      $td.remove();
+    });
+    if ($unitTd.length && !$unitTd.closest("tr").length) {
       $unitTd = $row.find("> td.mk-inv-col-unit").first();
     }
     if ($unitTd.length) {
-      $unitTd.removeClass("mk-inv-hide-legacy");
+      $unitTd.removeClass("mk-inv-hide-legacy mk-inv-col-net-hide");
       injectUnitSelect($row, $unitTd);
       syncRowUnitFromProduct($row);
     }
@@ -4136,6 +4279,7 @@
 
     injectTaxDropdown($row, $form);
     injectNoteColumn($row, $form);
+    ensureAfterCkCell($row, $form);
     syncRowTaxPill($row, $form);
     normalizeModernLineItemRow($row, $form);
     injectProductDropdown($row, $form);
@@ -4621,29 +4765,13 @@
     if (!$result || !$result.length) {
       return;
     }
+    // BA / SALES: Tổng cộng luôn tính từ dòng hàng — không cho sửa tay.
+    $result.find(".mk-inv-grand-manual-input").remove();
     var $grandCell = $result.find("#grandTotal, .grandTotal").first();
-    if (!$grandCell.length) {
-      return;
+    if ($grandCell.length) {
+      $grandCell.css({ display: "" });
     }
-    var $tr = $grandCell.closest("tr");
-    if ($tr.find(".mk-inv-grand-manual-input").length) {
-      return;
-    }
-    var $input = $(
-      '<input type="text" class="mk-inv-grand-manual-input inputElement" inputmode="numeric" title="Có thể sửa tay tổng cộng" aria-label="Tổng cộng" />',
-    );
-    var current = readAmountRaw($grandCell, $form.find("#total"));
-    $input.val(formatVndNumber(current));
-    $grandCell.css({ display: "none" });
-    $grandCell.after($input);
-    $input.on("focus.mkInvGrand", function () {
-      $(this).val(String(Math.round(parseMoney($(this).val())) || ""));
-    });
-    $input.on("change.mkInvGrand focusout.mkInvGrand", function () {
-      var val = parseMoney($(this).val());
-      setManualGrandTotal($form, val);
-      $(this).val(formatVndNumber(val));
-    });
+    $form.find("#adjustment, input[name='adjustment']").prop("readonly", true);
   }
 
   function syncTotalsDisplay($form) {
@@ -6812,6 +6940,8 @@
       if (!$taxRow.find("#mk_discount_total_display").length) {
         $taxRow.find("td:last").append('<span class="pull-right mk-inv-vnd-amount" id="mk_discount_total_display">0</span>');
       }
+      // Hide old VAT/tax total output; we now display discount total instead.
+      $taxRow.find("#tax_final").closest("span").hide();
     }
 
     // Grand total → "Tổng Thanh Toán" (readonly)

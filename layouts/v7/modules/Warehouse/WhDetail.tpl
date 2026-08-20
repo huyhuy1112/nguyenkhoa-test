@@ -50,9 +50,16 @@
 			<article class="mk-wh-proto-kpi mk-wh-proto-kpi--danger">
 				<div class="mk-wh-proto-kpi__label">
 					<span class="mk-wh-proto-kpi__ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 9v4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M12 16.6h.01" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M10.3 4.2 2.7 18a2 2 0 0 0 1.8 3h15a2 2 0 0 0 1.8-3L13.7 4.2a2 2 0 0 0-3.4 0Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>
-					Lô sắp hết hạn (&lt;90 ngày)
+					Lô sắp hết hạn
 				</div>
 				<div class="mk-wh-proto-kpi__value" id="mkWhKpiExpiring">0</div>
+			</article>
+			<article class="mk-wh-proto-kpi mk-wh-proto-kpi--danger">
+				<div class="mk-wh-proto-kpi__label">
+					<span class="mk-wh-proto-kpi__ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 12h4l3-8 4 16 3-8h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+					Dự kiến hết hàng
+				</div>
+				<div class="mk-wh-proto-kpi__value" id="mkWhKpiStockout">0</div>
 			</article>
 		</section>
 
@@ -80,6 +87,12 @@
 						<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21V9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M17 14l-5-5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 4h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
 					</span>
 					Xuất kho
+				</button>
+				<button type="button" class="mk-wh-proto-tab" data-tab="returns">
+					<span class="mk-wh-proto-tab__ic" aria-hidden="true">
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 3-6.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3 4v5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					</span>
+					Thu hồi / Trả
 				</button>
 			</nav>
 
@@ -132,7 +145,7 @@
 								<span class="mk-wh-proto-filter__label">HSD</span>
 								<select class="mk-wh-proto-filter__control" id="mkWhProtoFilterHsd">
 									<option value="all">Tất cả</option>
-									<option value="soon">Sắp hết hạn (&lt;90 ngày)</option>
+									<option value="soon">Sắp hết hạn</option>
 									<option value="valid">Còn hạn</option>
 									<option value="expired">Quá hạn</option>
 								</select>
@@ -167,6 +180,7 @@
 									<th>Tên hàng</th>
 									<th>Lô</th>
 									<th>HSD</th>
+									<th>Dự kiến hết</th>
 									<th class="mk-wh-proto-td-right">Giá</th>
 									<th class="mk-wh-proto-td-right">Vị trí</th>
 									<th class="mk-wh-proto-td-right">Tồn</th>
@@ -192,6 +206,25 @@
 								</tr>
 							</thead>
 							<tbody id="mkWhProtoOutboundTbody"></tbody>
+						</table>
+					</div>
+				</div>
+
+				<div class="mk-wh-proto-pane hide" id="mkWhProtoPaneReturns">
+					<div class="mk-wh-proto-table-wrap">
+						<table class="mk-wh-proto-table" role="table">
+							<thead>
+								<tr>
+									<th>Mã phiếu</th>
+									<th>Loại</th>
+									<th>Nguồn</th>
+									<th>Hoàn tiền</th>
+									<th>Ngày tạo</th>
+									<th>Trạng thái</th>
+									<th class="mk-wh-proto-td-right">Thao tác</th>
+								</tr>
+							</thead>
+							<tbody id="mkWhProtoReturnsTbody"></tbody>
 						</table>
 					</div>
 				</div>
@@ -259,6 +292,100 @@
 		</div>
 		<button type="button" class="mk-wh-qc-lightbox__nav mk-wh-qc-lightbox__nav--next" data-mk-action="qc-lightbox-next" aria-label="Ảnh sau">&#8250;</button>
 		<div class="mk-wh-qc-lightbox__caption"></div>
+	</div>
+</div>
+
+<div class="mk-wh-proto-modal" id="mkWhReturnModal" aria-hidden="true">
+	<div class="mk-wh-proto-modal__backdrop" data-mk-return-close="1"></div>
+	<div class="mk-wh-proto-modal__dialog mk-wh-proto-modal__dialog--lux mk-wh-proto-modal__dialog--compact mk-wh-proto-modal__dialog--return" role="dialog" aria-modal="true" aria-labelledby="mkWhReturnModalTitle">
+		<header class="mk-wh-proto-modal__head">
+			<div class="mk-wh-proto-modal__head-main">
+				<span class="mk-wh-proto-modal__eyebrow">KHO</span>
+				<h3 class="mk-wh-proto-modal__title" id="mkWhReturnModalTitle">Tạo phiếu thu hồi / trả hàng</h3>
+				<p class="mk-wh-proto-modal__sub">Hàng luôn nhập lại kho khi xác nhận. Hoàn tiền là tùy chọn.</p>
+			</div>
+			<button type="button" class="mk-wh-proto-modal__close" data-mk-return-close="1" aria-label="Đóng">
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+			</button>
+		</header>
+		<form class="mk-wh-proto-modal__body" id="mkWhReturnForm" autocomplete="off">
+			<div class="mk-wh-proto-form-grid">
+				<div class="mk-wh-proto-field">
+					<label for="mkWhReturnDocType">Loại phiếu</label>
+					<select id="mkWhReturnDocType">
+						<option value="return">Trả hàng</option>
+						<option value="recall">Thu hồi</option>
+					</select>
+				</div>
+				<div class="mk-wh-proto-field">
+					<label for="mkWhReturnSourceType">Nguồn</label>
+					<select id="mkWhReturnSourceType">
+						<option value="retail">Khách lẻ</option>
+						<option value="franchise">Chi nhánh / nhượng quyền</option>
+					</select>
+				</div>
+				<div class="mk-wh-proto-field mk-wh-proto-field--full">
+					<label for="mkWhReturnSourceQ">Tìm đơn / chi nhánh</label>
+					<div class="mk-wh-return-search">
+						<input type="search" id="mkWhReturnSourceQ" placeholder="Mã ĐH, khách hàng, chi nhánh…" autocomplete="off" />
+						<button type="button" id="mkWhReturnSourceSearchBtn">Tìm</button>
+					</div>
+					<div id="mkWhReturnSourceResults" class="mk-wh-return-results"></div>
+					<p class="mk-wh-return-picked" id="mkWhReturnSourcePicked" hidden></p>
+					<input type="hidden" id="mkWhReturnSoId" value="" />
+					<input type="hidden" id="mkWhReturnScId" value="" />
+					<input type="hidden" id="mkWhReturnSourceLabel" value="" />
+				</div>
+				<div class="mk-wh-proto-field mk-wh-proto-field--full mk-wh-proto-field--check">
+					<label class="mk-wh-proto-check" for="mkWhReturnRefund">
+						<span class="mk-wh-proto-check__box">
+							<input class="mk-wh-proto-check__input" type="checkbox" id="mkWhReturnRefund" />
+							<span class="mk-wh-proto-check__visual" aria-hidden="true">
+								<svg class="mk-wh-proto-check__icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.2 6.1 4.8 8.7 9.8 3.3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+							</span>
+						</span>
+						<span class="mk-wh-proto-check__text">
+							<span class="mk-wh-proto-check__label">Hoàn tiền trên đơn hàng (tùy chọn)</span>
+							<span class="mk-wh-proto-check__hint">Tắt: chỉ nhập kho. Bật: giảm số đã thu trên SO.</span>
+						</span>
+					</label>
+				</div>
+				<div class="mk-wh-proto-field mk-wh-proto-field--full">
+					<label for="mkWhReturnNote">Ghi chú</label>
+					<textarea id="mkWhReturnNote" rows="3" placeholder="Lý do trả / thu hồi"></textarea>
+				</div>
+				<div class="mk-wh-proto-field mk-wh-proto-field--full mk-wh-proto-field--lines">
+					<div class="mk-wh-proto-lines-section">
+						<div class="mk-wh-proto-lines mk-wh-proto-lines--catalog">
+							<div class="mk-wh-proto-lines__head">
+								<span class="mk-wh-proto-lines__ttl">Dòng hàng</span>
+								<button type="button" class="mk-wh-proto-mini-btn" id="mkWhReturnAddLine">Thêm dòng</button>
+							</div>
+							<div class="mk-wh-proto-table-wrap mk-wh-proto-lines__tableWrap">
+								<table class="mk-wh-proto-table mk-wh-proto-lines__table mk-wh-return-lines">
+									<thead>
+										<tr>
+											<th class="mk-wh-return-col-name">Tên hàng</th>
+											<th class="mk-wh-return-col-sku">SKU</th>
+											<th class="mk-wh-return-col-lot">Lô</th>
+											<th class="mk-wh-return-col-hsd">HSD</th>
+											<th class="mk-wh-return-col-qty mk-wh-proto-td-right">SL</th>
+											<th class="mk-wh-return-col-price mk-wh-proto-td-right">Giá</th>
+											<th class="mk-wh-return-col-act"></th>
+										</tr>
+									</thead>
+									<tbody id="mkWhReturnLinesBody"></tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="mk-wh-proto-modal__foot">
+				<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--ghost" data-mk-return-close="1">Hủy</button>
+				<button type="submit" class="mk-wh-proto-btn mk-wh-proto-btn--primary" id="mkWhReturnSave">Lưu nháp</button>
+			</div>
+		</form>
 	</div>
 </div>
 

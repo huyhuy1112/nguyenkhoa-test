@@ -26,11 +26,10 @@
 	];
 	var UNIT_STORAGE_KEY = 'mk_ps_custom_units_v1';
 	var GROUP_STORAGE_KEY = 'mk_ps_custom_groups_v1';
-	/* Only fields previously agreed to remove — keep brand/model/stock/etc. */
+	/* Only fields previously agreed to remove — keep brand/model/stock/images. */
 	var HIDE_FIELD_NAMES = [
 		'warranty',
 		'related_projects',
-		'used_projects',
 		'retail_price',
 		'bulk_price',
 		'price',
@@ -39,7 +38,8 @@
 	var FULL_WIDTH_FIELDS = {
 		specification: true,
 		description: true,
-		comment: true
+		comment: true,
+		used_projects: true
 	};
 
 	function isScoped() {
@@ -65,16 +65,7 @@
 			$f.find('.mk-ps-compact-value[data-fieldname="' + n + '"]').closest('.mk-ps-compact-field').addClass('mk-ps-hide-legacy');
 		});
 
-		/* Only hide image block (already agreed). Keep product/service/delivery/pricing. */
-		$f.find('.fieldBlockContainer[data-block="LBL_PROJECT_HISTORY"]').addClass('mk-ps-hide-legacy');
-		$f.find('.fieldBlockContainer').each(function () {
-			var $block = $(this);
-			if ($block.hasClass('mk-ps-hide-legacy')) return;
-			var title = ($block.find('.fieldBlockHeader').first().text() || '').trim().toLowerCase();
-			if (title.indexOf('hình ảnh') >= 0 || title.indexOf('pictures') >= 0 || title.indexOf('project history') >= 0) {
-				$block.addClass('mk-ps-hide-legacy');
-			}
-		});
+		/* Keep image / project-history blocks visible for product photos. */
 	}
 
 	function packCompactTwoColumn() {
@@ -630,6 +621,10 @@
 			if ($head.length && !$head.find('.mk-ps-block__num').length) {
 				$head.prepend('<span class="mk-ps-block__num" aria-hidden="true">' + (idx + 1) + '</span>');
 			}
+			if (isImageBlock($block)) {
+				$block.addClass('mk-ps-block--image');
+				return;
+			}
 			if (idx === 0) {
 				$block.addClass('mk-ps-block--primary');
 			} else {
@@ -637,7 +632,7 @@
 			}
 		});
 
-		var $secondary = $blocks.filter('.mk-ps-block--secondary');
+		var $secondary = $blocks.filter('.mk-ps-block--secondary').not('.mk-ps-block--image');
 		if ($secondary.length >= 2 && !$host.find('.mk-ps-block-mosaic').length) {
 			var $mosaic = $('<div class="mk-ps-block-mosaic" role="presentation"></div>');
 			$secondary.first().before($mosaic);
@@ -675,7 +670,79 @@
 			if (fname === 'specification' || fname === 'description') {
 				$field.addClass('mk-ps-compact-field--full mk-ps-compact-field--note');
 			}
+			if (fname === 'used_projects') {
+				$field.addClass('mk-ps-compact-field--full mk-ps-compact-field--image');
+			}
 		});
+	}
+
+	function isImageBlock($block) {
+		return (
+			$block.find('[name="used_projects[]"], [name="used_projects"], [data-fieldname="used_projects"]').length >
+			0
+		);
+	}
+
+	function moveImageBlockToEnd() {
+		var $host = $('#mkPsFormHost');
+		if (!$host.length) {
+			return;
+		}
+		var $contents = $host.find('.editViewContents').first();
+		if (!$contents.length) {
+			$contents = $form();
+		}
+		var $imgBlock = $host.find('.fieldBlockContainer').filter(function () {
+			return isImageBlock($(this));
+		}).last();
+		if ($imgBlock.length) {
+			$imgBlock.addClass('mk-ps-block mk-ps-block--image');
+			$contents.append($imgBlock);
+			var $head = $imgBlock.find('.fieldBlockHeader, .mk-ps-block__header').first();
+			if ($head.length) {
+				var $num = $head.find('.mk-ps-block__num').first();
+				$head.contents().filter(function () {
+					return this.nodeType === 3;
+				}).remove();
+				$head.find('span, strong, b').not('.mk-ps-block__num').each(function () {
+					$(this).text('Hình ảnh');
+				});
+				if (!$head.clone().children().remove().end().text().trim() && !$head.find('span,strong,b').not('.mk-ps-block__num').length) {
+					$head.append(document.createTextNode(' Hình ảnh'));
+				}
+				if ($num.length && !$head.find('.mk-ps-block__num').length) {
+					$head.prepend($num);
+				}
+			}
+			$imgBlock.find('.mk-ps-compact-label, td.fieldLabel').each(function () {
+				var t = ($(this).text() || '').trim().toLowerCase();
+				if (t.indexOf('dùng trong') >= 0 || t.indexOf('used in') >= 0 || t.indexOf('project') >= 0) {
+					$(this).text('Hình ảnh');
+				}
+			});
+			$imgBlock.find('input[type="file"]').attr(
+				'accept',
+				'image/jpeg,image/png,image/gif,image/webp,image/bmp,.jpg,.jpeg,.png,.gif,.webp,.bmp,.heic,.heif'
+			);
+			return;
+		}
+		var $imgField = $host.find('.mk-ps-compact-field').filter(function () {
+			var n = String(
+				$(this).find('.mk-ps-compact-value').attr('data-fieldname') ||
+					$(this).find('[name]').first().attr('name') ||
+					''
+			)
+				.replace(/\[\]$/, '')
+				.trim();
+			return n === 'used_projects';
+		}).first();
+		if ($imgField.length) {
+			$imgField.addClass('mk-ps-compact-field--full mk-ps-compact-field--image');
+			var $grid = $host.find('.mk-ps-compact-grid').last();
+			if ($grid.length) {
+				$grid.append($imgField);
+			}
+		}
 	}
 
 	function enhanceNeedsQcField($field) {
@@ -735,6 +802,7 @@
 		enhanceGroupField();
 		enhanceTypeField();
 		decorateCreateLayout();
+		moveImageBlockToEnd();
 		if (window.MkCurrency) {
 			window.MkCurrency.applyToDom('#mkPsFormHost');
 		}

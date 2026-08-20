@@ -2294,6 +2294,83 @@
       });
   }
 
+  function mapFieldRowHtml(key, label) {
+    return (
+      '<label class="mk-leads-sheet-map-row" data-map-key="' +
+      key +
+      '"><span class="mk-leads-sheet-map-row__lab">' +
+      label +
+      '</span><input type="text" class="mk-leads-sheet-map-row__inp" data-map-field="' +
+      key +
+      '" placeholder="Tên cột trên Google Sheet" autocomplete="off" /></label>'
+    );
+  }
+
+  function parseSheetMapRaw(raw) {
+    try {
+      var o = JSON.parse(String(raw || "{}").trim() || "{}");
+      return o && typeof o === "object" ? o : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function applySheetMapGuiFromObject(map) {
+    map = map || {};
+    var gui = document.getElementById("mk-sheet-map-gui");
+    if (!gui) return;
+    var qa = Array.isArray(map.qa) ? map.qa : [];
+    gui.querySelectorAll("[data-map-field]").forEach(function (inp) {
+      var key = inp.getAttribute("data-map-field");
+      if (!key) return;
+      if (key === "qa_1") {
+        inp.value = qa[0] || (typeof map.qa_1 === "string" ? map.qa_1 : "") || "";
+      } else if (key === "qa_2") {
+        inp.value = qa[1] || (typeof map.qa_2 === "string" ? map.qa_2 : "") || "";
+      } else if (key === "qa_3") {
+        inp.value = qa[2] || (typeof map.qa_3 === "string" ? map.qa_3 : "") || "";
+      } else {
+        var v = map[key];
+        inp.value = v == null ? "" : String(v);
+      }
+    });
+  }
+
+  function buildSheetMapFromGui() {
+    var gui = document.getElementById("mk-sheet-map-gui");
+    var map = {};
+    var qa = [];
+    if (!gui) {
+      return parseSheetMapRaw(
+        ((document.getElementById("mk-sheet-map") || {}).value) || "{}"
+      );
+    }
+    gui.querySelectorAll("[data-map-field]").forEach(function (inp) {
+      var key = inp.getAttribute("data-map-field");
+      var val = String(inp.value || "").trim();
+      if (!key) return;
+      if (key.indexOf("qa_") === 0) {
+        if (val) qa.push(val);
+      } else if (val) {
+        map[key] = val;
+      }
+    });
+    if (qa.length) {
+      map.qa = qa;
+    }
+    return map;
+  }
+
+  function syncSheetMapJsonFromGui() {
+    var ta = document.getElementById("mk-sheet-map");
+    if (!ta) return;
+    try {
+      ta.value = JSON.stringify(buildSheetMapFromGui(), null, 2);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
   function ensureSheetModal() {
     var existing = document.getElementById("mk-leads-sheet-modal");
     if (existing) return existing;
@@ -2319,9 +2396,23 @@
       '    <label class="mk-leads-sheet-field"><span>Service Account JSON <em id="mk-sheet-sa-status"></em></span>' +
       '      <textarea id="mk-sheet-sa" rows="6" placeholder="Dán toàn bộ JSON (type service_account…). Để trống nếu đã cấu hình và không đổi."></textarea>' +
       "    </label>" +
-      '    <details class="mk-leads-sheet-advanced">' +
-      "      <summary>Ánh xạ cột (JSON) — nâng cao</summary>" +
-      '      <textarea id="mk-sheet-map" rows="8" spellcheck="false"></textarea>' +
+      '    <details class="mk-leads-sheet-advanced" open>' +
+      "      <summary>Ánh xạ cột — map header Google Sheet sang field CRM</summary>" +
+      '      <p class="mk-leads-sheet-map-hint">Gõ đúng <strong>tên cột trên Sheet</strong> (hàng header). Để trống nếu không dùng.</p>' +
+      '      <div class="mk-leads-sheet-map-gui" id="mk-sheet-map-gui">' +
+      mapFieldRowHtml("name", "Tên khách (name)") +
+      mapFieldRowHtml("phone", "Số điện thoại (phone)") +
+      mapFieldRowHtml("email", "Email") +
+      mapFieldRowHtml("address", "Địa chỉ (address)") +
+      mapFieldRowHtml("screening", "Sàng lọc (screening)") +
+      mapFieldRowHtml("qa_1", "Câu hỏi / QA 1") +
+      mapFieldRowHtml("qa_2", "Câu hỏi / QA 2") +
+      mapFieldRowHtml("qa_3", "Câu hỏi / QA 3") +
+      "      </div>" +
+      '      <details class="mk-leads-sheet-map-json">' +
+      "        <summary>JSON nâng cao (tuỳ chọn)</summary>" +
+      '        <textarea id="mk-sheet-map" rows="6" spellcheck="false"></textarea>' +
+      "      </details>" +
       "    </details>" +
       '    <label class="mk-leads-sheet-check"><input type="checkbox" id="mk-sheet-enabled" /> Bật poll tự động mỗi 1 phút</label>' +
       '    <div class="mk-leads-sheet-status" id="mk-sheet-status" hidden></div>' +
@@ -2336,6 +2427,14 @@
     root.addEventListener("click", function (e) {
       if (e.target && e.target.getAttribute && e.target.getAttribute("data-sheet-close") === "1") {
         closeSheetModal();
+      }
+    });
+    root.addEventListener("input", function (e) {
+      var t = e.target;
+      if (t && t.getAttribute && t.getAttribute("data-map-field")) {
+        syncSheetMapJsonFromGui();
+      } else if (t && t.id === "mk-sheet-map") {
+        applySheetMapGuiFromObject(parseSheetMapRaw(t.value));
       }
     });
     return root;
@@ -2370,22 +2469,20 @@
   function collectSheetPayload(requireSaIfMissing, settings) {
     var id = parseSpreadsheetId(document.getElementById("mk-sheet-spreadsheet").value);
     var range = (document.getElementById("mk-sheet-range").value || "").trim() || "Sheet1";
-    var mapRaw = (document.getElementById("mk-sheet-map").value || "").trim();
     var sa = (document.getElementById("mk-sheet-sa").value || "").trim();
     var en = document.getElementById("mk-sheet-enabled").checked;
     if (!id) {
       throw new Error("Thiếu Spreadsheet ID / link.");
     }
+    // GUI is source of truth; push into JSON text for advanced view.
+    var map = buildSheetMapFromGui();
+    syncSheetMapJsonFromGui();
     var payload = {
       enabled: en ? 1 : 0,
       spreadsheet_id: id,
       sheet_range: range,
+      column_map: map || {},
     };
-    try {
-      payload.column_map = JSON.parse(mapRaw || "{}");
-    } catch (e) {
-      throw new Error("column_map JSON không hợp lệ.");
-    }
     if (sa) {
       payload.service_account_json = sa;
     } else if (requireSaIfMissing && !(settings && settings.service_account_configured)) {
@@ -2410,10 +2507,12 @@
         }
         document.getElementById("mk-sheet-spreadsheet").value = s.spreadsheet_id || "";
         document.getElementById("mk-sheet-range").value = s.sheet_range || "Sheet1";
-        document.getElementById("mk-sheet-map").value =
-          typeof s.column_map === "object"
-            ? JSON.stringify(s.column_map, null, 2)
-            : String(s.column_map || "{}");
+        var mapObj =
+          typeof s.column_map === "object" && s.column_map
+            ? s.column_map
+            : parseSheetMapRaw(String(s.column_map || "{}"));
+        document.getElementById("mk-sheet-map").value = JSON.stringify(mapObj, null, 2);
+        applySheetMapGuiFromObject(mapObj);
         document.getElementById("mk-sheet-sa").value = "";
         document.getElementById("mk-sheet-enabled").checked = !!s.enabled;
         var st = document.getElementById("mk-sheet-sa-status");

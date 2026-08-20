@@ -59,6 +59,43 @@ body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewCo
 	background: #fff;
 }
 
+/* Star column: no ellipsis "..." — centered star only */
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table thead tr.listViewContentHeader th.mk-col-ps-star,
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries > td.mk-col-ps-star,
+body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table thead tr.listViewContentHeader th.mk-col-ps-star,
+body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries > td.mk-col-ps-star {
+	width: 44px !important;
+	min-width: 44px !important;
+	max-width: 44px !important;
+	padding: 0 !important;
+	text-align: center !important;
+	vertical-align: middle !important;
+	overflow: hidden !important;
+	text-overflow: clip !important;
+	white-space: nowrap !important;
+}
+
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries > td.mk-col-ps-star::before,
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries > td.mk-col-ps-star::after,
+body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries > td.mk-col-ps-star::before,
+body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries > td.mk-col-ps-star::after {
+	content: none !important;
+	display: none !important;
+}
+
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries > td.mk-col-ps-star .mk-ps-star,
+body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries > td.mk-col-ps-star .mk-ps-star {
+	margin: 0 auto;
+}
+
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries > td.mk-col-ps-star .mk-ps-star::before,
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries > td.mk-col-ps-star .mk-ps-star::after,
+body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries > td.mk-col-ps-star .mk-ps-star::before,
+body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries > td.mk-col-ps-star .mk-ps-star::after {
+	content: none !important;
+	display: none !important;
+}
+
 html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries:hover td,
 body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries:hover td {
 	background: #f4fbf6 !important;

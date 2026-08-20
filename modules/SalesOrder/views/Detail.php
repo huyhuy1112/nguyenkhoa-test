@@ -59,14 +59,21 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		$this->repairMissingAccountFromQuote($recordModel);
 		$rawProducts = $recordModel->getProducts();
 
-		$this->showLineItemDetails($request);
-
 		$viewer = $this->getViewer($request);
+		$viewer->assign('RECORD', $recordModel);
+		$viewer->assign('MK_INLINE_RAW_PRODUCTS', unserialize(serialize($rawProducts)));
+		$viewer->assign('MK_INLINE_RELATED_PRODUCTS', $rawProducts);
+
+		$this->showLineItemDetails($request);
 		$relatedProducts = $viewer->getTemplateVars('RELATED_PRODUCTS');
 		if (!is_array($relatedProducts) || empty($relatedProducts)) {
 			$relatedProducts = $rawProducts;
 		}
-		$relatedProducts = $this->normalizeInlineMoneyTotals($relatedProducts, $rawProducts, $recordModel);
+		$rawForNorm = $viewer->getTemplateVars('MK_INLINE_RAW_PRODUCTS');
+		if (!is_array($rawForNorm) || empty($rawForNorm)) {
+			$rawForNorm = $rawProducts;
+		}
+		$relatedProducts = $this->normalizeInlineMoneyTotals($relatedProducts, $rawForNorm, $recordModel);
 		$relatedProducts = $this->enrichLineUsageUnits($relatedProducts);
 		$viewer->assign('RELATED_PRODUCTS', $relatedProducts);
 

@@ -7,14 +7,12 @@ class ProductsServices_ListView_Model extends Vtiger_ListView_Model {
 
 	const NAME_FIELD = 'productsservicesname';
 
+	/** BA list columns (server headers; client catalog may enrich stock / SO / dates). */
 	const CANONICAL_HEADERS = array(
-		'productsservicesname',
 		'sku',
-		'product_group',
-		'item_type',
-		'price',
+		'productsservicesname',
+		'price_lt_1m',
 		'price_tuibao',
-		'unit',
 	);
 
 	public static function getInstance($moduleName, $viewId = '0', $listHeaders = array()) {
@@ -31,8 +29,16 @@ class ProductsServices_ListView_Model extends Vtiger_ListView_Model {
 		if (!$queryGenerator) {
 			return false;
 		}
-		$fields = self::CANONICAL_HEADERS;
 		$module = $this->getModule();
+		$fields = array();
+		foreach (self::CANONICAL_HEADERS as $fieldName) {
+			if ($module && Vtiger_Field_Model::getInstance($fieldName, $module)) {
+				$fields[] = $fieldName;
+			}
+		}
+		if (empty($fields)) {
+			$fields = array(self::NAME_FIELD);
+		}
 		if ($module && Vtiger_Field_Model::getInstance('needs_qc', $module)) {
 			if (!in_array('needs_qc', $fields, true)) {
 				$fields[] = 'needs_qc';

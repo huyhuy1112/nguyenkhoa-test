@@ -28,7 +28,11 @@ class ServiceContracts_ModernService {
 				'Chuyển sang Nguyên Khoa',
 			),
 			'data_source' => array(
-				// BA: nguồn = phát sinh từ Affiliate (giới thiệu) hoặc trống
+				// BA: nguồn = kênh (Website/Zalo/Facebook/TikTok) hoặc tự động "Được giới thiệu" khi nhập mã.
+				'Website',
+				'Zalo',
+				'Facebook',
+				'TikTok',
 				'Được giới thiệu',
 			),
 			'contact_status' => array(
@@ -208,8 +212,29 @@ class ServiceContracts_ModernService {
 	}
 
 	/**
-	 * Explicitly generate AFF-###### for this customer once.
-	 * If code already exists, returns it (no second code).
+	 * Build affiliate/referral code (mã giới thiệu) for a customer.
+	 * Format: [TierLetter][10-digit-phone] e.g. A0906345551
+	 * @return string empty if phone/tier invalid
+	 */
+	protected static function buildAffiliateCode($tierPrefix, $phone) {
+		$tierPrefix = strtoupper(trim((string) $tierPrefix));
+		if ($tierPrefix === '' || !preg_match('/^[A-D]$/', $tierPrefix)) {
+			return '';
+		}
+		$digits = self::normalizePhoneDigits($phone);
+		if ($digits === '') {
+			return '';
+		}
+		$digits = substr($digits, 0, 10);
+		if (strlen($digits) !== 10) {
+			return '';
+		}
+		return $tierPrefix . $digits;
+	}
+
+	/**
+	 * Explicitly generate/store affiliate code for a customer (lazy minting).
+	 * If code already exists and matches current phone, return it.
 	 * @return string affiliate code
 	 */
 	public static function generateAffiliateCode($contractId) {
@@ -230,26 +255,35 @@ class ServiceContracts_ModernService {
 		self::installSchema($adb);
 		self::ensureProfileRow($contractId);
 
-		$existing = self::getAffiliateCode($contractId);
-		if ($existing !== '') {
-			return $existing;
+		$now = date('Y-m-d H:i:s');
+		$res = $adb->pquery(
+			'SELECT affiliate_code, affiliate_tier_prefix, phone FROM bace_sc_profile WHERE servicecontractsid = ?',
+			array($contractId)
+		);
+		if (!$res || $adb->num_rows($res) <= 0) {
+			throw new Exception('Record not found.');
+		}
+		$existing = trim((string) $adb->query_result($res, 0, 'affiliate_code'));
+		$tierPrefix = strtoupper(trim((string) $adb->query_result($res, 0, 'affiliate_tier_prefix')));
+		if ($tierPrefix === '' || !preg_match('/^[A-D]$/', $tierPrefix)) {
+			$tierPrefix = 'D';
+		}
+		$phone = (string) $adb->query_result($res, 0, 'phone');
+		$computed = self::buildAffiliateCode($tierPrefix, $phone);
+		if ($computed === '') {
+			throw new Exception('Thiếu SĐT 10 số hợp lệ để tạo mã giới thiệu.');
 		}
 
-		// Retry next code a few times in case of unique collisions
-		for ($attempt = 0; $attempt < 8; $attempt++) {
-			$code = self::nextAffiliateCode($adb, $attempt);
-			$now = date('Y-m-d H:i:s');
-			$adb->pquery(
-				'UPDATE bace_sc_profile SET affiliate_code = ?, modified_at = ?
-				 WHERE servicecontractsid = ? AND (affiliate_code IS NULL OR affiliate_code = \'\')',
-				array($code, $now, $contractId)
-			);
-			$after = self::getAffiliateCode($contractId);
-			if ($after !== '') {
-				return $after;
-			}
+		if ($existing !== '' && strcasecmp($existing, $computed) === 0) {
+			return strtoupper($computed);
 		}
-		throw new Exception('Không tạo được mã AFF. Vui lòng thử lại.');
+
+		$adb->pquery(
+			'UPDATE bace_sc_profile SET affiliate_code = ?, modified_at = ? WHERE servicecontractsid = ?',
+			array($computed, $now, $contractId)
+		);
+
+		return strtoupper($computed);
 	}
 
 	/**
@@ -545,10 +579,19 @@ class ServiceContracts_ModernService {
 	}
 
 	/**
-	 * Nguồn data (BA): từ Affiliate → "Được giới thiệu"; không giới thiệu → trống (UI: "-").
+	 * Nguồn data (BA):
+	 * - Affiliate → "Được giới thiệu"
+	 * - Không giới thiệu → giữ giá trị channel đã lưu (Website/Zalo/Facebook/TikTok)
 	 */
 	protected static function resolveDataSourceDisplay(array $row) {
-		return self::hasAffiliateIntroduction($row) ? 'Được giới thiệu' : '';
+		if (self::hasAffiliateIntroduction($row)) {
+			return 'Được giới thiệu';
+		}
+		$ds = self::decodeText(isset($row['data_source']) ? $row['data_source'] : '');
+		if ($ds === '-' || $ds === '--') {
+			$ds = '';
+		}
+		return $ds;
 	}
 
 	/**
@@ -561,20 +604,8 @@ class ServiceContracts_ModernService {
 		if ($referralCode !== '' || ($referrer !== '' && $referrer !== '—' && $referrer !== '-')) {
 			return 'Được giới thiệu';
 		}
-		$pickedLower = function_exists('mb_strtolower')
-			? mb_strtolower($picked, 'UTF-8')
-			: strtolower($picked);
-		if (
-			$picked !== ''
-			&& (
-				strpos($pickedLower, 'giới thiệu') !== false
-				|| strpos($pickedLower, 'gioi thieu') !== false
-				|| $picked === 'Được giới thiệu'
-			)
-		) {
-			return 'Được giới thiệu';
-		}
-		return '';
+		$picklists = self::franchisePicklists();
+		return self::normalizePick($picked, $picklists['data_source']);
 	}
 
 	protected static function resolveRuleNextActionMeta(array $tags, $lastTouchRaw, $manualNextAction) {
@@ -689,7 +720,7 @@ class ServiceContracts_ModernService {
 		$tagsMap = self::getTagsForIds(array($contractId));
 		$tags = isset($tagsMap[$contractId]) ? $tagsMap[$contractId] : array();
 		$ownTierPrefix = isset($row['affiliate_tier_prefix']) ? strtoupper(trim((string) $row['affiliate_tier_prefix'])) : 'D';
-		if ($ownTierPrefix === '' || !preg_match('/^[A-Z]$/', $ownTierPrefix)) {
+		if ($ownTierPrefix === '' || !preg_match('/^[A-D]$/', $ownTierPrefix)) {
 			$ownTierPrefix = 'D';
 		}
 		$ownTier = self::resolveTierByPrefix($ownTierPrefix);
@@ -806,16 +837,17 @@ class ServiceContracts_ModernService {
 		$email = trim(self::decodeText(isset($payload['email']) ? $payload['email'] : ''));
 
 		$referralCode = strtoupper(trim(self::decodeText(isset($payload['referral_code']) ? $payload['referral_code'] : '')));
-		// Nguồn data: có giới thiệu Affiliate → "Được giới thiệu"; không → trống ("-")
+		$pickedDataSource = isset($payload['data_source']) ? $payload['data_source'] : '';
+		// Nguồn data: có giới thiệu Affiliate → "Được giới thiệu"; không → giữ channel đã chọn
 		$dataSource = self::resolveDataSourceForSave(
 			$referralCode,
 			$referrer,
-			isset($payload['data_source']) ? $payload['data_source'] : ''
+			$pickedDataSource
 		);
 		$affiliateTierPrefix = strtoupper(trim(self::decodeText(
 			isset($payload['affiliate_tier_prefix']) ? $payload['affiliate_tier_prefix'] : 'D'
 		)));
-		if ($affiliateTierPrefix === '' || !preg_match('/^[A-Z]$/', $affiliateTierPrefix)) {
+		if ($affiliateTierPrefix === '' || !preg_match('/^[A-D]$/', $affiliateTierPrefix)) {
 			$affiliateTierPrefix = 'D';
 		}
 		$registrationDate = self::normalizeDate(isset($payload['registration_date']) ? $payload['registration_date'] : '');
@@ -848,6 +880,12 @@ class ServiceContracts_ModernService {
 		$paymentDate = self::normalizeDate(isset($payload['payment_date']) ? $payload['payment_date'] : '');
 
 		$resolved = self::resolveReferralTier($referralCode, $registrationDate);
+		// If referral code is invalid / unmapped: do not persist referral_code/referrer and keep chosen data_source.
+		if (!$resolved && $referralCode !== '') {
+			$referralCode = '';
+			$referrer = '';
+			$dataSource = self::resolveDataSourceForSave('', '', $pickedDataSource);
+		}
 		$referralTierName = $resolved ? $resolved['tier_name'] : '';
 		$referralReward = $resolved ? (float) $resolved['reward_amount'] : null;
 		$retentionDays = $resolved ? (int) $resolved['retention_days'] : 180;
@@ -900,6 +938,18 @@ class ServiceContracts_ModernService {
 
 		self::ensureProfileRow($contractId);
 		$now = date('Y-m-d H:i:s');
+
+		// If affiliate_code has been minted before: keep it in sync with phone/tier changes.
+		// (Lazy minting: we do NOT auto-create affiliate_code for all customers.)
+		$existingAffiliateCode = self::getAffiliateCode($contractId);
+		$computedAffiliateCode = self::buildAffiliateCode($affiliateTierPrefix, $phone);
+		if ($existingAffiliateCode !== '' && strcasecmp($existingAffiliateCode, $computedAffiliateCode) !== 0) {
+			$adb->pquery(
+				'UPDATE bace_sc_profile SET affiliate_code = ?, modified_at = ? WHERE servicecontractsid = ?',
+				array($computedAffiliateCode !== '' ? $computedAffiliateCode : null, $now, $contractId)
+			);
+		}
+
 		$receivedSql = $receivedDate !== '' ? $receivedDate : null;
 		$regSql = $registrationDate !== '' ? $registrationDate : null;
 		$retSql = $retentionExpires !== '' ? $retentionExpires : null;
@@ -1000,10 +1050,39 @@ class ServiceContracts_ModernService {
 	/** Resolve Rule tier by single-letter prefix A–D. */
 	public static function resolveTierByPrefix($prefix, $asOfDate = null) {
 		$prefix = strtoupper(trim((string) $prefix));
-		if ($prefix === '' || !preg_match('/^[A-Z]$/', $prefix)) {
+		if ($prefix === '' || !preg_match('/^[A-D]$/', $prefix)) {
 			return null;
 		}
-		return self::resolveReferralTier($prefix . '000000', $asOfDate);
+		$asOf = $asOfDate && preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $asOfDate) ? (string) $asOfDate : date('Y-m-d');
+		try {
+			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
+			// Ensure mk_affiliate_reward_tiers exists + seeded (best-effort).
+			HelpDesk_TagRuleEngineService::getInstance();
+		} catch (Exception $e) {
+			return null;
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$res = $adb->pquery(
+			'SELECT tier_name, reward_amount, retention_days
+			 FROM mk_affiliate_reward_tiers
+			 WHERE prefix = ? AND status = ? AND effective_from <= ?
+			 ORDER BY effective_from DESC
+			 LIMIT 1',
+			array($prefix, 'active', $asOf)
+		);
+		if (!$res || $adb->num_rows($res) <= 0) {
+			return null;
+		}
+		$row = $adb->fetchByAssoc($res);
+		if (!$row) {
+			return null;
+		}
+		return array(
+			'tier_name' => isset($row['tier_name']) ? decode_html((string) $row['tier_name']) : '',
+			'reward_amount' => isset($row['reward_amount']) ? (float) $row['reward_amount'] : 0,
+			'retention_days' => isset($row['retention_days']) ? (int) $row['retention_days'] : 180,
+		);
 	}
 
 	/**
@@ -1018,13 +1097,13 @@ class ServiceContracts_ModernService {
 			FROM bace_sc_profile p
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.servicecontractsid AND ce.deleted = 0
 			INNER JOIN vtiger_servicecontracts sc ON sc.servicecontractsid = p.servicecontractsid
-			WHERE p.affiliate_code IS NOT NULL AND p.affiliate_code <> ''";
+			WHERE p.phone IS NOT NULL AND p.phone <> ''";
 		$params = array();
 		if ($excludeId) {
 			$sql .= ' AND p.servicecontractsid <> ?';
 			$params[] = (int) $excludeId;
 		}
-		$sql .= ' ORDER BY p.affiliate_code ASC';
+		$sql .= ' ORDER BY p.affiliate_tier_prefix ASC, p.phone ASC';
 		$res = $adb->pquery($sql, $params);
 		$out = array();
 		if (!$res) {
@@ -1033,10 +1112,18 @@ class ServiceContracts_ModernService {
 		$n = $adb->num_rows($res);
 		for ($i = 0; $i < $n; $i++) {
 			$row = $adb->query_result_rowdata($res, $i);
-			$code = strtoupper(trim((string) $row['affiliate_code']));
 			$prefix = isset($row['affiliate_tier_prefix']) ? strtoupper(trim((string) $row['affiliate_tier_prefix'])) : 'D';
-			if ($prefix === '' || !preg_match('/^[A-Z]$/', $prefix)) {
+			if ($prefix === '' || !preg_match('/^[A-D]$/', $prefix)) {
 				$prefix = 'D';
+			}
+			$phoneDigits = self::normalizePhoneDigits(isset($row['phone']) ? $row['phone'] : '');
+			$phoneDigits = substr($phoneDigits, 0, 10);
+			if (strlen($phoneDigits) !== 10) {
+				continue;
+			}
+			$code = self::buildAffiliateCode($prefix, $phoneDigits);
+			if ($code === '') {
+				continue;
 			}
 			$tier = self::resolveTierByPrefix($prefix);
 			$out[] = array(
@@ -1050,8 +1137,8 @@ class ServiceContracts_ModernService {
 				'tier_name' => $tier ? $tier['tier_name'] : '',
 				'reward_amount' => $tier ? (float) $tier['reward_amount'] : null,
 				'retention_days' => $tier ? (int) $tier['retention_days'] : 180,
-				'label' => $code . ' — ' . self::decodeText(isset($row['subject']) ? $row['subject'] : '')
-					. ($tier ? (' (' . $tier['tier_name'] . ')' ) : ''),
+				// Spec: filter người giới thiệu ưu tiên hiển thị tên (không ép luôn phải kèm mã).
+				'label' => self::decodeText(isset($row['subject']) ? $row['subject'] : '') ?: $code,
 			);
 		}
 		return $out;
@@ -1152,6 +1239,21 @@ class ServiceContracts_ModernService {
 			$phoneDigits = substr($phoneDigits, 0, 10);
 			$phone = $phoneDigits;
 		}
+
+		// Keep minted affiliate_code in sync with phone changes (lazy: only update if already minted).
+		$existingAffiliateCode = self::getAffiliateCode($contractId);
+		$ownTierPrefix = strtoupper(trim(isset($franchise['affiliate_tier_prefix']) ? (string) $franchise['affiliate_tier_prefix'] : 'D'));
+		if ($ownTierPrefix === '' || !preg_match('/^[A-D]$/', $ownTierPrefix)) {
+			$ownTierPrefix = 'D';
+		}
+		$computedAffiliateCode = self::buildAffiliateCode($ownTierPrefix, $phone);
+		if ($existingAffiliateCode !== '' && strcasecmp($existingAffiliateCode, $computedAffiliateCode) !== 0) {
+			$adb->pquery(
+				'UPDATE bace_sc_profile SET affiliate_code = ?, modified_at = ? WHERE servicecontractsid = ?',
+				array($computedAffiliateCode !== '' ? $computedAffiliateCode : null, date('Y-m-d H:i:s'), $contractId)
+			);
+		}
+
 		$businessNote = array_key_exists('business_note', $payload)
 			? trim(self::decodeText($payload['business_note']))
 			: $franchise['business_note'];

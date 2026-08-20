@@ -1033,9 +1033,9 @@
       $panel.find(".mk-so-inline-detail__print-btn").data("print-url");
     if (!printUrl) {
       printUrl =
-        "index.php?module=Quotes&action=ExportPDF&record=" +
+        "index.php?module=Quotes&view=Print&record=" +
         encodeURIComponent(recordId) +
-        "&preview=1";
+        "&app=SALES";
     }
     return printUrl;
   }
@@ -1047,19 +1047,54 @@
     if (!downloadUrl) {
       downloadUrl =
         "index.php?module=Quotes&action=ExportPDF&record=" +
-        encodeURIComponent(recordId);
+        encodeURIComponent(recordId) +
+        "&app=SALES";
     }
     return downloadUrl;
   }
 
   function openInlinePrintPreview($panel, recordId) {
     var printUrl = getInlinePrintPreviewUrl($panel, recordId);
-    var $modal = ensureInlinePrintPreviewModal();
-    $modal.data("mkPrintPanel", $panel);
-    $modal.data("mkPrintRecordId", recordId);
-    $modal.find("iframe").attr("src", printUrl);
-    $modal.addClass("is-open").attr("aria-hidden", "false");
-    $("body").addClass("mk-so-inline-print-open");
+    var $frame = $("#mk-qt-inline-print-launch-frame");
+    if (!$frame.length) {
+      $frame = $(
+        '<iframe id="mk-qt-inline-print-launch-frame" class="mk-so-inline-print-download-frame" title="In phiếu báo giá" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;"></iframe>',
+      );
+      $("body").append($frame);
+    }
+    $.ajax({
+      url: printUrl,
+      method: "GET",
+      dataType: "html",
+      cache: false,
+    })
+      .done(function (html) {
+        try {
+          var frame = $frame.get(0);
+          var frameWindow = frame && frame.contentWindow;
+          if (!frameWindow || !frameWindow.document) {
+            window.open(printUrl, "_blank");
+            return;
+          }
+          frameWindow.document.open();
+          frameWindow.document.write(html);
+          frameWindow.document.close();
+          setTimeout(function () {
+            try {
+              frameWindow.document.title = "";
+              frameWindow.focus();
+              frameWindow.print();
+            } catch (err) {
+              window.open(printUrl, "_blank");
+            }
+          }, 220);
+        } catch (err) {
+          window.open(printUrl, "_blank");
+        }
+      })
+      .fail(function () {
+        window.open(printUrl, "_blank");
+      });
   }
 
   function downloadInlinePrintPdf($panel, recordId) {
@@ -1094,17 +1129,7 @@
   }
 
   function triggerInlinePrint($panel, recordId, $btn) {
-    var ready = $btn && String($btn.attr("data-print-ready")) === "1";
-    if (!ready) {
-      openInlinePrintPreview($panel, recordId);
-      if ($btn) {
-        $btn.attr("data-print-ready", "1");
-        $btn.find(".mk-so-inline-detail__print-label").text("Tải PDF");
-      }
-      return;
-    }
-    downloadInlinePrintPdf($panel, recordId);
-    closeInlinePrintPreview();
+    openInlinePrintPreview($panel, recordId);
     if ($btn) {
       $btn.attr("data-print-ready", "0");
       $btn.find(".mk-so-inline-detail__print-label").text("In");
@@ -1122,7 +1147,7 @@
     var snapshot = {
       fields: {},
       description: $panel.find(".mk-so-inline-detail__notes-input").val() || "",
-      grand: $panel.find(".mk-so-inline-detail__grand-input").val() || "",
+      grand: $panel.find(".mk-so-inline-detail__grand-value").text() || "",
       lineNotes: {},
     };
     $panel.find(".mk-so-inline-detail__field-edit :input").each(function () {
@@ -1149,7 +1174,6 @@
         .attr("aria-pressed", isEdit ? "true" : "false");
       $panel.find(".mk-so-inline-detail__notes-input").prop("readonly", !isEdit);
       $panel.find(".mk-so-inline-detail__line-note").prop("readonly", !isEdit);
-      $panel.find(".mk-so-inline-detail__grand-input").prop("readonly", !isEdit);
       if (
         isEdit &&
         typeof vtUtils !== "undefined" &&
@@ -1183,7 +1207,9 @@
       $panel
         .find(".mk-so-inline-detail__notes-input")
         .val(snapshot.description || "");
-      $panel.find(".mk-so-inline-detail__grand-input").val(snapshot.grand || "");
+      $panel
+        .find(".mk-so-inline-detail__grand-value")
+        .text(snapshot.grand || "");
       $.each(snapshot.lineNotes || {}, function (seq, value) {
         $panel
           .find('.mk-so-inline-detail__line-note[data-sequence="' + seq + '"]')
@@ -1251,11 +1277,6 @@
       });
       postData.line_comments = lineComments;
       postData.line_comments_json = JSON.stringify(lineComments);
-      var grandRaw = $panel.find(".mk-so-inline-detail__grand-input").val();
-      if (grandRaw != null && String(grandRaw).length) {
-        postData.hdnGrandTotal_manual = grandRaw;
-        postData.grand_total = grandRaw;
-      }
       app.request.post({ data: postData }).then(function (err, response) {
         $saveBtn.prop("disabled", false);
         if (err) {
@@ -1331,7 +1352,8 @@
           }
           if (response.hdnGrandTotal && response.hdnGrandTotal.display_value != null) {
             $panel
-              .find(".mk-so-inline-detail__grand-input")
+              .find(".mk-so-inline-detail__grand-value, .mk-so-inline-detail__grand-input")
+              .text(response.hdnGrandTotal.display_value)
               .val(response.hdnGrandTotal.display_value);
             // Cập nhật cột tổng trên list row
             var $listRow = $panel
@@ -1379,7 +1401,7 @@
         snapshot = {
           fields: {},
           description: $panel.find(".mk-so-inline-detail__notes-input").val() || "",
-          grand: $panel.find(".mk-so-inline-detail__grand-input").val() || "",
+          grand: $panel.find(".mk-so-inline-detail__grand-value").text() || "",
           lineNotes: {},
         };
         $panel.find(".mk-so-inline-detail__field-edit :input").each(function () {
@@ -2022,9 +2044,107 @@
   var massDupInFlight = false;
   var massDupClickLock = false;
 
-  function reloadQuotesListAfterMassAction() {
-    // POS Quotes list soft-refresh often leaves stale rows; hard reload is reliable.
+  function reloadQuotesListAfterMassAction(createdIds) {
+    createdIds = createdIds || [];
+    if (createdIds.length === 1) {
+      try {
+        var url = new URL(window.location.href);
+        url.searchParams.set("mk_highlight", String(createdIds[0]));
+        window.location.href =
+          url.pathname +
+          "?" +
+          url.searchParams.toString() +
+          (url.hash || "");
+        return;
+      } catch (e) {
+        /* fall through */
+      }
+    }
     window.location.reload();
+  }
+
+  function consumeSoToQuoteFlash() {
+    var data = null;
+    try {
+      var raw = window.sessionStorage.getItem("mk_so_to_quote_flash");
+      if (raw) {
+        window.sessionStorage.removeItem("mk_so_to_quote_flash");
+        data = JSON.parse(raw);
+      }
+    } catch (e) {
+      data = null;
+    }
+    if (!data || !data.message) {
+      return;
+    }
+    try {
+      if (data.type === "error") {
+        if (app.helper && app.helper.showErrorNotification) {
+          app.helper.showErrorNotification({ message: data.message });
+          return;
+        }
+      } else if (app.helper && app.helper.showSuccessNotification) {
+        app.helper.showSuccessNotification({ message: data.message });
+        return;
+      }
+    } catch (e2) {
+      /* fall through */
+    }
+    try {
+      window.alert(data.message);
+    } catch (e3) {
+      /* ignore */
+    }
+  }
+
+  function applyMkHighlightFromQuery(attempt) {
+    attempt = attempt || 0;
+    try {
+      consumeSoToQuoteFlash();
+      var params = new URLSearchParams(window.location.search || "");
+      var highlightId = params.get("mk_highlight");
+      if (!highlightId || !/^\d+$/.test(String(highlightId))) {
+        return;
+      }
+      var $row = $(
+        '#listview-table tr.listViewEntries[data-id="' + highlightId + '"]',
+      );
+      if (!$row.length) {
+        $row = $(
+          '#listViewContent tr.listViewEntries[data-id="' + highlightId + '"]',
+        );
+      }
+      if (!$row.length) {
+        if (attempt < 10) {
+          window.setTimeout(function () {
+            applyMkHighlightFromQuery(attempt + 1);
+          }, 250);
+          return;
+        }
+        window.location.href =
+          "index.php?module=Quotes&view=Detail&record=" +
+          encodeURIComponent(highlightId) +
+          "&app=SALES";
+        return;
+      }
+      $row.addClass("mk-sales-row-selected");
+      if ($row[0].scrollIntoView) {
+        $row[0].scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+      params.delete("mk_highlight");
+      var next =
+        window.location.pathname +
+        (params.toString() ? "?" + params.toString() : "") +
+        (window.location.hash || "");
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, document.title, next);
+      }
+      window.setTimeout(function () {
+        $row.removeClass("mk-sales-row-selected");
+      }, 5000);
+    } catch (e) {
+      /* ignore */
+    }
   }
 
   function massDeleteQuotes() {
@@ -2086,7 +2206,7 @@
             message: "Đã xóa " + ids.length + " báo giá.",
           });
         }
-        reloadQuotesListAfterMassAction();
+        reloadQuotesListAfterMassAction(result.created || []);
       });
     };
     try {
@@ -2181,16 +2301,7 @@
             message: result.message || "Đã nhân bản báo giá.",
           });
         }
-        // Single copy: open the new record so user can verify the clone.
-        var created = result.created || [];
-        if (ids.length === 1 && created.length === 1) {
-          window.location.href =
-            "index.php?module=Quotes&view=Detail&record=" +
-            created[0] +
-            "&app=SALES";
-          return;
-        }
-        reloadQuotesListAfterMassAction();
+        reloadQuotesListAfterMassAction(result.created || []);
       });
     };
     if (skipConfirm) {
@@ -2782,6 +2893,7 @@
     ) {
       window.MkSalesListShared.revealSalesListUi();
     }
+    window.setTimeout(applyMkHighlightFromQuery, 120);
   }
 
   function getSavedLayoutMode() {

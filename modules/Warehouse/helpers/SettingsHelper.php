@@ -5,6 +5,8 @@
 class Warehouse_Settings_Helper {
 
 	const KEY_ALLOW_NEGATIVE_STOCK = 'wh_allow_negative_stock';
+	const KEY_EXPIRY_WARN_DAYS = 'wh_expiry_warn_days';
+	const DEFAULT_EXPIRY_WARN_DAYS = 90;
 
 	public static function ensureTable(PearDatabase $db = null) {
 		if (!$db) {
@@ -29,6 +31,16 @@ class Warehouse_Settings_Helper {
 			$db->pquery(
 				'INSERT INTO vtiger_wh_settings (setting_key, setting_value, updatedtime, updatedby) VALUES (?,?,?,NULL)',
 				array(self::KEY_ALLOW_NEGATIVE_STOCK, '1', date('Y-m-d H:i:s'))
+			);
+		}
+		$expRs = $db->pquery(
+			'SELECT setting_key FROM vtiger_wh_settings WHERE setting_key = ? LIMIT 1',
+			array(self::KEY_EXPIRY_WARN_DAYS)
+		);
+		if (!$expRs || $db->num_rows($expRs) < 1) {
+			$db->pquery(
+				'INSERT INTO vtiger_wh_settings (setting_key, setting_value, updatedtime, updatedby) VALUES (?,?,?,NULL)',
+				array(self::KEY_EXPIRY_WARN_DAYS, (string) self::DEFAULT_EXPIRY_WARN_DAYS, date('Y-m-d H:i:s'))
 			);
 		}
 	}
@@ -105,5 +117,35 @@ class Warehouse_Settings_Helper {
 	 */
 	public static function setAllowNegativeStock($allow, $userId = 0) {
 		self::set(self::KEY_ALLOW_NEGATIVE_STOCK, $allow ? '1' : '0', $userId);
+	}
+
+	/**
+	 * System-wide days-before-expiry warning window (product field can override).
+	 * @return int
+	 */
+	public static function expiryWarnDays() {
+		$raw = (int) self::get(self::KEY_EXPIRY_WARN_DAYS, (string) self::DEFAULT_EXPIRY_WARN_DAYS);
+		if ($raw <= 0) {
+			return self::DEFAULT_EXPIRY_WARN_DAYS;
+		}
+		if ($raw > 730) {
+			return 730;
+		}
+		return $raw;
+	}
+
+	/**
+	 * @param int $days
+	 * @param int $userId
+	 */
+	public static function setExpiryWarnDays($days, $userId = 0) {
+		$days = (int) $days;
+		if ($days <= 0) {
+			$days = self::DEFAULT_EXPIRY_WARN_DAYS;
+		}
+		if ($days > 730) {
+			$days = 730;
+		}
+		self::set(self::KEY_EXPIRY_WARN_DAYS, (string) $days, $userId);
 	}
 }

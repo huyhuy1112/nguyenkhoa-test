@@ -256,12 +256,10 @@ body{margin:0;padding:16px;font:13px/1.45 "Times New Roman",Times,serif;color:#1
 .meta-label{color:#c44a1c;font-weight:700}
 .title{text-align:center;margin:14px 0 4px;font-size:22px;font-weight:800;letter-spacing:.02em}
 .docno{text-align:center;font-size:14px;font-weight:400;margin:0 0 14px}
-.info{display:flex;gap:24px;margin-bottom:12px}
-.info-col{flex:1;min-width:0}
-.info-row{margin:0 0 4px}
-.info-row b{display:inline-block;min-width:88px;font-weight:700;vertical-align:top}
-.info-row--notes{text-align:left}
-.info-row--notes b{display:inline-block;min-width:88px;margin-bottom:0;vertical-align:top}
+.info{display:grid;grid-template-columns:1fr 1fr;column-gap:24px;row-gap:4px;margin-bottom:12px;align-items:start}
+.info-row{margin:0;display:grid;grid-template-columns:88px 1fr;align-items:start;min-height:1.45em}
+.info-row b{display:inline;min-width:0;font-weight:700}
+.info-row--notes{grid-column:1 / -1;text-align:left}
 table{width:100%;border-collapse:collapse;margin:8px 0 2px}
 th,td{border:1px solid #222;padding:6px 8px;vertical-align:top}
 th{background:#f3f3f3;font-size:12px;font-weight:700}
@@ -291,16 +289,15 @@ td.r,th.r{text-align:right}
 			. '<p class="meta"><span class="meta-label">Điện thoại:</span> ' . $h($data['company_phone']) . '</p></div></div>'
 			. '<h1 class="title">' . $h($data['doc_title']) . '</h1>'
 			. '<p class="docno">' . $h($data['doc_no_label'] . $data['doc_no']) . '</p>'
-			. '<div class="info"><div class="info-col">'
-			. '<p class="info-row"><b>Khách Hàng:</b> ' . $h($data['customer']) . '</p>'
-			. '<p class="info-row"><b>SĐT:</b> ' . $h($data['customer_phone']) . '</p>'
-			. '<p class="info-row"><b>Địa chỉ:</b> ' . $h($data['customer_address']) . '</p>'
-			. '<p class="info-row info-row--notes"><b>Ghi chú:</b> ' . $h($data['notes'] !== '' ? $data['notes'] : '—') . '</p>'
-			. '</div><div class="info-col">'
-			. '<p class="info-row"><b>Chi nhánh:</b> ' . $h($data['branch']) . '</p>'
-			. '<p class="info-row"><b>NVBH:</b> ' . $h($data['sales_name']) . '</p>'
-			. '<p class="info-row"><b>SĐT:</b> ' . $h($data['sales_phone']) . '</p>'
-			. '</div></div>'
+			. '<div class="info">'
+			. '<p class="info-row"><b>Khách Hàng:</b> <span>' . $h($data['customer']) . '</span></p>'
+			. '<p class="info-row"><b>Chi nhánh:</b> <span>' . $h($data['branch']) . '</span></p>'
+			. '<p class="info-row"><b>SĐT:</b> <span>' . $h($data['customer_phone']) . '</span></p>'
+			. '<p class="info-row"><b>NVBH:</b> <span>' . $h($data['sales_name']) . '</span></p>'
+			. '<p class="info-row"><b>Địa chỉ:</b> <span>' . $h($data['customer_address']) . '</span></p>'
+			. '<p class="info-row"><b>SĐT:</b> <span>' . $h($data['sales_phone']) . '</span></p>'
+			. '<p class="info-row info-row--notes"><b>Ghi chú:</b> <span>' . $h($data['notes'] !== '' ? $data['notes'] : '—') . '</span></p>'
+			. '</div>'
 			. '<table><thead><tr>'
 			. '<th class="c" style="width:7%">STT</th><th style="width:44%">Tên Hàng</th>'
 			. '<th class="c" style="width:8%">SL</th><th class="r" style="width:14%">Đơn Giá</th>'
@@ -590,11 +587,25 @@ td.r,th.r{text-align:right}
 
 		$pdf->SetX($headerRightX);
 		$pdf->SetFont(self::FONT, '', 8);
+		$metaW = $pageW - ($headerRightX - $x);
+		$labelW = 24;
+
+		// Company: only the labels in red, values in black.
+		$pdf->SetFont(self::FONT, 'B', 8);
 		$pdf->SetTextColor(self::ACCENT[0], self::ACCENT[1], self::ACCENT[2]);
-		$pdf->MultiCell($pageW - ($headerRightX - $x), 4, self::utf('Địa chỉ: ' . $address), 0, 'L', false, 1);
 		$pdf->SetX($headerRightX);
-		$pdf->MultiCell($pageW - ($headerRightX - $x), 4, self::utf('Điện thoại: ' . $phone), 0, 'L', false, 1);
+		$pdf->Cell($labelW, 4, self::utf('Địa chỉ:'), 0, 0, 'L');
+		$pdf->SetFont(self::FONT, '', 8);
 		$pdf->SetTextColor(0, 0, 0);
+		$pdf->MultiCell($metaW - $labelW, 4, self::utf($address), 0, 'L', false, 1);
+
+		$pdf->SetFont(self::FONT, 'B', 8);
+		$pdf->SetTextColor(self::ACCENT[0], self::ACCENT[1], self::ACCENT[2]);
+		$pdf->SetX($headerRightX);
+		$pdf->Cell($labelW, 4, self::utf('Điện thoại:'), 0, 0, 'L');
+		$pdf->SetFont(self::FONT, '', 8);
+		$pdf->SetTextColor(0, 0, 0);
+		$pdf->MultiCell($metaW - $labelW, 4, self::utf($phone), 0, 'L', false, 1);
 
 		$afterHeaderY = max($pdf->GetY(), $y + max($logoH, 18)) + 4;
 		$pdf->SetY($afterHeaderY);

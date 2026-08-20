@@ -16,7 +16,9 @@ $languageStrings = array(
 	'LBL_PRODUCTS_SERVICES_INFORMATION' => 'Details',
 
 	// Fields
-	'Used In Projects' => 'Used In Projects',
+	'Used In Projects' => 'Image',
+	'used_projects' => 'Image',
+	'Hình ảnh' => 'Image',
 	'Brand' => 'Brand',
 	'Model' => 'Model',
 	'Unit' => 'Unit of measure',
@@ -31,6 +33,10 @@ $languageStrings = array(
 	'LBL_NEEDS_QC_ON' => 'On: Needs QC',
 	'LBL_NEEDS_QC_OFF' => 'Needs QC',
 	'LBL_NEEDS_QC_HINT' => 'Product must pass QC before entering warehouse stock',
+	'Expiry warn days' => 'Expiry warn days',
+	'expiry_warn_days' => 'Expiry warn days',
+	'LBL_EXPIRY_WARN_DAYS' => 'Expiry warn days',
+	'LBL_EXPIRY_WARN_DAYS_HINT' => 'Days before expiry to warn. Leave empty to use the system default.',
 	'LBL_SUMMARY' => 'Summary',
 	'Warranty' => 'Warranty',
 	'Specification' => 'Description',
