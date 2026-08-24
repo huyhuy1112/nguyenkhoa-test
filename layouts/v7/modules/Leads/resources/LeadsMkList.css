@@ -760,33 +760,41 @@ body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-so-page.mk-lea
 }
 .mk-leads-verify-btn {
 	appearance: none;
-	border: 1px solid #c7d2fe;
-	background: #eef2ff;
-	color: #3730a3;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	border: 1px solid #cbd5e1;
+	background: #ffffff;
+	color: #334155;
 	font-size: 11px;
 	font-weight: 700;
-	letter-spacing: 0.01em;
+	letter-spacing: 0;
 	line-height: 1.2;
-	padding: 3px 8px;
-	border-radius: 999px;
+	padding: 5px 9px;
+	border-radius: 8px;
 	cursor: pointer;
 	white-space: nowrap;
+	box-shadow: 0 1px 1px rgba(15, 23, 42, 0.04);
 	transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
 }
+.mk-leads-verify-btn__ic {
+	flex: 0 0 auto;
+	display: block;
+}
 .mk-leads-verify-btn:hover {
-	background: #e0e7ff;
-	border-color: #818cf8;
-	color: #312e81;
-	box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+	background: #f8fafc;
+	border-color: #94a3b8;
+	color: #0f172a;
+	box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
 }
 .mk-leads-verify-btn.is-done {
-	background: #ecfdf5;
-	border-color: #a7f3d0;
-	color: #047857;
+	background: #ffffff;
+	border-color: #86efac;
+	color: #166534;
 }
 .mk-leads-verify-btn.is-done:hover {
-	background: #d1fae5;
-	border-color: #34d399;
+	background: #f0fdf4;
+	border-color: #4ade80;
 }
 
 body.mk-leads-verify-open {

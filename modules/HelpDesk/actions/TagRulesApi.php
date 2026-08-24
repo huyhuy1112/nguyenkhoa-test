@@ -28,6 +28,7 @@ class HelpDesk_TagRulesApi_Action extends Vtiger_Action_Controller {
 			'save_tag', 'delete_tag', 'save_group', 'delete_group', 'save_rule', 'delete_rule', 'set_rule_active',
 			'save_scenario', 'delete_scenario', 'reseed', 'dismiss', 'apply_lead',
 			'save_affiliate_tier', 'delete_affiliate_tier', 'set_affiliate_tier_active',
+			'save_sheet_scoring', 'reset_sheet_scoring',
 		);
 		if (in_array($mode, $write, true)) {
 			$request->validateWriteAccess();
@@ -182,6 +183,33 @@ class HelpDesk_TagRulesApi_Action extends Vtiger_Action_Controller {
 					$response->setResult(array(
 						'success' => true,
 						'tier' => $svc->resolveAffiliateReward($code, $asOf ? (string)$asOf : null),
+					));
+					break;
+
+				case 'get_sheet_scoring':
+					$response->setResult(array(
+						'success' => true,
+						'sheet_scoring' => $svc->getSheetScoringConfig(),
+						'state' => $svc->bootstrap(),
+					));
+					break;
+
+				case 'save_sheet_scoring':
+					$payload = $this->decodePayload($request);
+					$cfg = $svc->saveSheetScoringConfig(is_array($payload) ? $payload : array());
+					$response->setResult(array(
+						'success' => true,
+						'sheet_scoring' => $cfg,
+						'state' => $svc->bootstrap(),
+					));
+					break;
+
+				case 'reset_sheet_scoring':
+					$cfg = $svc->resetSheetScoringConfig();
+					$response->setResult(array(
+						'success' => true,
+						'sheet_scoring' => $cfg,
+						'state' => $svc->bootstrap(),
 					));
 					break;
 

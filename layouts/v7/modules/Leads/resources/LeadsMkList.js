@@ -2106,8 +2106,13 @@
             '" data-lead-id="' +
             esc(l.id) +
             '" title="Sales xác minh Bộ B">' +
-            (l.eligibility_result || l.potential_level ? "Đã XM" : "Xác minh") +
-            "</button>" +
+            '<svg class="mk-leads-verify-btn__ic" width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+            '<path d="M12 3 5 6v6c0 5 3.2 8.2 7 9.5 3.8-1.3 7-4.5 7-9.5V6l-7-3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>' +
+            '<path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+            "</svg>" +
+            "<span>" +
+            (l.eligibility_result || l.potential_level ? "Đã xác minh" : "Xác minh") +
+            "</span></button>" +
             "</span></span></td>" +
             '<td class="mk-leads-td mk-leads-td--phone">' +
             '<span class="mk-leads-phone-wrap">' +

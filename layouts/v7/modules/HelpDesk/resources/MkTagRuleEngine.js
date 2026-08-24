@@ -244,7 +244,7 @@
 		return hay.indexOf(q) >= 0;
 	}
 
-	var TAB_IDS = { rules: true, tags: true, scenarios: true, affiliate: true };
+	var TAB_IDS = { rules: true, tags: true, scenarios: true, affiliate: true, sheet_scoring: true };
 	var TAB_STORAGE_KEY = 'mk_tre_active_tab';
 
 	function readPersistedTab() {
@@ -371,6 +371,7 @@
 				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'tags' ? ' is-active' : '') + '" data-tab="tags">Tag</button>'
 				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'scenarios' ? ' is-active' : '') + '" data-tab="scenarios">Kịch bản</button>'
 				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'affiliate' ? ' is-active' : '') + '" data-tab="affiliate">Mã giới thiệu</button>'
+				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'sheet_scoring' ? ' is-active' : '') + '" data-tab="sheet_scoring">Điểm lọc Sheet</button>'
 				+ '    </div>'
 				+ '  </div>'
 				+ '  <div class="mk-tre-panel" id="mk-tre-panel"></div>'
@@ -406,6 +407,20 @@
 				$('#mk-tre-stats').html(htmlAff);
 				return;
 			}
+			if (this.activeTab === 'sheet_scoring') {
+				var cfg = store.getSheetScoring ? store.getSheetScoring() : {};
+				var q1Count = cfg.q1 ? Object.keys(cfg.q1).length : 0;
+				var q2Count = cfg.q2 ? Object.keys(cfg.q2).length : 0;
+				var q3Count = cfg.q3 ? Object.keys(cfg.q3).length : 0;
+				var regionCount = cfg.region ? Object.keys(cfg.region).length : 0;
+				var htmlScore = ''
+					+ '<article class="mk-tre-stat-card"><span class="mk-tre-stat-card__label">Câu hỏi</span><strong class="mk-tre-stat-card__value">3</strong><span class="mk-tre-stat-card__hint">Q1, Q2, Q3</span></article>'
+					+ '<article class="mk-tre-stat-card mk-tre-stat-card--accent"><span class="mk-tre-stat-card__label">Đáp án map</span><strong class="mk-tre-stat-card__value">' + (q1Count + q2Count + q3Count) + '</strong><span class="mk-tre-stat-card__hint">Điểm theo lựa chọn</span></article>'
+					+ '<article class="mk-tre-stat-card"><span class="mk-tre-stat-card__label">Khu vực</span><strong class="mk-tre-stat-card__value">' + regionCount + '</strong><span class="mk-tre-stat-card__hint">Điểm cộng/trừ vùng</span></article>'
+					+ '<article class="mk-tre-stat-card"><span class="mk-tre-stat-card__label">Mục đích</span><strong class="mk-tre-stat-card__value">Bộ A</strong><span class="mk-tre-stat-card__hint">Tham chiếu lọc Sheet</span></article>';
+				$('#mk-tre-stats').html(htmlScore);
+				return;
+			}
 			var rules = store.getRules();
 			var active = countActiveRules(rules);
 			var tags = store.getTags().length;
@@ -437,7 +452,103 @@
 			if (this.activeTab === 'rules') $panel.html(this.renderRulesTab());
 			else if (this.activeTab === 'tags') $panel.html(this.renderTagsTab());
 			else if (this.activeTab === 'affiliate') $panel.html(this.renderAffiliateTab());
+			else if (this.activeTab === 'sheet_scoring') $panel.html(this.renderSheetScoringTab());
 			else $panel.html(this.renderScenariosTab());
+		},
+
+		sheetScoreLabel: function (groupName, key) {
+			var map = {
+				q1: { A: 'Chuẩn bị mở quán', B: 'Đã có quán', C: 'Gặp vấn đề / cải thiện', D: 'Gia đình / sở thích' },
+				q2: { A: 'Xe đẩy', B: 'Topping', C: 'Pha máy', D: 'Máy lạnh', E: 'Sân vườn', F: 'Không gian mở', G: 'Gia đình / sở thích' },
+				q3: { A: 'Dưới 50 triệu', B: '50–100 triệu', C: '100–300 triệu', D: '300–500 triệu', E: 'Từ 500 triệu' },
+				region: { 'Khu vực 1': 'KV1', 'Khu vực 2': 'KV2', 'Khu vực 3': 'KV3' },
+			};
+			return (map[groupName] && map[groupName][key]) ? map[groupName][key] : 'Điểm cho lựa chọn ' + key;
+		},
+
+		renderSheetScoringRows: function (groupName, scoreMap, order) {
+			var keys = order && order.length ? order : Object.keys(scoreMap || {});
+			if (!keys.length) {
+				return '<tr><td colspan="3" class="mk-tre-empty">Chưa có dữ liệu</td></tr>';
+			}
+			var rows = '';
+			for (var i = 0; i < keys.length; i++) {
+				var key = keys[i];
+				var score = (scoreMap && scoreMap[key] != null) ? scoreMap[key] : 0;
+				rows += ''
+					+ '<tr>'
+					+ '  <td><strong class="mk-tre-aff-prefix">' + esc(key) + '</strong></td>'
+					+ '  <td><input type="number" class="mk-tre-input mk-tre-input--score js-tre-score-input" data-group="' + esc(groupName) + '" data-key="' + esc(key) + '" value="' + esc(score) + '" /></td>'
+					+ '  <td><span class="mk-tre-muted">' + esc(this.sheetScoreLabel(groupName, key)) + '</span></td>'
+					+ '</tr>';
+			}
+			return rows;
+		},
+
+		renderSheetScoringTab: function () {
+			var cfg = store.getSheetScoring ? store.getSheetScoring() : {};
+			var q1 = cfg.q1 || {};
+			var q2 = cfg.q2 || {};
+			var q3 = cfg.q3 || {};
+			var region = cfg.region || {};
+			var threshold = cfg.threshold || {};
+			return ''
+				+ '<section class="mk-tre-section">'
+				+ '  <div class="mk-tre-section__head">'
+				+ '    <div class="mk-tre-section__titles">'
+				+ '      <h2 class="mk-tre-section__title">Điểm lọc Google Sheet (Bộ A)</h2>'
+				+ '      <p class="mk-tre-section__sub">Quản lý điểm theo đáp án Q1–Q3 và khu vực để BA/Sales thống nhất quy tắc đánh giá.</p>'
+				+ '    </div>'
+				+ '    <div class="mk-tre-section__actions">'
+				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-score-reset">Khôi phục mặc định</button>'
+				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--primary mk-tre-btn--lg js-tre-score-save">Lưu điểm</button>'
+				+ '    </div>'
+				+ '  </div>'
+				+ '  <div class="mk-tre-section__body">'
+				+ '    <div class="mk-tre-score-wrap">'
+				+ '      <article class="mk-tre-score-card"><h3>Q1 — Tình trạng</h3><div class="mk-tre-table-wrap"><table class="mk-tre-table"><thead><tr><th>Đáp án</th><th>Điểm</th><th>Ghi chú</th></tr></thead><tbody>'
+				+ this.renderSheetScoringRows('q1', q1, ['A', 'B', 'C', 'D'])
+				+ '</tbody></table></div></article>'
+				+ '      <article class="mk-tre-score-card"><h3>Q2 — Mô hình</h3><div class="mk-tre-table-wrap"><table class="mk-tre-table"><thead><tr><th>Đáp án</th><th>Điểm</th><th>Ghi chú</th></tr></thead><tbody>'
+				+ this.renderSheetScoringRows('q2', q2, ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+				+ '</tbody></table></div></article>'
+				+ '      <article class="mk-tre-score-card"><h3>Q3 — Ngân sách</h3><div class="mk-tre-table-wrap"><table class="mk-tre-table"><thead><tr><th>Đáp án</th><th>Điểm</th><th>Ghi chú</th></tr></thead><tbody>'
+				+ this.renderSheetScoringRows('q3', q3, ['A', 'B', 'C', 'D', 'E'])
+				+ '</tbody></table></div></article>'
+				+ '      <article class="mk-tre-score-card"><h3>Region</h3><div class="mk-tre-table-wrap"><table class="mk-tre-table"><thead><tr><th>Khu vực</th><th>Điểm</th><th>Ghi chú</th></tr></thead><tbody>'
+				+ this.renderSheetScoringRows('region', region, Object.keys(region))
+				+ '</tbody></table></div></article>'
+				+ '      <article class="mk-tre-score-card"><h3>Ngưỡng tổng điểm (tham chiếu)</h3>'
+				+ '        <div class="mk-tre-form-row">'
+				+ '          <label class="mk-tre-field"><span>Không đạt (tối đa)</span><input type="number" class="mk-tre-input js-tre-score-th" data-th="khong_dat_max" value="' + esc(threshold.khong_dat_max == null ? 0 : threshold.khong_dat_max) + '" /></label>'
+				+ '          <label class="mk-tre-field"><span>Cần xác minh (tối đa)</span><input type="number" class="mk-tre-input js-tre-score-th" data-th="xac_minh_max" value="' + esc(threshold.xac_minh_max == null ? 0 : threshold.xac_minh_max) + '" /></label>'
+				+ '        </div>'
+				+ '        <div class="mk-tre-form-row">'
+				+ '          <label class="mk-tre-field"><span>Đủ điều kiện (từ điểm)</span><input type="number" class="mk-tre-input js-tre-score-th" data-th="du_dk_min" value="' + esc(threshold.du_dk_min == null ? 0 : threshold.du_dk_min) + '" /></label>'
+				+ '          <div class="mk-tre-field"><span>Ghi chú</span><p class="mk-tre-muted" style="margin:0">Ngưỡng này để BA theo dõi và thống nhất chấm điểm trong team.</p></div>'
+				+ '        </div>'
+				+ '      </article>'
+				+ '    </div>'
+				+ '  </div>'
+				+ '</section>';
+		},
+
+		readSheetScoringForm: function () {
+			var payload = { q1: {}, q2: {}, q3: {}, region: {}, threshold: {} };
+			$('#mk-tre-panel .js-tre-score-input').each(function () {
+				var $el = $(this);
+				var group = String($el.data('group') || '');
+				var key = String($el.data('key') || '');
+				if (!group || !key || !payload[group]) return;
+				payload[group][key] = parseInt($el.val(), 10) || 0;
+			});
+			$('#mk-tre-panel .js-tre-score-th').each(function () {
+				var $el = $(this);
+				var key = String($el.data('th') || '');
+				if (!key) return;
+				payload.threshold[key] = parseInt($el.val(), 10) || 0;
+			});
+			return payload;
 		},
 
 		refreshAfterDataChange: function () {
@@ -1290,6 +1401,28 @@
 				} catch (e) {
 					window.alert(e.message || 'Không cập nhật được trạng thái');
 					$(this).prop('checked', !$(this).prop('checked'));
+				}
+			});
+
+			this.$root.on('click', '.js-tre-score-save', function () {
+				try {
+					var payload = self.readSheetScoringForm();
+					store.saveSheetScoring(payload);
+					self.refreshAfterDataChange();
+					toast('Đã lưu cấu hình điểm lọc Sheet');
+				} catch (e) {
+					window.alert(e.message || 'Không lưu được cấu hình điểm.');
+				}
+			});
+
+			this.$root.on('click', '.js-tre-score-reset', function () {
+				if (!window.confirm('Khôi phục điểm mặc định cho Q1/Q2/Q3 và Region?')) return;
+				try {
+					store.resetSheetScoring();
+					self.refreshAfterDataChange();
+					toast('Đã khôi phục mặc định');
+				} catch (e) {
+					window.alert(e.message || 'Không khôi phục được cấu hình.');
 				}
 			});
 

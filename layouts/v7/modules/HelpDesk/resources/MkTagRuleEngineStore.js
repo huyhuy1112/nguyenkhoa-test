@@ -11,6 +11,7 @@
 		rules: [],
 		scenarios: [],
 		affiliate_tiers: [],
+		sheet_scoring: null,
 		alerts: [],
 		channel_options: [],
 		assignee_options: [],
@@ -30,6 +31,7 @@
 		if (Array.isArray(next.rules)) state.rules = next.rules;
 		if (Array.isArray(next.scenarios)) state.scenarios = next.scenarios;
 		if (Array.isArray(next.affiliate_tiers)) state.affiliate_tiers = next.affiliate_tiers;
+		if (next.sheet_scoring && typeof next.sheet_scoring === 'object') state.sheet_scoring = next.sheet_scoring;
 		if (Array.isArray(next.alerts)) state.alerts = next.alerts;
 		if (Array.isArray(next.channel_options)) state.channel_options = next.channel_options;
 		if (Array.isArray(next.assignee_options)) state.assignee_options = next.assignee_options;
@@ -190,6 +192,11 @@
 			if (list[i].id === id) return clone(list[i]);
 		}
 		return null;
+	}
+
+	function getSheetScoring() {
+		ensureBootstrapped();
+		return clone(state.sheet_scoring || {});
 	}
 
 	function getChannelOptions() {
@@ -379,6 +386,22 @@
 		apiSync({ mode: 'delete_affiliate_tier', id: id });
 	}
 
+	function saveSheetScoring(payload) {
+		var body = apiSync({ mode: 'save_sheet_scoring', payload: JSON.stringify(payload || {}) });
+		if (body && body.sheet_scoring) {
+			state.sheet_scoring = body.sheet_scoring;
+		}
+		return body && body.sheet_scoring ? clone(body.sheet_scoring) : getSheetScoring();
+	}
+
+	function resetSheetScoring() {
+		var body = apiSync({ mode: 'reset_sheet_scoring' });
+		if (body && body.sheet_scoring) {
+			state.sheet_scoring = body.sheet_scoring;
+		}
+		return body && body.sheet_scoring ? clone(body.sheet_scoring) : getSheetScoring();
+	}
+
 	function resolveAffiliateReward(code) {
 		var body = apiSync({ mode: 'resolve_affiliate', code: code || '' });
 		return body && body.tier ? clone(body.tier) : null;
@@ -424,6 +447,7 @@
 		getScenarios: getScenarios,
 		getAffiliateTiers: getAffiliateTiers,
 		getAffiliateTierById: getAffiliateTierById,
+		getSheetScoring: getSheetScoring,
 		getChannelOptions: getChannelOptions,
 		getAssigneeOptions: getAssigneeOptions,
 		getCustomers: getCustomers,
@@ -451,6 +475,8 @@
 		updateAffiliateTier: updateAffiliateTier,
 		setAffiliateTierActive: setAffiliateTierActive,
 		deleteAffiliateTier: deleteAffiliateTier,
+		saveSheetScoring: saveSheetScoring,
+		resetSheetScoring: resetSheetScoring,
 		resolveAffiliateReward: resolveAffiliateReward,
 		upsertDismissal: upsertDismissal,
 		loadAlerts: loadAlerts,

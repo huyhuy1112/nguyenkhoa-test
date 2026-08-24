@@ -409,6 +409,7 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 /* ---- Tabs ---- */
 .mk-tre-tabs {
 	display: inline-flex;
+	flex-wrap: wrap;
 	gap: 8px;
 	padding: 8px;
 	background: var(--tre-surface);
@@ -486,6 +487,37 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 
 .mk-tre-subpanel > .mk-tre-section {
 	margin-top: 0;
+}
+
+.mk-tre-score-wrap {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 18px;
+	padding: 20px 24px 28px;
+}
+
+.mk-tre-score-card {
+	border: 1px solid var(--tre-border);
+	border-radius: 14px;
+	background: #fff;
+	overflow: hidden;
+}
+
+.mk-tre-score-card h3 {
+	margin: 0;
+	padding: 14px 18px;
+	font-size: 1.125rem;
+	font-weight: 800;
+	border-bottom: 1px solid var(--tre-border-soft);
+	background: #f8fafc;
+}
+
+.mk-tre-input--score {
+	max-width: 140px;
+	min-height: 48px;
+	padding: 10px 12px;
+	font-size: 1.125rem;
+	font-weight: 700;
 }
 
 /* ---- Parent tag expand / child details ---- */

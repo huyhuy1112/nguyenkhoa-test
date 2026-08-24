@@ -529,6 +529,7 @@ class HelpDesk_TagRuleEngineService {
 			'rules' => $this->getRules(),
 			'scenarios' => $this->getScenarios(),
 			'affiliate_tiers' => $this->getAffiliateTiers(),
+			'sheet_scoring' => $this->getSheetScoringConfig(),
 			'channel_options' => $this->getScenarioChannelOptions(),
 			'assignee_options' => $this->getScenarioAssigneeOptions(),
 			'cskh_alert_days' => $this->getCskhAlertDays(),
@@ -1318,10 +1319,88 @@ class HelpDesk_TagRuleEngineService {
 		return true;
 	}
 
+	/** ——— Google Sheet scoring config (Q1/Q2/Q3/Region) ——— */
+
+	public function getDefaultSheetScoringConfig() {
+		return array(
+			'q1' => array('A' => 20, 'B' => 15, 'C' => 10, 'D' => 0),
+			'q2' => array('A' => 5, 'B' => 10, 'C' => 15, 'D' => 20, 'E' => 20, 'F' => 15, 'G' => 0),
+			'q3' => array('A' => 0, 'B' => 10, 'C' => 20, 'D' => 30, 'E' => 40),
+			'region' => array('Khu vực 1' => 5, 'Khu vực 2' => 3, 'Khu vực 3' => 0),
+			'threshold' => array('khong_dat_max' => 19, 'xac_minh_max' => 34, 'du_dk_min' => 35),
+			'note' => 'Cấu hình điểm tham chiếu cho sàng lọc Google Sheet (Bộ A).',
+		);
+	}
+
+	public function getSheetScoringConfig() {
+		$default = $this->getDefaultSheetScoringConfig();
+		$raw = $this->getMeta('sheet_scoring_json');
+		if ($raw === null || trim((string)$raw) === '') {
+			return $default;
+		}
+		$cfg = json_decode((string)$raw, true);
+		if (!is_array($cfg)) {
+			return $default;
+		}
+		return $this->mergeSheetScoringConfig($default, $cfg);
+	}
+
+	protected function mergeSheetScoringConfig(array $default, array $given) {
+		$out = $default;
+		foreach (array('q1', 'q2', 'q3') as $k) {
+			if (isset($given[$k]) && is_array($given[$k])) {
+				foreach ($default[$k] as $opt => $val) {
+					if (array_key_exists($opt, $given[$k])) {
+						$out[$k][$opt] = (int)$given[$k][$opt];
+					}
+				}
+			}
+		}
+		if (isset($given['region']) && is_array($given['region'])) {
+			$regionOut = array();
+			foreach ($given['region'] as $name => $score) {
+				$name = trim((string)$name);
+				if ($name === '') {
+					continue;
+				}
+				$regionOut[$name] = (int)$score;
+			}
+			if (!empty($regionOut)) {
+				$out['region'] = $regionOut;
+			}
+		}
+		if (isset($given['threshold']) && is_array($given['threshold'])) {
+			$t = $out['threshold'];
+			foreach (array('khong_dat_max', 'xac_minh_max', 'du_dk_min') as $key) {
+				if (array_key_exists($key, $given['threshold'])) {
+					$t[$key] = (int)$given['threshold'][$key];
+				}
+			}
+			$out['threshold'] = $t;
+		}
+		if (isset($given['note'])) {
+			$out['note'] = trim((string)$given['note']);
+		}
+		return $out;
+	}
+
+	public function saveSheetScoringConfig(array $payload) {
+		$cfg = $this->mergeSheetScoringConfig($this->getDefaultSheetScoringConfig(), $payload);
+		$this->setMeta('sheet_scoring_json', json_encode($cfg, JSON_UNESCAPED_UNICODE));
+		return $cfg;
+	}
+
+	public function resetSheetScoringConfig() {
+		$cfg = $this->getDefaultSheetScoringConfig();
+		$this->setMeta('sheet_scoring_json', json_encode($cfg, JSON_UNESCAPED_UNICODE));
+		return $cfg;
+	}
+
 	/**
 	 * Resolve referral code → active tier.
-	 * - AFF-######: lấy hạng A/B/C/D đã gán trên khách hàng nhượng quyền đó.
-	 * - A000123: lấy theo chữ cái đầu (legacy prefix code).
+	 * - A0906345551 (new): TierLetter + 10-digit phone (identity = referrer customer by phone+tier)
+	 * - AFF-###### (legacy): identity = referrer customer by affiliate_code stored in bace_sc_profile
+	 * - A000123 (legacy): tier-only (no referrer identity)
 	 *
 	 * @param string $code
 	 * @param string|null $asOfDate Y-m-d
@@ -1335,18 +1414,31 @@ class HelpDesk_TagRuleEngineService {
 		$asOf = $asOfDate && preg_match('/^\d{4}-\d{2}-\d{2}$/', $asOfDate) ? $asOfDate : date('Y-m-d');
 		$prefix = '';
 		$referrerMeta = null;
-		if (preg_match('/^AFF-\d+$/', $code)) {
+
+		// New format: [A-D][10-digit-phone]
+		if (preg_match('/^([A-D])(\d{10})$/', $code, $m)) {
+			$prefix = strtoupper((string) $m[1]);
+			$referrerMeta = $this->lookupScAffiliateMeta($code);
+			if (!$referrerMeta) {
+				return null;
+			}
+		} elseif (preg_match('/^AFF-\d+$/', $code)) {
 			$referrerMeta = $this->lookupScAffiliateMeta($code);
 			if (!$referrerMeta || empty($referrerMeta['affiliate_tier_prefix'])) {
 				return null;
 			}
 			$prefix = strtoupper((string) $referrerMeta['affiliate_tier_prefix']);
+		} elseif (preg_match('/^([A-D])\d+$/', $code, $m)) {
+			// Legacy tier-only
+			$prefix = strtoupper((string) $m[1]);
 		} else {
-			$prefix = substr($code, 0, 1);
-		}
-		if (!preg_match('/^[A-Z]$/', $prefix)) {
 			return null;
 		}
+
+		if (!preg_match('/^[A-D]$/', $prefix)) {
+			return null;
+		}
+
 		$res = $this->db->pquery(
 			'SELECT id, prefix, tier_name, reward_amount, retention_days, effective_from, status
 			 FROM mk_affiliate_reward_tiers
@@ -1370,13 +1462,24 @@ class HelpDesk_TagRuleEngineService {
 	}
 
 	/**
-	 * Lookup SC profile by AFF-###### (identity = referral code).
+	 * Lookup SC profile by:
+	 * - new: [A-D][10-digit-phone]
+	 * - legacy: AFF-###### (identity = affiliate_code stored in bace_sc_profile)
 	 * @return array|null
 	 */
 	protected function lookupScAffiliateMeta($affiliateCode) {
 		$code = strtoupper(trim((string) $affiliateCode));
 		if ($code === '' || !preg_match('/^AFF-\d+$/', $code)) {
-			return null;
+			// New format: [A-D][10-digit-phone]
+			if (preg_match('/^([A-D])(\d{10})$/', $code, $m)) {
+				$prefix = strtoupper((string) $m[1]);
+				$phoneDigits = (string) $m[2];
+			} else {
+				return null;
+			}
+		} else {
+			$prefix = null;
+			$phoneDigits = null;
 		}
 		try {
 			require_once 'modules/ServiceContracts/models/ModernService.php';
@@ -1384,26 +1487,39 @@ class HelpDesk_TagRuleEngineService {
 		} catch (Exception $e) {
 			// continue — SHOW COLUMNS may still fail if module missing
 		}
-		$res = $this->db->pquery(
-			"SELECT p.servicecontractsid, p.affiliate_code, p.affiliate_tier_prefix, p.phone, sc.subject
-			 FROM bace_sc_profile p
-			 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.servicecontractsid AND ce.deleted = 0
-			 INNER JOIN vtiger_servicecontracts sc ON sc.servicecontractsid = p.servicecontractsid
-			 WHERE UPPER(p.affiliate_code) = ?
-			 LIMIT 1",
-			array($code)
-		);
+		if ($prefix !== null) {
+			$res = $this->db->pquery(
+				"SELECT p.servicecontractsid, p.affiliate_code, p.affiliate_tier_prefix, p.phone, sc.subject
+				 FROM bace_sc_profile p
+				 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.servicecontractsid AND ce.deleted = 0
+				 INNER JOIN vtiger_servicecontracts sc ON sc.servicecontractsid = p.servicecontractsid
+				 WHERE p.affiliate_tier_prefix = ?
+				   AND p.phone = ?
+				 LIMIT 1",
+				array($prefix, $phoneDigits)
+			);
+		} else {
+			$res = $this->db->pquery(
+				"SELECT p.servicecontractsid, p.affiliate_code, p.affiliate_tier_prefix, p.phone, sc.subject
+				 FROM bace_sc_profile p
+				 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.servicecontractsid AND ce.deleted = 0
+				 INNER JOIN vtiger_servicecontracts sc ON sc.servicecontractsid = p.servicecontractsid
+				 WHERE UPPER(p.affiliate_code) = ?
+				 LIMIT 1",
+				array($code)
+			);
+		}
 		if (!$res || $this->db->num_rows($res) === 0) {
 			return null;
 		}
 		$row = $this->db->fetchByAssoc($res);
 		$prefix = isset($row['affiliate_tier_prefix']) ? strtoupper(trim((string) $row['affiliate_tier_prefix'])) : 'D';
-		if ($prefix === '' || !preg_match('/^[A-Z]$/', $prefix)) {
+		if ($prefix === '' || !preg_match('/^[A-D]$/', $prefix)) {
 			$prefix = 'D';
 		}
 		return array(
 			'id' => (int) $row['servicecontractsid'],
-			'affiliate_code' => strtoupper(trim((string) $row['affiliate_code'])),
+			'affiliate_code' => strtoupper(trim((string) $row['affiliate_code'] ?: $affiliateCode)),
 			'affiliate_tier_prefix' => $prefix,
 			'full_name' => decode_html(isset($row['subject']) ? $row['subject'] : ''),
 			'phone' => decode_html(isset($row['phone']) ? $row['phone'] : ''),
