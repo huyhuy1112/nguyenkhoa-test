@@ -107,6 +107,18 @@ class Leads_ModernService {
 		} catch (Exception $e) {
 			// best-effort
 		}
+		try {
+			require_once 'modules/Leads/models/SalesVerifyService.php';
+			Leads_SalesVerifyService::installSchema($adb);
+		} catch (Exception $e) {
+			// best-effort
+		}
+	}
+
+	/** Bộ B columns for SELECT lists. */
+	protected static function verifyProfileSelectSql() {
+		return ', p.form_c1, p.form_c2, p.form_c3, p.verify_c1, p.verify_c2, p.verify_c3, p.verify_c4, p.verify_c5,
+			p.eligibility_result, p.potential_level, p.verify_score, p.verify_change_reason, p.verified_at, p.verified_by';
 	}
 
 	public static function isInstalled(PearDatabase $adb) {
@@ -123,7 +135,7 @@ class Leads_ModernService {
 		self::ensureModernProfilesForAliveLeads();
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
-				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw,
+				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw" . self::verifyProfileSelectSql() . ",
 				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
 				la.phone, ce.smownerid, ce.createdtime, ce.description
 			FROM bace_lead_profile p
@@ -163,7 +175,7 @@ class Leads_ModernService {
 		self::installSchema($adb);
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
-				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw,
+				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw" . self::verifyProfileSelectSql() . ",
 				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
 				la.phone, ce.smownerid, ce.createdtime, ce.description
 			FROM bace_lead_profile p
@@ -258,10 +270,11 @@ class Leads_ModernService {
 			return null;
 		}
 		$adb = PearDatabase::getInstance();
+		$verifyCols = self::verifyProfileSelectSql();
 		$res = $adb->pquery(
 			"SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
-				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw,
+				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw{$verifyCols},
 				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
 				la.phone, ce.smownerid, ce.createdtime
 			FROM bace_lead_profile p
@@ -277,7 +290,7 @@ class Leads_ModernService {
 				$res = $adb->pquery(
 					"SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 						p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
-						p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw,
+						p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw{$verifyCols},
 						ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
 						la.phone, ce.smownerid, ce.createdtime
 					FROM bace_lead_profile p
@@ -535,7 +548,11 @@ class Leads_ModernService {
 		}
 
 		$screening = isset($payload['screening_result']) ? trim((string) $payload['screening_result']) : '';
-		if ($screening !== '' && !in_array($screening, array('khong_dat', 'tiem_nang', 'sieu_tiem_nang'), true)) {
+		$allowed = array(
+			'khong_dat', 'tiem_nang', 'sieu_tiem_nang',
+			'so_luoc_du_dk', 'can_xm_muc_dich', 'can_xm_mo_hinh', 'so_luoc_khong_dk',
+		);
+		if ($screening !== '' && !in_array($screening, $allowed, true)) {
 			require_once 'modules/Leads/models/SheetImportService.php';
 			$screening = Leads_SheetImportService::normalizeScreeningResult($screening);
 		}
@@ -624,6 +641,7 @@ class Leads_ModernService {
 		} elseif ($screening === 'sieu_tiem_nang') {
 			$out[] = 'sieu_tiem_nang';
 		}
+		/* Bộ A sơ lược: không gắn tag Tiềm năng / Siêu — chỉ sau Bộ B. */
 		return array_values(array_unique($out));
 	}
 
@@ -1172,6 +1190,7 @@ class Leads_ModernService {
 		}
 		require_once 'modules/Leads/models/SheetImportService.php';
 		$screeningLabel = Leads_SheetImportService::screeningLabel($screening);
+		$verify = self::composeVerifyBlock($row);
 
 		return array(
 			'id' => $id,
@@ -1217,7 +1236,72 @@ class Leads_ModernService {
 			'qa_raw' => $qaDecoded !== null ? $qaDecoded : $qaRaw,
 			'phone_dup' => false,
 			'phone_dup_count' => 1,
+		) + $verify;
+	}
+
+	protected static function composeVerifyBlock(array $row) {
+		require_once 'modules/Leads/models/SalesVerifyService.php';
+		$catalog = Leads_SalesVerifyService::optionsCatalog();
+		$formC1 = isset($row['form_c1']) ? trim((string) $row['form_c1']) : '';
+		$formC2 = isset($row['form_c2']) ? trim((string) $row['form_c2']) : '';
+		$formC3 = isset($row['form_c3']) ? trim((string) $row['form_c3']) : '';
+		$verifyC1 = isset($row['verify_c1']) ? trim((string) $row['verify_c1']) : '';
+		$verifyC2 = isset($row['verify_c2']) ? trim((string) $row['verify_c2']) : '';
+		$verifyC3 = isset($row['verify_c3']) ? trim((string) $row['verify_c3']) : '';
+		$verifyC4 = isset($row['verify_c4']) && $row['verify_c4'] !== null && $row['verify_c4'] !== ''
+			? (int) $row['verify_c4'] : null;
+		$verifyC5 = isset($row['verify_c5']) && $row['verify_c5'] !== null && $row['verify_c5'] !== ''
+			? (int) $row['verify_c5'] : null;
+		$eligibility = isset($row['eligibility_result']) ? trim((string) $row['eligibility_result']) : '';
+		$potential = isset($row['potential_level']) ? trim((string) $row['potential_level']) : '';
+		$score = isset($row['verify_score']) && $row['verify_score'] !== null && $row['verify_score'] !== ''
+			? (int) $row['verify_score'] : null;
+		$changeReason = isset($row['verify_change_reason']) ? trim((string) $row['verify_change_reason']) : '';
+		$verifiedAt = '';
+		if (!empty($row['verified_at']) && $row['verified_at'] !== '0000-00-00 00:00:00') {
+			$ts = strtotime($row['verified_at']);
+			if ($ts) {
+				$verifiedAt = date('c', $ts);
+			}
+		}
+		return array(
+			'form_c1' => $formC1,
+			'form_c2' => $formC2,
+			'form_c3' => $formC3,
+			'form_c1_label' => self::verifyOptionLabel($catalog['c1'], $formC1),
+			'form_c2_label' => self::verifyOptionLabel($catalog['c2'], $formC2),
+			'form_c3_label' => self::verifyOptionLabel($catalog['c3'], $formC3),
+			'verify_c1' => $verifyC1,
+			'verify_c2' => $verifyC2,
+			'verify_c3' => $verifyC3,
+			'verify_c4' => $verifyC4,
+			'verify_c5' => $verifyC5,
+			'verify_c1_label' => self::verifyOptionLabel($catalog['c1'], $verifyC1),
+			'verify_c2_label' => self::verifyOptionLabel($catalog['c2'], $verifyC2),
+			'verify_c3_label' => self::verifyOptionLabel($catalog['c3'], $verifyC3),
+			'eligibility_result' => $eligibility,
+			'eligibility_label' => Leads_SalesVerifyService::eligibilityLabel($eligibility),
+			'potential_level' => $potential,
+			'potential_label' => Leads_SalesVerifyService::potentialLabel($potential),
+			'verify_score' => $score,
+			'verify_change_reason' => $changeReason,
+			'verified_at' => $verifiedAt,
+			'verified_by' => isset($row['verified_by']) ? (int) $row['verified_by'] : null,
+			'verify_options' => $catalog,
 		);
+	}
+
+	protected static function verifyOptionLabel(array $options, $code) {
+		$code = strtoupper(trim((string) $code));
+		if ($code === '') {
+			return '';
+		}
+		foreach ($options as $opt) {
+			if (isset($opt['code']) && strtoupper((string) $opt['code']) === $code) {
+				return isset($opt['label']) ? (string) $opt['label'] : $code;
+			}
+		}
+		return $code;
 	}
 
 	public static function normalizeBusinessModel($value) {

@@ -2817,3 +2817,93 @@ body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-lt-
 	gap: 8px;
 	padding: 12px 16px 16px;
 }
+
+/* Bộ B — Sales verify */
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify {
+	padding: 12px 16px 16px;
+}
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__form-note,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__form-note {
+	margin: 0 0 12px;
+	font-size: 12px;
+	color: #64748b;
+	line-height: 1.45;
+}
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__grid,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 10px;
+}
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__field label,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__field label {
+	display: block;
+	margin: 0 0 4px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #475569;
+}
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__field select,
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__field textarea,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__field select,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__field textarea {
+	width: 100%;
+	border-radius: 8px;
+	border: 1px solid #cbd5e1;
+	padding: 7px 10px;
+	font-size: 13px;
+	background: #fff;
+}
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__form-ans,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__form-ans {
+	margin-top: 4px;
+	font-size: 11px;
+	color: #64748b;
+}
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__c45,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__c45 {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+}
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__preview,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__preview {
+	margin-top: 12px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	font-size: 13px;
+	line-height: 1.5;
+}
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__preview strong,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__preview strong {
+	font-weight: 700;
+	color: #0f172a;
+}
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__actions,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 12px;
+}
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__err,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__err {
+	margin-top: 8px;
+	color: #b91c1c;
+	font-size: 12px;
+}
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__ok,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__ok {
+	margin-top: 8px;
+	color: #15803d;
+	font-size: 12px;
+}
+@media (max-width: 640px) {
+	body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__c45,
+	body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__c45 {
+		grid-template-columns: 1fr;
+	}
+}

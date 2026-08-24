@@ -931,6 +931,427 @@
     return { id: id, crmid: id, canConvert: true };
   }
 
+  function screeningStatusHtml(l) {
+    var pot = l.potential_level || "";
+    var elig = l.eligibility_result || "";
+    var scr = l.screening_result || "";
+    var label = l.screening_label || "";
+    var pills = {
+      so_luoc_du_dk: ["mk-leads-screen-pill--ok", "Sơ lược đủ điều kiện"],
+      can_xm_muc_dich: ["mk-leads-screen-pill--warn", "Cần xác minh mục đích"],
+      can_xm_mo_hinh: ["mk-leads-screen-pill--info", "Cần xác minh mô hình"],
+      so_luoc_khong_dk: ["mk-leads-screen-pill--fail", "Sơ lược không đủ điều kiện"],
+      khong_dat: ["mk-leads-screen-pill--fail", "Không đạt"],
+      tiem_nang: ["mk-leads-screen-pill--ok", "Tiềm năng"],
+      sieu_tiem_nang: ["mk-leads-screen-pill--hot", "Siêu tiềm năng"],
+      binh_thuong: ["mk-leads-screen-pill--info", "Bình thường"],
+    };
+    if (elig === "khong_du_dk") {
+      return (
+        '<span class="mk-leads-screen-pill mk-leads-screen-pill--fail" title="Kết luận sau xác minh">' +
+        esc(l.eligibility_label || "Không đủ điều kiện") +
+        "</span>"
+      );
+    }
+    if (pot && pills[pot]) {
+      return (
+        '<span class="mk-leads-screen-pill ' +
+        pills[pot][0] +
+        '" title="Mức tiềm năng sau xác minh">' +
+        esc(l.potential_label || pills[pot][1]) +
+        "</span>"
+      );
+    }
+    if (pills[scr]) {
+      return (
+        '<span class="mk-leads-screen-pill ' +
+        pills[scr][0] +
+        '" title="Kết quả sơ lược">' +
+        esc(label || pills[scr][1]) +
+        "</span>"
+      );
+    }
+    return "";
+  }
+
+  function listVerifyOptions() {
+    return {
+      c1: [
+        { code: "A", label: "Chuẩn bị mở quán" },
+        { code: "B", label: "Đã có quán, muốn cập nhật kiến thức / công thức / menu" },
+        { code: "C", label: "Đã có quán, đang gặp vấn đề cần cải thiện" },
+        { code: "D", label: "Học để biết thêm, phục vụ gia đình hoặc sở thích" },
+      ],
+      c2: [
+        { code: "A", label: "Xe đẩy cà phê – trà sữa – trà trái cây" },
+        { code: "B", label: "Trà sữa – topping, có mặt bằng 20–30 m²" },
+        { code: "C", label: "Trà sữa pha máy, có mặt bằng 20–30 m²" },
+        { code: "D", label: "Cà phê – trà sữa, máy lạnh" },
+        { code: "E", label: "Cà phê sân vườn, diện tích vừa – lớn" },
+        { code: "F", label: "Cà phê không gian mở, diện tích nhỏ" },
+        { code: "G", label: "Học pha chế cho gia đình / sở thích" },
+      ],
+      c3: [
+        { code: "A", label: "Dưới 50 triệu" },
+        { code: "B", label: "Từ 50 đến dưới 100 triệu" },
+        { code: "C", label: "Từ 100 đến dưới 300 triệu" },
+        { code: "D", label: "Từ 300 đến dưới 500 triệu" },
+        { code: "E", label: "Từ 500 triệu trở lên" },
+      ],
+    };
+  }
+
+  function listVerifySelectHtml(name, options, selected, placeholder) {
+    var html = '<select class="mk-leads-verify-select" data-mk-verify="' + esc(name) + '">';
+    html += '<option value="">' + esc(placeholder || "— Chọn —") + "</option>";
+    (options || []).forEach(function (opt) {
+      var code = String(opt.code || opt);
+      var label = opt.label
+        ? (/^[A-G]$/i.test(code) ? code + " — " + opt.label : opt.label)
+        : code;
+      html +=
+        '<option value="' +
+        esc(code) +
+        '"' +
+        (String(selected || "") === code ? " selected" : "") +
+        ">" +
+        esc(label) +
+        "</option>";
+    });
+    html += "</select>";
+    return html;
+  }
+
+  function ensureListVerifyPanel() {
+    var existing = document.getElementById("mk-leads-verify-panel");
+    if (existing) return existing;
+    var wrap = document.createElement("div");
+    wrap.id = "mk-leads-verify-panel";
+    wrap.className = "mk-leads-verify-panel";
+    wrap.hidden = true;
+    wrap.setAttribute("aria-hidden", "true");
+    wrap.innerHTML =
+      '<div class="mk-leads-verify-panel__backdrop" data-mk-verify-close="1"></div>' +
+      '<aside class="mk-leads-verify-panel__sheet" role="dialog" aria-modal="true" aria-labelledby="mk-leads-verify-title">' +
+      '<header class="mk-leads-verify-panel__head">' +
+      '<div class="mk-leads-verify-panel__head-main">' +
+      '<span class="mk-leads-verify-panel__badge">Bộ B</span>' +
+      "<div>" +
+      '<h3 id="mk-leads-verify-title">Sales xác minh</h3>' +
+      '<p class="mk-leads-verify-panel__sub" id="mk-leads-verify-sub">Gọi xác minh C1–C3, rồi C4/C5 nếu đủ điều kiện</p>' +
+      "</div></div>" +
+      '<button type="button" class="mk-leads-verify-panel__x" data-mk-verify-close="1" aria-label="Đóng">&times;</button>' +
+      "</header>" +
+      '<div class="mk-leads-verify-panel__body" id="mk-leads-verify-body"></div>' +
+      '<footer class="mk-leads-verify-panel__foot">' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-verify-action="preview">Xem kết luận</button>' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--primary" data-mk-verify-action="save">Lưu xác minh</button>' +
+      "</footer></aside>";
+    document.body.appendChild(wrap);
+    wrap.addEventListener("click", function (e) {
+      if (e.target && e.target.getAttribute && e.target.getAttribute("data-mk-verify-close") === "1") {
+        e.preventDefault();
+        closeListVerifyPanel();
+      }
+    });
+    wrap.addEventListener("change", function (e) {
+      var t = e.target;
+      if (t && t.getAttribute && t.getAttribute("data-mk-verify")) {
+        syncListVerifyC45(wrap);
+        setListVerifyMsg("", "");
+      }
+    });
+    wrap.addEventListener("click", function (e) {
+      var btn = e.target && e.target.closest ? e.target.closest("[data-mk-verify-action]") : null;
+      if (!btn) return;
+      e.preventDefault();
+      submitListVerify(btn.getAttribute("data-mk-verify-action"), btn);
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && wrap && !wrap.hidden) {
+        closeListVerifyPanel();
+      }
+    });
+    return wrap;
+  }
+
+  function closeListVerifyPanel() {
+    var panel = document.getElementById("mk-leads-verify-panel");
+    if (!panel) return;
+    panel.hidden = true;
+    panel.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("mk-leads-verify-open");
+    panel._mkLead = null;
+  }
+
+  function listVerifyFormHint(code, label) {
+    if (!code) return '<span class="mk-leads-verify-formhint mk-leads-verify-formhint--empty">Form chưa có</span>';
+    return (
+      '<span class="mk-leads-verify-formhint">Form: <strong>' +
+      esc(code) +
+      "</strong>" +
+      (label ? " — " + esc(label) : "") +
+      "</span>"
+    );
+  }
+
+  function fillListVerifyBody(lead) {
+    var body = document.getElementById("mk-leads-verify-body");
+    var sub = document.getElementById("mk-leads-verify-sub");
+    if (!body || !lead) return;
+    var opts = (lead.verify_options && lead.verify_options.c1 ? lead.verify_options : null) || listVerifyOptions();
+    var c1 = lead.verify_c1 || lead.form_c1 || "";
+    var c2 = lead.verify_c2 || lead.form_c2 || "";
+    var c3 = lead.verify_c3 || lead.form_c3 || "";
+    var c4 = lead.verify_c4 != null && lead.verify_c4 !== "" ? String(lead.verify_c4) : "";
+    var c5 = lead.verify_c5 != null && lead.verify_c5 !== "" ? String(lead.verify_c5) : "";
+    var levels = [1, 2, 3, 4].map(function (n) {
+      return { code: String(n), label: "Mức " + n };
+    });
+    if (sub) {
+      sub.textContent = (lead.name || "Lead") + (lead.phone ? " · " + lead.phone : "");
+    }
+    var statusHtml = "";
+    if (lead.eligibility_label || lead.potential_label) {
+      statusHtml =
+        '<div class="mk-leads-verify-result" data-mk-verify-status="1">' +
+        (lead.eligibility_label
+          ? '<div class="mk-leads-verify-result__row"><span>Điều kiện</span><strong>' +
+            esc(lead.eligibility_label) +
+            "</strong></div>"
+          : "") +
+        (lead.potential_label
+          ? '<div class="mk-leads-verify-result__row"><span>Mức tiềm năng</span><strong>' +
+            esc(lead.potential_label) +
+            "</strong></div>"
+          : "") +
+        (lead.verify_score != null
+          ? '<div class="mk-leads-verify-result__row"><span>Điểm</span><strong>' +
+            esc(String(lead.verify_score)) +
+            "</strong></div>"
+          : "") +
+        "</div>";
+    } else {
+      statusHtml = '<div class="mk-leads-verify-result" data-mk-verify-status="1" hidden></div>';
+    }
+    body.innerHTML =
+      '<div class="mk-leads-verify-hero">' +
+      '<div class="mk-leads-verify-hero__name">' +
+      esc(lead.name || "Lead") +
+      "</div>" +
+      '<div class="mk-leads-verify-hero__meta">' +
+      screeningStatusHtml(lead) +
+      (lead.phone ? '<span class="mk-leads-verify-phone">' + esc(lead.phone) + "</span>" : "") +
+      "</div></div>" +
+      '<section class="mk-leads-verify-section">' +
+      '<h4>Đáp án Form <span>(không bị ghi đè)</span></h4>' +
+      '<div class="mk-leads-verify-formcards">' +
+      '<div class="mk-leads-verify-formcard"><em>C1</em><strong>' +
+      esc(lead.form_c1 || "—") +
+      "</strong><small>" +
+      esc(lead.form_c1_label || "Chưa có từ Sheet") +
+      "</small></div>" +
+      '<div class="mk-leads-verify-formcard"><em>C2</em><strong>' +
+      esc(lead.form_c2 || "—") +
+      "</strong><small>" +
+      esc(lead.form_c2_label || "Chưa có từ Sheet") +
+      "</small></div>" +
+      '<div class="mk-leads-verify-formcard"><em>C3</em><strong>' +
+      esc(lead.form_c3 || "—") +
+      "</strong><small>" +
+      esc(lead.form_c3_label || "Chưa có từ Sheet") +
+      "</small></div></div></section>" +
+      '<section class="mk-leads-verify-section">' +
+      "<h4>Sau cuộc gọi</h4>" +
+      '<label class="mk-leads-verify-field"><span>Câu 1 — Tình trạng</span>' +
+      listVerifySelectHtml("c1", opts.c1, c1) +
+      listVerifyFormHint(lead.form_c1, lead.form_c1_label) +
+      "</label>" +
+      '<label class="mk-leads-verify-field"><span>Câu 2 — Mô hình</span>' +
+      listVerifySelectHtml("c2", opts.c2, c2) +
+      listVerifyFormHint(lead.form_c2, lead.form_c2_label) +
+      "</label>" +
+      '<label class="mk-leads-verify-field"><span>Câu 3 — Ngân sách</span>' +
+      listVerifySelectHtml("c3", opts.c3, c3) +
+      listVerifyFormHint(lead.form_c3, lead.form_c3_label) +
+      "</label>" +
+      '<div class="mk-leads-verify-c45" data-mk-verify-c45>' +
+      '<label class="mk-leads-verify-field"><span>Câu 4 — Mức</span>' +
+      listVerifySelectHtml("c4", levels, c4, "—") +
+      "</label>" +
+      '<label class="mk-leads-verify-field"><span>Câu 5 — Mức</span>' +
+      listVerifySelectHtml("c5", levels, c5, "—") +
+      "</label></div>" +
+      '<label class="mk-leads-verify-field"><span>Lý do đổi đáp án <em>(bắt buộc nếu khác Form)</em></span>' +
+      '<textarea class="mk-leads-verify-note" rows="2" data-mk-verify="change_reason" placeholder="Ví dụ: Khách khai Form nhầm mô hình">' +
+      esc(lead.verify_change_reason || "") +
+      "</textarea></label></section>" +
+      statusHtml +
+      '<p class="mk-leads-verify-err" data-mk-verify-err hidden></p>' +
+      '<p class="mk-leads-verify-ok" data-mk-verify-ok hidden></p>';
+    syncListVerifyC45(document.getElementById("mk-leads-verify-panel"));
+  }
+
+  function readListVerifyPayload(host) {
+    host = host || document.getElementById("mk-leads-verify-panel");
+    var get = function (name) {
+      var el = host ? host.querySelector('[data-mk-verify="' + name + '"]') : null;
+      return el ? String(el.value || "").trim() : "";
+    };
+    return {
+      c1: get("c1"),
+      c2: get("c2"),
+      c3: get("c3"),
+      c4: get("c4") ? parseInt(get("c4"), 10) : 0,
+      c5: get("c5") ? parseInt(get("c5"), 10) : 0,
+      change_reason: get("change_reason"),
+    };
+  }
+
+  function syncListVerifyC45(host) {
+    if (!host) return;
+    var payload = readListVerifyPayload(host);
+    var c45 = host.querySelector("[data-mk-verify-c45]");
+    if (!c45) return;
+    var excluded =
+      payload.c1 === "D" ||
+      payload.c2 === "G" ||
+      payload.c3 === "A" ||
+      (payload.c2 === "A" && payload.c3 === "B");
+    c45.hidden = !!excluded;
+  }
+
+  function setListVerifyMsg(err, ok) {
+    var host = document.getElementById("mk-leads-verify-panel");
+    if (!host) return;
+    var errEl = host.querySelector("[data-mk-verify-err]");
+    var okEl = host.querySelector("[data-mk-verify-ok]");
+    if (errEl) {
+      errEl.hidden = !err;
+      errEl.textContent = err || "";
+    }
+    if (okEl) {
+      okEl.hidden = !ok;
+      okEl.textContent = ok || "";
+    }
+  }
+
+  function paintListVerifyPreview(result) {
+    var box = document.querySelector("#mk-leads-verify-panel [data-mk-verify-status]");
+    if (!box || !result) return;
+    box.hidden = false;
+    var tone =
+      result.eligibility_result === "khong_du_dk"
+        ? " is-fail"
+        : result.potential_level === "sieu_tiem_nang"
+          ? " is-hot"
+          : result.potential_level === "tiem_nang"
+            ? " is-ok"
+            : "";
+    box.className = "mk-leads-verify-result" + tone;
+    var html = "";
+    if (result.eligibility_label) {
+      html +=
+        '<div class="mk-leads-verify-result__row"><span>Điều kiện</span><strong>' +
+        esc(result.eligibility_label) +
+        "</strong></div>";
+    }
+    if (result.reason) {
+      html +=
+        '<div class="mk-leads-verify-result__row"><span>Lý do</span><strong>' +
+        esc(result.reason) +
+        "</strong></div>";
+    }
+    if (result.potential_label) {
+      html +=
+        '<div class="mk-leads-verify-result__row"><span>Mức tiềm năng</span><strong>' +
+        esc(result.potential_label) +
+        "</strong></div>";
+    }
+    if (result.score != null) {
+      html +=
+        '<div class="mk-leads-verify-result__row"><span>Điểm</span><strong>' +
+        esc(String(result.score)) +
+        "</strong></div>";
+    }
+    box.innerHTML = html || "<div>Chưa đủ dữ liệu để chấm điểm.</div>";
+  }
+
+  function openListVerifyPanel(leadId) {
+    var cached = findLeadByRecordId(leadId);
+    var panel = ensureListVerifyPanel();
+    document.body.classList.add("mk-leads-verify-open");
+    panel.hidden = false;
+    panel.setAttribute("aria-hidden", "false");
+    fillListVerifyBody(cached || { id: leadId, name: "Đang tải…" });
+    var load =
+      store && store.fetchLead
+        ? store.fetchLead(leadId, true)
+        : Promise.resolve(cached);
+    load
+      .then(function (fresh) {
+        var lead = fresh || cached;
+        panel._mkLead = lead;
+        fillListVerifyBody(lead);
+      })
+      .catch(function () {
+        panel._mkLead = cached;
+      });
+  }
+
+  function submitListVerify(action, btn) {
+    var panel = document.getElementById("mk-leads-verify-panel");
+    var lead = panel && panel._mkLead;
+    var payload = readListVerifyPayload(panel);
+    setListVerifyMsg("", "");
+    if (!payload.c1 || !payload.c2 || !payload.c3) {
+      setListVerifyMsg("Vui lòng chọn đủ C1, C2, C3.", "");
+      return;
+    }
+    if (typeof app === "undefined" || !app.request) {
+      setListVerifyMsg("API không sẵn sàng.", "");
+      return;
+    }
+    if (btn) btn.disabled = true;
+    var data = {
+      module: "Leads",
+      action: "ModernApi",
+      mode: action === "save" ? "sales_verify_save" : "sales_verify_preview",
+      payload: JSON.stringify(payload),
+    };
+    if (action === "save") {
+      data.id = (lead && (lead.crmid || lead.id)) || "";
+      data.record = data.id;
+    }
+    app.request.post({ data: data }).then(function (err, res) {
+      if (btn) btn.disabled = false;
+      if (action === "preview") {
+        if (err || !res || !res.result) {
+          setListVerifyMsg((err && (err.message || err)) || (res && res.error) || "Không tính được kết luận.", "");
+          return;
+        }
+        paintListVerifyPreview(res.result);
+        return;
+      }
+      if (err || !res || !res.success) {
+        setListVerifyMsg((err && (err.message || err)) || (res && res.error) || "Lưu xác minh thất bại.", "");
+        return;
+      }
+      var fresh = res.lead || lead;
+      if (store && typeof store.importLead === "function" && fresh) {
+        store.importLead(fresh);
+      }
+      panel._mkLead = fresh;
+      fillListVerifyBody(fresh);
+      setListVerifyMsg("", "Đã lưu kết quả xác minh.");
+      if (res.result) paintListVerifyPreview(res.result);
+      renderTable();
+      if (window.app && app.helper && app.helper.showSuccessNotification) {
+        app.helper.showSuccessNotification({ message: "Đã lưu xác minh Bộ B." });
+      }
+    });
+  }
+
   function runInlineConvert(btn, lead, recordId) {
     if (window.app && app.helper && app.helper.showProgress) {
       app.helper.showProgress();
@@ -1679,9 +2100,14 @@
             '">' +
             esc(l.name) +
             "</a>" +
-            (l.screening_result === "khong_dat"
-              ? '<span class="mk-leads-screen-pill mk-leads-screen-pill--fail" title="Kết quả sàng lọc">Không đạt</span>'
-              : "") +
+            screeningStatusHtml(l) +
+            '<button type="button" class="mk-leads-verify-btn' +
+            (l.eligibility_result || l.potential_level ? " is-done" : "") +
+            '" data-lead-id="' +
+            esc(l.id) +
+            '" title="Sales xác minh Bộ B">' +
+            (l.eligibility_result || l.potential_level ? "Đã XM" : "Xác minh") +
+            "</button>" +
             "</span></span></td>" +
             '<td class="mk-leads-td mk-leads-td--phone">' +
             '<span class="mk-leads-phone-wrap">' +
@@ -2182,6 +2608,13 @@
     document.addEventListener(
       "click",
       function (e) {
+        var verifyBtn = e.target.closest && e.target.closest(".mk-leads-verify-btn");
+        if (verifyBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          openListVerifyPanel(verifyBtn.getAttribute("data-lead-id"));
+          return;
+        }
         var inlineCallBtn =
           e.target.closest && e.target.closest(".mk-so-inline-detail__call-btn");
         if (!inlineCallBtn) return;
@@ -2390,27 +2823,17 @@
     map = map || {};
     var gui = document.getElementById("mk-sheet-map-gui");
     if (!gui) return;
-    var qa = Array.isArray(map.qa) ? map.qa : [];
     gui.querySelectorAll("[data-map-field]").forEach(function (inp) {
       var key = inp.getAttribute("data-map-field");
       if (!key) return;
-      if (key === "qa_1") {
-        inp.value = qa[0] || (typeof map.qa_1 === "string" ? map.qa_1 : "") || "";
-      } else if (key === "qa_2") {
-        inp.value = qa[1] || (typeof map.qa_2 === "string" ? map.qa_2 : "") || "";
-      } else if (key === "qa_3") {
-        inp.value = qa[2] || (typeof map.qa_3 === "string" ? map.qa_3 : "") || "";
-      } else {
-        var v = map[key];
-        inp.value = v == null ? "" : String(v);
-      }
+      var v = map[key];
+      inp.value = v == null || typeof v === "object" ? "" : String(v);
     });
   }
 
   function buildSheetMapFromGui() {
     var gui = document.getElementById("mk-sheet-map-gui");
     var map = {};
-    var qa = [];
     if (!gui) {
       return parseSheetMapRaw(
         ((document.getElementById("mk-sheet-map") || {}).value) || "{}"
@@ -2420,15 +2843,10 @@
       var key = inp.getAttribute("data-map-field");
       var val = String(inp.value || "").trim();
       if (!key) return;
-      if (key.indexOf("qa_") === 0) {
-        if (val) qa.push(val);
-      } else if (val) {
+      if (val) {
         map[key] = val;
       }
     });
-    if (qa.length) {
-      map.qa = qa;
-    }
     return map;
   }
 
@@ -2469,16 +2887,16 @@
       "    </label>" +
       '    <details class="mk-leads-sheet-advanced" open>' +
       "      <summary>Ánh xạ cột — map header Google Sheet sang field CRM</summary>" +
-      '      <p class="mk-leads-sheet-map-hint">Gõ đúng <strong>tên cột trên Sheet</strong> (hàng header). Để trống nếu không dùng.</p>' +
+      '      <p class="mk-leads-sheet-map-hint">Map cột lõi + 3 câu Form. CRM tự tính <strong>Kết quả sơ lược</strong> và điền <strong>Mô hình kinh doanh</strong>. Trùng SĐT vẫn tạo lead mới (badge nhóm). Khu vực 1/2/3 điền nếu Sheet có cột khu vực.</p>' +
       '      <div class="mk-leads-sheet-map-gui" id="mk-sheet-map-gui">' +
-      mapFieldRowHtml("name", "Tên khách (name)") +
-      mapFieldRowHtml("phone", "Số điện thoại (phone)") +
+      mapFieldRowHtml("name", "Tên khách") +
+      mapFieldRowHtml("phone", "Số điện thoại") +
       mapFieldRowHtml("email", "Email") +
-      mapFieldRowHtml("address", "Địa chỉ (address)") +
-      mapFieldRowHtml("screening", "Sàng lọc (screening)") +
-      mapFieldRowHtml("qa_1", "Câu hỏi / QA 1") +
-      mapFieldRowHtml("qa_2", "Câu hỏi / QA 2") +
-      mapFieldRowHtml("qa_3", "Câu hỏi / QA 3") +
+      mapFieldRowHtml("address", "Địa chỉ") +
+      mapFieldRowHtml("q1", "Câu 1 – Tình trạng") +
+      mapFieldRowHtml("q2", "Câu 2 – Mô hình") +
+      mapFieldRowHtml("q3", "Câu 3 – Ngân sách") +
+      mapFieldRowHtml("region", "Khu vực (1 / 2 / 3)") +
       "      </div>" +
       '      <details class="mk-leads-sheet-map-json">' +
       "        <summary>JSON nâng cao (tuỳ chọn)</summary>" +

@@ -123,6 +123,12 @@
 								<div class="summaryViewFields mk-lead-detail-kv-wrap" id="mk-ld-ui-key-fields"></div>
 							</div>
 						</section>
+						<section class="mk-lead-detail-card mk-lead-detail-card--verify" id="mk-ld-ui-section-verify">
+							<div class="mk-lead-detail-card__head">
+								<h2 class="mk-lead-detail-card__title">Sales xác minh (Bộ B)</h2>
+							</div>
+							<div class="mk-lead-verify" id="mk-ld-ui-verify"></div>
+						</section>
 						</div>
 
 						<div class="mk-lead-detail-summary-stack mk-lead-detail-summary-stack--right">

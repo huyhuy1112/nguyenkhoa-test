@@ -2,13 +2,13 @@
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 <script type="text/javascript">document.documentElement.classList.add('mk-leads-ui-ready');</script>
-<script type="text/javascript">window.__MK_LEADS_UI_BUILD__ = "20260619_leads_api3";</script>
+<script type="text/javascript">window.__MK_LEADS_UI_BUILD__ = "20260822_gd11_sheet1";</script>
 <script type="text/javascript">window.MK_LEADS_API_READY = true;</script>
 {if isset($MK_LEADS_ASSIGNABLE_USERS)}
 <script type="text/javascript">window.MK_LEADS_ASSIGNABLE_USERS = {Zend_Json::encode($MK_LEADS_ASSIGNABLE_USERS)};</script>
 {/if}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkShell.css')}&mk_v=20260720_leads_font1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.css')}&mk_v=20260811_sheetmap_gui1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.css')}&mk_v=20260824_bo_b_list_panel1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkConvertModal.css')}?mk_v=20260727_convert_toast1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkTagPalette.css')}&mk_v=20260811_sheetmap_gui1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkListLovable.css')}&mk_v=20260820_bizmodel1" />
@@ -28,7 +28,7 @@
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLocalStore.js')}&mk_v=20260811_sheetmap_gui1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLeadsLogic.js')}&mk_v=20260811_sheetmap_gui1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkIcons.js')}?mk_v=20260711_i18n_tags1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.js')}&mk_v=20260820_bizmodel1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.js')}&mk_v=20260824_bo_b_list_panel1"></script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260820_sheet1" />
 <script type="text/javascript">
 window.__mkSalesPosInlineConfig = {

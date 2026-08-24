@@ -7,6 +7,7 @@ require_once 'modules/Leads/models/ModernService.php';
 require_once 'modules/Leads/models/CommerceService.php';
 require_once 'modules/Leads/models/ConvertService.php';
 require_once 'modules/Leads/models/DetailFeedService.php';
+require_once 'modules/Leads/models/SalesVerifyService.php';
 
 class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 
@@ -31,6 +32,7 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 			'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save', 'bulk_assign_owner',
 			'dedupe_leads', 'last_touch_call_log',
 			'sheet_settings_save', 'sheet_poll_now', 'merge_leads', 'restore_lead', 'purge_lead', 'soft_delete',
+			'sales_verify_save',
 		), true)) {
 			$request->validateWriteAccess();
 		}
@@ -287,6 +289,38 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 					}
 					$result = Leads_SheetImportService::pollOnce();
 					$response->setResult(array('success' => !empty($result['success'])) + $result);
+					break;
+
+				case 'sales_verify_options':
+					$response->setResult(array(
+						'success' => true,
+						'options' => Leads_SalesVerifyService::optionsCatalog(),
+					));
+					break;
+
+				case 'sales_verify_preview':
+					$payload = $this->decodePayload($request);
+					$result = Leads_SalesVerifyService::compute(array(
+						'c1' => isset($payload['c1']) ? $payload['c1'] : '',
+						'c2' => isset($payload['c2']) ? $payload['c2'] : '',
+						'c3' => isset($payload['c3']) ? $payload['c3'] : '',
+						'c4' => isset($payload['c4']) ? $payload['c4'] : 0,
+						'c5' => isset($payload['c5']) ? $payload['c5'] : 0,
+					));
+					$response->setResult(array('success' => true, 'result' => $result));
+					break;
+
+				case 'sales_verify_save':
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					$saved = Leads_SalesVerifyService::saveForLead($id, $payload, $userId);
+					$response->setResult($saved);
 					break;
 
 				case 'sheet_poll_status':

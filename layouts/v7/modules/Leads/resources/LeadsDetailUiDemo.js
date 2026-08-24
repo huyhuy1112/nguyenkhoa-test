@@ -789,6 +789,29 @@
 			district: raw.district || '',
 			address: raw.address || '',
 			area: raw.area || '',
+			screening_result: raw.screening_result || '',
+			screening_label: raw.screening_label || '',
+			sheet_source: raw.sheet_source || 0,
+			qa_raw: raw.qa_raw || null,
+			form_c1: raw.form_c1 || '',
+			form_c2: raw.form_c2 || '',
+			form_c3: raw.form_c3 || '',
+			form_c1_label: raw.form_c1_label || '',
+			form_c2_label: raw.form_c2_label || '',
+			form_c3_label: raw.form_c3_label || '',
+			verify_c1: raw.verify_c1 || '',
+			verify_c2: raw.verify_c2 || '',
+			verify_c3: raw.verify_c3 || '',
+			verify_c4: raw.verify_c4 != null ? raw.verify_c4 : null,
+			verify_c5: raw.verify_c5 != null ? raw.verify_c5 : null,
+			eligibility_result: raw.eligibility_result || '',
+			eligibility_label: raw.eligibility_label || '',
+			potential_level: raw.potential_level || '',
+			potential_label: raw.potential_label || '',
+			verify_score: raw.verify_score != null ? raw.verify_score : null,
+			verify_change_reason: raw.verify_change_reason || '',
+			verified_at: raw.verified_at || '',
+			verify_options: raw.verify_options || null,
 			purchases: (raw.purchases || []).slice(),
 			calendarTasks: (raw.calendarTasks || []).slice(),
 			last_touch: raw.last_touch || '',
@@ -993,6 +1016,302 @@
 		);
 	}
 
+	function verifyDefaultOptions() {
+		return {
+			c1: [
+				{ code: 'A', label: 'Chuẩn bị mở quán' },
+				{ code: 'B', label: 'Đã có quán, muốn cập nhật kiến thức / công thức / menu' },
+				{ code: 'C', label: 'Đã có quán, đang gặp vấn đề cần cải thiện' },
+				{ code: 'D', label: 'Học để biết thêm, phục vụ gia đình hoặc sở thích' },
+			],
+			c2: [
+				{ code: 'A', label: 'Xe đẩy cà phê – trà sữa – trà trái cây' },
+				{ code: 'B', label: 'Trà sữa – topping, có mặt bằng 20–30 m²' },
+				{ code: 'C', label: 'Trà sữa pha máy, có mặt bằng 20–30 m²' },
+				{ code: 'D', label: 'Cà phê – trà sữa, máy lạnh' },
+				{ code: 'E', label: 'Cà phê sân vườn, diện tích vừa – lớn' },
+				{ code: 'F', label: 'Cà phê không gian mở, diện tích nhỏ' },
+				{ code: 'G', label: 'Học pha chế cho gia đình / sở thích' },
+			],
+			c3: [
+				{ code: 'A', label: 'Dưới 50 triệu' },
+				{ code: 'B', label: 'Từ 50 đến dưới 100 triệu' },
+				{ code: 'C', label: 'Từ 100 đến dưới 300 triệu' },
+				{ code: 'D', label: 'Từ 300 đến dưới 500 triệu' },
+				{ code: 'E', label: 'Từ 500 triệu trở lên' },
+			],
+			c4_levels: [1, 2, 3, 4],
+			c5_levels: [1, 2, 3, 4],
+		};
+	}
+
+	function verifySelectHtml(name, options, selected, placeholder) {
+		var html = '<select class="inputElement" data-mk-verify="' + esc(name) + '">';
+		html += '<option value="">' + esc(placeholder || '— Chọn —') + '</option>';
+		(options || []).forEach(function (opt) {
+			var code = String(opt.code || opt);
+			var label = opt.label ? code + ' — ' + opt.label : code;
+			html +=
+				'<option value="' +
+				esc(code) +
+				'"' +
+				(String(selected || '') === code ? ' selected' : '') +
+				'>' +
+				esc(label) +
+				'</option>';
+		});
+		html += '</select>';
+		return html;
+	}
+
+	function renderVerifyPanel(lead) {
+		var host = byId('mk-ld-ui-verify');
+		if (!host) return;
+		var opts = lead.verify_options || verifyDefaultOptions();
+		var c1 = lead.verify_c1 || lead.form_c1 || '';
+		var c2 = lead.verify_c2 || lead.form_c2 || '';
+		var c3 = lead.verify_c3 || lead.form_c3 || '';
+		var c4 = lead.verify_c4 != null ? lead.verify_c4 : '';
+		var c5 = lead.verify_c5 != null ? lead.verify_c5 : '';
+		var formHint = function (code, label) {
+			if (!code) return '';
+			return (
+				'<div class="mk-lead-verify__form-ans">Form: ' +
+				esc(code) +
+				(label ? ' — ' + esc(label) : '') +
+				'</div>'
+			);
+		};
+		var statusHtml = '';
+		if (lead.eligibility_label || lead.potential_label) {
+			statusHtml =
+				'<div class="mk-lead-verify__preview" data-mk-verify-status="1">' +
+				(lead.eligibility_label
+					? '<div><strong>Điều kiện:</strong> ' + esc(lead.eligibility_label) + '</div>'
+					: '') +
+				(lead.potential_label
+					? '<div><strong>Mức tiềm năng:</strong> ' + esc(lead.potential_label) + '</div>'
+					: '') +
+				(lead.verify_score != null
+					? '<div><strong>Điểm:</strong> ' + esc(String(lead.verify_score)) + '</div>'
+					: '') +
+				(lead.verified_at
+					? '<div><strong>Đã xác minh:</strong> ' + esc(String(lead.verified_at).slice(0, 19).replace('T', ' ')) + '</div>'
+					: '') +
+				'</div>';
+		} else {
+			statusHtml = '<div class="mk-lead-verify__preview" data-mk-verify-status="1" hidden></div>';
+		}
+
+		host.innerHTML =
+			'<p class="mk-lead-verify__form-note">Sales gọi xác minh C1–C3. Nếu đủ điều kiện mới chọn C4/C5. Đáp án Form được giữ nguyên, không bị ghi đè.</p>' +
+			'<div class="mk-lead-verify__grid">' +
+			'<div class="mk-lead-verify__field"><label>Câu 1 — Tình trạng</label>' +
+			verifySelectHtml('c1', opts.c1, c1) +
+			formHint(lead.form_c1, lead.form_c1_label) +
+			'</div>' +
+			'<div class="mk-lead-verify__field"><label>Câu 2 — Mô hình</label>' +
+			verifySelectHtml('c2', opts.c2, c2) +
+			formHint(lead.form_c2, lead.form_c2_label) +
+			'</div>' +
+			'<div class="mk-lead-verify__field"><label>Câu 3 — Ngân sách</label>' +
+			verifySelectHtml('c3', opts.c3, c3) +
+			formHint(lead.form_c3, lead.form_c3_label) +
+			'</div>' +
+			'<div class="mk-lead-verify__c45" data-mk-verify-c45>' +
+			'<div class="mk-lead-verify__field"><label>Câu 4 — Mức (1–4)</label>' +
+			verifySelectHtml(
+				'c4',
+				(opts.c4_levels || [1, 2, 3, 4]).map(function (n) {
+					return { code: String(n), label: 'Mức ' + n };
+				}),
+				c4 !== '' && c4 != null ? String(c4) : ''
+			) +
+			'</div>' +
+			'<div class="mk-lead-verify__field"><label>Câu 5 — Mức (1–4)</label>' +
+			verifySelectHtml(
+				'c5',
+				(opts.c5_levels || [1, 2, 3, 4]).map(function (n) {
+					return { code: String(n), label: 'Mức ' + n };
+				}),
+				c5 !== '' && c5 != null ? String(c5) : ''
+			) +
+			'</div></div>' +
+			'<div class="mk-lead-verify__field"><label>Lý do đổi đáp án (bắt buộc nếu khác Form)</label>' +
+			'<textarea class="inputElement" rows="2" data-mk-verify="change_reason" placeholder="Ví dụ: Khách khai Form nhầm mô hình">' +
+			esc(lead.verify_change_reason || '') +
+			'</textarea></div>' +
+			'</div>' +
+			statusHtml +
+			'<div class="mk-lead-verify__actions">' +
+			'<button type="button" class="btn btn-default" data-mk-verify-action="preview">Xem kết luận</button>' +
+			'<button type="button" class="btn btn-success" data-mk-verify-action="save">Lưu xác minh</button>' +
+			'</div>' +
+			'<div class="mk-lead-verify__err" data-mk-verify-err hidden></div>' +
+			'<div class="mk-lead-verify__ok" data-mk-verify-ok hidden></div>';
+
+		bindVerifyPanel(lead);
+		syncVerifyC45Visibility(host);
+	}
+
+	function readVerifyPayload(host) {
+		var get = function (name) {
+			var el = host.querySelector('[data-mk-verify="' + name + '"]');
+			return el ? String(el.value || '').trim() : '';
+		};
+		return {
+			c1: get('c1'),
+			c2: get('c2'),
+			c3: get('c3'),
+			c4: get('c4') ? parseInt(get('c4'), 10) : 0,
+			c5: get('c5') ? parseInt(get('c5'), 10) : 0,
+			change_reason: get('change_reason'),
+		};
+	}
+
+	function syncVerifyC45Visibility(host) {
+		var payload = readVerifyPayload(host);
+		var c45 = host.querySelector('[data-mk-verify-c45]');
+		if (!c45) return;
+		var excluded =
+			payload.c1 === 'D' ||
+			payload.c2 === 'G' ||
+			payload.c3 === 'A' ||
+			(payload.c2 === 'A' && payload.c3 === 'B');
+		c45.style.display = excluded ? 'none' : '';
+	}
+
+	function setVerifyMsg(host, err, ok) {
+		var errEl = host.querySelector('[data-mk-verify-err]');
+		var okEl = host.querySelector('[data-mk-verify-ok]');
+		if (errEl) {
+			if (err) {
+				errEl.hidden = false;
+				errEl.textContent = err;
+			} else {
+				errEl.hidden = true;
+				errEl.textContent = '';
+			}
+		}
+		if (okEl) {
+			if (ok) {
+				okEl.hidden = false;
+				okEl.textContent = ok;
+			} else {
+				okEl.hidden = true;
+				okEl.textContent = '';
+			}
+		}
+	}
+
+	function paintVerifyPreview(host, result) {
+		var box = host.querySelector('[data-mk-verify-status]');
+		if (!box || !result) return;
+		box.hidden = false;
+		var html = '';
+		if (result.eligibility_label) {
+			html += '<div><strong>Điều kiện:</strong> ' + esc(result.eligibility_label) + '</div>';
+		}
+		if (result.reason) {
+			html += '<div><strong>Lý do:</strong> ' + esc(result.reason) + '</div>';
+		}
+		if (result.potential_label) {
+			html += '<div><strong>Mức tiềm năng:</strong> ' + esc(result.potential_label) + '</div>';
+		}
+		if (result.score != null) {
+			html += '<div><strong>Điểm:</strong> ' + esc(String(result.score)) + '</div>';
+		}
+		box.innerHTML = html || '<div class="mk-lead-detail-field__muted">Chưa đủ dữ liệu để chấm điểm.</div>';
+	}
+
+	function bindVerifyPanel(lead) {
+		var host = byId('mk-ld-ui-verify');
+		if (!host || host.getAttribute('data-bound') === '1') {
+			// Re-bind after re-render: clear flag each render
+		}
+		host.setAttribute('data-bound', '1');
+		host.onchange = function (e) {
+			var t = e.target;
+			if (t && t.getAttribute && t.getAttribute('data-mk-verify')) {
+				syncVerifyC45Visibility(host);
+				setVerifyMsg(host, '', '');
+			}
+		};
+		host.onclick = function (e) {
+			var btn = e.target && e.target.closest ? e.target.closest('[data-mk-verify-action]') : null;
+			if (!btn) return;
+			e.preventDefault();
+			var action = btn.getAttribute('data-mk-verify-action');
+			var payload = readVerifyPayload(host);
+			if (!payload.c1 || !payload.c2 || !payload.c3) {
+				setVerifyMsg(host, 'Vui lòng chọn đủ C1, C2, C3.', '');
+				return;
+			}
+			if (action === 'preview') {
+				setVerifyMsg(host, '', '');
+				if (typeof app === 'undefined' || !app.request) {
+					setVerifyMsg(host, 'API không sẵn sàng.', '');
+					return;
+				}
+				btn.disabled = true;
+				app.request
+					.post({
+						data: {
+							module: 'Leads',
+							action: 'ModernApi',
+							mode: 'sales_verify_preview',
+							payload: JSON.stringify(payload),
+						},
+					})
+					.then(function (err, res) {
+						btn.disabled = false;
+						if (err || !res || !res.result) {
+							setVerifyMsg(host, (err && err.message) || (res && res.error) || 'Không tính được kết luận.', '');
+							return;
+						}
+						paintVerifyPreview(host, res.result);
+					});
+				return;
+			}
+			if (action === 'save') {
+				setVerifyMsg(host, '', '');
+				if (typeof app === 'undefined' || !app.request) {
+					setVerifyMsg(host, 'API không sẵn sàng.', '');
+					return;
+				}
+				var recordId = lead.crmid || lead.id;
+				btn.disabled = true;
+				app.request
+					.post({
+						data: {
+							module: 'Leads',
+							action: 'ModernApi',
+							mode: 'sales_verify_save',
+							id: recordId,
+							payload: JSON.stringify(payload),
+						},
+					})
+					.then(function (err, res) {
+						btn.disabled = false;
+						if (err || !res || !res.success) {
+							setVerifyMsg(
+								host,
+								(err && (err.message || err)) || (res && res.error) || 'Lưu xác minh thất bại.',
+								''
+							);
+							return;
+						}
+						var fresh = res.lead || lead;
+						if (window.LeadsLocalStore && typeof window.LeadsLocalStore.importLead === 'function') {
+							window.LeadsLocalStore.importLead(fresh);
+						}
+						setVerifyMsg(host, '', 'Đã lưu kết quả xác minh.');
+						render(storeLeadToDemo(fresh));
+					});
+			}
+		};
+	}
+
 	function renderDetailFields(lead) {
 		var host = byId('mk-ld-ui-detail-fields');
 		if (!host) return;
@@ -1084,10 +1403,36 @@
 			nextActionHtml +
 			(lead.notes ? detailField('Ghi chú', esc(lead.notes), true) : '');
 
+		var screenFields = '';
+		if (lead.screening_label || lead.screening_result) {
+			screenFields += detailField(
+				'Sàng lọc (Form)',
+				esc(lead.screening_label || lead.screening_result || '—')
+			);
+		}
+		if (lead.eligibility_label) {
+			screenFields += detailField('Điều kiện (Sales)', esc(lead.eligibility_label));
+		}
+		if (lead.potential_label) {
+			screenFields += detailField('Mức tiềm năng', esc(lead.potential_label));
+		}
+		if (lead.verify_score != null) {
+			screenFields += detailField('Điểm Bộ B', esc(String(lead.verify_score)));
+		}
+		var qa = lead.qa_raw;
+		if (qa && typeof qa === 'object' && !Array.isArray(qa)) {
+			Object.keys(qa).forEach(function (q) {
+				var ans = String(qa[q] == null ? '' : qa[q]).trim();
+				if (!ans) return;
+				screenFields += detailField(q, esc(ans), true);
+			});
+		}
+
 		host.innerHTML =
 			detailSection('Thông tin liên hệ', contactFields) +
 			detailSection('Phân loại', classifyFields) +
 			(addressFields ? detailSection('Địa chỉ', addressFields) : '') +
+			(screenFields ? detailSection('Sàng lọc & câu trả lời Form', screenFields) : '') +
 			detailSection('Quản lý', manageFields);
 	}
 
@@ -1111,6 +1456,23 @@
 		if (lead.address) rows += kvRow('Địa chỉ', esc(lead.address));
 		else if (lead.area && !lead.district) rows += kvRow('Khu vực / Địa chỉ', esc(lead.area));
 		rows += kvRow('Nguồn', esc(lead.leadsource));
+		if (lead.screening_label || lead.screening_result) {
+			rows += kvRow('Sàng lọc (Form)', esc(lead.screening_label || lead.screening_result));
+		}
+		if (lead.eligibility_label) {
+			rows += kvRow('Điều kiện (Sales)', esc(lead.eligibility_label));
+		}
+		if (lead.potential_label) {
+			rows += kvRow('Mức tiềm năng', esc(lead.potential_label));
+		}
+		var qa = lead.qa_raw;
+		if (qa && typeof qa === 'object' && !Array.isArray(qa)) {
+			Object.keys(qa).forEach(function (q) {
+				var ans = String(qa[q] == null ? '' : qa[q]).trim();
+				if (!ans) return;
+				rows += kvRow(q, esc(ans));
+			});
+		}
 		rows += kvRow('Ngày dự kiến', esc(lead.closeDate || '—'));
 		rows += kvRow('Phụ trách', '<a href="javascript:void(0)">' + esc(lead.owner) + '</a>');
 		rows += kvRow('Giá trị', esc(formatVnd(lead.value)));
@@ -2373,6 +2735,7 @@
 		}
 		renderHeroMeta(lead);
 		renderKeyFields(lead);
+		renderVerifyPanel(lead);
 		renderDetailFields(lead);
 		renderTags(lead);
 		renderActivityLog(lead);

@@ -257,15 +257,50 @@ class Leads_SheetImportService {
 	}
 
 	public static function defaultColumnMap() {
-		// Matches common form headers (EN keys on test sheet + VI labels).
 		return array(
 			'name' => 'name',
 			'phone' => 'phone',
 			'email' => 'email',
 			'address' => 'address',
-			'screening' => 'screening',
-			'qa' => array('qa_1', 'qa_2', 'qa_3'),
+			'q1' => '',
+			'q2' => '',
+			'q3' => '',
+			'region' => '',
+			'screening' => '',
 		);
+	}
+
+	/**
+	 * Folded header names treated as core/meta (không đưa vào qa_raw).
+	 * @param array $colMap
+	 * @return array folded => true
+	 */
+	protected static function coreHeaderFoldSet(array $colMap) {
+		$core = array(
+			'name' => true,
+			'phone' => true,
+			'email' => true,
+			'address' => true,
+			'screening' => true,
+			'timestamp' => true,
+			'thoi gian' => true,
+			'submitted at' => true,
+			'submission time' => true,
+			'stt' => true,
+			'row id' => true,
+		);
+		$fields = array('name', 'phone', 'email', 'address', 'screening', 'q1', 'q2', 'q3', 'region');
+		foreach ($fields as $field) {
+			if (!empty($colMap[$field]) && !is_array($colMap[$field])) {
+				$core[self::fold($colMap[$field])] = true;
+			}
+		}
+		foreach (self::fieldHeaderAliases() as $aliases) {
+			foreach ($aliases as $alias) {
+				$core[self::fold($alias)] = true;
+			}
+		}
+		return $core;
 	}
 
 	/**
@@ -278,7 +313,23 @@ class Leads_SheetImportService {
 			'phone' => array('phone', 'sdt', 'so dt', 'so dien thoai', 'mobile', 'dien thoai', 'tel', 'telephone', 'phone number'),
 			'email' => array('email', 'e mail', 'mail'),
 			'address' => array('address', 'dia chi', 'diachi', 'addr'),
-			'screening' => array('screening', 'ket qua', 'result', 'trang thai', 'status', 'ket qua loc'),
+			'q1' => array(
+				'cau 1', 'cau1', 'q1',
+				'hien tai anh chi dang o tinh trang nao',
+				'tinh trang hien tai', 'tinh trang', 'muc dich dang ky',
+			),
+			'q2' => array(
+				'cau 2', 'cau2', 'q2',
+				'mo hinh anh chi du dinh trien khai hoac dang kinh doanh',
+				'mo hinh', 'mo hinh kinh doanh',
+			),
+			'q3' => array(
+				'cau 3', 'cau3', 'q3',
+				'ngan sach toi da anh chi co the dau tu',
+				'ngan sach', 'ngan sach toi da',
+			),
+			'region' => array('khu vuc', 'kv', 'region', 'area', 'nhom khu vuc'),
+			'screening' => array('screening', 'ket qua so luoc', 'ket qua', 'result', 'trang thai', 'status', 'ket qua loc'),
 		);
 	}
 
@@ -421,6 +472,13 @@ class Leads_SheetImportService {
 					$errors[] = "Row {$sheetRowNum}: không tạo được lead";
 					continue;
 				}
+				require_once 'modules/Leads/models/SalesVerifyService.php';
+				Leads_SalesVerifyService::seedFormAnswers(
+					$leadId,
+					isset($payload['_form_c1']) ? $payload['_form_c1'] : '',
+					isset($payload['_form_c2']) ? $payload['_form_c2'] : '',
+					isset($payload['_form_c3']) ? $payload['_form_c3'] : ''
+				);
 				self::recordImport($rowKey, $leadId, $assoc);
 				$imported++;
 			} catch (Exception $ex) {
@@ -500,60 +558,58 @@ class Leads_SheetImportService {
 	public static function mapRowToLeadPayload(array $assoc, array $colMap, $rowKey) {
 		$name = self::getMappedCell($assoc, $colMap, 'name');
 		$phone = preg_replace('/\D+/', '', self::getMappedCell($assoc, $colMap, 'phone'));
-		// Sheet often strips leading 0 from phone number cells
 		if (strlen($phone) === 9 && preg_match('/^[3-9]/', $phone)) {
 			$phone = '0' . $phone;
 		}
 		if (strlen($phone) > 11) {
-			// keep last 10 VN-style mobile
 			$phone = substr($phone, -10);
 		}
 		$email = self::getMappedCell($assoc, $colMap, 'email');
 		$address = self::getMappedCell($assoc, $colMap, 'address');
-		$screeningRaw = self::getMappedCell($assoc, $colMap, 'screening');
-		$screening = self::normalizeScreeningResult($screeningRaw);
+		$q1Raw = self::getMappedCell($assoc, $colMap, 'q1');
+		$q2Raw = self::getMappedCell($assoc, $colMap, 'q2');
+		$q3Raw = self::getMappedCell($assoc, $colMap, 'q3');
+		$c1 = self::parseFormQ1($q1Raw);
+		$c2 = self::parseFormQ2($q2Raw);
+		$c3 = self::parseFormQ3($q3Raw);
+		$screening = self::computeSoLuocResult($c1, $c2, $c3);
+		if ($screening === '') {
+			$screening = self::normalizeScreeningResult(self::getMappedCell($assoc, $colMap, 'screening'));
+		}
+
+		require_once 'modules/Vtiger/helpers/BusinessModelHelper.php';
+		$businessModel = Vtiger_BusinessModel_Helper::fromFormAnswer($q2Raw !== '' ? $q2Raw : $c2);
+
+		$regionRaw = self::getMappedCell($assoc, $colMap, 'region');
+		$district = self::parseRegionDistrict($regionRaw);
 
 		$qa = array();
-		$qaHeaders = array();
-		if (!empty($colMap['qa']) && is_array($colMap['qa'])) {
-			foreach ($colMap['qa'] as $qHeader) {
-				$qHeader = trim((string) $qHeader);
-				if ($qHeader !== '') {
-					$qaHeaders[] = $qHeader;
-				}
+		$coreFold = self::coreHeaderFoldSet($colMap);
+		foreach ($assoc as $header => $val) {
+			$val = trim((string) $val);
+			if ($val === '') {
+				continue;
 			}
+			$fk = self::fold($header);
+			if ($fk === '' || isset($coreFold[$fk])) {
+				continue;
+			}
+			$qa[$header] = $val;
 		}
-		// Auto-pick qa_1 / Câu 1 style headers if map empty or incomplete
-		if (empty($qaHeaders)) {
-			foreach (array_keys($assoc) as $k) {
-				$fk = self::fold($k);
-				if (preg_match('/^(qa|cau)\s*[0-9]+$/', $fk) || preg_match('/^cau\s*[0-9]+$/', $fk)) {
-					$qaHeaders[] = $k;
-				}
-			}
-			sort($qaHeaders);
+		if ($q1Raw !== '') {
+			$qa['Câu 1 – Tình trạng'] = $q1Raw;
 		}
-		foreach ($qaHeaders as $qHeader) {
-			$val = '';
-			if (isset($assoc[$qHeader])) {
-				$val = trim((string) $assoc[$qHeader]);
-			} else {
-				$want = self::fold($qHeader);
-				foreach ($assoc as $k => $v) {
-					if (self::fold($k) === $want) {
-						$val = trim((string) $v);
-						break;
-					}
-				}
-			}
-			$qa[$qHeader] = $val;
+		if ($q2Raw !== '') {
+			$qa['Câu 2 – Mô hình'] = $q2Raw;
+		}
+		if ($q3Raw !== '') {
+			$qa['Câu 3 – Ngân sách'] = $q3Raw;
 		}
 
 		$tags = array();
-		if ($screening === 'tiem_nang') {
-			$tags[] = 'tiem_nang';
-		} elseif ($screening === 'sieu_tiem_nang') {
-			$tags[] = 'sieu_tiem_nang';
+		$cust = self::customerTagFromQ1($c1);
+		if ($cust !== '') {
+			$tags[] = $cust;
 		}
 
 		return array(
@@ -561,69 +617,245 @@ class Leads_SheetImportService {
 			'phone' => $phone,
 			'email' => $email,
 			'address' => $address,
+			'district' => $district,
+			'business_model' => $businessModel,
 			'tags' => $tags,
 			'screening_result' => $screening,
 			'sheet_source' => 1,
 			'sheet_row_key' => $rowKey,
 			'qa_raw' => $qa,
-			// Prefer not auto-link source tag unless configured — keep empty
+			'_form_c1' => $c1,
+			'_form_c2' => $c2,
+			'_form_c3' => $c3,
 		);
 	}
 
+	/** @return string A|B|C|D|'' */
+	public static function parseFormQ1($raw) {
+		$code = self::parseLeadingLetter($raw, 'ABCD');
+		if ($code !== '') {
+			return $code;
+		}
+		$f = self::fold($raw);
+		if ($f === '') {
+			return '';
+		}
+		if (strpos($f, 'gia dinh') !== false || strpos($f, 'so thich') !== false || strpos($f, 'hoc de biet') !== false) {
+			return 'D';
+		}
+		if (strpos($f, 'gap van de') !== false || strpos($f, 'cai thien') !== false) {
+			return 'C';
+		}
+		if (strpos($f, 'da co quan') !== false || strpos($f, 'cap nhat') !== false) {
+			return 'B';
+		}
+		if (strpos($f, 'chuan bi mo') !== false || strpos($f, 'mo quan') !== false) {
+			return 'A';
+		}
+		return '';
+	}
+
+	/** @return string A–G|'' */
+	public static function parseFormQ2($raw) {
+		$code = self::parseLeadingLetter($raw, 'ABCDEFG');
+		if ($code !== '') {
+			return $code;
+		}
+		$f = self::fold($raw);
+		if ($f === '') {
+			return '';
+		}
+		if (strpos($f, 'gia dinh') !== false || strpos($f, 'so thich') !== false) {
+			return 'G';
+		}
+		if (strpos($f, 'xe day') !== false) {
+			return 'A';
+		}
+		if (strpos($f, 'topping') !== false) {
+			return 'B';
+		}
+		if (strpos($f, 'pha may') !== false) {
+			return 'C';
+		}
+		if (strpos($f, 'san vuon') !== false) {
+			return 'E';
+		}
+		if (strpos($f, 'khong gian mo') !== false) {
+			return 'F';
+		}
+		if (strpos($f, 'may lanh') !== false || strpos($f, 'ca phe may') !== false) {
+			return 'D';
+		}
+		return '';
+	}
+
+	/** @return string A–E|'' */
+	public static function parseFormQ3($raw) {
+		$code = self::parseLeadingLetter($raw, 'ABCDE');
+		if ($code !== '') {
+			return $code;
+		}
+		$f = self::fold($raw);
+		if ($f === '') {
+			return '';
+		}
+		if (strpos($f, 'duoi 50') !== false || preg_match('/\b< ?50\b/', $f) || $f === 'a') {
+			return 'A';
+		}
+		if (strpos($f, '500') !== false && (strpos($f, 'tro len') !== false || strpos($f, 'tro len') !== false || strpos($f, 'tu 500') !== false)) {
+			return 'E';
+		}
+		if (strpos($f, '300') !== false && strpos($f, '500') !== false) {
+			return 'D';
+		}
+		if (strpos($f, '100') !== false && strpos($f, '300') !== false) {
+			return 'C';
+		}
+		if ((strpos($f, '50') !== false && strpos($f, '100') !== false) || strpos($f, '50 100') !== false) {
+			return 'B';
+		}
+		if (strpos($f, 'tu 500') !== false || strpos($f, 'tren 500') !== false) {
+			return 'E';
+		}
+		return '';
+	}
+
+	protected static function parseLeadingLetter($raw, $allowed) {
+		$v = trim((string) $raw);
+		if ($v === '') {
+			return '';
+		}
+		if (preg_match('/^([A-Ga-g])(?:\s|$|[.\-–—:).])/u', $v, $m)) {
+			$c = strtoupper($m[1]);
+			if (strpos($allowed, $c) !== false) {
+				return $c;
+			}
+		}
+		return '';
+	}
+
 	/**
-	 * Canonical: khong_dat | tiem_nang | sieu_tiem_nang | ''
+	 * Bộ A – 6 rule, dừng khi khớp.
+	 * @return string so_luoc_du_dk|can_xm_muc_dich|can_xm_mo_hinh|so_luoc_khong_dk|''
+	 */
+	public static function computeSoLuocResult($c1, $c2, $c3) {
+		$c1 = strtoupper(trim((string) $c1));
+		$c2 = strtoupper(trim((string) $c2));
+		$c3 = strtoupper(trim((string) $c3));
+		if ($c1 === '' && $c2 === '' && $c3 === '') {
+			return '';
+		}
+		$family = ($c1 === 'D' || $c2 === 'G');
+		$highBudget = in_array($c3, array('C', 'D', 'E'), true);
+		if ($family && $highBudget) {
+			return 'can_xm_muc_dich';
+		}
+		if ($family) {
+			return 'so_luoc_khong_dk';
+		}
+		if ($c3 === 'A') {
+			return 'so_luoc_khong_dk';
+		}
+		if ($c2 === 'A' && $c3 === 'B') {
+			return 'so_luoc_khong_dk';
+		}
+		if ($c2 === 'A' && $highBudget) {
+			return 'can_xm_mo_hinh';
+		}
+		if ($c1 !== '' && $c2 !== '' && $c3 !== '') {
+			return 'so_luoc_du_dk';
+		}
+		return '';
+	}
+
+	public static function customerTagFromQ1($c1) {
+		$c1 = strtoupper(trim((string) $c1));
+		if ($c1 === 'A') {
+			return 'chuan_bi_mo';
+		}
+		if ($c1 === 'B' || $c1 === 'C') {
+			return 'co_quan';
+		}
+		if ($c1 === 'D') {
+			return 'gia_dinh';
+		}
+		return '';
+	}
+
+	/** Map "Khu vực 1/2/3" → district field already used by applyRegionTags. */
+	public static function parseRegionDistrict($raw) {
+		$v = trim((string) $raw);
+		if ($v === '') {
+			return '';
+		}
+		if (preg_match('/khu\s*v[uư]c\s*([123])/iu', $v, $m) || preg_match('/\bkv\s*([123])\b/i', $v, $m) || preg_match('/^([123])$/', $v, $m)) {
+			return 'Khu vực ' . $m[1];
+		}
+		return '';
+	}
+
+	/**
+	 * Canonical screening codes (Bộ A + legacy).
 	 */
 	public static function normalizeScreeningResult($raw) {
 		$f = self::fold($raw);
 		if ($f === '') {
 			return '';
 		}
-		// Không đạt
+		if (strpos($f, 'xac minh muc dich') !== false || $f === 'can_xm_muc_dich' || $f === 'xm muc dich') {
+			return 'can_xm_muc_dich';
+		}
+		if (strpos($f, 'xac minh mo hinh') !== false || $f === 'can_xm_mo_hinh') {
+			return 'can_xm_mo_hinh';
+		}
+		if (strpos($f, 'so luoc khong') !== false || strpos($f, 'so luoc khong du') !== false) {
+			return 'so_luoc_khong_dk';
+		}
+		if (strpos($f, 'so luoc du') !== false) {
+			return 'so_luoc_du_dk';
+		}
 		if (
 			strpos($f, 'khong dat') !== false
-			|| strpos($f, 'khong du') !== false
+			|| strpos($f, 'khong du dieu kien') !== false
 			|| $f === 'khongdat'
 			|| $f === 'fail'
 			|| $f === 'failed'
+			|| $f === 'so_luoc_khong_dk'
 		) {
-			return 'khong_dat';
+			return 'so_luoc_khong_dk';
 		}
-		// Siêu tiềm năng (check before tiem_nang)
 		if (
 			strpos($f, 'sieu tiem') !== false
 			|| strpos($f, 'sieutiem') !== false
-			|| strpos($f, 'super') !== false
 			|| $f === 'sieu_tiem_nang'
 		) {
 			return 'sieu_tiem_nang';
 		}
-		// Tiềm năng / đủ điều kiện (test form language)
 		if (
 			strpos($f, 'tiem nang') !== false
 			|| $f === 'tiemnang'
 			|| $f === 'tiem_nang'
 			|| $f === 'potential'
-			|| strpos($f, 'du dieu kien') !== false
-			|| $f === 'pass'
-			|| $f === 'ok'
-			|| $f === 'eligible'
 		) {
 			return 'tiem_nang';
+		}
+		if (strpos($f, 'du dieu kien') !== false || $f === 'pass' || $f === 'ok' || $f === 'eligible') {
+			return 'so_luoc_du_dk';
 		}
 		return '';
 	}
 
 	public static function screeningLabel($code) {
-		if ($code === 'khong_dat') {
-			return 'Không đạt';
-		}
-		if ($code === 'tiem_nang') {
-			return 'Tiềm năng';
-		}
-		if ($code === 'sieu_tiem_nang') {
-			return 'Siêu tiềm năng';
-		}
-		return '';
+		$map = array(
+			'so_luoc_du_dk' => 'Sơ lược đủ điều kiện',
+			'can_xm_muc_dich' => 'Cần xác minh mục đích',
+			'can_xm_mo_hinh' => 'Cần xác minh mô hình',
+			'so_luoc_khong_dk' => 'Sơ lược không đủ điều kiện',
+			'khong_dat' => 'Không đạt',
+			'tiem_nang' => 'Tiềm năng',
+			'sieu_tiem_nang' => 'Siêu tiềm năng',
+		);
+		return isset($map[$code]) ? $map[$code] : '';
 	}
 
 	/** Fold Vietnamese + lowercase for fuzzy header/result match */
