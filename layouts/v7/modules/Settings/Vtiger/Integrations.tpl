@@ -119,6 +119,11 @@
 								<input type="text" readonly value="{$CONN.extra.callback_url|escape:'html'}" onclick="this.select();" title="{vtranslate('LBL_NK_INTEG_ZALO_CALLBACK_HINT', $QUALIFIED_MODULE)}" />
 								<em class="nk-integ-field__hint">{vtranslate('LBL_NK_INTEG_ZALO_CALLBACK_HINT', $QUALIFIED_MODULE)}</em>
 							</label>
+							<label class="nk-integ-field nk-integ-field--wide nk-integ-zalo-callback">
+								<span>{vtranslate('LBL_NK_INTEG_ZALO_WEBHOOK', $QUALIFIED_MODULE)}</span>
+								<input type="text" readonly value="{$CONN.extra.webhook_url|escape:'html'}" onclick="this.select();" title="{vtranslate('LBL_NK_INTEG_ZALO_WEBHOOK_HINT', $QUALIFIED_MODULE)}" />
+								<em class="nk-integ-field__hint">{vtranslate('LBL_NK_INTEG_ZALO_WEBHOOK_HINT', $QUALIFIED_MODULE)}</em>
+							</label>
 						</div>
 					{else}
 						<div class="nk-integ-fields nk-integ-fields--2col">

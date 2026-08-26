@@ -31,7 +31,7 @@ class NkApi_ZaloOa_Adapter extends NkApi_Adapter {
 	}
 
 	public function hint() {
-		return 'Nhập App ID, Secret Key, OA ID từ Zalo Developers. Lấy Refresh Token qua “Kết nối Zalo OA” (OAuth) hoặc dán thủ công. Access token tự gia hạn từ refresh token.';
+		return 'Nhập App ID, Secret Key, OA ID từ Zalo Developers. Lấy Refresh Token qua “Kết nối Zalo OA” (OAuth) hoặc dán thủ công. Access token tự gia hạn từ refresh token. Webhook script OA sẽ đẩy dữ liệu trực tiếp vào Leads.';
 	}
 
 	public function icon() {
@@ -87,6 +87,7 @@ class NkApi_ZaloOa_Adapter extends NkApi_Adapter {
 				'access_token_configured' => $hasAccess,
 				'expires_at' => $expiresAt,
 				'callback_url' => self::callbackUrl(),
+				'webhook_url' => self::webhookUrl(),
 			),
 			'hint' => $this->hint(),
 		);
@@ -334,6 +335,12 @@ class NkApi_ZaloOa_Adapter extends NkApi_Adapter {
 		global $site_URL;
 		$base = rtrim((string) $site_URL, '/');
 		return $base . '/index.php?module=Vtiger&parent=Settings&action=ZaloOaOAuth&mode=callback';
+	}
+
+	public static function webhookUrl() {
+		global $site_URL;
+		$base = rtrim((string) $site_URL, '/');
+		return $base . '/index.php?module=Leads&action=ZaloOaWebhook';
 	}
 
 	protected function hasCredentials($row) {
