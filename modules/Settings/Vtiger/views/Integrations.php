@@ -29,7 +29,7 @@ class Settings_Vtiger_Integrations_View extends Settings_Vtiger_Index_View {
 			'~layouts/v7/modules/Settings/Vtiger/resources/Integrations.js',
 		);
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
-		self::appendAssetCacheVer($jsScriptInstances, 'src', '20260818_integ_ui5');
+		self::appendAssetCacheVer($jsScriptInstances, 'src', '20260826_zalo_oa1');
 		return array_merge($headerScriptInstances, $jsScriptInstances);
 	}
 
@@ -39,7 +39,7 @@ class Settings_Vtiger_Integrations_View extends Settings_Vtiger_Index_View {
 			'~layouts/v7/modules/Settings/Vtiger/resources/Integrations.css',
 		);
 		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
-		self::appendAssetCacheVer($cssInstances, 'href', '20260818_integ_ui5');
+		self::appendAssetCacheVer($cssInstances, 'href', '20260826_zalo_oa1');
 		return array_merge($headerCssInstances, $cssInstances);
 	}
 }

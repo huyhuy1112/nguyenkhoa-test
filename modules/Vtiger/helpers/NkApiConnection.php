@@ -12,6 +12,7 @@ require_once 'modules/Vtiger/helpers/NkApi/Adapter.php';
 require_once 'modules/Vtiger/helpers/NkApi/MisaAdapter.php';
 require_once 'modules/Vtiger/helpers/NkApi/GoogleSheetAdapter.php';
 require_once 'modules/Vtiger/helpers/NkApi/EcommerceAdapter.php';
+require_once 'modules/Vtiger/helpers/NkApi/ZaloOaAdapter.php';
 require_once 'modules/Vtiger/helpers/NkApi/GenericAdapter.php';
 
 class NkApiConnection {
@@ -214,6 +215,7 @@ class NkApiConnection {
 			'misa' => 'NkApi_Misa_Adapter',
 			'google_sheet' => 'NkApi_GoogleSheet_Adapter',
 			'ecommerce' => 'NkApi_Ecommerce_Adapter',
+			'zalo_oa' => 'NkApi_ZaloOa_Adapter',
 		);
 		if (!isset($map[$code]) || !class_exists($map[$code])) {
 			$generic = self::genericAdapterMeta($code);
@@ -349,10 +351,10 @@ class NkApiConnection {
 				'label' => 'Zalo OA',
 				'subtitle' => 'Zalo Official Account',
 				'icon' => 'zalo_oa',
-				'use_adapter' => false,
+				'use_adapter' => true,
 				'hub_status' => 'warning',
 				'sync_hint' => '1 giờ trước',
-				'admin_hint' => 'Nhập App ID, Secret và OA ID. Token OAuth cần gia hạn định kỳ.',
+				'admin_hint' => 'Nhập App ID, Secret Key, OA ID. Kết nối OAuth để lấy Refresh Token — hệ thống tự gia hạn access token.',
 			),
 			'edubit' => array(
 				'label' => 'Edubit',

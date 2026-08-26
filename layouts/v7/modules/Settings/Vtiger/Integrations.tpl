@@ -71,6 +71,55 @@
 								</label>
 							</div>
 						</details>
+					{elseif $CONN.code eq 'zalo_oa'}
+						<div class="nk-integ-fields nk-integ-fields--2col nk-integ-fields--zalo">
+							<label class="nk-integ-field">
+								<span>{vtranslate('LBL_NK_INTEG_ZALO_APP_ID', $QUALIFIED_MODULE)}</span>
+								<input type="text" name="app_id" value="{$CONN.extra.app_id|escape:'html'}" placeholder="1952002764330598589" autocomplete="off" inputmode="numeric" />
+							</label>
+							<label class="nk-integ-field">
+								<span>{vtranslate('LBL_NK_INTEG_ZALO_OA_ID', $QUALIFIED_MODULE)}</span>
+								<input type="text" name="oa_id" value="{$CONN.extra.oa_id|escape:'html'}" placeholder="{vtranslate('LBL_NK_INTEG_ZALO_OA_ID_HINT', $QUALIFIED_MODULE)}" autocomplete="off" />
+							</label>
+							<label class="nk-integ-field nk-integ-field--wide">
+								<span>{vtranslate('LBL_NK_INTEG_ZALO_SECRET', $QUALIFIED_MODULE)}</span>
+								<input type="password" name="secret_key" value="" placeholder="{vtranslate('LBL_NK_INTEG_SECRET_PLACEHOLDER', $QUALIFIED_MODULE)}" autocomplete="new-password" />
+								{if $CONN.extra.secret_configured}
+									<em class="nk-integ-field__hint" data-role="zalo-secret-chip">{vtranslate('LBL_NK_INTEG_CONFIGURED', $QUALIFIED_MODULE)}</em>
+								{/if}
+							</label>
+							<label class="nk-integ-field nk-integ-field--wide">
+								<span>{vtranslate('LBL_NK_INTEG_ZALO_REFRESH', $QUALIFIED_MODULE)}</span>
+								<input type="password" name="refresh_token" value="" placeholder="{vtranslate('LBL_NK_INTEG_ZALO_REFRESH_PLACEHOLDER', $QUALIFIED_MODULE)}" autocomplete="new-password" />
+								{if $CONN.extra.refresh_token_configured}
+									<em class="nk-integ-field__hint" data-role="zalo-refresh-chip">{vtranslate('LBL_NK_INTEG_CONFIGURED', $QUALIFIED_MODULE)}</em>
+								{/if}
+							</label>
+						</div>
+
+						<div class="nk-integ-zalo-meta">
+							{if $CONN.extra.oa_name}
+								<div class="nk-integ-chip" data-role="zalo-oa-chip">
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+									<span data-role="zalo-oa-name">{$CONN.extra.oa_name|escape:'html'}</span>
+								</div>
+							{else}
+								<div class="nk-integ-chip nk-integ-chip--muted" data-role="zalo-oa-chip" hidden>
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+									<span data-role="zalo-oa-name"></span>
+								</div>
+							{/if}
+							{if $CONN.extra.expires_at}
+								<p class="nk-integ-zalo-expiry" data-role="zalo-expiry">{vtranslate('LBL_NK_INTEG_ZALO_EXPIRES', $QUALIFIED_MODULE)}: {$CONN.extra.expires_at|escape:'html'}</p>
+							{else}
+								<p class="nk-integ-zalo-expiry" data-role="zalo-expiry" hidden></p>
+							{/if}
+							<label class="nk-integ-field nk-integ-field--wide nk-integ-zalo-callback">
+								<span>{vtranslate('LBL_NK_INTEG_ZALO_CALLBACK', $QUALIFIED_MODULE)}</span>
+								<input type="text" readonly value="{$CONN.extra.callback_url|escape:'html'}" onclick="this.select();" title="{vtranslate('LBL_NK_INTEG_ZALO_CALLBACK_HINT', $QUALIFIED_MODULE)}" />
+								<em class="nk-integ-field__hint">{vtranslate('LBL_NK_INTEG_ZALO_CALLBACK_HINT', $QUALIFIED_MODULE)}</em>
+							</label>
+						</div>
 					{else}
 						<div class="nk-integ-fields nk-integ-fields--2col">
 							<label class="nk-integ-field nk-integ-field--wide">
@@ -109,6 +158,11 @@
 					<div class="nk-integ-msg" data-role="message" hidden></div>
 
 					<footer class="nk-integ-actions">
+						{if $CONN.code eq 'zalo_oa'}
+							<button type="button" class="mk-settings-btn mk-settings-btn--zalo nk-integ-zalo-oauth" data-code="zalo_oa">
+								<span class="nk-integ-btn__label">{vtranslate('LBL_NK_INTEG_ZALO_CONNECT', $QUALIFIED_MODULE)}</span>
+							</button>
+						{/if}
 						<button type="button" class="mk-settings-btn mk-settings-btn--outline nk-integ-test" data-code="{$CONN.code|escape:'html'}">
 							<span class="nk-integ-btn__label">{vtranslate('LBL_NK_INTEG_TEST', $QUALIFIED_MODULE)}</span>
 						</button>

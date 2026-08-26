@@ -621,3 +621,54 @@ html.mk-theme-dark body[data-parent="Settings"] .nk-integ-advanced {
 	background: rgba(255, 255, 255, 0.03);
 	border-color: rgba(255, 255, 255, 0.08);
 }
+
+/* Zalo OA connection card */
+body[data-parent="Settings"] .nk-integ-card--zalo_oa .nk-integ-callout {
+	border-color: rgba(0, 104, 255, 0.22);
+	background: linear-gradient(180deg, rgba(0, 104, 255, 0.08), rgba(0, 104, 255, 0.03));
+}
+
+body[data-parent="Settings"] .nk-integ-zalo-meta {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin: 4px 0 14px;
+}
+
+body[data-parent="Settings"] .nk-integ-zalo-expiry {
+	margin: 0;
+	font-size: 12px;
+	color: var(--mk-settings-muted, rgba(15, 23, 42, 0.58));
+}
+
+body[data-parent="Settings"] .nk-integ-zalo-callback input[readonly] {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-size: 12px;
+	cursor: text;
+	background: rgba(15, 23, 42, 0.03);
+}
+
+body[data-parent="Settings"] .nk-integ-chip--muted {
+	opacity: 0.55;
+}
+
+body[data-parent="Settings"] .mk-settings-btn--zalo {
+	background: #0068ff;
+	border-color: #0052cc;
+	color: #fff;
+}
+
+body[data-parent="Settings"] .mk-settings-btn--zalo:hover {
+	background: #0052cc;
+	color: #fff;
+}
+
+body[data-parent="Settings"] .mk-settings-btn--zalo.is-busy {
+	opacity: 0.7;
+	cursor: wait;
+}
+
+body[data-parent="Settings"] .nk-integ-actions {
+	flex-wrap: wrap;
+	gap: 10px;
+}

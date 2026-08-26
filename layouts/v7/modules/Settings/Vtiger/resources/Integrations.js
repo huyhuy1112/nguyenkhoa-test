@@ -28,7 +28,91 @@ Vtiger.Class("Settings_Vtiger_Integrations_Js", {}, {
 			var form = root.find('.nk-integ-form[data-code="' + code + '"]');
 			self.testConnection(form, btn);
 		});
+		root.on("click", ".nk-integ-zalo-oauth", function (e) {
+			e.preventDefault();
+			var btn = jQuery(this);
+			if (btn.hasClass("is-busy")) {
+				return;
+			}
+			var form = root.find('.nk-integ-form[data-code="zalo_oa"]');
+			self.startZaloOAuth(form, btn);
+		});
 		self.scrollToHashTarget(root);
+		self.showZaloOAuthFlash(root);
+	},
+
+	showZaloOAuthFlash: function (root) {
+		try {
+			var params = new URLSearchParams(window.location.search || "");
+			var ok = params.get("zalo_oauth");
+			if (ok === null || ok === "") {
+				return;
+			}
+			var form = root.find('.nk-integ-form[data-code="zalo_oa"]');
+			if (!form.length) {
+				return;
+			}
+			if (ok === "1") {
+				var msgOk = "Đã kết nối Zalo OA — token đã lưu. Bấm Test để xác nhận.";
+				this.showMessage(form, msgOk, false);
+				this.notify(msgOk, false);
+			} else {
+				var err = params.get("zalo_err") || "Kết nối Zalo OA thất bại.";
+				try {
+					err = decodeURIComponent(err);
+				} catch (e0) {
+					/* ignore */
+				}
+				this.showMessage(form, err, true);
+				this.notify(err, true);
+			}
+			if (window.history && window.history.replaceState) {
+				window.history.replaceState({}, document.title, window.location.pathname + window.location.search.replace(/([?&])zalo_oauth=[^&]*/g, "").replace(/[?&]zalo_err=[^&]*/g, "").replace(/[?&]$/, "") + (window.location.hash || "#code=zalo_oa"));
+			}
+		} catch (e) {
+			/* ignore */
+		}
+	},
+
+	startZaloOAuth: function (form, btn) {
+		var self = this;
+		var payload;
+		try {
+			payload = this.collectPayload(form);
+		} catch (err) {
+			this.showMessage(form, err.message, true);
+			this.notify(err.message, true);
+			return;
+		}
+		if (!String(payload.app_id || "").trim()) {
+			var m1 = "Nhập App ID trước khi kết nối Zalo OA.";
+			this.showMessage(form, m1, true);
+			this.notify(m1, true);
+			return;
+		}
+		if (!String(payload.secret_key || "").trim() && !form.find("[data-role=zalo-secret-chip]").length) {
+			var m2 = "Nhập Secret Key (lần đầu) trước khi kết nối OAuth.";
+			this.showMessage(form, m2, true);
+			this.notify(m2, true);
+			return;
+		}
+		this.setBusy(btn, true);
+		this.post("zaloOAuthStart", "zalo_oa", payload).then(function (err, data) {
+			self.setBusy(btn, false);
+			if (err) {
+				var msg = (err && err.message) || "Không mở được OAuth Zalo.";
+				self.showMessage(form, msg, true);
+				self.notify(msg, true);
+				return;
+			}
+			self.applyConnection(form, data && data.connection);
+			var url = data && data.authorize_url;
+			if (!url) {
+				self.showMessage(form, "Thiếu authorize_url từ server.", true);
+				return;
+			}
+			window.location.href = url;
+		});
 	},
 
 	scrollToHashTarget: function (root) {
@@ -194,6 +278,36 @@ Vtiger.Class("Settings_Vtiger_Integrations_Js", {}, {
 		}
 
 		form.find('input[name="enabled"]').prop("checked", !!conn.enabled);
+
+		if (conn.code === "zalo_oa" && conn.extra) {
+			var ex = conn.extra;
+			if (ex.app_id != null) {
+				form.find('input[name="app_id"]').val(ex.app_id);
+			}
+			if (ex.oa_id != null) {
+				form.find('input[name="oa_id"]').val(ex.oa_id);
+			}
+			var $oaChip = card.find("[data-role=zalo-oa-chip]");
+			var $oaName = card.find("[data-role=zalo-oa-name]");
+			if (ex.oa_name) {
+				$oaName.text(ex.oa_name);
+				$oaChip.removeAttr("hidden").removeClass("nk-integ-chip--muted");
+			}
+			var $exp = card.find("[data-role=zalo-expiry]");
+			if (ex.expires_at) {
+				$exp.text("Hết hạn access token: " + ex.expires_at).removeAttr("hidden");
+			}
+			if (ex.secret_configured && !form.find("[data-role=zalo-secret-chip]").length) {
+				form.find('input[name="secret_key"]').after(
+					'<em class="nk-integ-field__hint" data-role="zalo-secret-chip">đã cấu hình</em>'
+				);
+			}
+			if (ex.refresh_token_configured && !form.find("[data-role=zalo-refresh-chip]").length) {
+				form.find('input[name="refresh_token"]').after(
+					'<em class="nk-integ-field__hint" data-role="zalo-refresh-chip">đã cấu hình</em>'
+				);
+			}
+		}
 	},
 
 	showMessage: function (form, message, isError) {

@@ -11,6 +11,7 @@ class Settings_Vtiger_IntegrationsAjax_Action extends Settings_Vtiger_Basic_Acti
 		parent::__construct();
 		$this->exposeMethod('save');
 		$this->exposeMethod('test');
+		$this->exposeMethod('zaloOAuthStart');
 	}
 
 	public function process(Vtiger_Request $request) {
@@ -63,6 +64,28 @@ class Settings_Vtiger_IntegrationsAjax_Action extends Settings_Vtiger_Basic_Acti
 		$response->emit();
 	}
 
+	public function zaloOAuthStart(Vtiger_Request $request) {
+		$response = new Vtiger_Response();
+		try {
+			NkApiConnection::ensureInstalled();
+			$payload = $this->decodePayload($request);
+			$userId = 0;
+			$currentUser = Users_Record_Model::getCurrentUserModel();
+			if ($currentUser) {
+				$userId = (int) $currentUser->getId();
+			}
+			/** @var NkApi_ZaloOa_Adapter $adapter */
+			$adapter = NkApiConnection::adapter('zalo_oa');
+			$result = $adapter->beginOAuth($payload, $userId);
+			$result['success'] = true;
+			$result['connection'] = $adapter->getConfigForAdmin();
+			$response->setResult($result);
+		} catch (Exception $e) {
+			$response->setError($e->getMessage());
+		}
+		$response->emit();
+	}
+
 	protected function decodePayload(Vtiger_Request $request) {
 		// Prefer raw JSON so SA PEM / secrets are not corrupted by vtlib_purify.
 		$raw = $request->getRaw('payload');
@@ -77,7 +100,12 @@ class Settings_Vtiger_IntegrationsAjax_Action extends Settings_Vtiger_Basic_Acti
 			return $maybe;
 		}
 		$payload = array();
-		foreach (array('enabled', 'base_url', 'api_key', 'username', 'password', 'spreadsheet_id', 'sheet_range', 'service_account_json', 'column_map') as $key) {
+		$keys = array(
+			'enabled', 'base_url', 'api_key', 'username', 'password',
+			'spreadsheet_id', 'sheet_range', 'service_account_json', 'column_map',
+			'app_id', 'oa_id', 'secret_key', 'refresh_token', 'access_token',
+		);
+		foreach ($keys as $key) {
 			$val = $request->getRaw($key);
 			if ($val !== '' && $val !== null) {
 				$payload[$key] = $val;
