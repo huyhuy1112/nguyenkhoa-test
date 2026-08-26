@@ -501,12 +501,12 @@ class Quotes_QuoteBaService_Helper {
 			$request->set('terms_conditions', self::stripSignatureFromTermsHtml($terms));
 		}
 
-		// New quotes: honor save mode (draft on leave / confirm on Lưu).
+		// New quotes / confirm: "Báo giá". Draft only when explicitly requested.
 		$recordId = (int) $request->get('record');
 		$mode = strtolower(trim((string) $request->get('mk_quote_save_mode')));
-		if ($mode === 'confirm') {
+		if ($mode === 'confirm' || ($mode === '' && $recordId <= 0)) {
 			$request->set('quotestage', self::resolveConfirmedQuoteStage());
-		} elseif ($mode === 'draft' || $recordId <= 0) {
+		} elseif ($mode === 'draft') {
 			$request->set('quotestage', self::resolveDraftQuoteStage());
 		}
 

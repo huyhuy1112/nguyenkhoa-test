@@ -19,7 +19,7 @@
 					{else}
 						<h1 class="mk-qt-sticky-head__title">{vtranslate('LBL_CREATING_NEW', $MODULE)} {vtranslate('SINGLE_Quotes', $MODULE)}</h1>
 					{/if}
-					<span class="mk-qt-badge mk-qt-badge--stage" id="mkQtHeadStageBadge">Nháp</span>
+					<span class="mk-qt-badge mk-qt-badge--stage" id="mkQtHeadStageBadge">Báo giá</span>
 				</div>
 				<div class="mk-qt-autosave" id="mkQtAutosave" aria-live="polite">
 					<span class="mk-qt-autosave__dot" aria-hidden="true"></span>
@@ -31,8 +31,9 @@
 				<button type="button" class="mk-qt-btn mk-qt-btn--secondary mk-qt-preview-print-btn" id="mkQtPreviewPrintBtn" title="Xem bản in báo giá">
 					<i class="fa fa-print" aria-hidden="true"></i> In
 				</button>
-				<button type="button" class="mk-qt-btn mk-qt-btn--secondary" id="mkQtSaveSendTop" title="Save the quote first to send by email">
-					Save &amp; Send
+				<button type="button" class="mk-qt-btn mk-qt-btn--confirm-order" id="mkQtSaveSendTop" title="Xác nhận và lưu báo giá">
+					<i class="fa fa-shopping-cart" aria-hidden="true"></i>
+					<span>Xác nhận đơn hàng</span>
 				</button>
 				<button type="button" class="mk-qt-btn mk-qt-btn--primary" id="mkQtSaveTop" data-action="save">
 					{vtranslate('LBL_SAVE', $MODULE)}

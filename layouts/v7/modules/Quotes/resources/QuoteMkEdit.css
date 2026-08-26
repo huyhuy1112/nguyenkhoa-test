@@ -282,6 +282,25 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--s
 	color: var(--mk-qt-ink);
 }
 
+/* Match list panel "Xác nhận đơn hàng" button */
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--confirm-order {
+	gap: 8px;
+	background: #0f766e;
+	border-color: #0d9488;
+	color: #fff;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--confirm-order:hover {
+	background: #0d9488;
+	color: #fff;
+}
+
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--confirm-order:disabled,
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-btn--confirm-order.is-busy {
+	opacity: 0.7;
+	cursor: wait;
+}
+
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #mkQtPreviewPrintBtn.is-disabled,
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] #mkQtPreviewPrintBtn:disabled {
 	opacity: 0.45;

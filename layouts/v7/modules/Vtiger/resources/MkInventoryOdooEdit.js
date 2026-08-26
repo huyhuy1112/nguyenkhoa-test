@@ -2501,13 +2501,14 @@
     if (!$row || !$row.length) {
       return 0;
     }
+    // Prefer visible input (VND dots) over cache — cache may be stale after a bad % clamp.
+    var $inp = $row.find(".mk-inv-discount-custom, .mk-inv-discount-pct").first();
+    if ($inp.length && String($inp.val() || "").trim() !== "") {
+      return Math.max(0, Math.round(parseMoney($inp.val())));
+    }
     var cached = $row.data("mkDiscountAmount");
     if (cached != null && cached !== "") {
-      return Math.max(0, parseMoney(cached));
-    }
-    var $inp = $row.find(".mk-inv-discount-custom, .mk-inv-discount-pct").first();
-    if ($inp.length) {
-      return Math.max(0, parseMoney($inp.val()));
+      return Math.max(0, Math.round(parseMoney(cached)));
     }
     return readLegacyDiscountAmount($row);
   }
@@ -2680,6 +2681,10 @@
 
   function readDiscountFromUiControls($row) {
     if (!$row || !$row.length) {
+      return 0;
+    }
+    // Amount mode: never treat VND (e.g. "150.000") as a percent — that clamps to 100.
+    if (getDiscountMode($row) === "amount") {
       return 0;
     }
     // Typed % in the combo field wins over the hidden preset <select> (which may still be "0").
@@ -2942,6 +2947,15 @@
 
   function getRowDiscountPercent($row) {
     if (!$row || !$row.length) {
+      return 0;
+    }
+    // Amount mode: convert tiền → % of line total (never clamp the VND value itself).
+    if (getDiscountMode($row) === "amount") {
+      var baseAmt = calcLineRowTotal($row);
+      var discAmt = getRowDiscountAmount($row);
+      if (baseAmt > 0 && discAmt > 0) {
+        return clampDiscountPercent((discAmt / baseAmt) * 100);
+      }
       return 0;
     }
     // User changed the dropdown/custom input — trust UI controls first
@@ -6762,8 +6776,12 @@
           $qty.val(String(rawQty));
         }
       }
-      var pct = getRowDiscountPercent($r);
-      applyLineDiscountFields($r, pct);
+      // Preserve amount vs % — never pipe VND amount through clampDiscountPercent (→ 100).
+      if (getDiscountMode($r) === "amount") {
+        applyLineDiscountFields($r, getRowDiscountAmount($r), "amount");
+      } else {
+        applyLineDiscountFields($r, getRowDiscountPercent($r), "percentage");
+      }
       applyLineTaxZero($r, $form);
     });
 
@@ -6966,7 +6984,11 @@
         }
         if ($odooForm.length && $row.length) {
           try {
-            applyLineDiscountFields($row, getRowDiscountPercent($row));
+            if (getDiscountMode($row) === "amount") {
+              applyLineDiscountFields($row, getRowDiscountAmount($row), "amount");
+            } else {
+              applyLineDiscountFields($row, getRowDiscountPercent($row), "percentage");
+            }
           } catch (e) {
             /* ignore */
           }

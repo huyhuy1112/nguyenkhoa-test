@@ -129,6 +129,18 @@
 							</select>
 						</div>
 						<div class="mk-td-field">
+							<label for="mk-td-business-model">Mô hình kinh doanh</label>
+							<select id="mk-td-business-model" class="mk-td-select">
+								<option value="">Chọn mô hình</option>
+								<option value="TS Topping">TS Topping</option>
+								<option value="Xe đẩy">Xe đẩy</option>
+								<option value="Cà phê máy lạnh">Cà phê máy lạnh</option>
+								<option value="Cà phê sân vườn">Cà phê sân vườn</option>
+								<option value="TS Pha máy">TS Pha máy</option>
+								<option value="Cà phê không gian mở">Cà phê không gian mở</option>
+							</select>
+						</div>
+						<div class="mk-td-field mk-td-field--full">
 							<label for="mk-td-address">Địa chỉ</label>
 							<input type="text" id="mk-td-address" class="mk-td-input" placeholder="Số nhà, đường, phường…" autocomplete="street-address" />
 						</div>

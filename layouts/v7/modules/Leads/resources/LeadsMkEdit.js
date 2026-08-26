@@ -783,6 +783,9 @@
     if ($("mk-td-cccd")) $("mk-td-cccd").value = lead.cccd || "";
     if ($("mk-td-email")) $("mk-td-email").value = lead.email || "";
     hydrateDistrictAddress(lead);
+    if ($("mk-td-business-model")) {
+      setSelectValue("mk-td-business-model", lead.business_model || "");
+    }
     if ($("mk-td-notes")) $("mk-td-notes").value = lead.notes || "";
     if ($("mk-td-company-name")) $("mk-td-company-name").value = lead.companyName || "";
     if ($("mk-td-owner") && lead.owner) {
@@ -830,6 +833,7 @@
       email: ($("mk-td-email") && $("mk-td-email").value.trim()) || "",
       segment: state.customerStatus || "",
       district: ($("mk-td-district") && $("mk-td-district").value) || "",
+      business_model: ($("mk-td-business-model") && $("mk-td-business-model").value) || "",
       address: ($("mk-td-address") && $("mk-td-address").value.trim()) || "",
       area: (function () {
         var district = ($("mk-td-district") && $("mk-td-district").value) || "";

@@ -556,7 +556,7 @@
 			.addClass('mk-qt-address-simplified mk-qt-hide-legacy');
 
 		if (!isSalesOrder()) {
-			ensureDraftQuoteStage();
+			ensureConfirmedQuoteStage();
 			layoutQuoteHeaderFields();
 		}
 	}
@@ -1668,7 +1668,7 @@
 		}
 		var $mode = $f.find('input[name="mk_quote_save_mode"]');
 		if (!$mode.length) {
-			$mode = $('<input type="hidden" name="mk_quote_save_mode" value="draft" />');
+			$mode = $('<input type="hidden" name="mk_quote_save_mode" value="confirm" />');
 			$f.append($mode);
 		}
 		var $ajax = $f.find('input[name="mk_quote_ajax"]');
@@ -1681,7 +1681,7 @@
 
 	function setQuoteSaveMode(mode) {
 		var $mode = ensureSaveModeField();
-		$mode.val(mode === 'confirm' ? 'confirm' : 'draft');
+		$mode.val(mode === 'draft' ? 'draft' : 'confirm');
 		$form().find('input[name="mk_quote_ajax"]').val('0');
 	}
 
@@ -1928,7 +1928,7 @@
 		if (isSalesOrder()) {
 			return $.Deferred().reject().promise();
 		}
-		var mode = opts.mode === 'confirm' ? 'confirm' : 'draft';
+		var mode = opts.mode === 'draft' ? 'draft' : 'confirm';
 		if (mode === 'draft' && !opts.force && !quoteCanDraftSave()) {
 			return $.Deferred().reject().promise();
 		}
@@ -2040,36 +2040,12 @@
 	}
 
 	function saveQuoteDraftAjax(opts) {
-		opts = opts || {};
-		if (isSalesOrder() || confirmSaveRequested || draftSaveInFlight) {
-			return $.Deferred().reject().promise();
-		}
-		if (!quoteCanDraftSave()) {
-			return $.Deferred().reject().promise();
-		}
-		draftSaveInFlight = true;
-		return saveQuoteAjax(
-			$.extend({}, opts, {
-				mode: 'draft',
-				silent: true,
-			})
-		)
-			.always(function () {
-				draftSaveInFlight = false;
-			});
+		// Draft autosave disabled: create/save always uses "Báo giá".
+		return $.Deferred().reject().promise();
 	}
 
 	function scheduleDraftAutosave() {
-		if (isSalesOrder() || confirmSaveRequested) {
-			return;
-		}
-		clearTimeout(draftAutosaveTimer);
-		draftAutosaveTimer = setTimeout(function () {
-			if (!formDirty || confirmSaveRequested) {
-				return;
-			}
-			saveQuoteDraftAjax();
-		}, 2500);
+		// no-op — do not create Nháp quotes on leave/idle
 	}
 
 	function buildContactReferenceHtml() {
@@ -2336,7 +2312,10 @@
 		}
 		syncFormBeforeSave();
 		if (!isSalesOrder()) {
-			var mode = confirmSaveRequested ? 'confirm' : 'draft';
+			var mode = 'confirm';
+			confirmSaveRequested = true;
+			setQuoteSaveMode('confirm');
+			ensureConfirmedQuoteStage();
 			var openPrint = $form().find('#mkQtOpenPrint').val() === '1';
 			saveQuoteAjax({
 				mode: mode,
@@ -2590,16 +2569,17 @@
 				}
 				if (recordId && /^\d+$/.test(recordId)) {
 					syncFormBeforeSave();
-					setQuoteSaveMode('draft');
-					ensureDraftQuoteStage();
+					confirmSaveRequested = true;
+					setQuoteSaveMode('confirm');
+					ensureConfirmedQuoteStage();
 					$f.find('#mkQtOpenPrint').val('1');
 					triggerSave();
 					return;
 				}
-				// New quote: save draft first, then return to Edit and open overlay.
-				confirmSaveRequested = false;
-				setQuoteSaveMode('draft');
-				ensureDraftQuoteStage();
+				// New quote: save as Báo giá first, then return to Edit and open overlay.
+				confirmSaveRequested = true;
+				setQuoteSaveMode('confirm');
+				ensureConfirmedQuoteStage();
 				$f.find('#mkQtOpenPrint').val('1');
 				triggerSave();
 			});
@@ -2722,7 +2702,7 @@
 			$('#mkSoRailTotal').text(total || '—');
 			return;
 		}
-		var stage = 'Nháp';
+		var stage = 'Báo giá';
 		var contact = readFieldDisplay('contact_id') || readFieldDisplay('account_id');
 		var opp = readFieldDisplay('potential_id');
 		var total = readGrandTotal();
@@ -2991,8 +2971,8 @@
 	function bindActions() {
 		ensureSaveModeField();
 		if (!isSalesOrder()) {
-			setQuoteSaveMode('draft');
-			ensureDraftQuoteStage();
+			setQuoteSaveMode('confirm');
+			ensureConfirmedQuoteStage();
 			$form()
 				.off('submit.mkQtAjaxSave click.mkQtAjaxSave')
 				.on('submit.mkQtAjaxSave', function (e) {
@@ -3298,7 +3278,7 @@
 		hideLegacyChrome();
 		styleFieldBlocks();
 		simplifyQuoteForm();
-		ensureDraftQuoteStage();
+		ensureConfirmedQuoteStage();
 		reorderQuoteBlocks();
 		initOdooInventoryUi();
 		pinAddProductToLineHeader();

@@ -54,9 +54,10 @@ class Quotes_Save_Action extends Inventory_Save_Action {
 		require_once 'modules/Quotes/helpers/QuoteBaService.php';
 		$mode = strtolower(trim((string) $request->get('mk_quote_save_mode')));
 		$recordId = (int) $request->get('record');
-		if ($mode === 'confirm') {
+		if ($mode === 'confirm' || ($mode === '' && $recordId <= 0)) {
+			// Create / confirm: always "Báo giá" — no draft stage on new quotes.
 			$recordModel->set('quotestage', Quotes_QuoteBaService_Helper::resolveConfirmedQuoteStage());
-		} elseif ($mode === 'draft' || $recordId <= 0) {
+		} elseif ($mode === 'draft') {
 			$recordModel->set('quotestage', Quotes_QuoteBaService_Helper::resolveDraftQuoteStage());
 		}
 		// Always assign to the user who is saving (no UI to pick another owner).
