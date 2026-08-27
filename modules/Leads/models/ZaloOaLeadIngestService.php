@@ -79,11 +79,17 @@ class Leads_ZaloOaLeadIngestService {
 	protected static function upsertLeadFromState(array $state, $existingLeadId = null) {
 		self::ensureCurrentUser();
 		$name = trim((string) $state['full_name']);
-		if ($name === '' || strcasecmp($name, 'Khách Zalo OA') === 0) {
-			// Keep placeholder only when we truly have no name.
-			if ($name === '') {
-				$name = 'Khách Zalo OA';
+		if (self::isPlaceholderName($name) && !empty($state['answers_json'])) {
+			$decoded = json_decode($state['answers_json'], true);
+			if (is_array($decoded) && !empty($decoded['registration_raw'])) {
+				$reg = self::extractZaloRegistration((string) $decoded['registration_raw']);
+				if (!empty($reg['full_name'])) {
+					$name = $reg['full_name'];
+				}
 			}
+		}
+		if ($name === '') {
+			$name = 'Khách Zalo OA';
 		}
 		$tags = array('zalo');
 		$chan = self::normalizeSalesChannel($state['sales_channel']);
@@ -109,6 +115,15 @@ class Leads_ZaloOaLeadIngestService {
 		);
 		$recordId = ($existingLeadId !== null && (int) $existingLeadId > 0) ? (int) $existingLeadId : null;
 		return Leads_ModernService::saveLead($payload, $recordId);
+	}
+
+	protected static function isPlaceholderName($name) {
+		$n = trim((string) $name);
+		if ($n === '') {
+			return true;
+		}
+		$f = self::fold($n);
+		return ($f === 'khach zalo oa' || $f === 'khach zalo');
 	}
 
 	/**
@@ -159,9 +174,16 @@ class Leads_ZaloOaLeadIngestService {
 
 		$incomingName = trim((string) (isset($ev['full_name']) ? $ev['full_name'] : ''));
 		$curName = trim((string) $out['full_name']);
-		if ($incomingName !== '') {
-			if ($fromReg || $curName === '' || strcasecmp($curName, 'Khách Zalo OA') === 0) {
+		if ($incomingName !== '' && !self::isPlaceholderName($incomingName)) {
+			if ($fromReg || $curName === '' || self::isPlaceholderName($curName)) {
 				$out['full_name'] = $incomingName;
+			}
+		}
+		// Last chance: registration matched but name regex missed — re-parse raw block.
+		if ($fromReg && self::isPlaceholderName($out['full_name'])) {
+			$regAgain = self::extractZaloRegistration((string) $ev['registration_raw']);
+			if (!empty($regAgain['full_name'])) {
+				$out['full_name'] = $regAgain['full_name'];
 			}
 		}
 
@@ -358,26 +380,18 @@ class Leads_ZaloOaLeadIngestService {
 			return $out;
 		}
 		$text = str_replace(array("\\r\\n", "\\n", "\\r"), array("\n", "\n", "\n"), $text);
+		$text = html_entity_decode(strip_tags($text), ENT_QUOTES, 'UTF-8');
 		$fold = self::fold($text);
 		$looksLikeReg = (strpos($fold, 'nguoi dang ky') !== false)
+			|| (strpos($fold, 'nguoi dang ki') !== false)
 			|| (strpos($fold, 'da dang ky chuong trinh') !== false)
+			|| (strpos($fold, 'da dang ki chuong trinh') !== false)
 			|| (strpos($fold, 'so dien thoai') !== false && strpos($fold, 'email') !== false);
 		if (!$looksLikeReg) {
 			return $out;
 		}
 		$out['matched'] = true;
-
-		if (preg_match('/người\s*đăng\s*ký\s*[:：]\s*([^\r\n]+)/iu', $text, $m)) {
-			$name = trim($m[1], " \t\n\r\0\x0B-–—\"'");
-			if ($name !== '') {
-				$out['full_name'] = $name;
-			}
-		} elseif (preg_match('/nguoi\s*dang\s*ky\s*[:：]\s*([^\r\n]+)/iu', $fold, $m2)) {
-			$name = trim($m2[1]);
-			if ($name !== '') {
-				$out['full_name'] = $name;
-			}
-		}
+		$out['full_name'] = self::extractRegistrantName($text);
 
 		if (preg_match('/số\s*điện\s*thoại\s*[:：]\s*([+\d][\d\s.\-]{7,}\d)/iu', $text, $m)) {
 			$out['phone'] = self::extractPhone($m[1]);
@@ -385,7 +399,6 @@ class Leads_ZaloOaLeadIngestService {
 			$out['phone'] = self::extractPhone($m2[1]);
 		}
 		if ($out['phone'] === '') {
-			// Only scan the registration block — still must be valid VN mobile.
 			$out['phone'] = self::extractPhone($text);
 		}
 
@@ -397,6 +410,64 @@ class Leads_ZaloOaLeadIngestService {
 		}
 
 		return $out;
+	}
+
+	/**
+	 * Extract name after "Người đăng ký:" — line-based + folded label match (Unicode-safe).
+	 */
+	protected static function extractRegistrantName($text) {
+		$text = trim((string) $text);
+		if ($text === '') {
+			return '';
+		}
+		$lines = preg_split('/\R/u', $text);
+		if (!is_array($lines)) {
+			$lines = array($text);
+		}
+		foreach ($lines as $line) {
+			$line = trim((string) $line);
+			if ($line === '') {
+				continue;
+			}
+			$lineFold = self::fold($line);
+			if (!preg_match('/nguoi\s*dang\s*k[iy]\b/u', $lineFold)) {
+				continue;
+			}
+			// Take original text after first colon on this line.
+			if (preg_match('/[:：]\s*(.+)$/u', $line, $m)) {
+				$name = trim($m[1], " \t\"'“”");
+				$name = preg_replace('/\s+/u', ' ', $name);
+				$nameFold = self::fold($name);
+				if ($name === '' || self::isPlaceholderName($name)) {
+					continue;
+				}
+				if (strpos($nameFold, 'so dien thoai') === 0 || strpos($nameFold, 'email') === 0) {
+					continue;
+				}
+				if (strpos($nameFold, 'da dang ky') === 0 || strpos($nameFold, 'da dang ki') === 0) {
+					continue;
+				}
+				return $name;
+			}
+		}
+
+		// Fallback: whole-block regex (accented + folded).
+		if (preg_match('/người\s*đăng\s*k[ýíìỉị]\s*[:：]\s*([^\r\n]+)/iu', $text, $m)) {
+			$name = trim($m[1], " \t\"'“”");
+			if ($name !== '' && !self::isPlaceholderName($name)) {
+				return $name;
+			}
+		}
+		if (preg_match('/nguoi\s*dang\s*k[iy]\s*[:：]\s*([^\r\n]+)/iu', self::fold($text), $m2)) {
+			// Folded match loses accents — recover from original by locating colon near "đăng".
+			if (preg_match('/đăng\s*k[ýíìỉịy]\s*[:：]\s*([^\r\n]+)/iu', $text, $m3)) {
+				$name = trim($m3[1], " \t\"'“”");
+				if ($name !== '' && !self::isPlaceholderName($name)) {
+					return $name;
+				}
+			}
+		}
+		return '';
 	}
 
 	protected static function extractBusinessModel($text) {
