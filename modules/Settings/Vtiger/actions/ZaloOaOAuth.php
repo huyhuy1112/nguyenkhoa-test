@@ -13,6 +13,24 @@ class Settings_Vtiger_ZaloOaOAuth_Action extends Settings_Vtiger_Basic_Action {
 		$this->exposeMethod('callback');
 	}
 
+	/**
+	 * Callback must run for logged-in admin; avoid opaque ACCESS_DENIED on referer quirks.
+	 */
+	public function checkPermission(Vtiger_Request $request) {
+		$mode = (string) $request->getMode();
+		if ($mode === 'callback' || $mode === '') {
+			$currentUserModel = Users_Record_Model::getCurrentUserModel();
+			if (!$currentUserModel || !$currentUserModel->getId()) {
+				throw new AppException(vtranslate('LBL_PERMISSION_DENIED', 'Vtiger'));
+			}
+			if (!$currentUserModel->isAdminUser()) {
+				throw new AppException(vtranslate('LBL_PERMISSION_DENIED', 'Vtiger'));
+			}
+			return true;
+		}
+		return parent::checkPermission($request);
+	}
+
 	public function process(Vtiger_Request $request) {
 		$mode = $request->getMode();
 		if ($mode === 'callback' || $mode === '') {

@@ -206,15 +206,21 @@ class NkApi_ZaloOa_Adapter extends NkApi_Adapter {
 		$challenge = self::base64UrlEncode(hash('sha256', $verifier, true));
 		$state = self::base64UrlEncode(random_bytes(16));
 
-		if (session_status() === PHP_SESSION_NONE) {
-			@session_start();
-		}
-		$_SESSION['nk_zalo_oa_oauth'] = array(
+		$pending = array(
 			'code_verifier' => $verifier,
 			'state' => $state,
 			'app_id' => $appId,
 			'created_at' => time(),
 		);
+		if (session_status() === PHP_SESSION_NONE) {
+			@session_start();
+		}
+		$_SESSION['nk_zalo_oa_oauth'] = $pending;
+
+		// Also persist in DB so callback still works if PHP session is lost during Zalo redirect.
+		$extra = isset($row['extra']) && is_array($row['extra']) ? $row['extra'] : array();
+		$extra['oauth_pending'] = $pending;
+		NkApiConnection::saveRow($this->code(), array('extra' => $extra), $userId);
 
 		$callback = self::callbackUrl();
 		$query = http_build_query(array(
@@ -251,14 +257,28 @@ class NkApi_ZaloOa_Adapter extends NkApi_Adapter {
 		$sess = isset($_SESSION['nk_zalo_oa_oauth']) && is_array($_SESSION['nk_zalo_oa_oauth'])
 			? $_SESSION['nk_zalo_oa_oauth']
 			: array();
+
+		$row = NkApiConnection::getRow($this->code());
+		$extra = isset($row['extra']) && is_array($row['extra']) ? $row['extra'] : array();
+		$dbPending = isset($extra['oauth_pending']) && is_array($extra['oauth_pending']) ? $extra['oauth_pending'] : array();
+
+		// Prefer session; fall back to DB pending (same state) when session cookie was dropped.
+		if ((empty($sess['code_verifier']) || empty($sess['state'])) && !empty($dbPending['code_verifier']) && !empty($dbPending['state'])) {
+			if ($state === '' || hash_equals((string) $dbPending['state'], $state)) {
+				$sess = $dbPending;
+			}
+		}
 		if (empty($sess['code_verifier']) || empty($sess['state'])) {
 			throw new Exception('Phiên OAuth hết hạn. Bấm “Kết nối Zalo OA” lại.');
 		}
 		if ($state !== '' && !hash_equals((string) $sess['state'], $state)) {
 			throw new Exception('State OAuth không khớp. Thử kết nối lại.');
 		}
+		$createdAt = isset($sess['created_at']) ? (int) $sess['created_at'] : 0;
+		if ($createdAt > 0 && (time() - $createdAt) > 1800) {
+			throw new Exception('Phiên OAuth hết hạn (quá 30 phút). Bấm “Kết nối Zalo OA” lại.');
+		}
 
-		$row = NkApiConnection::getRow($this->code());
 		$creds = isset($row['credentials']) && is_array($row['credentials']) ? $row['credentials'] : array();
 		$appId = isset($creds['app_id']) ? trim((string) $creds['app_id']) : '';
 		$secret = isset($creds['secret_key']) ? trim((string) $creds['secret_key']) : '';
@@ -275,6 +295,10 @@ class NkApi_ZaloOa_Adapter extends NkApi_Adapter {
 
 		$this->persistTokens($token, $oaIdFromQuery, $userId);
 		unset($_SESSION['nk_zalo_oa_oauth']);
+		if (isset($extra['oauth_pending'])) {
+			unset($extra['oauth_pending']);
+			NkApiConnection::saveRow($this->code(), array('extra' => $extra), $userId);
+		}
 
 		// Best-effort OA profile fetch
 		try {
