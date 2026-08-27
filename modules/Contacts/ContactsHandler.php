@@ -124,8 +124,8 @@ class ContactsHandler extends VTEventHandler {
 
 			// Insert notification (after commit, so it won't be rolled back)
 			$message = "Bạn được assign vào Contact: " . $contactName;
-			$insertSql = "INSERT INTO vtiger_notifications (userid, module, recordid, message, created_at) VALUES (?, 'Contacts', ?, ?, NOW())";
-			$adb->pquery($insertSql, array($newOwnerId, $recordId, $message));
+			require_once 'modules/Vtiger/models/NotificationService.php';
+			Vtiger_NotificationService::createIfEnabled($newOwnerId, 'Contacts', $recordId, $message, 'assign', 'contacts_assign');
 
 			if ($log) {
 				$log->debug("[ContactsHandler] Notification created for user $newOwnerId, record $recordId: $message");

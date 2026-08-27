@@ -109,19 +109,16 @@ class CalendarHandler extends VTEventHandler {
 
 			// Send assign notification if owner changed or new record
 			if ($shouldNotify) {
-				// Determine message based on activity type
 				if ($activityType === 'Task') {
 					$message = "Bạn được assign vào Task: " . $activitySubject;
 				} else {
-					// Event types: Call, Meeting, etc.
 					$message = "Bạn được assign vào Event: " . $activitySubject;
 				}
-				$insertSql = "INSERT INTO vtiger_notifications (userid, module, recordid, message, created_at) VALUES (?, 'Calendar', ?, ?, NOW())";
-				$adb->pquery($insertSql, array($newOwnerId, $recordId, $message));
+				require_once 'modules/Vtiger/models/NotificationService.php';
+				Vtiger_NotificationService::createIfEnabled($newOwnerId, 'Calendar', $recordId, $message, 'assign', 'calendar_reminder');
 			}
 
 			// ALWAYS check deadline reminder (regardless of assign notification)
-			// Query directly from database as entityData may not have the updated values
 			$dateResult = $adb->pquery("SELECT due_date FROM vtiger_activity WHERE activityid = ?", array($recordId));
 			$dueDate = null;
 			if ($adb->num_rows($dateResult) > 0) {
@@ -129,7 +126,6 @@ class CalendarHandler extends VTEventHandler {
 			}
 			
 			if (!empty($dueDate)) {
-				// Extract date part if datetime format
 				if (strpos($dueDate, ' ') !== false) {
 					$dueDateParts = explode(' ', $dueDate);
 					$dueDate = $dueDateParts[0];
@@ -138,9 +134,7 @@ class CalendarHandler extends VTEventHandler {
 				$today = date('Y-m-d');
 				$sevenDaysLater = date('Y-m-d', strtotime('+7 days'));
 				
-				// Check if due date is within 7 days
 				if ($dueDate >= $today && $dueDate <= $sevenDaysLater) {
-					// Check if reminder already sent in the last 7 days
 					$reminderCheck = $adb->pquery(
 						"SELECT id FROM vtiger_notifications 
 						 WHERE userid = ? AND module = 'Calendar' AND recordid = ? 
@@ -150,21 +144,12 @@ class CalendarHandler extends VTEventHandler {
 					);
 					
 					if ($adb->num_rows($reminderCheck) == 0) {
-						// Calculate days until deadline
 						$daysUntilDeadline = (strtotime($dueDate) - strtotime($today)) / 86400;
 						$daysUntilDeadline = ceil($daysUntilDeadline);
-						
-						// Determine activity type label
 						$activityLabel = ($activityType === 'Task') ? 'Task' : 'Event';
-						
-						// Send reminder notification
 						$reminderMessage = "$activityLabel \"$activitySubject\" sắp đến hạn trong $daysUntilDeadline ngày (Deadline: $dueDate)";
-						$reminderSql = "INSERT INTO vtiger_notifications (userid, module, recordid, message, created_at) VALUES (?, 'Calendar', ?, ?, NOW())";
-						$adb->pquery($reminderSql, array($newOwnerId, $recordId, $reminderMessage));
-						
-						if ($log) {
-							$log->debug("[CalendarHandler] Deadline reminder sent for Calendar $recordId to user $newOwnerId");
-						}
+						require_once 'modules/Vtiger/models/NotificationService.php';
+						Vtiger_NotificationService::createIfEnabled($newOwnerId, 'Calendar', $recordId, $reminderMessage, 'reminder', 'calendar_reminder');
 					}
 				}
 			}

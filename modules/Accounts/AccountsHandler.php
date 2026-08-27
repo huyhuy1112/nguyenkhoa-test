@@ -118,8 +118,8 @@ class AccountsHandler extends VTEventHandler {
 
 			// Insert notification (after commit, so it won't be rolled back)
 			$message = "Bạn được assign vào Organization: " . $accountName;
-			$insertSql = "INSERT INTO vtiger_notifications (userid, module, recordid, message, created_at) VALUES (?, 'Accounts', ?, ?, NOW())";
-			$adb->pquery($insertSql, array($newOwnerId, $recordId, $message));
+			require_once 'modules/Vtiger/models/NotificationService.php';
+			Vtiger_NotificationService::createIfEnabled($newOwnerId, 'Accounts', $recordId, $message, 'assign', 'accounts_assign');
 
 			if ($log) {
 				$log->debug("[AccountsHandler] Notification created for user $newOwnerId, record $recordId: $message");

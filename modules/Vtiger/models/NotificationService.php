@@ -30,6 +30,279 @@ class Vtiger_NotificationService {
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 			array()
 		);
+		// Per-user channel toggles (JSON object of channel => 0|1)
+		try {
+			$cols = self::db()->pquery("SHOW COLUMNS FROM bace_user_notification_pref LIKE 'channels_json'", array());
+			if (!$cols || self::db()->num_rows($cols) === 0) {
+				self::db()->pquery(
+					'ALTER TABLE bace_user_notification_pref ADD COLUMN channels_json TEXT NULL',
+					array()
+				);
+			}
+		} catch (Exception $e) {
+			// ignore — column may already exist
+		}
+	}
+
+	/**
+	 * Channel keys users can toggle in Settings.
+	 * @return array<string,array{label:string,group:string,default:bool}>
+	 */
+	public static function channelCatalog() {
+		return array(
+			'leads_assign' => array('label' => 'Lead mới / được giao', 'group' => 'Bán hàng', 'default' => true),
+			'potentials_assign' => array('label' => 'Cơ hội mới / được giao', 'group' => 'Bán hàng', 'default' => true),
+			'potentials_reminder' => array('label' => 'Cơ hội sắp đến hạn', 'group' => 'Bán hàng', 'default' => true),
+			'accounts_assign' => array('label' => 'Khách hàng (Tổ chức) mới / được giao', 'group' => 'Bán hàng', 'default' => true),
+			'contacts_assign' => array('label' => 'Liên hệ mới / được giao', 'group' => 'Bán hàng', 'default' => true),
+			'quotes_assign' => array('label' => 'Báo giá mới / được giao', 'group' => 'Bán hàng', 'default' => true),
+			'salesorder_assign' => array('label' => 'Đơn hàng mới / được giao', 'group' => 'Bán hàng', 'default' => true),
+			'helpdesk_assign' => array('label' => 'Ticket hỗ trợ mới / được giao', 'group' => 'Hỗ trợ', 'default' => true),
+			'cskh' => array('label' => 'Cảnh báo CSKH / chăm sóc', 'group' => 'Hỗ trợ', 'default' => true),
+			'mention' => array('label' => 'Được @mention trong ghi chú', 'group' => 'Chung', 'default' => true),
+			'calendar_reminder' => array('label' => 'Nhắc lịch / sự kiện', 'group' => 'Chung', 'default' => true),
+			'project_assign' => array('label' => 'Dự án / task được giao', 'group' => 'Quản lý', 'default' => true),
+			'project_reminder' => array('label' => 'Dự án / task sắp hết hạn', 'group' => 'Quản lý', 'default' => true),
+			'warehouse_expiry' => array('label' => 'Kho — cảnh báo hết hạn', 'group' => 'Kho', 'default' => true),
+		);
+	}
+
+	/**
+	 * Map CRM module + notif type → preference channel.
+	 */
+	public static function channelForModule($module, $notifType = 'assign') {
+		$module = (string) $module;
+		$notifType = (string) $notifType;
+		if ($notifType === 'mention') {
+			return 'mention';
+		}
+		if ($notifType === 'cskh') {
+			return 'cskh';
+		}
+		$map = array(
+			'Leads' => array('assign' => 'leads_assign'),
+			'Potentials' => array('assign' => 'potentials_assign', 'reminder' => 'potentials_reminder'),
+			'Accounts' => array('assign' => 'accounts_assign'),
+			'Contacts' => array('assign' => 'contacts_assign'),
+			'Quotes' => array('assign' => 'quotes_assign'),
+			'SalesOrder' => array('assign' => 'salesorder_assign'),
+			'HelpDesk' => array('assign' => 'helpdesk_assign'),
+			'Calendar' => array('assign' => 'calendar_reminder', 'reminder' => 'calendar_reminder'),
+			'Events' => array('assign' => 'calendar_reminder', 'reminder' => 'calendar_reminder'),
+			'Project' => array('assign' => 'project_assign', 'reminder' => 'project_reminder'),
+			'ProjectTask' => array('assign' => 'project_assign', 'reminder' => 'project_reminder'),
+			'Warehouse' => array('assign' => 'warehouse_expiry', 'reminder' => 'warehouse_expiry', 'other' => 'warehouse_expiry'),
+		);
+		if (isset($map[$module][$notifType])) {
+			return $map[$module][$notifType];
+		}
+		if (isset($map[$module]['assign'])) {
+			return $map[$module]['assign'];
+		}
+		return '';
+	}
+
+	/**
+	 * @param int $userId
+	 * @return array<string,bool> all catalog keys
+	 */
+	public static function getChannelPrefs($userId) {
+		$userId = (int) $userId;
+		$catalog = self::channelCatalog();
+		$prefs = array();
+		foreach ($catalog as $key => $meta) {
+			$prefs[$key] = !empty($meta['default']);
+		}
+		if ($userId <= 0) {
+			return $prefs;
+		}
+		self::ensurePrefSchema();
+		$res = self::db()->pquery(
+			'SELECT channels_json FROM bace_user_notification_pref WHERE userid = ?',
+			array($userId)
+		);
+		if ($res && self::db()->num_rows($res) > 0) {
+			$raw = self::db()->query_result($res, 0, 'channels_json');
+			$decoded = $raw ? json_decode((string) $raw, true) : null;
+			if (is_array($decoded)) {
+				foreach ($catalog as $key => $meta) {
+					if (array_key_exists($key, $decoded)) {
+						$prefs[$key] = !empty($decoded[$key]) && $decoded[$key] !== '0' && $decoded[$key] !== 0;
+					}
+				}
+			}
+		}
+		return $prefs;
+	}
+
+	/**
+	 * @param int $userId
+	 * @param string $channel
+	 * @return bool
+	 */
+	public static function isChannelEnabled($userId, $channel) {
+		$channel = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $channel));
+		if ($channel === '') {
+			return true;
+		}
+		$prefs = self::getChannelPrefs($userId);
+		if (!array_key_exists($channel, $prefs)) {
+			return true;
+		}
+		return !empty($prefs[$channel]);
+	}
+
+	/**
+	 * @param int $userId
+	 * @param array $channels channel => bool
+	 * @return array<string,bool>
+	 */
+	public static function setChannelPrefs($userId, array $channels) {
+		$userId = (int) $userId;
+		if ($userId <= 0) {
+			return self::getChannelPrefs(0);
+		}
+		self::ensurePrefSchema();
+		$catalog = self::channelCatalog();
+		$current = self::getChannelPrefs($userId);
+		foreach ($channels as $key => $val) {
+			$key = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $key));
+			if (!isset($catalog[$key])) {
+				continue;
+			}
+			$current[$key] = !($val === false || $val === 0 || $val === '0' || $val === 'false');
+		}
+		$store = array();
+		foreach ($catalog as $key => $_meta) {
+			$store[$key] = !empty($current[$key]) ? 1 : 0;
+		}
+		$json = json_encode($store);
+		$sound = self::getSoundPref($userId);
+		$now = date('Y-m-d H:i:s');
+		self::db()->pquery(
+			'INSERT INTO bace_user_notification_pref (userid, sound_enabled, volume, channels_json, updated_at)
+			 VALUES (?,?,?,?,?)
+			 ON DUPLICATE KEY UPDATE channels_json = VALUES(channels_json), updated_at = VALUES(updated_at)',
+			array($userId, $sound['enabled'] ? 1 : 0, $sound['volume'], $json, $now)
+		);
+		return self::getChannelPrefs($userId);
+	}
+
+	/**
+	 * Create notification only if user enabled the channel.
+	 *
+	 * @param int $userId
+	 * @param string $module
+	 * @param int $recordId
+	 * @param string $message
+	 * @param string $notifType
+	 * @param string $channel empty → derive from module+type
+	 * @return int
+	 */
+	public static function createIfEnabled($userId, $module, $recordId, $message, $notifType = 'other', $channel = '') {
+		if ($channel === '') {
+			$channel = self::channelForModule($module, $notifType);
+		}
+		if ($channel !== '' && !self::isChannelEnabled($userId, $channel)) {
+			return 0;
+		}
+		return self::create($userId, $module, $recordId, $message, $notifType);
+	}
+
+	/**
+	 * Register event handlers + Settings menu (idempotent).
+	 */
+	public static function ensureInstalled() {
+		static $done = false;
+		if ($done) {
+			return;
+		}
+		$done = true;
+		self::ensurePrefSchema();
+		self::ensureHandlersRegistered();
+		self::ensureSettingsMenu();
+	}
+
+	public static function ensureHandlersRegistered() {
+		$adb = self::db();
+		$handlers = array(
+			array('AccountsHandler', 'modules/Accounts/AccountsHandler.php'),
+			array('ContactsHandler', 'modules/Contacts/ContactsHandler.php'),
+			array('PotentialsHandler', 'modules/Potentials/PotentialsHandler.php'),
+			array('HelpDeskHandler', 'modules/HelpDesk/HelpDeskHandler.php'),
+			array('LeadsAssignHandler', 'modules/Leads/handlers/LeadsAssignHandler.php'),
+			array('QuotesAssignHandler', 'modules/Quotes/QuotesAssignHandler.php'),
+			array('SalesOrderAssignHandler', 'modules/SalesOrder/SalesOrderAssignHandler.php'),
+		);
+		foreach ($handlers as $h) {
+			$class = $h[0];
+			$path = $h[1];
+			$exists = $adb->pquery(
+				'SELECT eventhandler_id, is_active FROM vtiger_eventhandlers WHERE handler_class = ? AND event_name = ? LIMIT 1',
+				array($class, 'vtiger.entity.aftersave.final')
+			);
+			if ($exists && $adb->num_rows($exists) > 0) {
+				$id = (int) $adb->query_result($exists, 0, 'eventhandler_id');
+				$active = (int) $adb->query_result($exists, 0, 'is_active');
+				if ($active !== 1) {
+					$adb->pquery('UPDATE vtiger_eventhandlers SET is_active = 1, handler_path = ? WHERE eventhandler_id = ?', array($path, $id));
+				}
+				continue;
+			}
+			$handlerId = $adb->getUniqueId('vtiger_eventhandlers');
+			$adb->pquery(
+				'INSERT INTO vtiger_eventhandlers (eventhandler_id, event_name, handler_path, handler_class, cond, is_active, dependent_on)
+				 VALUES (?,?,?,?,?,?,?)',
+				array($handlerId, 'vtiger.entity.aftersave.final', $path, $class, '', 1, '[]')
+			);
+		}
+	}
+
+	public static function ensureSettingsMenu() {
+		$adb = self::db();
+		$name = 'LBL_NK_NOTIFICATION_PREFS';
+		$exists = $adb->pquery('SELECT fieldid FROM vtiger_settings_field WHERE name = ? LIMIT 1', array($name));
+		if ($exists && $adb->num_rows($exists) > 0) {
+			return;
+		}
+		$blockid = 0;
+		foreach (array('LBL_USER_MANAGEMENT', 'LBL_OTHER_SETTINGS', 'LBL_CONFIGURATION') as $label) {
+			if (function_exists('getSettingsBlockId')) {
+				$blockid = (int) getSettingsBlockId($label);
+			}
+			if ($blockid > 0) {
+				break;
+			}
+		}
+		if ($blockid <= 0) {
+			$blockRes = $adb->pquery('SELECT blockid FROM vtiger_settings_blocks ORDER BY sequence ASC LIMIT 1', array());
+			if ($blockRes && $adb->num_rows($blockRes) > 0) {
+				$blockid = (int) $adb->query_result($blockRes, 0, 'blockid');
+			}
+		}
+		if ($blockid <= 0) {
+			return;
+		}
+		$seq = 1;
+		$seqRes = $adb->pquery('SELECT MAX(sequence) AS max_seq FROM vtiger_settings_field WHERE blockid = ?', array($blockid));
+		if ($seqRes && $adb->num_rows($seqRes) > 0) {
+			$seq = (int) $adb->query_result($seqRes, 0, 'max_seq') + 1;
+		}
+		$fieldid = $adb->getUniqueID('vtiger_settings_field');
+		$adb->pquery(
+			'INSERT INTO vtiger_settings_field (fieldid, blockid, name, iconpath, description, linkto, sequence, active)
+			 VALUES (?,?,?,?,?,?,?,?)',
+			array(
+				$fieldid,
+				$blockid,
+				$name,
+				'',
+				'LBL_NK_NOTIFICATION_PREFS_DESC',
+				'index.php?module=Vtiger&parent=Settings&view=NotificationPrefs',
+				$seq,
+				0,
+			)
+		);
 	}
 
 	/**
@@ -242,7 +515,7 @@ class Vtiger_NotificationService {
 			if ($dup && self::db()->num_rows($dup) > 0) {
 				continue;
 			}
-			$id = self::create($uid, $parentModule, $relatedToCrmId, $message, 'mention');
+			$id = self::createIfEnabled($uid, $parentModule, $relatedToCrmId, $message, 'mention', 'mention');
 			if ($id > 0) {
 				$created++;
 			}
@@ -340,6 +613,9 @@ class Vtiger_NotificationService {
 	public static function fetchCskhAlerts($userId) {
 		$userId = (int)$userId;
 		if ($userId <= 0) {
+			return array();
+		}
+		if (!self::isChannelEnabled($userId, 'cskh')) {
 			return array();
 		}
 		// Session cache — poll every ~3s would otherwise be heavy.

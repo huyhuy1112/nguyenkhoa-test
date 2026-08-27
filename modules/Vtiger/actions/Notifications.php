@@ -30,6 +30,11 @@ class Vtiger_Notifications_Action extends Vtiger_Action_Controller {
 			} catch (Exception $flushEx) {
 				// ignore
 			}
+			try {
+				Vtiger_NotificationService::ensureInstalled();
+			} catch (Exception $instEx) {
+				// ignore
+			}
 
 			$userid = $current_user->id;
 			$mode = $request->get('mode');

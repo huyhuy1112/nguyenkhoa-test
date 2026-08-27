@@ -1,0 +1,106 @@
+/* Settings → Quản lý thông báo */
+.nk-notif-prefs {
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 8px 8px 40px;
+	font-family: Inter, system-ui, -apple-system, sans-serif;
+	color: #0f172a;
+}
+
+.nk-notif-prefs__hero {
+	margin-bottom: 22px;
+	padding: 22px 24px;
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 16px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.nk-notif-prefs__eyebrow {
+	margin: 0 0 6px;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #0b6e4f;
+}
+
+.nk-notif-prefs__title {
+	margin: 0 0 8px;
+	font-size: 1.75rem;
+	font-weight: 800;
+	letter-spacing: -0.02em;
+}
+
+.nk-notif-prefs__desc {
+	margin: 0;
+	font-size: 1rem;
+	color: #475569;
+	line-height: 1.5;
+}
+
+.nk-notif-prefs__card {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	padding: 8px 4px;
+	margin-bottom: 14px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.nk-notif-prefs__group-title {
+	margin: 0;
+	padding: 12px 18px 6px;
+	font-size: 0.95rem;
+	font-weight: 800;
+	color: #334155;
+}
+
+.nk-notif-prefs__row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 12px 18px;
+	margin: 0;
+	cursor: pointer;
+	border-top: 1px solid #f1f5f9;
+}
+
+.nk-notif-prefs__row:first-of-type {
+	border-top: none;
+}
+
+.nk-notif-prefs__label {
+	font-size: 1rem;
+	font-weight: 600;
+	color: #0f172a;
+	line-height: 1.4;
+}
+
+.nk-notif-prefs__switch {
+	width: 20px;
+	height: 20px;
+	accent-color: #08a045;
+	flex-shrink: 0;
+	cursor: pointer;
+}
+
+.nk-notif-prefs__actions {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	margin-top: 8px;
+}
+
+.nk-notif-prefs__save {
+	min-width: 140px;
+	font-weight: 700 !important;
+	padding: 10px 20px !important;
+}
+
+.nk-notif-prefs__hint {
+	font-size: 0.95rem;
+	color: #64748b;
+	font-weight: 600;
+}

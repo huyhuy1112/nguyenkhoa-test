@@ -36,6 +36,12 @@ class Settings_Vtiger_Index_View extends Vtiger_Basic_View {
 		} catch (Exception $e) {
 			/* ignore — menu may already exist */
 		}
+		try {
+			require_once 'modules/Vtiger/models/NotificationService.php';
+			Vtiger_NotificationService::ensureInstalled();
+		} catch (Exception $e) {
+			/* ignore */
+		}
 
 		$viewer = $this->getViewer($request);
 

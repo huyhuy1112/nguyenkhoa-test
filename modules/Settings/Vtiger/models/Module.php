@@ -198,6 +198,7 @@ class Settings_Vtiger_Module_Model extends Vtiger_Base_Model {
 			'OutgoingServerEdit' => array('block' => 'LBL_CONFIGURATION', 'menu' => 'LBL_MAIL_SERVER_SETTINGS'),
 			'Integrations' => array('block' => 'LBL_OTHER_SETTINGS', 'menu' => 'LBL_NK_SYSTEM_INTEGRATIONS'),
 			'IntegrationHub' => array('block' => 'LBL_OTHER_SETTINGS', 'menu' => 'LBL_NK_INTEGRATION_HUB'),
+			'NotificationPrefs' => array('block' => 'LBL_USER_MANAGEMENT', 'menu' => 'LBL_NK_NOTIFICATION_PREFS'),
 		);
 		return isset($blocksList[$viewName]) ? $blocksList[$viewName] : null;
 	}
@@ -221,6 +222,7 @@ class Settings_Vtiger_Module_Model extends Vtiger_Base_Model {
 
 		$settingsMenuList = array('LBL_MY_PREFERENCES'	=> array('My Preferences'	=> '',
 																 'Calendar Settings'=> '',
+																 'LBL_NK_NOTIFICATION_PREFS' => 'index.php?module=Vtiger&parent=Settings&view=NotificationPrefs',
 																 'LBL_MY_TAGS'		=> $myTagSettingsUrl),
 									'LBL_EXTENSIONS'	=> array('LBL_GOOGLE'		=> 'index.php?module=Contacts&parent=Settings&view=Extension&extensionModule=Google&extensionView=Index&mode=settings')
 								);

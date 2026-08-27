@@ -189,11 +189,11 @@ class Warehouse_List_View extends Vtiger_Index_View {
 			if ($db->num_rows($chk) > 0) {
 				continue;
 			}
-			$db->pquery(
-				"INSERT INTO vtiger_notifications (userid, module, recordid, message, is_read, created_at) VALUES (?, 'Warehouse', ?, ?, 0, NOW())",
-				array($userId, $stockId, $msg)
-			);
-			$didNotify = true;
+			require_once 'modules/Vtiger/models/NotificationService.php';
+			$nid = Vtiger_NotificationService::createIfEnabled($userId, 'Warehouse', $stockId, $msg, 'reminder', 'warehouse_expiry');
+			if ($nid > 0) {
+				$didNotify = true;
+			}
 		}
 
 		$viewer->assign('ROWS', $rows);
