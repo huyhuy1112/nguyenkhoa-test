@@ -58,35 +58,32 @@ class Leads_ZaloOaLeadIngestService {
 			);
 		}
 
-		// Avoid duplicate Lead create on repeated OA confirmation webhook.
-		if (!empty($merged['leadid']) && (int) $merged['leadid'] > 0) {
-			return array(
-				'success' => true,
-				'created' => false,
-				'updated' => true,
-				'leadid' => (int) $merged['leadid'],
-				'oa_user_id' => $ev['oa_user_id'],
-			);
+		$existingLeadId = !empty($merged['leadid']) ? (int) $merged['leadid'] : 0;
+		$lead = self::upsertLeadFromState($merged, $existingLeadId > 0 ? $existingLeadId : null);
+		$newLeadId = isset($lead['crmid']) ? (int) $lead['crmid'] : (isset($lead['id']) ? (int) $lead['id'] : 0);
+		if ($newLeadId > 0) {
+			$merged['leadid'] = $newLeadId;
 		}
-
-		$lead = self::upsertLeadFromState($merged);
-		$merged['leadid'] = isset($lead['crmid']) ? (int) $lead['crmid'] : (isset($lead['id']) ? (int) $lead['id'] : 0);
 		$merged['is_completed'] = 1;
 		self::saveState($ev['oa_user_id'], $merged);
 
 		return array(
 			'success' => true,
-			'created' => true,
+			'created' => $existingLeadId <= 0,
+			'updated' => $existingLeadId > 0,
 			'lead' => $lead,
 			'oa_user_id' => $ev['oa_user_id'],
 		);
 	}
 
-	protected static function upsertLeadFromState(array $state) {
+	protected static function upsertLeadFromState(array $state, $existingLeadId = null) {
 		self::ensureCurrentUser();
 		$name = trim((string) $state['full_name']);
-		if ($name === '') {
-			$name = 'Khách Zalo OA';
+		if ($name === '' || strcasecmp($name, 'Khách Zalo OA') === 0) {
+			// Keep placeholder only when we truly have no name.
+			if ($name === '') {
+				$name = 'Khách Zalo OA';
+			}
 		}
 		$tags = array('zalo');
 		$chan = self::normalizeSalesChannel($state['sales_channel']);
@@ -110,7 +107,8 @@ class Leads_ZaloOaLeadIngestService {
 			'sheet_source' => 0,
 			'force_create' => 0, // allow merge by phone/email
 		);
-		return Leads_ModernService::saveLead($payload, null);
+		$recordId = ($existingLeadId !== null && (int) $existingLeadId > 0) ? (int) $existingLeadId : null;
+		return Leads_ModernService::saveLead($payload, $recordId);
 	}
 
 	/**
@@ -130,11 +128,12 @@ class Leads_ZaloOaLeadIngestService {
 	}
 
 	/**
-	 * ZaloDemo registration is complete with phone + email (name optional).
+	 * Complete when we have a valid VN mobile + email.
 	 */
 	protected static function missingFields(array $state) {
 		$missing = array();
-		if (trim((string) $state['phone']) === '') {
+		$phone = trim((string) $state['phone']);
+		if ($phone === '' || !self::isValidVnMobile($phone)) {
 			$missing[] = 'phone';
 		}
 		if (trim((string) $state['email']) === '') {
@@ -148,17 +147,36 @@ class Leads_ZaloOaLeadIngestService {
 		if (!$out) {
 			$out = self::emptyState();
 		}
+		// Drop previously stored garbage phones (ids / non-VN).
+		if (!empty($out['phone']) && !self::isValidVnMobile($out['phone'])) {
+			$out['phone'] = '';
+		}
+
+		$fromReg = !empty($ev['registration_raw']);
 		if (!empty($ev['oa_id'])) {
 			$out['oa_id'] = $ev['oa_id'];
 		}
-		if (!empty($ev['full_name'])) {
-			$out['full_name'] = $ev['full_name'];
+
+		$incomingName = trim((string) (isset($ev['full_name']) ? $ev['full_name'] : ''));
+		$curName = trim((string) $out['full_name']);
+		if ($incomingName !== '') {
+			if ($fromReg || $curName === '' || strcasecmp($curName, 'Khách Zalo OA') === 0) {
+				$out['full_name'] = $incomingName;
+			}
 		}
-		if (!empty($ev['phone'])) {
-			$out['phone'] = $ev['phone'];
+
+		$incomingPhone = trim((string) (isset($ev['phone']) ? $ev['phone'] : ''));
+		if ($incomingPhone !== '' && self::isValidVnMobile($incomingPhone)) {
+			$curPhone = trim((string) $out['phone']);
+			if ($fromReg || $curPhone === '' || !self::isValidVnMobile($curPhone)) {
+				$out['phone'] = $incomingPhone;
+			}
 		}
+
 		if (!empty($ev['email'])) {
-			$out['email'] = $ev['email'];
+			if ($fromReg || empty($out['email'])) {
+				$out['email'] = $ev['email'];
+			}
 		}
 		if (!empty($ev['business_model'])) {
 			$out['business_model'] = $ev['business_model'];
@@ -179,7 +197,7 @@ class Leads_ZaloOaLeadIngestService {
 				$answers[$k] = $out[$k];
 			}
 		}
-		if (!empty($ev['registration_raw'])) {
+		if ($fromReg) {
 			$answers['registration_raw'] = $ev['registration_raw'];
 		}
 		$out['answers_json'] = json_encode($answers, JSON_UNESCAPED_UNICODE);
@@ -261,26 +279,13 @@ class Leads_ZaloOaLeadIngestService {
 		} elseif (!empty($flat['text'])) {
 			$messageText = trim((string) $flat['text']);
 		}
+		// JSON sometimes stores literal "\n" sequences.
+		$messageText = str_replace(array("\\r\\n", "\\n", "\\r"), array("\n", "\n", "\n"), $messageText);
 
-		$texts = array();
-		if ($messageText !== '') {
-			$texts[] = $messageText;
-		}
-		foreach ($flat as $k => $v) {
-			if (!is_scalar($v)) {
-				continue;
-			}
-			$ks = strtolower((string) $k);
-			if (strpos($ks, 'message') !== false || strpos($ks, 'text') !== false || strpos($ks, 'content') !== false) {
-				$vv = trim((string) $v);
-				if ($vv !== '' && $vv !== $messageText) {
-					$texts[] = $vv;
-				}
-			}
-		}
-		$joined = implode("\n", array_values(array_unique($texts)));
+		// Q&A free-text: only use primary message body (avoid msg_id / ids looking like phones).
+		$qaText = $messageText;
 
-		$reg = self::extractZaloRegistration($messageText !== '' ? $messageText : $joined);
+		$reg = self::extractZaloRegistration($messageText);
 		if (!empty($reg['full_name'])) {
 			$ev['full_name'] = $reg['full_name'];
 		}
@@ -291,7 +296,7 @@ class Leads_ZaloOaLeadIngestService {
 			$ev['email'] = $reg['email'];
 		}
 		if (!empty($reg['matched'])) {
-			$ev['registration_raw'] = $messageText !== '' ? $messageText : $joined;
+			$ev['registration_raw'] = $messageText;
 			// Registration template is sent by OA → use recipient as lead key.
 			if ($recipientId !== '' && $senderId !== '' && $ev['oa_user_id'] === $senderId) {
 				$ev['oa_user_id'] = $recipientId;
@@ -308,24 +313,24 @@ class Leads_ZaloOaLeadIngestService {
 			}
 		}
 
-		if ($ev['email'] === '') {
-			$email = self::extractEmail($joined);
+		if ($ev['email'] === '' && $qaText !== '') {
+			$email = self::extractEmail($qaText);
 			if ($email !== '') {
 				$ev['email'] = $email;
 			}
 		}
-		if ($ev['phone'] === '') {
-			$phone = self::extractPhone($joined);
+		if ($ev['phone'] === '' && $qaText !== '') {
+			$phone = self::extractPhone($qaText);
 			if ($phone !== '') {
 				$ev['phone'] = $phone;
 			}
 		}
 
-		$bm = self::extractBusinessModel($joined);
+		$bm = self::extractBusinessModel($qaText);
 		if ($bm !== '') {
 			$ev['business_model'] = $bm;
 		}
-		$ch = self::extractSalesChannel($joined);
+		$ch = self::extractSalesChannel($qaText);
 		if ($ch !== '') {
 			$ev['sales_channel'] = $ch;
 		}
@@ -352,6 +357,7 @@ class Leads_ZaloOaLeadIngestService {
 		if ($text === '') {
 			return $out;
 		}
+		$text = str_replace(array("\\r\\n", "\\n", "\\r"), array("\n", "\n", "\n"), $text);
 		$fold = self::fold($text);
 		$looksLikeReg = (strpos($fold, 'nguoi dang ky') !== false)
 			|| (strpos($fold, 'da dang ky chuong trinh') !== false)
@@ -361,9 +367,13 @@ class Leads_ZaloOaLeadIngestService {
 		}
 		$out['matched'] = true;
 
-		if (preg_match('/người\s*đăng\s*ký\s*[:：]\s*(.+)/iu', $text, $m)) {
-			$name = trim(preg_split('/\R/u', $m[1])[0]);
-			$name = trim($name, " \t\n\r\0\x0B-–—");
+		if (preg_match('/người\s*đăng\s*ký\s*[:：]\s*([^\r\n]+)/iu', $text, $m)) {
+			$name = trim($m[1], " \t\n\r\0\x0B-–—\"'");
+			if ($name !== '') {
+				$out['full_name'] = $name;
+			}
+		} elseif (preg_match('/nguoi\s*dang\s*ky\s*[:：]\s*([^\r\n]+)/iu', $fold, $m2)) {
+			$name = trim($m2[1]);
 			if ($name !== '') {
 				$out['full_name'] = $name;
 			}
@@ -371,8 +381,11 @@ class Leads_ZaloOaLeadIngestService {
 
 		if (preg_match('/số\s*điện\s*thoại\s*[:：]\s*([+\d][\d\s.\-]{7,}\d)/iu', $text, $m)) {
 			$out['phone'] = self::extractPhone($m[1]);
+		} elseif (preg_match('/so\s*dien\s*thoai\s*[:：]\s*([+\d][\d\s.\-]{7,}\d)/iu', $fold, $m2)) {
+			$out['phone'] = self::extractPhone($m2[1]);
 		}
 		if ($out['phone'] === '') {
+			// Only scan the registration block — still must be valid VN mobile.
 			$out['phone'] = self::extractPhone($text);
 		}
 
@@ -441,6 +454,9 @@ class Leads_ZaloOaLeadIngestService {
 		return '';
 	}
 
+	/**
+	 * Normalize to 0xxxxxxxxx VN mobile, or empty if not a real mobile.
+	 */
 	protected static function extractPhone($text) {
 		if (!is_string($text) || $text === '') {
 			return '';
@@ -450,18 +466,38 @@ class Leads_ZaloOaLeadIngestService {
 			return '';
 		}
 		foreach ($m[1] as $raw) {
-			$digits = preg_replace('/\D+/', '', $raw);
-			if ($digits === '') {
-				continue;
-			}
-			if (strpos($digits, '84') === 0 && strlen($digits) >= 11) {
-				$digits = '0' . substr($digits, 2);
-			}
-			if (strlen($digits) >= 9 && strlen($digits) <= 11) {
-				return $digits;
+			$normalized = self::normalizeVnMobile($raw);
+			if ($normalized !== '') {
+				return $normalized;
 			}
 		}
 		return '';
+	}
+
+	protected static function normalizeVnMobile($raw) {
+		$digits = preg_replace('/\D+/', '', (string) $raw);
+		if ($digits === '') {
+			return '';
+		}
+		if (strpos($digits, '84') === 0 && strlen($digits) >= 11) {
+			$digits = '0' . substr($digits, 2);
+		}
+		if (!self::isValidVnMobile($digits)) {
+			return '';
+		}
+		return $digits;
+	}
+
+	protected static function isValidVnMobile($phone) {
+		$digits = preg_replace('/\D+/', '', (string) $phone);
+		if ($digits === '') {
+			return false;
+		}
+		if (strpos($digits, '84') === 0 && strlen($digits) >= 11) {
+			$digits = '0' . substr($digits, 2);
+		}
+		// VN mobile: 0 + (3|5|7|8|9) + 8 digits
+		return (bool) preg_match('/^0[35789]\d{8}$/', $digits);
 	}
 
 	protected static function flatten($data, $prefix = '') {
