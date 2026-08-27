@@ -47,6 +47,33 @@ class Vtiger_AssignNotificationHelper {
 			}
 
 			$isNew = method_exists($entityData, 'isNew') ? $entityData->isNew() : false;
+			// aftersave.final often has id already set → isNew() false on create.
+			// Create has no beforesave oldEntity snapshot in VTEntityDelta.
+			if (!$isNew) {
+				$deltaProbe = new VTEntityDelta();
+				$oldEntity = null;
+				try {
+					$oldEntity = $deltaProbe->getOldEntity($moduleName, $recordId);
+				} catch (Exception $e) {
+					$oldEntity = null;
+				}
+				if (empty($oldEntity)) {
+					$timeRes = $adb->pquery(
+						'SELECT createdtime, modifiedtime FROM vtiger_crmentity WHERE crmid = ?',
+						array($recordId)
+					);
+					if ($timeRes && $adb->num_rows($timeRes) > 0) {
+						$created = (string) $adb->query_result($timeRes, 0, 'createdtime');
+						$modified = (string) $adb->query_result($timeRes, 0, 'modifiedtime');
+						$ct = $created ? strtotime($created) : 0;
+						$mt = $modified ? strtotime($modified) : 0;
+						// New record: created≈modified, or created within last 2 minutes.
+						if ($ct > 0 && (( $mt > 0 && abs($mt - $ct) <= 5) || (time() - $ct) <= 120)) {
+							$isNew = true;
+						}
+					}
+				}
+			}
 			$shouldNotify = false;
 
 			if ($isNew) {
@@ -69,6 +96,18 @@ class Vtiger_AssignNotificationHelper {
 			}
 
 			if (!$shouldNotify) {
+				return;
+			}
+
+			// Skip duplicate create/assign ping within 2 minutes for same record+user.
+			$dup = $adb->pquery(
+				"SELECT id FROM vtiger_notifications
+				 WHERE userid = ? AND module = ? AND recordid = ?
+				   AND created_at >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)
+				 LIMIT 1",
+				array($newOwnerId, $moduleName, $recordId)
+			);
+			if ($dup && $adb->num_rows($dup) > 0) {
 				return;
 			}
 

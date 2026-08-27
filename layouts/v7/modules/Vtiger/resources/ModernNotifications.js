@@ -13,6 +13,7 @@
     soundVolume: 0.7,
     lastListSignature: "",
     forceNextRender: false,
+    activeFilter: "all",
 
     init: function () {
       if (this.initialized) {
@@ -36,6 +37,7 @@
         .closest(".nav-tabs")
         .hide();
 
+      this.ensureFilterBar();
       this.bindActionHandlers();
 
       jQuery(document).on(
@@ -52,7 +54,7 @@
         .on("click.modernNotificationsPanel", function (e) {
           if (
             jQuery(e.target).closest(
-              "button, a, input, label, .modern-notification-checkbox-wrap, .modern-notifications-sound-toggle"
+              "button, a, input, label, .modern-notification-checkbox-wrap, .modern-notifications-sound-toggle, .modern-notifications-filter-btn"
             ).length
           ) {
             return;
@@ -61,6 +63,36 @@
         });
 
       this.initialized = true;
+    },
+
+    ensureFilterBar: function () {
+      if (jQuery("#modern-notifications-filter-bar").length) {
+        return;
+      }
+      var $host = jQuery("#modern-notifications-list .modern-notifications-panel-header");
+      if (!$host.length) {
+        return;
+      }
+      var html =
+        '<div class="modern-notifications-filter-bar" id="modern-notifications-filter-bar" role="tablist">' +
+        '<button type="button" class="modern-notifications-filter-btn is-active" data-filter="all">Tất cả</button>' +
+        '<button type="button" class="modern-notifications-filter-btn" data-filter="new">Mới / Giao việc</button>' +
+        '<button type="button" class="modern-notifications-filter-btn" data-filter="cskh">CSKH</button>' +
+        "</div>";
+      $host.append(html);
+      var self = this;
+      jQuery("#modern-notifications-filter-bar")
+        .off("click.nkNotifFilter")
+        .on("click.nkNotifFilter", ".modern-notifications-filter-btn", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var f = String(jQuery(this).data("filter") || "all");
+          self.activeFilter = f;
+          jQuery("#modern-notifications-filter-bar .modern-notifications-filter-btn").removeClass("is-active");
+          jQuery(this).addClass("is-active");
+          self.forceNextRender = true;
+          self.loadAllNotifications();
+        });
     },
 
     bindActionHandlers: function () {
@@ -170,7 +202,10 @@
 
     checkUnreadCountOnly: function () {
       var self = this;
-      var url = "index.php?module=Vtiger&action=Notifications&type=all";
+      var filter = self.activeFilter || "all";
+      var url =
+        "index.php?module=Vtiger&action=Notifications&type=all&filter=" +
+        encodeURIComponent(filter);
 
       jQuery.ajax({
         url: url,
@@ -453,7 +488,11 @@
 
     loadAllNotifications: function () {
       var self = this;
-      var url = "index.php?module=Vtiger&action=Notifications&type=all";
+      self.ensureFilterBar();
+      var filter = self.activeFilter || "all";
+      var url =
+        "index.php?module=Vtiger&action=Notifications&type=all&filter=" +
+        encodeURIComponent(filter);
       jQuery.ajax({
         url: url,
         type: "GET",

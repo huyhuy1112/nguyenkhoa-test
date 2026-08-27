@@ -772,17 +772,19 @@ class Vtiger_NotificationService {
 	}
 
 	/**
-	 * Merged list: CSKH virtual (unread-only) + DB rows.
+	 * Merged list: DB notifications + capped CSKH (CSKH must not crowd out new alerts).
 	 *
 	 * @param int $userId
 	 * @param string $type all|read|unread
 	 * @param int $limit
+	 * @param string $filter all|cskh|new  (new = non-CSKH)
 	 * @return array
 	 */
-	public static function getMergedList($userId, $type = 'all', $limit = 30) {
+	public static function getMergedList($userId, $type = 'all', $limit = 30, $filter = 'all') {
 		$userId = (int)$userId;
 		$limit = max(5, min(80, (int)$limit));
 		$type = in_array($type, array('all', 'read', 'unread'), true) ? $type : 'unread';
+		$filter = in_array($filter, array('all', 'cskh', 'new'), true) ? $filter : 'all';
 
 		$adb = self::db();
 		$params = array($userId);
@@ -799,34 +801,44 @@ class Vtiger_NotificationService {
 				ORDER BY created_at DESC
 				LIMIT " . (int)$limit;
 		$result = $adb->pquery($sql, $params);
-		$list = array();
+		$dbList = array();
 		if ($result) {
 			while ($row = $adb->fetchByAssoc($result)) {
-				$list[] = self::normalizeDbRow($row);
+				$dbList[] = self::normalizeDbRow($row);
 			}
 		}
 
-		// CSKH only on unread/all — they have no "read" state until dismissed.
-		if ($type === 'all' || $type === 'unread') {
+		$cskh = array();
+		if (($type === 'all' || $type === 'unread') && $filter !== 'new') {
 			$cskh = self::fetchCskhAlerts($userId);
-			// Prefer CSKH first for CSKH team priority
-			$list = array_merge($cskh, $list);
 		}
 
-		// Re-sort: unread first, then created_at desc for DB; CSKH first among unreads
+		if ($filter === 'cskh') {
+			return array_slice($cskh, 0, $limit);
+		}
+		if ($filter === 'new') {
+			return array_slice($dbList, 0, $limit);
+		}
+
+		// Cap CSKH so assign/mention/new rows always have room in the panel.
+		$cskhCap = (int) max(5, min(10, floor($limit * 0.3)));
+		$dbCap = (int) max(8, $limit - min($cskhCap, count($cskh)));
+		$dbTake = array_slice($dbList, 0, $dbCap);
+		$cskhTake = array_slice($cskh, 0, min($cskhCap, max(0, $limit - count($dbTake))));
+
+		$list = array_merge($dbTake, $cskhTake);
+
+		// Unread first, then priority (assign/mention > reminder > other > cskh), then time.
 		usort($list, function ($a, $b) {
 			$ra = (int)(isset($a['is_read']) ? $a['is_read'] : 0);
 			$rb = (int)(isset($b['is_read']) ? $b['is_read'] : 0);
 			if ($ra !== $rb) {
-				return $ra - $rb; // unread 0 first
+				return $ra - $rb;
 			}
-			$ta = isset($a['notif_type']) ? $a['notif_type'] : 'other';
-			$tb = isset($b['notif_type']) ? $b['notif_type'] : 'other';
-			if ($ta === 'cskh' && $tb !== 'cskh') {
-				return -1;
-			}
-			if ($tb === 'cskh' && $ta !== 'cskh') {
-				return 1;
+			$pa = self::notifSortPriority(isset($a['notif_type']) ? $a['notif_type'] : 'other');
+			$pb = self::notifSortPriority(isset($b['notif_type']) ? $b['notif_type'] : 'other');
+			if ($pa !== $pb) {
+				return $pb - $pa;
 			}
 			$ca = isset($a['created_at']) ? strtotime($a['created_at']) : 0;
 			$cb = isset($b['created_at']) ? strtotime($b['created_at']) : 0;
@@ -834,6 +846,21 @@ class Vtiger_NotificationService {
 		});
 
 		return array_slice($list, 0, $limit);
+	}
+
+	/**
+	 * Higher = show earlier among same read-state.
+	 */
+	protected static function notifSortPriority($type) {
+		$type = strtolower((string) $type);
+		$map = array(
+			'assign' => 40,
+			'mention' => 35,
+			'reminder' => 20,
+			'other' => 15,
+			'cskh' => 5,
+		);
+		return isset($map[$type]) ? $map[$type] : 10;
 	}
 
 	/**

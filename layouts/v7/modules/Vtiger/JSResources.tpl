@@ -97,7 +97,7 @@
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/CkEditor.js')}"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Documents/resources/Documents.js')}"></script>
     <script type="text/javascript" src="{vresource_url('libraries/DOMPurify/dist/purify.min.js')}"></script>
-    <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernNotifications.js')}"></script>
+    <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernNotifications.js')}?mk_v=20260827_notif_mix1"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernProfileDropdown.js')}"></script>
 
     {foreach key=index item=jsModel from=$SCRIPTS}

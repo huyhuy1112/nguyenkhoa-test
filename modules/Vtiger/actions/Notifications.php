@@ -62,13 +62,19 @@ class Vtiger_Notifications_Action extends Vtiger_Action_Controller {
 				$type = 'unread';
 			}
 
-			$list = Vtiger_NotificationService::getMergedList($userid, $type, 40);
+			$filter = $request->get('filter');
+			if ($filter !== 'cskh' && $filter !== 'new') {
+				$filter = 'all';
+			}
+
+			$list = Vtiger_NotificationService::getMergedList($userid, $type, 40, $filter);
 			$unreadCount = Vtiger_NotificationService::countUnread($userid);
 			$pref = Vtiger_NotificationService::getSoundPref($userid);
 
 			$response = array(
 				'success' => true,
 				'type' => $type,
+				'filter' => $filter,
 				'count' => count($list),
 				'unreadCount' => $unreadCount,
 				'list' => $list,

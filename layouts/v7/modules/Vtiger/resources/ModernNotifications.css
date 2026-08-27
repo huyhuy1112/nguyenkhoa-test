@@ -124,6 +124,39 @@
 }
 
 /* Sound toggle */
+#modern-notifications-container .modern-notifications-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 14px 4px;
+}
+
+#modern-notifications-container .modern-notifications-filter-btn {
+  appearance: none;
+  border: 1px solid #d8dee8;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+#modern-notifications-container .modern-notifications-filter-btn:hover {
+  border-color: #86efac;
+  color: #0b6e4f;
+  background: #ecfdf3;
+}
+
+#modern-notifications-container .modern-notifications-filter-btn.is-active {
+  border-color: #08a045;
+  background: #ecfdf3;
+  color: #0b6e4f;
+  box-shadow: 0 0 0 2px rgba(8, 160, 69, 0.15);
+}
+
 #modern-notifications-container .modern-notifications-prefs-link {
   display: inline-flex;
   align-items: center;
