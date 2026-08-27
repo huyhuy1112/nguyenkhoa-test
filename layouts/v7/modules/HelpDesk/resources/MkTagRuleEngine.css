@@ -26,6 +26,7 @@
 	--tre-sub-fs: 1.3125rem;
 	--tre-body-fs: 1.1875rem;
 	--tre-table-fs: 1.1875rem;
+	--tre-table-th-fs: 1.0625rem;
 	--tre-label-fs: 0.875rem;
 	--tre-scenario-fs: 1.125rem;
 }
@@ -506,18 +507,52 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 .mk-tre-score-card h3 {
 	margin: 0;
 	padding: 14px 18px;
-	font-size: 1.125rem;
+	font-size: 1.375rem;
 	font-weight: 800;
 	border-bottom: 1px solid var(--tre-border-soft);
 	background: #f8fafc;
+}
+
+.mk-tre-score-card .mk-tre-table th {
+	font-size: var(--tre-table-th-fs);
+}
+
+.mk-tre-score-card .mk-tre-muted {
+	font-size: var(--tre-table-fs);
+}
+
+.mk-tre-aff-prefix {
+	font-size: 1.375rem;
+	font-weight: 800;
+	color: var(--tre-text);
+	letter-spacing: -0.02em;
+	line-height: 1.3;
 }
 
 .mk-tre-input--score {
 	max-width: 140px;
 	min-height: 48px;
 	padding: 10px 12px;
-	font-size: 1.125rem;
+	font-size: 1.25rem;
 	font-weight: 700;
+}
+
+.mk-tre-score-card .mk-tre-form-row {
+	padding: 16px 18px 20px;
+	gap: 16px;
+}
+
+.mk-tre-score-card .mk-tre-field > span {
+	font-size: 1.0625rem;
+	font-weight: 700;
+	text-transform: none;
+	letter-spacing: 0;
+	color: var(--tre-text-secondary);
+}
+
+.mk-tre-score-card .mk-tre-input:not(.mk-tre-input--score) {
+	font-size: 1.25rem;
+	min-height: 52px;
 }
 
 /* ---- Parent tag expand / child details ---- */
@@ -622,7 +657,7 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 }
 
 .mk-tre-group-detail__head {
-	font-size: 0.875rem;
+	font-size: var(--tre-table-th-fs);
 	font-weight: 700;
 	color: #64748b;
 	text-transform: uppercase;
@@ -672,7 +707,7 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px 14px;
-	font-size: 0.9375rem;
+	font-size: 1.0625rem;
 }
 
 .mk-tre-group-child__used {
@@ -825,10 +860,10 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 .mk-tre-table th {
 	text-align: left;
 	padding: 20px 28px;
-	font-size: 0.875rem;
+	font-size: var(--tre-table-th-fs);
 	font-weight: 800;
 	text-transform: uppercase;
-	letter-spacing: 0.08em;
+	letter-spacing: 0.06em;
 	color: #64748b;
 	white-space: nowrap;
 	border-bottom: 2px solid var(--tre-border);
@@ -2439,7 +2474,7 @@ body[data-module="SupportFAQ"] .mk-sf-faq-page {
 }
 
 .mk-tre-then__text {
-	font-size: 13px;
+	font-size: 1.0625rem;
 	line-height: 1.45;
 	color: #0f172a;
 	max-width: 360px;
