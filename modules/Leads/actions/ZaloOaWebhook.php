@@ -8,6 +8,13 @@ require_once 'modules/Leads/models/ZaloOaLeadIngestService.php';
 
 class Leads_ZaloOaWebhook_Action extends Vtiger_Action_Controller {
 
+	/**
+	 * Zalo calls this URL without a CRM session — must stay public.
+	 */
+	public function loginRequired() {
+		return false;
+	}
+
 	public function requiresPermission(Vtiger_Request $request) {
 		return array();
 	}

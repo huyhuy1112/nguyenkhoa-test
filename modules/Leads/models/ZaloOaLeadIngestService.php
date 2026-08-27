@@ -67,6 +67,7 @@ class Leads_ZaloOaLeadIngestService {
 	}
 
 	protected static function upsertLeadFromState(array $state) {
+		self::ensureCurrentUser();
 		$name = trim((string) $state['full_name']);
 		if ($name === '') {
 			$name = 'Khách Zalo OA';
@@ -94,6 +95,22 @@ class Leads_ZaloOaLeadIngestService {
 			'force_create' => 0, // allow merge by phone/email
 		);
 		return Leads_ModernService::saveLead($payload, null);
+	}
+
+	/**
+	 * Webhook runs without CRM login — seed admin user for saveLead().
+	 */
+	protected static function ensureCurrentUser() {
+		global $current_user;
+		if ($current_user && !empty($current_user->id)) {
+			return;
+		}
+		$admin = Users::getActiveAdminUser();
+		if (!$admin || empty($admin->id)) {
+			throw new Exception('Không tìm thấy admin user để tạo Lead từ Zalo OA.');
+		}
+		$current_user = $admin;
+		vglobal('current_user', $admin);
 	}
 
 	protected static function missingFields(array $state) {

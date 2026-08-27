@@ -34,7 +34,8 @@ class Settings_Vtiger_ZaloOaOAuth_Action extends Settings_Vtiger_Basic_Action {
 	}
 
 	public function callback(Vtiger_Request $request) {
-		$integrationsUrl = 'index.php?module=Vtiger&parent=Settings&view=Integrations#code=zalo_oa';
+		// Put query params BEFORE hash so zalo_oauth / zalo_err reach the browser correctly.
+		$integrationsBase = 'index.php?module=Vtiger&parent=Settings&view=Integrations';
 		try {
 			$error = trim((string) $request->get('error'));
 			if ($error !== '') {
@@ -52,11 +53,11 @@ class Settings_Vtiger_ZaloOaOAuth_Action extends Settings_Vtiger_Basic_Action {
 			/** @var NkApi_ZaloOa_Adapter $adapter */
 			$adapter = NkApiConnection::adapter('zalo_oa');
 			$adapter->completeOAuth($code, $state, $oaId, $userId);
-			header('Location: ' . $integrationsUrl . '&zalo_oauth=1');
+			header('Location: ' . $integrationsBase . '&zalo_oauth=1#code=zalo_oa');
 			exit;
 		} catch (Exception $e) {
 			$msg = rawurlencode($e->getMessage());
-			header('Location: ' . $integrationsUrl . '&zalo_oauth=0&zalo_err=' . $msg);
+			header('Location: ' . $integrationsBase . '&zalo_oauth=0&zalo_err=' . $msg . '#code=zalo_oa');
 			exit;
 		}
 	}
