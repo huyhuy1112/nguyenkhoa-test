@@ -67,6 +67,9 @@ class Settings_Vtiger_NotificationPrefs_View extends Settings_Vtiger_Index_View 
 			'~layouts/v7/modules/Settings/Vtiger/resources/NotificationPrefs.js',
 		);
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
+		if (method_exists($this, 'appendAssetCacheVer')) {
+			self::appendAssetCacheVer($jsScriptInstances, 'src', '20260827_notif_ui1');
+		}
 		return array_merge($headerScriptInstances, $jsScriptInstances);
 	}
 
@@ -76,6 +79,9 @@ class Settings_Vtiger_NotificationPrefs_View extends Settings_Vtiger_Index_View 
 			'~layouts/v7/modules/Settings/Vtiger/resources/NotificationPrefs.css',
 		);
 		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
+		if (method_exists($this, 'appendAssetCacheVer')) {
+			self::appendAssetCacheVer($cssInstances, 'href', '20260827_notif_ui1');
+		}
 		return array_merge($headerCssInstances, $cssInstances);
 	}
 }
