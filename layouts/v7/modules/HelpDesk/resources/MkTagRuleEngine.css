@@ -504,6 +504,32 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 	overflow: hidden;
 }
 
+.mk-tre-score-card__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 18px;
+	border-bottom: 1px solid var(--tre-border-soft);
+	background: #f8fafc;
+	flex-wrap: wrap;
+}
+
+.mk-tre-score-card__head h3 {
+	margin: 0;
+	padding: 0;
+	font-size: 1.375rem;
+	font-weight: 800;
+	border: none;
+	background: transparent;
+}
+
+.mk-tre-score-card__head .mk-tre-btn {
+	padding: 10px 16px;
+	font-size: 1rem;
+	min-height: 42px;
+}
+
 .mk-tre-score-card h3 {
 	margin: 0;
 	padding: 14px 18px;
@@ -537,6 +563,21 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 	font-weight: 700;
 }
 
+.mk-tre-input--score-label,
+.mk-tre-input--score-key {
+	max-width: none;
+	min-height: 48px;
+	padding: 10px 14px;
+	font-size: 1.125rem;
+	font-weight: 500;
+}
+
+.mk-tre-table--score th:last-child,
+.mk-tre-table--score td:last-child {
+	width: 88px;
+	text-align: right;
+}
+
 .mk-tre-score-card .mk-tre-form-row {
 	padding: 16px 18px 20px;
 	gap: 16px;
@@ -550,7 +591,7 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
 	color: var(--tre-text-secondary);
 }
 
-.mk-tre-score-card .mk-tre-input:not(.mk-tre-input--score) {
+.mk-tre-score-card .mk-tre-input:not(.mk-tre-input--score):not(.mk-tre-input--score-label):not(.mk-tre-input--score-key) {
 	font-size: 1.25rem;
 	min-height: 52px;
 }

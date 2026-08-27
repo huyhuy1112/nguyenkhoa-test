@@ -1321,12 +1321,45 @@ class HelpDesk_TagRuleEngineService {
 
 	/** ——— Google Sheet scoring config (Q1/Q2/Q3/Region) ——— */
 
+	public function getDefaultSheetScoringLabels() {
+		return array(
+			'q1' => array(
+				'A' => 'Chuẩn bị mở quán',
+				'B' => 'Đã có quán',
+				'C' => 'Gặp vấn đề / cải thiện',
+				'D' => 'Gia đình / sở thích',
+			),
+			'q2' => array(
+				'A' => 'Xe đẩy',
+				'B' => 'Topping',
+				'C' => 'Pha máy',
+				'D' => 'Máy lạnh',
+				'E' => 'Sân vườn',
+				'F' => 'Không gian mở',
+				'G' => 'Gia đình / sở thích',
+			),
+			'q3' => array(
+				'A' => 'Dưới 50 triệu',
+				'B' => '50–100 triệu',
+				'C' => '100–300 triệu',
+				'D' => '300–500 triệu',
+				'E' => 'Từ 500 triệu',
+			),
+			'region' => array(
+				'Khu vực 1' => 'KV1',
+				'Khu vực 2' => 'KV2',
+				'Khu vực 3' => 'KV3',
+			),
+		);
+	}
+
 	public function getDefaultSheetScoringConfig() {
 		return array(
 			'q1' => array('A' => 20, 'B' => 15, 'C' => 10, 'D' => 0),
 			'q2' => array('A' => 5, 'B' => 10, 'C' => 15, 'D' => 20, 'E' => 20, 'F' => 15, 'G' => 0),
 			'q3' => array('A' => 0, 'B' => 10, 'C' => 20, 'D' => 30, 'E' => 40),
 			'region' => array('Khu vực 1' => 5, 'Khu vực 2' => 3, 'Khu vực 3' => 0),
+			'labels' => $this->getDefaultSheetScoringLabels(),
 			'threshold' => array('khong_dat_max' => 19, 'xac_minh_max' => 34, 'du_dk_min' => 35),
 			'note' => 'Cấu hình điểm tham chiếu cho sàng lọc Google Sheet (Bộ A).',
 		);
@@ -1345,30 +1378,79 @@ class HelpDesk_TagRuleEngineService {
 		return $this->mergeSheetScoringConfig($default, $cfg);
 	}
 
+	protected function sanitizeSheetLetterMap(array $given) {
+		$out = array();
+		foreach ($given as $opt => $score) {
+			$opt = strtoupper(trim((string)$opt));
+			if (!preg_match('/^[A-Z]$/', $opt)) {
+				continue;
+			}
+			$out[$opt] = (int)$score;
+		}
+		ksort($out);
+		return $out;
+	}
+
+	protected function sanitizeSheetNamedMap(array $given) {
+		$out = array();
+		foreach ($given as $name => $score) {
+			$name = trim((string)$name);
+			if ($name === '') {
+				continue;
+			}
+			$out[$name] = (int)$score;
+		}
+		return $out;
+	}
+
+	protected function sanitizeSheetLabels(array $given, array $scoreMaps) {
+		$out = array();
+		foreach (array('q1', 'q2', 'q3', 'region') as $group) {
+			$out[$group] = array();
+			$src = (isset($given[$group]) && is_array($given[$group])) ? $given[$group] : array();
+			$keys = isset($scoreMaps[$group]) && is_array($scoreMaps[$group]) ? array_keys($scoreMaps[$group]) : array();
+			foreach ($keys as $key) {
+				$out[$group][$key] = isset($src[$key]) ? trim((string)$src[$key]) : '';
+			}
+		}
+		return $out;
+	}
+
 	protected function mergeSheetScoringConfig(array $default, array $given) {
 		$out = $default;
 		foreach (array('q1', 'q2', 'q3') as $k) {
 			if (isset($given[$k]) && is_array($given[$k])) {
-				foreach ($default[$k] as $opt => $val) {
-					if (array_key_exists($opt, $given[$k])) {
-						$out[$k][$opt] = (int)$given[$k][$opt];
-					}
+				$mapped = $this->sanitizeSheetLetterMap($given[$k]);
+				if (!empty($mapped)) {
+					$out[$k] = $mapped;
 				}
 			}
 		}
 		if (isset($given['region']) && is_array($given['region'])) {
-			$regionOut = array();
-			foreach ($given['region'] as $name => $score) {
-				$name = trim((string)$name);
-				if ($name === '') {
-					continue;
+			$out['region'] = $this->sanitizeSheetNamedMap($given['region']);
+		}
+		$labelSrc = array();
+		if (isset($given['labels']) && is_array($given['labels'])) {
+			$labelSrc = $given['labels'];
+		}
+		$defaultLabels = $this->getDefaultSheetScoringLabels();
+		foreach (array('q1', 'q2', 'q3', 'region') as $group) {
+			if (!isset($labelSrc[$group]) || !is_array($labelSrc[$group])) {
+				$labelSrc[$group] = isset($defaultLabels[$group]) ? $defaultLabels[$group] : array();
+			} else {
+				$merged = isset($defaultLabels[$group]) ? $defaultLabels[$group] : array();
+				foreach ($labelSrc[$group] as $opt => $label) {
+					$merged[$opt] = trim((string)$label);
 				}
-				$regionOut[$name] = (int)$score;
-			}
-			if (!empty($regionOut)) {
-				$out['region'] = $regionOut;
+				$labelSrc[$group] = $merged;
 			}
 		}
+		$out['labels'] = $this->sanitizeSheetLabels($labelSrc, array(
+			'q1' => $out['q1'],
+			'q2' => $out['q2'],
+			'q3' => $out['q3'],
+			'region' => $out['region'],
+		));
 		if (isset($given['threshold']) && is_array($given['threshold'])) {
 			$t = $out['threshold'];
 			foreach (array('khong_dat_max', 'xac_minh_max', 'du_dk_min') as $key) {

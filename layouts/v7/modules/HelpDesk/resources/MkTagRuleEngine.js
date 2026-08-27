@@ -456,33 +456,78 @@
 			else $panel.html(this.renderScenariosTab());
 		},
 
-		sheetScoreLabel: function (groupName, key) {
-			var map = {
+		sheetScoreLabel: function (groupName, key, cfg) {
+			cfg = cfg || (store.getSheetScoring ? store.getSheetScoring() : {});
+			var labels = (cfg && cfg.labels && cfg.labels[groupName]) ? cfg.labels[groupName] : {};
+			if (labels && labels[key]) return String(labels[key]);
+			var fallback = {
 				q1: { A: 'Chuẩn bị mở quán', B: 'Đã có quán', C: 'Gặp vấn đề / cải thiện', D: 'Gia đình / sở thích' },
 				q2: { A: 'Xe đẩy', B: 'Topping', C: 'Pha máy', D: 'Máy lạnh', E: 'Sân vườn', F: 'Không gian mở', G: 'Gia đình / sở thích' },
 				q3: { A: 'Dưới 50 triệu', B: '50–100 triệu', C: '100–300 triệu', D: '300–500 triệu', E: 'Từ 500 triệu' },
 				region: { 'Khu vực 1': 'KV1', 'Khu vực 2': 'KV2', 'Khu vực 3': 'KV3' },
 			};
-			return (map[groupName] && map[groupName][key]) ? map[groupName][key] : 'Điểm cho lựa chọn ' + key;
+			return (fallback[groupName] && fallback[groupName][key]) ? fallback[groupName][key] : '';
 		},
 
-		renderSheetScoringRows: function (groupName, scoreMap, order) {
-			var keys = order && order.length ? order : Object.keys(scoreMap || {});
+		sheetScoreKeys: function (scoreMap) {
+			return Object.keys(scoreMap || {}).sort(function (a, b) {
+				if (/^[A-Z]$/.test(a) && /^[A-Z]$/.test(b)) return a.localeCompare(b);
+				return String(a).localeCompare(String(b), 'vi');
+			});
+		},
+
+		nextSheetLetter: function (existingKeys) {
+			var used = {};
+			(existingKeys || []).forEach(function (k) { used[String(k).toUpperCase()] = true; });
+			var letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+			for (var i = 0; i < letters.length; i++) {
+				if (!used[letters.charAt(i)]) return letters.charAt(i);
+			}
+			return '';
+		},
+
+		renderSheetScoringRow: function (groupName, key, score, label) {
+			var isRegion = groupName === 'region';
+			var keyCell = isRegion
+				? '<input type="text" class="mk-tre-input mk-tre-input--score-key js-tre-score-key" data-group="region" value="' + esc(key) + '" />'
+				: '<strong class="mk-tre-aff-prefix">' + esc(key) + '</strong>';
+			return ''
+				+ '<tr class="js-tre-score-row" data-group="' + esc(groupName) + '" data-key="' + esc(key) + '">'
+				+ '  <td>' + keyCell + '</td>'
+				+ '  <td><input type="number" class="mk-tre-input mk-tre-input--score js-tre-score-input" data-group="' + esc(groupName) + '" data-key="' + esc(key) + '" value="' + esc(score) + '" /></td>'
+				+ '  <td><input type="text" class="mk-tre-input mk-tre-input--score-label js-tre-score-label" data-group="' + esc(groupName) + '" data-key="' + esc(key) + '" value="' + esc(label || '') + '" placeholder="Ghi chú đáp án" /></td>'
+				+ '  <td class="mk-tre-actions"><button type="button" class="mk-tre-icon-btn mk-tre-icon-btn--danger js-tre-score-del" title="Xoá đáp án">' + ICONS.trash + '</button></td>'
+				+ '</tr>';
+		},
+
+		renderSheetScoringRows: function (groupName, scoreMap, cfg) {
+			var keys = this.sheetScoreKeys(scoreMap);
 			if (!keys.length) {
-				return '<tr><td colspan="3" class="mk-tre-empty">Chưa có dữ liệu</td></tr>';
+				return '<tr class="js-tre-score-empty"><td colspan="4" class="mk-tre-empty">Chưa có đáp án — bấm Thêm đáp án</td></tr>';
 			}
 			var rows = '';
 			for (var i = 0; i < keys.length; i++) {
 				var key = keys[i];
 				var score = (scoreMap && scoreMap[key] != null) ? scoreMap[key] : 0;
-				rows += ''
-					+ '<tr>'
-					+ '  <td><strong class="mk-tre-aff-prefix">' + esc(key) + '</strong></td>'
-					+ '  <td><input type="number" class="mk-tre-input mk-tre-input--score js-tre-score-input" data-group="' + esc(groupName) + '" data-key="' + esc(key) + '" value="' + esc(score) + '" /></td>'
-					+ '  <td><span class="mk-tre-muted">' + esc(this.sheetScoreLabel(groupName, key)) + '</span></td>'
-					+ '</tr>';
+				rows += this.renderSheetScoringRow(groupName, key, score, this.sheetScoreLabel(groupName, key, cfg));
 			}
 			return rows;
+		},
+
+		renderSheetScoreCard: function (title, groupName, scoreMap, cfg, firstCol) {
+			var addLabel = groupName === 'region' ? 'Thêm khu vực' : 'Thêm đáp án';
+			return ''
+				+ '<article class="mk-tre-score-card" data-score-group="' + esc(groupName) + '">'
+				+ '  <div class="mk-tre-score-card__head">'
+				+ '    <h3>' + esc(title) + '</h3>'
+				+ '    <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-score-add" data-group="' + esc(groupName) + '">' + ICONS.plus + ' ' + esc(addLabel) + '</button>'
+				+ '  </div>'
+				+ '  <div class="mk-tre-table-wrap"><table class="mk-tre-table mk-tre-table--score"><thead><tr>'
+				+ '    <th>' + esc(firstCol) + '</th><th>Điểm</th><th>Ghi chú</th><th class="mk-tre-th-actions">Thao tác</th>'
+				+ '  </tr></thead><tbody>'
+				+ this.renderSheetScoringRows(groupName, scoreMap, cfg)
+				+ '</tbody></table></div>'
+				+ '</article>';
 		},
 
 		renderSheetScoringTab: function () {
@@ -497,7 +542,7 @@
 				+ '  <div class="mk-tre-section__head">'
 				+ '    <div class="mk-tre-section__titles">'
 				+ '      <h2 class="mk-tre-section__title">Điểm lọc Google Sheet (Bộ A)</h2>'
-				+ '      <p class="mk-tre-section__sub">Quản lý điểm theo đáp án Q1–Q3 và khu vực để BA/Sales thống nhất quy tắc đánh giá.</p>'
+				+ '      <p class="mk-tre-section__sub">Thêm/sửa đáp án khi form đổi. Bấm Lưu điểm để áp dụng.</p>'
 				+ '    </div>'
 				+ '    <div class="mk-tre-section__actions">'
 				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-score-reset">Khôi phục mặc định</button>'
@@ -506,18 +551,10 @@
 				+ '  </div>'
 				+ '  <div class="mk-tre-section__body">'
 				+ '    <div class="mk-tre-score-wrap">'
-				+ '      <article class="mk-tre-score-card"><h3>Q1 — Tình trạng</h3><div class="mk-tre-table-wrap"><table class="mk-tre-table"><thead><tr><th>Đáp án</th><th>Điểm</th><th>Ghi chú</th></tr></thead><tbody>'
-				+ this.renderSheetScoringRows('q1', q1, ['A', 'B', 'C', 'D'])
-				+ '</tbody></table></div></article>'
-				+ '      <article class="mk-tre-score-card"><h3>Q2 — Mô hình</h3><div class="mk-tre-table-wrap"><table class="mk-tre-table"><thead><tr><th>Đáp án</th><th>Điểm</th><th>Ghi chú</th></tr></thead><tbody>'
-				+ this.renderSheetScoringRows('q2', q2, ['A', 'B', 'C', 'D', 'E', 'F', 'G'])
-				+ '</tbody></table></div></article>'
-				+ '      <article class="mk-tre-score-card"><h3>Q3 — Ngân sách</h3><div class="mk-tre-table-wrap"><table class="mk-tre-table"><thead><tr><th>Đáp án</th><th>Điểm</th><th>Ghi chú</th></tr></thead><tbody>'
-				+ this.renderSheetScoringRows('q3', q3, ['A', 'B', 'C', 'D', 'E'])
-				+ '</tbody></table></div></article>'
-				+ '      <article class="mk-tre-score-card"><h3>Region</h3><div class="mk-tre-table-wrap"><table class="mk-tre-table"><thead><tr><th>Khu vực</th><th>Điểm</th><th>Ghi chú</th></tr></thead><tbody>'
-				+ this.renderSheetScoringRows('region', region, Object.keys(region))
-				+ '</tbody></table></div></article>'
+				+ this.renderSheetScoreCard('Q1 — Tình trạng', 'q1', q1, cfg, 'Đáp án')
+				+ this.renderSheetScoreCard('Q2 — Mô hình', 'q2', q2, cfg, 'Đáp án')
+				+ this.renderSheetScoreCard('Q3 — Ngân sách', 'q3', q3, cfg, 'Đáp án')
+				+ this.renderSheetScoreCard('Region', 'region', region, cfg, 'Khu vực')
 				+ '      <article class="mk-tre-score-card"><h3>Ngưỡng tổng điểm (tham chiếu)</h3>'
 				+ '        <div class="mk-tre-form-row">'
 				+ '          <label class="mk-tre-field"><span>Không đạt (tối đa)</span><input type="number" class="mk-tre-input js-tre-score-th" data-th="khong_dat_max" value="' + esc(threshold.khong_dat_max == null ? 0 : threshold.khong_dat_max) + '" /></label>'
@@ -534,13 +571,17 @@
 		},
 
 		readSheetScoringForm: function () {
-			var payload = { q1: {}, q2: {}, q3: {}, region: {}, threshold: {} };
-			$('#mk-tre-panel .js-tre-score-input').each(function () {
-				var $el = $(this);
-				var group = String($el.data('group') || '');
-				var key = String($el.data('key') || '');
-				if (!group || !key || !payload[group]) return;
-				payload[group][key] = parseInt($el.val(), 10) || 0;
+			var payload = { q1: {}, q2: {}, q3: {}, region: {}, labels: { q1: {}, q2: {}, q3: {}, region: {} }, threshold: {} };
+			$('#mk-tre-panel .js-tre-score-row').each(function () {
+				var $row = $(this);
+				var group = String($row.attr('data-group') || '');
+				if (!group || !payload[group]) return;
+				var key = group === 'region'
+					? String($row.find('.js-tre-score-key').val() || '').trim()
+					: String($row.attr('data-key') || '').trim();
+				if (!key) return;
+				payload[group][key] = parseInt($row.find('.js-tre-score-input').val(), 10) || 0;
+				payload.labels[group][key] = String($row.find('.js-tre-score-label').val() || '').trim();
 			});
 			$('#mk-tre-panel .js-tre-score-th').each(function () {
 				var $el = $(this);
@@ -1407,6 +1448,10 @@
 			this.$root.on('click', '.js-tre-score-save', function () {
 				try {
 					var payload = self.readSheetScoringForm();
+					if (!Object.keys(payload.q1).length || !Object.keys(payload.q2).length || !Object.keys(payload.q3).length) {
+						window.alert('Mỗi câu Q1/Q2/Q3 cần ít nhất một đáp án.');
+						return;
+					}
 					store.saveSheetScoring(payload);
 					self.refreshAfterDataChange();
 					toast('Đã lưu cấu hình điểm lọc Sheet');
@@ -1423,6 +1468,52 @@
 					toast('Đã khôi phục mặc định');
 				} catch (e) {
 					window.alert(e.message || 'Không khôi phục được cấu hình.');
+				}
+			});
+
+			this.$root.on('click', '.js-tre-score-add', function () {
+				var group = String($(this).data('group') || '');
+				var $card = $(this).closest('.mk-tre-score-card');
+				var $tbody = $card.find('tbody');
+				$tbody.find('.js-tre-score-empty').remove();
+				var key = '';
+				if (group === 'region') {
+					var n = $tbody.find('.js-tre-score-row').length + 1;
+					key = 'Khu vực ' + n;
+					while ($tbody.find('.js-tre-score-row').filter(function () {
+						return String($(this).find('.js-tre-score-key').val() || '').trim() === key;
+					}).length) {
+						n += 1;
+						key = 'Khu vực ' + n;
+					}
+				} else {
+					var existing = [];
+					$tbody.find('.js-tre-score-row').each(function () {
+						existing.push(String($(this).attr('data-key') || ''));
+					});
+					key = self.nextSheetLetter(existing);
+					if (!key) {
+						window.alert('Đã hết chữ cái A–Z cho nhóm này.');
+						return;
+					}
+				}
+				$tbody.append(self.renderSheetScoringRow(group, key, 0, ''));
+				var $new = $tbody.find('.js-tre-score-row').last();
+				var $focus = group === 'region' ? $new.find('.js-tre-score-key') : $new.find('.js-tre-score-label');
+				$focus.trigger('focus');
+			});
+
+			this.$root.on('click', '.js-tre-score-del', function () {
+				var $row = $(this).closest('.js-tre-score-row');
+				var $tbody = $row.closest('tbody');
+				var group = String($row.attr('data-group') || '');
+				var key = group === 'region'
+					? String($row.find('.js-tre-score-key').val() || $row.attr('data-key') || '')
+					: String($row.attr('data-key') || '');
+				if (!window.confirm('Xoá đáp án "' + key + '"? Nhớ bấm Lưu điểm sau khi xoá.')) return;
+				$row.remove();
+				if (!$tbody.find('.js-tre-score-row').length) {
+					$tbody.append('<tr class="js-tre-score-empty"><td colspan="4" class="mk-tre-empty">Chưa có đáp án — bấm Thêm đáp án</td></tr>');
 				}
 			});
 

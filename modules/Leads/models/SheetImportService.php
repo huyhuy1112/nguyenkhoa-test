@@ -632,7 +632,7 @@ class Leads_SheetImportService {
 
 	/** @return string A|B|C|D|'' */
 	public static function parseFormQ1($raw) {
-		$code = self::parseLeadingLetter($raw, 'ABCD');
+		$code = self::parseLeadingLetter($raw, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
 		if ($code !== '') {
 			return $code;
 		}
@@ -657,7 +657,7 @@ class Leads_SheetImportService {
 
 	/** @return string A–G|'' */
 	public static function parseFormQ2($raw) {
-		$code = self::parseLeadingLetter($raw, 'ABCDEFG');
+		$code = self::parseLeadingLetter($raw, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
 		if ($code !== '') {
 			return $code;
 		}
@@ -691,7 +691,7 @@ class Leads_SheetImportService {
 
 	/** @return string A–E|'' */
 	public static function parseFormQ3($raw) {
-		$code = self::parseLeadingLetter($raw, 'ABCDE');
+		$code = self::parseLeadingLetter($raw, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
 		if ($code !== '') {
 			return $code;
 		}
@@ -725,7 +725,7 @@ class Leads_SheetImportService {
 		if ($v === '') {
 			return '';
 		}
-		if (preg_match('/^([A-Ga-g])(?:\s|$|[.\-–—:).])/u', $v, $m)) {
+		if (preg_match('/^([A-Za-z])(?:\s|$|[.\-–—:).])/u', $v, $m)) {
 			$c = strtoupper($m[1]);
 			if (strpos($allowed, $c) !== false) {
 				return $c;
