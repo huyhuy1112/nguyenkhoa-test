@@ -1,8 +1,13 @@
 <?php
 /*+***********************************************************************************
- * Zalo OA scripted chat -> Leads (test scope).
- * - Collect answers per OA user from webhook events.
- * - Create/update Lead only when full questionnaire is completed.
+ * Zalo OA -> Leads (test scope).
+ * Supports:
+ * 1) ZaloDemo registration message:
+ *    Người đăng ký: ...
+ *    Số điện thoại: ...
+ *    Email: ...
+ *    Đã đăng ký chương trình ZaloDemo.
+ * 2) Scripted Q&A answers (business model / channel / email / phone).
  *************************************************************************************/
 
 require_once 'modules/Leads/models/ModernService.php';
@@ -53,8 +58,19 @@ class Leads_ZaloOaLeadIngestService {
 			);
 		}
 
+		// Avoid duplicate Lead create on repeated OA confirmation webhook.
+		if (!empty($merged['leadid']) && (int) $merged['leadid'] > 0) {
+			return array(
+				'success' => true,
+				'created' => false,
+				'updated' => true,
+				'leadid' => (int) $merged['leadid'],
+				'oa_user_id' => $ev['oa_user_id'],
+			);
+		}
+
 		$lead = self::upsertLeadFromState($merged);
-		$merged['leadid'] = isset($lead['crmid']) ? (int) $lead['crmid'] : 0;
+		$merged['leadid'] = isset($lead['crmid']) ? (int) $lead['crmid'] : (isset($lead['id']) ? (int) $lead['id'] : 0);
 		$merged['is_completed'] = 1;
 		self::saveState($ev['oa_user_id'], $merged);
 
@@ -113,19 +129,16 @@ class Leads_ZaloOaLeadIngestService {
 		vglobal('current_user', $admin);
 	}
 
+	/**
+	 * ZaloDemo registration is complete with phone + email (name optional).
+	 */
 	protected static function missingFields(array $state) {
 		$missing = array();
-		if (trim((string) $state['business_model']) === '') {
-			$missing[] = 'business_model';
-		}
-		if (trim((string) $state['sales_channel']) === '') {
-			$missing[] = 'sales_channel';
+		if (trim((string) $state['phone']) === '') {
+			$missing[] = 'phone';
 		}
 		if (trim((string) $state['email']) === '') {
 			$missing[] = 'email';
-		}
-		if (trim((string) $state['phone']) === '') {
-			$missing[] = 'phone';
 		}
 		return $missing;
 	}
@@ -166,6 +179,9 @@ class Leads_ZaloOaLeadIngestService {
 				$answers[$k] = $out[$k];
 			}
 		}
+		if (!empty($ev['registration_raw'])) {
+			$answers['registration_raw'] = $ev['registration_raw'];
+		}
 		$out['answers_json'] = json_encode($answers, JSON_UNESCAPED_UNICODE);
 		$out['last_payload'] = json_encode($payload, JSON_UNESCAPED_UNICODE);
 		$out['is_completed'] = empty(self::missingFields($out)) ? 1 : 0;
@@ -188,7 +204,6 @@ class Leads_ZaloOaLeadIngestService {
 	}
 
 	protected static function extractEvent(array $payload) {
-		$json = json_encode($payload, JSON_UNESCAPED_UNICODE);
 		$ev = array(
 			'oa_user_id' => '',
 			'oa_id' => '',
@@ -197,29 +212,60 @@ class Leads_ZaloOaLeadIngestService {
 			'email' => '',
 			'business_model' => '',
 			'sales_channel' => '',
+			'registration_raw' => '',
 		);
 
 		$flat = self::flatten($payload);
-		foreach (array('sender.id', 'source.uid', 'from.id', 'user_id', 'uid', 'recipient.id') as $key) {
-			if (!empty($flat[$key])) {
-				$ev['oa_user_id'] = trim((string) $flat[$key]);
-				break;
-			}
-		}
-		foreach (array('oa_id', 'oa.id', 'app.oa_id', 'recipient.oa_id') as $key) {
-			if (!empty($flat[$key])) {
-				$ev['oa_id'] = trim((string) $flat[$key]);
-				break;
-			}
-		}
-		foreach (array('sender.name', 'sender.display_name', 'contact.name', 'shared_info.name', 'user.name') as $key) {
-			if (!empty($flat[$key])) {
-				$ev['full_name'] = trim((string) $flat[$key]);
+		$eventName = '';
+		foreach (array('event_name', 'event', 'eventName') as $ek) {
+			if (!empty($flat[$ek])) {
+				$eventName = strtolower(trim((string) $flat[$ek]));
 				break;
 			}
 		}
 
+		$senderId = !empty($flat['sender.id']) ? trim((string) $flat['sender.id']) : '';
+		$recipientId = !empty($flat['recipient.id']) ? trim((string) $flat['recipient.id']) : '';
+
+		// OA → user (confirmation): user is recipient. User → OA: user is sender.
+		$isOaOutbound = ($eventName !== '' && strpos($eventName, 'oa_send') === 0);
+		if ($isOaOutbound && $recipientId !== '') {
+			$ev['oa_user_id'] = $recipientId;
+			if ($senderId !== '') {
+				$ev['oa_id'] = $senderId;
+			}
+		} else {
+			foreach (array('sender.id', 'source.uid', 'from.id', 'user_id_by_app', 'user_id', 'uid') as $key) {
+				if (!empty($flat[$key])) {
+					$ev['oa_user_id'] = trim((string) $flat[$key]);
+					break;
+				}
+			}
+			if ($ev['oa_user_id'] === '' && $recipientId !== '') {
+				$ev['oa_user_id'] = $recipientId;
+			}
+			if ($senderId !== '' && $recipientId !== '' && $ev['oa_user_id'] === $senderId) {
+				$ev['oa_id'] = $recipientId;
+			}
+		}
+
+		foreach (array('oa_id', 'oa.id', 'app.oa_id', 'recipient.oa_id') as $key) {
+			if ($ev['oa_id'] === '' && !empty($flat[$key])) {
+				$ev['oa_id'] = trim((string) $flat[$key]);
+			}
+		}
+
+		$messageText = '';
+		if (!empty($flat['message.text'])) {
+			$messageText = trim((string) $flat['message.text']);
+		} elseif (!empty($flat['text'])) {
+			$messageText = trim((string) $flat['text']);
+		}
+
 		$texts = array();
+		if ($messageText !== '') {
+			$texts[] = $messageText;
+		}
 		foreach ($flat as $k => $v) {
 			if (!is_scalar($v)) {
 				continue;
@@ -227,23 +273,52 @@ class Leads_ZaloOaLeadIngestService {
 			$ks = strtolower((string) $k);
 			if (strpos($ks, 'message') !== false || strpos($ks, 'text') !== false || strpos($ks, 'content') !== false) {
 				$vv = trim((string) $v);
-				if ($vv !== '') {
+				if ($vv !== '' && $vv !== $messageText) {
 					$texts[] = $vv;
 				}
 			}
 		}
-		if ($json) {
-			$texts[] = $json;
-		}
 		$joined = implode("\n", array_values(array_unique($texts)));
 
-		$email = self::extractEmail($joined);
-		if ($email !== '') {
-			$ev['email'] = $email;
+		$reg = self::extractZaloRegistration($messageText !== '' ? $messageText : $joined);
+		if (!empty($reg['full_name'])) {
+			$ev['full_name'] = $reg['full_name'];
 		}
-		$phone = self::extractPhone($joined);
-		if ($phone !== '') {
-			$ev['phone'] = $phone;
+		if (!empty($reg['phone'])) {
+			$ev['phone'] = $reg['phone'];
+		}
+		if (!empty($reg['email'])) {
+			$ev['email'] = $reg['email'];
+		}
+		if (!empty($reg['matched'])) {
+			$ev['registration_raw'] = $messageText !== '' ? $messageText : $joined;
+			// Registration template is sent by OA → use recipient as lead key.
+			if ($recipientId !== '' && $senderId !== '' && $ev['oa_user_id'] === $senderId) {
+				$ev['oa_user_id'] = $recipientId;
+				$ev['oa_id'] = $senderId;
+			}
+		}
+
+		if ($ev['full_name'] === '') {
+			foreach (array('sender.name', 'sender.display_name', 'contact.name', 'shared_info.name', 'user.name') as $key) {
+				if (!empty($flat[$key])) {
+					$ev['full_name'] = trim((string) $flat[$key]);
+					break;
+				}
+			}
+		}
+
+		if ($ev['email'] === '') {
+			$email = self::extractEmail($joined);
+			if ($email !== '') {
+				$ev['email'] = $email;
+			}
+		}
+		if ($ev['phone'] === '') {
+			$phone = self::extractPhone($joined);
+			if ($phone !== '') {
+				$ev['phone'] = $phone;
+			}
 		}
 
 		$bm = self::extractBusinessModel($joined);
@@ -254,18 +329,74 @@ class Leads_ZaloOaLeadIngestService {
 		if ($ch !== '') {
 			$ev['sales_channel'] = $ch;
 		}
+
 		return $ev;
+	}
+
+	/**
+	 * Parse ZaloDemo / OA registration confirmation block.
+	 * Example:
+	 * Người đăng ký: Huy Đặng
+	 * Số điện thoại: +84906345554
+	 * Email: a1@abc.com
+	 * Đã đăng ký chương trình ZaloDemo.
+	 */
+	protected static function extractZaloRegistration($text) {
+		$out = array(
+			'matched' => false,
+			'full_name' => '',
+			'phone' => '',
+			'email' => '',
+		);
+		$text = trim((string) $text);
+		if ($text === '') {
+			return $out;
+		}
+		$fold = self::fold($text);
+		$looksLikeReg = (strpos($fold, 'nguoi dang ky') !== false)
+			|| (strpos($fold, 'da dang ky chuong trinh') !== false)
+			|| (strpos($fold, 'so dien thoai') !== false && strpos($fold, 'email') !== false);
+		if (!$looksLikeReg) {
+			return $out;
+		}
+		$out['matched'] = true;
+
+		if (preg_match('/người\s*đăng\s*ký\s*[:：]\s*(.+)/iu', $text, $m)) {
+			$name = trim(preg_split('/\R/u', $m[1])[0]);
+			$name = trim($name, " \t\n\r\0\x0B-–—");
+			if ($name !== '') {
+				$out['full_name'] = $name;
+			}
+		}
+
+		if (preg_match('/số\s*điện\s*thoại\s*[:：]\s*([+\d][\d\s.\-]{7,}\d)/iu', $text, $m)) {
+			$out['phone'] = self::extractPhone($m[1]);
+		}
+		if ($out['phone'] === '') {
+			$out['phone'] = self::extractPhone($text);
+		}
+
+		if (preg_match('/e-?mail\s*[:：]\s*([A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,})/iu', $text, $m)) {
+			$out['email'] = strtolower(trim($m[1]));
+		}
+		if ($out['email'] === '') {
+			$out['email'] = self::extractEmail($text);
+		}
+
+		return $out;
 	}
 
 	protected static function extractBusinessModel($text) {
 		$t = self::fold($text);
+		if (strpos($t, 'nguoi dang ky') !== false || strpos($t, 'da dang ky chuong trinh') !== false) {
+			return '';
+		}
 		if (strpos($t, 'xe day') !== false) {
 			return 'Xe đẩy';
 		}
 		if (strpos($t, 'cua hang') !== false) {
 			return 'Cửa hàng';
 		}
-		// business model "Online" (not sales channel) is accepted for test.
 		if (preg_match('/\bonline\b/u', $t)) {
 			return 'Online';
 		}
@@ -274,6 +405,9 @@ class Leads_ZaloOaLeadIngestService {
 
 	protected static function extractSalesChannel($text) {
 		$t = self::fold($text);
+		if (strpos($t, 'nguoi dang ky') !== false || strpos($t, 'da dang ky chuong trinh') !== false) {
+			return '';
+		}
 		if (strpos($t, 'ket hop') !== false || strpos($t, 'kethop') !== false) {
 			return 'Kết hợp';
 		}
@@ -420,4 +554,3 @@ class Leads_ZaloOaLeadIngestService {
 		);
 	}
 }
-

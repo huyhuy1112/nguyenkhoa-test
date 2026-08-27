@@ -31,7 +31,7 @@ class NkApi_ZaloOa_Adapter extends NkApi_Adapter {
 	}
 
 	public function hint() {
-		return 'Nhập App ID, Secret Key, OA ID từ Zalo Developers. Lấy Refresh Token qua “Kết nối Zalo OA” (OAuth) hoặc dán thủ công. Access token tự gia hạn từ refresh token. Webhook script OA sẽ đẩy dữ liệu trực tiếp vào Leads.';
+		return 'Nhập App ID, Secret Key, OA ID từ Zalo Developers. Lấy Refresh Token qua “Kết nối Zalo OA” (OAuth) hoặc dán thủ công. Access token tự gia hạn từ refresh token. Webhook đẩy tin ZaloDemo (Người đăng ký / SĐT / Email) vào Leads — bật user_send_text; nếu tin xác nhận do OA gửi thì bật thêm sự kiện OA gửi tin (oa_send_text).';
 	}
 
 	public function icon() {
