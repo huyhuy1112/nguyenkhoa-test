@@ -250,19 +250,27 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-table-card
 	margin: 0 !important;
 }
 
-/* ---- Scope tabs: Tất cả | Nhượng quyền ---- */
-body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-scope-tabs {
+/* ---- Scope tabs: Tất cả | Nhượng quyền | Bán lẻ (Lovable pills beside title) ---- */
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-pos-toolbar__brand {
 	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 8px;
+	min-width: 0;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-scope-tabs {
+	display: inline-flex;
 	align-items: center;
-	gap: 4px;
-	margin: 0 0 12px;
-	padding: 4px;
+	gap: 2px;
+	margin: 0;
+	padding: 3px;
 	width: fit-content;
 	max-width: 100%;
 	box-sizing: border-box;
-	background: #eceef0;
-	border: 1px solid #d4c4ad;
-	border-radius: 10px;
+	background: #f1f5f9;
+	border: 1px solid #e2e8f0;
+	border-radius: 999px;
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-scope-tab {
@@ -271,36 +279,38 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-scope-tab 
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	min-height: 34px;
-	padding: 6px 16px;
+	min-height: 30px;
+	padding: 5px 14px;
 	margin: 0;
 	border: 1px solid transparent;
-	border-radius: 8px;
+	border-radius: 999px;
 	background: transparent;
-	color: #504533;
+	color: #64748b;
 	font-family: inherit;
-	font-size: 13px;
+	font-size: 12px;
 	font-weight: 600;
 	line-height: 1.2;
+	letter-spacing: 0.01em;
 	cursor: pointer;
+	white-space: nowrap;
 	transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-scope-tab:hover {
-	background: rgba(255, 255, 255, 0.65);
-	color: #191c1e;
+	background: rgba(255, 255, 255, 0.7);
+	color: #0f172a;
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-scope-tab.is-active {
 	background: #ffffff;
-	border-color: #c4b49a;
-	color: #0b6e4f;
-	box-shadow: 0 1px 3px rgba(25, 28, 30, 0.06);
+	border-color: transparent;
+	color: #2563eb;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-scope-tab.is-active .mk-qt-scope-tab__label {
-	box-shadow: inset 0 -2px 0 #08a045;
-	padding-bottom: 1px;
+	box-shadow: none;
+	padding-bottom: 0;
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-scope-tab:focus {
@@ -308,7 +318,7 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-scope-tab:
 }
 
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-scope-tab:focus-visible {
-	box-shadow: 0 0 0 2px rgba(8, 160, 69, 0.35);
+	box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.28);
 }
 
 /* ---- Filter row ---- */
@@ -1118,6 +1128,10 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-toolba
 	box-sizing: border-box;
 }
 
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-pos-toolbar__brand {
+	grid-column: 1;
+}
+
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-toolbar__title {
 	margin: 0;
 	font-size: 20px;
@@ -1271,10 +1285,11 @@ body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-settin
 	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-toolbar {
 		grid-template-columns: 1fr auto;
 		grid-template-areas:
-			"title actions"
+			"brand actions"
 			"search search";
 	}
-	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-toolbar__title { grid-area: title; }
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-pos-toolbar__brand { grid-area: brand; }
+	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-toolbar__title { white-space: normal; }
 	body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-so-pos-toolbar__search-wrap {
 		grid-area: search;
 		max-width: none;

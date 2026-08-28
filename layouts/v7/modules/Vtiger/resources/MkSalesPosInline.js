@@ -129,6 +129,18 @@
 			return;
 		}
 		var name = String($panel.find('.mk-so-inline-detail__customer-name').first().text() || '').trim();
+		if (!name || name === '--' || name === '—') {
+			var recId = String($panel.attr('data-record-id') || $panel.data('recordId') || '');
+			var $row = recId
+				? $('#listview-table tr.listViewEntries[data-id="' + recId + '"]').first()
+				: $();
+			name = String(
+				$row.find('td[data-name="account_id"] .value, td[data-name="account_id"]').first().text() || ''
+			).trim();
+		}
+		if (name === '--' || name === '—') {
+			name = '';
+		}
 		var sub = String($panel.find('.mk-so-inline-detail__order-no').first().text() || '').trim();
 		if (!sub) {
 			sub = String($panel.find('.mk-so-inline-detail__hero-note').first().text() || '').trim();
@@ -162,12 +174,17 @@
 		$panel.find('.mk-so-inline-detail__tabs').attr('hidden', 'hidden');
 		$panel.find('.mk-so-inline-detail__cancel-edit').attr('hidden', 'hidden');
 		fillDrawerIdentity($panel);
-		if (!$panel.children('.mk-so-inline-detail__scroll').length) {
-			var $actions = $panel.children('.mk-so-inline-detail__actions');
-			var $scroll = $('<div class="mk-so-inline-detail__scroll"></div>');
-			$panel.children().not($actions).appendTo($scroll);
+
+		/* Ghim action bar xuống cuối panel: nội dung cuộn riêng, nút luôn ở footer */
+		var $actions = $panel.find('.mk-so-inline-detail__actions').first();
+		var $scroll = $panel.children('.mk-so-inline-detail__scroll');
+		if (!$scroll.length) {
+			$scroll = $('<div class="mk-so-inline-detail__scroll"></div>');
 			$panel.prepend($scroll);
-			if ($actions.length) {
+		}
+		$panel.children().not($scroll).not($actions).appendTo($scroll);
+		if ($actions.length) {
+			if ($actions.parent()[0] !== $panel[0] || $actions.next().length) {
 				$panel.append($actions);
 			}
 		}
@@ -1049,6 +1066,8 @@
 						$('<div class="mk-so-inline-detail__order-no"></div>').text(code)
 					);
 				}
+			} else if ($sub.length) {
+				$sub.remove();
 			}
 		}
 

@@ -1,7 +1,23 @@
 {* POS-style list toolbar — match SalesOrder / Đơn hàng *}
 {strip}
 <div class="mk-so-pos-toolbar mk-qt-pos-toolbar" role="region" aria-label="{vtranslate($MODULE, $MODULE)}">
-	<h1 class="mk-so-pos-toolbar__title">{vtranslate($MODULE, $MODULE)}</h1>
+	<div class="mk-qt-pos-toolbar__brand">
+		<h1 class="mk-so-pos-toolbar__title">{vtranslate($MODULE, $MODULE)}</h1>
+		<nav class="mk-qt-scope-tabs" role="tablist" aria-label="Lọc báo giá">
+			{if !isset($MK_QUOTE_SCOPE) || $MK_QUOTE_SCOPE eq ''}
+				{assign var=MK_QUOTE_SCOPE value='all'}
+			{/if}
+			<button type="button" class="mk-qt-scope-tab{if $MK_QUOTE_SCOPE eq 'all'} is-active{/if}" role="tab" aria-selected="{if $MK_QUOTE_SCOPE eq 'all'}true{else}false{/if}" data-mk-quote-scope="all" id="mk-qt-scope-all">
+				<span class="mk-qt-scope-tab__label">Tất cả</span>
+			</button>
+			<button type="button" class="mk-qt-scope-tab{if $MK_QUOTE_SCOPE eq 'franchise'} is-active{/if}" role="tab" aria-selected="{if $MK_QUOTE_SCOPE eq 'franchise'}true{else}false{/if}" data-mk-quote-scope="franchise" id="mk-qt-scope-franchise">
+				<span class="mk-qt-scope-tab__label">Nhượng quyền</span>
+			</button>
+			<button type="button" class="mk-qt-scope-tab{if $MK_QUOTE_SCOPE eq 'retail'} is-active{/if}" role="tab" aria-selected="{if $MK_QUOTE_SCOPE eq 'retail'}true{else}false{/if}" data-mk-quote-scope="retail" id="mk-qt-scope-retail">
+				<span class="mk-qt-scope-tab__label">Bán lẻ</span>
+			</button>
+		</nav>
+	</div>
 	<div class="mk-so-pos-toolbar__search-wrap">
 		<div class="mk-so-pos-search" role="search">
 			<span class="mk-so-pos-search__ic" aria-hidden="true"><i class="fa fa-search"></i></span>

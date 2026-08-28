@@ -248,7 +248,7 @@
 				<i class="fa fa-file-text-o" aria-hidden="true"></i>
 				<span>Báo giá</span>
 			</a>
-			<label class="mk-so-inline-detail__aff-toggle" title="Tắt chỉ ẩn mã, không xóa">
+				<label class="mk-so-inline-detail__aff-toggle" title="Tắt: xóa mã khỏi hệ thống. Bật: tạo lại mã giới thiệu.">
 				<input type="checkbox" class="mk-so-inline-detail__aff-visible-input"{if !empty($INLINE_SC_AFF_VISIBLE)} checked="checked"{/if} />
 				<span class="mk-so-inline-detail__aff-toggle-ui" aria-hidden="true"></span>
 				<span class="mk-so-inline-detail__aff-toggle-label">Cho phép giới thiệu</span>
