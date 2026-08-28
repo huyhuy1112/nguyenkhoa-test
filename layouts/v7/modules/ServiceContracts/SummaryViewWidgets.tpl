@@ -3,6 +3,8 @@
 {foreach item=DETAIL_VIEW_WIDGET from=$DETAILVIEW_LINKS['DETAILVIEWWIDGET']}
 	{if ($DETAIL_VIEW_WIDGET->getLabel() eq 'Documents') }
 		{assign var=DOCUMENT_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
+	{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'ModComments')}
+		{assign var=COMMENTS_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
 	{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'LBL_UPDATES')}
 		{assign var=UPDATES_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
 	{/if}
@@ -78,7 +80,19 @@
 		</section>
 		{/if}
 
-		
+		{if $COMMENTS_WIDGET_MODEL}
+		<section class="mk-sc-detail-card mk-sc-detail-card--comments mk-sc-detail-grid__comments" aria-labelledby="mk-sc-detail-comments-title">
+			<div class="summaryWidgetContainer mk-sc-detail-widget-host">
+				<div class="widgetContainer_comments" data-url="{$COMMENTS_WIDGET_MODEL->getUrl()}" data-name="{$COMMENTS_WIDGET_MODEL->getLabel()}">
+					<div class="widget_header mk-sc-detail-card__head">
+						<input type="hidden" name="relatedModule" value="{$COMMENTS_WIDGET_MODEL->get('linkName')}" />
+						<h2 id="mk-sc-detail-comments-title" class="mk-sc-detail-card__title">{vtranslate($COMMENTS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h2>
+					</div>
+					<div class="widget_contents"></div>
+				</div>
+			</div>
+		</section>
+		{/if}
 	</div>
 {else}
 	<div class="left-block col-lg-4">
@@ -134,7 +148,17 @@
 			{$RELATED_ACTIVITIES}
 		</div>
 
-		
+		{if $COMMENTS_WIDGET_MODEL}
+			<div class="summaryWidgetContainer">
+				<div class="widgetContainer_comments" data-url="{$COMMENTS_WIDGET_MODEL->getUrl()}" data-name="{$COMMENTS_WIDGET_MODEL->getLabel()}">
+					<div class="widget_header">
+						<input type="hidden" name="relatedModule" value="{$COMMENTS_WIDGET_MODEL->get('linkName')}" />
+						<h4 class="display-inline-block">{vtranslate($COMMENTS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h4>
+					</div>
+					<div class="widget_contents"></div>
+				</div>
+			</div>
+		{/if}
 	</div>
 {/if}
 {/strip}

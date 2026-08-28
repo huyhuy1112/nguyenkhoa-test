@@ -57,9 +57,6 @@ class Warehouse_WorkflowSetup_Helper {
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8",
 			array()
 		);
-
-		require_once 'modules/Warehouse/helpers/SettingsHelper.php';
-		Warehouse_Settings_Helper::ensureTable($db);
 	}
 
 	protected static function ensureColumn(PearDatabase $db, $table, $col, $definition) {
@@ -79,8 +76,6 @@ class Warehouse_WorkflowSetup_Helper {
 	public static function ensureLinkedColumns(PearDatabase $db) {
 		self::ensureColumn($db, 'vtiger_warehouse_stock', 'warehouse_id', "`warehouse_id` VARCHAR(20) DEFAULT NULL");
 		self::ensureColumn($db, 'vtiger_warehouse_stock', 'warehouse_name', "`warehouse_name` VARCHAR(255) DEFAULT NULL");
-		self::ensureColumn($db, 'vtiger_warehouse_stock', 'mfg_date', "`mfg_date` DATE DEFAULT NULL");
-		self::ensureColumn($db, 'vtiger_goodsreceipt_items', 'mfg_date', "`mfg_date` DATE DEFAULT NULL");
 		self::ensureColumn($db, 'vtiger_goodsreceipt', 'warehouse_id', "`warehouse_id` VARCHAR(20) DEFAULT NULL");
 		self::ensureColumn($db, 'vtiger_goodsreceipt', 'status', "`status` VARCHAR(32) DEFAULT 'stored'");
 		self::ensureColumn($db, 'vtiger_goodsreceipt', 'mk_meta_json', "`mk_meta_json` TEXT");

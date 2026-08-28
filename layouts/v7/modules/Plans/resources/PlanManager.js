@@ -53,10 +53,7 @@
 
 	function formatMoney(v) {
 		var n = num(v);
-		if (window.MkCurrency && typeof MkCurrency.format === 'function') {
-			return MkCurrency.format(n, { decimals: 0 });
-		}
-		return Math.round(n).toLocaleString('vi-VN');
+		return Math.round(n).toLocaleString();
 	}
 
 	function formatRoi(v) {

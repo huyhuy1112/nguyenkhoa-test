@@ -7,7 +7,7 @@ class Invoice_Detail_View extends Inventory_Detail_View {
 
 	protected function isMkModernInvoiceDetail(Vtiger_Request $request) {
 		$app = strtoupper((string) $request->get('app'));
-		return $app === 'TOOLS' || $app === 'SUPPORT' || $app === 'SALES';
+		return $app === 'TOOLS' || $app === 'SUPPORT';
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {

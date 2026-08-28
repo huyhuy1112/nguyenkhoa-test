@@ -6,7 +6,7 @@
 {include file="modules/Vtiger/Header.tpl"}
 <script type="text/javascript">document.documentElement.classList.add('mk-reports-mgmt-management');</script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Reports/resources/ReportsMkManagement.css')}&mk_v=20260713_mktui8" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Reports/resources/ReportsMkManagement.css')}&mk_v=20260520_mgmt5" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-reports-mgmt="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}

@@ -18,64 +18,6 @@
  * return type void
  */
 
-/**
- * Parse VN/EN money string to float for inventory save.
- * "100.000" (VN thousand) → 100000; "100,5" → 100.5; "100.000,5" → 100000.5
- *
- * @param mixed $value
- * @return float
- */
-function mk_inventory_parse_money($value) {
-	if ($value === null || $value === '') {
-		return 0.0;
-	}
-	if (is_int($value) || is_float($value)) {
-		return (float) $value;
-	}
-	$s = trim((string) $value);
-	if ($s === '' || $s === '-') {
-		return 0.0;
-	}
-	// Pure integer string
-	if (preg_match('/^-?\d+$/', $s)) {
-		return (float) $s;
-	}
-	// Pure decimal with dot or comma as decimal only: 100.5 / 100,5
-	if (preg_match('/^-?\d+[.,]\d{1,2}$/', $s)) {
-		return (float) str_replace(',', '.', $s);
-	}
-	// VN grouping: 100.000 or 7.000.000,50
-	if (preg_match('/^-?\d{1,3}(\.\d{3})+(,\d+)?$/', $s)) {
-		$s = str_replace('.', '', $s);
-		$s = str_replace(',', '.', $s);
-		return (float) $s;
-	}
-	// EN grouping: 100,000 or 7,000,000.50
-	if (preg_match('/^-?\d{1,3}(,\d{3})+(\.\d+)?$/', $s)) {
-		$s = str_replace(',', '', $s);
-		return (float) $s;
-	}
-	// Mixed: last separator is decimal
-	if (strpos($s, ',') !== false && strpos($s, '.') !== false) {
-		if (strrpos($s, ',') > strrpos($s, '.')) {
-			$s = str_replace('.', '', $s);
-			$s = str_replace(',', '.', $s);
-		} else {
-			$s = str_replace(',', '', $s);
-		}
-		return (float) $s;
-	}
-	// Fallback: strip thousand dots when fractional part looks like groups of 3
-	if (preg_match_all('/\./', $s) >= 1) {
-		$parts = explode('.', $s);
-		if (count($parts) > 2 || (count($parts) === 2 && strlen($parts[1]) === 3)) {
-			$s = str_replace('.', '', $s);
-		}
-	}
-	$s = preg_replace('/[^\d.\-]/', '', $s);
-	return is_numeric($s) ? (float) $s : 0.0;
-}
-
 function updateStk($product_id,$qty,$mode,$ext_prod_arr,$module)
 {
 	global $log;
@@ -723,11 +665,11 @@ function saveInventoryProductDetails(&$focus, $module, $update_prod_stock='false
 			$desc_res = $adb->pquery($desc_duery,array($prod_id));
 			$description = $adb->query_result($desc_res,0,"product_description");
 		}	*/
-        $qty = mk_inventory_parse_money(vtlib_purify($_REQUEST['qty'.$i]));
-        $listprice = mk_inventory_parse_money(vtlib_purify($_REQUEST['listPrice'.$i]));
+        $qty = vtlib_purify($_REQUEST['qty'.$i]);
+        $listprice = vtlib_purify($_REQUEST['listPrice'.$i]);
 		$comment = vtlib_purify($_REQUEST['comment'.$i]);
-		$purchaseCost = isset($_REQUEST['purchaseCost'.$i]) ? mk_inventory_parse_money(vtlib_purify($_REQUEST['purchaseCost'.$i])) : "";
-		$margin = isset($_REQUEST['margin'.$i]) ? mk_inventory_parse_money(vtlib_purify($_REQUEST['margin'.$i])) : "";
+		$purchaseCost = isset($_REQUEST['purchaseCost'.$i]) ? vtlib_purify($_REQUEST['purchaseCost'.$i]) : "";
+		$margin = isset($_REQUEST['margin'.$i]) ? vtlib_purify($_REQUEST['margin'.$i]) : "";
 
 		if($module == 'SalesOrder') {
 			if($updateDemand == '-')
@@ -781,7 +723,7 @@ function saveInventoryProductDetails(&$focus, $module, $update_prod_stock='false
 		elseif($_REQUEST['discount_type'.$i] == 'amount')
 		{
 			$updatequery .= " discount_amount=?,";
-			$discount_amount = mk_inventory_parse_money(vtlib_purify($_REQUEST['discount_amount'.$i]));
+			$discount_amount = vtlib_purify($_REQUEST['discount_amount'.$i]);
 			array_push($updateparams, $discount_amount);
 		}
 
@@ -865,11 +807,11 @@ function saveInventoryProductDetails(&$focus, $module, $update_prod_stock='false
 
 	$updatequery  = " update $focus->table_name set ";
 	$updateparams = array();
-	$subtotal = mk_inventory_parse_money(vtlib_purify($_REQUEST['subtotal']));
+	$subtotal = vtlib_purify($_REQUEST['subtotal']);
 	$updatequery .= " subtotal=?,";
 	array_push($updateparams, $subtotal);
 
-    $pretaxTotal = mk_inventory_parse_money(vtlib_purify($_REQUEST['pre_tax_total'])); 
+    $pretaxTotal = vtlib_purify($_REQUEST['pre_tax_total']); 
  	$updatequery .= " pre_tax_total=?,"; 
  	array_push($updateparams, $pretaxTotal);
 
@@ -885,7 +827,7 @@ function saveInventoryProductDetails(&$focus, $module, $update_prod_stock='false
 	}
 	elseif($_REQUEST['discount_type_final'] == 'amount')
 	{
-		$discount_amount_final = mk_inventory_parse_money(vtlib_purify($_REQUEST['discount_amount_final']));
+		$discount_amount_final = vtlib_purify($_REQUEST['discount_amount_final']);
 		$updatequery .= " discount_amount=?,discount_percent=?,";
 		array_push($updateparams, $discount_amount_final);
 		array_push($updateparams, null);
@@ -895,7 +837,7 @@ function saveInventoryProductDetails(&$focus, $module, $update_prod_stock='false
 		array_push($updateparams, null);
 	}
 	
-	$shipping_handling_charge = mk_inventory_parse_money(vtlib_purify($_REQUEST['shipping_handling_charge']));
+	$shipping_handling_charge = vtlib_purify($_REQUEST['shipping_handling_charge']);
 	$updatequery .= " s_h_amount=?,";
 	array_push($updateparams, $shipping_handling_charge);
 
@@ -904,11 +846,11 @@ function saveInventoryProductDetails(&$focus, $module, $update_prod_stock='false
 	if(isset($_REQUEST['adjustmentType']) && $_REQUEST['adjustmentType'] == '-')
 		$adjustmentType = vtlib_purify($_REQUEST['adjustmentType']);
 
-	$adjustment = mk_inventory_parse_money(vtlib_purify($_REQUEST['adjustment']));
+	$adjustment = vtlib_purify($_REQUEST['adjustment']);
 	$updatequery .= " adjustment=?,";
 	array_push($updateparams, $adjustmentType.$adjustment);
 
-	$total = mk_inventory_parse_money(vtlib_purify($_REQUEST['total']));
+	$total = vtlib_purify($_REQUEST['total']);
 	$updatequery .= " total=?,";
 	array_push($updateparams, $total);
 
@@ -990,8 +932,6 @@ function getInventoryCurrencyInfo($module, $id)
 	$currency_info['currency_name'] = $adb->query_result($res,0,'currency_name');
 	$currency_info['currency_code'] = $adb->query_result($res,0,'currency_code');
 	$currency_info['currency_symbol'] = $adb->query_result($res,0,'currency_symbol');
-	require_once 'include/utils/MkCurrencyBranding.php';
-	$currency_info['currency_symbol'] = MkCurrencyBranding::normalizeSymbol($currency_info['currency_symbol']);
 
 	$log->debug("Exit from function getInventoryCurrencyInfo($module, $id).");
 

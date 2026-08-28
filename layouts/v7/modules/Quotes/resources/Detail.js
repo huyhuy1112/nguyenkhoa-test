@@ -11,7 +11,6 @@ Inventory_Detail_Js("Quotes_Detail_Js",{},{
 			document.body.classList.add('mk-quotes-detail-sales');
 			document.body.classList.remove('mk-quotes-detail-ui-loading');
 			document.body.classList.add('mk-quotes-detail-ui-ready');
-			this.slimQuotesDetailChrome();
 		}
 	},
 
@@ -25,228 +24,6 @@ Inventory_Detail_Js("Quotes_Detail_Js",{},{
 			&& body.getAttribute('data-view') === 'Detail'
 			&& body.getAttribute('data-app') === 'SALES'
 		);
-	},
-
-	/**
-	 * Tab Chi tiết: field card grid hiện đại + ẩn block rỗng / field Create không dùng.
-	 */
-	slimQuotesDetailChrome : function() {
-		if (!this.isSalesQuotesDetailUi()) {
-			return;
-		}
-		var root = document.querySelector('.mk-qt-detail-details-row #detailView')
-			|| document.querySelector('.mk-qt-detail-details-row form#detailView');
-		if (!root) {
-			return;
-		}
-		if (root.getAttribute('data-mk-qt-slim') === '1' && root.querySelector('.mk-qt-field-grid')) {
-			this.polishQuotesLineItems(root);
-			this.hideEmptyQuoteBlocks(root);
-			return;
-		}
-
-		var hideNames = {
-			// BA: chi tiết không hiện "Tiêu đề" — dùng Khách hàng
-			subject: 1,
-			carrier: 1,
-			shipping: 1,
-			inventorymanager: 1,
-			assigned_user_id1: 1,
-			bill_pobox: 1,
-			bill_city: 1,
-			bill_state: 1,
-			bill_code: 1,
-			bill_country: 1,
-			ship_pobox: 1,
-			ship_city: 1,
-			ship_state: 1,
-			ship_code: 1,
-			ship_country: 1,
-			source: 1,
-			campaignid: 1,
-			potential_id: 1,
-			terms_conditions: 1,
-			description: 1,
-			currency_id: 1,
-			conversion_rate: 1,
-			taxtype: 1,
-			hdnTaxType: 1
-		};
-
-		// BA: slot đầu = Khách hàng (thay Tiêu đề), rồi meta báo giá
-		var preferredOrder = [
-			'account_id', 'quote_no', 'quotestage',
-			'contact_id', 'assigned_user_id',
-			'validtill', 'pricebook_id',
-			'bill_street', 'ship_street',
-			'createdtime', 'modifiedtime'
-		];
-
-		var isEmptyValue = function(valueCell) {
-			if (!valueCell) return true;
-			var clone = valueCell.cloneNode(true);
-			var extras = clone.querySelectorAll('.action, .edit, .editAction, .hide');
-			for (var e = 0; e < extras.length; e++) {
-				if (extras[e].parentNode) extras[e].parentNode.removeChild(extras[e]);
-			}
-			var text = (clone.textContent || '').replace(/\s+/g, ' ').trim();
-			text = text.replace(/^[\s\u00a0—–\-]+|[\s\u00a0—–\-]+$/g, '');
-			return !text || text === '--' || text === '—';
-		};
-
-		var labelText = function(labelCell) {
-			if (!labelCell) return '';
-			var muted = labelCell.querySelector('.muted, label');
-			return ((muted && muted.textContent) || labelCell.textContent || '').replace(/\s+/g, ' ').trim();
-		};
-
-		// Transform each detail field block into a modern grid
-		var tables = root.querySelectorAll('table.detailview-table');
-		for (var t = 0; t < tables.length; t++) {
-			var table = tables[t];
-			if (table.closest('.lineItemTableDiv') || table.classList.contains('lineItemsTable')) {
-				continue;
-			}
-			if (table.parentNode && table.parentNode.querySelector('.mk-qt-field-grid')) {
-				continue;
-			}
-			var tbody = table.tBodies && table.tBodies[0];
-			if (!tbody) continue;
-
-			var fields = {};
-			var orderFound = [];
-			var labs = tbody.querySelectorAll('td.fieldLabel[id^="Quotes_detailView_fieldLabel_"]');
-			for (var li = 0; li < labs.length; li++) {
-				var L = labs[li];
-				var name = (L.id || '').replace('Quotes_detailView_fieldLabel_', '');
-				var V = document.getElementById('Quotes_detailView_fieldValue_' + name);
-				if (!name || !V) continue;
-				if (hideNames[name]) continue;
-				if (isEmptyValue(V)) continue;
-				fields[name] = { label: L, value: V, name: name };
-				orderFound.push(name);
-			}
-
-			var ordered = [];
-			for (var pi = 0; pi < preferredOrder.length; pi++) {
-				if (fields[preferredOrder[pi]]) {
-					ordered.push(fields[preferredOrder[pi]]);
-					delete fields[preferredOrder[pi]];
-				}
-			}
-			for (var oi = 0; oi < orderFound.length; oi++) {
-				if (fields[orderFound[oi]]) {
-					ordered.push(fields[orderFound[oi]]);
-				}
-			}
-
-			if (!ordered.length) {
-				var emptyBlock = table.closest('.block');
-				if (emptyBlock) emptyBlock.classList.add('mk-qt-block--empty');
-				table.style.display = 'none';
-				continue;
-			}
-
-			var grid = document.createElement('div');
-			grid.className = 'mk-qt-field-grid';
-			for (var fi = 0; fi < ordered.length; fi++) {
-				var item = ordered[fi];
-				var card = document.createElement('div');
-				card.className = 'mk-qt-field-card';
-				card.setAttribute('data-field', item.name);
-				if (item.name === 'account_id') {
-					card.className += ' mk-qt-field-card--wide';
-				}
-
-				var labEl = document.createElement('div');
-				labEl.className = 'mk-qt-field-card__label';
-				// BA: nhãn chỗ tiêu đề = Khách hàng
-				labEl.textContent = item.name === 'account_id' ? 'Khách hàng' : labelText(item.label);
-
-				var valEl = document.createElement('div');
-				valEl.className = 'mk-qt-field-card__value';
-				var valInner = item.value.querySelector('.value');
-				if (valInner) {
-					valEl.appendChild(valInner);
-				} else {
-					while (item.value.firstChild) {
-						valEl.appendChild(item.value.firstChild);
-					}
-				}
-				var action = item.value.querySelector('.action');
-				if (action) {
-					action.classList.add('mk-qt-field-card__edit');
-					valEl.appendChild(action);
-				}
-				var edit = item.value.querySelector('.edit');
-				if (edit) {
-					valEl.appendChild(edit);
-				}
-
-				card.appendChild(labEl);
-				card.appendChild(valEl);
-				grid.appendChild(card);
-			}
-
-			table.style.display = 'none';
-			table.parentNode.insertBefore(grid, table.nextSibling);
-			var blk = table.closest('.block');
-			if (blk) {
-				blk.classList.add('mk-qt-block--fields');
-				blk.classList.remove('mk-qt-block--empty');
-			}
-		}
-
-		this.hideEmptyQuoteBlocks(root);
-		this.polishQuotesLineItems(root);
-		root.setAttribute('data-mk-qt-slim', '1');
-	},
-
-	hideEmptyQuoteBlocks : function(root) {
-		if (!root) return;
-		var blocks = root.querySelectorAll('.block');
-		for (var i = 0; i < blocks.length; i++) {
-			var b = blocks[i];
-			if (b.querySelector('.lineItemTableDiv') || b.querySelector('.lineItemsTable') || b.classList.contains('details')) {
-				continue;
-			}
-			var blockKey = (b.getAttribute('data-block') || '') + ' ' + (b.className || '');
-			if (/LBL_DESCRIPTION_INFORMATION|LBL_TERMS_INFORMATION|LBL_TERMS_AND_CONDITIONS/i.test(blockKey)) {
-				b.style.display = 'none';
-				continue;
-			}
-			if (b.classList.contains('mk-qt-block--empty')) {
-				b.style.display = 'none';
-				continue;
-			}
-			var cards = b.querySelectorAll('.mk-qt-field-card');
-			var grid = b.querySelector('.mk-qt-field-grid');
-			if (grid && cards.length === 0) {
-				b.style.display = 'none';
-			}
-		}
-	},
-
-	polishQuotesLineItems : function(root) {
-		if (!root) return;
-		// Bảng gọn đã render sẵn (Quotes/LineItemsDetail.tpl) — chỉ ẩn bảng Vtiger cổ điển nếu còn sót
-		var slim = root.querySelectorAll('.mk-qt-lines-detail');
-		for (var s = 0; s < slim.length; s++) {
-			var host = slim[s].closest('.details.block') || slim[s].parentNode;
-			if (host && host.classList) {
-				host.classList.add('mk-qt-lineitems-host');
-			}
-		}
-		// Ẩn dòng giảm giá (nếu layout cũ vẫn load)
-		var hideDiscount = root.querySelectorAll(
-			'.lineItemsTable tr, .mk-so-inline-detail__total-row, .mk-qt-lines-detail__total-row'
-		);
-		for (var h = 0; h < hideDiscount.length; h++) {
-			var rowLabel = (hideDiscount[h].textContent || '').replace(/\s+/g, ' ').trim();
-			if (/giảm giá báo giá|overall discount|chiết khấu tổng/i.test(rowLabel) && !/tổng cộng/i.test(rowLabel)) {
-				hideDiscount[h].style.display = 'none';
-			}
-		}
 	},
 
 	refreshRelatedTabBadges : function() {
@@ -706,7 +483,6 @@ Inventory_Detail_Js("Quotes_Detail_Js",{},{
 			});
 			app.event.on('post.detailedview.load', function() {
 				thisInstance.refreshRelatedTabBadges();
-				thisInstance.slimQuotesDetailChrome();
 			});
 			app.event.on('post.relatedListLoad.click', function() {
 				thisInstance.refreshRelatedTabBadges();
@@ -720,9 +496,6 @@ Inventory_Detail_Js("Quotes_Detail_Js",{},{
 		}
 		this.registerQuotesActivitiesSingleDateFiltersUi();
 		this.registerQuotesRelatedDateFiltersUi();
-		setTimeout(function() {
-			thisInstance.slimQuotesDetailChrome();
-		}, 200);
 	},
 
 	/**

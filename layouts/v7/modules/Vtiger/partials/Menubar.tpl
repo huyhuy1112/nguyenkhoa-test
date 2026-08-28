@@ -24,24 +24,14 @@
 	{/if}
 	{foreach key=moduleName item=moduleModel from=$SELECTED_CATEGORY_MENU_LIST}
 		{if $SELECTED_MENU_CATEGORY eq 'MANAGEMENT' && $moduleName eq 'Home'}{continue}{/if}
-		{* SALES: hide legacy Products/Services; ProductsServices lives under Kho *}
-		{if $SELECTED_MENU_CATEGORY eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services' || $moduleName eq 'ProductsServices')}{continue}{/if}
+		{* SALES: keep Products/Services; hide legacy Products/Services in module strip *}
+		{if $SELECTED_MENU_CATEGORY eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services')}{continue}{/if}
 		{assign var='translatedModuleLabel' value=vtranslate($moduleModel->get('label'),$moduleName )}
 		{* Calendar: MANAGEMENT = Schedule, SUPPORT = Activities *}
 		{if $moduleName eq 'Calendar' && $SELECTED_MENU_CATEGORY eq 'MANAGEMENT'}
 			{assign var='translatedModuleLabel' value=vtranslate('LBL_SCHEDULE','Calendar')}
 		{elseif $moduleName eq 'Calendar' && $SELECTED_MENU_CATEGORY eq 'SUPPORT'}
 			{assign var='translatedModuleLabel' value=vtranslate('LBL_ACTIVITIES','Calendar')}
-		{elseif $moduleName eq 'Accounts'}
-			{assign var='translatedModuleLabel' value='Hợp đồng nhượng quyền'}
-		{elseif $moduleName eq 'Contacts'}
-			{assign var='translatedModuleLabel' value='Khách hàng'}
-		{elseif $moduleName eq 'ProductsServices'}
-			{assign var='translatedModuleLabel' value='Hàng hoá'}
-		{elseif $moduleName eq 'ServiceContracts'}
-			{assign var='translatedModuleLabel' value='Khách hàng nhượng quyền'}
-		{elseif $moduleName eq 'SupportFAQ'}
-			{assign var='translatedModuleLabel' value='Cảnh báo'}
 		{/if}
 		<ul title="{$translatedModuleLabel}" class="module-qtip">
 			<li {if $MODULE eq $moduleName}class="active"{else}class=""{/if}>
@@ -52,7 +42,6 @@
 					{elseif $moduleName eq 'Plans'}{assign var=MK_MOD_FA value='fa-calendar-o'}
 					{elseif $moduleName eq 'Potentials'}{assign var=MK_MOD_FA value='fa-dollar'}
 					{elseif $moduleName eq 'Quotes'}{assign var=MK_MOD_FA value='fa-file-text-o'}
-					{elseif $moduleName eq 'Invoice'}{assign var=MK_MOD_FA value='fa-file-text-o'}
 					{elseif $moduleName eq 'SalesOrder'}{assign var=MK_MOD_FA value='fa-shopping-cart'}
 					{elseif $moduleName eq 'ProductsServices'}{assign var=MK_MOD_FA value='fa-cubes'}
 					{elseif $moduleName eq 'Contacts'}{assign var=MK_MOD_FA value='fa-user'}
@@ -66,7 +55,7 @@
 					{elseif $moduleName eq 'Activities'}{assign var=MK_MOD_FA value='fa-tasks'}
 					{elseif $moduleName eq 'Schedule'}{assign var=MK_MOD_FA value='fa-calendar-o'}
 					{elseif $moduleName eq 'Rules'}{assign var=MK_MOD_FA value='fa-gavel'}
-					{elseif $moduleName eq 'SupportFAQ'}{assign var=MK_MOD_FA value='fa-bell'}
+					{elseif $moduleName eq 'SupportFAQ'}{assign var=MK_MOD_FA value='fa-question-circle'}
 					{elseif $moduleName eq 'Faq'}{assign var=MK_MOD_FA value='fa-question-circle'}
 					{elseif $moduleName eq 'Teams'}{assign var=MK_MOD_FA value='fa-users'}
 					{elseif $moduleName eq 'DocumentTemplate'}{assign var=MK_MOD_FA value='fa-file-text-o'}
@@ -94,16 +83,6 @@
 			</ul>
 		{/if}
 	{/foreach}
-	{if $SELECTED_MENU_CATEGORY eq 'INVENTORY' && $MODULE eq 'ProductsServices'}
-		<ul title="Hàng hoá" class="module-qtip">
-			<li class="active">
-				<a href="index.php?module=ProductsServices&amp;view=List&amp;app=INVENTORY">
-					<span class="mk-icon menubar-module-icon"><i class="fa fa-cubes"></i></span>
-					<span>Hàng hoá</span>
-				</a>
-			</li>
-		</ul>
-	{/if}
 </div>
 {elseif $MODULE eq 'Campaigns'}
 	{assign var=_CampMenuMod value=Vtiger_Module_Model::getInstance('Campaigns')}

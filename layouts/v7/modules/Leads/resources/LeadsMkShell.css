@@ -1,12 +1,5 @@
 /* Leads modern UI — split shell (sidebar + topbar), SALES app */
 
-/* Font normalize (fix Vietnamese diacritics / inconsistent rendering) */
-body[data-module="Leads"][data-app="SALES"] {
-    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
 /* ========== Leads List ========== */
 body[data-module="Leads"][data-view="List"][data-app="SALES"] {
     --mk-dash-sidebar-w: 256px;

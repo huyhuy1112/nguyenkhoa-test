@@ -77,15 +77,8 @@ class Inventory_Detail_View extends Vtiger_Detail_View {
 		$record = $request->get('record');
 		$moduleName = $request->getModule();
 
-		$viewer = $this->getViewer($request);
-		$recordModel = $viewer->getTemplateVars('RECORD');
-		if (!$recordModel || (int) $recordModel->getId() !== (int) $record) {
-			$recordModel = Inventory_Record_Model::getInstanceById($record);
-		}
-		$relatedProducts = $viewer->getTemplateVars('MK_INLINE_RELATED_PRODUCTS');
-		if (!is_array($relatedProducts) || empty($relatedProducts)) {
-			$relatedProducts = $recordModel->getProducts();
-		}
+		$recordModel = Inventory_Record_Model::getInstanceById($record);
+		$relatedProducts = $recordModel->getProducts();
 
 		//##Final details convertion started
 		$finalDetails = $relatedProducts[1]['final_details'];

@@ -5,21 +5,6 @@
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 <script type="text/javascript">document.documentElement.classList.add('mk-project-detail-management');</script>
-<style type="text/css">
-html.mk-project-detail-management:not(.mk-project-detail-styled) #mk-dash-split-root,
-html.mk-project-detail-management:not(.mk-project-detail-styled) .detailViewContainer {
-	opacity: 0 !important;
-	visibility: hidden !important;
-	pointer-events: none !important;
-}
-html.mk-project-detail-management.mk-project-detail-styled #mk-dash-split-root,
-html.mk-project-detail-management.mk-project-detail-styled .detailViewContainer {
-	visibility: visible !important;
-	opacity: 1 !important;
-	pointer-events: auto !important;
-	transition: opacity 0.2s ease-out !important;
-}
-</style>
 {include file="partials/MkSalesUiMeta.tpl"|@vtemplate_path:'Vtiger'}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Project/resources/ProjectMkDetail.css')}&mk_v=20260630_detail_related_v1" />
@@ -29,7 +14,7 @@ html.mk-project-detail-management.mk-project-detail-styled .detailViewContainer 
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Project/resources/ProjectMkTaskDetail.css')}&mk_v=20260529_detail16" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesRelatedList.js')}&mk_v=20260607_detail_v31"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Project/resources/ProjectMkDetail.js')}&mk_v=20260704_antifouc_v1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Project/resources/ProjectMkDetail.js')}&mk_v=20260701_status_picklist1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-project-detail="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

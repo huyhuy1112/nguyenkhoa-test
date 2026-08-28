@@ -78,20 +78,12 @@
 						{/if}
 						{assign var=_mkHasLeads value=false}
 						{assign var=_mkHasAccounts value=false}
-						{assign var=_mkHasServiceContracts value=false}
 						{assign var=_mkHasActivities value=false}
 						{assign var=_mkHasCalendar value=false}
-						{assign var=_mkHasFaq value=false}
-						{assign var=_mkHasInvoice value=false}
-						{assign var=_mkInvoiceRendered value=false}
-						{assign var=_mkTuibaoGroupRendered value=false}
 						{* SALES: Leads fallback at top when missing from MenuEditor *}
 						{if $APP_NAME eq 'SALES'}
 							{foreach item=_mkScanModel key=_mkScanName from=$APP_GROUPED_MENU[$APP_NAME]}
 								{if $_mkScanName eq 'Leads'}{assign var=_mkHasLeads value=true}{/if}
-								{if $_mkScanName eq 'Accounts'}{assign var=_mkHasAccounts value=true}{/if}
-								{if $_mkScanName eq 'ServiceContracts'}{assign var=_mkHasServiceContracts value=true}{/if}
-								{if $_mkScanName eq 'Invoice'}{assign var=_mkHasInvoice value=true}{/if}
 							{/foreach}
 							{if $_mkHasLeads eq false}
 								{assign var=_mkLeadsActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'Leads')}
@@ -105,113 +97,32 @@
 							{if $APP_NAME eq 'MANAGEMENT' && $moduleName eq 'Home'}{continue}{/if}
 							{* SUPPORT: ẩn Schedule/Calendar — chỉ dùng Activities (Schedule chỉ ở MANAGEMENT) *}
 							{if $APP_NAME eq 'SUPPORT' && ($moduleName eq 'Calendar' || $moduleName eq 'Schedule')}{continue}{/if}
-							{* SUPPORT: Hợp đồng nhượng quyền (Accounts) chỉ nằm ở BÁN HÀNG → Tuibao *}
-							{if $APP_NAME eq 'SUPPORT' && ($moduleName eq 'Accounts' || $moduleName eq 'ServiceContracts')}{continue}{/if}
 							{if $moduleName eq 'Calendar'}{assign var=_mkHasCalendar value=true}{/if}
 							{if $moduleName eq 'Leads'}{assign var=_mkHasLeads value=true}{/if}
 							{if $moduleName eq 'Accounts'}{assign var=_mkHasAccounts value=true}{/if}
-							{if $moduleName eq 'ServiceContracts'}{assign var=_mkHasServiceContracts value=true}{/if}
 							{if $moduleName eq 'Activities'}{assign var=_mkHasActivities value=true}{/if}
-							{if $moduleName eq 'Faq'}{assign var=_mkHasFaq value=true}{/if}
-							{if $moduleName eq 'Invoice'}{assign var=_mkHasInvoice value=true}{/if}
 							{* Leads belongs to SALES only — hide from Marketing sidebar *}
 							{if $APP_NAME eq 'MARKETING' && $moduleName eq 'Leads'}{continue}{/if}
 							{if $moduleName eq 'ExtensionStore'}{continue}{/if}
-							{* SALES: keep ProductsServices under Kho; hide legacy Products/Services entries *}
-							{if $APP_NAME eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services' || $moduleName eq 'ProductsServices')}{continue}{/if}
+							{* SALES: keep ProductsServices; hide legacy Products/Services entries *}
+							{if $APP_NAME eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services')}{continue}{/if}
 							{* INVENTORY: ẩn Inbound / Storage / Outbound — dùng Danh sách kho thay thế *}
 							{if $APP_NAME eq 'INVENTORY' && ($moduleName eq 'GoodsReceipt' || $moduleName eq 'GoodsIssue' || $moduleName eq 'Warehouse')}{continue}{/if}
-							{* SALES: Invoice is rendered right under SalesOrder — skip here *}
-							{if $APP_NAME eq 'SALES' && $moduleName eq 'Invoice'}{continue}{/if}
-							{* SALES: defer Tuibao until after SalesOrder + Invoice *}
-							{if $APP_NAME eq 'SALES' && ($moduleName eq 'Accounts' || $moduleName eq 'ServiceContracts')}
-								{continue}
-							{/if}
 							{if $moduleModel}
 								{assign var=_mkModActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq $moduleName)}
-								{* INVENTORY: Warehouse mgmt uses module=Warehouse but should not highlight Storage (Warehouse List) *}
-								{if $MODULE eq 'Warehouse' && ($VIEW eq 'WhList' || $VIEW eq 'WhDashboard' || $VIEW eq 'WhDetail' || $VIEW eq 'WhTransfer') && $moduleName eq 'Warehouse'}
+								{* INVENTORY: Warehouse mgmt/prototype uses module=Warehouse but should not highlight Storage (Warehouse List) *}
+								{if $MODULE eq 'Warehouse' && ($VIEW eq 'Prototype' || $VIEW eq 'PrototypeDetail' || $VIEW eq 'WhList' || $VIEW eq 'WhDashboard' || $VIEW eq 'WhDetail' || $VIEW eq 'WhTransfer') && $moduleName eq 'Warehouse'}
 									{assign var=_mkModActive value=false}
 								{/if}
 								{if $MODULE eq 'HelpDesk' && ($VIEW eq 'Rules' || $VIEW eq 'RuleDetail')}
 									{if $moduleName eq 'HelpDesk'}{assign var=_mkModActive value=false}{/if}
 									{if $moduleName eq 'Rules'}{assign var=_mkModActive value=true}{/if}
 								{/if}
-								{if $MODULE eq 'SupportFAQ' && $moduleName eq 'SupportFAQ'}
-									{assign var=_mkModActive value=true}
-								{/if}
 								<a class="mk-dash-mod-link{if $_mkModActive} mk-dash-mod-link--active{/if}" href="{$moduleModel->getDefaultUrl()}&app={$APP_NAME}">
-									<span class="mk-dash-mod-label">{if $moduleName eq 'Rules'}Quản Lý rule{elseif $moduleName eq 'SupportFAQ'}Cảnh báo{elseif $moduleName eq 'Accounts'}Hợp đồng nhượng quyền{elseif $moduleName eq 'Contacts'}Khách hàng{elseif $moduleName eq 'ProductsServices'}Hàng hoá{elseif $moduleName eq 'ServiceContracts'}Khách hàng nhượng quyền{else}{vtranslate($moduleName, $moduleName)}{/if}</span>
+									<span class="mk-dash-mod-label">{vtranslate($moduleName, $moduleName)}</span>
 								</a>
-								{* SALES: Hóa đơn ngay dưới Đơn hàng, rồi tới Tuibao *}
-								{if $APP_NAME eq 'SALES' && $moduleName eq 'SalesOrder' && $_mkInvoiceRendered eq false}
-									{assign var=_mkInvoiceActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'Invoice')}
-									<a class="mk-dash-mod-link{if $_mkInvoiceActive} mk-dash-mod-link--active{/if}" href="index.php?module=Invoice&amp;view=List&amp;app=SALES">
-										<span class="mk-dash-mod-label">{vtranslate('Invoice', 'Invoice')}</span>
-									</a>
-									{assign var=_mkInvoiceRendered value=true}
-									{if ($_mkHasAccounts || $_mkHasServiceContracts) && $_mkTuibaoGroupRendered eq false}
-										{assign var=_mkTuibaoGroupRendered value=true}
-										{assign var=_mkScActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'ServiceContracts')}
-										{assign var=_mkAccActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'Accounts')}
-										{assign var=_mkTuibaoActive value=($_mkScActive || $_mkAccActive)}
-										{assign var=_mkTuibaoOpen value=$_mkTuibaoActive}
-										<div class="mk-dash-mod-group{if $_mkTuibaoOpen} mk-dash-mod-group--open{/if}{if $_mkTuibaoActive} mk-dash-mod-group--active{/if}" data-mk-mod-group="tuibao">
-											<button type="button" class="mk-dash-mod-toggle" id="mk-dash-tuibao-btn-{$APP_NAME}" aria-expanded="{if $_mkTuibaoOpen}true{else}false{/if}" aria-controls="mk-dash-tuibao-panel-{$APP_NAME}">
-												<span class="mk-dash-mod-label">Tuibao</span>
-												<span class="mk-dash-mod-chevron" aria-hidden="true">{include file="dashboards/DashboardSidebarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='CHEVRON'}</span>
-											</button>
-											<div class="mk-dash-mod-panel" id="mk-dash-tuibao-panel-{$APP_NAME}" role="region" aria-labelledby="mk-dash-tuibao-btn-{$APP_NAME}">
-												{if $_mkHasServiceContracts}
-													<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkScActive} mk-dash-mod-link--active{/if}" href="index.php?module=ServiceContracts&amp;view=List&amp;app=SALES">
-														<span class="mk-dash-mod-label">Khách hàng nhượng quyền</span>
-													</a>
-												{/if}
-												{if $_mkHasAccounts}
-													<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkAccActive} mk-dash-mod-link--active{/if}" href="index.php?module=Accounts&amp;view=List&amp;app=SALES">
-														<span class="mk-dash-mod-label">Hợp đồng nhượng quyền</span>
-													</a>
-												{/if}
-											</div>
-										</div>
-									{/if}
-								{/if}
 							{/if}
 						{/foreach}
-
-						{* SALES: Invoice fallback if SalesOrder missing (not yet placed under it) *}
-						{if $APP_NAME eq 'SALES' && $_mkInvoiceRendered eq false}
-							{assign var=_mkInvoiceActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'Invoice')}
-							<a class="mk-dash-mod-link{if $_mkInvoiceActive} mk-dash-mod-link--active{/if}" href="index.php?module=Invoice&amp;view=List&amp;app=SALES">
-								<span class="mk-dash-mod-label">{vtranslate('Invoice', 'Invoice')}</span>
-							</a>
-							{assign var=_mkInvoiceRendered value=true}
-						{/if}
-
-						{* SALES: Tuibao group fallback if not yet rendered under SalesOrder *}
-						{if $APP_NAME eq 'SALES' && $_mkTuibaoGroupRendered eq false && ($_mkHasAccounts || $_mkHasServiceContracts)}
-							{assign var=_mkScActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'ServiceContracts')}
-							{assign var=_mkAccActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'Accounts')}
-							{assign var=_mkTuibaoActive value=($_mkScActive || $_mkAccActive)}
-							<div class="mk-dash-mod-group{if $_mkTuibaoActive} mk-dash-mod-group--open mk-dash-mod-group--active{/if}" data-mk-mod-group="tuibao">
-								<button type="button" class="mk-dash-mod-toggle" id="mk-dash-tuibao-btn-{$APP_NAME}-fb" aria-expanded="{if $_mkTuibaoActive}true{else}false{/if}" aria-controls="mk-dash-tuibao-panel-{$APP_NAME}-fb">
-									<span class="mk-dash-mod-label">Tuibao</span>
-									<span class="mk-dash-mod-chevron" aria-hidden="true">{include file="dashboards/DashboardSidebarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='CHEVRON'}</span>
-								</button>
-								<div class="mk-dash-mod-panel" id="mk-dash-tuibao-panel-{$APP_NAME}-fb" role="region">
-									{if $_mkHasServiceContracts}
-										<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkScActive} mk-dash-mod-link--active{/if}" href="index.php?module=ServiceContracts&amp;view=List&amp;app=SALES">
-											<span class="mk-dash-mod-label">Khách hàng nhượng quyền</span>
-										</a>
-									{/if}
-									{if $_mkHasAccounts}
-										<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkAccActive} mk-dash-mod-link--active{/if}" href="index.php?module=Accounts&amp;view=List&amp;app=SALES">
-											<span class="mk-dash-mod-label">Hợp đồng nhượng quyền</span>
-										</a>
-									{/if}
-								</div>
-							</div>
-						{/if}
 
 						{* MANAGEMENT: Schedule khi Calendar chưa có trong MenuEditor *}
 						{if ($_mkHasCalendar eq false) && ($APP_NAME eq 'MANAGEMENT')}
@@ -227,11 +138,11 @@
 								<span class="mk-dash-mod-label">{vtranslate('LBL_ACTIVITIES','Calendar')}</span>
 							</a>
 						{/if}
-						{* SUPPORT: Faq when missing from MenuEditor *}
-						{if ($_mkHasFaq eq false) && ($APP_NAME eq 'SUPPORT')}
-							{assign var=_mkFaqActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'Faq')}
-							<a class="mk-dash-mod-link{if $_mkFaqActive} mk-dash-mod-link--active{/if}" href="index.php?module=Faq&amp;view=List&amp;app=SUPPORT">
-								<span class="mk-dash-mod-label">{vtranslate('Faq', 'Faq')}</span>
+						{* SUPPORT: Organizations (Accounts) when missing from MenuEditor *}
+						{if ($_mkHasAccounts eq false) && ($APP_NAME eq 'SUPPORT')}
+							{assign var=_mkAccountsActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'Accounts')}
+							<a class="mk-dash-mod-link{if $_mkAccountsActive} mk-dash-mod-link--active{/if}" href="index.php?module=Accounts&amp;view=List&amp;app=SUPPORT">
+								<span class="mk-dash-mod-label">{vtranslate('Accounts', 'Accounts')}</span>
 							</a>
 						{/if}
 
@@ -239,19 +150,19 @@
 						{if $APP_NAME eq 'INVENTORY'}
 							{assign var=_mkWhListActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && ($VIEW eq 'WhList' || $VIEW eq 'WhDetail'))}
 							<a class="mk-dash-mod-link{if $_mkWhListActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=WhList&amp;app=INVENTORY">
-								<span class="mk-dash-mod-label">{vtranslate('LBL_WH_LIST','Warehouse')}</span>
+								<span class="mk-dash-mod-label">Danh sách kho</span>
 							</a>
 							{assign var=_mkWhDashActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && $VIEW eq 'WhDashboard')}
 							<a class="mk-dash-mod-link{if $_mkWhDashActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=WhDashboard&amp;app=INVENTORY">
-								<span class="mk-dash-mod-label">{vtranslate('LBL_WH_DASHBOARD','Warehouse')}</span>
+								<span class="mk-dash-mod-label">Bảng điều khiển kho</span>
 							</a>
 							{assign var=_mkWhTrfActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && $VIEW eq 'WhTransfer')}
 							<a class="mk-dash-mod-link{if $_mkWhTrfActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=WhTransfer&amp;app=INVENTORY">
-								<span class="mk-dash-mod-label">{vtranslate('LBL_WH_TRANSFER','Warehouse')}</span>
+								<span class="mk-dash-mod-label">Chuyển kho</span>
 							</a>
-							{assign var=_mkPsActive value=(!$_settingsActive && $MODULE eq 'ProductsServices')}
-							<a class="mk-dash-mod-link{if $_mkPsActive} mk-dash-mod-link--active{/if}" href="index.php?module=ProductsServices&amp;view=List&amp;app=INVENTORY">
-								<span class="mk-dash-mod-label">Hàng hoá</span>
+							{assign var=_mkProtoActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && ($VIEW eq 'Prototype' || $VIEW eq 'PrototypeDetail'))}
+							<a class="mk-dash-mod-link{if $_mkProtoActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=Prototype&amp;app=INVENTORY">
+								<span class="mk-dash-mod-label">Mẫu thử kho</span>
 							</a>
 						{/if}
 					</div>

@@ -7,6 +7,7 @@
 * All Rights Reserved.
 *************************************************************************************}
 
+{strip}
 {assign var="FIELD_INFO" value=$FIELD_MODEL->getFieldInfo()}
 {assign var="SPECIAL_VALIDATOR" value=$FIELD_MODEL->getValidator()}
 {assign var=PICKLIST_VALUES value=$FIELD_INFO['editablepicklistvalues']}
@@ -23,7 +24,7 @@
 		<option value="{Vtiger_Util_Helper::toSafeHTML($PICKLIST_NAME)}" {if isset($PICKLIST_COLORS[$PICKLIST_NAME]) && $PICKLIST_COLORS[$PICKLIST_NAME]}class="{$CLASS_NAME}"{/if} {if php7_trim(decode_html($FIELD_MODEL->get('fieldvalue'))) eq php7_trim($PICKLIST_NAME)} selected {/if}>{decode_html($PICKLIST_VALUE)}</option>
 	{/foreach}
 </select>
-{if $PICKLIST_COLORS && empty($MK_MODERN_QUOTE_CREATE) && empty($MK_MODERN_SALES_ORDER_CREATE) && empty($MK_MODERN_INVOICE_CREATE)}
+{if $PICKLIST_COLORS}
 	<style type="text/css">
 		{foreach item=PICKLIST_VALUE key=PICKLIST_NAME from=$PICKLIST_VALUES}
 		{assign var=CLASS_NAME value="{$FIELD_MODEL->getFieldName()}_{$PICKLIST_NAME|replace:' ':'_'}"}
@@ -42,3 +43,4 @@
 		{/foreach}
 	</style>
 {/if}
+{/strip}

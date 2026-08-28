@@ -15,12 +15,8 @@
 		</div>
 		<div class="mk-go-edit-content">
 {else}
-<link rel="stylesheet" href="layouts/v7/modules/Inventory/resources/FlowModern.css?v=20260326" />
-<link rel="stylesheet" href="layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css?v=20260720_wh_line1" />
-<link rel="stylesheet" href="layouts/v7/modules/Vtiger/resources/MkWarehouseLineEdit.css?v=20260720_wh_line1" />
-<script type="text/javascript" src="layouts/v7/lib/jquery/select2/select2.min.js"></script>
-<script type="text/javascript" src="layouts/v7/modules/Vtiger/resources/MkWarehouseLineEdit.js?v=20260720_wh_line1"></script>
 <div class="main-container clearfix">
+	<link rel="stylesheet" href="layouts/v7/modules/Inventory/resources/FlowModern.css?v=20260326" />
 	<div class="editViewPageDiv viewContent content-area full-width inv-modern-page" style="margin-left:0;">
 		<div class="inv-modern-card outbound-section">
 		<div class="container-fluid">
@@ -339,20 +335,15 @@
 						<h2 class="mk-go-detail-card__title" id="mkGoEditLinesTitle">Line Items</h2>
 					</header>
 					<div class="mk-go-detail-card__body mk-go-detail-card__body--flush">
-						<div class="mk-wh-line-quick-search" role="search">
-							<label class="mk-wh-line-quick-search__label" for="mkGiQuickProductSearch">Tìm hàng hoá</label>
-							<select id="mkGiQuickProductSearch" class="mk-wh-quick-product-search" title="Tìm và thêm hàng hoá"></select>
-						</div>
+						<datalist id="products_list"></datalist>
 						<div class="mk-gi-table-wrap">
 							<table class="mk-gi-table mk-go-edit-table" id="GoodsIssueItemsTable">
 				{else}
 				<div class="panel panel-default inv-panel" style="margin-top:12px;">
 					<div class="panel-heading"><strong>Line items</strong></div>
 					<div class="panel-body">
-						<div class="mk-wh-line-quick-search" role="search">
-							<label class="mk-wh-line-quick-search__label" for="mkGiQuickProductSearchLegacy">Tìm hàng hoá</label>
-							<select id="mkGiQuickProductSearchLegacy" class="mk-wh-quick-product-search" title="Tìm và thêm hàng hoá"></select>
-						</div>
+						<datalist id="products_list"></datalist>
+
 						<div class="table-responsive">
 							<table class="table table-bordered table-hover inv-modern-table line-items-table" id="GoodsIssueItemsTable">
 				{/if}
@@ -376,7 +367,7 @@
 											<td>
 												<input type="hidden" name="item_productid[]" value="{$IT.productid|escape:'html'}" />
 												<input type="hidden" name="item_product_key[]" value="{if isset($IT.product_key_hint)}{$IT.product_key_hint|escape:'html'}{/if}" class="gi-product-key-input" />
-												<input type="text" name="item_product_name[]" value="{$IT.product_name|escape:'html'}" class="form-control product-input mk-wh-line-product-name" readonly="readonly" autocomplete="off" />
+												<input type="text" name="item_product_name[]" value="{$IT.product_name|escape:'html'}" class="form-control product-input" list="products_list" placeholder="Click for storage list, or type to filter by name…" autocomplete="off" />
 												{if !empty($IT.is_stock_linked)}
 													<span class="stock-badge catalog">✓ Catalog</span>
 												{else}
@@ -434,6 +425,7 @@
 							</table>
 						</div>
 				{if $MK_GI_IS_INV}
+						<button type="button" class="mk-gi-btn mk-gi-btn--filter mk-gi-btn--ghost mk-go-edit-add-row" id="GoodsIssueAddRow">Add row</button>
 					</div>
 				</section>
 				<div class="mk-go-edit-actions">
@@ -445,6 +437,7 @@
 					</a>
 				</div>
 				{else}
+						<button type="button" class="btn btn-default" id="GoodsIssueAddRow">Add row</button>
 					</div>
 				</div>
 
@@ -457,6 +450,456 @@
 				{/if}
 			</form>
 
+			{literal}
+			<script type="text/javascript">
+				(function() {
+					var form = document.getElementById('GoodsIssueEditForm');
+					if (form) {
+						form.addEventListener('submit', function() {
+							form.querySelectorAll('tr.row-item').forEach(function(row) {
+								var keyInput = row.querySelector('.gi-product-key-input');
+								if (!keyInput) return;
+								var key = (row.dataset.giProductKey || '').trim();
+								if (!key) {
+									var nameInput = row.querySelector('input[name="item_product_name[]"]');
+									var nameVal = nameInput ? nameInput.value.trim() : '';
+									key = nameVal ? ('N:' + nameVal.toLowerCase()) : '';
+								}
+								keyInput.value = key;
+							});
+							if (typeof csrfMagicName !== 'undefined' && typeof csrfMagicToken !== 'undefined') {
+								var existing = form.querySelector('input[name="' + csrfMagicName + '"]');
+								if (!existing) {
+									var hidden = document.createElement('input');
+									hidden.type = 'hidden';
+									hidden.name = csrfMagicName;
+									hidden.value = csrfMagicToken;
+									form.appendChild(hidden);
+								}
+							}
+						});
+					}
+
+					// Prefix search for product name (server: LIKE 'term%'); shared datalist updated via AJAX.
+					var giProductSearchTimer = null;
+					var giProductSearchDelayMs = 300;
+
+					function goodsIssueBuildDatalistFromOptions(options) {
+						var list = document.getElementById('products_list');
+						if (!list) return;
+						list.innerHTML = '';
+						if (!options || !options.length) return;
+						for (var i = 0; i < options.length; i++) {
+							var o = options[i];
+							var el = document.createElement('option');
+							el.value = (o.name !== undefined && o.name !== null) ? String(o.name) : '';
+							el.setAttribute('data-stockid', o.stockid !== undefined ? String(o.stockid) : '');
+							el.setAttribute('data-product-key', o.product_key ? String(o.product_key) : '');
+							el.setAttribute('data-productid', o.productid !== undefined ? String(o.productid) : '');
+							el.setAttribute('data-identity', o.identity_type ? String(o.identity_type) : '');
+							el.setAttribute('data-type', o.type ? String(o.type) : '');
+							el.setAttribute('data-available', o.available_qty !== undefined ? String(o.available_qty) : '');
+							el.setAttribute('data-location', o.stock_location ? String(o.stock_location) : '');
+							el.setAttribute('data-unit-price', o.unit_price !== undefined ? String(o.unit_price) : '');
+							el.setAttribute('data-description', o.description !== undefined && o.description !== null ? String(o.description) : '');
+							list.appendChild(el);
+						}
+					}
+
+					function goodsIssueRunProductSearch(term) {
+						var xhr = new XMLHttpRequest();
+						xhr.open('GET', 'index.php?module=GoodsIssue&action=SearchProducts&q=' + encodeURIComponent(term), true);
+						xhr.onreadystatechange = function() {
+							if (xhr.readyState !== 4 || xhr.status !== 200) return;
+							try {
+								var data = JSON.parse(xhr.responseText);
+								var opts = (data && data.result && data.result.options) ? data.result.options : [];
+								goodsIssueBuildDatalistFromOptions(opts);
+							} catch (ex) {}
+						};
+						xhr.send(null);
+					}
+
+					document.addEventListener('focus', function(e) {
+						if (!e.target || !e.target.classList || !e.target.classList.contains('product-input')) return;
+						var term = (e.target.value || '').trim();
+						if (term.length < 1) return;
+						goodsIssueRunProductSearch(term);
+					}, true);
+
+					document.addEventListener('input', function(e) {
+						if (!e.target || !e.target.classList || !e.target.classList.contains('product-input')) return;
+						var term = (e.target.value || '').trim();
+						if (giProductSearchTimer) clearTimeout(giProductSearchTimer);
+						if (term.length < 1) {
+							var listEl = document.getElementById('products_list');
+							if (listEl) listEl.innerHTML = '';
+							return;
+						}
+						giProductSearchTimer = setTimeout(function() {
+							goodsIssueRunProductSearch(term);
+						}, giProductSearchDelayMs);
+					});
+
+					document.addEventListener('change', function(e) {
+						if (!e.target || !e.target.classList || !e.target.classList.contains('product-input')) return;
+
+						const val = (e.target.value || '').trim();
+						const normalizeName = function(v) { return (v || '').trim().toLowerCase(); };
+						const key = normalizeName(val);
+						const list = document.getElementById('products_list');
+						if (!list) return;
+						const options = list.options;
+
+						let found = null;
+						for (let i = 0; i < options.length; i++) {
+							if (normalizeName(options[i].value) === key) {
+								found = options[i];
+								break;
+							}
+						}
+
+						const row = e.target.closest('tr');
+						if (!row) return;
+
+						const pidEl = row.querySelector('[name="item_productid[]"]');
+						const typeEl = row.querySelector('[name="item_product_type[]"]');
+						const priceEl = row.querySelector('[name="item_unit_price[]"]');
+						const descEl = row.querySelector('[name="description[]"]');
+						const qtyEl = row.querySelector('.qty-input');
+						const badge = row.querySelector('.available-badge');
+						const meta = row.querySelector('.gi-stock-meta');
+						const rowBadge = row.querySelector('.stock-badge');
+						const warn = row.querySelector('.qty-warn');
+
+						if (!pidEl || !typeEl || !priceEl || !qtyEl) return;
+
+						if (found) {
+							var identityType = (found.dataset.identity || '').trim().toLowerCase();
+							var rawPid = (found.dataset.productid || '').trim();
+							var isCatalog = identityType === 'catalog' && rawPid !== '' && rawPid !== '0';
+
+							pidEl.value = isCatalog ? rawPid : '';
+							typeEl.value = found.dataset.type || typeEl.value;
+							priceEl.value = found.dataset.unitPrice || priceEl.value;
+							if (descEl) {
+								var d = found.getAttribute('data-description');
+								if (d === null || d === undefined) d = found.dataset.description;
+								descEl.value = (d !== undefined && d !== null) ? String(d) : '';
+							}
+
+							let available = found.dataset.available || '0';
+							qtyEl.dataset.available = available;
+							if (badge) {
+								badge.innerText = isCatalog ? ("Available: " + available) : ("Available: " + available + " (legacy)");
+							}
+
+							// Optional: auto-fill storage_location when user hasn't set it yet.
+							var headerStorageInput = form.querySelector('input[name="storage_location"]');
+							var loc = (found.dataset.location || '').trim();
+							if (headerStorageInput && loc && (!headerStorageInput.value || headerStorageInput.value.trim() === '')) {
+								headerStorageInput.value = loc;
+							}
+
+							// Update helper context under the product input.
+							if (meta) {
+								let t = (found.dataset.type || '').trim();
+								let l = loc || '—';
+								meta.innerHTML =
+									'<span class="available-text">Available: ' + available + '</span>' +
+									'<span class="location-text">Location: ' + l + '</span>' +
+									'<span class="type-text">Type: ' + t + '</span>';
+							}
+							if (rowBadge) {
+								rowBadge.className = 'stock-badge ' + (isCatalog ? 'catalog' : 'legacy');
+								rowBadge.innerText = isCatalog ? '✓ Catalog' : '⚠ Legacy';
+							}
+							row.classList.toggle('is-legacy', !isCatalog);
+						} else {
+							pidEl.value = '';
+							qtyEl.dataset.available = '';
+							if (badge) badge.innerText = "Available: — (legacy)";
+							if (meta) {
+								meta.innerHTML =
+									'<span class="available-text">Available: —</span>' +
+									'<span class="location-text">Location: —</span>' +
+									'<span class="type-text">Type: ' + (typeEl.value || 'Other') + '</span>';
+							}
+							if (rowBadge) {
+								rowBadge.className = 'stock-badge legacy';
+								rowBadge.innerText = '⚠ Legacy';
+							}
+							row.classList.add('is-legacy');
+						}
+
+						if (found) {
+							row.dataset.giProductKey = (found.getAttribute('data-product-key') || found.dataset.productKey || '').trim();
+							var keyInput = row.querySelector('.gi-product-key-input');
+							if (keyInput) {
+								keyInput.value = row.dataset.giProductKey;
+							}
+						} else {
+							row.dataset.giProductKey = val ? ('N:' + val.trim().toLowerCase()) : '';
+							var keyInputManual = row.querySelector('.gi-product-key-input');
+							if (keyInputManual) {
+								keyInputManual.value = row.dataset.giProductKey;
+							}
+						}
+						row.dataset.giProductName = val;
+						loadSerials(row);
+
+						// Visual qty warning
+						const av = parseFloat(qtyEl.dataset.available || '');
+						const qty = parseFloat(qtyEl.value || '0');
+						if (!isNaN(av) && !isNaN(qty) && qty > av) {
+							qtyEl.style.borderColor = '#ff4d4d';
+							if (warn) warn.style.display = 'inline';
+						} else {
+							qtyEl.style.borderColor = '';
+							if (warn) warn.style.display = 'none';
+						}
+					});
+
+					// Some browsers trigger only focusout/blur for datalist selection; handle it too.
+					document.addEventListener('focusout', function(e) {
+						if (!e.target || !e.target.classList || !e.target.classList.contains('product-input')) return;
+						// Force the delegated 'change' handler to run (datalist selection can be unreliable across browsers).
+						var ev = new Event('change', { bubbles: true });
+						e.target.dispatchEvent(ev);
+					});
+
+					document.addEventListener('input', function(e) {
+						if (!e.target || !e.target.classList || !e.target.classList.contains('qty-input')) return;
+						const qtyEl = e.target;
+						const row = qtyEl.closest('tr');
+						if (!row) return;
+						const warn = row.querySelector('.qty-warn');
+						const av = parseFloat(qtyEl.dataset.available || '');
+						const qty = parseFloat(qtyEl.value || '0');
+						if (!isNaN(av) && !isNaN(qty) && qty > av) {
+							qtyEl.style.borderColor = '#ff4d4d';
+							if (warn) warn.style.display = 'inline';
+						} else {
+							qtyEl.style.borderColor = '';
+							if (warn) warn.style.display = 'none';
+						}
+					});
+
+					// Initial visual warnings for prefilled rows.
+					var initialQtyInputs = document.querySelectorAll('#GoodsIssueItemsTable .qty-input');
+					initialQtyInputs.forEach(function(qtyEl) {
+						var row = qtyEl.closest('tr');
+						if (!row) return;
+						var warn = row.querySelector('.qty-warn');
+						var av = parseFloat(qtyEl.dataset.available || '');
+						var qty = parseFloat(qtyEl.value || '0');
+						if (!isNaN(av) && !isNaN(qty) && qty > av) {
+							qtyEl.style.borderColor = '#ff4d4d';
+							if (warn) warn.style.display = 'inline';
+						} else {
+							qtyEl.style.borderColor = '';
+							if (warn) warn.style.display = 'none';
+						}
+					});
+
+					document.addEventListener('click', function(e) {
+						if (e.target && e.target.classList && e.target.classList.contains('js-gi-remove')) {
+							var tr = e.target.closest('tr');
+							if (tr) {
+								tr.parentNode.removeChild(tr);
+							}
+						}
+					});
+
+					var addBtn = document.getElementById('GoodsIssueAddRow');
+					if (addBtn) {
+						addBtn.addEventListener('click', function() {
+							var tbody = document.querySelector('#GoodsIssueItemsTable tbody');
+							if (!tbody) return;
+							var tr = document.createElement('tr');
+							tr.innerHTML = '' +
+								'<td>' +
+								'  <input type="hidden" name="item_productid[]" value="" />' +
+								'  <input type="hidden" name="item_product_key[]" value="" class="gi-product-key-input" />' +
+								'  <input type="text" name="item_product_name[]" value="" class="form-control product-input" list="products_list" placeholder="Click for storage list, or type to filter by name…" autocomplete="off" />' +
+								'  <span class="stock-badge legacy">⚠ Legacy</span>' +
+								'  <div class="stock-meta small text-muted gi-stock-meta">' +
+								'    <span class="available-text">Available: —</span>' +
+								'    <span class="location-text">Location: —</span>' +
+								'    <span class="type-text">Type: Other</span>' +
+								'  </div>' +
+								'  <div class="legacy-warning text-warning small">⚠ This item is not linked to catalog (legacy stock)</div>' +
+								'</td>' +
+								'<td>' +
+								'  <select name="item_product_type[]" class="form-control">' +
+								'    <option value="Hardware">Hardware</option>' +
+								'    <option value="Software">Software</option>' +
+								'    <option value="Service">Service</option>' +
+								'    <option value="Other" selected="selected">Other</option>' +
+								'  </select>' +
+								'</td>' +
+								'<td>' +
+								'  <select name="serial_number[]" class="form-control serial-select gi-serial-select">' +
+								'    <option value="">Select serial</option>' +
+								'  </select>' +
+								'</td>' +
+								'<td>' +
+								'  <input type="number" step="1" min="0" name="item_quantity[]" value="1" class="form-control text-right qty-input" data-available="" />' +
+								'  <div style="margin-top:4px;">' +
+								'    <span class="available-badge text-muted small">Available: — (legacy)</span>' +
+								'  </div>' +
+								'  <small class="text-danger qty-warn" style="display:none;">Qty exceeds available</small>' +
+								'</td>' +
+								'<td><input type="number" step="0.0001" min="0" name="item_unit_price[]" value="0" class="form-control text-right gi-unit-price" /></td>' +
+								'<td><input type="number" step="0.0001" min="0" max="100" name="item_discount[]" value="0" class="form-control text-right gi-discount" /></td>' +
+								'<td class="text-right gi-line-total-cell"><span class="gi-line-total">0</span></td>' +
+								'<td><textarea name="description[]" class="form-control gi-line-description" rows="2" placeholder="Inbound hint fills on product pick"></textarea></td>' +
+								'<td><input type="text" name="item_line_note[]" value="" class="form-control" /></td>' +
+								'<td class="text-nowrap"><button type="button" class="btn btn-xs btn-danger js-gi-remove">Remove</button></td>';
+							tr.className = 'row-item is-legacy';
+							tr.dataset.giProductKey = '';
+							var newKeyInput = tr.querySelector('.gi-product-key-input');
+							if (newKeyInput) {
+								newKeyInput.value = '';
+							}
+							tr.dataset.giProductName = '';
+							tbody.appendChild(tr);
+							// Initialize line total for new row
+							if (typeof window.GoodsIssueRecalcRow === 'function') {
+								window.GoodsIssueRecalcRow(tr);
+							}
+						});
+					}
+					
+					// Discount & line total calculation
+					window.GoodsIssueRecalcRow = function(row) {
+						if (!row) return;
+						var qtyEl = row.querySelector('.qty-input');
+						var priceEl = row.querySelector('.gi-unit-price');
+						var discEl = row.querySelector('.gi-discount');
+						var totalSpan = row.querySelector('.gi-line-total');
+						if (!qtyEl || !priceEl || !discEl || !totalSpan) return;
+						var qty = parseFloat(qtyEl.value || '0');
+						var price = parseFloat(priceEl.value || '0');
+						var disc = parseFloat(discEl.value || '0');
+						if (isNaN(qty)) qty = 0;
+						if (isNaN(price)) price = 0;
+						if (isNaN(disc)) disc = 0;
+						if (disc < 0) disc = 0;
+						if (disc > 100) disc = 100;
+						discEl.value = disc.toFixed(2).replace(/\.00$/, '');
+						var lineTotal = qty * price * (1 - (disc / 100));
+						if (lineTotal < 0) lineTotal = 0;
+						totalSpan.textContent = lineTotal.toFixed(0);
+					};
+
+					document.addEventListener('input', function(e) {
+						if (!e.target) return;
+						if (e.target.classList.contains('qty-input') ||
+							e.target.classList.contains('gi-unit-price') ||
+							e.target.classList.contains('gi-discount')) {
+							var row = e.target.closest('tr');
+							if (row && typeof window.GoodsIssueRecalcRow === 'function') {
+								window.GoodsIssueRecalcRow(row);
+							}
+						}
+					});
+
+					// Initialize totals on page load
+					document.querySelectorAll('#GoodsIssueItemsTable tbody tr').forEach(function(row) {
+						if (typeof window.GoodsIssueRecalcRow === 'function') {
+							window.GoodsIssueRecalcRow(row);
+						}
+					});
+
+					function goodsIssueApplySerialOptions(select, data, initial) {
+						var list = [];
+						if (data && Array.isArray(data.result)) {
+							list = data.result;
+						} else if (data && data.serials && Array.isArray(data.serials)) {
+							data.serials.forEach(function(s) { list.push({ serial: s }); });
+						}
+						select.innerHTML = '<option value="">Select serial</option>';
+						list.forEach(function(item) {
+							var s = (item && typeof item === 'object' && item.serial !== undefined) ? String(item.serial) : String(item);
+							if (!s) return;
+							var opt = document.createElement('option');
+							opt.value = s;
+							opt.textContent = s;
+							select.appendChild(opt);
+						});
+						if (initial) {
+							select.value = initial;
+							if (select.value !== initial) {
+								var opt2 = document.createElement('option');
+								opt2.value = initial;
+								opt2.textContent = initial;
+								select.appendChild(opt2);
+								select.value = initial;
+							}
+							select.removeAttribute('data-initial-serial');
+						}
+					}
+
+					function loadSerials(row) {
+						var select = row.querySelector('.serial-select');
+						if (!select) return;
+						var pidEl = row.querySelector('[name="item_productid[]"]');
+						var nameEl = row.querySelector('[name="item_product_name[]"]');
+						var typeEl = row.querySelector('[name="item_product_type[]"]');
+						var pid = pidEl ? parseInt(pidEl.value || '0', 10) : 0;
+						if (isNaN(pid)) pid = 0;
+						var productName = (nameEl && nameEl.value) ? nameEl.value.trim() : '';
+						var productKey = (row.dataset.giProductKey || '').trim();
+						var productType = (typeEl && typeEl.value) ? typeEl.value.trim() : '';
+						if (pid <= 0 && !productName && !productKey) {
+							select.innerHTML = '<option value="">Select serial</option>';
+							return;
+						}
+						var initial = (select.getAttribute('data-initial-serial') || '').trim();
+						var parts = ['module=GoodsIssue', 'action=GetSerials'];
+						if (pid > 0) parts.push('productid=' + encodeURIComponent(String(pid)));
+						if (productName) parts.push('product_name=' + encodeURIComponent(productName));
+						if (productKey) parts.push('product_key=' + encodeURIComponent(productKey));
+						if (productType) parts.push('product_type=' + encodeURIComponent(productType));
+						var url = 'index.php?' + parts.join('&');
+						if (typeof fetch === 'function') {
+							fetch(url)
+								.then(function(res) { return res.json(); })
+								.then(function(data) { goodsIssueApplySerialOptions(select, data, initial); })
+								.catch(function() { select.innerHTML = '<option value="">Select serial</option>'; });
+						} else {
+							var xhr = new XMLHttpRequest();
+							xhr.open('GET', url, true);
+							xhr.onreadystatechange = function() {
+								if (xhr.readyState !== 4) return;
+								if (xhr.status !== 200) {
+									select.innerHTML = '<option value="">Select serial</option>';
+									return;
+								}
+								try {
+									goodsIssueApplySerialOptions(select, JSON.parse(xhr.responseText), initial);
+								} catch (e) {
+									select.innerHTML = '<option value="">Select serial</option>';
+								}
+							};
+							xhr.send(null);
+						}
+					}
+
+					document.addEventListener('change', function(e) {
+						if (!e.target || e.target.name !== 'item_product_type[]') return;
+						var row = e.target.closest('tr');
+						if (!row || !row.closest('#GoodsIssueItemsTable')) return;
+						loadSerials(row);
+					});
+
+					document.querySelectorAll('#GoodsIssueItemsTable tbody tr').forEach(function(row) {
+						loadSerials(row);
+					});
+				})();
+			</script>
+			{/literal}
 {if $MK_GI_IS_INV}
 		</div>
 	</div>

@@ -2,87 +2,55 @@
  * Invoice list (TOOLS / SUPPORT) — hide legacy vtiger chrome.
  */
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .app-nav,
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .app-nav, body[data-module="Invoice"][data-view="List"][data-app="SALES"] .app-nav,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .app-nav,
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] nav.app-nav,
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] nav.app-nav , body[data-module="Invoice"][data-view="List"][data-app="SALES"] nav.app-nav {
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] nav.app-nav {
 	display: none !important;
 }
 
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-inv-support-list-page #modnavigator.module-nav,
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-inv-support-list-page #modnavigator.module-nav, body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container.mk-inv-support-list-page #modnavigator.module-nav,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-inv-support-list-page #modnavigator.module-nav,
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-inv-support-list-page #sidebar-essentials.sidebar-essentials,
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-inv-support-list-page #sidebar-essentials.sidebar-essentials, body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container.mk-inv-support-list-page #sidebar-essentials.sidebar-essentials,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-inv-support-list-page #sidebar-essentials.sidebar-essentials,
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-inv-support-list-page .essentials-toggle,
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-inv-support-list-page .essentials-toggle , body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container.mk-inv-support-list-page .essentials-toggle {
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-inv-support-list-page .essentials-toggle {
 	display: none !important;
 	visibility: hidden !important;
 }
 
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-inv-support-list-page .listViewPageDiv.content-area,
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-inv-support-list-page .listViewPageDiv.content-area, body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container.mk-inv-support-list-page .listViewPageDiv.content-area,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-inv-support-list-page .listViewPageDiv.content-area,
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container.mk-inv-support-list-page #listViewContent,
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-inv-support-list-page #listViewContent , body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container.mk-inv-support-list-page #listViewContent {
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container.mk-inv-support-list-page #listViewContent {
 	padding-left: 0 !important;
 	margin-left: 0 !important;
 	width: 100% !important;
 	max-width: none !important;
-}
-
-/* Beat custom.css: sidebar.hide + listView → padding-left 72px (same pattern as Opp/Contacts) */
-body:not([data-module="Calendar"]):not([data-module="Teams"])[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container #sidebar-essentials.sidebar-essentials.hide + .listViewPageDiv.content-area,
-body:not([data-module="Calendar"]):not([data-module="Teams"])[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container #sidebar-essentials.sidebar-essentials.hide + #listViewContent.content-area,
-body:not([data-module="Calendar"]):not([data-module="Teams"])[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container #sidebar-essentials.sidebar-essentials.hide + .content-area,
-body:not([data-module="Calendar"]):not([data-module="Teams"])[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container #sidebar-essentials.sidebar-essentials.hide + .listViewPageDiv.content-area,
-body:not([data-module="Calendar"]):not([data-module="Teams"])[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container #sidebar-essentials.sidebar-essentials.hide + #listViewContent.content-area,
-body:not([data-module="Calendar"]):not([data-module="Teams"])[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .main-container #sidebar-essentials.sidebar-essentials.hide + .content-area,
-body:not([data-module="Calendar"]):not([data-module="Teams"])[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container #sidebar-essentials.sidebar-essentials.hide + .listViewPageDiv.content-area,
-body:not([data-module="Calendar"]):not([data-module="Teams"])[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container #sidebar-essentials.sidebar-essentials.hide + #listViewContent.content-area,
-body:not([data-module="Calendar"]):not([data-module="Teams"])[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .main-container #sidebar-essentials.sidebar-essentials.hide + .content-area {
-	padding: 0 !important;
-	padding-left: 0 !important;
-	padding-right: 0 !important;
-	margin-left: 0 !important;
-	margin-right: 0 !important;
-	width: 100% !important;
-	max-width: none !important;
-	min-width: 0 !important;
-	left: auto !important;
-	position: relative !important;
-	box-sizing: border-box !important;
-}
-
-/* sales skin: .main-container .content-area { padding-left: 283px } */
-body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container.mk-inv-support-list-page .content-area,
-body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container.mk-opportunity-list-page .content-area,
-body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container .listViewPageDiv.content-area,
-body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container #listViewContent.content-area {
-	padding-left: 0 !important;
-	margin-left: 0 !important;
 }
 
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent .floatThead-container,
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent .floatThead-container, body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent .floatThead-container,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent .floatThead-container,
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listViewContent #scroller_wrapper.bottom-fixed-scroll,
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent #scroller_wrapper.bottom-fixed-scroll , body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #scroller_wrapper.bottom-fixed-scroll {
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listViewContent #scroller_wrapper.bottom-fixed-scroll {
 	display: none !important;
 }
 
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-page .module-action-bar,
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-page .module-action-bar,
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-page .module-action-bar, body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-page .module-action-bar,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-page .module-action-bar,
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .module-action-bar,
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .module-action-bar , body[data-module="Invoice"][data-view="List"][data-app="SALES"] .module-action-bar {
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .module-action-bar {
 	display: none !important;
 }
 
 /* Pagination (prev / … / next) below the table — same as Opportunities / SALES lists */
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-actions .mk-so-filter-row__footer, body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listview-actions .mk-so-filter-row__footer,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #listview-actions .mk-so-filter-row__footer,
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #listview-actions .mk-so-filter-row__footer {
 	display: none !important;
 }
 
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #table-content + .mk-so-filter-row__footer, body[data-module="Invoice"][data-view="List"][data-app="SALES"] #table-content + .mk-so-filter-row__footer,
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-table-card .mk-so-filter-row__footer, body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-opportunity-table-card .mk-so-filter-row__footer,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] #table-content + .mk-so-filter-row__footer,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-table-card .mk-so-filter-row__footer,
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] #table-content + .mk-so-filter-row__footer,
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-table-card .mk-so-filter-row__footer {
 	display: flex !important;
@@ -99,15 +67,15 @@ body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunit
 	width: 100%;
 }
 
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-table-card > .col-sm-12 > #listview-actions, body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-opportunity-table-card > .col-sm-12 > #listview-actions,
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-table-card > .col-xs-12 > #listview-actions, body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-opportunity-table-card > .col-xs-12 > #listview-actions,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-table-card > .col-sm-12 > #listview-actions,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-table-card > .col-xs-12 > #listview-actions,
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-table-card > .col-sm-12 > #listview-actions,
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-table-card > .col-xs-12 > #listview-actions {
 	order: 1;
 }
 
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-table-card > .col-sm-12 > #table-content, body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-opportunity-table-card > .col-sm-12 > #table-content,
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-table-card > .col-xs-12 > #table-content, body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-opportunity-table-card > .col-xs-12 > #table-content,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-table-card > .col-sm-12 > #table-content,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-opportunity-table-card > .col-xs-12 > #table-content,
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-table-card > .col-sm-12 > #table-content,
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunity-table-card > .col-xs-12 > #table-content {
 	order: 2;
@@ -115,16 +83,16 @@ body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-opportunit
 	min-height: 0;
 }
 
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__footer .mk-so-pagination, body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .mk-so-pagination,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__footer .mk-so-pagination,
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-filter-row__footer .mk-so-pagination,
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__footer .mk-opportunity-pagination, body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .mk-opportunity-pagination,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__footer .mk-opportunity-pagination,
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-filter-row__footer .mk-opportunity-pagination {
 	display: flex;
 	justify-content: center;
 	width: 100%;
 }
 
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__footer .mk-so-page-btn, body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .mk-so-page-btn,
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__footer .mk-so-page-btn,
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-filter-row__footer .mk-so-page-btn {
 	min-width: 40px;
 	height: 40px;
@@ -136,7 +104,7 @@ body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-filter-
 	font-weight: 600;
 }
 
-body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__footer .mk-so-page-btn:hover:not(:disabled), body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .mk-so-page-btn:hover:not(:disabled),
+body[data-module="Invoice"][data-view="List"][data-app="TOOLS"] .mk-so-filter-row__footer .mk-so-page-btn:hover:not(:disabled),
 body[data-module="Invoice"][data-view="List"][data-app="SUPPORT"] .mk-so-filter-row__footer .mk-so-page-btn:hover:not(:disabled) {
 	background: #08A045 !important;
 	border-color: #0B6E4F !important;

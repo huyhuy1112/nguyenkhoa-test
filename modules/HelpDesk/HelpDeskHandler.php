@@ -94,8 +94,8 @@ class HelpDeskHandler extends VTEventHandler {
 
 					// Insert notification (after commit, so it won't be rolled back)
 					$message = "Bạn được assign vào Ticket: " . $ticketTitle;
-					require_once 'modules/Vtiger/models/NotificationService.php';
-					Vtiger_NotificationService::createIfEnabled($newOwnerId, 'HelpDesk', $recordId, $message, 'assign', 'helpdesk_assign');
+					$insertSql = "INSERT INTO vtiger_notifications (userid, module, recordid, message, created_at) VALUES (?, 'HelpDesk', ?, ?, NOW())";
+					$adb->pquery($insertSql, array($newOwnerId, $recordId, $message));
 
 				} catch (Exception $e) {
 					if ($log) {

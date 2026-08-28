@@ -1,10 +1,10 @@
 <?php
 /*+***********************************************************************************
- * HelpDesk_Rules_View – Tag Rule Engine manage page (DB-backed).
+ * HelpDesk_Rules_View – list page for Support Rules (SLA engine).
  * URL: index.php?module=HelpDesk&view=Rules&app=SUPPORT
  * ************************************************************************************/
 
-require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
+require_once 'modules/HelpDesk/models/SupportRulesService.php';
 
 class HelpDesk_Rules_View extends Vtiger_Index_View {
 
@@ -25,6 +25,7 @@ class HelpDesk_Rules_View extends Vtiger_Index_View {
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
 		$this->assignSupportContext($request);
+		// Must set before preProcessDisplay (sidebar renders in RulesViewPreProcess.tpl).
 		parent::preProcess($request, false);
 		$this->getViewer($request)->assign('MENU_SELECTED_MODULENAME', 'Rules');
 		if ($display) {
@@ -41,8 +42,6 @@ class HelpDesk_Rules_View extends Vtiger_Index_View {
 	public function getHeaderScripts(Vtiger_Request $request) {
 		$headerScriptInstances = parent::getHeaderScripts($request);
 		$jsFileNames = array(
-			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngineStore.js?mk_v=20260827_score_opt1',
-			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.js?mk_v=20260827_score_opt1',
 			'modules.HelpDesk.resources.Rules',
 		);
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
@@ -53,24 +52,63 @@ class HelpDesk_Rules_View extends Vtiger_Index_View {
 		$headerCssInstances = parent::getHeaderCss($request);
 		$cssFileNames = array(
 			'~layouts/v7/modules/HelpDesk/resources/HelpDeskRulesList.css',
-			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.css?mk_v=20260827_score_opt1',
 		);
 		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
 		return array_merge($headerCssInstances, $cssInstances);
 	}
 
+	private static function rulesRedirectUrl() {
+		return 'index.php?module=HelpDesk&view=Rules&app=SUPPORT';
+	}
+
 	public function process(Vtiger_Request $request) {
-		$viewer = $this->getViewer($request);
-		try {
-			$svc = HelpDesk_TagRuleEngineService::getInstance();
-			$bootstrap = $svc->bootstrap();
-		} catch (Exception $e) {
-			$bootstrap = array('tags' => array(), 'rules' => array(), 'scenarios' => array());
+		$moduleName = $request->getModule();
+		$viewer     = $this->getViewer($request);
+		$service    = HelpDesk_SupportRulesService::getInstance();
+
+		$mode   = (string)$request->get('mode');
+		$ruleId = (int)$request->get('rule_id');
+		if ($mode === 'enable' && $ruleId > 0) {
+			$service->setRuleActive($ruleId, true);
+			header('Location: ' . self::rulesRedirectUrl());
+			return;
 		}
-		$viewer->assign('MK_TAG_RULE_BOOTSTRAP_JSON', json_encode(
-			$bootstrap,
-			JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
-		));
-		$viewer->view('Rules.tpl', $request->getModule());
+		if ($mode === 'disable' && $ruleId > 0) {
+			$service->setRuleActive($ruleId, false);
+			header('Location: ' . self::rulesRedirectUrl());
+			return;
+		}
+
+		$page      = (int)$request->get('page');
+		$page      = $page > 0 ? $page : 1;
+		$pageLimit = 20;
+
+		$allRules = $service->getAllRules();
+		$total    = count($allRules);
+		$activeCount = 0;
+		foreach ($allRules as $r) {
+			if (!empty($r['is_active'])) {
+				$activeCount++;
+			}
+		}
+		$pages    = $total > 0 ? (int)ceil($total / $pageLimit) : 1;
+		if ($page > $pages) {
+			$page = $pages;
+		}
+		$offset   = ($page - 1) * $pageLimit;
+		$rules    = array_slice($allRules, $offset, $pageLimit);
+
+		$showFrom = $total > 0 ? $offset + 1 : 0;
+		$showTo   = min($offset + $pageLimit, $total);
+
+		$viewer->assign('MODULE', $moduleName);
+		$viewer->assign('SUPPORT_RULES', $rules);
+		$viewer->assign('RULES_TOTAL', $total);
+		$viewer->assign('RULES_PAGE', $page);
+		$viewer->assign('RULES_PAGES', $pages);
+		$viewer->assign('RULES_SHOW_FROM', $showFrom);
+		$viewer->assign('RULES_SHOW_TO', $showTo);
+		$viewer->assign('RULES_ACTIVE_COUNT', $activeCount);
+		$viewer->view('Rules.tpl', $moduleName);
 	}
 }

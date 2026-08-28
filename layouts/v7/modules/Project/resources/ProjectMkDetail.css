@@ -14,17 +14,6 @@ body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] {
 	--mk-proj-title: #0f172a;
 }
 
-/* Disable inline edit UI on Project Detail (force Edit view) */
-body[data-module="Project"][data-view="Detail"] .detailview-table td.fieldValue .editAction,
-body[data-module="Project"][data-view="Detail"] .detailview-table td.fieldValue .inlineAjaxSave,
-body[data-module="Project"][data-view="Detail"] .detailview-table td.fieldValue .inlineAjaxCancel,
-body[data-module="Project"][data-view="Detail"] .summaryViewFields .editAction,
-body[data-module="Project"][data-view="Detail"] .summaryViewFields .inlineAjaxSave,
-body[data-module="Project"][data-view="Detail"] .summaryViewFields .inlineAjaxCancel {
-	display: none !important;
-	pointer-events: none !important;
-}
-
 /* ---- App shell — mirror Accounts Organizations Detail (SUPPORT) ---- */
 body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell {
 	margin-left: var(--mk-dash-sidebar-w, 256px);

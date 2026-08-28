@@ -20,13 +20,6 @@ $picklistValues = array(
 	'30% trả ngay, còn lại trả trong 60 ngày',
 );
 
-$paymentMethodValues = array(
-	'Tiền mặt',
-	'Chuyển khoản',
-	'Thẻ',
-	'Ví',
-);
-
 function ensureBlock(Vtiger_Module $module, $label) {
 	$block = Vtiger_Block::getInstance($label, $module);
 	if ($block) {
@@ -37,27 +30,6 @@ function ensureBlock(Vtiger_Module $module, $label) {
 	$module->addBlock($block);
 	echo "  Added block: $label\n";
 	return $block;
-}
-
-function addPaymentMethodField(Vtiger_Module $module, Vtiger_Block $block, array $picklistValues) {
-	$name = 'mk_payment_method';
-	$f = Vtiger_Field::getInstance($name, $module);
-	if ($f) {
-		echo "  Field exists on {$module->name}: $name\n";
-		return $f;
-	}
-	$f = new Vtiger_Field();
-	$f->name = $name;
-	$f->label = 'Payment Method';
-	$f->uitype = 15;
-	$f->column = $name;
-	$f->columntype = 'VARCHAR(64)';
-	$f->typeofdata = 'V~O';
-	$f->displaytype = 1;
-	$block->addField($f);
-	$f->setPicklistValues($picklistValues);
-	echo "  Added field on {$module->name}: $name\n";
-	return $f;
 }
 
 function addPaymentTermsField(Vtiger_Module $module, Vtiger_Block $block, array $picklistValues) {
@@ -85,18 +57,14 @@ echo "=== mk_payment_terms setup ===\n";
 
 $quotes = Vtiger_Module::getInstance('Quotes');
 if ($quotes) {
-	$quotesBlock = ensureBlock($quotes, 'LBL_QUOTE_INFORMATION');
-	addPaymentTermsField($quotes, $quotesBlock, $picklistValues);
-	addPaymentMethodField($quotes, $quotesBlock, $paymentMethodValues);
+	addPaymentTermsField($quotes, ensureBlock($quotes, 'LBL_QUOTE_INFORMATION'), $picklistValues);
 } else {
 	echo "WARN: Quotes module not found\n";
 }
 
 $salesOrder = Vtiger_Module::getInstance('SalesOrder');
 if ($salesOrder) {
-	$soBlock = ensureBlock($salesOrder, 'LBL_SO_INFORMATION');
-	addPaymentTermsField($salesOrder, $soBlock, $picklistValues);
-	addPaymentMethodField($salesOrder, $soBlock, $paymentMethodValues);
+	addPaymentTermsField($salesOrder, ensureBlock($salesOrder, 'LBL_SO_INFORMATION'), $picklistValues);
 } else {
 	echo "WARN: SalesOrder module not found\n";
 }

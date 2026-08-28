@@ -16,12 +16,12 @@
 			return false;
 		}
 		var appName = (b.getAttribute('data-app') || '').toUpperCase();
-		if (appName === 'SUPPORT' || appName === 'TOOLS' || appName === 'SALES') {
+		if (appName === 'SUPPORT' || appName === 'TOOLS') {
 			return true;
 		}
 		var params = new URLSearchParams(window.location.search || '');
 		var app = params.get('app');
-		return params.get('module') === 'Invoice' && params.get('view') === 'List' && (app === 'SUPPORT' || app === 'TOOLS' || app === 'SALES');
+		return params.get('module') === 'Invoice' && params.get('view') === 'List' && (app === 'SUPPORT' || app === 'TOOLS');
 	}
 
 	function getListViewContainer() {

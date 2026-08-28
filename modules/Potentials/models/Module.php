@@ -422,12 +422,4 @@ class Potentials_Module_Model extends Vtiger_Module_Model {
     function getUtilityActionsNames() {
         return array('Import', 'Export', 'DuplicatesHandling');
     }
-
-	/**
-	 * Popup chọn Cơ hội: Tên khách hàng | Số điện thoại | Trạng thái.
-	 * (Phone lấy từ Contact qua enrich — không thêm cột contact/account để tránh lệch vị trí.)
-	 */
-	public function getPopupViewFieldsList() {
-		return array('potentialname', 'amount', 'sales_stage');
-	}
 }

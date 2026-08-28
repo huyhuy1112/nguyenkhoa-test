@@ -17,16 +17,11 @@
 		</div>
 	</div>
 {elseif $MK_SO_IS_SALES}
-	<div class="mk-so-page mk-so-list-sales-root mk-so-pos-page mk-so-pos-list-enabled">
-		<div class="mk-so-pos-layout" id="mk-so-pos-layout">
-			{include file="partials/SalesOrderPosFilterPanel.tpl"|vtemplate_path:$MODULE}
-			<div class="mk-so-pos-main">
-				{include file="partials/SalesOrderListHeader.tpl"|vtemplate_path:$MODULE}
-				<div class="mk-so-table-card">
-					{capture name=mk_so_sales_lv}{include file="partials/ListViewContentsPos.tpl"|vtemplate_path:$MODULE}{/capture}
-					{$smarty.capture.mk_so_sales_lv}
-				</div>
-			</div>
+	<div class="mk-so-page mk-so-list-sales-root">
+		{include file="partials/SalesOrderListHeader.tpl"|vtemplate_path:$MODULE}
+		<div class="mk-so-table-card">
+			{capture name=mk_so_sales_lv}{include file="ListViewContents.tpl"|@vtemplate_path:'Vtiger'}{/capture}
+			{$smarty.capture.mk_so_sales_lv}
 		</div>
 	</div>
 {else}

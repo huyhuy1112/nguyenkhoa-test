@@ -93,8 +93,8 @@ class PotentialsHandler extends VTEventHandler {
 			// Send assign notification if owner changed or new record
 			if ($shouldNotify) {
 				$message = "Bạn được assign vào Opportunity: " . $potentialName;
-				require_once 'modules/Vtiger/models/NotificationService.php';
-				Vtiger_NotificationService::createIfEnabled($newOwnerId, 'Potentials', $recordId, $message, 'assign', 'potentials_assign');
+				$insertSql = "INSERT INTO vtiger_notifications (userid, module, recordid, message, created_at) VALUES (?, 'Potentials', ?, ?, NOW())";
+				$adb->pquery($insertSql, array($newOwnerId, $recordId, $message));
 			}
 
 			// ALWAYS check deadline reminder (regardless of assign notification)
@@ -133,8 +133,8 @@ class PotentialsHandler extends VTEventHandler {
 						
 						// Send reminder notification
 						$reminderMessage = "Opportunity \"$potentialName\" sắp đến hạn trong $daysUntilDeadline ngày (Deadline: $closingDate)";
-						require_once 'modules/Vtiger/models/NotificationService.php';
-						Vtiger_NotificationService::createIfEnabled($newOwnerId, 'Potentials', $recordId, $reminderMessage, 'reminder', 'potentials_reminder');
+						$reminderSql = "INSERT INTO vtiger_notifications (userid, module, recordid, message, created_at) VALUES (?, 'Potentials', ?, ?, NOW())";
+						$adb->pquery($reminderSql, array($newOwnerId, $recordId, $reminderMessage));
 						
 						if ($log) {
 							$log->debug("[PotentialsHandler] Deadline reminder sent for Potentials $recordId to user $newOwnerId");

@@ -22,18 +22,35 @@ class Teams_SuspendUser_Action extends Vtiger_Action_Controller {
 	}
 
 	public function process(Vtiger_Request $request) {
-		$userId = (int)$request->get('userid') ?: (int)$request->get('record');
+		$db = PearDatabase::getInstance();
+		$userId = (int)$request->get('userid');
 		if ($userId <= 0) {
 			throw new AppException('LBL_REQUIRED_FIELDS_MISSING');
 		}
 
-		// Account deactivation only via Settings → Users
+		$res = $db->pquery("SELECT is_admin FROM vtiger_users WHERE id=? AND deleted=0", array($userId));
+		if ($res && $db->num_rows($res) > 0) {
+			$isAdmin = $db->query_result($res, 0, 'is_admin');
+			if ($isAdmin === 'on') {
+				// Owner cannot be suspended
+				throw new AppException('LBL_PERMISSION_DENIED');
+			}
+		}
+
+		// Reuse Users module deleteRecord behavior (marks status Inactive)
+		$recordModel = Users_Record_Model::getInstanceById($userId, 'Users');
+		$usersModuleModel = Users_Module_Model::getInstance('Users');
+		$usersModuleModel->deleteRecord($recordModel);
+
+		// Check if this is an AJAX request
 		if ($request->isAjax()) {
 			$response = new Vtiger_Response();
-			$response->setError('Không thể xoá/vô hiệu hoá tài khoản từ Teams. Vào Cài đặt → Người sử dụng.');
+			$response->setResult(array('success' => true, 'message' => 'User deactivated successfully'));
 			$response->emit();
 			return;
 		}
-		throw new AppException('Không thể xoá/vô hiệu hoá tài khoản từ Teams. Vào Cài đặt → Người sử dụng.');
+
+		// Fallback: redirect for non-AJAX requests
+		header('Location: index.php?module=Teams&view=List&tab=people&app=Management');
 	}
 }

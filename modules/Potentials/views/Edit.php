@@ -31,56 +31,6 @@ class Potentials_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('IS_DUPLICATE', $request->get('isDuplicate'));
 		$viewer->assign('MK_OPP_OWNER_NAME', trim($user->getName()));
 		$viewer->assign('MK_OPP_OWNER_INITIAL', $this->getUserInitial($user->getName()));
-
-		$meta = array(
-			'tags' => array(),
-			'mk_region' => '',
-			'mk_address' => '',
-		);
-		$recordId = (int) $request->get('record');
-		if ($recordId > 0 && !$request->get('isDuplicate')) {
-			try {
-				global $current_user;
-				require_once 'modules/Vtiger/models/Tag.php';
-				require_once 'modules/Potentials/models/ModernService.php';
-				$userId = (int) $current_user->id;
-				$tagModels = Vtiger_Tag_Model::getAllAccessible($userId, 'Potentials', $recordId);
-				foreach ($tagModels as $tagModel) {
-					$name = trim(decode_html((string) $tagModel->getName()));
-					if ($name !== '') {
-						$meta['tags'][] = $name;
-					}
-				}
-				Potentials_ModernService::ensureProfileSchema();
-				$adb = PearDatabase::getInstance();
-				$res = $adb->pquery(
-					'SELECT district, address_line FROM bace_potential_profile WHERE potentialid = ?',
-					array($recordId)
-				);
-				if ($res && $adb->num_rows($res) > 0) {
-					$district = trim(decode_html((string) $adb->query_result($res, 0, 'district')));
-					$meta['mk_address'] = trim(decode_html((string) $adb->query_result($res, 0, 'address_line')));
-					if (preg_match('/([123])/', $district, $m)) {
-						$meta['mk_region'] = 'kv' . $m[1];
-					}
-				}
-				if ($meta['mk_region'] === '') {
-					foreach ($meta['tags'] as $tg) {
-						$key = strtolower(trim($tg));
-						if (preg_match('/^kv([123])$/', $key, $km)) {
-							$meta['mk_region'] = 'kv' . $km[1];
-							break;
-						}
-					}
-				}
-			} catch (Exception $e) {
-				// keep defaults
-			}
-		}
-		$viewer->assign(
-			'MK_OPP_EDIT_META_JSON',
-			json_encode($meta, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)
-		);
 	}
 
 	protected function getUserInitial($name) {
@@ -145,17 +95,24 @@ class Potentials_Edit_View extends Vtiger_Edit_View {
 
 	public function getHeaderCss(Vtiger_Request $request) {
 		$headerCssInstances = parent::getHeaderCss($request);
-		// OpportunityMkEdit.css is loaded once in EditViewPreProcess.tpl (after SalesMkEditShell)
-		// so it wins the cascade. Do not register it here — ?v= query also breaks file_exists().
-		return $headerCssInstances;
+		if (!$this->isMkModernOpportunityCreate($request)) {
+			return $headerCssInstances;
+		}
+		$cssFileNames = array(
+			'~layouts/v7/modules/Potentials/resources/OpportunityMkEdit.css',
+		);
+		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
+		return array_merge($headerCssInstances, $cssInstances);
 	}
 
 	public function getHeaderScripts(Vtiger_Request $request) {
 		$headerScriptInstances = parent::getHeaderScripts($request);
 		$jsFileNames = array(
-			'~layouts/' . Vtiger_Viewer::getDefaultLayoutName() . '/modules/Potentials/resources/EditLockAutoFields.js',
+			'~layouts/' . Vtiger_Viewer::getDefaultLayoutName() . '/modules/Potentials/resources/EditLockAutoFields.js?v=20260618_opp_name_edit1',
 		);
-		// OpportunityMkEdit.js + PotentialsLovableRef.js load in EditViewPreProcess.tpl
+		if ($this->isMkModernOpportunityCreate($request)) {
+			$jsFileNames[] = '~layouts/v7/modules/Potentials/resources/OpportunityMkEdit.js';
+		}
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
 		return array_merge($headerScriptInstances, $jsScriptInstances);
 	}

@@ -145,26 +145,18 @@ function vtws_convertlead($entityvalues, $user) {
 
 
 	try {
-		// Account/Contact may be optional depending on convert options.
-		// Do not call vtws_getIdComponents() on empty IDs — that throws and rolls back Contact/Potential.
-		$accountId = 0;
-		$contactId = 0;
-		$potentialId = 0;
+		$accountIdComponents = vtws_getIdComponents($entityIds['Accounts']);
+		$accountId = $accountIdComponents[1];
 
-		if (!empty($entityIds['Accounts'])) {
-			$accountIdComponents = vtws_getIdComponents($entityIds['Accounts']);
-			$accountId = (int)$accountIdComponents[1];
-		}
-		if (!empty($entityIds['Contacts'])) {
-			$contactIdComponents = vtws_getIdComponents($entityIds['Contacts']);
-			$contactId = (int)$contactIdComponents[1];
-		}
-		if (!empty($entityIds['Potentials'])) {
+		$contactIdComponents = vtws_getIdComponents($entityIds['Contacts']);
+		$contactId = $contactIdComponents[1];
+
+		if(!empty($entityIds['Potentials'])){
 			$potentialIdComponents = vtws_getIdComponents($entityIds['Potentials']);
-			$potentialId = (int)$potentialIdComponents[1];
+			$potentialId = $potentialIdComponents[1];
 		}
 
-		if (!empty($contactId) && !empty($potentialId)) {
+		if (!empty($accountId) && !empty($contactId) && !empty($potentialId)) {
 			$sql = "insert into vtiger_contpotentialrel values(?,?)";
 			$result = $adb->pquery($sql, array($contactId, $potentialId));
 			if ($result === false) {
@@ -181,20 +173,6 @@ function vtws_convertlead($entityvalues, $user) {
 				$adb->pquery($queryUpdate, array($accountId, $quoteIds));
 			}
 		}
-
-		// Prefer transferring related records to Contact when Account is not created.
-		$transferTo = $entityvalues['transferRelatedRecordsTo'];
-		if (empty($entityIds[$transferTo])) {
-			if (!empty($entityIds['Contacts'])) {
-				$transferTo = 'Contacts';
-			} elseif (!empty($entityIds['Accounts'])) {
-				$transferTo = 'Accounts';
-			} elseif (!empty($entityIds['Potentials'])) {
-				$transferTo = 'Potentials';
-			}
-			$entityvalues['transferRelatedRecordsTo'] = $transferTo;
-		}
-
 		$transfered = vtws_convertLeadTransferHandler($leadIdComponents, $entityIds, $entityvalues);
 
 		$relatedIdComponents = vtws_getIdComponents($entityIds[$entityvalues['transferRelatedRecordsTo']]);
@@ -204,8 +182,7 @@ function vtws_convertlead($entityvalues, $user) {
 		foreach ($entityIds as $entity => $id) {
 			vtws_delete($id, $user);
 		}
-		throw new WebServiceException(WebServiceErrorCode::$UNKNOWNOPERATION,
-				$e->getMessage().' : ConvertLeadPostCreate');
+		return null;
 	}
 
 	$leadId = explode("x",$entityvalues['leadId']);

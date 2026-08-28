@@ -65,69 +65,7 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 			document.body.classList.remove('mk-opportunity-detail-ui-loading');
 			document.body.classList.add('mk-opportunity-detail-ui-ready');
 			this.decodeSummaryKeyFields();
-			this.registerConvertToCustomer();
-			this.registerMkOppTagShowAll();
-			this.registerMkOppTagModalPatch();
 		}
-	},
-
-	registerConvertToCustomer : function() {
-		var self = this;
-		var btn = document.getElementById('mkOppConvertToCustomerBtn');
-		if (!btn || btn.getAttribute('data-mk-bound') === '1') {
-			return;
-		}
-		btn.setAttribute('data-mk-bound', '1');
-		btn.addEventListener('click', function (e) {
-			e.preventDefault();
-			if (!window.app || !app.request || !app.request.post) {
-				return;
-			}
-			var recordId = (document.querySelector('input[name="record_id"]') || {}).value;
-			if (!recordId) {
-				recordId = (document.getElementById('recordId') || {}).value;
-			}
-			if (!recordId) {
-				app.helper.showErrorNotification({ message: 'Không tìm thấy Opportunity ID.' });
-				return;
-			}
-			var pick = Promise.resolve('');
-			pick.then(function (tierRaw) {
-				var tier = String(tierRaw || '').trim().toLowerCase();
-				if (tier === 'gold' || tier === 'vàng') tier = 'vang';
-				if (tier === 'silver' || tier === 'bạc') tier = 'bac';
-				if (tier === 'bronze' || tier === 'đồng') tier = 'dong';
-				if (['vang', 'bac', 'dong'].indexOf(tier) < 0) {
-					tier = '';
-				}
-				app.helper.showProgress && app.helper.showProgress();
-				var postData = {
-					module: 'Potentials',
-					action: 'ConvertToCustomer',
-					record: recordId
-				};
-				if (tier) {
-					postData.tier = tier;
-				}
-				app.request
-					.post({
-						data: postData
-					})
-					.then(function (err, res) {
-						app.helper.hideProgress && app.helper.hideProgress();
-						if (err || !res || res.success === false) {
-							app.helper.showErrorNotification({ message: (res && res.message) ? res.message : 'Không chuyển được sang Khách hàng.' });
-							return;
-						}
-						var contactId = res.contact_id || (res.result && res.result.contact_id);
-						if (!contactId) {
-							app.helper.showErrorNotification({ message: 'Không tìm thấy Contact để chuyển.' });
-							return;
-						}
-						window.location.href = 'index.php?module=Contacts&view=List&app=SALES';
-					});
-			});
-		});
 	},
 
 	ensureSalesAppOnDetail : function() {
@@ -197,41 +135,6 @@ Vtiger_Detail_Js("Potentials_Detail_Js",{
 			&& body.getAttribute('data-module') === 'Potentials'
 			&& body.getAttribute('data-view') === 'Detail'
 		);
-	},
-
-	registerMkOppTagShowAll : function() {
-		var $list = jQuery('.mk-opportunity-detail-hero__tags .detailTagList');
-		if (!$list.length) return;
-		$list.attr('data-num-of-tags-to-show', '999');
-		$list.find('.moreTags').addClass('hide');
-	},
-
-	registerMkOppTagModalPatch : function() {
-		if (window.__MK_OPP_TAG_MODAL_PATCHED__) {
-			return;
-		}
-		window.__MK_OPP_TAG_MODAL_PATCHED__ = true;
-		if (typeof Vtiger_Tag_Js === 'undefined' || !Vtiger_Tag_Js.prototype) {
-			return;
-		}
-		Vtiger_Tag_Js.prototype.viewAllTags = function(container) {
-			var viewAllTagContainer = container.find('.viewAllTagsContainer').clone(true);
-			viewAllTagContainer.find('.deleteTag').remove();
-			app.helper.showModal(viewAllTagContainer.find('.modal-dialog'), {
-				cb: function(modalContainer) {
-					modalContainer.find('.modal-content').addClass('mk-opp-tags-modal');
-					var holder = modalContainer.find('.currentTag');
-					holder.css({ height: 'auto', maxHeight: 'none', overflow: 'visible' });
-					if (window.MkLeadsDetailTags && MkLeadsDetailTags.paintAll) {
-						var root = modalContainer[0] || modalContainer;
-						MkLeadsDetailTags.paintAll(root);
-						window.setTimeout(function() {
-							MkLeadsDetailTags.paintAll(root);
-						}, 80);
-					}
-				}
-			});
-		};
 	},
 
 	refreshRelatedTabBadges : function() {

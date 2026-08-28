@@ -7,11 +7,7 @@
 <script type="text/javascript">document.documentElement.classList.add('mk-go-ui-ready');</script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryListShared.css')}?mk_v=20260527_inv_flow2" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css')}?mk_v=20260720_wh_line1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkWarehouseLineEdit.css')}?mk_v=20260720_wh_line1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/GoodsIssue/resources/GoodsIssueEdit.css')}?mk_v=20260720_wh_line1" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/lib/jquery/select2/select2.min.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkWarehouseLineEdit.js')}?mk_v=20260720_wh_line1"></script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/GoodsIssue/resources/GoodsIssueEdit.css')}?mk_v=20260527_gi_edit2" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-goodsissue-edit="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}

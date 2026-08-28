@@ -10,7 +10,7 @@
 	{assign var=_settingsPageTitle value={vtranslate('LBL_SETTINGS', 'Vtiger')}}
 {/if}
 
-<div class="mk-settings-subpage-shell nk-set-page">
+<div class="mk-settings-subpage-shell">
 	<nav class="mk-settings-breadcrumb" aria-label="Breadcrumb">
 		<ol class="mk-settings-breadcrumb__list">
 			<li class="mk-settings-breadcrumb__item">

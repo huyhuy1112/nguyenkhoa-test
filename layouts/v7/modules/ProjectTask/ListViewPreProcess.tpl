@@ -8,9 +8,9 @@
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProjectTask/resources/ProjectTaskMkView.css')}&mk_v=20260617_mgmt_gsearch1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Project/resources/ProjectMkTaskDetail.css')}&mk_v=20260529_ptask_detail1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260810_list_pager_leads1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260607_mgmt_jump1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260617_mgmt_gsearch1" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260810_list_pager_leads1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260625_mgmt_reveal1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProjectTask/resources/List.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProjectTask/resources/ProjectTaskMkView.js')}?mk_v=20260617_mgmt_search1"></script>

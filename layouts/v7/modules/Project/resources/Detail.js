@@ -533,43 +533,6 @@ Vtiger_Detail_Js("Project_Detail_Js",{
         );
         return aDeferred.promise();
     },
-    
-	/**
-	 * Disable inline edit on Project Detail.
-	 * User must use full Edit view to update Project.
-	 */
-	disableInlineEditOnDetail : function() {
-		var holder = this.getContentHolder();
-		if (!holder || !holder.length) {
-			holder = jQuery(document);
-		}
-
-		if (!window._mkProjectDisableInlineCaptureBound) {
-			window._mkProjectDisableInlineCaptureBound = true;
-			document.addEventListener('click', function(e) {
-				var t = e.target;
-				if (!t || !t.closest) {
-					return;
-				}
-				if (t.closest('.editAction') || t.closest('.inlineAjaxSave') || t.closest('.inlineAjaxCancel')) {
-					e.preventDefault();
-					e.stopPropagation();
-					e.stopImmediatePropagation();
-					if (typeof app !== 'undefined' && app.helper) {
-						app.helper.showErrorNotification({message: 'Vui lòng vào nút Sửa (Edit) để cập nhật dự án.'});
-					}
-					return false;
-				}
-			}, true);
-		}
-
-		holder.find('.editAction, .inlineAjaxSave, .inlineAjaxCancel, .action .editAction').addClass('hide').hide();
-	},
-
-	registerBasicEvents : function() {
-		this.disableInlineEditOnDetail();
-		this._super();
-	},
 	
 	registerEvents : function(){
 		var detailContentsHolder = this.getContentHolder();
