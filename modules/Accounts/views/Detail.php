@@ -11,6 +11,11 @@
 
 class Accounts_Detail_View extends Vtiger_Detail_View {
 
+	function __construct() {
+		parent::__construct();
+		$this->exposeMethod('showListInlineDetail');
+	}
+
 	/**
 	 * Sales + Marketing use the same modern Organizations detail shell.
 	 */
@@ -20,6 +25,45 @@ class Accounts_Detail_View extends Vtiger_Detail_View {
 			$app = strtoupper((string)$request->get('SELECTED_MENU_CATEGORY'));
 		}
 		return in_array($app, array('SALES', 'MARKETING', 'SUPPORT'), true);
+	}
+
+	public function showListInlineDetail(Vtiger_Request $request) {
+		$app = strtoupper((string) $request->get('app'));
+		if (!in_array($app, array('SALES', 'SUPPORT'), true)) {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$recordId = $request->get('record');
+		if (empty($recordId)) {
+			return '';
+		}
+
+		require_once 'modules/Vtiger/helpers/MkSalesInlineDetailHelper.php';
+		$moduleName = 'Accounts';
+		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+		$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
+		$viewer = $this->getViewer($request);
+
+		$title = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue('accountname')), ENT_QUOTES, 'UTF-8'));
+		if ($title === '') {
+			$title = trim((string) $recordModel->getName());
+		}
+		$subtitle = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue('account_no')), ENT_QUOTES, 'UTF-8'));
+		$infoFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
+			array('phone', 'SĐT'),
+			array('email1', 'Email'),
+			array('website', 'Website'),
+			array('bill_city', 'Thành phố'),
+			array('assigned_user_id', 'Phụ trách'),
+			array('createdtime', 'Ngày tạo'),
+		));
+		Vtiger_MkSalesInlineDetailHelper::assignCommon($viewer, $recordModel, $moduleName, $app, $infoFields, $title, $subtitle);
+		$rid = (int) $recordModel->getId();
+		// Preview opens in CRM; download is filled .docx
+		$viewer->assign('INLINE_PRINT_URL', 'index.php?module=Accounts&action=ExportFranchiseWord&record=' . $rid . '&preview=1');
+		$viewer->assign('INLINE_PRINT_DOWNLOAD_URL', 'index.php?module=Accounts&action=ExportFranchiseWord&record=' . $rid);
+		$viewer->assign('INLINE_WORD_DOWNLOAD_URL', 'index.php?module=Accounts&action=ExportFranchiseWord&record=' . $rid);
+
+		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}
 
 	protected function assignModernAccountsDetailUi(Vtiger_Request $request) {
@@ -37,6 +81,12 @@ class Accounts_Detail_View extends Vtiger_Detail_View {
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
+		try {
+			require_once 'modules/Accounts/helpers/FranchiseContractService.php';
+			Accounts_FranchiseContractService_Helper::ensureFranchiseFields();
+		} catch (Exception $e) {
+			// best-effort schema ensure
+		}
 		$this->assignModernAccountsDetailUi($request);
 		parent::preProcess($request, false);
 		$this->assignModernAccountsDetailUi($request);

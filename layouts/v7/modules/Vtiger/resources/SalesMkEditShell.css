@@ -1,10 +1,12 @@
 /**
- * SALES app — shared Edit shell fixes (sidebar + topbar pages).
+ * SALES / INVENTORY — shared Edit shell fixes (sidebar + topbar pages).
  * Cancels legacy vtiger editView padding and hides duplicate chrome.
  */
 
 body[data-view="Edit"][data-app="SALES"] #page,
-body[data-view="Edit"][data-app="SALES"] #page.container-fluid {
+body[data-view="Edit"][data-app="INVENTORY"] #page,
+body[data-view="Edit"][data-app="SALES"] #page.container-fluid,
+body[data-view="Edit"][data-app="INVENTORY"] #page.container-fluid {
 	padding-top: 0 !important;
 	padding-left: 0 !important;
 	margin-left: 0 !important;
@@ -14,23 +16,34 @@ body[data-view="Edit"][data-app="SALES"] #page.container-fluid {
 }
 
 body[data-view="Edit"][data-app="SALES"] .navbar.navbar-inverse.navbar-fixed-top,
+body[data-view="Edit"][data-app="INVENTORY"] .navbar.navbar-inverse.navbar-fixed-top,
 body[data-view="Edit"][data-app="SALES"] .app-nav,
+body[data-view="Edit"][data-app="INVENTORY"] .app-nav,
 body[data-view="Edit"][data-app="SALES"] #page > .container-fluid.app-nav,
-body[data-view="Edit"][data-app="SALES"] .module-action-bar {
+body[data-view="Edit"][data-app="INVENTORY"] #page > .container-fluid.app-nav,
+body[data-view="Edit"][data-app="SALES"] .module-action-bar,
+body[data-view="Edit"][data-app="INVENTORY"] .module-action-bar {
 	display: none !important;
 }
 
-body[data-view="Edit"][data-app="SALES"] .mk-dash-main {
+body[data-view="Edit"][data-app="SALES"] .mk-dash-main,
+body[data-view="Edit"][data-app="INVENTORY"] .mk-dash-main {
 	padding: 20px 24px 32px 16px !important;
 	box-sizing: border-box;
 }
 
 body[data-view="Edit"][data-app="SALES"] .mk-dash-split-root .content-area,
+body[data-view="Edit"][data-app="INVENTORY"] .mk-dash-split-root .content-area,
 body[data-view="Edit"][data-app="SALES"] .mk-dash-split-root .editViewPageDiv,
+body[data-view="Edit"][data-app="INVENTORY"] .mk-dash-split-root .editViewPageDiv,
 body[data-view="Edit"][data-app="SALES"] .mk-dash-split-root .content-area.full-width,
+body[data-view="Edit"][data-app="INVENTORY"] .mk-dash-split-root .content-area.full-width,
 body[data-view="Edit"][data-app="SALES"] [class*="-form-host"] .content-area,
+body[data-view="Edit"][data-app="INVENTORY"] [class*="-form-host"] .content-area,
 body[data-view="Edit"][data-app="SALES"] [class*="-form-host"] .editViewPageDiv,
-body[data-view="Edit"][data-app="SALES"] [class*="-form-host"] .main-container {
+body[data-view="Edit"][data-app="INVENTORY"] [class*="-form-host"] .editViewPageDiv,
+body[data-view="Edit"][data-app="SALES"] [class*="-form-host"] .main-container,
+body[data-view="Edit"][data-app="INVENTORY"] [class*="-form-host"] .main-container {
 	padding-left: 0 !important;
 	padding-right: 0 !important;
 	margin-left: 0 !important;
@@ -42,25 +55,35 @@ body[data-view="Edit"][data-app="SALES"] [class*="-form-host"] .main-container {
 }
 
 body[data-view="Edit"][data-app="SALES"] [class*="-form-host"] #modnavigator,
+body[data-view="Edit"][data-app="INVENTORY"] [class*="-form-host"] #modnavigator,
 body[data-view="Edit"][data-app="SALES"] [class*="-form-host"] .editViewModNavigator,
-body[data-view="Edit"][data-app="SALES"] [class*="-form-host"] .editViewHeader:not(.hide) {
+body[data-view="Edit"][data-app="INVENTORY"] [class*="-form-host"] .editViewModNavigator,
+body[data-view="Edit"][data-app="SALES"] [class*="-form-host"] .editViewHeader:not(.hide),
+body[data-view="Edit"][data-app="INVENTORY"] [class*="-form-host"] .editViewHeader:not(.hide) {
 	display: none !important;
 }
 
-body[data-view="Edit"][data-app="SALES"] [class*="-form-host"] .fieldBlockContainer {
+body[data-view="Edit"][data-app="SALES"] [class*="-form-host"] .fieldBlockContainer,
+body[data-view="Edit"][data-app="INVENTORY"] [class*="-form-host"] .fieldBlockContainer {
 	border-radius: 14px !important;
 	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 body[data-view="Edit"][data-app="SALES"] [class*="-form-host"] .inputElement,
-body[data-view="Edit"][data-app="SALES"] [class*="-form-host"] .form-control {
+body[data-view="Edit"][data-app="INVENTORY"] [class*="-form-host"] .inputElement,
+body[data-view="Edit"][data-app="SALES"] [class*="-form-host"] .form-control,
+body[data-view="Edit"][data-app="INVENTORY"] [class*="-form-host"] .form-control {
 	border-radius: 8px !important;
 }
 
 /* Top header already has Save / Cancel — hide duplicate vtiger footer */
 body[data-view="Edit"][data-app="SALES"] #mk-dash-split-root .modal-overlay-footer,
+body[data-view="Edit"][data-app="INVENTORY"] #mk-dash-split-root .modal-overlay-footer,
 body[data-view="Edit"][data-app="SALES"] [class*="-form-host"] .modal-overlay-footer,
+body[data-view="Edit"][data-app="INVENTORY"] [class*="-form-host"] .modal-overlay-footer,
 body[data-view="Edit"][data-app="SALES"] [class*="-form-footer"],
-body[data-view="Edit"][data-app="SALES"] [id*="FormHost"] .modal-overlay-footer {
+body[data-view="Edit"][data-app="INVENTORY"] [class*="-form-footer"],
+body[data-view="Edit"][data-app="SALES"] [id*="FormHost"] .modal-overlay-footer,
+body[data-view="Edit"][data-app="INVENTORY"] [id*="FormHost"] .modal-overlay-footer {
 	display: none !important;
 }

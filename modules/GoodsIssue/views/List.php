@@ -103,7 +103,7 @@ class GoodsIssue_List_View extends Vtiger_Index_View {
 			$status = trim((string) (isset($r['status']) ? $r['status'] : ''));
 			$statusLabel = 'Hoàn tất';
 			if ($status === GoodsIssue_CreateFromSalesOrder_Helper::STATUS_WAITING_PRINT) {
-				$statusLabel = 'Chờ in phiếu';
+				$statusLabel = 'Chờ soạn';
 			}
 			$rows[] = array(
 				'issueid' => (int) $r['issueid'],

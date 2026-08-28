@@ -11,8 +11,6 @@
 	{foreach item=DETAIL_VIEW_WIDGET from=$DETAILVIEW_LINKS['DETAILVIEWWIDGET']}
 		{if ($DETAIL_VIEW_WIDGET->getLabel() eq 'Documents') }
 			{assign var=DOCUMENT_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
-		{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'ModComments')}
-			{assign var=COMMENTS_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
 		{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'LBL_UPDATES')}
 			{assign var=UPDATES_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
 		{/if}
@@ -47,37 +45,7 @@
 		</section>
 
 		<div class="mk-acc-detail-bottom-grid">
-		<section class="mk-acc-detail-card mk-acc-detail-card--health mk-acc-detail-grid__health" aria-labelledby="mk-acc-detail-health-title">
-			<div class="mk-acc-detail-health__inner">
-				<h3 id="mk-acc-detail-health-title" class="mk-acc-detail-health__title">{vtranslate('LBL_ACC_DETAIL_HEALTH_TITLE', $MODULE_NAME)}</h3>
-				<div class="mk-acc-detail-health__row">
-					<span class="mk-acc-detail-health__label">{vtranslate('LBL_ACC_DETAIL_HEALTH_PROJECT', $MODULE_NAME)}</span>
-					<div class="mk-acc-detail-health__track" role="presentation"><span class="mk-acc-detail-health__fill mk-acc-detail-health__fill--a" style="width:72%;"></span></div>
-				</div>
-				<div class="mk-acc-detail-health__row">
-					<span class="mk-acc-detail-health__label">{vtranslate('LBL_ACC_DETAIL_HEALTH_ASSET', $MODULE_NAME)}</span>
-					<div class="mk-acc-detail-health__track" role="presentation"><span class="mk-acc-detail-health__fill mk-acc-detail-health__fill--b" style="width:54%;"></span></div>
-				</div>
-			</div>
-		</section>
-
-		{if $COMMENTS_WIDGET_MODEL}
-		<section class="mk-acc-detail-card mk-acc-detail-card--comments mk-acc-detail-grid__comments" aria-labelledby="mk-acc-detail-comments-title">
-			<div class="summaryWidgetContainer mk-acc-detail-widget-host">
-				<div class="widgetContainer_comments" data-url="{$COMMENTS_WIDGET_MODEL->getUrl()}" data-name="{$COMMENTS_WIDGET_MODEL->getLabel()}">
-					<div class="widget_header mk-acc-detail-card__head">
-						<input type="hidden" name="relatedModule" value="{$COMMENTS_WIDGET_MODEL->get('linkName')}" />
-						<h2 id="mk-acc-detail-comments-title" class="mk-acc-detail-card__title">
-							<span class="mk-acc-detail-card__title-ic" aria-hidden="true">{include file="partials/AccountsDetailSvgIcon.tpl"|@vtemplate_path:$MODULE ICON='COMMENT'}</span>
-							{vtranslate($COMMENTS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}
-						</h2>
-					</div>
-					<div class="widget_contents">
-					</div>
-				</div>
-			</div>
-		</section>
-		{/if}
+		{* Đã gỡ "Tổng quan sức khỏe" theo BA *}
 
 		{if $DOCUMENT_WIDGET_MODEL}
 		<section class="mk-acc-detail-card mk-acc-detail-card--documents mk-acc-detail-grid__documents" aria-labelledby="mk-acc-detail-documents-title">
@@ -178,18 +146,7 @@
 		<div id="relatedActivities">
 			{$RELATED_ACTIVITIES}
 		</div>
-		{if $COMMENTS_WIDGET_MODEL}
-			<div class="summaryWidgetContainer">
-				<div class="widgetContainer_comments" data-url="{$COMMENTS_WIDGET_MODEL->getUrl()}" data-name="{$COMMENTS_WIDGET_MODEL->getLabel()}">
-					<div class="widget_header">
-						<input type="hidden" name="relatedModule" value="{$COMMENTS_WIDGET_MODEL->get('linkName')}" />
-						<h4 class="display-inline-block">{vtranslate($COMMENTS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h4>
-					</div>
-					<div class="widget_contents">
-					</div>
-				</div>
-			</div>
-		{/if}
+		
 	</div>
 {/if}
 {/strip}

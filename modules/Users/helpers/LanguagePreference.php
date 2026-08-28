@@ -18,6 +18,7 @@ class Users_LanguagePreference_Helper {
 			return;
 		}
 
+		self::migrateLegacyInstallerEnglishOnce();
 		$lang = self::resolveLanguageForUserId($userId);
 		if ($lang === '') {
 			return;
@@ -54,13 +55,38 @@ class Users_LanguagePreference_Helper {
 		return $lang === '' || $lang === 'en_us' || $lang === 'en_gb';
 	}
 
+	protected static function getSiteDefaultLanguage() {
+		$siteDefault = trim((string)vglobal('default_language'));
+		if ($siteDefault === '' || self::isLegacyEnglishLanguage($siteDefault)) {
+			return 'vi_vn';
+		}
+		return $siteDefault;
+	}
+
+	/**
+	 * Vtiger installer seeds en_us for all users. One-time migrate to Vietnamese site default.
+	 * Users who want English can set it again in Preferences (saved as en_us).
+	 */
+	protected static function migrateLegacyInstallerEnglishOnce() {
+		if (self::getSiteDefaultLanguage() !== 'vi_vn') {
+			return;
+		}
+		$flagFile = 'storage/mk_lang_migrated_vi_v1.flag';
+		if (is_file($flagFile)) {
+			return;
+		}
+		$adb = PearDatabase::getInstance();
+		$adb->pquery("UPDATE vtiger_users SET language=? WHERE language IN ('en_us','en_gb')", array('vi_vn'));
+		@file_put_contents($flagFile, gmdate('c'));
+	}
+
 	protected static function resolveLanguageForUserId($userId) {
 		$userId = (int)$userId;
 		if ($userId <= 0) {
 			return '';
 		}
 
-		$siteDefault = trim((string)vglobal('default_language'));
+		$siteDefault = self::getSiteDefaultLanguage();
 		$lang = '';
 
 		$adb = PearDatabase::getInstance();
@@ -69,13 +95,13 @@ class Users_LanguagePreference_Helper {
 			$lang = trim((string)$adb->query_result($res, 0, 'language'));
 		}
 
-		if ($lang !== '' && !(self::isLegacyEnglishLanguage($lang) && $siteDefault === 'vi_vn')) {
+		if ($lang !== '') {
 			return $lang;
 		}
 
 		if (!empty($_SESSION['authenticated_user_language'])) {
 			$sessionLang = trim((string)$_SESSION['authenticated_user_language']);
-			if ($sessionLang !== '' && !(self::isLegacyEnglishLanguage($sessionLang) && $siteDefault === 'vi_vn')) {
+			if ($sessionLang !== '') {
 				return $sessionLang;
 			}
 		}
@@ -83,11 +109,11 @@ class Users_LanguagePreference_Helper {
 		global $current_user;
 		if (!empty($current_user) && (int)$current_user->id === $userId && !empty($current_user->column_fields['language'])) {
 			$profileLang = trim((string)$current_user->column_fields['language']);
-			if ($profileLang !== '' && !(self::isLegacyEnglishLanguage($profileLang) && $siteDefault === 'vi_vn')) {
+			if ($profileLang !== '') {
 				return $profileLang;
 			}
 		}
 
-		return $siteDefault !== '' ? $siteDefault : 'vi_vn';
+		return $siteDefault;
 	}
 }

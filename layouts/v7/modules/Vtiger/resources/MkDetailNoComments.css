@@ -1,0 +1,138 @@
+/**
+ * Detail pages: hide ModComments / Bình luận everywhere + reflow summary grids.
+ * Loaded from Header.tpl for all CRM modules.
+ */
+body[data-view="Detail"] .widgetContainer_comments,
+body[data-view="Detail"] [data-name="ModComments"],
+body[data-view="Detail"] .commentContainer,
+body[data-view="Detail"] .summaryWidgetContainer:has(.widgetContainer_comments),
+body[data-view="Detail"] section[class*="--comments"],
+body[data-view="Detail"] section[class*="__comments"],
+body[data-view="Detail"] [class*="detail-card--comments"],
+body[data-view="Detail"] [class*="summary-grid__comments"],
+body[data-view="Detail"] .mk-lead-detail-card--comments,
+body[data-view="Detail"] .tab-item[data-module="ModComments"],
+body[data-view="Detail"] li[data-label-key="ModComments"],
+body[data-view="Detail"] .related-tabs .tab-item[data-module="ModComments"],
+body[data-view="Detail"] a[data-label-key="ModComments"] {
+	display: none !important;
+	visibility: hidden !important;
+	height: 0 !important;
+	max-height: 0 !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	overflow: hidden !important;
+	border: 0 !important;
+	pointer-events: none !important;
+}
+
+/* ---- Invoice / SO summary grids without comments cell ---- */
+body[data-module="Invoice"][data-view="Detail"] .mk-inv-detail-summary-grid {
+	grid-template-areas:
+		"key activities"
+		"overview overview"
+		"documents documents" !important;
+}
+
+body[data-module="SalesOrder"][data-view="Detail"] .mk-so-summary-grid {
+	grid-template-areas:
+		"key activities"
+		"documents activities" !important;
+}
+
+body[data-module="Quotes"][data-view="Detail"] .mk-qt-detail-summary-grid,
+body[data-module="Quotes"][data-view="Detail"] .mk-qt-summary-grid {
+	grid-template-areas:
+		"key activities"
+		"documents documents" !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"] .mk-ps-summary-grid,
+body[data-module="ProductsServices"][data-view="Detail"] .mk-ps-detail-summary-grid {
+	grid-template-areas:
+		"key activities"
+		"documents documents" !important;
+}
+
+body[data-module="ServiceContracts"][data-view="Detail"] .mk-sc-detail-grid,
+body[data-module="ServiceContracts"][data-view="Detail"] .mk-sc-detail-summary-grid {
+	grid-template-areas:
+		"key activities"
+		"documents documents" !important;
+}
+
+@media (max-width: 991px) {
+	body[data-module="Invoice"][data-view="Detail"] .mk-inv-detail-summary-grid {
+		grid-template-areas:
+			"key"
+			"activities"
+			"overview"
+			"documents" !important;
+	}
+
+	body[data-module="SalesOrder"][data-view="Detail"] .mk-so-summary-grid {
+		grid-template-areas:
+			"key"
+			"activities"
+			"documents" !important;
+	}
+}
+
+/* Leads: two-column key | activities, full-width activity log */
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-summary-grid {
+	display: grid !important;
+	grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.85fr) !important;
+	gap: 20px !important;
+	align-items: start !important;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-summary-stack--left {
+	grid-column: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	min-width: 0;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-summary-stack--right {
+	grid-column: 2;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	min-width: 0;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--activity-log {
+	grid-column: 1 / -1 !important;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--documents {
+	grid-column: 1 / -1 !important;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--key {
+	min-height: 280px;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--activities {
+	position: sticky;
+	top: 88px;
+}
+
+@media (max-width: 1199px) {
+	body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-summary-grid {
+		grid-template-columns: 1fr !important;
+	}
+
+	body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-summary-stack--left,
+	body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-summary-stack--right,
+	body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--activity-log,
+	body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--documents {
+		grid-column: 1 !important;
+	}
+
+	body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--activities {
+		position: static;
+	}
+}

@@ -2,9 +2,40 @@
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 {include file="partials/MkSalesUiMeta.tpl"|vtemplate_path:'Vtiger'}
-<script type="text/javascript">document.documentElement.classList.add('mk-quote-create-ready', 'mk-inv-odoo-active');</script>
+<script type="text/javascript">{literal}
+document.documentElement.classList.add('mk-quote-create-ready', 'mk-inv-odoo-active');
+(function(){var b=document.body;if(b&&!b.getAttribute('data-app')){b.setAttribute('data-app','SALES');}})();
+setTimeout(function(){document.documentElement.classList.add('mk-inv-ui-ready','mk-quote-create-enhanced');}, 220);
+{/literal}</script>
 <style type="text/css">
-	/* Anti-FOUC: hide legacy vtiger form chrome before JS enhances */
+	/* Anti-FOUC: hide form shell until Odoo enhancer paints (no body attr required) */
+	html.mk-inv-odoo-active:not(.mk-inv-ui-ready) #mk-dash-split-root,
+	html.mk-inv-odoo-active:not(.mk-inv-ui-ready) .editViewPageDiv,
+	html.mk-quote-create-ready:not(.mk-inv-ui-ready) #mk-dash-split-root,
+	html.mk-quote-create-ready:not(.mk-inv-ui-ready) .editViewPageDiv,
+	html.mk-quote-create-ready:not(.mk-inv-ui-ready) #mkQtFormHost {
+		opacity: 0 !important;
+		visibility: hidden !important;
+		pointer-events: none !important;
+	}
+	html.mk-inv-ui-ready body[data-module="Quotes"][data-view="Edit"] #mk-dash-split-root,
+	html.mk-inv-ui-ready body[data-module="Quotes"][data-view="Edit"] .editViewPageDiv,
+	html.mk-quote-create-enhanced.mk-inv-ui-ready body[data-module="Quotes"][data-view="Edit"] #mk-dash-split-root,
+	html.mk-quote-create-enhanced.mk-inv-ui-ready body[data-module="Quotes"][data-view="Edit"] .editViewPageDiv {
+		opacity: 1 !important;
+		visibility: visible !important;
+		pointer-events: auto !important;
+		transition: none !important;
+	}
+
+	html.mk-inv-odoo-active:not(.mk-inv-ui-ready) body[data-module="Quotes"][data-view="Edit"] #lineItemTab tr.lineItemRow,
+	html.mk-inv-odoo-active:not(.mk-inv-ui-ready) body[data-module="SalesOrder"][data-view="Edit"] #lineItemTab tr.lineItemRow,
+	html.mk-inv-odoo-active:not(.mk-inv-ui-ready) #lineItemTab > tbody > tr:first-child,
+	html.mk-inv-odoo-active:not(.mk-inv-ui-ready) .lineitemTableContainer .well {
+		visibility: hidden !important;
+		opacity: 0 !important;
+	}
+
 	html.mk-quote-create-ready #mkQtFormHost #modnavigator,
 	html.mk-quote-create-ready #mkQtFormHost .editViewModNavigator,
 	html.mk-quote-create-ready #mkQtFormHost .module-nav,
@@ -25,26 +56,42 @@
 	html.mk-quote-create-ready #mkQtFormHost tr:has([name="ship_state"]),
 	html.mk-quote-create-ready #mkQtFormHost tr:has([name="ship_code"]),
 	html.mk-quote-create-ready #mkQtFormHost tr:has([name="ship_country"]),
-	html.mk-quote-create-ready #mkQtFormHost .addressBlock > tbody > tr:first-child {
+	html.mk-quote-create-ready #mkQtFormHost .addressBlock > tbody > tr:first-child,
+	html.mk-quote-create-ready #mkQtFormHost td.fieldLabel:has(+ td.fieldValue [name="quotestage"]),
+	html.mk-quote-create-ready #mkQtFormHost td.fieldValue:has([name="quotestage"]) {
 		display: none !important;
 	}
-	html.mk-quote-create-ready:not(.mk-quote-create-enhanced) #mkQtFormHost {
-		visibility: hidden;
+	html.mk-quote-create-ready:not(.mk-inv-ui-ready) #mkQtFormHost,
+	html.mk-quote-create-ready:not(.mk-inv-ui-ready) #mk-dash-split-root,
+	html.mk-quote-create-ready:not(.mk-inv-ui-ready) .editViewPageDiv {
+		opacity: 0 !important;
+		visibility: hidden !important;
+		pointer-events: none !important;
 	}
-	html.mk-quote-create-enhanced #mkQtFormHost {
-		visibility: visible;
+	html.mk-inv-ui-ready #mkQtFormHost,
+	html.mk-inv-ui-ready #mk-dash-split-root,
+	html.mk-inv-ui-ready .editViewPageDiv {
+		visibility: visible !important;
+		opacity: 1 !important;
+		pointer-events: auto !important;
+		transition: none !important;
 	}
 </style>
 {if !empty($MK_QUOTE_BA_CONFIG_JSON)}
 <script type="text/javascript">window.__MK_QUOTE_BA_CONFIG = {$MK_QUOTE_BA_CONFIG_JSON nofilter};</script>
 {/if}
+{if !empty($MK_QUOTE_NEXT_NO)}
+<script type="text/javascript">window.__MK_QUOTE_NEXT_NO = "{$MK_QUOTE_NEXT_NO|escape:'javascript'}";</script>
+{/if}
+<script type="text/javascript">window.MK_PRODUCT_CATALOG = {$MK_PRODUCT_CATALOG_JSON|default:'[]' nofilter};</script>
+<script type="text/javascript">window.MK_PRICE_CHANNEL = "{$MK_PRICE_CHANNEL|default:'retail'|escape:'javascript'}";</script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/SalesMkEditShell.css')}&mk_v=20260603_no_dup_footer" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css')}?mk_v=20260701_odoo_v8" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}?mk_v=20260701_odoo_v8" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css')}&mk_v=20260826_disc_amt1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.css')}&mk_v=20260826_confirm_order1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js')}?mk_v=20260701_odoo_v8"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkBa.js')}?mk_v=20260701_odoo_v8"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.js')}?mk_v=20260701_odoo_v8"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.js')}&mk_v=20260826_disc_amt1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkBa.js')}&mk_v=20260728_quote_addr_merge1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Quotes/resources/QuoteMkEdit.js')}&mk_v=20260826_confirm_order1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-quote-create="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

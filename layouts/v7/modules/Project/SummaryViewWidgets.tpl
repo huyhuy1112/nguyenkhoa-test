@@ -18,8 +18,6 @@
 			{assign var=HELPDESK_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
 		{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'LBL_TASKS')}
 			{assign var=TASKS_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
-		{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'ModComments')}
-			{assign var=COMMENTS_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
 		{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'LBL_UPDATES')}
 			{assign var=UPDATES_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
 		{/if}
@@ -108,18 +106,7 @@
 
 	<div class="middle-block col-lg-4 col-md-4 col-sm-4 mk-project-detail-col mk-project-detail-col--middle">
 		{* Summary View Comments Widget*}
-		{if $COMMENTS_WIDGET_MODEL}
-			<div class="summaryWidgetContainer mk-project-detail-widget mk-project-detail-widget--comments">
-				<div class="widgetContainer_comments" data-url="{$COMMENTS_WIDGET_MODEL->getUrl()}" data-name="{$COMMENTS_WIDGET_MODEL->getLabel()}">
-					<div class="widget_header">
-						<input type="hidden" name="relatedModule" value="{$COMMENTS_WIDGET_MODEL->get('linkName')}" />
-						<h4 class="display-inline-block mk-project-detail-comments-title">{vtranslate($COMMENTS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h4>
-					</div>
-					<div class="widget_contents">
-					</div>
-				</div>
-			</div>
-		{/if}
+		
 		{* Summary View Comments Widget Ends Here*}
 	</div>
 

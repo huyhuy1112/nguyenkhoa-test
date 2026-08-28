@@ -593,12 +593,21 @@
 		});
 	}
 
+	function revealPage() {
+		requestAnimationFrame(function () {
+			requestAnimationFrame(function () {
+				document.documentElement.classList.add('mk-project-detail-styled');
+			});
+		});
+	}
+
 	function boot() {
 		if (!isManagementProjectDetail()) {
 			return;
 		}
 		document.body.classList.add('mk-project-detail-modern');
 		enhanceDomOnce();
+		revealPage();
 		syncActiveTabFromUrl();
 		bindTabActiveFix();
 		bindCommentsEnhance();
@@ -618,4 +627,6 @@
 	} else {
 		boot();
 	}
+
+	setTimeout(revealPage, 3000);
 })(jQuery);

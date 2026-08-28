@@ -18,25 +18,24 @@ html.mk-wh-mgmt-ready body {
 	--mk-wh-radius-sm: 10px;
 	--mk-wh-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 8px 24px rgba(15, 23, 42, 0.04);
 	--mk-wh-shadow-hover: 0 4px 6px rgba(15, 23, 42, 0.06), 0 16px 32px rgba(15, 23, 42, 0.08);
+
+	/* Typography scale (slightly larger for readability) */
+	--mk-wh-mgmt-title-fs: 40px;
+	--mk-wh-mgmt-sub-fs: 16px;
+	--mk-wh-mgmt-body-fs: 1.0625rem; /* ~17px */
+	--mk-wh-mgmt-label-fs: 14px;
 }
 
-/* Shell */
+/* Shell/topbar rules for custom Warehouse views (WhList/WhDashboard/WhTransfer)
+   These views don't match DashBoard.css selectors, so content can overlap topbar. */
 body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"],
 body[data-module="Warehouse"][data-view="WhDashboard"][data-app="INVENTORY"],
-body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"],
 body[data-module="Warehouse"][data-view="WhTransfer"][data-app="INVENTORY"] {
 	--mk-dash-sidebar-w: 239px;
 	--mk-dash-topbar-h: 64px;
-	/* Khớp GoodsIssue / Xuất kho (GoodsIssueList.css) */
-	--mk-wh-mgmt-title-fs: 32px;
-	--mk-wh-mgmt-sub-fs: 14px;
-	--mk-wh-mgmt-body-fs: 14px;
-	--mk-wh-mgmt-label-fs: 12px;
 }
-
 body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-app-shell,
 body[data-module="Warehouse"][data-view="WhDashboard"][data-app="INVENTORY"] .mk-app-shell,
-body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-app-shell,
 body[data-module="Warehouse"][data-view="WhTransfer"][data-app="INVENTORY"] .mk-app-shell {
 	margin-left: var(--mk-dash-sidebar-w) !important;
 	width: calc(100% - var(--mk-dash-sidebar-w)) !important;
@@ -48,10 +47,8 @@ body[data-module="Warehouse"][data-view="WhTransfer"][data-app="INVENTORY"] .mk-
 	flex-direction: column !important;
 	background: var(--mk-wh-surface) !important;
 }
-
 body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-topbar,
 body[data-module="Warehouse"][data-view="WhDashboard"][data-app="INVENTORY"] .mk-topbar,
-body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-topbar,
 body[data-module="Warehouse"][data-view="WhTransfer"][data-app="INVENTORY"] .mk-topbar {
 	height: 0 !important;
 	margin: 0 !important;
@@ -59,10 +56,8 @@ body[data-module="Warehouse"][data-view="WhTransfer"][data-app="INVENTORY"] .mk-
 	overflow: visible !important;
 	flex-shrink: 0 !important;
 }
-
 body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
 body[data-module="Warehouse"][data-view="WhDashboard"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
-body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
 body[data-module="Warehouse"][data-view="WhTransfer"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
 	position: fixed !important;
 	top: 0 !important;
@@ -71,15 +66,22 @@ body[data-module="Warehouse"][data-view="WhTransfer"][data-app="INVENTORY"] .mk-
 	width: auto !important;
 	min-height: var(--mk-dash-topbar-h) !important;
 	height: var(--mk-dash-topbar-h) !important;
-	z-index: 1030 !important;
 	box-sizing: border-box !important;
 	border: none !important;
 	border-bottom: 1px solid #e2e8f0 !important;
 	border-radius: 0 !important;
 	box-shadow: none !important;
 	background: #ffffff !important;
+	z-index: 20050 !important;
+	pointer-events: auto !important;
+}
+body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar *,
+body[data-module="Warehouse"][data-view="WhDashboard"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar *,
+body[data-module="Warehouse"][data-view="WhTransfer"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar * {
+	pointer-events: auto !important;
 }
 
+/* Layout: reuse global dashboard shell/topbar; only customize main backgrounds */
 body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-dash-main.mk-wh-mgmt-main {
 	flex: 1 1 auto !important;
 	min-height: 0 !important;
@@ -100,6 +102,17 @@ body[data-module="Warehouse"][data-view="WhTransfer"][data-app="INVENTORY"] .mk-
 	background: var(--mk-wh-surface) !important;
 	position: relative !important;
 	z-index: 1 !important;
+}
+
+/* Prevent invisible overlay from blocking topbar icon clicks */
+body[data-module="Warehouse"][data-app="INVENTORY"] #overlayPageContent.fade:not(.in) {
+	pointer-events: none !important;
+	visibility: hidden !important;
+}
+
+/* Some vtiger pages keep overlayPageContent classes but aria-hidden stays true */
+body[data-module="Warehouse"][data-app="INVENTORY"] #overlayPageContent[aria-hidden="true"] {
+	pointer-events: none !important;
 }
 
 /* Clickable warehouse cards */
@@ -639,7 +652,7 @@ body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-wh-m
 
 .mk-wh-mgmt-card__stats {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: 1fr 1fr 1fr 1fr;
 	gap: 12px;
 	padding: 14px 0;
 	border-top: 1px solid var(--mk-wh-border);
@@ -765,7 +778,7 @@ body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-wh-m
 
 .mk-wh-mgmt-panel__title {
 	margin: 0;
-	font-size: 14px;
+	font-size: 15px;
 	font-weight: 600;
 	color: var(--mk-wh-text);
 }
@@ -855,7 +868,7 @@ body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-wh-m
 /* KPI row */
 .mk-wh-mgmt-kpis {
 	display: grid;
-	grid-template-columns: repeat(5, minmax(0, 1fr));
+	grid-template-columns: repeat(6, minmax(0, 1fr));
 	gap: 14px;
 	margin-bottom: 24px;
 }

@@ -106,7 +106,11 @@ Vtiger_Field_Js('Webforms_Currency_Field_Js',{},{
 	 * get the currency symbol configured for the user
 	 */
 	getCurrencySymbol : function() {
-		return this.get('currency_symbol');
+		var symbol = this.get('currency_symbol');
+		if (typeof MkCurrency !== 'undefined') {
+			return MkCurrency.normalize(symbol);
+		}
+		return symbol;
 	},
 
 	getUi : function() {

@@ -33,20 +33,6 @@ class Project_DetailView_Model extends Vtiger_DetailView_Model {
 				);
 		}
 
-		$projectMileStoneInstance = Vtiger_Module_Model::getInstance('ProjectMilestone');
-		if($userPrivilegesModel->hasModuleActionPermission($projectMileStoneInstance->getId(), 'DetailView') && $userPrivilegesModel->hasModulePermission($projectMileStoneInstance->getId())) {
-			$createPermission = $userPrivilegesModel->hasModuleActionPermission($projectMileStoneInstance->getId(), 'CreateView');
-			$widgets[] = array(
-					'linktype' => 'DETAILVIEWWIDGET',
-					'linklabel' => 'LBL_MILESTONES',
-					'linkName'	=> $projectMileStoneInstance->getName(),
-					'linkurl' => 'module='.$this->getModuleName().'&view=Detail&record='.$this->getRecord()->getId().
-							'&relatedModule=ProjectMilestone&mode=showRelatedRecords&page=1&limit=5',
-					'action'	=>	($createPermission == true) ? array('Add') : array(),
-					'actionURL' =>	$projectMileStoneInstance->getQuickCreateUrl()
-			);
-		}
-
 		$projectTaskInstance = Vtiger_Module_Model::getInstance('ProjectTask');
 		if($userPrivilegesModel->hasModuleActionPermission($projectTaskInstance->getId(), 'DetailView') && $userPrivilegesModel->hasModulePermission($projectTaskInstance->getId())) {
 			$createPermission = $userPrivilegesModel->hasModuleActionPermission($projectTaskInstance->getId(), 'CreateView');
@@ -103,6 +89,9 @@ class Project_DetailView_Model extends Vtiger_DetailView_Model {
 		/* Bỏ tab ProjectTask cũ (related list bảng) – đã thay bằng Task Board */
 		$relatedLinks = array_filter($relatedLinks, function($link) {
 			if (isset($link['relatedModuleName']) && $link['relatedModuleName'] === 'ProjectTask') {
+				return false;
+			}
+			if (isset($link['relatedModuleName']) && $link['relatedModuleName'] === 'ProjectMilestone') {
 				return false;
 			}
 			return true;

@@ -391,7 +391,8 @@ class ListViewController {
 								$currencySymbol = $cursym_convrate['symbol'];
 							} else {
 								$currencyInfo = getInventoryCurrencyInfo($module, $recordId);
-								$currencySymbol = $currencyInfo['currency_symbol'];
+								require_once 'include/utils/MkCurrencyBranding.php';
+								$currencySymbol = MkCurrencyBranding::normalizeSymbol($currencyInfo['currency_symbol']);
 							}
 							$value = CurrencyField::convertToUserFormat($value, null, true);
 							$row['currencySymbol'] = $currencySymbol;

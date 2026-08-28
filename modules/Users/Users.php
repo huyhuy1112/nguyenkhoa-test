@@ -712,11 +712,15 @@ class Users extends CRMEntity {
 		}
 
 		if(empty($this->column_fields['currency_decimal_separator'])) {
-			$this->column_fields['currency_decimal_separator'] = '.';
+			$this->column_fields['currency_decimal_separator'] = ',';
 		}
 
 		if(empty($this->column_fields['currency_grouping_separator'])) {
-			$this->column_fields['currency_grouping_separator'] = ',';
+			$this->column_fields['currency_grouping_separator'] = '.';
+		}
+
+		if(empty($this->column_fields['currency_grouping_pattern'])) {
+			$this->column_fields['currency_grouping_pattern'] = '123,456,789';
 		}
 
 		$this->db->println("TRANS saveentity starts $module");
@@ -883,11 +887,14 @@ class Users extends CRMEntity {
 				$languageList = Vtiger_Language::getAll();
 				$languageList = array_keys($languageList);
 				if(!in_array($fldvalue, $languageList) || $fldvalue == '') {
-					global $default_language;
-					if(!empty($default_language) && in_array($default_language, $languageList)) {
-						$fldvalue = $default_language;
-					} else {
-						$fldvalue = $languageList[0];
+					$fldvalue = 'vi_vn';
+					if (!in_array($fldvalue, $languageList)) {
+						global $default_language;
+						if(!empty($default_language) && in_array($default_language, $languageList)) {
+							$fldvalue = $default_language;
+						} else {
+							$fldvalue = $languageList[0];
+						}
 					}
 				}
 				if($current_user && $current_user->id == $this->id) {

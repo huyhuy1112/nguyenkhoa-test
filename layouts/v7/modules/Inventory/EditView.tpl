@@ -49,6 +49,7 @@
                             {/if}
                             <input type="hidden" name="action" value="Save" />
                             <input type="hidden" name="record" id="recordId" value="{$RECORD_ID}" />
+                            <input type="hidden" name="isDuplicate" value="{if !empty($IS_DUPLICATE)}true{else}false{/if}" />
                             <input type="hidden" name="defaultCallDuration" value="{$USER_MODEL->get('callduration')}" />
                             <input type="hidden" name="defaultOtherEventDuration" value="{$USER_MODEL->get('othereventduration')}" />
                             <input type="hidden" name="appName" value="&app={$SELECTED_MENU_CATEGORY}" />

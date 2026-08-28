@@ -2,7 +2,9 @@
 {strip}
 {assign var=MK_LIST_URL value='index.php?module=Potentials&view=List&app=SALES'}
 {assign var=MK_IS_EDIT value=(!empty($RECORD_ID) && empty($IS_DUPLICATE))}
+{if !isset($MK_OPP_EDIT_META_JSON)}{assign var=MK_OPP_EDIT_META_JSON value='{"tags":[],"mk_region":"","mk_address":""}'}{/if}
 <div class="mk-opp-create{if $MK_IS_EDIT} mk-opp-create--edit{/if}" id="mkOppCreateWorkspace" data-mk-opp-create="1">
+	<script type="application/json" id="mkOppEditMetaBoot">{$MK_OPP_EDIT_META_JSON nofilter}</script>
 	<header class="mk-opp-page-head">
 		<nav class="mk-opp-page-head__crumb" aria-label="Breadcrumb">
 			<a href="index.php?module=Home&view=MainPage&app=SALES">{vtranslate('LBL_HOME', 'Vtiger')}</a>
@@ -38,15 +40,30 @@
 		</div>
 	</header>
 
-	<div class="mk-opp-create-body{if $MK_IS_EDIT} mk-opp-create-body--edit{/if}">
+	<div class="mk-opp-create-body mk-opp-create-body--solo{if $MK_IS_EDIT} mk-opp-create-body--edit{/if}">
 		<div class="mk-opp-create-main">
 			<div class="mk-opp-form-host" id="mkOppFormHost">
 				{include file="partials/EditViewFormOnly.tpl"|vtemplate_path:$MODULE}
 			</div>
 		</div>
-		{if !$MK_IS_EDIT}
-		{include file="partials/OpportunityMkCreateAside.tpl"|vtemplate_path:$MODULE}
-		{/if}
 	</div>
 </div>
+<script type="text/javascript">
+(function () {
+	function kick() {
+		if (typeof window.__mkOppRunEnhancements === 'function') {
+			window.__mkOppRunEnhancements();
+		}
+	}
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', function () {
+			setTimeout(kick, 50);
+			setTimeout(kick, 400);
+		});
+	} else {
+		setTimeout(kick, 50);
+		setTimeout(kick, 400);
+	}
+})();
+</script>
 {/strip}

@@ -6,7 +6,8 @@
 {if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
 <table class="summary-table no-border mk-qt-detail-summary-table">
 	<tbody>
-	{assign var=MK_QT_SUMMARY_KEYS value=','|explode:'subject,potential_id,quote_no,quotestage,hdnGrandTotal,assigned_user_id'}
+	{* Cùng trọng tâm form Create: tiêu đề, số, KH, liên hệ, giai đoạn, tổng, sales *}
+	{assign var=MK_QT_SUMMARY_KEYS value=','|explode:'subject,quote_no,account_id,contact_id,quotestage,validtill,hdnGrandTotal,assigned_user_id,potential_id'}
 	{foreach item=MK_FNAME from=$MK_QT_SUMMARY_KEYS}
 		{if isset($SUMMARY_RECORD_STRUCTURE['SUMMARY_FIELDS'][$MK_FNAME])}
 		{assign var=FIELD_MODEL value=$SUMMARY_RECORD_STRUCTURE['SUMMARY_FIELDS'][$MK_FNAME]}

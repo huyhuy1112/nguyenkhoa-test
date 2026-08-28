@@ -1,7 +1,7 @@
 {* Settings shortcut tile — icon slot ready for designer SVG *}
 {strip}
 {assign var=_shortcutName value=$SETTINGS_SHORTCUT->get('name')}
-<div id="shortcut_{$SETTINGS_SHORTCUT->getId()}" data-actionurl="{$SETTINGS_SHORTCUT->getPinUnpinActionUrl()}" class="mk-settings-shortcut-card moduleBlock cursorPointer" data-url="{$SETTINGS_SHORTCUT->getUrl()}" role="button" tabindex="0">
+<div id="shortcut_{$SETTINGS_SHORTCUT->getId()}" data-actionurl="{$SETTINGS_SHORTCUT->getPinUnpinActionUrl()}" class="mk-settings-shortcut-card nk-set-card moduleBlock cursorPointer" data-url="{$SETTINGS_SHORTCUT->getUrl()}" role="button" tabindex="0" style="--nk-set-delay: {$smarty.foreach.shortcuts.iteration * 40}ms">
 	<span class="mk-settings-shortcut-card__icon" aria-hidden="true">
 		{include file="partials/SettingsShortcutSvgIcon.tpl"|@vtemplate_path:'Settings:Vtiger' ICON=$_shortcutName}
 	</span>

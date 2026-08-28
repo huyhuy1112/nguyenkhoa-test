@@ -808,19 +808,232 @@ body[data-app="SALES"][data-view="Detail"] .relatedContents .noData {
  * ========================================================================== */
 
 body[data-view="Detail"][data-app="SALES"] [class*="-detail-related-tabs"] .nav.nav-tabs > li.tab-item:not([data-module]),
-body[data-view="Detail"][data-app="MARKETING"] [class*="-detail-related-tabs"] .nav.nav-tabs > li.tab-item:not([data-module]) {
+body[data-view="Detail"][data-app="MARKETING"] [class*="-detail-related-tabs"] .nav.nav-tabs > li.tab-item:not([data-module]) ,
+body[data-view="Detail"][data-app="INVENTORY"] [class*="-detail-related-tabs"] .nav.nav-tabs > li.tab-item:not([data-module]) {
 	flex: 0 0 auto !important;
 	flex-shrink: 0 !important;
 }
 
 body[data-view="Detail"][data-app="SALES"] [class*="-detail-related-tabs"] .nav.nav-tabs > li.tab-item:not([data-module]) > a,
 body[data-view="Detail"][data-app="MARKETING"] [class*="-detail-related-tabs"] .nav.nav-tabs > li.tab-item:not([data-module]) > a,
+body[data-view="Detail"][data-app="INVENTORY"] [class*="-detail-related-tabs"] .nav.nav-tabs > li.tab-item:not([data-module]) > a,
 body[data-view="Detail"][data-app="SALES"] [class*="-detail-related-tabs"] .nav.nav-tabs > li.tab-item:not([data-module]) > a .tab-label,
-body[data-view="Detail"][data-app="MARKETING"] [class*="-detail-related-tabs"] .nav.nav-tabs > li.tab-item:not([data-module]) > a .tab-label {
+body[data-view="Detail"][data-app="MARKETING"] [class*="-detail-related-tabs"] .nav.nav-tabs > li.tab-item:not([data-module]) > a .tab-label ,
+body[data-view="Detail"][data-app="INVENTORY"] [class*="-detail-related-tabs"] .nav.nav-tabs > li.tab-item:not([data-module]) > a .tab-label {
 	overflow: visible !important;
 	text-overflow: clip !important;
 	white-space: nowrap !important;
 	max-width: none !important;
 	width: auto !important;
 	flex-shrink: 0 !important;
+}
+
+/* ============================================================================
+ * COLLAPSIBLE RELATED ICON ROW — "Liên quan" toggle (all SALES detail pages)
+ * ========================================================================== */
+
+body[data-view="Detail"][data-app="SALES"] [class*="-detail-related-tabs"] .mk-sales-primary-tabs,
+body[data-view="Detail"][data-app="MARKETING"] [class*="-detail-related-tabs"] .mk-sales-primary-tabs,
+body[data-view="Detail"][data-app="INVENTORY"] [class*="-detail-related-tabs"] .mk-sales-primary-tabs,
+body[data-view="Detail"][data-app="SALES"] [class*="-detail-related-tabs"] .mk-contact-primary-tabs,
+body[data-view="Detail"][data-app="MARKETING"] [class*="-detail-related-tabs"] .mk-contact-primary-tabs ,
+body[data-view="Detail"][data-app="INVENTORY"] [class*="-detail-related-tabs"] .mk-contact-primary-tabs {
+	overflow-x: auto;
+	overflow-y: visible;
+	scrollbar-width: thin;
+	-webkit-overflow-scrolling: touch;
+	border-bottom: 0 !important;
+	min-height: 48px;
+	align-items: center;
+}
+
+body[data-view="Detail"][data-app="SALES"] [class*="-detail-related-tabs"] .navbar-collapse,
+body[data-view="Detail"][data-app="MARKETING"] [class*="-detail-related-tabs"] .navbar-collapse ,
+body[data-view="Detail"][data-app="INVENTORY"] [class*="-detail-related-tabs"] .navbar-collapse {
+	overflow: visible;
+}
+
+body[data-view="Detail"][data-app="SALES"] .mk-sales-related-toggle-item,
+body[data-view="Detail"][data-app="MARKETING"] .mk-sales-related-toggle-item,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-sales-related-toggle-item,
+body[data-view="Detail"][data-app="SALES"] .mk-contact-related-toggle-item,
+body[data-view="Detail"][data-app="MARKETING"] .mk-contact-related-toggle-item ,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-contact-related-toggle-item {
+	margin-left: auto;
+	flex: 0 0 auto !important;
+	flex-shrink: 0 !important;
+	list-style: none;
+	align-self: center;
+	overflow: visible;
+	padding: 4px 0 !important;
+	width: auto !important;
+	min-width: 0;
+	max-width: none !important;
+	text-align: left !important;
+}
+
+body[data-view="Detail"][data-app="SALES"] .mk-sales-related-toggle-btn,
+body[data-view="Detail"][data-app="MARKETING"] .mk-sales-related-toggle-btn,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-sales-related-toggle-btn,
+body[data-view="Detail"][data-app="SALES"] .mk-contact-related-toggle-btn,
+body[data-view="Detail"][data-app="MARKETING"] .mk-contact-related-toggle-btn ,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-contact-related-toggle-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-height: 38px;
+	height: auto;
+	width: auto !important;
+	min-width: max-content;
+	max-width: none !important;
+	padding: 8px 16px 8px 14px;
+	border: 1px solid #e8dcc8;
+	border-radius: 999px;
+	background: #ffffff;
+	color: #6b6358;
+	font-size: 13px;
+	font-weight: 600;
+	font-family: inherit;
+	line-height: 1.3;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	overflow: visible;
+	vertical-align: middle;
+	box-sizing: border-box;
+}
+
+body[data-view="Detail"][data-app="SALES"] .mk-sales-related-toggle-btn__label,
+body[data-view="Detail"][data-app="MARKETING"] .mk-sales-related-toggle-btn__label,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-sales-related-toggle-btn__label,
+body[data-view="Detail"][data-app="SALES"] .mk-contact-related-toggle-btn__label,
+body[data-view="Detail"][data-app="MARKETING"] .mk-contact-related-toggle-btn__label ,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-contact-related-toggle-btn__label {
+	display: inline-block;
+	line-height: 1.3;
+	white-space: nowrap;
+	overflow: visible;
+	text-overflow: clip;
+	max-width: none !important;
+	width: auto !important;
+	flex-shrink: 0;
+	padding-right: 1px;
+}
+
+body[data-view="Detail"][data-app="SALES"] .mk-sales-related-toggle-btn:hover,
+body[data-view="Detail"][data-app="MARKETING"] .mk-sales-related-toggle-btn:hover,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-sales-related-toggle-btn:hover,
+body[data-view="Detail"][data-app="SALES"] .mk-contact-related-toggle-btn:hover,
+body[data-view="Detail"][data-app="MARKETING"] .mk-contact-related-toggle-btn:hover ,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-contact-related-toggle-btn:hover {
+	border-color: #08A045;
+	color: #047857;
+	background: rgba(8, 160, 69, 0.06);
+}
+
+body[data-view="Detail"][data-app="SALES"] [class*="-detail-related-tabs"].is-related-open .mk-sales-related-toggle-btn,
+body[data-view="Detail"][data-app="MARKETING"] [class*="-detail-related-tabs"].is-related-open .mk-sales-related-toggle-btn,
+body[data-view="Detail"][data-app="INVENTORY"] [class*="-detail-related-tabs"].is-related-open .mk-sales-related-toggle-btn,
+body[data-view="Detail"][data-app="SALES"] [class*="-detail-related-tabs"].is-related-open .mk-contact-related-toggle-btn,
+body[data-view="Detail"][data-app="MARKETING"] [class*="-detail-related-tabs"].is-related-open .mk-contact-related-toggle-btn ,
+body[data-view="Detail"][data-app="INVENTORY"] [class*="-detail-related-tabs"].is-related-open .mk-contact-related-toggle-btn {
+	border-color: #08A045;
+	background: rgba(8, 160, 69, 0.12);
+	color: #047857;
+}
+
+body[data-view="Detail"][data-app="SALES"] .mk-sales-related-toggle-btn__icon,
+body[data-view="Detail"][data-app="MARKETING"] .mk-sales-related-toggle-btn__icon,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-sales-related-toggle-btn__icon,
+body[data-view="Detail"][data-app="SALES"] .mk-sales-related-toggle-btn__chev,
+body[data-view="Detail"][data-app="MARKETING"] .mk-sales-related-toggle-btn__chev,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-sales-related-toggle-btn__chev,
+body[data-view="Detail"][data-app="SALES"] .mk-contact-related-toggle-btn__icon,
+body[data-view="Detail"][data-app="MARKETING"] .mk-contact-related-toggle-btn__icon,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-contact-related-toggle-btn__icon,
+body[data-view="Detail"][data-app="SALES"] .mk-contact-related-toggle-btn__chev,
+body[data-view="Detail"][data-app="MARKETING"] .mk-contact-related-toggle-btn__chev ,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-contact-related-toggle-btn__chev {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: inherit;
+	flex-shrink: 0;
+}
+
+body[data-view="Detail"][data-app="SALES"] .mk-sales-related-toggle-btn__chev,
+body[data-view="Detail"][data-app="MARKETING"] .mk-sales-related-toggle-btn__chev,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-sales-related-toggle-btn__chev,
+body[data-view="Detail"][data-app="SALES"] .mk-contact-related-toggle-btn__chev,
+body[data-view="Detail"][data-app="MARKETING"] .mk-contact-related-toggle-btn__chev ,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-contact-related-toggle-btn__chev {
+	transition: transform 0.15s ease;
+}
+
+body[data-view="Detail"][data-app="SALES"] [class*="-detail-related-tabs"].is-related-open .mk-sales-related-toggle-btn__chev,
+body[data-view="Detail"][data-app="MARKETING"] [class*="-detail-related-tabs"].is-related-open .mk-sales-related-toggle-btn__chev,
+body[data-view="Detail"][data-app="INVENTORY"] [class*="-detail-related-tabs"].is-related-open .mk-sales-related-toggle-btn__chev,
+body[data-view="Detail"][data-app="SALES"] [class*="-detail-related-tabs"].is-related-open .mk-contact-related-toggle-btn__chev,
+body[data-view="Detail"][data-app="MARKETING"] [class*="-detail-related-tabs"].is-related-open .mk-contact-related-toggle-btn__chev ,
+body[data-view="Detail"][data-app="INVENTORY"] [class*="-detail-related-tabs"].is-related-open .mk-contact-related-toggle-btn__chev {
+	transform: rotate(180deg);
+}
+
+body[data-view="Detail"][data-app="SALES"] .mk-sales-related-icons-panel,
+body[data-view="Detail"][data-app="MARKETING"] .mk-sales-related-icons-panel,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-sales-related-icons-panel,
+body[data-view="Detail"][data-app="SALES"] .mk-contact-related-icons-panel,
+body[data-view="Detail"][data-app="MARKETING"] .mk-contact-related-icons-panel ,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-contact-related-icons-panel {
+	display: none;
+	padding: 12px 2px 14px;
+	border-top: 1px solid #f1ebde;
+	overflow: visible;
+}
+
+body[data-view="Detail"][data-app="SALES"] [class*="-detail-related-tabs"].is-related-open .mk-sales-related-icons-panel,
+body[data-view="Detail"][data-app="MARKETING"] [class*="-detail-related-tabs"].is-related-open .mk-sales-related-icons-panel,
+body[data-view="Detail"][data-app="INVENTORY"] [class*="-detail-related-tabs"].is-related-open .mk-sales-related-icons-panel,
+body[data-view="Detail"][data-app="SALES"] [class*="-detail-related-tabs"].is-related-open .mk-contact-related-icons-panel,
+body[data-view="Detail"][data-app="MARKETING"] [class*="-detail-related-tabs"].is-related-open .mk-contact-related-icons-panel ,
+body[data-view="Detail"][data-app="INVENTORY"] [class*="-detail-related-tabs"].is-related-open .mk-contact-related-icons-panel {
+	display: block;
+}
+
+body[data-view="Detail"][data-app="SALES"] .mk-sales-related-icons-row,
+body[data-view="Detail"][data-app="MARKETING"] .mk-sales-related-icons-row,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-sales-related-icons-row,
+body[data-view="Detail"][data-app="SALES"] .mk-contact-related-icons-row,
+body[data-view="Detail"][data-app="MARKETING"] .mk-contact-related-icons-row ,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-contact-related-icons-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 4px;
+	border: none !important;
+	margin: 0;
+	padding: 4px 0 0;
+	min-height: 44px;
+	overflow: visible;
+}
+
+body[data-view="Detail"][data-app="SALES"] .mk-sales-related-icons-row > li.tab-item[data-module],
+body[data-view="Detail"][data-app="MARKETING"] .mk-sales-related-icons-row > li.tab-item[data-module],
+body[data-view="Detail"][data-app="INVENTORY"] .mk-sales-related-icons-row > li.tab-item[data-module],
+body[data-view="Detail"][data-app="SALES"] .mk-sales-related-icons-row > li.more-tab[data-module],
+body[data-view="Detail"][data-app="MARKETING"] .mk-sales-related-icons-row > li.more-tab[data-module],
+body[data-view="Detail"][data-app="INVENTORY"] .mk-sales-related-icons-row > li.more-tab[data-module],
+body[data-view="Detail"][data-app="SALES"] .mk-contact-related-icons-row > li.tab-item[data-module],
+body[data-view="Detail"][data-app="MARKETING"] .mk-contact-related-icons-row > li.tab-item[data-module],
+body[data-view="Detail"][data-app="INVENTORY"] .mk-contact-related-icons-row > li.tab-item[data-module],
+body[data-view="Detail"][data-app="SALES"] .mk-contact-related-icons-row > li.more-tab[data-module],
+body[data-view="Detail"][data-app="MARKETING"] .mk-contact-related-icons-row > li.more-tab[data-module] ,
+body[data-view="Detail"][data-app="INVENTORY"] .mk-contact-related-icons-row > li.more-tab[data-module] {
+	flex: 0 0 auto;
+	overflow: visible;
+	margin: 2px 0;
+	width: auto !important;
+	max-width: none !important;
 }

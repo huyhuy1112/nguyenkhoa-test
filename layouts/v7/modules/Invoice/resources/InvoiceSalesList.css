@@ -1,0 +1,3237 @@
+/**
+ * Invoice list (Sales app only).
+ * Scope: body[data-module="Invoice"][data-view="List"][data-app="SALES"]
+ *
+ * Cascade note: loaded after Header.tpl styles (theme skin, DashBoard.css, custom.css).
+ * Wins over global .listview-table rules in layouts/v7/skins/*/style.css when selectors
+ * include body[data-module="Invoice"][data-view="List"][data-app="SALES"].
+ * Column widths use .mk-so-table-layout + .mk-so-col-* from List.js (not nth-child).
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500&family=Space+Grotesk:wght@500&display=swap');
+
+/* ---- Main shell: Figma 24px padding under topbar ---- */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-so-list-main {
+	padding: 24px !important;
+	box-sizing: border-box;
+}
+
+/* ---- Legacy LISTS column + module strip: remove from layout ---- */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container.mk-so-list-page #modnavigator.module-nav,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container.mk-so-list-page #modnavigator.module-nav.mk-so-list-hide-legacy {
+	display: none !important;
+	visibility: hidden !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	max-width: 0 !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+	position: absolute !important;
+	left: -9999px !important;
+	top: 0 !important;
+	pointer-events: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container.mk-so-list-page #sidebar-essentials.sidebar-essentials,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container.mk-so-list-page #sidebar-essentials.sidebar-essentials .sidebar-menu,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container.mk-so-list-page #sidebar-essentials .lists-menu-container {
+	display: none !important;
+	visibility: hidden !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	max-width: 0 !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+	position: absolute !important;
+	left: -9999px !important;
+	top: 0 !important;
+	pointer-events: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .essentials-toggle {
+	display: none !important;
+	visibility: hidden !important;
+	width: 0 !important;
+	height: 0 !important;
+	overflow: hidden !important;
+	pointer-events: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-list-hide-legacy,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-hide-legacy {
+	display: none !important;
+}
+
+/* ---- Main column: full width ---- */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container.mk-so-list-page {
+	position: relative !important;
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+	min-height: 0 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container.mk-so-list-page .listViewPageDiv.content-area,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container.mk-so-list-page #listViewContent.listViewPageDiv,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .main-container.mk-so-list-page #listViewContent.listViewPageDiv.content-area {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	min-width: 0 !important;
+	left: auto !important;
+	position: relative !important;
+	z-index: auto !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-page,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-list-sales-root {
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+	position: relative !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-page > .col-sm-12,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-list-sales-root > .col-sm-12 {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	float: none !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-page .contentsDiv,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-page .contents,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-page .listViewEntriesDiv,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-list-sales-root .contentsDiv,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-list-sales-root .contents,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-list-sales-root .listViewEntriesDiv {
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	position: relative !important;
+	left: auto !important;
+}
+
+/* ---- Action header (Figma) ---- */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-action-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px 24px;
+	margin: 0 0 20px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-action-header__title {
+	margin: 0;
+	font-size: 28px;
+	font-weight: 600;
+	line-height: 1.2;
+	color: #191c1e;
+	letter-spacing: -0.02em;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-action-header__subtitle {
+	margin: 8px 0 0;
+	font-size: 16px;
+	font-weight: 400;
+	line-height: 1.45;
+	color: #504533;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-action-header__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 10px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 40px;
+	padding: 0 18px;
+	font-size: 14px;
+	font-weight: 600;
+	border-radius: 10px;
+	cursor: pointer;
+	border: 1px solid transparent;
+	box-sizing: border-box;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-btn--primary {
+	background: #08A045;
+	border-color: #0B6E4F;
+	color: #191c1e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-btn--primary:hover {
+	background: #ffc85c;
+	border-color: #08A045;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-btn--outline {
+	background: #ffffff;
+	border-color: #d4c4ad;
+	color: #191c1e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-btn--outline:hover {
+	background: #f0fdf4;
+	border-color: #c4b49a;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-btn--icononly {
+	min-width: 40px;
+	padding: 0 12px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-btn__ic {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #40627e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-btn--primary .mk-so-btn__ic {
+	color: #191c1e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-btn .mk-dash-topbar-svg {
+	width: 20px;
+	height: 20px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-settings-wrap {
+	position: relative;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-settings-menu {
+	min-width: 220px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad;
+	box-shadow: 0 8px 24px rgba(25, 28, 30, 0.08);
+}
+
+/* ---- Table card (Figma) ---- */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-table-card {
+	background: #ffffff;
+	border: 1px solid #d4c4ad;
+	border-radius: 12px;
+	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06);
+	overflow: hidden;
+	box-sizing: border-box;
+	width: 100%;
+	max-width: none;
+	min-width: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-table-card > .col-sm-12 {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin: 0 !important;
+}
+
+/* Quote columns hidden via JS class mk-so-list-col-hidden (no :has) */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listview-table th.mk-so-list-col-hidden,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listview-table td.mk-so-list-col-hidden {
+	display: none !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	max-width: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+}
+
+/* Status pill */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listview-table td.mk-so-status-cell .value .mk-so-status-pill {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-height: 24px;
+	padding: 2px 10px;
+	border-radius: 4px;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.2;
+	border: 1px solid transparent;
+	white-space: nowrap;
+	max-width: 100%;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listview-table td.mk-so-status-cell .value .picklist-color {
+	background: transparent !important;
+	color: inherit !important;
+	border: none !important;
+	padding: 0 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listview-table .mk-so-status-pill--success {
+	background: #dcfce7;
+	color: #166534;
+	border-color: #bbf7d0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listview-table .mk-so-status-pill--warning {
+	background: #dcfce7;
+	color: #073B3A;
+	border-color: #bbf7d0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listview-table .mk-so-status-pill--danger {
+	background: #fee2e2;
+	color: #991b1b;
+	border-color: #fecaca;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listview-table td.mk-so-status-cell .value {
+	font-weight: 500;
+}
+
+/* ---- Filter row ---- */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-actions.listview-actions-container.mk-so-filter-row {
+	background: #eceef0 !important;
+	border: none !important;
+	border-bottom: 1px solid #d4c4ad !important;
+	border-radius: 0 !important;
+	min-height: 72px;
+	margin: 0 !important;
+	padding: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	box-sizing: border-box !important;
+	position: relative !important;
+	left: auto !important;
+	display: flex;
+	flex-direction: column;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-filter-row__inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: nowrap;
+	gap: 12px 16px;
+	min-height: 72px;
+	padding: 16px;
+	box-sizing: border-box;
+	flex: 1 1 auto;
+}
+
+/* Start: list/grid toggles + “Showing …” only (no stock pagination here) */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-filter-row__start {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px 18px;
+	flex: 1 1 220px;
+	min-width: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-toolbar-toggles {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-toolbar-count {
+	min-width: 0;
+	flex: 1 1 auto;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-mass-actions {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+	flex: 0 1 auto;
+	margin-left: 8px;
+	padding-left: 12px;
+	border-left: 1px solid #d4c4ad;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-filter-row__right {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-left: auto;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-ajax-empty-hint--toolbar {
+	padding: 6px 14px 0;
+	font-size: 13px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-page-numbers {
+	display: inline-block;
+	font-size: 14px;
+	font-weight: 500;
+	color: #504533;
+	line-height: 1.4;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-page-numbers .pageNumbersText {
+	font-weight: 600;
+	color: #191c1e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-page-numbers .totalNumberOfRecords {
+	font-weight: 500;
+	color: #40627e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-icon-btn {
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	border: 1px solid #d4c4ad;
+	border-radius: 10px;
+	background: #ffffff;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	box-sizing: border-box;
+	transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-icon-btn:hover:not(:disabled) {
+	background: #f2f4f6;
+	border-color: #c4b49a;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-icon-btn:disabled {
+	opacity: 0.55;
+	cursor: default;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-icon-btn__ic {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #40627e;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-mass-btn {
+	min-width: 40px;
+	height: 40px;
+	padding: 0 10px;
+	border-radius: 10px;
+	border: 1px solid #d4c4ad !important;
+	background: #fff !important;
+	opacity: 0.92;
+	box-shadow: none;
+	font-weight: 500;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-mass-more {
+	height: 40px;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
+}
+
+/* ---- Pagination footer (centered, below table after JS relocate; also works if still inside #listview-actions) ---- */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent .mk-so-filter-row__footer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 64px;
+	padding: 12px 16px;
+	border-top: 1px solid #d4c4ad;
+	background: #eceef0;
+	box-sizing: border-box;
+	pointer-events: auto;
+	border-radius: 0 0 11px 11px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pagination {
+	display: flex;
+	justify-content: center;
+	width: 100%;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pagination .btn-group {
+	box-shadow: none;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn {
+	min-width: 40px;
+	height: 40px;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
+	background: #fff !important;
+	color: #191c1e;
+	margin: 0 2px;
+	font-weight: 600;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:hover:not(:disabled),
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:focus:not(:disabled) {
+	background: #08A045 !important;
+	border-color: #0B6E4F !important;
+	color: #191c1e !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pagination #PageJump.mk-so-page-btn {
+	min-width: 48px;
+	box-shadow: inset 0 -3px 0 #08A045;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:disabled {
+	opacity: 0.45;
+}
+
+/* ---- Table block: ONE native horizontal scroll on #table-content (see AccountsList.js removes perfectScrollbar) ---- */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container {
+	margin-top: 0 !important;
+	border: none !important;
+	border-radius: 0 !important;
+	background: #ffffff !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	position: relative !important;
+	left: auto !important;
+	box-sizing: border-box !important;
+	height: auto !important;
+	max-height: calc(100vh - 260px) !important;
+	overflow-x: auto !important;
+	overflow-y: auto !important;
+	-webkit-overflow-scrolling: touch;
+	pointer-events: auto !important;
+}
+
+/* ---- Table layout: fixed columns via JS semantic classes (mk-so-table-layout) ---- */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table {
+	margin-bottom: 0;
+	width: 100%;
+	min-width: 1232px;
+	box-sizing: border-box;
+	border-collapse: collapse;
+	border-spacing: 0;
+	table-layout: fixed;
+	font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout th,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout td {
+	box-sizing: border-box;
+	vertical-align: middle;
+}
+
+/* Neutralize theme skin .listview-table tr th:first-child { width: 130px } */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout tr th:first-child,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout tr td:first-child {
+	width: auto !important;
+	max-width: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout th.mk-so-col-control,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout td.mk-so-col-control {
+	width: 96px !important;
+	min-width: 96px !important;
+	max-width: 96px !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout th.mk-so-col-subject,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout td.mk-so-col-subject {
+	width: 220px !important;
+	min-width: 220px !important;
+	max-width: 220px !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout th.mk-so-col-organization,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout td.mk-so-col-organization {
+	width: 240px !important;
+	min-width: 240px !important;
+	max-width: 240px !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout th.mk-so-col-status,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout td.mk-so-col-status {
+	width: auto !important;
+	min-width: 0 !important;
+	max-width: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout th.mk-so-col-total,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout td.mk-so-col-total {
+	width: 140px !important;
+	min-width: 140px !important;
+	max-width: 140px !important;
+	text-align: right !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout th.mk-so-col-assigned,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout td.mk-so-col-assigned {
+	width: 180px !important;
+	min-width: 180px !important;
+	max-width: 180px !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader {
+	background: #f7f9fb !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead tr.listViewContentHeader th {
+	box-sizing: border-box;
+	height: 48px;
+	padding: 0 10px;
+	vertical-align: middle;
+	border-bottom: 1px solid #d4c4ad;
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+	font-size: 14px;
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #40627e !important;
+	white-space: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table thead th a.listViewContentHeaderValues {
+	color: #40627e !important;
+	font-weight: 500;
+	font-family: 'Space Grotesk', system-ui, sans-serif;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries td {
+	box-sizing: border-box;
+	height: 60px;
+	min-height: 56px;
+	max-height: 64px;
+	padding: 0 12px;
+	vertical-align: middle;
+	border-bottom: 1px solid #e2e8f0;
+	font-size: 14px;
+	font-weight: 400;
+	line-height: 1.35;
+	color: #191c1e;
+	overflow: hidden;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout tbody td.listViewEntryValue .value {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 100%;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.listViewEntries:hover {
+	background: #f0fdf4;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tr.searchRow th {
+	height: auto !important;
+	min-height: 0 !important;
+	padding: 10px 12px !important;
+	font-size: 13px;
+	font-weight: 400;
+	text-transform: none;
+	letter-spacing: normal;
+	white-space: normal;
+	background: #fafbfc;
+	border-bottom: 1px solid #d4c4ad;
+	vertical-align: middle !important;
+	overflow: visible !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="phone"],
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.listViewEntryValue[data-field-type="double"] {
+	font-family: 'Roboto Mono', ui-monospace, monospace;
+	font-size: 14px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent .mk-so-sort-hint {
+	opacity: 0.45;
+	cursor: default;
+}
+
+/* Subject — Figma link */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="subject"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="subject"] a {
+	font-weight: 600;
+	color: #0057d9;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="subject"] a:hover {
+	color: #0046b0;
+	text-decoration: underline;
+}
+
+/* Total */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td.mk-so-col-total .value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="hdnGrandTotal"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="total"] .value {
+	display: block;
+	font-family: 'Roboto Mono', ui-monospace, monospace;
+	font-size: 14px;
+	font-weight: 600;
+	color: #191c1e;
+	text-align: right;
+}
+
+/* Related To — pill/tag (JS adds .mk-so-related-pill) */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-so-related-pill {
+	display: inline-flex;
+	align-items: center;
+	max-width: 100%;
+	padding: 4px 12px;
+	border-radius: 999px;
+	background: #dceeff;
+	color: #41627f;
+	font-weight: 600;
+	font-size: 13px;
+	line-height: 1.3;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-so-related-pill a {
+	color: #41627f !important;
+	text-decoration: none !important;
+}
+
+/* Start / Due date — monospace */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="startdate"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-name="duedate"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody td[data-field-type="date"] .value {
+	font-family: 'Roboto Mono', ui-monospace, monospace;
+	font-size: 14px;
+	font-weight: 500;
+	color: #191c1e;
+}
+
+/* Progress bar */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-so-progress {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	max-width: 140px;
+	min-width: 100px;
+	vertical-align: middle;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-so-progress__track {
+	flex: 1 1 auto;
+	height: 8px;
+	min-width: 72px;
+	background: #e2e6ea;
+	border-radius: 999px;
+	overflow: hidden;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-so-progress__fill {
+	display: block;
+	height: 100%;
+	border-radius: 999px;
+	transition: width 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-so-progress--25 .mk-so-progress__fill {
+	background: #1e3a5f;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-so-progress--60 .mk-so-progress__fill {
+	background: #5ba4d9;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-so-progress--100 .mk-so-progress__fill {
+	background: #08A045;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-so-progress__label {
+	flex: 0 0 auto;
+	font-family: 'Roboto Mono', ui-monospace, monospace;
+	font-size: 12px;
+	font-weight: 600;
+	color: #40627e;
+	min-width: 2.5em;
+	text-align: right;
+}
+
+/* Created by — avatar chip layout */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="assigned_user_id"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="created_user_id"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table td[data-name="smcreatorid"] .value.mk-so-has-creator {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: nowrap;
+	max-width: 100%;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-so-avatar {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 28px;
+	width: 28px;
+	height: 28px;
+	border-radius: 999px;
+	background: linear-gradient(135deg, #fde7b3 0%, #f7c863 100%);
+	color: #6d4d00;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	line-height: 1;
+	text-transform: uppercase;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .mk-so-avatar__label {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-weight: 500;
+	font-size: 14px;
+	color: #191c1e;
+}
+
+/* Hide duplicate column picker in header (filter row icon opens same control) */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listColumnFilterContainer .listColumnFilter {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Filter row visibility + spacing: shared MkSalesListTable.css (always visible) */
+
+/* Stock bottom-fixed-scroll duplicates horizontal scroll (custom.css top:-19px); hide — native bar on #table-content only */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #scroller_wrapper.bottom-fixed-scroll,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent .bottom-fixed-scroll {
+	display: none !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+	pointer-events: none !important;
+	position: absolute !important;
+	left: -9999px !important;
+	width: 0 !important;
+	top: 0 !important;
+}
+
+/* floatThead clone header = "second list" on first paint — hide for SALES list */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .floatThead-container,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent .floatThead-container {
+	display: none !important;
+	visibility: hidden !important;
+	height: 0 !important;
+	overflow: hidden !important;
+	pointer-events: none !important;
+}
+
+/* ---- Page header: breadcrumb + dotted subtitle ---- */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-header {
+	margin: 0 0 20px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-breadcrumb__list {
+	list-style: none;
+	margin: 0 0 10px;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 8px;
+	font-size: 13px;
+	font-weight: 500;
+	color: #6b6358;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-breadcrumb__item a {
+	color: #504533;
+	text-decoration: none;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-breadcrumb__item a:hover {
+	color: #08A045;
+	text-decoration: underline;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-breadcrumb__sep {
+	color: #d4c4ad;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-action-header__title {
+	font-family: 'Space Grotesk', Inter, sans-serif;
+	font-size: 32px;
+	font-weight: 700;
+	line-height: 1.15;
+	letter-spacing: -0.02em;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-action-header__subtitle {
+	margin: 8px 0 0;
+	font-size: 15px;
+	font-weight: 500;
+	color: #5b5b5b;
+	line-height: 1.45;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-page .module-action-bar {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout .table-actions {
+	width: 56px !important;
+	min-width: 56px !important;
+	max-width: 56px !important;
+	margin-left: 0 !important;
+}
+
+/* Beat skin .listview-table > tbody > tr > td { padding: 8px 3px } */
+/* First paint + AJAX: fixed table layout without waiting for JS */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"].mk-so-list-ready #listViewContent #listview-table {
+	table-layout: fixed !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent .mk-so-page,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent .mk-so-table-card {
+	contain: layout style;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout > thead > tr.listViewContentHeader > th,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout > tbody > tr > td {
+	padding: 0 10px !important;
+	vertical-align: middle !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.mk-so-table-layout > thead > tr.searchRow > th {
+	padding: 10px 12px !important;
+	vertical-align: middle !important;
+}
+
+/* Search row inputs: MkSalesListTable.css (Opportunities reference) */
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-so-list-main {
+	background: #f7f9fb;
+}
+
+/* Active page indicator (amber underline on page jump) */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pagination #PageJump.mk-so-page-btn {
+	box-shadow: inset 0 -3px 0 #08A045;
+}
+
+/* ====================================================================== */
+/* POS list (BA reference — KiotViet-style đơn hàng)                       */
+/* ====================================================================== */
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-page {
+	width: 100%;
+}
+
+/* Hide legacy vtiger toolbar when POS chrome is active */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-page .mk-so-pos-actions-src,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-page #listview-actions,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-pos-actions-src,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-actions {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-list-col-hidden {
+	display: none !important;
+}
+
+/* Control column — checkbox + star (override shared table-actions flex) */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th.mk-so-pos-control-th,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td.mk-so-pos-control-td,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td.listViewRecordActions.mk-so-pos-control-td,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tr th:first-child,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tr td:first-child {
+	width: 76px !important;
+	min-width: 76px !important;
+	max-width: 76px !important;
+	padding: 0 12px !important;
+	text-align: left !important;
+	border-right: none !important;
+	overflow: visible !important;
+	vertical-align: middle !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th.mk-so-pos-control-th #listColumnFilterContainer {
+	position: absolute !important;
+	left: -9999px !important;
+	width: 1px !important;
+	height: 1px !important;
+	overflow: hidden !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.listViewContentHeader th .mk-so-pos-row-actions.table-actions,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.listViewEntries td .mk-so-pos-row-actions.table-actions,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table .mk-so-pos-row-actions,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listViewContent #listview-table.mk-so-table-layout .table-actions.mk-so-pos-row-actions {
+	display: grid !important;
+	grid-template-columns: 18px 28px !important;
+	column-gap: 10px !important;
+	align-items: center !important;
+	justify-content: start !important;
+	justify-items: center !important;
+	width: 56px !important;
+	min-width: 56px !important;
+	max-width: 56px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	gap: 10px !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table .mk-so-pos-row-actions > .mk-so-pos-check,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table .mk-so-pos-row-actions > .mk-so-pos-star-slot,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table .mk-so-pos-row-actions > .mk-so-pos-star-hdr,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table .table-actions > .mk-so-pos-check.input,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table .table-actions > .mk-so-pos-star-slot,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table .table-actions > .mk-so-pos-star-hdr {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 100% !important;
+	height: 28px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	float: none !important;
+	flex: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table .mk-so-pos-row-actions input[type="checkbox"] {
+	margin: 0 !important;
+	float: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-pos-star-hdr {
+	color: #cbd5e1;
+	font-size: 15px;
+	line-height: 1;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-pos-star-btn {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	width: 28px !important;
+	height: 28px !important;
+	min-width: 28px !important;
+	border: none !important;
+	background: transparent !important;
+	color: #cbd5e1 !important;
+	font-size: 15px !important;
+	line-height: 1 !important;
+	box-shadow: none !important;
+	text-align: center;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-pos-delete-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	border: none !important;
+	background: transparent !important;
+	color: #94a3b8 !important;
+	font-size: 14px;
+	padding: 0;
+	box-shadow: none !important;
+	cursor: pointer;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-pos-dup-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	border: none !important;
+	background: transparent !important;
+	color: #94a3b8 !important;
+	font-size: 13px;
+	padding: 0;
+	box-shadow: none !important;
+	cursor: pointer;
+	text-decoration: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-pos-dup-btn:hover {
+	color: #0B6E4F !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-pos-delete-btn:hover {
+	color: #ef4444 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-pos-mass-delete-btn:not(:disabled) {
+	border-color: #fecaca !important;
+	color: #dc2626 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-pos-mass-delete-btn:not(:disabled):hover {
+	background: #fef2f2 !important;
+	border-color: #f87171 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-pos-mass-dup-btn:not(:disabled) {
+	border-color: #bbf7d0 !important;
+	color: #0B6E4F !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-toolbar .mk-so-pos-mass-action {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-toolbar .mk-so-pos-mass-action.is-visible {
+	display: inline-flex !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table input[type="checkbox"].listViewEntriesCheckBox,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table input[type="checkbox"].listViewEntriesMainCheckBox {
+	-webkit-appearance: none !important;
+	appearance: none !important;
+	width: 16px !important;
+	height: 16px !important;
+	min-width: 16px !important;
+	min-height: 16px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	flex-shrink: 0;
+	cursor: pointer;
+	border: 2px solid #94a3b8 !important;
+	border-radius: 4px !important;
+	background: #ffffff !important;
+	box-shadow: none !important;
+	position: relative;
+	vertical-align: middle;
+	box-sizing: border-box !important;
+	opacity: 1 !important;
+	float: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table input[type="checkbox"].listViewEntriesCheckBox:hover,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:hover {
+	border-color: #0B6E4F !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:checked {
+	background: #08A045 !important;
+	border-color: #08A045 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table input[type="checkbox"].listViewEntriesCheckBox:checked::after,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table input[type="checkbox"].listViewEntriesMainCheckBox:checked::after {
+	content: '' !important;
+	position: absolute;
+	left: 4px;
+	top: 0;
+	width: 4px;
+	height: 8px;
+	border: solid #ffffff;
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+	display: block;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.listViewEntries.mk-so-row-selected {
+	background: rgba(8, 160, 69, 0.08) !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-pos-star-btn.active,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-pos-star-btn.fa-star {
+	color: #f59e0b !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table {
+	border-collapse: separate;
+	border-spacing: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table th,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table td {
+	border-left: none !important;
+	border-right: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.listViewContentHeader th a .fa-sort,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.listViewContentHeader th a .customsort {
+	display: none;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-layout {
+	display: flex;
+	align-items: flex-start;
+	gap: 0;
+	min-height: 0;
+	position: relative;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-layout.mk-so-filter-open {
+	align-items: flex-start;
+	gap: 12px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-panel {
+	flex: 0 0 0;
+	width: 0;
+	min-width: 0;
+	height: 0;
+	min-height: 0;
+	max-height: 0;
+	overflow: hidden;
+	background: #ffffff;
+	border: 1px solid transparent;
+	border-radius: 10px;
+	box-shadow: none;
+	display: flex;
+	flex-direction: column;
+	opacity: 0;
+	pointer-events: none;
+	transition: width 0.22s ease, flex-basis 0.22s ease, opacity 0.18s ease, box-shadow 0.22s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-layout.mk-so-filter-open .mk-so-pos-filter-panel {
+	flex: 0 0 300px;
+	width: 300px;
+	height: auto;
+	min-height: 0;
+	max-height: calc(100vh - 160px);
+	border-color: #e2e8f0;
+	box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+	opacity: 1;
+	pointer-events: auto;
+	overflow: hidden;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-panel__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 14px 16px 12px;
+	border-bottom: 1px solid #eef2f7;
+	background: #ffffff;
+	flex: 0 0 auto;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-panel__title {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 700;
+	color: #0f172a;
+	line-height: 1.3;
+	letter-spacing: -0.01em;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-panel__close {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	background: #fff;
+	color: #64748b;
+	cursor: pointer;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-panel__close:hover {
+	background: #f8fafc;
+	border-color: #cbd5e1;
+	color: #334155;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-panel__inner {
+	flex: 1 1 auto;
+	overflow-x: hidden;
+	overflow-y: auto;
+	padding: 14px 16px 16px;
+	scrollbar-width: thin;
+	scrollbar-color: #cbd5e1 transparent;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-panel__inner::-webkit-scrollbar {
+	width: 6px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-panel__inner::-webkit-scrollbar-thumb {
+	background: #cbd5e1;
+	border-radius: 999px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-section + .mk-so-pos-filter-section {
+	margin-top: 16px;
+	padding-top: 16px;
+	border-top: 1px solid #f1f5f9;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-section__title {
+	margin: 0 0 10px;
+	font-size: 11px;
+	font-weight: 700;
+	color: #64748b;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-options {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-option {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0;
+	padding: 10px 12px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	background: #f8fafc;
+	cursor: pointer;
+	user-select: none;
+	transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-option:hover {
+	border-color: #cbd5e1;
+	background: #ffffff;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-option:has(input:checked) {
+	border-color: #93c5fd;
+	background: #eff6ff;
+	box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.12);
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-option input {
+	margin: 0;
+	width: 16px;
+	height: 16px;
+	flex: 0 0 16px;
+	accent-color: #2563eb;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-option__text {
+	flex: 1 1 auto;
+	font-size: 14px;
+	font-weight: 500;
+	color: #334155;
+	line-height: 1.35;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-option:has(input:checked) .mk-so-pos-filter-option__text {
+	color: #1d4ed8;
+	font-weight: 600;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-custom-range {
+	display: grid;
+	gap: 8px;
+	margin-top: 10px;
+	padding-left: 2px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-date-wrap,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-select-wrap {
+	position: relative;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-date,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-select {
+	width: 100%;
+	min-height: 40px;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 10px !important;
+	padding: 8px 36px 8px 12px !important;
+	font-size: 14px !important;
+	color: #334155;
+	background: #ffffff;
+	box-shadow: none !important;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-date:focus,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-select:focus {
+	border-color: #93c5fd !important;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12) !important;
+	outline: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-date__ic,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-select__ic {
+	position: absolute;
+	right: 12px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: #94a3b8;
+	font-size: 13px;
+	pointer-events: none;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-select {
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	cursor: pointer;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	min-height: 0;
+	margin-bottom: 10px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-chips:empty,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-chips:not(:has(.is-selected)) {
+	margin-bottom: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-chip {
+	display: none;
+	align-items: center;
+	gap: 6px;
+	padding: 7px 10px;
+	border: 1px solid #93c5fd;
+	border-radius: 999px;
+	background: #eff6ff;
+	color: #1d4ed8;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.2;
+	cursor: pointer;
+	transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-chip.is-selected {
+	display: inline-flex;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-chip:hover {
+	background: #dbeafe;
+	border-color: #60a5fa;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-chip__remove {
+	font-size: 11px;
+	opacity: 0.75;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-status-pool {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-status-option {
+	border: 1px solid #e2e8f0;
+	background: #ffffff;
+	color: #475569;
+	border-radius: 999px;
+	padding: 7px 12px;
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1.2;
+	cursor: pointer;
+	transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-status-option:hover {
+	border-color: #93c5fd;
+	color: #1d4ed8;
+	background: #f8fbff;
+	box-shadow: 0 1px 2px rgba(37, 99, 235, 0.08);
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-status-option.is-hidden {
+	display: none;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-panel__footer {
+	display: flex;
+	gap: 8px;
+	padding: 12px 16px 14px;
+	border-top: 1px solid #eef2f7;
+	background: #ffffff;
+	flex: 0 0 auto;
+	box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.04);
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-btn {
+	flex: 1 1 0;
+	height: 40px;
+	border-radius: 10px;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	border: 1px solid transparent;
+	transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-btn--ghost {
+	background: #fff;
+	border-color: #e2e8f0;
+	color: #475569;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-btn--ghost:hover {
+	background: #f8fafc;
+	border-color: #cbd5e1;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-btn--primary {
+	background: #2563eb;
+	border-color: #1d4ed8;
+	color: #fff;
+	box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-filter-btn--primary:hover {
+	background: #1d4ed8;
+	box-shadow: 0 2px 6px rgba(37, 99, 235, 0.24);
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-search__filter.is-active {
+	background: #eff6ff !important;
+	color: #2563eb !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-list-main {
+	background: #f3f6f9;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-page {
+	padding: 16px 18px 22px;
+	box-sizing: border-box;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-main {
+	flex: 1 1 auto;
+	min-width: 0;
+	width: 100%;
+	align-self: flex-start;
+	display: flex;
+	flex-direction: column;
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+	overflow: hidden;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-layout.mk-so-filter-open .mk-so-pos-main {
+	align-self: flex-start;
+	width: auto;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-main > .mk-so-table-card {
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	background: transparent !important;
+}
+
+/* ---- POS toolbar ---- */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-toolbar {
+	display: grid;
+	grid-template-columns: auto minmax(220px, 1fr) auto;
+	align-items: center;
+	gap: 12px 18px;
+	padding: 14px 16px;
+	background: #ffffff;
+	border-bottom: 1px solid #eef2f7;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-toolbar__title {
+	margin: 0;
+	font-size: 20px;
+	font-weight: 700;
+	color: #0f172a;
+	line-height: 1.25;
+	letter-spacing: -0.02em;
+	white-space: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-toolbar__search-wrap {
+	flex: 1 1 auto;
+	min-width: 0;
+	max-width: 480px;
+	justify-self: center;
+	width: 100%;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-search {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	height: 40px;
+	padding: 0 10px 0 12px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	background: #f8fafc;
+	box-shadow: none;
+	transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-search:focus-within {
+	border-color: #cbd5e1;
+	background: #ffffff;
+	box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.18);
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-search__ic {
+	color: #94a3b8;
+	font-size: 14px;
+	flex: 0 0 auto;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-search__input {
+	flex: 1 1 auto;
+	min-width: 0;
+	border: none !important;
+	outline: none !important;
+	box-shadow: none !important;
+	padding: 0 !important;
+	height: 100% !important;
+	font-size: 14px !important;
+	color: #1e293b !important;
+	background: transparent !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-search__input::placeholder {
+	color: #94a3b8;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-search__actions {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	flex: 0 0 auto;
+	margin-left: 2px;
+	padding-left: 8px;
+	border-left: 1px solid #e2e8f0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-search__filter,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-search__clear {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 30px;
+	height: 30px;
+	border: none;
+	background: transparent;
+	color: #64748b;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-search__filter:hover,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-search__clear:hover {
+	background: #eef2f7;
+	color: #334155;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-toolbar__actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 7px;
+	height: 40px;
+	padding: 0 14px;
+	border-radius: 10px;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1;
+	cursor: pointer;
+	border: 1px solid transparent;
+	white-space: nowrap;
+	transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-btn--primary {
+	background: #2563eb;
+	border-color: #1d4ed8;
+	color: #fff;
+	box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-btn--primary:hover {
+	background: #1d4ed8;
+	box-shadow: 0 2px 6px rgba(37, 99, 235, 0.24);
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-btn--outline {
+	background: #fff;
+	border-color: #e2e8f0;
+	color: #334155;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-btn--outline:hover {
+	background: #f8fafc;
+	border-color: #cbd5e1;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-icon-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	background: #fff;
+	color: #475569;
+	cursor: pointer;
+	transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-icon-btn:hover {
+	background: #f8fafc;
+	border-color: #cbd5e1;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-settings-menu {
+	border-radius: 10px;
+	border-color: #e2e8f0;
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+@media (max-width: 1100px) {
+	body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-toolbar {
+		grid-template-columns: 1fr auto;
+		grid-template-areas:
+			"title actions"
+			"search search";
+	}
+
+	body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-toolbar__title {
+		grid-area: title;
+	}
+
+	body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-toolbar__search-wrap {
+		grid-area: search;
+		max-width: none;
+		justify-self: stretch;
+	}
+
+	body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-toolbar__actions {
+		grid-area: actions;
+		justify-content: flex-end;
+	}
+}
+
+/* ---- Table header + summary row ---- */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.listViewContentHeader {
+	background: #eef4ff;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.listViewContentHeader th {
+	color: #475569 !important;
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	border-bottom: 1px solid #dbe4f0 !important;
+	padding: 10px 12px !important;
+	vertical-align: middle !important;
+	white-space: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.listViewContentHeader th a {
+	color: inherit !important;
+	text-decoration: none !important;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.listViewContentHeader th .mk-so-pos-th-label {
+	display: inline-block;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead .removeSorting {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-star { width: 76px; }
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-order-no { width: 13%; }
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-time { width: 14%; }
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-customer { width: 15%; }
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-warehouse { width: 12%; }
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-paid { width: 12%; }
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-status { width: 18%; }
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table col.mk-so-col-due { width: 15%; }
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table {
+	table-layout: fixed;
+	width: 100%;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table > tbody > tr.listViewEntries > td {
+	padding: 10px 12px !important;
+	font-size: 13px;
+	line-height: 1.4;
+	vertical-align: middle !important;
+	border-bottom: 1px solid #f1f5f9 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-time .value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="createdtime"] .value {
+	color: #64748b;
+	font-size: 13px;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-customer-code .value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="customerno"] .value {
+	color: #64748b;
+	font-size: 13px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-customer .value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="account_id"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="contact_id"] .value {
+	color: #1e293b;
+	font-weight: 500;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+	body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-order-no a,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="salesorder_no"] a,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-order-no .mk-so-pos-order-no,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="salesorder_no"] .mk-so-pos-order-no {
+	color: #1e293b !important;
+	font-weight: 600;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-order-no a:hover,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="salesorder_no"] a:hover {
+	color: #2563eb !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-customer a,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="contact_id"] a {
+	color: #1e293b !important;
+	text-decoration: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-due,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead th.mk-so-col-due {
+	text-align: right !important;
+}
+
+/* Paid sits before status — left-align so amounts are not glued to status pills. */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-paid,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead th.mk-so-col-paid,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="received"],
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead th a[data-columnname="received"] {
+	text-align: left !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-paid,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="received"],
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead th.mk-so-col-paid {
+	padding-right: 28px !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-status,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-status-cell,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead th.mk-so-col-status {
+	text-align: left !important;
+	padding-left: 20px !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-paid .value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="received"] .value {
+	text-align: left !important;
+	display: inline-block;
+	width: auto;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.mk-so-summary-row th,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.mk-so-summary-row td {
+	background: #f8fafc;
+	border-bottom: 1px solid #e2e8f0 !important;
+	border-top: 1px solid #e2e8f0 !important;
+	padding: 6px 12px 8px !important;
+	font-weight: 600;
+	height: 36px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.mk-so-summary-row th.mk-so-summary-cell--due,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.mk-so-summary-row td.mk-so-summary-cell--due {
+	text-align: right !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table thead tr.mk-so-summary-row th.mk-so-summary-cell--paid,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.mk-so-summary-row td.mk-so-summary-cell--paid {
+	text-align: left !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-summary-cell--label .mk-so-summary-label {
+	display: block;
+	font-size: 12px;
+	font-weight: 700;
+	color: #64748b;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-summary-cell--due .mk-so-summary-value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-summary-cell--paid .mk-so-summary-value {
+	display: block;
+	text-align: right;
+	font-family: ui-monospace, 'Roboto Mono', monospace;
+	font-size: 14px;
+	font-weight: 700;
+	color: #0f172a;
+	font-variant-numeric: tabular-nums;
+}
+
+/* ---- Data rows ---- */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.listViewEntries {
+	transition: background 0.12s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.listViewEntries:hover td {
+	background: #f8fafc !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-order-no .value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="salesorder_no"] .value {
+	font-weight: 600;
+	color: #1e293b;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-due .value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="hdnGrandTotal"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="total"] .value {
+	font-family: 'Roboto Mono', ui-monospace, monospace;
+	font-size: 14px;
+	font-weight: 600;
+	text-align: right !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-col-paid .value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="received"] .value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td[data-name="paid"] .value {
+	font-family: 'Roboto Mono', ui-monospace, monospace;
+	font-size: 14px;
+	font-weight: 600;
+	text-align: left !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-paid-zero .value {
+	color: #ef4444 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody td.mk-so-paid-positive .value {
+	color: #0f172a;
+}
+
+/* Status pills — Đã xác nhận (blue), Phiếu tạm (orange) */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listview-table .mk-so-status-pill--confirmed {
+	background: #dbeafe !important;
+	color: #1d4ed8 !important;
+	border-color: #93c5fd !important;
+	border-radius: 4px !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listview-table .mk-so-status-pill--draft {
+	background: #ffedd5 !important;
+	color: #c2410c !important;
+	border-color: #fdba74 !important;
+	border-radius: 4px !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listview-table .mk-so-status-pill--neutral {
+	background: #f1f5f9 !important;
+	color: #64748b !important;
+	border-color: #e2e8f0 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listview-table .mk-so-status-pill--success {
+	background: #dcfce7 !important;
+	color: #166534 !important;
+	border-color: #bbf7d0 !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listview-table .mk-so-status-pill--danger {
+	background: #fee2e2 !important;
+	color: #991b1b !important;
+	border-color: #fecaca !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-table-card .mk-so-filter-row__footer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 14px 16px;
+	background: #fff;
+	border-top: 1px solid #e2e8f0;
+	min-height: 56px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-table-card .mk-so-filter-row__footer .pagination {
+	margin: 0;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-table-card .mk-so-filter-row__footer .pagination > li > a,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-table-card .mk-so-filter-row__footer .pagination > li > span {
+	border-radius: 8px;
+	border: 1px solid #e2e8f0;
+	color: #334155;
+	min-width: 40px;
+	height: 40px;
+	line-height: 38px;
+	padding: 0 12px;
+	text-align: center;
+	font-size: 14px;
+	font-weight: 600;
+	background: #fff;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-table-card .mk-so-filter-row__footer .pagination > .active > a {
+	background: #2563eb;
+	border-color: #2563eb;
+	color: #fff;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-table-card .mk-so-filter-row__footer .mk-so-pagination .mk-so-page-btn {
+	min-width: 40px;
+	height: 40px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-table-card {
+	border-radius: 10px;
+	border-color: #e2e8f0;
+	box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+	overflow: hidden;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-pos-main > .mk-so-table-card {
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #table-content.table-container {
+	height: auto !important;
+	max-height: none !important;
+	min-height: 0 !important;
+	overflow-x: auto !important;
+	overflow-y: visible !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #table-content + .mk-so-filter-row__footer {
+	background: #f8fafc;
+	border-top-color: #e2e8f0;
+	border-radius: 0 0 10px 10px;
+}
+
+/* ---- Inline detail (KiotViet expand under row) ---- */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.mk-so-inline-detail-row > td {
+	padding: 0 !important;
+	border-bottom: 1px solid #e2e8f0 !important;
+	background: #fafbfc;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.listViewEntries.mk-so-row-expanded > td {
+	background: #fafbfc !important;
+	border-bottom-color: #e2e8f0 !important;
+	box-shadow: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail {
+	padding: 14px 16px 16px;
+	background: #ffffff;
+	border: 1px solid #d1fae5;
+	border-radius: 10px;
+	margin: 8px 10px 12px;
+	box-shadow: 0 4px 16px rgba(8, 160, 69, 0.08);
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail--loading,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail--error {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	min-height: 120px;
+	color: #64748b;
+	font-size: 14px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__spinner {
+	width: 18px;
+	height: 18px;
+	border: 2px solid #d1fae5;
+	border-top-color: #08A045;
+	border-radius: 50%;
+	animation: mk-so-inline-spin 0.8s linear infinite;
+}
+
+@keyframes mk-so-inline-spin {
+	to { transform: rotate(360deg); }
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__tabs {
+	display: flex;
+	gap: 18px;
+	border-bottom: 1px solid #e2e8f0;
+	margin-bottom: 14px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__tab {
+	border: none;
+	background: transparent;
+	padding: 0 0 10px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #64748b;
+	border-bottom: 2px solid transparent;
+	cursor: default;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__tab.is-active {
+	color: #08A045;
+	border-bottom-color: #08A045;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__hero {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 14px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__customer {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__customer-name {
+	font-size: 18px;
+	font-weight: 700;
+	color: #0f172a;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__edit-toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border-radius: 8px;
+	border: 1px solid #e2e8f0;
+	background: #fff;
+	color: #64748b;
+	font-size: 12px;
+	cursor: pointer;
+	padding: 0;
+	transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__edit-toggle:hover,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail.is-edit-mode .mk-so-inline-detail__edit-toggle {
+	color: #08A045;
+	border-color: #6ee7a8;
+	background: #ecfdf5;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__order-no {
+	margin-top: 4px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #08A045;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__branch {
+	font-size: 13px;
+	color: #475569;
+	white-space: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__branch--muted {
+	color: #94a3b8;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__fields {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px 18px;
+	margin-bottom: 14px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__field-label {
+	display: block;
+	margin-bottom: 6px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #64748b;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__field-value,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__field-view {
+	min-height: 38px;
+	padding: 8px 12px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	background: #f8fafc;
+	font-size: 14px;
+	color: #1e293b;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-quote-ref-link {
+	color: #1d4ed8;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-quote-ref-link:hover {
+	text-decoration: underline;
+	color: #1e40af;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__field-edit {
+	display: none;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail.is-edit-mode .mk-so-inline-detail__field[data-editable="1"] .mk-so-inline-detail__field-view {
+	display: none;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail.is-edit-mode .mk-so-inline-detail__field[data-editable="1"] .mk-so-inline-detail__field-edit {
+	display: block;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__input {
+	width: 100%;
+	min-height: 38px;
+	padding: 8px 12px;
+	border: 1px solid #cbd5e1;
+	border-radius: 10px;
+	background: #fff;
+	font-size: 14px;
+	color: #1e293b;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail.is-edit-mode .mk-so-inline-detail__notes-input {
+	background: #fff;
+	border-color: #cbd5e1;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__cancel-edit {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail.is-edit-mode .mk-so-inline-detail__cancel-edit {
+	display: inline-flex !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__edit-toggle,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__cancel-edit {
+	display: none !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__field[data-editable="1"] .mk-so-inline-detail__field-view {
+	display: none;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__field[data-editable="1"] .mk-so-inline-detail__field-edit {
+	display: block;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__notes-input,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__paid-input {
+	background: #fff;
+	border-color: #cbd5e1;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__paid-view {
+	display: none;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__paid-input {
+	display: inline-block !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail[data-always-edit="1"] .mk-so-inline-detail__save-btn {
+	display: inline-flex !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__action[disabled] {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] button.mk-so-inline-detail__action {
+	cursor: pointer;
+	font-family: inherit;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines-wrap {
+	overflow-x: auto;
+	margin-bottom: 14px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines {
+	width: 100%;
+	min-width: 760px;
+	border-collapse: collapse;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines thead th {
+	padding: 10px 12px;
+	background: #ecfdf5;
+	border-bottom: 1px solid #bbf7d0;
+	font-size: 12px;
+	font-weight: 700;
+	color: #067a37;
+	text-align: left;
+	white-space: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines tbody td {
+	padding: 10px 12px;
+	border-bottom: 1px solid #f1f5f9;
+	font-size: 13px;
+	color: #1e293b;
+	vertical-align: middle;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines .is-num {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines .is-code a {
+	color: #08A045;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__lines .is-total {
+	font-weight: 700;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__empty-lines {
+	text-align: center;
+	color: #94a3b8;
+	padding: 18px 12px !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__bottom {
+	display: grid;
+	grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+	gap: 16px;
+	margin-bottom: 14px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__notes-label {
+	display: block;
+	margin-bottom: 6px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #64748b;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__select-native {
+	appearance: auto;
+	-webkit-appearance: menulist;
+	cursor: pointer;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__notes-input {
+	width: 100%;
+	min-height: 112px;
+	padding: 10px 12px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	background: #f8fafc;
+	resize: vertical;
+	font-size: 13px;
+	color: #334155;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__totals {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 12px 14px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	background: #f8fafc;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__total-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	font-size: 13px;
+	color: #475569;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__total-row strong {
+	color: #0f172a;
+	font-variant-numeric: tabular-nums;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__total-row--grand strong {
+	color: #08A045;
+	font-size: 15px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__total-row--paid {
+	align-items: center;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__paid-view {
+	color: #0f172a;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__paid-input {
+	display: none;
+	width: 140px;
+	max-width: 46%;
+	height: 32px;
+	padding: 0 10px;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	text-align: right;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	color: #0f172a;
+	background: #fff;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail.is-edit-mode .mk-so-inline-detail__paid-view {
+	display: none;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail.is-edit-mode .mk-so-inline-detail__paid-input {
+	display: inline-block;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__actions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+	padding-top: 12px;
+	border-top: 1px solid #eef2f7;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__actions-left,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__actions-right {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__action {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	height: 38px;
+	padding: 0 14px;
+	border-radius: 10px;
+	font-size: 13px;
+	font-weight: 600;
+	text-decoration: none;
+	border: 1px solid transparent;
+	white-space: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__action--ghost {
+	background: #fff;
+	border-color: #e2e8f0;
+	color: #475569;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__action--outline {
+	background: #fff;
+	border-color: #e2e8f0;
+	color: #334155;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__action--primary {
+	background: #08A045;
+	border-color: #067a37;
+	color: #fff;
+}
+
+@media (max-width: 1100px) {
+	body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__fields {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 900px) {
+	body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__fields,
+	body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__bottom {
+		grid-template-columns: 1fr;
+	}
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail-backdrop {
+	display: none;
+	position: fixed;
+	inset: 0;
+	background: rgba(15, 23, 42, 0.42);
+	z-index: 10040;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail-backdrop.is-open {
+	display: block;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail.is-fullscreen {
+	position: fixed;
+	top: 24px;
+	right: 24px;
+	bottom: 24px;
+	left: 24px;
+	z-index: 10050;
+	margin: 0;
+	max-height: none;
+	overflow: auto;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__fullscreen-close {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	width: 34px;
+	height: 34px;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	background: #fff;
+	color: #64748b;
+	cursor: pointer;
+	z-index: 2;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-detail.is-fullscreen .mk-so-inline-detail__hero {
+	padding-right: 44px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-frame {
+	position: fixed;
+	width: 0;
+	height: 0;
+	border: 0;
+	visibility: hidden;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview {
+	display: none;
+	position: fixed;
+	inset: 0;
+	z-index: 10060;
+	background: rgba(15, 23, 42, 0.45);
+	padding: 24px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview.is-open {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview__dialog {
+	width: min(960px, 100%);
+	max-height: 90vh;
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview__head,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview__foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 14px 16px;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview__foot {
+	border-bottom: 0;
+	border-top: 1px solid #e2e8f0;
+	justify-content: flex-end;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview__head h3 {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 700;
+	color: #0f172a;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview__close {
+	border: 0;
+	background: transparent;
+	font-size: 24px;
+	line-height: 1;
+	color: #64748b;
+	cursor: pointer;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview__body {
+	padding: 0 16px 16px;
+	overflow: auto;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview__table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview__table td {
+	border: 1px solid #e2e8f0;
+	padding: 8px 10px;
+	color: #334155;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview__table td.is-gap {
+	border: 0;
+	height: 8px;
+	padding: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview__cancel,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview__download {
+	height: 36px;
+	padding: 0 14px;
+	border-radius: 8px;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview__cancel {
+	border: 1px solid #e2e8f0;
+	background: #fff;
+	color: #475569;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview__download {
+	border: 1px solid #067a37;
+	background: #08A045;
+	color: #fff;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview__head {
+	border-bottom-color: #d1fae5;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-excel-preview__head h3 {
+	color: #067a37;
+}
+
+/* Excel preview sheet — match Quotes invoice layout (Arial) */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet * {
+	font-family: Arial, Helvetica, "Helvetica Neue", sans-serif !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__header {
+	text-align: center;
+	margin-bottom: 18px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__logo {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: auto;
+	height: auto;
+	margin: 0 auto 8px;
+	border-radius: 0;
+	background: transparent;
+	color: inherit;
+	font-size: inherit;
+	font-weight: inherit;
+	letter-spacing: normal;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__logo img {
+	display: block;
+	width: 180px;
+	height: auto;
+	max-height: 180px;
+	object-fit: contain;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__company {
+	font-size: 14px;
+	font-weight: 700;
+	color: #111;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__company-meta {
+	margin-top: 2px;
+	font-size: 12px;
+	color: #333;
+	line-height: 1.4;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__doc-title {
+	margin: 14px 0 4px;
+	font-size: 18px;
+	font-weight: 800;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__doc-meta {
+	font-size: 13px;
+	color: #222;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__customer {
+	margin: 16px 0 14px;
+	font-size: 13px;
+	line-height: 1.55;
+	color: #111;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__customer strong {
+	font-weight: 700;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: 8px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table thead th {
+	padding: 8px 6px;
+	border-top: 1px solid #111;
+	border-bottom: 1px solid #111;
+	font-size: 13px;
+	font-weight: 700;
+	color: #111;
+	background: transparent;
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table thead th.is-item {
+	width: auto;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table thead th.is-qty {
+	text-align: center;
+	width: 64px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table thead th.is-money {
+	text-align: right;
+	width: 120px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table tbody td {
+	padding: 8px 6px;
+	border: 0;
+	border-bottom: 1.5px dashed #555;
+	vertical-align: bottom;
+	font-size: 13px;
+	font-weight: 400;
+	color: #111;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table tbody tr:last-child td {
+	border-bottom: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table .is-item-name {
+	padding-top: 8px;
+	font-weight: 400;
+	text-align: left;
+	vertical-align: top;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__item-title {
+	font-weight: 400 !important;
+	line-height: 1.35;
+	color: #111;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__item-price {
+	margin-top: 2px;
+	font-variant-numeric: tabular-nums;
+	text-align: left;
+	color: #111;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table .is-qty {
+	text-align: center;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table .is-money {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__invoice-table .is-empty {
+	text-align: center;
+	color: #888;
+	padding: 16px 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__divider {
+	border: 0;
+	border-top: 1.5px dashed #555;
+	margin: 8px 0 12px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__bottom {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	grid-template-areas:
+		". totals"
+		"words .";
+	gap: 8px 24px;
+	align-items: start;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__words {
+	grid-area: words;
+	margin: 4px 0 0;
+	font-size: 13px;
+	font-style: italic;
+	color: #222;
+	text-align: left;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__totals {
+	grid-area: totals;
+	margin-left: auto;
+	width: max-content;
+	min-width: 240px;
+	max-width: 320px;
+	border: 0;
+	padding: 0;
+	background: transparent;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__total-row {
+	display: flex;
+	flex-direction: row;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 4px 0;
+	font-size: 13px;
+	line-height: 1.35;
+	color: #111;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__total-row span {
+	text-align: left;
+	white-space: nowrap;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+	color: #555;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__total-row strong {
+	display: block;
+	min-width: 96px;
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+	font-family: Arial, Helvetica, sans-serif !important;
+	font-size: 14px;
+	font-weight: 700;
+	line-height: 1.35;
+	white-space: nowrap;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__total-row.is-grand {
+	margin-top: 2px;
+	padding-top: 4px;
+	border-top: 0;
+	font-size: 13px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__total-row.is-grand span,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__total-row.is-grand strong {
+	color: #111;
+	font-size: 13px;
+	font-weight: 800;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__thanks {
+	margin: 28px 0 0;
+	text-align: center;
+	font-size: 13px;
+	font-style: italic;
+	color: #222;
+}
+
+@media (max-width: 900px) {
+	body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-excel-sheet__bottom {
+		grid-template-columns: 1fr;
+		grid-template-areas:
+			"totals"
+			"words";
+	}
+}
+
+/* Print preview modal */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-preview {
+	display: none;
+	position: fixed;
+	inset: 0;
+	z-index: 10070;
+	background: rgba(15, 23, 42, 0.45);
+	padding: 24px;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-preview.is-open {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-preview__dialog {
+	width: min(1100px, 100%);
+	height: min(92vh, 900px);
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-preview__head,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-preview__foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 14px 16px;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-preview__foot {
+	border-bottom: 0;
+	border-top: 1px solid #e2e8f0;
+	justify-content: flex-end;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-preview__head {
+	border-bottom-color: #d1fae5;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-preview__head h3 {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 700;
+	color: #067a37;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-preview__close {
+	border: 0;
+	background: transparent;
+	font-size: 24px;
+	line-height: 1;
+	color: #64748b;
+	cursor: pointer;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-preview__body {
+	flex: 1;
+	min-height: 0;
+	padding: 0;
+	background: #f8fafc;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-preview__frame {
+	display: block;
+	width: 100%;
+	height: 100%;
+	border: 0;
+	background: #fff;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-preview__cancel,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-preview__print,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-preview__download {
+	height: 36px;
+	padding: 0 14px;
+	border-radius: 8px;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-preview__cancel {
+	border: 1px solid #e2e8f0;
+	background: #fff;
+	color: #475569;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-preview__print {
+	border: 1px solid #cbd5e1;
+	background: #fff;
+	color: #334155;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-preview__download {
+	border: 1px solid #067a37;
+	background: #08A045;
+	color: #fff;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-inline-print-download-frame {
+	position: fixed;
+	left: -9999px;
+	width: 0;
+	height: 0;
+	border: 0;
+	visibility: hidden;
+}
+
+body.mk-so-inline-print-open {
+	overflow: hidden;
+}
+
+/* Warehouse picker on confirm (list page) */
+body[data-module="Invoice"][data-view="List"] .mk-so-wh-modal .modal-content {
+	position: relative;
+	z-index: 1;
+	pointer-events: auto;
+	border-radius: 14px;
+	border: 1px solid #e2e8f0;
+	box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+}
+
+body[data-module="Invoice"][data-view="List"] #mkSoConfirmWarehouseModal {
+	z-index: 110020 !important;
+}
+
+body[data-module="Invoice"][data-view="List"] #mkSoConfirmWarehouseModal .modal-dialog {
+	pointer-events: auto !important;
+}
+
+body[data-module="Invoice"][data-view="List"] .mk-so-wh-modal__lead {
+	margin: 0 0 14px;
+	color: #64748b;
+	font-size: 14px;
+}
+
+body[data-module="Invoice"][data-view="List"] .mk-so-wh-option {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 12px 14px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	margin-bottom: 10px;
+	cursor: pointer;
+	transition: border-color 0.15s, background 0.15s;
+}
+
+body[data-module="Invoice"][data-view="List"] .mk-so-wh-option:hover {
+	border-color: #08a045;
+	background: #f8fffb;
+}
+
+body[data-module="Invoice"][data-view="List"] .mk-so-wh-option input {
+	margin-top: 4px;
+	accent-color: #08a045;
+}
+
+body[data-module="Invoice"][data-view="List"] .mk-so-wh-option__body {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+body[data-module="Invoice"][data-view="List"] .mk-so-wh-option__body strong {
+	font-size: 15px;
+	color: #1e293b;
+}
+
+body[data-module="Invoice"][data-view="List"] .mk-so-wh-option__body small {
+	color: #94a3b8;
+	font-size: 12px;
+}
+
+body[data-module="Invoice"][data-view="List"] .mk-so-wh-modal__error {
+	margin-top: 10px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	background: #fef2f2;
+	color: #b91c1c;
+	font-size: 13px;
+	white-space: pre-wrap;
+}
+
+
+/* ---- Empty state: center "Không Hóa đơn nào" trong vùng NHÌN THẤY (không theo full table 1232px) ---- */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .listViewEntriesDiv,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-table-card {
+	container-type: inline-size;
+	container-name: mk-inv-list;
+	position: relative;
+}
+
+/* No records: table = 100% card width — bỏ min-width 1232px gây scroll + chữ lệch phải */
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.listview-table-norecords,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-table-card #listview-table.listview-table-norecords,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table.listview-table-norecords {
+	min-width: 0 !important;
+	width: 100% !important;
+	table-layout: auto !important;
+	min-height: 0;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.listview-table-norecords thead,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-table-card #listview-table.listview-table-norecords thead {
+	display: table-header-group;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table.listview-table-norecords thead th,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-table-card #listview-table.listview-table-norecords thead th {
+	min-width: 0 !important;
+	width: auto !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.emptyRecordsDiv,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-table-card #listview-table tbody tr.emptyRecordsDiv,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.emptyRecordsDiv {
+	height: auto !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table tbody tr.emptyRecordsDiv > td,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-table-card #listview-table tbody tr.emptyRecordsDiv > td,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table tbody tr.emptyRecordsDiv > td {
+	position: relative !important;
+	text-align: center !important;
+	vertical-align: middle !important;
+	padding: 0 !important;
+	border: none !important;
+	background: transparent !important;
+	float: none !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	height: 260px !important;
+	overflow: visible !important;
+}
+
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled #listview-table .emptyRecordsContent,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-table-card #listview-table .emptyRecordsContent,
+body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .emptyRecordsContent {
+	/* Căn giữa trong viewport ngang của card (sticky + container query) */
+	position: sticky !important;
+	left: 0 !important;
+	right: 0 !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	box-sizing: border-box !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-height: 260px !important;
+	margin: 0 auto !important;
+	padding: 48px 24px !important;
+	float: none !important;
+	text-align: center !important;
+	font-size: 15px !important;
+	font-weight: 500 !important;
+	color: #64748b !important;
+	line-height: 1.5 !important;
+	white-space: normal !important;
+	transform: none !important;
+}
+
+@supports (width: 100cqw) {
+	body[data-module="Invoice"][data-view="List"][data-app="SALES"] #listViewContent #listview-table .emptyRecordsContent,
+	body[data-module="Invoice"][data-view="List"][data-app="SALES"] .mk-so-table-card #listview-table .emptyRecordsContent {
+		width: 100cqw !important;
+		max-width: 100cqw !important;
+	}
+}

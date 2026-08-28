@@ -1,97 +1,78 @@
-{* ProductsServices SummaryViewWidgets: SALES 1fr / 2fr grid — Key+Documents left column areas, Activities+Comments right. *}
+{* ProductsServices Summary — clean catalog layout (info + documents only). *}
 {strip}
+{if isset($DETAILVIEW_LINKS) && isset($DETAILVIEW_LINKS['DETAILVIEWWIDGET'])}
 {foreach item=DETAIL_VIEW_WIDGET from=$DETAILVIEW_LINKS['DETAILVIEWWIDGET']}
 	{if ($DETAIL_VIEW_WIDGET->getLabel() eq 'Documents') }
 		{assign var=DOCUMENT_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
-	{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'ModComments')}
-		{assign var=COMMENTS_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
-	{elseif ($DETAIL_VIEW_WIDGET->getLabel() eq 'LBL_UPDATES')}
-		{assign var=UPDATES_WIDGET_MODEL value=$DETAIL_VIEW_WIDGET}
 	{/if}
 {/foreach}
+{/if}
 
-{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
-	<div class="mk-ps-summary-grid">
-		<section class="mk-ps-detail-card mk-ps-detail-card--key mk-ps-summary-grid__key" aria-labelledby="mk-ps-detail-keyfields-title">
-			<div class="mk-ps-detail-card__head">
-				<h2 id="mk-ps-detail-keyfields-title" class="mk-ps-detail-card__title">{vtranslate('LBL_KEY_FIELDS', $MODULE_NAME)}</h2>
-			</div>
-			<div class="summaryView mk-ps-detail-summaryView">
-				<div class="summaryViewFields mk-ps-detail-kv-wrap">
-					{$MODULE_SUMMARY}
+{if (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY eq 'SALES' || $SELECTED_MENU_CATEGORY eq 'INVENTORY')) || (isset($smarty.get.app) && ($smarty.get.app eq 'SALES' || $smarty.get.app eq 'INVENTORY'))}
+	<div class="mk-ps-v2-summary" data-mk-ps-detail-v2="1">
+		<section class="mk-ps-v2-card mk-ps-v2-card--info" aria-labelledby="mk-ps-v2-info-title">
+			<header class="mk-ps-v2-card__head">
+				<span class="mk-ps-v2-card__accent" aria-hidden="true"></span>
+				<div class="mk-ps-v2-card__head-text">
+					<h2 id="mk-ps-v2-info-title" class="mk-ps-v2-card__title">Thông tin hàng hoá</h2>
+					<p class="mk-ps-v2-card__hint">Các trường chính — xem tab Chi tiết để xem đầy đủ</p>
+				</div>
+			</header>
+			<div class="summaryView mk-ps-v2-summaryView">
+				<div class="summaryViewFields mk-ps-v2-fields">
+					{if $MODULE_SUMMARY}
+						{$MODULE_SUMMARY}
+					{else}
+						<p class="mk-ps-v2-empty">Không có trường tóm tắt để hiển thị. Mở tab <strong>Chi tiết</strong> để xem đầy đủ.</p>
+					{/if}
 				</div>
 			</div>
 		</section>
 
-		<section class="mk-ps-detail-card mk-ps-detail-card--activities mk-ps-summary-grid__activities" aria-label="{vtranslate('LBL_ACTIVITIES','Calendar')}">
-			<div id="relatedActivities" class="mk-ps-detail-related-activities">
-				{$RELATED_ACTIVITIES}
-			</div>
-		</section>
-
-		{if isset($RECORD_STRUCTURE) && $RECORD_STRUCTURE|@count gt 0}
-		<section class="mk-ps-detail-card mk-ps-detail-card--overview mk-ps-summary-grid__overview" aria-labelledby="mk-ps-detail-overview-title">
-			<div class="mk-ps-detail-card__head">
-				<h2 id="mk-ps-detail-overview-title" class="mk-ps-detail-card__title">{vtranslate('LBL_DETAILS', $MODULE_NAME)}</h2>
-			</div>
-			<div class="mk-ps-detail-overview-body">
-				{include file='DetailViewBlockView.tpl'|@vtemplate_path:$MODULE_NAME RECORD_STRUCTURE=$RECORD_STRUCTURE MODULE_NAME=$MODULE_NAME}
-			</div>
-		</section>
-		{/if}
-
 		{if $DOCUMENT_WIDGET_MODEL}
-		<section class="mk-ps-detail-card mk-ps-detail-card--documents mk-ps-summary-grid__documents" aria-labelledby="mk-ps-detail-documents-title">
-			<div class="summaryWidgetContainer mk-ps-detail-widget-host">
+		<section class="mk-ps-v2-card mk-ps-v2-card--docs" aria-labelledby="mk-ps-v2-docs-title">
+			<div class="summaryWidgetContainer mk-ps-v2-widget-host">
 				<div class="widgetContainer_documents" data-url="{$DOCUMENT_WIDGET_MODEL->getUrl()}" data-name="{$DOCUMENT_WIDGET_MODEL->getLabel()}">
-					<div class="widget_header clearfix mk-ps-detail-card__head mk-ps-detail-documents__head">
+					<div class="widget_header clearfix mk-ps-v2-card__head mk-ps-v2-docs__head">
 						<input type="hidden" name="relatedModule" value="{$DOCUMENT_WIDGET_MODEL->get('linkName')}" />
-						<span class="toggleButton pull-left"><i class="fa fa-angle-down"></i>&nbsp;&nbsp;</span>
-						<h2 id="mk-ps-detail-documents-title" class="mk-ps-detail-card__title"><span class="mk-ps-heading-svg mk-ps-heading-svg--file" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>{vtranslate($DOCUMENT_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h2>
+						<span class="toggleButton pull-left hide" aria-hidden="true"><i class="fa fa-angle-down"></i></span>
+						<span class="mk-ps-v2-card__accent" aria-hidden="true"></span>
+						<div class="mk-ps-v2-card__head-text">
+							<h2 id="mk-ps-v2-docs-title" class="mk-ps-v2-card__title">Tài liệu</h2>
+							<p class="mk-ps-v2-card__hint">Đính kèm hồ sơ, chứng nhận, hình ảnh sản phẩm</p>
+						</div>
 						{if $DOCUMENT_WIDGET_MODEL->get('action')}
 							{assign var=PARENT_ID value=$RECORD->getId()}
-							<div class="pull-right">
+							<div class="mk-ps-v2-docs__actions pull-right">
 								<div class="dropdown">
-									<button type="button" class="btn btn-default dropdown-toggle mk-ps-detail-btn mk-ps-detail-btn--ghost" data-toggle="dropdown">
-										<span class="fa fa-plus" title="{vtranslate('LBL_NEW_DOCUMENT', $MODULE_NAME)}"></span>&nbsp;{vtranslate('LBL_NEW_DOCUMENT', 'Documents')}&nbsp; <span class="caret"></span>
+									<button type="button" class="btn btn-default dropdown-toggle mk-ps-v2-btn mk-ps-v2-btn--ghost" data-toggle="dropdown">
+										<span class="fa fa-plus"></span>&nbsp;Thêm tài liệu&nbsp;<span class="caret"></span>
 									</button>
-									<ul class="dropdown-menu">
+									<ul class="dropdown-menu dropdown-menu-right">
 										<li class="dropdown-header"><i class="fa fa-upload"></i> {vtranslate('LBL_FILE_UPLOAD', 'Documents')}</li>
 										<li id="VtigerAction">
 											<a href="javascript:Documents_Index_Js.uploadTo('Vtiger',{$PARENT_ID},'{$MODULE_NAME}')">
-												<img style="margin-top: -3px;margin-right: 4%;" title="Vtiger" alt="Vtiger" src="layouts/v7/skins//images/Vtiger.png">
 												{vtranslate('LBL_TO_SERVICE', 'Documents', {vtranslate('LBL_VTIGER', 'Documents')})}
 											</a>
 										</li>
 										<li role="separator" class="divider"></li>
 										<li class="dropdown-header"><i class="fa fa-link"></i> {vtranslate('LBL_LINK_EXTERNAL_DOCUMENT', 'Documents')}</li>
-										<li id="shareDocument"><a href="javascript:Documents_Index_Js.createDocument('E',{$PARENT_ID},'{$MODULE_NAME}')">&nbsp;<i class="fa fa-external-link"></i>&nbsp;&nbsp; {vtranslate('LBL_FROM_SERVICE', 'Documents', {vtranslate('LBL_FILE_URL', 'Documents')})}</a></li>
+										<li id="shareDocument"><a href="javascript:Documents_Index_Js.createDocument('E',{$PARENT_ID},'{$MODULE_NAME}')">{vtranslate('LBL_FROM_SERVICE', 'Documents', {vtranslate('LBL_FILE_URL', 'Documents')})}</a></li>
 										<li role="separator" class="divider"></li>
-										<li id="createDocument"><a href="javascript:Documents_Index_Js.createDocument('W',{$PARENT_ID},'{$MODULE_NAME}')"><i class="fa fa-file-text"></i> {vtranslate('LBL_CREATE_NEW', 'Documents', {vtranslate('SINGLE_Documents', 'Documents')})}</a></li>
+										<li id="createDocument"><a href="javascript:Documents_Index_Js.createDocument('W',{$PARENT_ID},'{$MODULE_NAME}')">{vtranslate('LBL_CREATE_NEW', 'Documents', {vtranslate('SINGLE_Documents', 'Documents')})}</a></li>
 									</ul>
 								</div>
 							</div>
 						{/if}
 					</div>
-					<div class="widget_contents mk-ps-detail-documents__body"></div>
+					<div class="widget_contents mk-ps-v2-docs__body"></div>
 				</div>
 			</div>
 		</section>
 		{/if}
 
-		{if $COMMENTS_WIDGET_MODEL}
-		<section class="mk-ps-detail-card mk-ps-detail-card--comments mk-ps-summary-grid__comments" aria-labelledby="mk-ps-detail-comments-title">
-			<div class="summaryWidgetContainer mk-ps-detail-widget-host">
-				<div class="widgetContainer_comments" data-url="{$COMMENTS_WIDGET_MODEL->getUrl()}" data-name="{$COMMENTS_WIDGET_MODEL->getLabel()}">
-					<div class="widget_header mk-ps-detail-card__head">
-						<input type="hidden" name="relatedModule" value="{$COMMENTS_WIDGET_MODEL->get('linkName')}" />
-						<h2 id="mk-ps-detail-comments-title" class="mk-ps-detail-card__title"><span class="mk-ps-heading-svg mk-ps-heading-svg--comment" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>{vtranslate($COMMENTS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h2>
-					</div>
-					<div class="widget_contents"></div>
-				</div>
-			</div>
-		</section>
-		{/if}
+		{* Activities kept out of layout (catalog master). *}
+		<div id="relatedActivities" class="hide" aria-hidden="true">{if isset($RELATED_ACTIVITIES)}{$RELATED_ACTIVITIES}{/if}</div>
 	</div>
 {else}
 <div class="left-block col-lg-5">
@@ -114,17 +95,6 @@
 </div>
 <div class="middle-block col-lg-7">
 	<div id="relatedActivities">{$RELATED_ACTIVITIES}</div>
-	{if $COMMENTS_WIDGET_MODEL}
-	<div class="summaryWidgetContainer">
-		<div class="widgetContainer_comments" data-url="{$COMMENTS_WIDGET_MODEL->getUrl()}" data-name="{$COMMENTS_WIDGET_MODEL->getLabel()}">
-			<div class="widget_header">
-				<input type="hidden" name="relatedModule" value="{$COMMENTS_WIDGET_MODEL->get('linkName')}" />
-				<h3 class="display-inline-block">{vtranslate($COMMENTS_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h3>
-			</div>
-			<div class="widget_contents"></div>
-		</div>
-	</div>
-	{/if}
 </div>
 {/if}
 {/strip}

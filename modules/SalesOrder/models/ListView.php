@@ -12,6 +12,174 @@ class SalesOrder_ListView_Model extends Inventory_ListView_Model {
 	/** Set to true temporarily to log team mapping to storage/logs/tools_orders_debug.log */
 	const TOOLS_ORDERS_DEBUG_LOG = true;
 
+	public function getListViewEntries($pagingModel) {
+		$listViewRecordModels = parent::getListViewEntries($pagingModel);
+		if (empty($listViewRecordModels)) {
+			return $listViewRecordModels;
+		}
+		if (strtoupper((string) ($_REQUEST['app'] ?? '')) === 'SALES') {
+			require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
+			$warehouseNames = $this->loadWarehouseNamesBySalesOrderIds(array_keys($listViewRecordModels));
+			foreach ($listViewRecordModels as $recordId => $recordModel) {
+				$corrected = $this->resolveDisplayGrandTotal($recordModel);
+				if ($corrected !== null) {
+					$formatted = CurrencyField::convertToUserFormat($corrected, null, true);
+					$recordModel->set('hdnGrandTotal', $formatted);
+					$recordModel->set('total', $formatted);
+				}
+				$listViewRecordModels[$recordId] = Vtiger_MkSalesCustomerName_Helper::applyListCustomerColumn($recordModel);
+				$whName = isset($warehouseNames[(int) $recordId]) ? $warehouseNames[(int) $recordId] : '';
+				$listViewRecordModels[$recordId]->set('mk_warehouse_name', $whName !== '' ? $whName : '—');
+			}
+		}
+		return $listViewRecordModels;
+	}
+
+	/**
+	 * Map salesorderid => warehouse display name (from linked goods issue).
+	 *
+	 * @param array $salesOrderIds
+	 * @return array
+	 */
+	protected function loadWarehouseNamesBySalesOrderIds(array $salesOrderIds) {
+		$ids = array();
+		foreach ($salesOrderIds as $id) {
+			$id = (int) $id;
+			if ($id > 0) {
+				$ids[] = $id;
+			}
+		}
+		$ids = array_values(array_unique($ids));
+		if (empty($ids)) {
+			return array();
+		}
+		$db = PearDatabase::getInstance();
+		$rs = $db->pquery(
+			'SELECT gi.salesorder_id, gi.warehouse_id, gi.storage_location
+			 FROM vtiger_goodsissue gi
+			 WHERE gi.deleted = 0 AND gi.salesorder_id IN (' . generateQuestionMarks($ids) . ')
+			 ORDER BY gi.issueid DESC',
+			$ids
+		);
+		$map = array();
+		require_once 'modules/Warehouse/helpers/WarehouseRegistry.php';
+		if ($rs) {
+			while ($row = $db->fetchByAssoc($rs)) {
+				$soId = (int) (isset($row['salesorder_id']) ? $row['salesorder_id'] : 0);
+				if ($soId <= 0 || isset($map[$soId])) {
+					continue;
+				}
+				$whId = trim((string) (isset($row['warehouse_id']) ? $row['warehouse_id'] : ''));
+				$name = $whId !== '' ? Warehouse_Registry::getName($whId) : '';
+				if ($name === '') {
+					$name = trim(decode_html((string) (isset($row['storage_location']) ? $row['storage_location'] : '')));
+				}
+				if ($name !== '') {
+					$map[$soId] = $name;
+				}
+			}
+		}
+		return $map;
+	}
+
+	/**
+	 * List "Tổng cộng" for SALES BA:
+	 * Unit prices already include VAT — do NOT invent +8% tax (that caused 1tr → 1.08tr after quote confirm).
+	 * Prefer DB header total; fall back to line sum − discount + ship + adjustment − paid.
+	 */
+	protected function resolveDisplayGrandTotal(Vtiger_Record_Model $recordModel) {
+		$recordId = (int) $recordModel->getId();
+		if ($recordId <= 0) {
+			return null;
+		}
+
+		$db = PearDatabase::getInstance();
+		$headerResult = $db->pquery(
+			'SELECT subtotal, total, pre_tax_total, discount_amount, discount_percent,
+			        s_h_amount, adjustment, received
+			 FROM vtiger_salesorder WHERE salesorderid = ?',
+			array($recordId)
+		);
+		if (!$headerResult || $db->num_rows($headerResult) === 0) {
+			return null;
+		}
+
+		$headerSubTotal = (float) $db->query_result($headerResult, 0, 'subtotal');
+		$headerTotal = (float) $db->query_result($headerResult, 0, 'total');
+		$discount = (float) $db->query_result($headerResult, 0, 'discount_amount');
+		$discountPct = (float) $db->query_result($headerResult, 0, 'discount_percent');
+		$shipping = (float) $db->query_result($headerResult, 0, 's_h_amount');
+		$adjustment = (float) $db->query_result($headerResult, 0, 'adjustment');
+		$paid = (float) $db->query_result($headerResult, 0, 'received');
+		if ($paid < 0) {
+			$paid = 0;
+		}
+
+		$lineResult = $db->pquery(
+			'SELECT COALESCE(SUM(quantity * listprice), 0) AS line_subtotal FROM vtiger_inventoryproductrel WHERE id = ?',
+			array($recordId)
+		);
+		$lineSubTotal = (float) $db->query_result($lineResult, 0, 'line_subtotal');
+
+		$subTotal = $headerSubTotal > 0 ? $headerSubTotal : $lineSubTotal;
+		if ($lineSubTotal > 0) {
+			if ($headerSubTotal <= 0) {
+				$subTotal = $lineSubTotal;
+			} elseif ($lineSubTotal > ($headerSubTotal * 50) || $headerSubTotal > ($lineSubTotal * 50)) {
+				// Prefer the more coherent of the two
+				$subTotal = min($headerSubTotal, $lineSubTotal);
+				if ($subTotal <= 0) {
+					$subTotal = max($headerSubTotal, $lineSubTotal);
+				}
+			} else {
+				// Line sum is BA source of truth for goods value
+				$subTotal = $lineSubTotal;
+			}
+		}
+
+		if ($discount <= 0 && $discountPct > 0 && $subTotal > 0) {
+			$discount = $subTotal * $discountPct / 100;
+		}
+
+		$netFromLines = max(0.0, $subTotal - $discount + $shipping + $adjustment);
+
+		// Prefer stored header total (quote→SO writes total after chiết khấu).
+		// Do NOT force grand back to full line sum when header already reflects discount.
+		$grand = $netFromLines;
+		if ($headerTotal > 0) {
+			// Infer %/amount discount missing on old rows: header < goods
+			if ($discount <= 0 && $discountPct <= 0 && $subTotal > 0 && $headerTotal + 0.5 < $subTotal) {
+				$discount = max(0.0, $subTotal + $shipping + $adjustment - $headerTotal);
+				$netFromLines = max(0.0, $subTotal - $discount + $shipping + $adjustment);
+			}
+			$ratio = $headerTotal / max($netFromLines > 0 ? $netFromLines : $subTotal, 1);
+			// Strip invented ~8% VAT on header
+			if ($ratio > 1.05 && $ratio < 1.12 && abs($headerTotal - $netFromLines * 1.08) < max(100, $netFromLines * 0.02)) {
+				$grand = $netFromLines;
+			} elseif ($headerTotal > 0 && ($subTotal <= 0 || $headerTotal <= $subTotal * 1.05 + max(100, $subTotal * 0.02))) {
+				// Accept discounted header even when ratio < 0.85 (e.g. 30% chiết khấu)
+				$grand = $headerTotal;
+			} elseif ($netFromLines > 0) {
+				$grand = $netFromLines;
+			} else {
+				$grand = $headerTotal;
+			}
+		}
+
+		if ($grand <= 0 && $headerTotal > 0) {
+			$grand = $headerTotal;
+		}
+		if ($grand <= 0) {
+			return null;
+		}
+
+		$remaining = $grand - $paid;
+		if ($remaining < 0) {
+			$remaining = 0;
+		}
+		return $remaining;
+	}
+
 	protected function isToolsOrdersContext() {
 		return strtoupper((string) ($_REQUEST['app'] ?? '')) === 'TOOLS';
 	}

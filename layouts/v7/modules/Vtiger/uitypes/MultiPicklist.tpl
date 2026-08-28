@@ -9,7 +9,6 @@
   *
  ********************************************************************************/
 -->*}
-{strip}
 	{assign var="FIELD_INFO" value=$FIELD_MODEL->getFieldInfo()}
 	{assign var="SPECIAL_VALIDATOR" value=$FIELD_MODEL->getValidator()}
 	{assign var="FIELD_VALUE_LIST" value=explode(' |##| ',$FIELD_MODEL->get('fieldvalue'))}
@@ -27,7 +26,7 @@
 			<option value="{Vtiger_Util_Helper::toSafeHTML($PICKLIST_NAME)}" {if $PICKLIST_COLORS[$PICKLIST_NAME]}class="{$CLASS_NAME}"{/if} {if in_array(Vtiger_Util_Helper::toSafeHTML($PICKLIST_NAME), $FIELD_VALUE_LIST)} selected {/if}>{vtranslate($PICKLIST_VALUE, $MODULE)}</option>
 		{/foreach}
 	</select>
-	{if $PICKLIST_COLORS}
+	{if $PICKLIST_COLORS && empty($MK_MODERN_QUOTE_CREATE) && empty($MK_MODERN_SALES_ORDER_CREATE) && empty($MK_MODERN_INVOICE_CREATE)}
 		<style type="text/css">
 			{foreach item=PICKLIST_VALUE key=PICKLIST_NAME from=$PICKLIST_VALUES}
 			{assign var=CLASS_NAME value="{$FIELD_MODEL->getFieldName()}_{$PICKLIST_NAME|replace:' ':'_'}"}
@@ -47,4 +46,3 @@
 			{/foreach}
 		</style>
 	{/if}
-{/strip}

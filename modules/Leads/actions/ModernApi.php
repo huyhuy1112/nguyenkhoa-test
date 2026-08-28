@@ -7,6 +7,7 @@ require_once 'modules/Leads/models/ModernService.php';
 require_once 'modules/Leads/models/CommerceService.php';
 require_once 'modules/Leads/models/ConvertService.php';
 require_once 'modules/Leads/models/DetailFeedService.php';
+require_once 'modules/Leads/models/SalesVerifyService.php';
 
 class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 
@@ -26,13 +27,24 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string)$request->get('mode'));
-		if (in_array($mode, array('save', 'delete', 'segments_save', 'seed', 'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save', 'bulk_assign_owner', 'dedupe_leads'), true)) {
+		if (in_array($mode, array(
+			'save', 'save_next_action', 'save_inline_category_tags', 'delete', 'segments_save', 'seed',
+			'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save', 'bulk_assign_owner',
+			'dedupe_leads', 'last_touch_call_log',
+			'sheet_settings_save', 'sheet_poll_now', 'merge_leads', 'restore_lead', 'purge_lead', 'soft_delete',
+			'sales_verify_save',
+		), true)) {
 			$request->validateWriteAccess();
 		}
 	}
 
 	public function process(Vtiger_Request $request) {
 		global $current_user;
+		// Keep AJAX JSON clean even when config.inc.php enables display_errors (local/dev).
+		$prevDisplayErrors = ini_get('display_errors');
+		ini_set('display_errors', '0');
+		$obLevel = ob_get_level();
+		ob_start();
 		$response = new Vtiger_Response();
 		$mode = strtolower((string)$request->get('mode'));
 		$userId = (int)$current_user->id;
@@ -130,11 +142,61 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 				case 'save':
 					$payload = $this->decodePayload($request);
 					$recordId = $request->get('record');
-					if (!$recordId && isset($payload['id'])) {
-						$recordId = $payload['id'];
+					if ($recordId === null || $recordId === '') {
+						if (isset($payload['crmid']) && $payload['crmid'] !== '') {
+							$recordId = $payload['crmid'];
+						} elseif (isset($payload['id']) && $payload['id'] !== '') {
+							$recordId = $payload['id'];
+						}
 					}
 					$lead = Leads_ModernService::saveLead($payload, $recordId);
 					$response->setResult(array('success' => true, 'lead' => $lead));
+					break;
+
+				case 'save_next_action':
+					$recordId = $request->get('record');
+					if ($recordId === null || $recordId === '') {
+						$recordId = $request->get('id');
+					}
+					$nextAction = $request->get('next_action');
+					if ($nextAction === null) {
+						$payload = $this->decodePayload($request);
+						$nextAction = isset($payload['next_action']) ? $payload['next_action'] : '';
+						if (($recordId === null || $recordId === '') && isset($payload['id'])) {
+							$recordId = $payload['id'];
+						}
+					}
+					$saved = Leads_ModernService::updateNextAction($recordId, $nextAction);
+					$response->setResult(array('success' => true, 'next_action' => $saved));
+					break;
+
+				case 'save_inline_category_tags':
+					$recordId = $request->get('record');
+					if ($recordId === null || $recordId === '') {
+						$recordId = $request->get('id');
+					}
+					$payload = $this->decodePayload($request);
+					$cats = array();
+					$map = array(
+						'source' => array('source', 'mk_source'),
+						'customer' => array('customer', 'mk_customer'),
+						'purchase' => array('purchase', 'mk_stage'),
+						'tier' => array('tier', 'mk_tier'),
+					);
+					foreach ($map as $catKey => $aliases) {
+						foreach ($aliases as $alias) {
+							if (isset($payload[$alias])) {
+								$cats[$catKey] = $payload[$alias];
+								break;
+							}
+							if ($request->has($alias)) {
+								$cats[$catKey] = $request->get($alias);
+								break;
+							}
+						}
+					}
+					$result = Leads_ModernService::updateInlineCategoryTags($recordId, $cats, $userId);
+					$response->setResult(array('success' => true) + $result);
 					break;
 
 				case 'delete':
@@ -142,8 +204,149 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 					if ($id === null || $id === '') {
 						$id = $request->get('record');
 					}
-					Leads_ModernService::deleteLead($id);
+					$purge = (bool)$request->get('purge');
+					if ($purge) {
+						Leads_ModernService::purgeLead($id);
+					} else {
+						Leads_ModernService::softDeleteLead($id);
+					}
 					$response->setResult(array('success' => true));
+					break;
+
+				case 'soft_delete':
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					Leads_ModernService::softDeleteLead($id);
+					$response->setResult(array('success' => true));
+					break;
+
+				case 'restore_lead':
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					Leads_ModernService::restoreLead($id);
+					$response->setResult(array(
+						'success' => true,
+						'lead' => Leads_ModernService::getLead($id, $userId),
+					));
+					break;
+
+				case 'purge_lead':
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					Leads_ModernService::purgeLead($id);
+					$response->setResult(array('success' => true));
+					break;
+
+				case 'list_trash':
+					$response->setResult(array(
+						'success' => true,
+						'leads' => Leads_ModernService::listTrashLeads($userId),
+					));
+					break;
+
+				case 'merge_leads':
+					$payload = $this->decodePayload($request);
+					$keeper = isset($payload['keeper_id']) ? $payload['keeper_id'] : $request->get('keeper_id');
+					$discard = isset($payload['discard_id']) ? $payload['discard_id'] : $request->get('discard_id');
+					$lead = Leads_ModernService::mergeLeads($keeper, $discard, $userId);
+					$response->setResult(array('success' => true, 'lead' => $lead));
+					break;
+
+				case 'sheet_settings_get':
+					require_once 'modules/Leads/models/SheetImportService.php';
+					if (!is_admin($current_user)) {
+						throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+					}
+					// Never return private_key / full SA JSON to browser
+					$settings = Leads_SheetImportService::getSettingsForAdmin();
+					$response->setResult(array('success' => true, 'settings' => $settings));
+					break;
+
+				case 'sheet_settings_save':
+					require_once 'modules/Leads/models/SheetImportService.php';
+					if (!is_admin($current_user)) {
+						throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+					}
+					$payload = $this->decodePayload($request);
+					Leads_SheetImportService::saveSettings($payload, $userId);
+					Leads_SheetImportService::registerCron();
+					$response->setResult(array(
+						'success' => true,
+						'settings' => Leads_SheetImportService::getSettingsForAdmin(),
+					));
+					break;
+
+				case 'sheet_poll_now':
+					require_once 'modules/Leads/models/SheetImportService.php';
+					if (!is_admin($current_user)) {
+						throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+					}
+					$result = Leads_SheetImportService::pollOnce();
+					$response->setResult(array('success' => !empty($result['success'])) + $result);
+					break;
+
+				case 'sales_verify_options':
+					$response->setResult(array(
+						'success' => true,
+						'options' => Leads_SalesVerifyService::optionsCatalog(),
+					));
+					break;
+
+				case 'sales_verify_preview':
+					$payload = $this->decodePayload($request);
+					$result = Leads_SalesVerifyService::compute(array(
+						'c1' => isset($payload['c1']) ? $payload['c1'] : '',
+						'c2' => isset($payload['c2']) ? $payload['c2'] : '',
+						'c3' => isset($payload['c3']) ? $payload['c3'] : '',
+						'c4' => isset($payload['c4']) ? $payload['c4'] : 0,
+						'c5' => isset($payload['c5']) ? $payload['c5'] : 0,
+					));
+					$response->setResult(array('success' => true, 'result' => $result));
+					break;
+
+				case 'sales_verify_save':
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					$saved = Leads_SalesVerifyService::saveForLead($id, $payload, $userId);
+					$response->setResult($saved);
+					break;
+
+				case 'sheet_poll_status':
+					require_once 'modules/Leads/models/SheetImportService.php';
+					$settings = Leads_SheetImportService::getSettings();
+					$importCount = 0;
+					try {
+						$adb = PearDatabase::getInstance();
+						$cntRes = $adb->pquery(
+							'SELECT COUNT(*) AS c FROM ' . Leads_SheetImportService::TABLE_IMPORT,
+							array()
+						);
+						if ($cntRes && $adb->num_rows($cntRes) > 0) {
+							$importCount = (int) $adb->query_result($cntRes, 0, 'c');
+						}
+					} catch (Exception $e) {
+						$importCount = 0;
+					}
+					$response->setResult(array(
+						'success' => true,
+						'enabled' => !empty($settings['enabled']),
+						'last_poll_at' => $settings['last_poll_at'],
+						'last_error' => $settings['last_error'],
+						'last_result' => $settings['last_result'],
+						'import_count' => $importCount,
+					));
 					break;
 
 				case 'segments_list':
@@ -200,6 +403,41 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 					));
 					break;
 
+				case 'last_touch_call_list':
+					require_once 'modules/Leads/models/LastTouchCallService.php';
+					$leadId = $request->get('id');
+					if ($leadId === null || $leadId === '') {
+						$leadId = $request->get('record');
+					}
+					$response->setResult(array(
+						'success' => true,
+						'lastTouchCalls' => Leads_LastTouchCallService::getSummary($leadId),
+					));
+					break;
+
+				case 'last_touch_call_log':
+					require_once 'modules/Leads/models/LastTouchCallService.php';
+					$leadId = $request->get('id');
+					if ($leadId === null || $leadId === '') {
+						$leadId = $request->get('record');
+					}
+					$result = $request->get('call_result');
+					if ($result === null || $result === '') {
+						$result = $request->get('result');
+					}
+					$note = $request->get('note');
+					if ($note === null) {
+						$note = $request->get('call_note');
+					}
+					$logged = Leads_LastTouchCallService::logCall($leadId, $result, $note, $userId);
+					$response->setResult(array(
+						'success' => true,
+						'lastTouchCalls' => $logged,
+						'lead' => isset($logged['lead']) ? $logged['lead'] : null,
+						'convert' => isset($logged['convert']) ? $logged['convert'] : null,
+					));
+					break;
+
 				case 'calendar_tasks_sync':
 					$leadId = $request->get('id');
 					if ($leadId === null || $leadId === '') {
@@ -225,11 +463,28 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 						$leadId = $request->get('record');
 					}
 					$createAccount = (bool)$request->get('create_account');
-					$result = Leads_ConvertService::convertLead($leadId, array(
-						'create_account' => $createAccount,
-						'order_category' => $request->get('order_category'),
-					));
-					$response->setResult(array('success' => true) + $result);
+					$orderCategory = $request->get('order_category');
+					try {
+						$result = Leads_ConvertService::convertLead($leadId, array(
+							'create_account' => $createAccount,
+							'order_category' => $orderCategory,
+						));
+						$response->setResult(array('success' => true) + $result);
+					} catch (Exception $convertEx) {
+						// Return debug info for browser console (BA/dev only).
+						$debug = array(
+							'lead_id' => $leadId,
+							'create_account' => $createAccount,
+							'order_category' => $orderCategory,
+							'message' => $convertEx->getMessage(),
+						);
+						error_log('[MK_LEAD_CONVERT_FAIL] ' . json_encode($debug));
+						$response->setResult(array(
+							'success' => false,
+							'error' => $convertEx->getMessage(),
+							'debug' => $debug,
+						));
+					}
 					break;
 
 				default:
@@ -239,6 +494,11 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 			$response->setError($e->getMessage());
 		}
 
+		// Discard any accidental notice/warning HTML before JSON emit.
+		while (ob_get_level() > $obLevel) {
+			ob_end_clean();
+		}
+		ini_set('display_errors', $prevDisplayErrors);
 		$response->emit();
 	}
 

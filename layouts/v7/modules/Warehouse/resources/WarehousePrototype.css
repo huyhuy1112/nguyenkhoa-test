@@ -167,6 +167,9 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh
 	border-radius: 10px;
 	padding: 6px 10px;
 	background: #fff;
+	overflow: visible;
+	text-overflow: clip;
+	box-sizing: border-box;
 }
 
 /* Match Inventory Inbound shell spacing/reset */
@@ -480,7 +483,7 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 
 .mk-wh-proto-kpis {
 	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+	grid-template-columns: repeat(5, minmax(0, 1fr));
 	gap: 10px;
 	margin-bottom: 12px;
 }
@@ -591,10 +594,14 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	inset: 0;
 	display: none;
 	z-index: 2000;
+	align-items: stretch;
+	justify-content: center;
+	padding: 20px 16px;
+	box-sizing: border-box;
 }
 
 .mk-wh-proto-modal.is-open {
-	display: block;
+	display: flex;
 }
 
 .mk-wh-proto-modal__backdrop {
@@ -606,20 +613,28 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 .mk-wh-proto-modal__dialog {
 	position: relative;
 	width: min(560px, calc(100vw - 24px));
-	margin: 80px auto 0;
+	margin: auto;
 	background: #fff;
 	border-radius: 16px;
 	box-shadow: 0 18px 60px rgba(2, 6, 23, 0.35);
 	overflow: hidden;
+	z-index: 1;
 }
 
 .mk-wh-proto-modal__dialog--compact {
-	width: min(840px, calc(100vw - 48px));
-	margin: 96px auto 28px;
-	max-height: calc(100vh - 124px);
+	width: min(1080px, calc(100vw - 40px));
+	max-height: min(92vh, 960px);
+	margin: auto;
 	display: flex;
 	flex-direction: column;
-	box-shadow: 0 24px 80px rgba(15, 23, 42, 0.45);
+	box-shadow: 0 32px 100px rgba(15, 23, 42, 0.42);
+}
+
+.mk-wh-proto-modal__dialog--workspace {
+	width: min(1280px, calc(100vw - 32px));
+	max-height: min(94vh, 980px);
+	height: min(90vh, 920px);
+	border-radius: 18px;
 }
 
 .mk-wh-proto-modal__dialog--compact .mk-wh-proto-modal__body {
@@ -627,35 +642,37 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	flex-direction: column;
 	flex: 1 1 auto;
 	min-height: 0;
-	padding: 18px 22px 14px;
+	padding: 20px 24px 16px;
 }
 
 .mk-wh-proto-modal__dialog--compact .mk-wh-proto-form-grid {
 	flex: 1 1 auto;
 	min-height: 0;
 	overflow-y: auto;
-	gap: 10px 14px;
+	gap: 14px 18px;
+	align-content: start;
 }
 
 .mk-wh-proto-modal__dialog--compact .mk-wh-proto-modal__head {
-	padding: 16px 22px;
-	background: linear-gradient(135deg, #ecfdf3 0%, #dcfce7 48%, #bbf7d0 100%);
-	color: #78350f;
-	border-bottom: 1px solid rgba(251, 191, 36, 0.35);
+	padding: 18px 24px;
+	background: #fff;
+	color: #0f172a;
+	border-bottom: 1px solid #e8edf2;
 }
 
 .mk-wh-proto-modal__dialog--lux {
-	border: 1px solid rgba(251, 191, 36, 0.35);
+	border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .mk-wh-proto-modal__dialog--lux .mk-wh-proto-modal__close {
-	color: #073B3A;
+	color: #475569;
 }
 
 .mk-wh-proto-modal__dialog--lux .mk-wh-proto-modal__title {
-	font-size: 15px;
-	font-weight: 800;
-	color: #78350f;
+	font-size: 1.15rem;
+	font-weight: 700;
+	color: #0f172a;
+	letter-spacing: -0.02em;
 }
 
 .mk-wh-proto-lines--catalog .mk-wh-proto-lines__head {
@@ -667,38 +684,89 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	font-weight: 700;
 }
 
+.mk-wh-proto-lines__quick {
+	padding: 14px 16px 16px;
+	border-bottom: 1px solid #e8edf2;
+	background: #fafbfc;
+}
+
+.mk-wh-proto-lines__quick-label {
+	display: block;
+	margin-bottom: 8px;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	color: #64748b;
+}
+
+.mk-wh-proto-lines-quick-s2 {
+	width: 100% !important;
+	max-width: 100%;
+}
+
+.mk-wh-proto-lines__quick .select2-choice {
+	height: 44px !important;
+	line-height: 42px !important;
+	border-radius: 12px !important;
+	border: 1px solid #dce3ea !important;
+	background: #fff !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+.mk-wh-proto-lines__quick .select2-container.select2-container-active .select2-choice,
+.mk-wh-proto-lines__quick .select2-choice:hover {
+	border-color: rgba(8, 160, 69, 0.45) !important;
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.12) !important;
+}
+
 .mk-wh-proto-lines--catalog .mk-wh-proto-lines__table th {
-	background: linear-gradient(180deg, #ffffff 0%, #eef2ff 100%);
-	color: #4338ca;
-	border-bottom: 1px solid rgba(99, 102, 241, 0.14);
+	background: #f8fafc;
+	color: #64748b;
+	border-bottom: 1px solid #e2e8f0;
 }
 
 .mk-wh-proto-lines--catalog .mk-wh-proto-lines__table {
-	min-width: 920px;
+	min-width: 1180px;
+	width: max-content;
+	max-width: none;
+	table-layout: auto;
 }
 
 .mk-wh-proto-lines__table .mk-wh-proto-col-name {
 	min-width: 200px;
+	width: 22%;
 }
 
 .mk-wh-proto-lines__table .mk-wh-proto-col-sku {
-	min-width: 108px;
-	width: 112px;
+	min-width: 96px;
+	width: 9%;
+}
+
+.mk-wh-proto-lines__table .mk-wh-proto-col-unit {
+	min-width: 72px;
+	width: 7%;
 }
 
 .mk-wh-proto-lines__table .mk-wh-proto-col-lot {
-	min-width: 132px;
-	width: 136px;
+	min-width: 118px;
+	width: 11%;
 }
 
 .mk-wh-proto-lines__table .mk-wh-proto-col-qty {
-	min-width: 96px;
-	width: 100px;
+	min-width: 84px;
+	width: 7%;
 }
 
+/* Date cols need room for locale (dd/mm/yyyy) + calendar icon */
 .mk-wh-proto-lines__table .mk-wh-proto-col-date {
-	min-width: 138px;
-	width: 142px;
+	min-width: 158px;
+	width: 158px;
+	white-space: nowrap;
+}
+
+.mk-wh-proto-lines__table .mk-wh-proto-col-act {
+	width: 44px;
+	min-width: 44px;
 }
 
 .mk-wh-proto-lines__table .mk-wh-proto-col-lot input,
@@ -711,14 +779,48 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	font-weight: 600;
 	color: #0f172a;
 	box-sizing: border-box;
+	overflow: visible;
+	text-overflow: clip;
 }
 
 .mk-wh-proto-lines__table .mk-wh-proto-col-qty input {
 	text-align: right;
+	min-width: 64px;
+	font-variant-numeric: tabular-nums;
+}
+
+.mk-wh-proto-lines__table .mk-wh-proto-col-date input[type="date"],
+.mk-wh-proto-lines__table .mk-wh-proto-col-date input {
+	display: block;
+	width: 100%;
+	min-width: 148px;
+	min-height: 42px;
+	padding: 6px 6px 6px 10px;
+	font-size: 13px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0.01em;
+	color: #0f172a;
+	box-sizing: border-box;
+	overflow: visible;
+	text-overflow: clip;
+	white-space: nowrap;
+}
+
+/* Keep calendar affordance without crushing the year digits */
+.mk-wh-proto-lines__table .mk-wh-proto-col-date input[type="date"]::-webkit-calendar-picker-indicator {
+	opacity: 0.72;
+	cursor: pointer;
+	margin: 0;
+	padding: 0;
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
 }
 
 .mk-wh-proto-lines__table .mk-wh-proto-col-lot input:focus,
-.mk-wh-proto-lines__table .mk-wh-proto-col-qty input:focus {
+.mk-wh-proto-lines__table .mk-wh-proto-col-qty input:focus,
+.mk-wh-proto-lines__table .mk-wh-proto-col-date input:focus {
 	border-color: rgba(251, 191, 36, 0.75);
 	box-shadow: 0 0 0 3px rgba(253, 224, 71, 0.28);
 }
@@ -734,6 +836,33 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	color: #4338ca !important;
 	font-weight: 800;
 	text-align: center;
+}
+
+.mk-wh-proto-line-name {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+}
+
+.mk-wh-proto-line-name .mk-wh-proto-sku-readonly {
+	flex: 1;
+	min-width: 0;
+}
+
+.mk-wh-proto-qc-badge {
+	flex: 0 0 auto;
+	display: inline-block;
+	padding: 1px 6px;
+	border-radius: 4px;
+	font-size: 10px;
+	font-weight: 800;
+	letter-spacing: 0.04em;
+	line-height: 1.4;
+	color: #9a3412;
+	background: #ffedd5;
+	border: 1px solid #fdba74;
+	vertical-align: middle;
 }
 
 .mk-wh-proto-lines__del {
@@ -764,25 +893,73 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 
 .mk-wh-proto-modal__head {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	justify-content: space-between;
-	padding: 14px 16px;
+	gap: 16px;
+	padding: 16px 20px;
 	border-bottom: 1px solid var(--mk-proto-border);
+}
+
+.mk-wh-proto-modal__head-main {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+	flex: 1 1 auto;
+}
+
+.mk-wh-proto-modal__eyebrow {
+	display: inline-flex;
+	align-self: flex-start;
+	margin: 0 0 2px;
+	padding: 3px 8px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #067a37;
+	background: #ecfdf5;
+	border: 1px solid rgba(8, 160, 69, 0.2);
 }
 
 .mk-wh-proto-modal__title {
 	margin: 0;
-	font-size: 14px;
-	font-weight: 900;
+	font-size: 1.125rem;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	color: #0f172a;
+}
+
+.mk-wh-proto-modal__sub {
+	margin: 2px 0 0;
+	font-size: 13px;
+	line-height: 1.45;
+	font-weight: 500;
+	color: #64748b;
+	max-width: 52rem;
 }
 
 .mk-wh-proto-modal__close {
-	border: none;
-	background: transparent;
-	font-size: 20px;
-	line-height: 1;
+	border: 1px solid #e2e8f0;
+	background: #fff;
+	width: 36px;
+	height: 36px;
+	border-radius: 10px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
 	cursor: pointer;
 	color: #64748b;
+	padding: 0;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.mk-wh-proto-modal__close:hover {
+	background: #f8fafc;
+	border-color: #cbd5e1;
+	color: #0f172a;
 }
 
 .mk-wh-proto-modal__body {
@@ -803,6 +980,47 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 
 .mk-wh-proto-field--full {
 	grid-column: 1 / -1;
+}
+
+.mk-wh-proto-field--lines {
+	min-height: 0;
+	flex: 1 1 auto;
+}
+
+.mk-wh-proto-lines-section {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	min-height: 0;
+	height: 100%;
+}
+
+.mk-wh-proto-lines-section__head {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.mk-wh-proto-lines-section__titles {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.mk-wh-proto-lines-section__label {
+	font-size: 13px;
+	font-weight: 700;
+	color: #0f172a;
+	letter-spacing: -0.01em;
+}
+
+.mk-wh-proto-lines-section__hint {
+	font-size: 12px;
+	font-weight: 500;
+	color: #94a3b8;
+	line-height: 1.4;
 }
 
 .mk-wh-proto-form-section {
@@ -982,8 +1200,10 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 .mk-wh-proto-modal__foot {
 	display: flex;
 	justify-content: flex-end;
+	align-items: center;
 	gap: 10px;
-	padding-top: 12px;
+	padding-top: 14px;
+	margin-top: 4px;
 }
 
 @media (max-width: 640px) {
@@ -1035,7 +1255,7 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	font-weight: 800;
 }
 
-/* Bộ lọc tồn kho — BA: HSD, tên SP (A-Z/Z-A), giá */
+/* Bộ lọc tồn kho — HSD, search (Leads-style), giá */
 .mk-wh-proto-filters {
 	margin: 0 0 12px;
 	padding: 12px 14px;
@@ -1060,6 +1280,12 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	max-width: 220px;
 }
 
+.mk-wh-proto-filter--search {
+	flex: 1 1 280px;
+	max-width: min(360px, 100%);
+	min-width: 220px;
+}
+
 .mk-wh-proto-filter__label {
 	font-size: 11px;
 	font-weight: 700;
@@ -1078,6 +1304,67 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	color: #0f172a;
 	background: #fff;
 	box-sizing: border-box;
+}
+
+/* Leads-style search bar */
+.mk-wh-stock-search {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 9px 12px;
+	width: 100%;
+	border: 1px solid rgba(148, 163, 184, 0.35);
+	background: #ffffff;
+	border-radius: 10px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	box-sizing: border-box;
+}
+
+.mk-wh-stock-search:focus-within {
+	border-color: rgba(59, 130, 246, 0.55);
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.mk-wh-stock-search__ic {
+	color: #64748b;
+	display: inline-flex;
+	flex: 0 0 auto;
+	font-size: 13px;
+}
+
+.mk-wh-stock-search__input {
+	border: none;
+	outline: none;
+	width: 100%;
+	min-width: 0;
+	font-size: 14px;
+	font-weight: 500;
+	color: #0f172a;
+	background: transparent;
+}
+
+.mk-wh-stock-search__input::placeholder {
+	color: #94a3b8;
+	font-weight: 500;
+}
+
+.mk-wh-stock-search__clear {
+	flex: 0 0 auto;
+	border: none;
+	background: transparent;
+	color: #94a3b8;
+	cursor: pointer;
+	font-size: 18px;
+	line-height: 1;
+	padding: 0 2px;
+}
+
+.mk-wh-stock-search__clear:hover {
+	color: #475569;
+}
+
+.mk-wh-stock-search__clear[hidden] {
+	display: none !important;
 }
 
 .mk-wh-proto-filter-reset {
@@ -1121,6 +1408,17 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 .mk-wh-proto-qty--low {
 	color: #6366f1;
 	font-weight: 700;
+}
+
+/* Negative stock (oversell) — same alert red as expired HSD / KPI "Lô sắp hết hạn" */
+.mk-wh-proto-qty--neg,
+.mk-wh-proto-qty--neg strong {
+	color: #dc2626;
+	font-weight: 800;
+}
+
+.mk-wh-proto-stock-row--neg {
+	background: rgba(220, 38, 38, 0.04);
 }
 
 .mk-wh-proto-mini-btn {
@@ -1552,5 +1850,38 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 		justify-content: flex-start;
 		flex-wrap: wrap;
 	}
+	.mk-wh-proto-kpis {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.mk-wh-return-results {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-top: 8px;
+	max-height: 180px;
+	overflow: auto;
+}
+.mk-wh-return-source {
+	text-align: left;
+	border: 1px solid #e2e8f0;
+	background: #fff;
+	border-radius: 8px;
+	padding: 8px 10px;
+	cursor: pointer;
+	font-size: 13px;
+}
+.mk-wh-return-source:hover {
+	border-color: #818cf8;
+	background: #eef2ff;
+}
+#mkWhReturnLinesBody input {
+	width: 100%;
+	min-width: 0;
+	height: 32px;
+	border: 1px solid #e2e8f0;
+	border-radius: 6px;
+	padding: 0 6px;
 }
 

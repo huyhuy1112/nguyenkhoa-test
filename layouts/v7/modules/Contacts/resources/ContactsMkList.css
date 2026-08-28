@@ -1,0 +1,121 @@
+/* Contacts list — accents on Lovable shell */
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page .content-area,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page .listViewPageDiv.content-area,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page #listViewContent,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page .mk-contacts-list-content,
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container .content-area {
+	padding: 0 !important;
+	padding-left: 0 !important;
+	margin-left: 0 !important;
+	left: auto !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+
+html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-contacts-list-main {
+	padding: 24px !important;
+}
+
+.mk-contacts-page .mk-leads-kpi-grid {
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.mk-contacts-page .mk-contacts-kpi-card[data-kpi="tagged"] .mk-leads-kpi-card__value {
+	color: #7c3aed;
+}
+
+.mk-contacts-page .mk-contacts-kpi-card[data-kpi="gold"] .mk-leads-kpi-card__value {
+	color: #b45309;
+}
+
+.mk-contacts-page .mk-leads-segment-chip.is-active {
+	background: linear-gradient(135deg, #ecfdf5 0%, #eff6ff 100%);
+	border-color: #34d399;
+	color: #047857;
+	font-weight: 600;
+}
+
+.mk-contacts-table-card {
+	border-top: 3px solid #059669;
+}
+
+.mk-contacts-row:hover {
+	background: linear-gradient(90deg, rgba(5, 150, 105, 0.05) 0%, rgba(255, 255, 255, 0) 48%);
+}
+
+.mk-contacts-email {
+	color: #2563eb;
+	text-decoration: none;
+	font-size: 12px;
+}
+
+.mk-contacts-email:hover {
+	text-decoration: underline;
+}
+
+/* Tag pill colors → LeadsMkTagPalette.css (data-tag), same as Leads list */
+.mk-contacts-page .mk-leads-tags-stack {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 4px 6px;
+	align-items: start;
+	justify-items: start;
+	width: 100%;
+	min-width: 0;
+	max-width: 220px;
+}
+
+.mk-contacts-page .mk-leads-tags-stack .mk-tag {
+	font-size: 10px;
+	padding: 2px 8px;
+	max-width: 100%;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.mk-contacts-page .mk-leads-td--tags {
+	min-width: 160px;
+	max-width: 240px;
+}
+
+.mk-contacts-cred-select {
+	display: inline-block;
+	max-width: 100%;
+	min-width: 118px;
+	height: 28px;
+	padding: 2px 8px;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	background: #fff;
+	color: #0f172a;
+	font: inherit;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.2;
+	cursor: pointer;
+}
+
+.mk-contacts-cred-select:focus {
+	outline: none;
+	border-color: #93c5fd;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.mk-contacts-page .mk-pill--tier.mk-pill--gold {
+	background: #fef9c3;
+	color: #a16207;
+	border-color: #fde047;
+}
+
+@media (max-width: 1200px) {
+	.mk-contacts-page .mk-leads-kpi-grid {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 900px) {
+	.mk-contacts-page .mk-leads-kpi-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}

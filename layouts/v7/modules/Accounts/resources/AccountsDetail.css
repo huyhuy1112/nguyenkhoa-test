@@ -1033,6 +1033,179 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-det
 	}
 }
 
+/* Health overview removed — hard hide leftovers */
+body[data-module="Accounts"][data-view="Detail"] .mk-acc-detail-card--health,
+body[data-module="Accounts"][data-view="Detail"] .mk-acc-detail-grid__health {
+	display: none !important;
+}
+
+/* Documents alone in bottom row after health removed */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-bottom-grid,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-bottom-grid,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-bottom-grid {
+	grid-template-columns: 1fr;
+}
+
+/* ── Franchise Chi tiết — modern field cards ── */
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-detail {
+	max-width: 1080px;
+	margin: 0 auto;
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-block {
+	position: relative;
+	background: linear-gradient(180deg, #ffffff 0%, #fbfcfd 100%);
+	border: 1px solid #e6ebe8;
+	border-radius: 16px;
+	padding: 20px 22px 18px;
+	margin: 0 0 20px;
+	box-shadow: 0 8px 28px rgba(15, 40, 28, 0.05);
+	overflow: hidden;
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-block::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 4px;
+	background: linear-gradient(180deg, #1f7a4c 0%, #3daa74 100%);
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-block--contract::before {
+	background: linear-gradient(180deg, #0f766e 0%, #14b8a6 100%);
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-block__title {
+	display: flex !important;
+	align-items: center;
+	gap: 10px;
+	margin: 0 0 16px !important;
+	padding: 0 0 0 8px;
+	max-width: none !important;
+	font-size: 16px !important;
+	font-weight: 700 !important;
+	letter-spacing: -0.01em;
+	color: #0f172a !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-block__badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	border-radius: 10px;
+	background: #e8f5ee;
+	color: #166534;
+	font-size: 15px;
+	flex-shrink: 0;
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-block--contract .mk-acc-fr-block__badge {
+	background: #ecfdf8;
+	color: #0f766e;
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-block > hr,
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-block table.detailview-table {
+	display: none !important;
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px 14px;
+	padding: 0 4px 4px 8px;
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-grid--party {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-field {
+	min-width: 0;
+	padding: 12px 14px;
+	background: #f6f8f7;
+	border: 1px solid transparent;
+	border-radius: 12px;
+	transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-field:hover {
+	background: #fff;
+	border-color: #d9e5de;
+	box-shadow: 0 2px 8px rgba(15, 40, 28, 0.04);
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-field--wide {
+	grid-column: 1 / -1;
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-field__label {
+	margin: 0 0 6px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #64748b;
+	line-height: 1.3;
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-field__value {
+	font-size: 15px;
+	font-weight: 600;
+	color: #0f172a;
+	line-height: 1.45;
+	word-break: break-word;
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-field__value a {
+	color: #0f766e;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-field__value a:hover {
+	text-decoration: underline;
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-field--money .mk-acc-fr-field__value {
+	font-variant-numeric: tabular-nums;
+	font-feature-settings: "tnum" 1;
+	font-size: 15px;
+	font-weight: 700;
+	color: #14532d;
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-field__empty {
+	color: #94a3b8;
+	font-weight: 500;
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-field__edit {
+	opacity: 0;
+	margin-left: 8px;
+	transition: opacity 0.12s ease;
+}
+
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-field:hover .mk-acc-fr-field__edit {
+	opacity: 1;
+}
+
+@media (max-width: 767px) {
+	body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-grid,
+	body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-grid--party {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* legacy table styles kept as no-op fallthrough */
+body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .block:not(.mk-acc-fr-block) {
+	display: none !important;
+}
+
 @media (max-width: 767px) {
 	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__row,
 	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__row {

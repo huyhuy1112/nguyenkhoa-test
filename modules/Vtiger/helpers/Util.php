@@ -679,9 +679,11 @@ class Vtiger_Util_Helper {
 						$fieldValue = implode(',',$dateValues);
 					}
 
-                    if ($fieldInfo) {
-                        $columnName = $fieldInfo->getCustomViewColumnName();
-                    }
+					// Skip unknown/missing fields — empty columnname breaks list search SQL.
+					if (!$fieldInfo) {
+						continue;
+					}
+					$columnName = $fieldInfo->getCustomViewColumnName();
 				   $advFilterFieldInfoFormat['columnname'] = $columnName;
 				   $advFilterFieldInfoFormat['comparator'] = $operator;
 				   $advFilterFieldInfoFormat['value'] = $fieldValue;
@@ -689,6 +691,11 @@ class Vtiger_Util_Helper {
 				   $groupColumnsInfo[] = $advFilterFieldInfoFormat;
 			}
 			$noOfConditions = php7_count($groupColumnsInfo);
+			if ($noOfConditions === 0) {
+				$advFilterConditionFormat[] = array();
+				$groupIterator++;
+				continue;
+			}
 			//to remove the last column condition
 			$groupColumnsInfo[$noOfConditions-1]['column_condition']  = '';
 			$groupConditionInfo['columns'] = $groupColumnsInfo;

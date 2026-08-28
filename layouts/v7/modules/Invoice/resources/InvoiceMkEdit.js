@@ -18,7 +18,7 @@
 		return (
 			$('body').data('module') === 'Invoice' &&
 			$('body').data('view') === 'Edit' &&
-			($('body').data('app') === 'TOOLS' || $('body').data('app') === 'SUPPORT') &&
+			($('body').data('app') === 'TOOLS' || $('body').data('app') === 'SUPPORT' || $('body').data('app') === 'SALES') &&
 			$('#mkInvCreateWorkspace').length
 		);
 	}

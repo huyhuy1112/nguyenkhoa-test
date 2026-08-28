@@ -1,18 +1,32 @@
-{* Invoice List (TOOLS / SUPPORT): dashboard split shell + topbar — same as SALES Opportunities *}
+{* Invoice List: SALES uses SalesOrder POS shell; SUPPORT/TOOLS keep legacy modern list *}
+{assign var=MK_INV_IS_SALES value=false}
 {assign var=MK_INV_MK_LIST value=false}
+{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES') || (isset($smarty.request.app) && $smarty.request.app eq 'SALES')}
+	{assign var=MK_INV_IS_SALES value=true}
+{/if}
 {if (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY eq 'SUPPORT' || $SELECTED_MENU_CATEGORY eq 'TOOLS')) || (isset($smarty.get.app) && ($smarty.get.app eq 'SUPPORT' || $smarty.get.app eq 'TOOLS')) || (isset($smarty.request.app) && ($smarty.request.app eq 'SUPPORT' || $smarty.request.app eq 'TOOLS'))}
 	{assign var=MK_INV_MK_LIST value=true}
 {/if}
-{if $MK_INV_MK_LIST}
+{if $MK_INV_IS_SALES || $MK_INV_MK_LIST}
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
+{if $MK_INV_IS_SALES}
+{include file="partials/MkSalesListAntiFouc.tpl"|@vtemplate_path:'Vtiger'}
+<script type="text/javascript">document.documentElement.classList.add('mk-invoice-list-sales');</script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceSalesList.css')}?mk_v=20260804_empty3" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260810_list_pager_leads1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosList.css')}?mk_v=20260710_pos4" />
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260810_list_pager_leads1"></script>
+{else}
 <script type="text/javascript">document.documentElement.classList.add('mk-invoice-list-support', 'mk-opportunity-list-sales');</script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceListContent.css')}?mk_v=20260605_inv_search1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceSupportList.css')}?mk_v=20260605_inv_search1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260607_sales_footer1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceListContent.css')}?mk_v=20260803_inv_pad1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceSupportList.css')}?mk_v=20260803_inv_pad1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260810_list_pager_leads1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_search2" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260607_sales_footer1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260810_list_pager_leads1"></script>
+{/if}
 {assign var=mk_inv_mod value=Vtiger_Module_Model::getInstance($MODULE)}
 {assign var=mk_inv_status_fm value=Vtiger_Field_Model::getInstance('invoicestatus', $mk_inv_mod)}
 {if !$mk_inv_status_fm}
@@ -25,13 +39,36 @@
 	{assign var=mk_inv_status_label value=vtranslate($mk_inv_status_fm->get('label'), $MODULE)}
 {/if}
 <script type="text/javascript">
-window.__mkInvSupportListConfig = window.__mkInvSupportListConfig || {};
-window.__mkInvSupportListConfig.statusFieldCandidates = ['invoicestatus', 'status', 'sostatus'];
-window.__mkInvSupportListConfig.preferredStatusField = {if $mk_inv_status_field_name ne ''}{Zend_Json::encode($mk_inv_status_field_name)}{else}null{/if};
-window.__mkInvSupportListConfig.statusHeaderLabel = {Zend_Json::encode($mk_inv_status_label)};
+window.__mkInvSalesListConfig = window.__mkInvSalesListConfig || {};
+window.__mkInvSalesListConfig.statusFieldCandidates = ['invoicestatus', 'status', 'sostatus'];
+window.__mkInvSalesListConfig.preferredStatusField = {if isset($MK_INV_POS_STATUS_FIELD) && $MK_INV_POS_STATUS_FIELD ne ''}{Zend_Json::encode($MK_INV_POS_STATUS_FIELD)}{elseif $mk_inv_status_field_name ne ''}{Zend_Json::encode($mk_inv_status_field_name)}{else}null{/if};
+window.__mkInvSalesListConfig.statusHeaderLabel = {Zend_Json::encode($mk_inv_status_label)};
+window.__mkInvSalesListConfig.globalSearchPlaceholder = 'Tìm theo mã hóa đơn, khách hàng…';
+window.__mkInvSalesListConfig.globalSearchFields = ['invoice_no', 'subject', 'salesorder_id', 'account_id', 'contact_id'];
+window.__mkInvSalesListConfig.paidField = {if isset($MK_INV_POS_PAID_FIELD) && $MK_INV_POS_PAID_FIELD ne ''}{Zend_Json::encode($MK_INV_POS_PAID_FIELD)}{else}'received'{/if};
+window.__mkInvSalesListConfig.dueField = 'hdnGrandTotal';
+window.__mkInvSupportListConfig = window.__mkInvSupportListConfig || window.__mkInvSalesListConfig;
 </script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
+{if $MK_INV_IS_SALES}
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260820_sheet1" />
+<script type="text/javascript">
+window.__mkSalesPosInlineConfig = {
+	module: 'Invoice',
+	drawer: true,
+	bindClicks: false,
+	tableSelector: '#listview-table',
+	rowSelector: 'tr.listViewEntries',
+	enabledSelector: '[data-mk-invoice-list]',
+	loadingText: 'Đang tải chi tiết hóa đơn...',
+	errorText: 'Không tải được chi tiết hóa đơn.'
+};
+</script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260820_sheet1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceList.js')}?mk_v=20260820_panel2"></script>
+{else}
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Invoice/resources/ListSupportBoot.js')}?mk_v=20260605_inv_search1"></script>
+{/if}
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-invoice-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">
@@ -42,17 +79,17 @@ window.__mkInvSupportListConfig.statusHeaderLabel = {Zend_Json::encode($mk_inv_s
 			<div class="data"></div>
 			<div class="modal-dialog"></div>
 		</div>
-		<main class="mk-dash-main mk-content mk-opportunity-list-main mk-inv-support-list-main" id="mk-dash-main" role="main">
-		<div class="main-container main-container-{$MODULE} mk-opportunity-list-page mk-inv-support-list-page">
-			<div id="modnavigator" class="module-nav mk-opportunity-hide-legacy">
+		<main class="mk-dash-main mk-content {if $MK_INV_IS_SALES}mk-so-list-main{else}mk-opportunity-list-main mk-inv-support-list-main{/if}" id="mk-dash-main" role="main">
+		<div class="main-container main-container-{$MODULE} {if $MK_INV_IS_SALES}mk-so-list-page{else}mk-opportunity-list-page mk-inv-support-list-page{/if}">
+			<div id="modnavigator" class="module-nav {if $MK_INV_IS_SALES}mk-so-hide-legacy{else}mk-opportunity-hide-legacy{/if}">
 				<div class="mod-switcher-container">
 					{include file="partials/Menubar.tpl"|vtemplate_path:$MODULE}
 				</div>
 			</div>
-			<div id="sidebar-essentials" class="sidebar-essentials hide mk-opportunity-hide-legacy">
+			<div id="sidebar-essentials" class="sidebar-essentials hide {if $MK_INV_IS_SALES}mk-so-hide-legacy{else}mk-opportunity-hide-legacy{/if}">
 				{include file="partials/SidebarEssentials.tpl"|vtemplate_path:$MODULE}
 			</div>
-			<div class="listViewPageDiv content-area full-width mk-opportunity-list-content" id="listViewContent">
+			<div class="listViewPageDiv content-area full-width {if $MK_INV_IS_SALES}mk-so-list-content{else}mk-opportunity-list-content{/if}" id="listViewContent">
 {/strip}
 {else}
 {include file="ListViewPreProcess.tpl"|@vtemplate_path:'Vtiger'}

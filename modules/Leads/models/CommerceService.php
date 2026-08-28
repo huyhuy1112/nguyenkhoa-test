@@ -98,41 +98,8 @@ class Leads_CommerceService {
 	}
 
 	public static function deriveNextActionLabel(array $calendarTasks, $fallback = '') {
-		$open = array();
-		foreach ($calendarTasks as $task) {
-			if (!is_array($task)) {
-				continue;
-			}
-			$type = isset($task['type']) ? strtolower(trim((string)$task['type'])) : '';
-			if (!in_array($type, array('task', 'call', 'meeting'), true)) {
-				continue;
-			}
-			$status = strtolower(trim((string)($task['status'] ?? 'open')));
-			if (in_array($status, array('done', 'completed', 'closed'), true)) {
-				continue;
-			}
-			$open[] = $task;
-		}
-		if (empty($open)) {
-			return trim((string)$fallback);
-		}
-		usort($open, function ($a, $b) {
-			$da = !empty($a['dueAt']) ? strtotime($a['dueAt']) : PHP_INT_MAX;
-			$db = !empty($b['dueAt']) ? strtotime($b['dueAt']) : PHP_INT_MAX;
-			if ($da === $db) {
-				return 0;
-			}
-			return ($da < $db) ? -1 : 1;
-		});
-		$top = $open[0];
-		$prefixMap = array(
-			'call' => 'Gọi: ',
-			'meeting' => 'Họp: ',
-			'task' => 'Việc: ',
-		);
-		$type = isset($top['type']) ? strtolower(trim((string)$top['type'])) : 'task';
-		$prefix = $prefixMap[$type] ?? '';
-		return $prefix . trim((string)($top['subject'] ?? ''));
+		// Hành động tiếp theo = ghi chú tự do của user — không lấy từ Calendar / Last Touch.
+		return trim((string)$fallback);
 	}
 
 	public static function syncNextActionForLead($leadId) {
@@ -146,13 +113,8 @@ class Leads_CommerceService {
 		if ($res && $adb->num_rows($res) > 0) {
 			$fallback = self::decodeText($adb->query_result($res, 0, 'next_action'));
 		}
-		$tasksByLead = self::getCalendarTasksForLeadIds(array($leadId));
-		$label = self::deriveNextActionLabel($tasksByLead[$leadId] ?? array(), $fallback);
-		$adb->pquery(
-			'UPDATE bace_lead_profile SET next_action = ?, modified_at = ? WHERE leadid = ?',
-			array($label, date('Y-m-d H:i:s'), $leadId)
-		);
-		return $label;
+		// Giữ nguyên next_action đã lưu — không overwrite bằng activity Call nhắc.
+		return $fallback;
 	}
 
 	protected static function mergeCalendarTaskLists(array $primary, array $secondary) {
@@ -290,14 +252,20 @@ class Leads_CommerceService {
 				$soId = (int)$soId;
 				$meta = $metaByOrder[$soId] ?? array();
 				$lines = $linesByOrder[$soId] ?? array();
+				$orderId = isset($meta['orderId']) && $meta['orderId'] !== '' ? (string)$meta['orderId'] : (string)$soId;
+				$orderName = isset($meta['orderName']) && $meta['orderName'] !== ''
+					? (string)$meta['orderName']
+					: ($orderId !== '' ? $orderId : ('SO #' . $soId));
+				$orderDate = isset($meta['date']) ? $meta['date'] : '';
+				$orderTotal = isset($meta['orderTotal']) ? (float)$meta['orderTotal'] : 0.0;
 				if (empty($lines) && !empty($meta)) {
 					$rows[] = array(
-						'orderId' => $meta['orderId'],
-						'orderName' => $meta['orderName'],
-						'product' => $meta['orderName'],
+						'orderId' => $orderId,
+						'orderName' => $orderName,
+						'product' => $orderName,
 						'qty' => 1,
-						'value' => (float)$meta['orderTotal'],
-						'date' => $meta['date'],
+						'value' => $orderTotal,
+						'date' => $orderDate,
 						'source' => 'salesorder',
 						'crmid' => $soId,
 					);
@@ -305,12 +273,12 @@ class Leads_CommerceService {
 				}
 				foreach ($lines as $line) {
 					$rows[] = array(
-						'orderId' => $meta['orderId'] ?: (string)$soId,
-						'orderName' => $meta['orderName'] ?: ($meta['orderId'] ?: ('SO #' . $soId)),
+						'orderId' => $orderId,
+						'orderName' => $orderName,
 						'product' => $line['product'],
 						'qty' => (int)$line['qty'],
 						'value' => (float)$line['value'],
-						'date' => $meta['date'],
+						'date' => $orderDate,
 						'source' => 'salesorder',
 						'crmid' => $soId,
 					);
@@ -810,6 +778,147 @@ class Leads_CommerceService {
 		return decode_html($value);
 	}
 
+	/* ---- Contacts (Customer) commerce ---- */
+
+	const CONTACT_MODULE = 'Contacts';
+
+	public static function getPurchasesForContactIds(array $contactIds) {
+		if (empty($contactIds)) {
+			return array();
+		}
+		$contactIds = array_values(array_unique(array_map('intval', $contactIds)));
+		$orderIdsByContact = self::resolveSalesOrderIdsByContact($contactIds);
+		$allOrderIds = array();
+		foreach ($orderIdsByContact as $ids) {
+			foreach ($ids as $id) {
+				$allOrderIds[(int)$id] = true;
+			}
+		}
+		$out = array();
+		foreach ($contactIds as $contactId) {
+			$out[(int)$contactId] = array();
+		}
+		if (empty($allOrderIds)) {
+			return $out;
+		}
+		$orderIdList = array_keys($allOrderIds);
+		$linesByOrder = self::fetchSalesOrderLineItems($orderIdList);
+		$metaByOrder = self::fetchSalesOrderMeta($orderIdList);
+		foreach ($orderIdsByContact as $contactId => $soIds) {
+			$rows = array();
+			foreach ($soIds as $soId) {
+				$soId = (int)$soId;
+				$meta = $metaByOrder[$soId] ?? array();
+				$lines = $linesByOrder[$soId] ?? array();
+				$orderId = isset($meta['orderId']) && $meta['orderId'] !== '' ? (string)$meta['orderId'] : (string)$soId;
+				$orderName = isset($meta['orderName']) && $meta['orderName'] !== ''
+					? (string)$meta['orderName']
+					: ($orderId !== '' ? $orderId : ('SO #' . $soId));
+				$orderDate = isset($meta['date']) ? $meta['date'] : '';
+				$orderTotal = isset($meta['orderTotal']) ? (float)$meta['orderTotal'] : 0.0;
+				if (empty($lines) && !empty($meta)) {
+					$rows[] = array(
+						'orderId' => $orderId,
+						'orderName' => $orderName,
+						'product' => $orderName,
+						'qty' => 1,
+						'value' => $orderTotal,
+						'date' => $orderDate,
+						'source' => 'salesorder',
+						'crmid' => $soId,
+					);
+					continue;
+				}
+				foreach ($lines as $line) {
+					$rows[] = array(
+						'orderId' => $orderId,
+						'orderName' => $orderName,
+						'product' => $line['product'],
+						'qty' => (int)$line['qty'],
+						'value' => (float)$line['value'],
+						'date' => $orderDate,
+						'source' => 'salesorder',
+						'crmid' => $soId,
+					);
+				}
+			}
+			$out[(int)$contactId] = $rows;
+		}
+		return $out;
+	}
+
+	public static function linkSalesOrderToContact($contactId, $salesOrderId) {
+		$contactId = (int)$contactId;
+		$salesOrderId = (int)$salesOrderId;
+		if ($contactId <= 0 || $salesOrderId <= 0) {
+			throw new Exception('Invalid contact or sales order id.');
+		}
+		$adb = PearDatabase::getInstance();
+		$adb->pquery(
+			'UPDATE vtiger_salesorder SET contactid = ? WHERE salesorderid = ?',
+			array($contactId, $salesOrderId)
+		);
+		$exists = $adb->pquery(
+			"SELECT 1 FROM vtiger_crmentityrel
+			 WHERE (crmid = ? AND module = ? AND relcrmid = ? AND relmodule = 'SalesOrder')
+			    OR (relcrmid = ? AND relmodule = ? AND crmid = ? AND module = 'SalesOrder')",
+			array($contactId, self::CONTACT_MODULE, $salesOrderId, $contactId, self::CONTACT_MODULE, $salesOrderId)
+		);
+		if (!$exists || $adb->num_rows($exists) < 1) {
+			$adb->pquery(
+				'INSERT INTO vtiger_crmentityrel(crmid, module, relcrmid, relmodule) VALUES(?,?,?,?)',
+				array($contactId, self::CONTACT_MODULE, $salesOrderId, 'SalesOrder')
+			);
+		}
+		return true;
+	}
+
+	protected static function resolveSalesOrderIdsByContact(array $contactIds) {
+		$adb = PearDatabase::getInstance();
+		$out = array();
+		foreach ($contactIds as $contactId) {
+			$out[(int)$contactId] = array();
+		}
+
+		$res = $adb->pquery(
+			'SELECT so.contactid, so.salesorderid
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 WHERE so.contactid IN (' . generateQuestionMarks($contactIds) . ')',
+			$contactIds
+		);
+		for ($i = 0; $i < $adb->num_rows($res); $i++) {
+			$contactId = (int)$adb->query_result($res, $i, 'contactid');
+			$soId = (int)$adb->query_result($res, $i, 'salesorderid');
+			if (isset($out[$contactId]) && $soId > 0) {
+				$out[$contactId][$soId] = $soId;
+			}
+		}
+
+		$res = $adb->pquery(
+			"SELECT crmid AS contactid, relcrmid AS salesorderid
+			 FROM vtiger_crmentityrel
+			 WHERE module = ? AND relmodule = 'SalesOrder' AND crmid IN (" . generateQuestionMarks($contactIds) . ")
+			 UNION
+			 SELECT relcrmid AS contactid, crmid AS salesorderid
+			 FROM vtiger_crmentityrel
+			 WHERE relmodule = ? AND module = 'SalesOrder' AND relcrmid IN (" . generateQuestionMarks($contactIds) . ')',
+			array_merge(array(self::CONTACT_MODULE), $contactIds, array(self::CONTACT_MODULE), $contactIds)
+		);
+		for ($i = 0; $i < $adb->num_rows($res); $i++) {
+			$contactId = (int)$adb->query_result($res, $i, 'contactid');
+			$soId = (int)$adb->query_result($res, $i, 'salesorderid');
+			if (isset($out[$contactId]) && $soId > 0) {
+				$out[$contactId][$soId] = $soId;
+			}
+		}
+
+		foreach ($out as $contactId => $ids) {
+			$out[$contactId] = array_values($ids);
+		}
+		return $out;
+	}
+
 	/* ---- Potentials (Opportunity) commerce ---- */
 
 	const POTENTIAL_MODULE = 'Potentials';
@@ -846,14 +955,20 @@ class Leads_CommerceService {
 				$soId = (int)$soId;
 				$meta = $metaByOrder[$soId] ?? array();
 				$lines = $linesByOrder[$soId] ?? array();
+				$orderId = isset($meta['orderId']) && $meta['orderId'] !== '' ? (string)$meta['orderId'] : (string)$soId;
+				$orderName = isset($meta['orderName']) && $meta['orderName'] !== ''
+					? (string)$meta['orderName']
+					: ($orderId !== '' ? $orderId : ('SO #' . $soId));
+				$orderDate = isset($meta['date']) ? $meta['date'] : '';
+				$orderTotal = isset($meta['orderTotal']) ? (float)$meta['orderTotal'] : 0.0;
 				if (empty($lines) && !empty($meta)) {
 					$rows[] = array(
-						'orderId' => $meta['orderId'],
-						'orderName' => $meta['orderName'],
-						'product' => $meta['orderName'],
+						'orderId' => $orderId,
+						'orderName' => $orderName,
+						'product' => $orderName,
 						'qty' => 1,
-						'value' => (float)$meta['orderTotal'],
-						'date' => $meta['date'],
+						'value' => $orderTotal,
+						'date' => $orderDate,
 						'source' => 'salesorder',
 						'crmid' => $soId,
 					);
@@ -861,12 +976,12 @@ class Leads_CommerceService {
 				}
 				foreach ($lines as $line) {
 					$rows[] = array(
-						'orderId' => $meta['orderId'] ?: (string)$soId,
-						'orderName' => $meta['orderName'] ?: ($meta['orderId'] ?: ('SO #' . $soId)),
+						'orderId' => $orderId,
+						'orderName' => $orderName,
 						'product' => $line['product'],
 						'qty' => (int)$line['qty'],
 						'value' => (float)$line['value'],
-						'date' => $meta['date'],
+						'date' => $orderDate,
 						'source' => 'salesorder',
 						'crmid' => $soId,
 					);

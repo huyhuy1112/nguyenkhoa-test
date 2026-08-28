@@ -53,6 +53,7 @@ echo "=== Extend ProductsServices fields ===\n";
 
 // BLOCK 1: PRODUCT INFORMATION
 $b1 = getOrCreateBlock($module, 'LBL_PRODUCT_INFORMATION');
+addField($module, $b1, 'sku', 'SKU', 1, 'VARCHAR(100)', 'V~O');
 addField($module, $b1, 'brand', 'Brand', 1, 'VARCHAR(255)', 'V~O');
 addField($module, $b1, 'model', 'Model', 1, 'VARCHAR(255)', 'V~O');
 addField($module, $b1, 'unit', 'Unit', 15, 'VARCHAR(100)', 'V~O', array('pcs', 'set', 'kg', 'box'));

@@ -24,6 +24,11 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 	protected function assignModernContext(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
 		$moduleName = $request->getModule();
+		require_once 'include/utils/MkEntityNumbering.php';
+		MkEntityNumbering::ensureModuleSequence('SalesOrder');
+		require_once 'modules/SalesOrder/helpers/ListNoteField.php';
+		SalesOrder_ListNoteField_Helper::ensure();
+		$viewer->assign('MK_SO_NEXT_NO', MkEntityNumbering::previewNextNumber('SalesOrder'));
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
 		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
@@ -31,7 +36,28 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 		$viewer->assign('VIEW', 'Edit');
 		$viewer->assign('MENU_SELECTED_MODULENAME', 'SalesOrder');
 		$viewer->assign('MK_MODERN_SALES_ORDER_CREATE', true);
-		$viewer->assign('IS_DUPLICATE', $request->get('isDuplicate'));
+		$viewer->assign('IS_DUPLICATE', $this->isDuplicateRequest($request));
+		require_once 'modules/Inventory/helpers/ProductCatalog.php';
+		Inventory_ProductCatalog_Helper::assignToViewer($viewer);
+
+		$priceChannel = 'retail';
+		$recordId = (int) $request->get('record');
+		$accountId = 0;
+		if ($recordId > 0) {
+			try {
+				$rec = Vtiger_Record_Model::getInstanceById($recordId, 'SalesOrder');
+				$accountId = (int) $rec->get('account_id');
+			} catch (Exception $e) {
+				$accountId = 0;
+			}
+		}
+		if ($accountId > 0 && is_file('modules/ProductsServices/models/PricingEngine.php')) {
+			require_once 'modules/ProductsServices/models/PricingEngine.php';
+			if (ProductsServices_PricingEngine_Model::isTuibaoAccount($accountId)) {
+				$priceChannel = 'tuibao';
+			}
+		}
+		$viewer->assign('MK_PRICE_CHANNEL', $priceChannel);
 	}
 
 	protected function redirectInventoryToSales(Vtiger_Request $request) {
@@ -181,11 +207,9 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 		if (!$quoteModel instanceof Quotes_Record_Model || !$quoteModel->hasLinkedSalesOrder()) {
 			return;
 		}
-		$redirectUrl = $quoteModel->getLinkedSalesOrderDetailViewUrl();
-		if ($redirectUrl) {
-			header('Location: ' . $redirectUrl);
-			exit;
-		}
+		$redirectUrl = 'index.php?module=SalesOrder&view=List&app=SALES';
+		header('Location: ' . $redirectUrl);
+		exit;
 	}
 
 	public function getHeaderCss(Vtiger_Request $request) {

@@ -1,10 +1,7 @@
-{*+**********************************************************************************
-* Potentials: SALES Detail adds flex spacer between primary tabs and related icons;
-* else same as Vtiger.
-*************************************************************************************}
-
+{* Potentials: SALES Detail — primary tabs + collapsible related icon row. *}
 {strip}
-	<div class='related-tabs row {if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}mk-opportunity-detail-related-tabs{/if}'>
+	{assign var=MK_OPP_SALES_TABS value=((isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES'))}
+	<div class='related-tabs row {if $MK_OPP_SALES_TABS}mk-opportunity-detail-related-tabs{/if}'>
 		<nav class="navbar margin0" role="navigation">
 			<div class="navbar-header">
 				<button type="button" class="navbar-toggle btn-group-justified collapsed border0" data-toggle="collapse" data-target="#nav-tabs" aria-expanded="false">
@@ -13,145 +10,121 @@
 			</div>
 
 			<div class="collapse navbar-collapse" id="nav-tabs">
-				<ul class="nav nav-tabs">
+				<ul class="nav nav-tabs mk-sales-primary-tabs">
 					{foreach item=RELATED_LINK from=$DETAILVIEW_LINKS['DETAILVIEWTAB']}
 						{assign var=RELATEDLINK_URL value=$RELATED_LINK->getUrl()}
 						{assign var=RELATEDLINK_LABEL value=$RELATED_LINK->getLabel()}
 						{assign var=RELATED_TAB_LABEL value={vtranslate('SINGLE_'|cat:$MODULE_NAME, $MODULE_NAME)}|cat:" "|cat:$RELATEDLINK_LABEL}
 						<li class="tab-item {if $RELATED_TAB_LABEL==$SELECTED_TAB_LABEL}active{/if}" data-url="{$RELATEDLINK_URL}&tab_label={$RELATED_TAB_LABEL}&app={$SELECTED_MENU_CATEGORY}" data-label-key="{$RELATEDLINK_LABEL}" data-link-key="{$RELATED_LINK->get('linkKey')}" >
-							<a href="{$RELATEDLINK_URL}&tab_label={$RELATEDLINK_LABEL}&app={$SELECTED_MENU_CATEGORY}" class="textOverflowEllipsis">
+							<a href="{$RELATEDLINK_URL}&tab_label={$RELATEDLINK_LABEL}&app={$SELECTED_MENU_CATEGORY}" class="{if !$MK_OPP_SALES_TABS}textOverflowEllipsis{/if} mk-sales-primary-tab-link">
 								<span class="tab-label"><strong>{vtranslate($RELATEDLINK_LABEL,{$MODULE_NAME})}</strong></span>
 							</a>
 						</li>
 					{/foreach}
 
-{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
-					<li class="mk-opportunity-detail-tabs-spacer" role="presentation" aria-hidden="true"></li>
-{/if}
-
-										{if isset($DETAILVIEW_LINKS['DETAILVIEWRELATED'])}
-											{assign var=RELATEDTABS value=$DETAILVIEW_LINKS['DETAILVIEWRELATED']}
+					{if $MK_OPP_SALES_TABS}
+						{include file="partials/MkSalesRelatedToggleBtn.tpl"|@vtemplate_path:'Vtiger'}
+					{else}
+						{if isset($DETAILVIEW_LINKS['DETAILVIEWRELATED'])}
+							{assign var=RELATEDTABS value=$DETAILVIEW_LINKS['DETAILVIEWRELATED']}
+						{/if}
+						{if !empty($RELATEDTABS)}
+							{assign var=COUNT value=$RELATEDTABS|@count}
+							{assign var=LIMIT value = 10}
+							{if $COUNT gt 10}
+								{assign var=COUNT1 value = $LIMIT}
+							{else}
+								{assign var=COUNT1 value=$COUNT}
+							{/if}
+							{for $i = 0 to $COUNT1-1}
+								{assign var=RELATED_LINK value=$RELATEDTABS[$i]}
+								{assign var=RELATEDMODULENAME value=$RELATED_LINK->getRelatedModuleName()}
+								{assign var=RELATEDFIELDNAME value=$RELATED_LINK->get('linkFieldName')}
+								{assign var="DETAILVIEWRELATEDLINKLBL" value= vtranslate($RELATED_LINK->getLabel(),$RELATEDMODULENAME)}
+								<li class="tab-item {if (trim($RELATED_LINK->getLabel())== trim($SELECTED_TAB_LABEL)) && ($RELATED_LINK->getId() == $SELECTED_RELATION_ID)}active{/if}" data-url="{$RELATED_LINK->getUrl()}&tab_label={$RELATED_LINK->getLabel()}&app={$SELECTED_MENU_CATEGORY}" data-label-key="{$RELATED_LINK->getLabel()}"
+										data-module="{$RELATEDMODULENAME}" data-relation-id="{$RELATED_LINK->getId()}" {if $RELATEDMODULENAME eq "ModComments"} title {else} title="{$DETAILVIEWRELATEDLINKLBL}"{/if} {if $RELATEDFIELDNAME}data-relatedfield ="{$RELATEDFIELDNAME}"{/if}>
+									<a href="index.php?{$RELATED_LINK->getUrl()}&tab_label={$RELATED_LINK->getLabel()}&app={$SELECTED_MENU_CATEGORY}" class="textOverflowEllipsis" displaylabel="{$DETAILVIEWRELATEDLINKLBL}" recordsCount="" >
+										{if $RELATEDMODULENAME eq "ModComments"}
+											<span class="tab-icon"><i class="fa fa-comment" style="font-size: 24px"></i></span>
+										{else}
+											<span class="tab-icon">
+												{assign var=RELATED_MODULE_MODEL value=Vtiger_Module_Model::getInstance($RELATEDMODULENAME)}
+												{$RELATED_MODULE_MODEL->getModuleIcon()}
+											</span>
 										{/if}
-										{if !empty($RELATEDTABS)}
-											{assign var=COUNT value=$RELATEDTABS|@count}
-
-											{assign var=LIMIT value = 10}
-											{if $COUNT gt 10}
-												{assign var=COUNT1 value = $LIMIT}
-											{else}
-												{assign var=COUNT1 value=$COUNT}
-											{/if}
-
-											{for $i = 0 to $COUNT1-1}
-												{assign var=RELATED_LINK value=$RELATEDTABS[$i]}
-												{assign var=RELATEDMODULENAME value=$RELATED_LINK->getRelatedModuleName()}
-												{assign var=RELATEDFIELDNAME value=$RELATED_LINK->get('linkFieldName')}
-												{assign var="DETAILVIEWRELATEDLINKLBL" value= vtranslate($RELATED_LINK->getLabel(),$RELATEDMODULENAME)}
-												{if ((isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')) && $RELATEDMODULENAME eq 'ModComments'}
-												<li class="tab-item mk-opp-service-contracts-tab" data-module="ServiceContracts" data-mk-opp-summary-tab="1" data-label-key="ServiceContracts" title="Hợp đồng dịch vụ">
-													<a href="javascript:void(0)" class="textOverflowEllipsis" displaylabel="Hợp đồng dịch vụ" recordsCount="">
-														<span class="tab-icon mk-opportunity-tab-icon">
-															{include file="partials/OpportunityDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='ServiceContracts'}
-														</span>
-														&nbsp;<span class="numberCircle hide">0</span>
-													</a>
-												</li>
-												{else}
-												<li class="tab-item {if (trim($RELATED_LINK->getLabel())== trim($SELECTED_TAB_LABEL)) && ($RELATED_LINK->getId() == $SELECTED_RELATION_ID)}active{/if}" data-url="{$RELATED_LINK->getUrl()}&tab_label={$RELATED_LINK->getLabel()}&app={$SELECTED_MENU_CATEGORY}" data-label-key="{$RELATED_LINK->getLabel()}"
-														data-module="{$RELATEDMODULENAME}" data-relation-id="{$RELATED_LINK->getId()}" {if $RELATEDMODULENAME eq "ModComments"} title {else} title="{$DETAILVIEWRELATEDLINKLBL}"{/if} {if $RELATEDFIELDNAME}data-relatedfield ="{$RELATEDFIELDNAME}"{/if}>
-													<a href="index.php?{$RELATED_LINK->getUrl()}&tab_label={$RELATED_LINK->getLabel()}&app={$SELECTED_MENU_CATEGORY}" class="textOverflowEllipsis" displaylabel="{$DETAILVIEWRELATEDLINKLBL}" recordsCount="" >
-														{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
-														<span class="tab-icon mk-opportunity-tab-icon">
-															{include file="partials/OpportunityDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE=$RELATEDMODULENAME}
-														</span>
-														{else}
-														{if $RELATEDMODULENAME eq "ModComments"}
-															<span class="tab-icon"><i class="fa fa-comment" style="font-size: 24px"></i></span>
-														{else}
-															<span class="tab-icon">
-																{assign var=RELATED_MODULE_MODEL value=Vtiger_Module_Model::getInstance($RELATEDMODULENAME)}
-																{$RELATED_MODULE_MODEL->getModuleIcon()}
-															</span>
-														{/if}
-														{/if}
-														&nbsp;<span class="numberCircle hide">0</span>
-													</a>
-												</li>
-												{/if}
-												{if ($RELATED_LINK->getId() == {$REQ->get('relationId')})}
-													{assign var=MORE_TAB_ACTIVE value='true'}
-												{/if}
-											{/for}
-											{if $MORE_TAB_ACTIVE neq 'true'}
-												{for $i = 0 to $COUNT-1}
-													{assign var=RELATED_LINK value=$RELATEDTABS[$i]}
-													{if ($RELATED_LINK->getId() == {$REQ->get('relationId')})}
-														{assign var=RELATEDMODULENAME value=$RELATED_LINK->getRelatedModuleName()}
-														{assign var=RELATEDFIELDNAME value=$RELATED_LINK->get('linkFieldName')}
-														{assign var="DETAILVIEWRELATEDLINKLBL" value= vtranslate($RELATED_LINK->getLabel(),$RELATEDMODULENAME)}
-														<li class="more-tab moreTabElement active"  data-url="{$RELATED_LINK->getUrl()}&tab_label={$RELATED_LINK->getLabel()}&app={$SELECTED_MENU_CATEGORY}" data-label-key="{$RELATED_LINK->getLabel()}"
-																data-module="{$RELATEDMODULENAME}" data-relation-id="{$RELATED_LINK->getId()}" {if $RELATEDMODULENAME eq "ModComments"} title {else} title="{$DETAILVIEWRELATEDLINKLBL}"{/if} {if $RELATEDFIELDNAME}data-relatedfield ="{$RELATEDFIELDNAME}"{/if}>
-															<a href="index.php?{$RELATED_LINK->getUrl()}&tab_label={$RELATED_LINK->getLabel()}&app={$SELECTED_MENU_CATEGORY}" class="textOverflowEllipsis" displaylabel="{$DETAILVIEWRELATEDLINKLBL}" recordsCount="" >
-																{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
-																<span class="tab-icon mk-opportunity-tab-icon">
-																	{include file="partials/OpportunityDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE=$RELATEDMODULENAME}
-																</span>
-																{else}
-																{if $RELATEDMODULENAME eq "ModComments"}
-																	<span class="tab-icon"><i class="fa fa-comment" style="font-size: 24px"></i></span>
-																{else}
-																	<span class="tab-icon">
-																		{assign var=RELATED_MODULE_MODEL value=Vtiger_Module_Model::getInstance($RELATEDMODULENAME)}
-																		{$RELATED_MODULE_MODEL->getModuleIcon()}
-																	</span>
-																{/if}
-																{/if}
-																&nbsp;<span class="numberCircle hide">0</span>
-															</a>
-														</li>
-														{break}
+										&nbsp;<span class="numberCircle hide">0</span>
+									</a>
+								</li>
+							{/for}
+							{if $COUNT gt $LIMIT}
+								<li class="dropdown related-tab-more-element">
+									<a href="javascript:void(0)" data-toggle="dropdown" class="dropdown-toggle">
+										<span class="tab-label"><strong>{vtranslate("LBL_MORE",$MODULE_NAME)}</strong> &nbsp; <b class="fa fa-caret-down"></b></span>
+									</a>
+									<ul class="dropdown-menu pull-right" id="relatedmenuList">
+										{for $j = $COUNT1 to $COUNT-1}
+											{assign var=RELATED_LINK value=$RELATEDTABS[$j]}
+											{assign var=RELATEDMODULENAME value=$RELATED_LINK->getRelatedModuleName()}
+											{assign var=RELATEDFIELDNAME value=$RELATED_LINK->get('linkFieldName')}
+											{assign var="DETAILVIEWRELATEDLINKLBL" value= vtranslate($RELATED_LINK->getLabel(),$RELATEDMODULENAME)}
+											<li class="more-tab {if (trim($RELATED_LINK->getLabel())== trim($SELECTED_TAB_LABEL)) && ($RELATED_LINK->getId() == $SELECTED_RELATION_ID)}active{/if}" data-url="{$RELATED_LINK->getUrl()}&tab_label={$RELATED_LINK->getLabel()}&app={$SELECTED_MENU_CATEGORY}" data-label-key="{$RELATED_LINK->getLabel()}"
+													data-module="{$RELATEDMODULENAME}" title="" data-relation-id="{$RELATED_LINK->getId()}" {if $RELATEDFIELDNAME}data-relatedfield ="{$RELATEDFIELDNAME}"{/if}>
+												<a href="index.php?{$RELATED_LINK->getUrl()}&tab_label={$RELATED_LINK->getLabel()}&app={$SELECTED_MENU_CATEGORY}" displaylabel="{$DETAILVIEWRELATEDLINKLBL}" recordsCount="">
+													{if $RELATEDMODULENAME eq "ModComments"}
+														<span class="tab-icon textOverflowEllipsis"><i class="fa fa-comment"></i> &nbsp;<span class="content">{$DETAILVIEWRELATEDLINKLBL}</span></span>
+													{else}
+														{assign var=RELATED_MODULE_MODEL value=Vtiger_Module_Model::getInstance($RELATEDMODULENAME)}
+														<span class="tab-icon textOverflowEllipsis">{$RELATED_MODULE_MODEL->getModuleIcon()}<span class="content"> &nbsp;{$DETAILVIEWRELATEDLINKLBL}</span></span>
 													{/if}
-												{/for}
-											{/if}
-											{if $COUNT gt $LIMIT}
-												<li class="dropdown related-tab-more-element">
-													<a href="javascript:void(0)" data-toggle="dropdown" class="dropdown-toggle">
-														<span class="tab-label">
-															<strong>{vtranslate("LBL_MORE",$MODULE_NAME)}</strong> &nbsp; <b class="fa fa-caret-down"></b>
-														</span>
-													</a>
-													<ul class="dropdown-menu pull-right" id="relatedmenuList">
-														{for $j = $COUNT1 to $COUNT-1}
-															{assign var=RELATED_LINK value=$RELATEDTABS[$j]}
-															{assign var=RELATEDMODULENAME value=$RELATED_LINK->getRelatedModuleName()}
-															{if ((isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')) && $RELATEDMODULENAME eq 'ModComments'}
-															{else}
-															{assign var=RELATEDFIELDNAME value=$RELATED_LINK->get('linkFieldName')}
-															{assign var="DETAILVIEWRELATEDLINKLBL" value= vtranslate($RELATED_LINK->getLabel(),$RELATEDMODULENAME)}
-															<li class="more-tab {if (trim($RELATED_LINK->getLabel())== trim($SELECTED_TAB_LABEL)) && ($RELATED_LINK->getId() == $SELECTED_RELATION_ID)}active{/if}" data-url="{$RELATED_LINK->getUrl()}&tab_label={$RELATED_LINK->getLabel()}&app={$SELECTED_MENU_CATEGORY}" data-label-key="{$RELATED_LINK->getLabel()}"
-																	data-module="{$RELATEDMODULENAME}" title="" data-relation-id="{$RELATED_LINK->getId()}" {if $RELATEDFIELDNAME}data-relatedfield ="{$RELATEDFIELDNAME}"{/if}>
-																<a href="index.php?{$RELATED_LINK->getUrl()}&tab_label={$RELATED_LINK->getLabel()}&app={$SELECTED_MENU_CATEGORY}" displaylabel="{$DETAILVIEWRELATEDLINKLBL}" recordsCount="">
-																	{if $RELATEDMODULENAME eq "ModComments"}
-																		<span class="tab-icon textOverflowEllipsis">
-																			<i class="fa fa-comment"></i> &nbsp;<span class="content">{$DETAILVIEWRELATEDLINKLBL}</span>
-																		</span>
-																	{else}
-																			{assign var=RELATED_MODULE_MODEL value=Vtiger_Module_Model::getInstance($RELATEDMODULENAME)}
-																			<span class="tab-icon textOverflowEllipsis">
-																				{$RELATED_MODULE_MODEL->getModuleIcon()}
-																				<span class="content"> &nbsp;{$DETAILVIEWRELATEDLINKLBL}</span>
-																			</span>
-																	{/if}
-																	&nbsp;<span class="numberCircle hide">0</span>
-																</a>
-															</li>
-															{/if}
-														{/for}
-													</ul>
-												</li>
-											{/if}
-										{/if}
+													&nbsp;<span class="numberCircle hide">0</span>
+												</a>
+											</li>
+										{/for}
+									</ul>
+								</li>
+							{/if}
+						{/if}
+					{/if}
 				</ul>
+
+				{if $MK_OPP_SALES_TABS}
+				{if isset($DETAILVIEW_LINKS['DETAILVIEWRELATED'])}
+					{assign var=RELATEDTABS value=$DETAILVIEW_LINKS['DETAILVIEWRELATED']}
+				{/if}
+				{if !empty($RELATEDTABS)}
+				<div class="mk-sales-related-icons-panel" id="mk-sales-related-icons-panel" aria-hidden="true">
+					<ul class="nav nav-tabs mk-sales-related-icons-row">
+						{assign var=COUNT value=$RELATEDTABS|@count}
+						{for $i = 0 to $COUNT-1}
+							{assign var=RELATED_LINK value=$RELATEDTABS[$i]}
+							{assign var=RELATEDMODULENAME value=$RELATED_LINK->getRelatedModuleName()}
+							{assign var=RELATEDFIELDNAME value=$RELATED_LINK->get('linkFieldName')}
+							{assign var="DETAILVIEWRELATEDLINKLBL" value= vtranslate($RELATED_LINK->getLabel(),$RELATEDMODULENAME)}
+							{if $RELATEDMODULENAME eq 'ModComments'}
+							<li class="tab-item mk-opp-service-contracts-tab" data-module="ServiceContracts" data-mk-opp-summary-tab="1" data-label-key="ServiceContracts" title="Hợp đồng dịch vụ">
+								<a href="javascript:void(0)" class="textOverflowEllipsis" displaylabel="Hợp đồng dịch vụ" recordsCount="">
+									<span class="tab-icon mk-opportunity-tab-icon">
+										{include file="partials/OpportunityDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE='ServiceContracts'}
+									</span>
+									&nbsp;<span class="numberCircle hide">0</span>
+								</a>
+							</li>
+							{else}
+							<li class="tab-item {if (trim($RELATED_LINK->getLabel())== trim($SELECTED_TAB_LABEL)) && ($RELATED_LINK->getId() == $SELECTED_RELATION_ID)}active{/if}" data-url="{$RELATED_LINK->getUrl()}&tab_label={$RELATED_LINK->getLabel()}&app={$SELECTED_MENU_CATEGORY}" data-label-key="{$RELATED_LINK->getLabel()}"
+									data-module="{$RELATEDMODULENAME}" data-relation-id="{$RELATED_LINK->getId()}" title="{$DETAILVIEWRELATEDLINKLBL}" {if $RELATEDFIELDNAME}data-relatedfield ="{$RELATEDFIELDNAME}"{/if}>
+								<a href="index.php?{$RELATED_LINK->getUrl()}&tab_label={$RELATED_LINK->getLabel()}&app={$SELECTED_MENU_CATEGORY}" class="textOverflowEllipsis" displaylabel="{$DETAILVIEWRELATEDLINKLBL}" recordsCount="" >
+									<span class="tab-icon mk-opportunity-tab-icon">
+										{include file="partials/OpportunityDetailTabSvgIcon.tpl"|@vtemplate_path:$MODULE MODULE=$RELATEDMODULENAME}
+									</span>
+									&nbsp;<span class="numberCircle hide">0</span>
+								</a>
+							</li>
+							{/if}
+						{/for}
+					</ul>
+				</div>
+				{/if}
+				{/if}
 			</div>
 		</nav>
 	</div>

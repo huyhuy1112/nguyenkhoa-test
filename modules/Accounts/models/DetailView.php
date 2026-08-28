@@ -23,6 +23,26 @@ class Accounts_DetailView_Model extends Vtiger_DetailView_Model {
 
 		$linkModelList = parent::getDetailViewLinks($linkParams);
 
+		$recordId = $recordModel->getId();
+
+		// Toolbar "Tải / in Word" → download DOCX (AccountsDetail.js). BASIC link is skipped in template; kept for menu consistency.
+		$franchisePreviewLink = array(
+			'linktype' => 'DETAILVIEWBASIC',
+			'linklabel' => 'LBL_PRINT_FRANCHISE_CONTRACT',
+			'linkurl' => "javascript:void(0)",
+			'linkicon' => ''
+		);
+		$linkModelList['DETAILVIEWBASIC'][] = Vtiger_Link_Model::getInstanceFromValues($franchisePreviewLink);
+
+		// ⋯ menu also has Tải Word (same download URL)
+		$franchiseWordLink = array(
+			'linktype' => 'DETAILVIEW',
+			'linklabel' => 'LBL_EXPORT_FRANCHISE_CONTRACT_WORD',
+			'linkurl' => 'index.php?module=Accounts&action=ExportFranchiseWord&record=' . $recordId,
+			'linkicon' => ''
+		);
+		$linkModelList['DETAILVIEW'][] = Vtiger_Link_Model::getInstanceFromValues($franchiseWordLink);
+
 		if($currentUserModel->hasModulePermission($emailModuleModel->getId())) {
 			$basicActionLink = array(
 				'linktype' => 'DETAILVIEWBASIC',

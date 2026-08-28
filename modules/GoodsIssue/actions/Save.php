@@ -185,6 +185,65 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 		return $map;
 	}
 
+	/**
+	 * Allow-negative fallback: insert (or decrease) stock row when no match for product_key.
+	 *
+	 * @param PearDatabase $db
+	 * @param string $productKey
+	 * @param float $deductQty
+	 * @param int $userId
+	 * @param string $now
+	 * @param array $newAgg
+	 */
+	protected function insertNegativeStockForKey(PearDatabase $db, $productKey, $deductQty, $userId, $now, array $newAgg) {
+		$productKey = trim((string) $productKey);
+		$deductQty = (float) $deductQty;
+		if ($productKey === '' || $deductQty <= 0) {
+			return;
+		}
+		$meta = isset($newAgg[$productKey]) ? $newAgg[$productKey] : array();
+		$name = isset($meta['product_name']) ? (string) $meta['product_name'] : $productKey;
+		$productId = !empty($meta['productid']) ? (int) $meta['productid'] : null;
+		$whId = '';
+		$whName = '';
+		// product_key may look like "whId|sku|lot" or just identity — store as-is.
+		$rs = $db->pquery(
+			'SELECT stockid, quantity FROM vtiger_warehouse_stock WHERE product_key = ? LIMIT 1',
+			array($productKey)
+		);
+		if ($rs && $db->num_rows($rs) > 0) {
+			$stockId = (int) $db->query_result($rs, 0, 'stockid');
+			$current = (float) $db->query_result($rs, 0, 'quantity');
+			$db->pquery(
+				'UPDATE vtiger_warehouse_stock SET quantity = ?, updatedby = ?, updatedtime = ? WHERE stockid = ?',
+				array($current - $deductQty, (int) $userId, $now, $stockId)
+			);
+			return;
+		}
+		$stockId = (int) $db->getUniqueID('vtiger_warehouse_stock');
+		$db->pquery(
+			'INSERT INTO vtiger_warehouse_stock(
+				stockid, product_key, productid, product_name, warehouse_id, warehouse_name,
+				quantity, shrinkage_qty, last_price, createdby, updatedby, createdtime, updatedtime
+			) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
+			array(
+				$stockId,
+				$productKey,
+				$productId,
+				$name,
+				$whId !== '' ? $whId : null,
+				$whName,
+				0 - $deductQty,
+				0,
+				0,
+				(int) $userId,
+				(int) $userId,
+				$now,
+				$now,
+			)
+		);
+	}
+
 	protected function redirectEdit($issueId, array $params) {
 		$q = array('module=GoodsIssue', 'view=Edit', 'app=INVENTORY');
 		if ($issueId > 0) $q[] = 'record=' . (int) $issueId;
@@ -266,26 +325,34 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 
 		$stockMap = $this->loadStockRowsByKeys($db, $keys);
 
-		// Validate all required stock rows exist.
+		require_once 'modules/Warehouse/helpers/SettingsHelper.php';
+		$allowNegative = Warehouse_Settings_Helper::allowNegativeStock();
+
+		// Validate all required stock rows exist (skip when allow-negative: may go below zero / create row).
 		foreach ($keys as $k) {
 			if (!isset($stockMap[$k])) {
 				// If there is any movement (restore or deduct), block cleanly.
-				if (!empty($restoreByKey[$k]) || !empty($deductByKey[$k])) {
+				if (!$allowNegative && (!empty($restoreByKey[$k]) || !empty($deductByKey[$k]))) {
 					$this->redirectEdit($issueId, array('error_stock_missing' => 1, 'missing_key' => $k));
 				}
 			}
 		}
 
 		// Validate deductions against available stock AFTER considering restores for same key.
-		foreach ($deductByKey as $k => $deductQty) {
-			$row = $stockMap[$k];
-			$q = (float) $row['quantity'];
-			$s = isset($row['shrinkage_qty']) ? (float) $row['shrinkage_qty'] : 0.0;
-			$restoreQty = isset($restoreByKey[$k]) ? (float) $restoreByKey[$k] : 0.0;
-			$available = ($q + $restoreQty) - $s;
-			if ($available < 0) $available = 0;
-			if ($deductQty - $available > 0.00000001) {
-				$this->redirectEdit($issueId, array('out_of_stock' => 1, 'stock_key' => $k));
+		if (!$allowNegative) {
+			foreach ($deductByKey as $k => $deductQty) {
+				if (!isset($stockMap[$k])) {
+					$this->redirectEdit($issueId, array('out_of_stock' => 1, 'stock_key' => $k));
+				}
+				$row = $stockMap[$k];
+				$q = (float) $row['quantity'];
+				$s = isset($row['shrinkage_qty']) ? (float) $row['shrinkage_qty'] : 0.0;
+				$restoreQty = isset($restoreByKey[$k]) ? (float) $restoreByKey[$k] : 0.0;
+				$available = ($q + $restoreQty) - $s;
+				if ($available < 0) $available = 0;
+				if ($deductQty - $available > 0.00000001) {
+					$this->redirectEdit($issueId, array('out_of_stock' => 1, 'stock_key' => $k));
+				}
 			}
 		}
 
@@ -331,6 +398,9 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 
 			// Apply restores first.
 			foreach ($restoreByKey as $k => $restoreQty) {
+				if (!isset($stockMap[$k])) {
+					continue;
+				}
 				$row = $stockMap[$k];
 				$stockId = (int) $row['stockid'];
 				$db->pquery(
@@ -341,8 +411,15 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 				);
 			}
 
-			// Apply deductions.
+			// Apply deductions (may drive quantity below 0 when allow-negative is on).
 			foreach ($deductByKey as $k => $deductQty) {
+				if (!isset($stockMap[$k])) {
+					// No stock identity yet — only under allow-negative (oversell before first inbound).
+					if ($allowNegative) {
+						$this->insertNegativeStockForKey($db, $k, $deductQty, $userId, $now, $newAgg);
+					}
+					continue;
+				}
 				$row = $stockMap[$k];
 				$stockId = (int) $row['stockid'];
 				$db->pquery(
@@ -394,6 +471,14 @@ class GoodsIssue_Save_Action extends Vtiger_Action_Controller {
 			}
 
 			$db->completeTransaction();
+
+			// Keep linked Sales Order status in sync with this GI status (xuất bán).
+			try {
+				require_once 'modules/GoodsIssue/helpers/SyncSalesOrderStatus.php';
+				GoodsIssue_SyncSalesOrderStatus_Helper::syncFromIssueId($issueId, $status);
+			} catch (Throwable $ignore) {
+				// Non-blocking.
+			}
 
 			// Attachments are additive and should not affect stock movement.
 			try {

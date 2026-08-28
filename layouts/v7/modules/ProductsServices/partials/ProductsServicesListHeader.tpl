@@ -1,20 +1,10 @@
 {strip}
-<div class="mk-ps-header">
-	<nav class="mk-ps-breadcrumb" aria-label="Breadcrumb">
-		<ol class="mk-ps-breadcrumb__list">
-			<li class="mk-ps-breadcrumb__item">
-				<a href="index.php?module=Home&amp;view=DashBoard&amp;app=SALES">Sales</a>
-			</li>
-			<li class="mk-ps-breadcrumb__sep" aria-hidden="true">&gt;</li>
-			<li class="mk-ps-breadcrumb__item mk-ps-breadcrumb__item--current">
-				<span>Products &amp; Services</span>
-			</li>
-		</ol>
-	</nav>
-	<header class="mk-ps-action-header" role="region" aria-label="{vtranslate('ProductsServices', 'ProductsServices')}">
+{* List header — Leads-like: title + subtitle + actions (no breadcrumb / purple kicker) *}
+<div class="mk-ps-header{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'INVENTORY') || (isset($smarty.get.app) && $smarty.get.app eq 'INVENTORY')} mk-ps-header--inventory{/if}">
+	<header class="mk-ps-action-header" role="region" aria-label="Hàng hoá">
 		<div class="mk-ps-action-header__text">
-			<h1 class="mk-ps-action-header__title">All Products &amp; Services</h1>
-			<p class="mk-ps-action-header__subtitle">Manage products and services catalog</p>
+			<h1 class="mk-ps-action-header__title">Danh sách hàng hoá</h1>
+			<p class="mk-ps-action-header__subtitle">Quản lý sản phẩm và dịch vụ trong kho</p>
 		</div>
 		<div class="mk-ps-action-header__actions">
 			{assign var=IMPORT_ACTION value=false}
@@ -57,10 +47,10 @@
 						{if stripos($ADD_ACTION->getUrl(), 'javascript:')===0}
 					onclick='{$ADD_ACTION->getUrl()|substr:strlen("javascript:")};'
 						{else}
-					onclick='window.location.href = "{$ADD_ACTION->getUrl()}&app={$SELECTED_MENU_CATEGORY}"'
+					onclick='window.location.href = "{$ADD_ACTION->getUrl()}&app={if isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY}{$SELECTED_MENU_CATEGORY}{else}INVENTORY{/if}"'
 						{/if}>
 					<span class="mk-ps-btn__ic" aria-hidden="true">{include file="partials/DashboardTopbarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='PLUS'}</span>
-					<span class="mk-ps-btn__txt">{vtranslate($ADD_ACTION->getLabel(), $MODULE)}</span>
+					<span class="mk-ps-btn__txt">Thêm hàng hoá</span>
 				</button>
 			{/if}
 		</div>

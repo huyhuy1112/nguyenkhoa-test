@@ -96,6 +96,8 @@ body.mk-ref-popup-open .modal-backdrop.in {
 		0 16px 36px rgba(8, 160, 69, 0.14),
 		0 0 0 1px rgba(212, 196, 173, 0.45),
 		inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+	/* Content clips radius; body/table containers provide H-scroll */
+	max-width: 100%;
 }
 
 #popupModal .modal-header {
@@ -162,6 +164,9 @@ body.mk-ref-popup-open .modal-backdrop.in {
 #popupModal .modal-body {
 	background: linear-gradient(180deg, #fdfbf8 0%, #f8f4ee 100%) !important;
 	padding: 20px 24px 24px !important;
+	overflow-x: auto !important;
+	overflow-y: visible !important;
+	-webkit-overflow-scrolling: touch;
 }
 
 /* Toolbar */
@@ -346,10 +351,30 @@ body.mk-ref-popup-open .modal-backdrop.in {
 	background: #fff !important;
 	border-radius: 16px !important;
 	border: 1px solid #ebe4d8 !important;
-	overflow: hidden !important;
+	/* Allow horizontal scrollbar (was overflow:hidden → không scroll được) */
+	overflow-x: auto !important;
+	overflow-y: visible !important;
 	width: 100% !important;
 	min-width: 0 !important;
 	box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06) !important;
+	-webkit-overflow-scrolling: touch;
+	scrollbar-width: thin;
+	scrollbar-color: #c4b5a0 #f8f4ee;
+}
+
+#popupModal .popupEntriesTableContainer::-webkit-scrollbar {
+	height: 10px;
+	width: 10px;
+}
+
+#popupModal .popupEntriesTableContainer::-webkit-scrollbar-thumb {
+	background: #c4b5a0;
+	border-radius: 8px;
+}
+
+#popupModal .popupEntriesTableContainer::-webkit-scrollbar-track {
+	background: #f3ebe0;
+	border-radius: 8px;
 }
 
 #popupModal .popupEntriesDiv {
@@ -357,18 +382,72 @@ body.mk-ref-popup-open .modal-backdrop.in {
 	height: auto !important;
 	min-height: 200px !important;
 	max-height: min(62vh, 580px) !important;
-	overflow: auto !important;
+	overflow-x: auto !important;
+	overflow-y: auto !important;
 	position: relative !important;
 	scrollbar-width: thin;
-	scrollbar-color: #d4c4ad #f8f4ee;
+	scrollbar-color: #c4b5a0 #f8f4ee;
+	-webkit-overflow-scrolling: touch;
+}
+
+#popupModal .popupEntriesDiv::-webkit-scrollbar {
+	height: 10px;
+	width: 10px;
+}
+
+#popupModal .popupEntriesDiv::-webkit-scrollbar-thumb {
+	background: #c4b5a0;
+	border-radius: 8px;
+}
+
+#popupModal .popupEntriesDiv::-webkit-scrollbar-track {
+	background: #f3ebe0;
+	border-radius: 8px;
 }
 
 #popupModal .listViewEntriesTable {
-	width: 100% !important;
+	width: max-content !important;
+	min-width: 100% !important;
 	table-layout: auto !important;
 	margin: 0 !important;
 	border: none !important;
 	border-collapse: collapse !important;
+}
+
+#popupModal .listViewEntriesTable th:not(:first-child),
+#popupModal .listViewEntriesTable td:not(:first-child) {
+	min-width: 120px;
+	white-space: nowrap;
+}
+
+#popupModal .listViewEntriesTable th.mk-ref-col-hidden,
+#popupModal .listViewEntriesTable td.mk-ref-col-hidden,
+#popupModal .mk-ref-potentials-popup .listViewEntriesTable th.mk-ref-col-hidden,
+#popupModal .mk-ref-potentials-popup .listViewEntriesTable td.mk-ref-col-hidden {
+	display: none !important;
+	width: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+}
+
+#popupModal .mk-ref-potentials-popup .listViewEntriesTable {
+	width: 100% !important;
+	min-width: 100% !important;
+	table-layout: fixed !important;
+}
+
+#popupModal .mk-ref-potentials-popup .listViewEntriesTable th,
+#popupModal .mk-ref-potentials-popup .listViewEntriesTable td {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#popupModal .mk-ref-potentials-popup .listViewEntriesTable th:first-child,
+#popupModal .mk-ref-potentials-popup .listViewEntriesTable td:first-child {
+	min-width: 44px;
+	width: 44px;
 }
 
 #popupModal .listViewEntriesTable thead {

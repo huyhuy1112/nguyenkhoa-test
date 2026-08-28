@@ -1,6 +1,6 @@
 {* ProductsServices Detail actions: Follow / Edit / More + pager; real Vtiger hooks. *}
 {strip}
-{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
+{if (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY eq 'SALES' || $SELECTED_MENU_CATEGORY eq 'INVENTORY')) || (isset($smarty.get.app) && ($smarty.get.app eq 'SALES' || $smarty.get.app eq 'INVENTORY'))}
 	{assign var=MK_PS_ACTION_COL value="detailViewButtoncontainer mk-ps-detail-actions mk-ps-detail-hero__actions"}
 	<div class="{$MK_PS_ACTION_COL}">
 		<div class="pull-right btn-toolbar mk-ps-detail-actions__toolbar">

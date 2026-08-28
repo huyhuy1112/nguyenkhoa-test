@@ -78,6 +78,19 @@ class Leads_Edit_View extends Vtiger_Edit_View {
 		}
 		$viewer->assign('MK_LEADS_ASSIGNABLE_USERS', $userOptions);
 		$viewer->assign('MK_LEADS_CURRENT_USER_NAME', (string)$userModel->get('user_name'));
+
+		$createTagGroups = array();
+		try {
+			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
+			$createTagGroups = HelpDesk_TagRuleEngineService::getInstance()->getCreateTagGroups();
+		} catch (Exception $e) {
+			$createTagGroups = array();
+		}
+		$viewer->assign('MK_LEAD_CREATE_TAG_GROUPS', $createTagGroups);
+		$viewer->assign('MK_LEAD_CREATE_TAG_GROUPS_JSON', json_encode(
+			$createTagGroups,
+			JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+		));
 	}
 
 	public function requiresPermission(\Vtiger_Request $request) {

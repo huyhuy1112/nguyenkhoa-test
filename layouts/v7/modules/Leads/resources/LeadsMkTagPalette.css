@@ -1,0 +1,676 @@
+/**
+ * Shared Lead tag palette — List / Detail / Create pills only.
+ * Dropdown options stay neutral (see bottom reset).
+ */
+
+.mk-tag[data-tag="individual"],
+.mk-td-tag-pill[data-tag="individual"],
+.tag[data-tag="individual"],
+.mk-lead-detail-tag-chip[data-tag="individual"],
+.mk-tag[data-tag="ca_nhan"],
+.mk-td-tag-pill[data-tag="ca_nhan"],
+.tag[data-tag="ca_nhan"],
+.mk-lead-detail-tag-chip[data-tag="ca_nhan"],
+.mk-tag[data-tag="zalo"],
+.mk-td-tag-pill[data-tag="zalo"],
+.tag[data-tag="zalo"],
+.mk-lead-detail-tag-chip[data-tag="zalo"],
+.mk-tag[data-tag="khong_hoc"],
+.mk-td-tag-pill[data-tag="khong_hoc"],
+.tag[data-tag="khong_hoc"],
+.mk-lead-detail-tag-chip[data-tag="khong_hoc"] {
+    border: 1px solid transparent;
+    background: #e0f2fe; border-color: #7dd3fc; color: #0369a1;
+}
+
+.mk-tag[data-tag="company"],
+.mk-td-tag-pill[data-tag="company"],
+.tag[data-tag="company"],
+.mk-lead-detail-tag-chip[data-tag="company"],
+.mk-tag[data-tag="trung_so"],
+.mk-td-tag-pill[data-tag="trung_so"],
+.tag[data-tag="trung_so"],
+.mk-lead-detail-tag-chip[data-tag="trung_so"],
+.mk-tag[data-tag="thue_bao"],
+.mk-td-tag-pill[data-tag="thue_bao"],
+.tag[data-tag="thue_bao"],
+.mk-lead-detail-tag-chip[data-tag="thue_bao"],
+.mk-tag[data-tag="mien_bac"],
+.mk-td-tag-pill[data-tag="mien_bac"],
+.tag[data-tag="mien_bac"],
+.mk-lead-detail-tag-chip[data-tag="mien_bac"],
+.mk-tag[data-tag="L2"],
+.mk-td-tag-pill[data-tag="L2"],
+.tag[data-tag="L2"],
+.mk-lead-detail-tag-chip[data-tag="L2"],
+.mk-tag[data-tag="l2"],
+.mk-td-tag-pill[data-tag="l2"],
+.tag[data-tag="l2"],
+.mk-lead-detail-tag-chip[data-tag="l2"],
+.mk-tag[data-tag="van_hanh"],
+.mk-td-tag-pill[data-tag="van_hanh"],
+.tag[data-tag="van_hanh"],
+.mk-lead-detail-tag-chip[data-tag="van_hanh"],
+.mk-tag[data-tag="mkt"],
+.mk-td-tag-pill[data-tag="mkt"],
+.tag[data-tag="mkt"],
+.mk-lead-detail-tag-chip[data-tag="mkt"],
+.mk-tag[data-tag="lop_khac"],
+.mk-td-tag-pill[data-tag="lop_khac"],
+.tag[data-tag="lop_khac"],
+.mk-lead-detail-tag-chip[data-tag="lop_khac"],
+.mk-tag[data-tag="chua_mqbh"],
+.mk-td-tag-pill[data-tag="chua_mqbh"],
+.tag[data-tag="chua_mqbh"],
+.mk-lead-detail-tag-chip[data-tag="chua_mqbh"] {
+    border: 1px solid transparent;
+    background: #ede9fe; border-color: #c4b5fd; color: #6d28d9;
+}
+
+.mk-tag[data-tag="vang"],
+.mk-td-tag-pill[data-tag="vang"],
+.tag[data-tag="vang"],
+.mk-lead-detail-tag-chip[data-tag="vang"],
+.mk-tag[data-tag="da_ky_quy"],
+.mk-td-tag-pill[data-tag="da_ky_quy"],
+.tag[data-tag="da_ky_quy"],
+.mk-lead-detail-tag-chip[data-tag="da_ky_quy"],
+.mk-tag[data-tag="hoan_tien_lop_hoc"],
+.mk-td-tag-pill[data-tag="hoan_tien_lop_hoc"],
+.tag[data-tag="hoan_tien_lop_hoc"],
+.mk-lead-detail-tag-chip[data-tag="hoan_tien_lop_hoc"] {
+    border: 1px solid transparent;
+    background: #fef9c3; border-color: #facc15; color: #713f12;
+}
+
+.mk-tag[data-tag="bac"],
+.mk-td-tag-pill[data-tag="bac"],
+.tag[data-tag="bac"],
+.mk-lead-detail-tag-chip[data-tag="bac"] {
+    border: 1px solid transparent;
+    background: #f1f5f9; border-color: #94a3b8; color: #334155;
+}
+
+.mk-tag[data-tag="dong"],
+.mk-td-tag-pill[data-tag="dong"],
+.tag[data-tag="dong"],
+.mk-lead-detail-tag-chip[data-tag="dong"] {
+    border: 1px solid transparent;
+    background: #ffedd5; border-color: #fb923c; color: #9a3412;
+}
+
+.mk-tag[data-tag="facebook"],
+.mk-td-tag-pill[data-tag="facebook"],
+.tag[data-tag="facebook"],
+.mk-lead-detail-tag-chip[data-tag="facebook"] {
+    border: 1px solid transparent;
+    background: #dbeafe; border-color: #60a5fa; color: #1d4ed8;
+}
+
+.mk-tag[data-tag="tiktok"],
+.mk-td-tag-pill[data-tag="tiktok"],
+.tag[data-tag="tiktok"],
+.mk-lead-detail-tag-chip[data-tag="tiktok"] {
+    border: 1px solid transparent;
+    background: #fce7f3; border-color: #f9a8d4; color: #9d174d;
+}
+
+.mk-tag[data-tag="website"],
+.mk-td-tag-pill[data-tag="website"],
+.tag[data-tag="website"],
+.mk-lead-detail-tag-chip[data-tag="website"] {
+    border: 1px solid transparent;
+    background: #d1fae5; border-color: #6ee7b7; color: #047857;
+}
+
+.mk-tag[data-tag="mua_lan_dau"],
+.mk-td-tag-pill[data-tag="mua_lan_dau"],
+.tag[data-tag="mua_lan_dau"],
+.mk-lead-detail-tag-chip[data-tag="mua_lan_dau"] {
+    border: 1px solid transparent;
+    background: #dbeafe; border-color: #93c5fd; color: #1e40af;
+}
+
+.mk-tag[data-tag="mua_lai"],
+.mk-td-tag-pill[data-tag="mua_lai"],
+.tag[data-tag="mua_lai"],
+.mk-lead-detail-tag-chip[data-tag="mua_lai"] {
+    border: 1px solid transparent;
+    background: #1c1917; border-color: #1c1917; color: #fbbf24;
+}
+
+.mk-tag[data-tag="mua_it_lai"],
+.mk-td-tag-pill[data-tag="mua_it_lai"],
+.tag[data-tag="mua_it_lai"],
+.mk-lead-detail-tag-chip[data-tag="mua_it_lai"] {
+    border: 1px solid transparent;
+    background: #991b1b; border-color: #7f1d1d; color: #fff;
+}
+
+.mk-tag[data-tag="khong_mua"],
+.mk-td-tag-pill[data-tag="khong_mua"],
+.tag[data-tag="khong_mua"],
+.mk-lead-detail-tag-chip[data-tag="khong_mua"] {
+    border: 1px solid transparent;
+    background: #fee2e2; border-color: #fca5a5; color: #b91c1c;
+}
+
+.mk-tag[data-tag="ngung_mua"],
+.mk-td-tag-pill[data-tag="ngung_mua"],
+.tag[data-tag="ngung_mua"],
+.mk-lead-detail-tag-chip[data-tag="ngung_mua"] {
+    border: 1px solid transparent;
+    background: #78350f; border-color: #78350f; color: #fde68a;
+}
+
+.mk-tag[data-tag="kh_can_nhac"],
+.mk-td-tag-pill[data-tag="kh_can_nhac"],
+.tag[data-tag="kh_can_nhac"],
+.mk-lead-detail-tag-chip[data-tag="kh_can_nhac"] {
+    border: 1px solid transparent;
+    background: #1d4ed8; border-color: #1e40af; color: #fff;
+}
+
+.mk-tag[data-tag="dang_tu_van"],
+.mk-td-tag-pill[data-tag="dang_tu_van"],
+.tag[data-tag="dang_tu_van"],
+.mk-lead-detail-tag-chip[data-tag="dang_tu_van"] {
+    border: 1px solid transparent;
+    background: #e0f2fe; border-color: #7dd3fc; color: #0f172a;
+}
+
+.mk-tag[data-tag="dung_cham_soc"],
+.mk-td-tag-pill[data-tag="dung_cham_soc"],
+.tag[data-tag="dung_cham_soc"],
+.mk-lead-detail-tag-chip[data-tag="dung_cham_soc"] {
+    border: 1px solid transparent;
+    background: #dc2626; border-color: #b91c1c; color: #fff;
+}
+
+.mk-tag[data-tag="chua_hoc"],
+.mk-td-tag-pill[data-tag="chua_hoc"],
+.tag[data-tag="chua_hoc"],
+.mk-lead-detail-tag-chip[data-tag="chua_hoc"],
+.mk-tag[data-tag="da_hoc"],
+.mk-td-tag-pill[data-tag="da_hoc"],
+.tag[data-tag="da_hoc"],
+.mk-lead-detail-tag-chip[data-tag="da_hoc"],
+.mk-tag[data-tag="nguyen_lieu_chuoi"],
+.mk-td-tag-pill[data-tag="nguyen_lieu_chuoi"],
+.tag[data-tag="nguyen_lieu_chuoi"],
+.mk-lead-detail-tag-chip[data-tag="nguyen_lieu_chuoi"] {
+    border: 1px solid transparent;
+    background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8;
+}
+
+.mk-tag[data-tag="mien_phi_online"],
+.mk-td-tag-pill[data-tag="mien_phi_online"],
+.tag[data-tag="mien_phi_online"],
+.mk-lead-detail-tag-chip[data-tag="mien_phi_online"],
+.mk-tag[data-tag="mien_phi_offline"],
+.mk-td-tag-pill[data-tag="mien_phi_offline"],
+.tag[data-tag="mien_phi_offline"],
+.mk-lead-detail-tag-chip[data-tag="mien_phi_offline"] {
+    border: 1px solid transparent;
+    background: #e0e7ff; border-color: #a5b4fc; color: #4338ca;
+}
+
+.mk-tag[data-tag="pcth"],
+.mk-td-tag-pill[data-tag="pcth"],
+.tag[data-tag="pcth"],
+.mk-lead-detail-tag-chip[data-tag="pcth"],
+.mk-tag[data-tag="da_MQBB"],
+.mk-td-tag-pill[data-tag="da_MQBB"],
+.tag[data-tag="da_MQBB"],
+.mk-lead-detail-tag-chip[data-tag="da_MQBB"],
+.mk-tag[data-tag="da_mqbb"],
+.mk-td-tag-pill[data-tag="da_mqbb"],
+.tag[data-tag="da_mqbb"],
+.mk-lead-detail-tag-chip[data-tag="da_mqbb"],
+.mk-tag[data-tag="chua_MQBB"],
+.mk-td-tag-pill[data-tag="chua_MQBB"],
+.tag[data-tag="chua_MQBB"],
+.mk-lead-detail-tag-chip[data-tag="chua_MQBB"],
+.mk-tag[data-tag="chua_mqbb"],
+.mk-td-tag-pill[data-tag="chua_mqbb"],
+.tag[data-tag="chua_mqbb"],
+.mk-lead-detail-tag-chip[data-tag="chua_mqbb"],
+.mk-tag[data-tag="da_PCTH"],
+.mk-td-tag-pill[data-tag="da_PCTH"],
+.tag[data-tag="da_PCTH"],
+.mk-lead-detail-tag-chip[data-tag="da_PCTH"],
+.mk-tag[data-tag="chua_PCTH"],
+.mk-td-tag-pill[data-tag="chua_PCTH"],
+.tag[data-tag="chua_PCTH"],
+.mk-lead-detail-tag-chip[data-tag="chua_PCTH"],
+.mk-tag[data-tag="da_MQBB_chua_PCTH"],
+.mk-td-tag-pill[data-tag="da_MQBB_chua_PCTH"],
+.tag[data-tag="da_MQBB_chua_PCTH"],
+.mk-lead-detail-tag-chip[data-tag="da_MQBB_chua_PCTH"],
+.mk-tag[data-tag="da_mqbb_chua_pcth"],
+.mk-td-tag-pill[data-tag="da_mqbb_chua_pcth"],
+.tag[data-tag="da_mqbb_chua_pcth"],
+.mk-lead-detail-tag-chip[data-tag="da_mqbb_chua_pcth"],
+.mk-tag[data-tag="da_MQBB_da_PCTH"],
+.mk-td-tag-pill[data-tag="da_MQBB_da_PCTH"],
+.tag[data-tag="da_MQBB_da_PCTH"],
+.mk-lead-detail-tag-chip[data-tag="da_MQBB_da_PCTH"],
+.mk-tag[data-tag="da_mqbb_da_pcth"],
+.mk-td-tag-pill[data-tag="da_mqbb_da_pcth"],
+.tag[data-tag="da_mqbb_da_pcth"],
+.mk-lead-detail-tag-chip[data-tag="da_mqbb_da_pcth"],
+.mk-tag[data-tag="chua_MQBB_chua_PCTH"],
+.mk-td-tag-pill[data-tag="chua_MQBB_chua_PCTH"],
+.tag[data-tag="chua_MQBB_chua_PCTH"],
+.mk-lead-detail-tag-chip[data-tag="chua_MQBB_chua_PCTH"],
+.mk-tag[data-tag="chua_mqbb_chua_pcth"],
+.mk-td-tag-pill[data-tag="chua_mqbb_chua_pcth"],
+.tag[data-tag="chua_mqbb_chua_pcth"],
+.mk-lead-detail-tag-chip[data-tag="chua_mqbb_chua_pcth"],
+.mk-tag[data-tag="chua_MQBB_da_PCTH"],
+.mk-td-tag-pill[data-tag="chua_MQBB_da_PCTH"],
+.tag[data-tag="chua_MQBB_da_PCTH"],
+.mk-lead-detail-tag-chip[data-tag="chua_MQBB_da_PCTH"],
+.mk-tag[data-tag="chua_mqbb_da_pcth"],
+.mk-td-tag-pill[data-tag="chua_mqbb_da_pcth"],
+.tag[data-tag="chua_mqbb_da_pcth"],
+.mk-lead-detail-tag-chip[data-tag="chua_mqbb_da_pcth"] {
+    border: 1px solid transparent;
+    background: #f3f4f6; border-color: #d1d5db; color: #374151;
+}
+
+.mk-tag[data-tag="da_tg_free"],
+.mk-td-tag-pill[data-tag="da_tg_free"],
+.tag[data-tag="da_tg_free"],
+.mk-lead-detail-tag-chip[data-tag="da_tg_free"],
+.mk-tag[data-tag="moi_lai"],
+.mk-td-tag-pill[data-tag="moi_lai"],
+.tag[data-tag="moi_lai"],
+.mk-lead-detail-tag-chip[data-tag="moi_lai"],
+.mk-tag[data-tag="da_990k"],
+.mk-td-tag-pill[data-tag="da_990k"],
+.tag[data-tag="da_990k"],
+.mk-lead-detail-tag-chip[data-tag="da_990k"] {
+    border: 1px solid transparent;
+    background: #dcfce7; border-color: #86efac; color: #166534;
+}
+
+.mk-tag[data-tag="thu_3"],
+.mk-td-tag-pill[data-tag="thu_3"],
+.tag[data-tag="thu_3"],
+.mk-lead-detail-tag-chip[data-tag="thu_3"] {
+    border: 1px solid transparent;
+    background: #fecaca; border-color: #f87171; color: #991b1b;
+}
+
+.mk-tag[data-tag="doi_lich"],
+.mk-td-tag-pill[data-tag="doi_lich"],
+.tag[data-tag="doi_lich"],
+.mk-lead-detail-tag-chip[data-tag="doi_lich"] {
+    border: 1px solid transparent;
+    background: #e2e8f0; border-color: #cbd5e1; color: #334155;
+}
+
+.mk-tag[data-tag="lop_online"],
+.mk-td-tag-pill[data-tag="lop_online"],
+.tag[data-tag="lop_online"],
+.mk-lead-detail-tag-chip[data-tag="lop_online"],
+.mk-tag[data-tag="tiem_nang"],
+.mk-td-tag-pill[data-tag="tiem_nang"],
+.tag[data-tag="tiem_nang"],
+.mk-lead-detail-tag-chip[data-tag="tiem_nang"],
+.mk-tag[data-tag="sieu_tiem_nang"],
+.mk-td-tag-pill[data-tag="sieu_tiem_nang"],
+.tag[data-tag="sieu_tiem_nang"],
+.mk-lead-detail-tag-chip[data-tag="sieu_tiem_nang"],
+.mk-tag[data-tag="moi_quen"],
+.mk-td-tag-pill[data-tag="moi_quen"],
+.tag[data-tag="moi_quen"],
+.mk-lead-detail-tag-chip[data-tag="moi_quen"],
+.mk-tag[data-tag="goi_lan_1"],
+.mk-td-tag-pill[data-tag="goi_lan_1"],
+.tag[data-tag="goi_lan_1"],
+.mk-lead-detail-tag-chip[data-tag="goi_lan_1"] {
+    border: 1px solid transparent;
+    background: #dbeafe; border-color: #93c5fd; color: #1d4ed8;
+}
+
+.mk-tag[data-tag="sieu_tiem_nang"],
+.mk-td-tag-pill[data-tag="sieu_tiem_nang"],
+.tag[data-tag="sieu_tiem_nang"],
+.mk-lead-detail-tag-chip[data-tag="sieu_tiem_nang"] {
+    background: #fef3c7; border-color: #fcd34d; color: #b45309;
+}
+
+.mk-tag[data-tag="khong_nghe_may"],
+.mk-td-tag-pill[data-tag="khong_nghe_may"],
+.tag[data-tag="khong_nghe_may"],
+.mk-lead-detail-tag-chip[data-tag="khong_nghe_may"] {
+    border: 1px solid transparent;
+    background: #ffe4e6; border-color: #fda4af; color: #9f1239;
+}
+
+.mk-tag[data-tag="ngung_cham_soc"],
+.mk-td-tag-pill[data-tag="ngung_cham_soc"],
+.tag[data-tag="ngung_cham_soc"],
+.mk-lead-detail-tag-chip[data-tag="ngung_cham_soc"] {
+    border: 1px solid transparent;
+    background: #fef2f2; border-color: #fecaca; color: #991b1b;
+}
+
+.mk-tag[data-tag="tham_khao"],
+.mk-td-tag-pill[data-tag="tham_khao"],
+.tag[data-tag="tham_khao"],
+.mk-lead-detail-tag-chip[data-tag="tham_khao"] {
+    border: 1px solid transparent;
+    background: #ffedd5; border-color: #fdba74; color: #9a3412;
+}
+
+.mk-tag[data-tag="khong_du_tai_chinh"],
+.mk-td-tag-pill[data-tag="khong_du_tai_chinh"],
+.tag[data-tag="khong_du_tai_chinh"],
+.mk-lead-detail-tag-chip[data-tag="khong_du_tai_chinh"] {
+    border: 1px solid transparent;
+    background: #0f172a; border-color: #0f172a; color: #f8fafc;
+}
+
+.mk-tag[data-tag="L1"],
+.mk-td-tag-pill[data-tag="L1"],
+.tag[data-tag="L1"],
+.mk-lead-detail-tag-chip[data-tag="L1"],
+.mk-tag[data-tag="l1"],
+.mk-td-tag-pill[data-tag="l1"],
+.tag[data-tag="l1"],
+.mk-lead-detail-tag-chip[data-tag="l1"],
+.mk-tag[data-tag="chua_990k"],
+.mk-td-tag-pill[data-tag="chua_990k"],
+.tag[data-tag="chua_990k"],
+.mk-lead-detail-tag-chip[data-tag="chua_990k"] {
+    border: 1px solid transparent;
+    background: #f1f5f9; border-color: #cbd5e1; color: #334155;
+}
+
+.mk-tag[data-tag="KV1"],
+.mk-td-tag-pill[data-tag="KV1"],
+.tag[data-tag="KV1"],
+.mk-lead-detail-tag-chip[data-tag="KV1"],
+.mk-tag[data-tag="KV2"],
+.mk-td-tag-pill[data-tag="KV2"],
+.tag[data-tag="KV2"],
+.mk-lead-detail-tag-chip[data-tag="KV2"],
+.mk-tag[data-tag="KV3"],
+.mk-td-tag-pill[data-tag="KV3"],
+.tag[data-tag="KV3"],
+.mk-lead-detail-tag-chip[data-tag="KV3"],
+.mk-tag[data-tag="kv1"],
+.mk-td-tag-pill[data-tag="kv1"],
+.tag[data-tag="kv1"],
+.mk-lead-detail-tag-chip[data-tag="kv1"],
+.mk-tag[data-tag="kv2"],
+.mk-td-tag-pill[data-tag="kv2"],
+.tag[data-tag="kv2"],
+.mk-lead-detail-tag-chip[data-tag="kv2"],
+.mk-tag[data-tag="kv3"],
+.mk-td-tag-pill[data-tag="kv3"],
+.tag[data-tag="kv3"],
+.mk-lead-detail-tag-chip[data-tag="kv3"],
+.mk-tag[data-tag="dang_cham_soc"],
+.mk-td-tag-pill[data-tag="dang_cham_soc"],
+.tag[data-tag="dang_cham_soc"],
+.mk-lead-detail-tag-chip[data-tag="dang_cham_soc"] {
+    border: 1px solid transparent;
+    background: #ecfdf5; border-color: #6ee7b7; color: #047857;
+}
+
+.mk-tag[data-tag="co_quan"],
+.mk-td-tag-pill[data-tag="co_quan"],
+.tag[data-tag="co_quan"],
+.mk-lead-detail-tag-chip[data-tag="co_quan"] {
+    border: 1px solid transparent;
+    background: #fef3c7; border-color: #fcd34d; color: #b45309;
+}
+
+.mk-tag[data-tag="chuan_bi_mo"],
+.mk-td-tag-pill[data-tag="chuan_bi_mo"],
+.tag[data-tag="chuan_bi_mo"],
+.mk-lead-detail-tag-chip[data-tag="chuan_bi_mo"] {
+    border: 1px solid transparent;
+    background: #fce7f3; border-color: #f9a8d4; color: #be185d;
+}
+
+.mk-tag[data-tag="gia_dinh"],
+.mk-td-tag-pill[data-tag="gia_dinh"],
+.tag[data-tag="gia_dinh"],
+.mk-lead-detail-tag-chip[data-tag="gia_dinh"] {
+    border: 1px solid transparent;
+    background: #dcfce7; border-color: #86efac; color: #047857;
+}
+
+.mk-tag[data-tag="da_cap_bang"],
+.mk-td-tag-pill[data-tag="da_cap_bang"],
+.tag[data-tag="da_cap_bang"],
+.mk-lead-detail-tag-chip[data-tag="da_cap_bang"] {
+    border: 1px solid transparent;
+    background: #e0e7ff; border-color: #a5b4fc; color: #3730a3;
+}
+
+.mk-tag[data-tag="da_cap_tai_khoan"],
+.mk-td-tag-pill[data-tag="da_cap_tai_khoan"],
+.tag[data-tag="da_cap_tai_khoan"],
+.mk-lead-detail-tag-chip[data-tag="da_cap_tai_khoan"] {
+    border: 1px solid transparent;
+    background: #cffafe; border-color: #67e8f9; color: #0e7490;
+}
+
+.mk-tag[data-tag="nhuong_quyen"],
+.mk-td-tag-pill[data-tag="nhuong_quyen"],
+.tag[data-tag="nhuong_quyen"],
+.mk-lead-detail-tag-chip[data-tag="nhuong_quyen"],
+.mk-tag[data-tag="da_co_quan_he"],
+.mk-td-tag-pill[data-tag="da_co_quan_he"],
+.tag[data-tag="da_co_quan_he"],
+.mk-lead-detail-tag-chip[data-tag="da_co_quan_he"] {
+    border: 1px solid transparent;
+    background: #ffe4e6; border-color: #fda4af; color: #be123c;
+}
+
+.mk-tag[data-tag="other"],
+.mk-td-tag-pill[data-tag="other"],
+.tag[data-tag="other"],
+.mk-lead-detail-tag-chip[data-tag="other"],
+.mk-tag[data-tag="other_source"],
+.mk-td-tag-pill[data-tag="other_source"],
+.tag[data-tag="other_source"],
+.mk-lead-detail-tag-chip[data-tag="other_source"] {
+    border: 1px solid transparent;
+    background: #f1f5f9; border-color: #94a3b8; color: #475569;
+}
+
+.mk-tag[data-tag="goi_lan_2"],
+.mk-td-tag-pill[data-tag="goi_lan_2"],
+.tag[data-tag="goi_lan_2"],
+.mk-lead-detail-tag-chip[data-tag="goi_lan_2"] {
+    border: 1px solid transparent;
+    background: #fef9c3; border-color: #fcd34d; color: #a16207;
+}
+
+.mk-tag[data-tag="goi_lan_3"],
+.mk-td-tag-pill[data-tag="goi_lan_3"],
+.tag[data-tag="goi_lan_3"],
+.mk-lead-detail-tag-chip[data-tag="goi_lan_3"],
+.mk-tag[data-tag="goi_lan_4"],
+.mk-td-tag-pill[data-tag="goi_lan_4"],
+.tag[data-tag="goi_lan_4"],
+.mk-lead-detail-tag-chip[data-tag="goi_lan_4"],
+.mk-tag[data-tag="goi_lan_5"],
+.mk-td-tag-pill[data-tag="goi_lan_5"],
+.tag[data-tag="goi_lan_5"],
+.mk-lead-detail-tag-chip[data-tag="goi_lan_5"],
+.mk-tag[data-tag="goi_lan_6"],
+.mk-td-tag-pill[data-tag="goi_lan_6"],
+.tag[data-tag="goi_lan_6"],
+.mk-lead-detail-tag-chip[data-tag="goi_lan_6"],
+.mk-tag[data-tag="goi_lan_7"],
+.mk-td-tag-pill[data-tag="goi_lan_7"],
+.tag[data-tag="goi_lan_7"],
+.mk-lead-detail-tag-chip[data-tag="goi_lan_7"],
+.mk-tag[data-tag="goi_lan_8"],
+.mk-td-tag-pill[data-tag="goi_lan_8"],
+.tag[data-tag="goi_lan_8"],
+.mk-lead-detail-tag-chip[data-tag="goi_lan_8"],
+.mk-tag[data-tag="goi_lan_9"],
+.mk-td-tag-pill[data-tag="goi_lan_9"],
+.tag[data-tag="goi_lan_9"],
+.mk-lead-detail-tag-chip[data-tag="goi_lan_9"],
+.mk-tag[data-tag="goi_lan_10"],
+.mk-td-tag-pill[data-tag="goi_lan_10"],
+.tag[data-tag="goi_lan_10"],
+.mk-lead-detail-tag-chip[data-tag="goi_lan_10"] {
+    border: 1px solid transparent;
+    background: #ffedd5; border-color: #fdba74; color: #c2410c;
+}
+
+/* Opp-specific catalog tags (shared palette) */
+.mk-tag[data-tag="hotline"],
+.mk-td-tag-pill[data-tag="hotline"],
+.tag[data-tag="hotline"],
+.mk-lead-detail-tag-chip[data-tag="hotline"],
+.mk-tag[data-tag="ladipage_fb"],
+.mk-td-tag-pill[data-tag="ladipage_fb"],
+.tag[data-tag="ladipage_fb"],
+.mk-lead-detail-tag-chip[data-tag="ladipage_fb"] {
+    border: 1px solid transparent;
+    background: #dbeafe; border-color: #60a5fa; color: #1d4ed8;
+}
+
+.mk-tag[data-tag="da_tg_fb1"],
+.mk-td-tag-pill[data-tag="da_tg_fb1"],
+.tag[data-tag="da_tg_fb1"],
+.mk-lead-detail-tag-chip[data-tag="da_tg_fb1"],
+.mk-tag[data-tag="mua_on_dinh"],
+.mk-td-tag-pill[data-tag="mua_on_dinh"],
+.tag[data-tag="mua_on_dinh"],
+.mk-lead-detail-tag-chip[data-tag="mua_on_dinh"] {
+    border: 1px solid transparent;
+    background: #d1fae5; border-color: #6ee7b7; color: #047857;
+}
+
+.mk-tag[data-tag="xac_nhan_tham_gia"],
+.mk-td-tag-pill[data-tag="xac_nhan_tham_gia"],
+.tag[data-tag="xac_nhan_tham_gia"],
+.mk-lead-detail-tag-chip[data-tag="xac_nhan_tham_gia"] {
+    border: 1px solid transparent;
+    background: #dcfce7; border-color: #86efac; color: #166534;
+}
+
+.mk-tag[data-tag="khong_xac_nhan_tham_gia"],
+.mk-td-tag-pill[data-tag="khong_xac_nhan_tham_gia"],
+.tag[data-tag="khong_xac_nhan_tham_gia"],
+.mk-lead-detail-tag-chip[data-tag="khong_xac_nhan_tham_gia"] {
+    border: 1px solid transparent;
+    background: #fee2e2; border-color: #fca5a5; color: #b91c1c;
+}
+
+/* Dropdown options stay neutral — only tag pills keep color */
+.mk-td-search-select__option[data-tag],
+.mk-td-search-select__trigger[data-tag].mk-td-select--picked {
+    background: transparent !important;
+    border-color: transparent !important;
+    color: #111827 !important;
+    filter: none !important;
+}
+.mk-td-search-select__option[data-tag]:hover,
+.mk-td-search-select__option[data-tag].is-selected {
+    background: #f3f4f6 !important;
+    color: #111827 !important;
+}
+.mk-td-search-select__option--placeholder {
+    color: #6b7280 !important;
+}
+
+/* Bulk filter dots */
+.mk-leads-bulk-dot[data-tag="bac"] { background: #94a3b8; border-color: #94a3b8; }
+.mk-leads-bulk-dot[data-tag="ca_nhan"] { background: #7dd3fc; border-color: #7dd3fc; }
+.mk-leads-bulk-dot[data-tag="chua_990k"] { background: #cbd5e1; border-color: #cbd5e1; }
+.mk-leads-bulk-dot[data-tag="chua_hoc"] { background: #bfdbfe; border-color: #bfdbfe; }
+.mk-leads-bulk-dot[data-tag="chua_MQBB"] { background: #d1d5db; border-color: #d1d5db; }
+.mk-leads-bulk-dot[data-tag="chua_MQBB_chua_PCTH"] { background: #d1d5db; border-color: #d1d5db; }
+.mk-leads-bulk-dot[data-tag="chua_MQBB_da_PCTH"] { background: #d1d5db; border-color: #d1d5db; }
+.mk-leads-bulk-dot[data-tag="chua_mqbh"] { background: #c4b5fd; border-color: #c4b5fd; }
+.mk-leads-bulk-dot[data-tag="chua_PCTH"] { background: #d1d5db; border-color: #d1d5db; }
+.mk-leads-bulk-dot[data-tag="chuan_bi_mo"] { background: #f9a8d4; border-color: #f9a8d4; }
+.mk-leads-bulk-dot[data-tag="co_quan"] { background: #fcd34d; border-color: #fcd34d; }
+.mk-leads-bulk-dot[data-tag="company"] { background: #c4b5fd; border-color: #c4b5fd; }
+.mk-leads-bulk-dot[data-tag="da_990k"] { background: #86efac; border-color: #86efac; }
+.mk-leads-bulk-dot[data-tag="da_co_quan_he"] { background: #fda4af; border-color: #fda4af; }
+.mk-leads-bulk-dot[data-tag="da_cap_bang"] { background: #a5b4fc; border-color: #a5b4fc; }
+.mk-leads-bulk-dot[data-tag="da_cap_tai_khoan"] { background: #67e8f9; border-color: #67e8f9; }
+.mk-leads-bulk-dot[data-tag="da_hoc"] { background: #bfdbfe; border-color: #bfdbfe; }
+.mk-leads-bulk-dot[data-tag="da_ky_quy"] { background: #facc15; border-color: #facc15; }
+.mk-leads-bulk-dot[data-tag="da_MQBB"] { background: #d1d5db; border-color: #d1d5db; }
+.mk-leads-bulk-dot[data-tag="da_MQBB_chua_PCTH"] { background: #d1d5db; border-color: #d1d5db; }
+.mk-leads-bulk-dot[data-tag="da_MQBB_da_PCTH"] { background: #d1d5db; border-color: #d1d5db; }
+.mk-leads-bulk-dot[data-tag="da_PCTH"] { background: #d1d5db; border-color: #d1d5db; }
+.mk-leads-bulk-dot[data-tag="da_tg_free"] { background: #86efac; border-color: #86efac; }
+.mk-leads-bulk-dot[data-tag="dang_cham_soc"] { background: #6ee7b7; border-color: #6ee7b7; }
+.mk-leads-bulk-dot[data-tag="dang_tu_van"] { background: #7dd3fc; border-color: #7dd3fc; }
+.mk-leads-bulk-dot[data-tag="doi_lich"] { background: #cbd5e1; border-color: #cbd5e1; }
+.mk-leads-bulk-dot[data-tag="dong"] { background: #fb923c; border-color: #fb923c; }
+.mk-leads-bulk-dot[data-tag="dung_cham_soc"] { background: #b91c1c; border-color: #b91c1c; }
+.mk-leads-bulk-dot[data-tag="facebook"] { background: #60a5fa; border-color: #60a5fa; }
+.mk-leads-bulk-dot[data-tag="gia_dinh"] { background: #86efac; border-color: #86efac; }
+.mk-leads-bulk-dot[data-tag="goi_lan_1"] { background: #93c5fd; border-color: #93c5fd; }
+.mk-leads-bulk-dot[data-tag="goi_lan_10"] { background: #fdba74; border-color: #fdba74; }
+.mk-leads-bulk-dot[data-tag="goi_lan_2"] { background: #fcd34d; border-color: #fcd34d; }
+.mk-leads-bulk-dot[data-tag="goi_lan_3"] { background: #fdba74; border-color: #fdba74; }
+.mk-leads-bulk-dot[data-tag="goi_lan_4"] { background: #fdba74; border-color: #fdba74; }
+.mk-leads-bulk-dot[data-tag="goi_lan_5"] { background: #fdba74; border-color: #fdba74; }
+.mk-leads-bulk-dot[data-tag="goi_lan_6"] { background: #fdba74; border-color: #fdba74; }
+.mk-leads-bulk-dot[data-tag="goi_lan_7"] { background: #fdba74; border-color: #fdba74; }
+.mk-leads-bulk-dot[data-tag="goi_lan_8"] { background: #fdba74; border-color: #fdba74; }
+.mk-leads-bulk-dot[data-tag="goi_lan_9"] { background: #fdba74; border-color: #fdba74; }
+.mk-leads-bulk-dot[data-tag="hoan_tien_lop_hoc"] { background: #facc15; border-color: #facc15; }
+.mk-leads-bulk-dot[data-tag="individual"] { background: #7dd3fc; border-color: #7dd3fc; }
+.mk-leads-bulk-dot[data-tag="kh_can_nhac"] { background: #1e40af; border-color: #1e40af; }
+.mk-leads-bulk-dot[data-tag="khong_du_tai_chinh"] { background: #0f172a; border-color: #0f172a; }
+.mk-leads-bulk-dot[data-tag="khong_hoc"] { background: #7dd3fc; border-color: #7dd3fc; }
+.mk-leads-bulk-dot[data-tag="khong_mua"] { background: #fca5a5; border-color: #fca5a5; }
+.mk-leads-bulk-dot[data-tag="khong_nghe_may"] { background: #fda4af; border-color: #fda4af; }
+.mk-leads-bulk-dot[data-tag="KV1"] { background: #6ee7b7; border-color: #6ee7b7; }
+.mk-leads-bulk-dot[data-tag="kv1"] { background: #6ee7b7; border-color: #6ee7b7; }
+.mk-leads-bulk-dot[data-tag="KV2"] { background: #6ee7b7; border-color: #6ee7b7; }
+.mk-leads-bulk-dot[data-tag="kv2"] { background: #6ee7b7; border-color: #6ee7b7; }
+.mk-leads-bulk-dot[data-tag="KV3"] { background: #6ee7b7; border-color: #6ee7b7; }
+.mk-leads-bulk-dot[data-tag="kv3"] { background: #6ee7b7; border-color: #6ee7b7; }
+.mk-leads-bulk-dot[data-tag="L1"] { background: #cbd5e1; border-color: #cbd5e1; }
+.mk-leads-bulk-dot[data-tag="l1"] { background: #cbd5e1; border-color: #cbd5e1; }
+.mk-leads-bulk-dot[data-tag="L2"] { background: #c4b5fd; border-color: #c4b5fd; }
+.mk-leads-bulk-dot[data-tag="l2"] { background: #c4b5fd; border-color: #c4b5fd; }
+.mk-leads-bulk-dot[data-tag="lop_khac"] { background: #c4b5fd; border-color: #c4b5fd; }
+.mk-leads-bulk-dot[data-tag="lop_online"] { background: #93c5fd; border-color: #93c5fd; }
+.mk-leads-bulk-dot[data-tag="mien_bac"] { background: #c4b5fd; border-color: #c4b5fd; }
+.mk-leads-bulk-dot[data-tag="mien_phi_offline"] { background: #a5b4fc; border-color: #a5b4fc; }
+.mk-leads-bulk-dot[data-tag="mien_phi_online"] { background: #a5b4fc; border-color: #a5b4fc; }
+.mk-leads-bulk-dot[data-tag="mkt"] { background: #c4b5fd; border-color: #c4b5fd; }
+.mk-leads-bulk-dot[data-tag="moi_lai"] { background: #86efac; border-color: #86efac; }
+.mk-leads-bulk-dot[data-tag="moi_quen"] { background: #93c5fd; border-color: #93c5fd; }
+.mk-leads-bulk-dot[data-tag="mua_it_lai"] { background: #7f1d1d; border-color: #7f1d1d; }
+.mk-leads-bulk-dot[data-tag="mua_lai"] { background: #1c1917; border-color: #1c1917; }
+.mk-leads-bulk-dot[data-tag="mua_lan_dau"] { background: #93c5fd; border-color: #93c5fd; }
+.mk-leads-bulk-dot[data-tag="ngung_cham_soc"] { background: #fecaca; border-color: #fecaca; }
+.mk-leads-bulk-dot[data-tag="ngung_mua"] { background: #78350f; border-color: #78350f; }
+.mk-leads-bulk-dot[data-tag="nguyen_lieu_chuoi"] { background: #bfdbfe; border-color: #bfdbfe; }
+.mk-leads-bulk-dot[data-tag="nhuong_quyen"] { background: #fda4af; border-color: #fda4af; }
+.mk-leads-bulk-dot[data-tag="other"] { background: #94a3b8; border-color: #94a3b8; }
+.mk-leads-bulk-dot[data-tag="other_source"] { background: #94a3b8; border-color: #94a3b8; }
+.mk-leads-bulk-dot[data-tag="pcth"] { background: #d1d5db; border-color: #d1d5db; }
+.mk-leads-bulk-dot[data-tag="tham_khao"] { background: #fdba74; border-color: #fdba74; }
+.mk-leads-bulk-dot[data-tag="thu_3"] { background: #f87171; border-color: #f87171; }
+.mk-leads-bulk-dot[data-tag="thue_bao"] { background: #c4b5fd; border-color: #c4b5fd; }
+.mk-leads-bulk-dot[data-tag="tiem_nang"] { background: #93c5fd; border-color: #93c5fd; }
+.mk-leads-bulk-dot[data-tag="tiktok"] { background: #f9a8d4; border-color: #f9a8d4; }
+.mk-leads-bulk-dot[data-tag="trung_so"] { background: #c4b5fd; border-color: #c4b5fd; }
+.mk-leads-bulk-dot[data-tag="van_hanh"] { background: #c4b5fd; border-color: #c4b5fd; }
+.mk-leads-bulk-dot[data-tag="vang"] { background: #facc15; border-color: #facc15; }
+.mk-leads-bulk-dot[data-tag="website"] { background: #6ee7b7; border-color: #6ee7b7; }
+.mk-leads-bulk-dot[data-tag="zalo"] { background: #7dd3fc; border-color: #7dd3fc; }

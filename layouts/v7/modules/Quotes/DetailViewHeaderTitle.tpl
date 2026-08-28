@@ -16,21 +16,22 @@
 	{assign var=MK_QT_CONTACT value=''}
 	{assign var=MK_QT_POTENTIAL value=''}
 	{assign var=MK_QT_TOTAL value=''}
+	{* getDisplayValue reference trả về HTML <a> — strip thành plain text cho hero *}
 	{assign var=ACC_FIELD value=$MODULE_MODEL->getField('account_id')}
 	{if $ACC_FIELD && $ACC_FIELD->getPermissions()}
-		{assign var=MK_QT_ACCOUNT value=$RECORD->getDisplayValue('account_id')|trim}
+		{assign var=MK_QT_ACCOUNT value=$RECORD->getDisplayValue('account_id')|strip_tags|trim}
 	{/if}
 	{assign var=CON_FIELD value=$MODULE_MODEL->getField('contact_id')}
 	{if $CON_FIELD && $CON_FIELD->getPermissions()}
-		{assign var=MK_QT_CONTACT value=$RECORD->getDisplayValue('contact_id')|trim}
+		{assign var=MK_QT_CONTACT value=$RECORD->getDisplayValue('contact_id')|strip_tags|trim}
 	{/if}
 	{assign var=POT_FIELD value=$MODULE_MODEL->getField('potential_id')}
 	{if $POT_FIELD && $POT_FIELD->getPermissions()}
-		{assign var=MK_QT_POTENTIAL value=$RECORD->getDisplayValue('potential_id')|trim}
+		{assign var=MK_QT_POTENTIAL value=$RECORD->getDisplayValue('potential_id')|strip_tags|trim}
 	{/if}
 	{assign var=TOT_FIELD value=$MODULE_MODEL->getField('hdnGrandTotal')}
 	{if $TOT_FIELD && $TOT_FIELD->getPermissions()}
-		{assign var=MK_QT_TOTAL value=$RECORD->getDisplayValue('hdnGrandTotal')|trim}
+		{assign var=MK_QT_TOTAL value=$RECORD->getDisplayValue('hdnGrandTotal')|strip_tags|trim}
 	{/if}
 	<div class="mk-qt-detail-hero__left">
 		<div class="mk-qt-detail-hero__identity clearfix">
@@ -50,42 +51,52 @@
 				{/if}
 			</div>
 			<div class="mk-qt-detail-hero__text mk-qt-detail-hero__content recordBasicInfo">
-				<h1 class="mk-qt-detail-hero__title">
-					<span class="recordLabel" title="{$RECORD->getName()|escape:'html'}">
-						{foreach item=NAME_FIELD from=$MODULE_MODEL->getNameFields()}
+				{* BA: chỗ tiêu đề = tên khách hàng (plain text, không subject) *}
+				{assign var=MK_HERO_TITLE value=$MK_QT_ACCOUNT}
+				{if $MK_HERO_TITLE eq '' || $MK_HERO_TITLE eq '--'}
+					{assign var=MK_HERO_TITLE value=$MK_QT_CONTACT}
+				{/if}
+				{if $MK_HERO_TITLE eq '' || $MK_HERO_TITLE eq '--'}
+					{foreach item=NAME_FIELD from=$MODULE_MODEL->getNameFields()}
+						{if $NAME_FIELD ne 'subject'}
 							{assign var=FIELD_MODEL value=$MODULE_MODEL->getField($NAME_FIELD)}
-							{if $FIELD_MODEL->getPermissions()}
-								<span class="{$NAME_FIELD}">{decode_html(trim($RECORD->get($NAME_FIELD)))}</span>
+							{if $FIELD_MODEL && $FIELD_MODEL->getPermissions()}
+								{assign var=MK_HERO_TITLE value=decode_html(trim($RECORD->get($NAME_FIELD)))|strip_tags|trim}
 							{/if}
-						{/foreach}
+						{/if}
+					{/foreach}
+				{/if}
+				{if $MK_HERO_TITLE eq '' || $MK_HERO_TITLE eq '--'}
+					{assign var=MK_HERO_TITLE value=$RECORD->getDisplayValue('quote_no')|strip_tags|trim}
+				{/if}
+				<h1 class="mk-qt-detail-hero__title">
+					<span class="recordLabel" title="{$MK_HERO_TITLE|escape:'html'}">
+						<span class="account_id">{$MK_HERO_TITLE|escape:'html'}</span>
 					</span>
 				</h1>
 				<div class="mk-qt-detail-hero__meta">
+					{if !empty($MK_QUOTE_CONVERTED_BADGE) || !empty($MK_QUOTE_SO_REF_VIEW)}
+						<span class="mk-qt-detail-hero__converted-badge" title="Báo giá đã chuyển thành đơn hàng">Đã chuyển đơn hàng</span>
+					{/if}
 					{if $MK_QT_STAGE_LABEL ne ''}
 						<span class="mk-qt-detail-hero__quote-stage" title="{vtranslate('quotestage', $MODULE)}">{$MK_QT_STAGE_LABEL}</span>
 					{/if}
-					{if $MK_QT_ACCOUNT ne ''}
-						<span class="mk-qt-detail-hero__meta-item mk-qt-detail-hero__meta-item--org" title="{vtranslate('account_id', $MODULE)}">
-							<span class="mk-qt-meta-svg" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg></span>
-							<span class="mk-qt-detail-hero__meta-text">{$MK_QT_ACCOUNT}</span>
-						</span>
-					{/if}
-					{if $MK_QT_CONTACT ne ''}
+					{if $MK_QT_CONTACT ne '' && $MK_QT_CONTACT ne $MK_HERO_TITLE}
 						<span class="mk-qt-detail-hero__meta-item mk-qt-detail-hero__meta-item--contact" title="{vtranslate('contact_id', $MODULE)}">
 							<span class="mk-qt-meta-svg" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-							<span class="mk-qt-detail-hero__meta-text">{$MK_QT_CONTACT}</span>
+							<span class="mk-qt-detail-hero__meta-text">{$MK_QT_CONTACT|escape:'html'}</span>
 						</span>
 					{/if}
 					{if $MK_QT_TOTAL ne ''}
 						<span class="mk-qt-detail-hero__meta-item mk-qt-detail-hero__meta-item--total" title="{vtranslate('hdnGrandTotal', $MODULE)}">
 							<span class="mk-qt-meta-svg" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
-							<span class="mk-qt-detail-hero__meta-text">{$MK_QT_TOTAL}</span>
+							<span class="mk-qt-detail-hero__meta-text">{$MK_QT_TOTAL|escape:'html'}</span>
 						</span>
 					{/if}
 					{if $MK_QT_POTENTIAL ne ''}
 						<span class="mk-qt-detail-hero__meta-item mk-qt-detail-hero__meta-item--opp" title="{vtranslate('potential_id', $MODULE)}">
 							<span class="mk-qt-meta-svg" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2l2.2 6.8H21l-5.5 4 2.1 6.7L12 15.3 6.4 20.5l2.1-6.7L3 8.8h6.8L12 2z"/></svg></span>
-							<span class="mk-qt-detail-hero__meta-text">{$MK_QT_POTENTIAL}</span>
+							<span class="mk-qt-detail-hero__meta-text">{$MK_QT_POTENTIAL|escape:'html'}</span>
 						</span>
 					{/if}
 				</div>

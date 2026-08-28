@@ -28,7 +28,10 @@
 		if (!isFinite(n)) {
 			return '';
 		}
-		return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+		if (window.MkCurrency && typeof MkCurrency.format === 'function') {
+			return MkCurrency.format(n, { decimals: 0 });
+		}
+		return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 	}
 
 	function amountInWordsVi(amount) {
@@ -125,51 +128,112 @@
 		return $f.length ? $.trim($f.val()) : '';
 	}
 
+	function getQuoteRail() {
+		return $('#mkQtQuoteRail, #mkSoOrderRail').first();
+	}
+
 	function injectCompanyReadonly($form) {
-		var company = cfg().company || {};
-		var $block = $form.find('.fieldBlockContainer[data-block="LBL_QUOTE_INFORMATION"]').first();
-		if (!$block.length || $block.find('.mk-qt-company-ro').length) {
+		// BA: hide seller company info card on Quote/SO edit rail.
+		var $rail = getQuoteRail();
+		if (!$rail.length) {
 			return;
 		}
-		var rows = [
-			['Tên công ty', company.company_name],
-			['Mã số thuế', company.tax_code],
-			['Website', company.website],
-			['Địa chỉ', company.address],
-			['Ngân hàng', company.bank_name],
-			['Số tài khoản', company.bank_account],
-			['Chủ tài khoản', company.account_holder]
-		];
-		var cells = rows
-			.map(function (row) {
-				var val = row[1] ? decodeHtmlText(String(row[1])) : '—';
-				return (
-					'<div class="mk-qt-company-ro__item"><span class="mk-qt-company-ro__label">' +
-					row[0] +
-					'</span><span class="mk-qt-company-ro__value">' +
-					$('<div>').text(val).html() +
-					'</span></div>'
-				);
-			})
-			.join('');
-		var $panel = $(
-			'<div class="mk-qt-company-ro" aria-label="Thông tin công ty (từ cấu hình hệ thống)">' +
-				'<p class="mk-qt-company-ro__title">Thông tin công ty <span class="mk-qt-company-ro__hint">(tự động từ cấu hình — không nhập lại)</span></p>' +
-				'<div class="mk-qt-company-ro__grid">' +
-				cells +
-				'</div></div>'
-		);
-		var $table = $block.find('table.table-borderless').first();
-		if ($table.length) {
-			$table.prepend(
-				$('<tr class="mk-qt-company-ro-row"><td colspan="4" class="fieldValue fieldValueWidth80"></td></tr>')
-					.find('td')
-					.append($panel)
-					.end()
-			);
-		} else {
-			$block.find('.fieldBlockHeader').after($panel);
+		$rail.find('.mk-qt-rail-card--company, .mk-qt-company-ro').remove();
+	}
+
+	function syncAddressRailFromForm($form) {
+		var $rail = getQuoteRail();
+		if (!$rail.length) {
+			return;
 		}
+		var isSo = $rail.attr('id') === 'mkSoOrderRail';
+		var prefix = isSo ? 'mkSo' : 'mkQt';
+		var $bill = $form.find('[name="bill_street"]').first();
+		var $ship = $form.find('[name="ship_street"]').first();
+		var $billRail = $('#' + prefix + 'BillStreetRail');
+		var $shipRail = $('#' + prefix + 'ShipStreetRail');
+		if ($billRail.length && $bill.length) {
+			$billRail.val($bill.val() || '');
+		}
+		if ($shipRail.length && $ship.length) {
+			$shipRail.val($ship.val() || '');
+		}
+	}
+
+	function syncAddressRailToForm($form) {
+		var $rail = getQuoteRail();
+		if (!$rail.length) {
+			return;
+		}
+		var isSo = $rail.attr('id') === 'mkSoOrderRail';
+		var prefix = isSo ? 'mkSo' : 'mkQt';
+		var $bill = $form.find('[name="bill_street"]').first();
+		var $ship = $form.find('[name="ship_street"]').first();
+		var $billRail = $('#' + prefix + 'BillStreetRail');
+		var $shipRail = $('#' + prefix + 'ShipStreetRail');
+		if ($billRail.length && $bill.length) {
+			$bill.val($billRail.val() || '');
+		}
+		if ($shipRail.length && $ship.length) {
+			$ship.val($shipRail.val() || '');
+		}
+	}
+
+	function injectAddressEditorToRail($form) {
+		var $rail = getQuoteRail();
+		if (!$rail.length || $rail.find('.mk-qt-address-rail, .mk-qt-address-inline').length) {
+			return;
+		}
+		var isSo = $rail.attr('id') === 'mkSoOrderRail';
+		var prefix = isSo ? 'mkSo' : 'mkQt';
+		var $bill = $form.find('[name="bill_street"]').first();
+		var $ship = $form.find('[name="ship_street"]').first();
+		if (!$bill.length || !$ship.length) {
+			return;
+		}
+
+		var $addressBody = $(
+			'<div class="mk-qt-addr-grid">' +
+				'<div class="mk-qt-addr-col"><label class="mk-qt-addr-label" for="' + prefix + 'BillStreetRail">Địa chỉ</label><textarea id="' + prefix + 'BillStreetRail" class="mk-qt-addr-ta" rows="4" placeholder="Tự điền từ cơ hội nếu có — hoặc nhập tay"></textarea></div>' +
+				'<div class="mk-qt-addr-col"><label class="mk-qt-addr-label" for="' + prefix + 'ShipStreetRail">Địa chỉ vận chuyển</label><textarea id="' + prefix + 'ShipStreetRail" class="mk-qt-addr-ta" rows="4" placeholder="Nhập địa chỉ vận chuyển"></textarea></div>' +
+			'</div>'
+		);
+		var $addressSection = $('<div class="mk-qt-address-inline"></div>');
+		$addressSection.append('<div class="mk-qt-address-inline__head"><span class="mk-qt-address-inline__icon" aria-hidden="true"><i class="fa fa-map-marker"></i></span><h3 class="mk-qt-address-inline__title">Địa chỉ</h3></div>');
+		$addressSection.append($addressBody);
+
+		var $infoCard = $rail.find('.mk-qt-rail-quote-info, .mk-so-rail-info').first();
+		if ($infoCard.length) {
+			$infoCard.append($addressSection);
+		} else {
+			var $card = $('<div class="mk-qt-rail-card mk-qt-rail-card--address mk-qt-address-rail"></div>');
+			$card.append('<div class="mk-qt-rail-card__head"><span class="mk-qt-rail-card__icon" aria-hidden="true"><i class="fa fa-map-marker"></i></span><h2 class="mk-qt-rail-card__title">Địa chỉ</h2></div>');
+			$card.append($addressBody);
+			$rail.append($card);
+		}
+
+		var $billRail = $('#' + prefix + 'BillStreetRail');
+		var $shipRail = $('#' + prefix + 'ShipStreetRail');
+
+		$billRail.val($bill.val() || '');
+		$shipRail.val($ship.val() || '');
+
+		$billRail.on('input', function () {
+			$bill.val($(this).val()).trigger('change');
+		});
+		$shipRail.on('input', function () {
+			$ship.val($(this).val()).trigger('change');
+		});
+
+		// Keep rail in sync when Opp autofill writes hidden form fields.
+		$form
+			.off('change.mkQtAddrRail input.mkQtAddrRail', '[name="bill_street"], [name="ship_street"]')
+			.on('change.mkQtAddrRail input.mkQtAddrRail', '[name="bill_street"], [name="ship_street"]', function () {
+				syncAddressRailFromForm($form);
+			});
+
+		// Hide the original address block in main form (avoid duplicate)
+		$form.find('.fieldBlockContainer[data-block="LBL_ADDRESS_INFORMATION"]').addClass('mk-qt-hide-legacy');
 	}
 
 	function initBaDefaults($form) {
@@ -183,7 +247,14 @@
 	function markReadonlyComputed($form) {
 		$field($form, 'mk_vat_amount').prop('readonly', true);
 		$field($form, 'mk_amount_in_words').prop('readonly', true);
-		$field($form, 'quote_no').prop('readonly', true);
+		var $quoteNo = $field($form, 'quote_no');
+		$quoteNo.prop('readonly', true);
+		var recordId = $.trim($form.find('[name="record"], #recordId').first().val() || '');
+		if ((!recordId || recordId === '0') && window.__MK_QUOTE_NEXT_NO) {
+			// Preview only — clear on submit so CRM auto-assigns BG#####.
+			$quoteNo.val(String(window.__MK_QUOTE_NEXT_NO));
+			$quoteNo.attr('data-mk-preview-no', '1');
+		}
 	}
 
 	function syncVatAndWords($form) {
@@ -194,8 +265,23 @@
 		var vatPercent = parseMoney(readFieldVal($form, 'mk_vat_percent')) || parseMoney(cfg().vat_percent_default) || 8;
 		var vatAmount = Math.round(subtotal * vatPercent / 100);
 		var grand = subtotal + vatAmount;
-		setFieldVal($form, 'mk_vat_amount', formatMoney(vatAmount));
+		// Persist raw number — formatted "8.000" breaks inventory/tax save paths.
+		setFieldVal($form, 'mk_vat_amount', String(vatAmount));
 		setFieldVal($form, 'mk_amount_in_words', amountInWordsVi(grand));
+		$form.find('.mk-inv-tax-select').each(function () {
+			var $sel = $(this);
+			if ($sel.data('mkUserChanged')) {
+				return;
+			}
+			$sel.val(String(vatPercent));
+			$sel.closest('tr.lineItemRow').data('mkTaxPct', vatPercent);
+		});
+		$form.find('.groupTaxPercentage').each(function (idx) {
+			$(this).val(idx === 0 ? vatPercent : 0);
+		});
+		$form.find('.groupTaxTotal').each(function (idx) {
+			$(this).val(idx === 0 ? vatAmount : 0);
+		});
 	}
 
 	function fetchRecordDetails(module, recordId) {
@@ -266,9 +352,17 @@
 
 		var boot = function () {
 			injectCompanyReadonly($form);
+			injectAddressEditorToRail($form);
+			// Remove leftover "same as billing" checkbox if an older build injected it.
+			$form.find('#mkQtAddrSame, #mkSoAddrSame').closest('label.mk-qt-addr-copy').remove();
+			$form.find('#mkInvShipSameAsBill').closest('label.mk-inv-ship-same').remove();
 			initBaDefaults($form);
 			markReadonlyComputed($form);
 			syncVatAndWords($form);
+			syncAddressRailFromForm($form);
+			setTimeout(function () {
+				syncAddressRailFromForm($form);
+			}, 900);
 		};
 
 		if (global.__MK_QUOTE_BA_CONFIG) {
@@ -296,6 +390,8 @@
 	global.MkQuoteBa = {
 		init: init,
 		syncVatAndWords: syncVatAndWords,
+		syncAddressRailFromForm: syncAddressRailFromForm,
+		syncAddressRailToForm: syncAddressRailToForm,
 		amountInWordsVi: amountInWordsVi,
 		cfg: cfg
 	};

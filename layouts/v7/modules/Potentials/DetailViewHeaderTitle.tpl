@@ -65,6 +65,12 @@
 				{if !empty($MK_OPP_RELATED_TO)}
 					<p class="mk-opportunity-detail-hero__subtitle" title="{vtranslate('related_to', $MODULE)}">{$MK_OPP_RELATED_TO}</p>
 				{/if}
+				{if !empty($MK_OPP_FULL_ADDRESS)}
+					<p class="mk-opportunity-detail-hero__address" title="{vtranslate('LBL_MK_OPP_ADDRESS', 'Potentials')}">
+						<span class="mk-opportunity-detail-hero__address-ic" aria-hidden="true">📍</span>
+						<span>{$MK_OPP_FULL_ADDRESS|escape}</span>
+					</p>
+				{/if}
 				<div class="mk-opportunity-detail-hero__meta">
 					{if !empty($MK_OPP_AMOUNT)}
 						<span class="mk-opportunity-detail-hero__meta-item mk-opportunity-detail-hero__meta-item--amount" title="{vtranslate('amount', $MODULE)}">

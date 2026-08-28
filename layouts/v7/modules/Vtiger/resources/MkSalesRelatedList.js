@@ -8,13 +8,61 @@
 
 	var SKIP_MODULES = { Quotes: true, Potentials: true };
 
+	function isSalesDetailView() {
+		var b = document.body;
+		return !!(b
+			&& b.getAttribute('data-view') === 'Detail'
+			&& (b.getAttribute('data-app') === 'SALES'
+				|| b.getAttribute('data-app') === 'MARKETING'
+				|| b.getAttribute('data-app') === 'INVENTORY'));
+	}
+
+	function initSalesRelatedTabsToggle() {
+		if (!isSalesDetailView()) {
+			return;
+		}
+		$('.related-tabs[class*="-detail-related-tabs"]').each(function () {
+			var $root = $(this);
+			if ($root.data('mkRelatedToggleBound')) {
+				return;
+			}
+			var $panel = $root.find('.mk-sales-related-icons-panel, .mk-contact-related-icons-panel').first();
+			var $btn = $root.find('.mk-sales-related-toggle-btn, .mk-contact-related-toggle-btn').first();
+			if (!$panel.length || !$btn.length) {
+				return;
+			}
+			$root.data('mkRelatedToggleBound', true);
+
+			function setOpen(open) {
+				$root.toggleClass('is-related-open', !!open);
+				$panel.attr('aria-hidden', open ? 'false' : 'true');
+				$btn.attr('aria-expanded', open ? 'true' : 'false');
+			}
+
+			if ($panel.find('li.tab-item.active[data-module], li.more-tab.active[data-module]').length) {
+				setOpen(true);
+			}
+
+			$btn.off('click.mkSalesRelatedToggle').on('click.mkSalesRelatedToggle', function (e) {
+				e.preventDefault();
+				setOpen(!$root.hasClass('is-related-open'));
+			});
+
+			$panel.off('click.mkSalesRelatedToggle').on('click.mkSalesRelatedToggle', 'li.tab-item a, li.more-tab a', function () {
+				setOpen(true);
+			});
+		});
+	}
+
+	window.MkSalesRelatedTabsToggle = initSalesRelatedTabsToggle;
+
 	function isLuxuryRelatedDetailUi() {
 		var b = document.body;
 		if (!b || b.getAttribute('data-view') !== 'Detail') {
 			return false;
 		}
 		var appName = b.getAttribute('data-app');
-		if (appName === 'SALES') {
+		if (appName === 'SALES' || appName === 'INVENTORY') {
 			return true;
 		}
 		if (appName === 'MANAGEMENT' && b.getAttribute('data-module') === 'Project') {
@@ -564,8 +612,17 @@
 	}
 
 	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', registerEvents);
+		document.addEventListener('DOMContentLoaded', function () {
+			initSalesRelatedTabsToggle();
+			registerEvents();
+		});
 	} else {
+		initSalesRelatedTabsToggle();
 		registerEvents();
+	}
+
+	if (typeof app !== 'undefined' && app.event && typeof app.event.on === 'function') {
+		app.event.on('post.summaryview.load', initSalesRelatedTabsToggle);
+		app.event.on('post.detailedview.load', initSalesRelatedTabsToggle);
 	}
 })(jQuery);

@@ -19,7 +19,7 @@
 					{else}
 						<h1 class="mk-qt-sticky-head__title">{vtranslate('LBL_CREATING_NEW', $MODULE)} {vtranslate('SINGLE_Quotes', $MODULE)}</h1>
 					{/if}
-					<span class="mk-qt-badge mk-qt-badge--stage" id="mkQtHeadStageBadge">Draft</span>
+					<span class="mk-qt-badge mk-qt-badge--stage" id="mkQtHeadStageBadge">Báo giá</span>
 				</div>
 				<div class="mk-qt-autosave" id="mkQtAutosave" aria-live="polite">
 					<span class="mk-qt-autosave__dot" aria-hidden="true"></span>
@@ -28,8 +28,12 @@
 			</div>
 			<div class="mk-qt-sticky-head__actions">
 				<a class="mk-qt-btn mk-qt-btn--ghost" href="{$MK_LIST_URL}">{vtranslate('LBL_CANCEL', $MODULE)}</a>
-				<button type="button" class="mk-qt-btn mk-qt-btn--secondary" id="mkQtSaveSendTop" title="Save the quote first to send by email">
-					Save &amp; Send
+				<button type="button" class="mk-qt-btn mk-qt-btn--secondary mk-qt-preview-print-btn" id="mkQtPreviewPrintBtn" title="Xem bản in báo giá">
+					<i class="fa fa-print" aria-hidden="true"></i> In
+				</button>
+				<button type="button" class="mk-qt-btn mk-qt-btn--confirm-order" id="mkQtSaveSendTop" title="Xác nhận và lưu báo giá">
+					<i class="fa fa-shopping-cart" aria-hidden="true"></i>
+					<span>Xác nhận đơn hàng</span>
 				</button>
 				<button type="button" class="mk-qt-btn mk-qt-btn--primary" id="mkQtSaveTop" data-action="save">
 					{vtranslate('LBL_SAVE', $MODULE)}
@@ -43,7 +47,7 @@
 			<div class="mk-qt-form-host" id="mkQtFormHost">
 				{include file="partials/QuoteMkInventoryForm.tpl"|vtemplate_path:$MODULE}
 			</div>
-			<script type="text/javascript">
+			<script type="text/javascript">{literal}
 			(function () {
 				var host = document.getElementById('mkQtFormHost');
 				if (!host) {
@@ -94,87 +98,61 @@
 					}
 				}
 				var hideFieldNames = [
-					'carrier', 'shipping', 'inventorymanager', 'assigned_user_id1', 'description',
+					'carrier', 'shipping', 'inventorymanager', 'assigned_user_id1', 'description', 'quotestage', 'validtill',
 					'bill_pobox', 'bill_city', 'bill_state', 'bill_code', 'bill_country',
 					'ship_pobox', 'ship_city', 'ship_state', 'ship_code', 'ship_country'
 				];
 				hideFieldNames.forEach(function (name) {
-					var field = host.querySelector('[name="' + name + '"]');
-					if (field) {
+					host.querySelectorAll('[name="' + name + '"], [name="' + name + '_display"]').forEach(function (field) {
+						var valueTd = field.closest('td.fieldValue');
+						if (valueTd) {
+							valueTd.classList.add('mk-qt-hide-legacy');
+							var labelTd = valueTd.previousElementSibling;
+							if (labelTd && labelTd.classList && labelTd.classList.contains('fieldLabel')) {
+								labelTd.classList.add('mk-qt-hide-legacy');
+							}
+							return;
+						}
 						var row = field.closest('tr');
 						if (row) {
 							row.classList.add('mk-qt-hide-legacy');
 						}
-					}
+					});
 				});
+				var contact = host.querySelector('[name="contact_id"], [name="contact_id_display"]');
+				if (contact) {
+					var cValue = contact.closest('td.fieldValue');
+					if (cValue) {
+						cValue.classList.remove('mk-qt-hide-legacy');
+						var cLabel = cValue.previousElementSibling;
+						if (cLabel && cLabel.classList && cLabel.classList.contains('fieldLabel')) {
+							cLabel.classList.remove('mk-qt-hide-legacy');
+							var lab = cLabel.querySelector('label');
+							if (lab) {
+								lab.textContent = 'Người liên hệ';
+							}
+						}
+						var cRow = cValue.closest('tr');
+						if (cRow) {
+							cRow.classList.remove('mk-qt-hide-legacy');
+						}
+					}
+				}
 				var addrBlock = host.querySelector('.fieldBlockContainer[data-block="LBL_ADDRESS_INFORMATION"]');
 				if (addrBlock) {
 					addrBlock.classList.add('mk-qt-address-simplified');
 				}
-				document.documentElement.classList.add('mk-quote-create-enhanced');
 			})();
-			</script>
+			{/literal}</script>
 		</div>
 
 		<aside class="mk-qt-rail" id="mkQtQuoteRail" aria-label="Quote summary">
-			<div class="mk-qt-rail-card mk-qt-rail-card--summary">
-				<div class="mk-qt-rail-card__head">
-					<span class="mk-qt-rail-card__icon" aria-hidden="true"><i class="fa fa-file-text-o"></i></span>
-					<h2 class="mk-qt-rail-card__title">{vtranslate('LBL_MK_QUOTE_SUMMARY', $MODULE)}</h2>
-				</div>
-				<dl class="mk-qt-summary-list">
-					<div class="mk-qt-summary-list__row">
-						<dt>Pipeline stage</dt>
-						<dd id="mkQtRailStage">—</dd>
-					</div>
-					<div class="mk-qt-summary-list__row">
-						<dt>Valid until</dt>
-						<dd id="mkQtRailValidUntil">—</dd>
-					</div>
-					<div class="mk-qt-summary-list__row">
-						<dt>Organization</dt>
-						<dd id="mkQtRailOrganization">—</dd>
-					</div>
-					<div class="mk-qt-summary-list__row">
-						<dt>Opportunity</dt>
-						<dd id="mkQtRailOpportunity">—</dd>
-					</div>
-					<div class="mk-qt-summary-list__row mk-qt-summary-list__row--total">
-						<dt>Grand total</dt>
-						<dd id="mkQtRailTotal">—</dd>
-					</div>
-				</dl>
-			</div>
-
-			<div class="mk-qt-rail-card">
-				<div class="mk-qt-rail-card__head">
-					<span class="mk-qt-rail-card__icon" aria-hidden="true"><i class="fa fa-user"></i></span>
-					<h2 class="mk-qt-rail-card__title">Assigned To</h2>
-				</div>
-				<p class="mk-qt-rail-meta" id="mkQtRailOwner">{$MK_QUOTE_OWNER_NAME|escape}</p>
-			</div>
-
-			<div class="mk-qt-rail-card mk-qt-rail-card--muted">
-				<div class="mk-qt-rail-card__head">
-					<span class="mk-qt-rail-card__icon" aria-hidden="true"><i class="fa fa-clock-o"></i></span>
-					<h2 class="mk-qt-rail-card__title">Activity</h2>
-				</div>
-				<p class="mk-qt-rail-placeholder">Timeline appears after the quote is saved.</p>
-			</div>
-
-			<div class="mk-qt-rail-card mk-qt-rail-card--ai">
-				<div class="mk-qt-rail-card__head">
-					<span class="mk-qt-rail-card__icon" aria-hidden="true"><i class="fa fa-magic"></i></span>
-					<h2 class="mk-qt-rail-card__title">Suggestions</h2>
-				</div>
-				<ul class="mk-qt-ai-list">
-					<li>Add products to improve quote completeness</li>
-					<li>Set a valid-until date before sending to customer</li>
-					<li>Link an opportunity for pipeline tracking</li>
-				</ul>
-				<p class="mk-qt-rail-note">Visual guidance only — no automated changes.</p>
-			</div>
+			{* Quote info (Khách hàng / Ghi chú) is moved here by QuoteMkEdit.js *}
+			{* Address card is injected by QuoteMkBa.js *}
 		</aside>
 	</div>
 </div>
+{if !empty($MK_SC_PREFILL_JSON)}
+<script type="text/javascript">window.MK_SC_PREFILL = {$MK_SC_PREFILL_JSON};</script>
+{/if}
 {/strip}

@@ -9,14 +9,7 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 		if ($request->get('displayMode') === 'overlay') {
 			return false;
 		}
-		$app = strtoupper((string)$request->get('app'));
-		if ($app === 'SALES') {
-			return true;
-		}
-		if ($app === '') {
-			return true;
-		}
-		return false;
+		return true;
 	}
 
 	protected function assignModernContext(Vtiger_Request $request) {
@@ -24,6 +17,8 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 		$moduleName = $request->getModule();
 		$user = Users_Record_Model::getCurrentUserModel();
 		require_once 'modules/Quotes/helpers/QuoteBaService.php';
+		require_once 'include/utils/MkEntityNumbering.php';
+		MkEntityNumbering::ensureModuleSequence('Quotes');
 		$baContext = Quotes_QuoteBaService_Helper::getBaContext();
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
@@ -32,9 +27,57 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 		$viewer->assign('VIEW', 'Edit');
 		$viewer->assign('MENU_SELECTED_MODULENAME', 'Quotes');
 		$viewer->assign('MK_MODERN_QUOTE_CREATE', true);
-		$viewer->assign('IS_DUPLICATE', $request->get('isDuplicate'));
+		$viewer->assign('IS_DUPLICATE', $this->isDuplicateRequest($request));
 		$viewer->assign('MK_QUOTE_OWNER_NAME', trim($user->getName()));
 		$viewer->assign('MK_QUOTE_BA_CONFIG_JSON', Zend_Json::encode($baContext));
+		$viewer->assign('MK_QUOTE_NEXT_NO', MkEntityNumbering::previewNextNumber('Quotes'));
+		require_once 'modules/Inventory/helpers/ProductCatalog.php';
+		Inventory_ProductCatalog_Helper::assignToViewer($viewer);
+
+		// Resolve price channel early (PreProcess injects window.MK_PRICE_CHANNEL).
+		$priceChannel = 'retail';
+		$scId = (int) $request->get('servicecontract_id');
+		if ($scId <= 0) {
+			$scId = (int) $request->get('mk_servicecontract_id');
+		}
+		$recordId = (int) $request->get('record');
+		if ($scId <= 0 && $recordId > 0) {
+			try {
+				require_once 'modules/Quotes/helpers/QuoteBaService.php';
+				Quotes_QuoteBaService_Helper::ensureServiceContractLinkColumn();
+				$db = PearDatabase::getInstance();
+				$rs = $db->pquery(
+					'SELECT mk_servicecontract_id FROM vtiger_quotes WHERE quoteid = ?',
+					array($recordId)
+				);
+				if ($rs && $db->num_rows($rs)) {
+					$scId = (int) $db->query_result($rs, 0, 'mk_servicecontract_id');
+				}
+			} catch (Exception $e) {
+				$scId = 0;
+			}
+		}
+		if ($scId > 0) {
+			$priceChannel = 'tuibao';
+			$viewer->assign('MK_SERVICECONTRACT_ID', $scId);
+		} else {
+			$accountId = 0;
+			if ($recordId > 0) {
+				try {
+					$rec = Vtiger_Record_Model::getInstanceById($recordId, 'Quotes');
+					$accountId = (int) $rec->get('account_id');
+				} catch (Exception $e) {
+					$accountId = 0;
+				}
+			}
+			if ($accountId > 0 && is_file('modules/ProductsServices/models/PricingEngine.php')) {
+				require_once 'modules/ProductsServices/models/PricingEngine.php';
+				if (ProductsServices_PricingEngine_Model::isTuibaoAccount($accountId)) {
+					$priceChannel = 'tuibao';
+				}
+			}
+		}
+		$viewer->assign('MK_PRICE_CHANNEL', $priceChannel);
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
@@ -70,22 +113,47 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 		if ($this->isMkModernQuoteCreate($request)) {
 			$this->assignModernContext($request);
 		}
+
+		// Carry existing SC link into form when editing (or URL create param).
+		$viewer = $this->getViewer($request);
+		$recordId = (int) $request->get('record');
+		$scId = 0;
+		if ($recordId > 0) {
+			require_once 'modules/Quotes/helpers/QuoteBaService.php';
+			Quotes_QuoteBaService_Helper::ensureServiceContractLinkColumn();
+			$db = PearDatabase::getInstance();
+			$rs = $db->pquery(
+				'SELECT mk_servicecontract_id FROM vtiger_quotes WHERE quoteid = ?',
+				array($recordId)
+			);
+			if ($rs && $db->num_rows($rs)) {
+				$scId = (int) $db->query_result($rs, 0, 'mk_servicecontract_id');
+			}
+		}
+		if ($scId <= 0) {
+			$scId = (int) $request->get('servicecontract_id');
+			if ($scId <= 0) {
+				$scId = (int) $request->get('mk_servicecontract_id');
+			}
+		}
+		if ($scId > 0) {
+			$viewer->assign('MK_SERVICECONTRACT_ID', $scId);
+			// Inventory_Edit_View::process reads servicecontract_id for MK_PRICE_CHANNEL.
+			$request->set('servicecontract_id', $scId);
+		}
+
 		parent::process($request);
 	}
 
 	public function getHeaderCss(Vtiger_Request $request) {
-		if ($this->isMkModernQuoteCreate($request)) {
-			// Odoo + QuoteMkEdit CSS loaded once in EditViewPreProcess.tpl (avoid duplicate legacy head CSS).
-			return parent::getHeaderCss($request);
-		}
+		// Modern Quotes edit already loads its inventory CSS in EditViewPreProcess.tpl.
+		// Avoid loading the same asset twice to prevent flash from legacy/default styles.
 		return parent::getHeaderCss($request);
 	}
 
 	public function getHeaderScripts(Vtiger_Request $request) {
-		if ($this->isMkModernQuoteCreate($request)) {
-			// QuoteMkBa + QuoteMkEdit + MkInventoryOdooEdit loaded in EditViewPreProcess.tpl
-			return parent::getHeaderScripts($request);
-		}
+		// Modern Quotes edit already loads its inventory JS in EditViewPreProcess.tpl.
+		// Avoid duplicate init / re-render after first paint.
 		return parent::getHeaderScripts($request);
 	}
 }

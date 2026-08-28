@@ -180,7 +180,17 @@
 			/* ignore */
 		}
 		$div.removeClass('mCustomScrollbar _mCS_1 mCS_no_scrollbar');
-		$div.css({ height: '', maxHeight: '', overflow: '' });
+		// Keep native horizontal / vertical scroll after destroying mCustomScrollbar
+		$div.css({
+			height: '',
+			maxHeight: 'min(62vh, 580px)',
+			overflowX: 'auto',
+			overflowY: 'auto',
+			webkitOverflowScrolling: 'touch'
+		});
+		getPageContainer()
+			.find('.popupEntriesTableContainer')
+			.css({ overflowX: 'auto', overflowY: 'visible' });
 	}
 
 	function markBodyOpen(open) {
@@ -292,8 +302,129 @@
 			getDataRows().removeClass('mk-ref-row-hidden');
 		}
 
+		reshapePotentialsPopup();
 		applyClientFilter();
 		revealModal();
+	}
+
+	function parseRowInfo($row) {
+		var raw = $row.attr('data-info');
+		if (!raw) {
+			return {};
+		}
+		try {
+			return typeof raw === 'string' ? JSON.parse(raw) : raw || {};
+		} catch (e) {
+			return {};
+		}
+	}
+
+	function cellText($td) {
+		return $.trim(($td && $td.text ? $td.text() : '') || '')
+			.replace(/\s+/g, ' ')
+			.replace(/^[\s\-–—]+$/, '');
+	}
+
+	function isBlankDisplay(text) {
+		var t = $.trim(text || '');
+		return !t || t === '--' || t === '—' || t === '-';
+	}
+
+	/**
+	 * Potentials picker: đúng thứ tự cột
+	 * [ ] | Tên khách hàng | Số điện thoại | Trạng thái
+	 */
+	function reshapePotentialsPopup() {
+		var $container = getPageContainer();
+		if (!$container.length || $container.find('#module').val() !== 'Potentials') {
+			$container.removeClass('mk-ref-potentials-popup');
+			return;
+		}
+		$container.addClass('mk-ref-potentials-popup');
+		var $table = $container.find('.listViewEntriesTable').first();
+		if (!$table.length) {
+			return;
+		}
+
+		var colIndex = {};
+		$table.find('thead tr.listViewHeaders th').each(function (idx) {
+			var name = $(this).find('[data-columnname]').attr('data-columnname') || '';
+			if (name) {
+				colIndex[name] = idx;
+			}
+		});
+
+		function setHeaderLabel(fieldName, label) {
+			var idx = colIndex[fieldName];
+			if (typeof idx !== 'number') {
+				return;
+			}
+			var $th = $table.find('thead tr.listViewHeaders th').eq(idx);
+			var $a = $th.find('a.listViewContentHeaderValues').first();
+			if ($a.length) {
+				var $icon = $a.find('i').first().detach();
+				$a.empty();
+				if ($icon.length) {
+					$a.append($icon).append(document.createTextNode(' '));
+				}
+				$a.append(document.createTextNode(label + ' '));
+			} else {
+				$th.text(label);
+			}
+		}
+
+		// Ẩn mọi cột thừa ngoài potentialname / amount / sales_stage
+		$table.find('thead tr.listViewHeaders th').each(function (idx) {
+			if (idx === 0) {
+				return;
+			}
+			var name = $(this).find('[data-columnname]').attr('data-columnname') || '';
+			if (name !== 'potentialname' && name !== 'amount' && name !== 'sales_stage') {
+				$table.find('tr').each(function () {
+					$(this).children('th, td').eq(idx).addClass('mk-ref-col-hidden');
+				});
+			}
+		});
+
+		setHeaderLabel('potentialname', 'Tên khách hàng');
+		setHeaderLabel('amount', 'Số điện thoại');
+		setHeaderLabel('sales_stage', 'Trạng thái');
+
+		$table.find('tr.listViewEntries').each(function () {
+			var $row = $(this);
+			var info = parseRowInfo($row);
+			var $tds = $row.children('td');
+			var nameIdx = colIndex.potentialname;
+			var amountIdx = colIndex.amount;
+
+			var customer = info.mk_customer_name || '';
+			if (isBlankDisplay(customer) && typeof nameIdx === 'number') {
+				customer = cellText($tds.eq(nameIdx));
+			}
+			if (typeof nameIdx === 'number' && !isBlankDisplay(customer)) {
+				var $nameTd = $tds.eq(nameIdx);
+				var $link = $nameTd.find('a').first();
+				if ($link.length) {
+					$link.text(customer);
+				} else {
+					$nameTd.text(customer);
+				}
+				$nameTd.attr('title', customer);
+			}
+
+			var phone = info.mk_phone || '';
+			if (phone && window.MkPhoneFormat && typeof window.MkPhoneFormat.format === 'function') {
+				phone = window.MkPhoneFormat.format(phone) || phone;
+			}
+			if (typeof amountIdx === 'number') {
+				var $amountTd = $tds.eq(amountIdx);
+				$amountTd
+					.removeClass('currency')
+					.text(phone || '—')
+					.attr('title', phone || '')
+					.toggleClass('mk-ref-phone', !!phone);
+			}
+		});
 	}
 
 	function patchVtigerPopup() {

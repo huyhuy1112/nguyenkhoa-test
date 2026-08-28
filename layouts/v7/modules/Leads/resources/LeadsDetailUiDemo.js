@@ -66,8 +66,13 @@
 		return 'index.php?module=Calendar&view=Calendar&app=SALES';
 	}
 
+	function potentialsListUrl() {
+		return 'index.php?module=Potentials&view=List&app=SALES';
+	}
+
 	function potentialDetailUrl(potentialId) {
-		return 'index.php?module=Potentials&view=Detail&record=' + encodeURIComponent(potentialId) + '&app=SALES';
+		// After convert, always land on Opp list (not detail).
+		return potentialsListUrl();
 	}
 
 	function formatVnd(n) {
@@ -145,11 +150,7 @@
 		return tagDisplayMeta(tagKey).label || tagKey;
 	}
 
-	function tagChipClass(tagKey) {
-		var meta = tagDisplayMeta(tagKey);
-		if (meta.cls) {
-			return 'mk-lead-detail-tag-chip ' + meta.cls.replace('mk-tag--', 'mk-lead-detail-tag-chip--');
-		}
+	function tagChipClass() {
 		return 'mk-lead-detail-tag-chip';
 	}
 
@@ -223,6 +224,10 @@
 	}
 
 	function isCallAttemptsLocked(lead, pendingTask) {
+		var lt = lead && lead.lastTouchCalls;
+		if (lt && typeof lt.can_add === 'boolean') {
+			return lt.can_add === false;
+		}
 		return countTodayLoggedCalls(lead, pendingTask) >= callAttemptMax();
 	}
 
@@ -244,30 +249,229 @@
 	}
 
 	function syncCallLogUiState(lead) {
-		var max = callAttemptMax();
-		var count = countTodayLoggedCalls(lead);
-		var locked = count >= max;
+		var lt = lead && lead.lastTouchCalls ? lead.lastTouchCalls : null;
+		var canAdd = !lt || lt.can_add !== false;
+		var nextN = lt && lt.next_n ? lt.next_n : 1;
+		var count = lt && typeof lt.count === 'number' ? lt.count : 0;
+		var max = (lt && lt.max_calls) || 3;
+		var titleLocked =
+			(lt && lt.hint) || 'Đã đủ ' + count + '/' + max + ' lần gọi Last Touch.';
+		var titleOpen = 'Last Touch Call #' + nextN + ' (tối đa ' + max + ' lần)';
 		document.querySelectorAll('[data-mk-log="call"]').forEach(function (btn) {
-			if (locked) {
+			if (!canAdd) {
 				btn.setAttribute('disabled', 'disabled');
 				btn.classList.add('mk-lead-activity-log__menu-btn--locked');
-				btn.setAttribute(
-					'title',
-					leadLabel(
-						'LBL_MK_CALL_LOCKED',
-						'Đã ghi ' + count + '/' + max + ' cuộc gọi hôm nay. Không thể ghi thêm.'
-					)
-				);
-			} else if (count > 0) {
-				btn.removeAttribute('disabled');
-				btn.classList.remove('mk-lead-activity-log__menu-btn--locked');
-				btn.setAttribute('title', 'Hôm nay: ' + count + '/' + max + ' cuộc gọi');
+				btn.setAttribute('title', titleLocked);
 			} else {
 				btn.removeAttribute('disabled');
 				btn.classList.remove('mk-lead-activity-log__menu-btn--locked');
-				btn.removeAttribute('title');
+				btn.setAttribute('title', titleOpen);
 			}
 		});
+		document.querySelectorAll('[data-mk-demo-action="call"]').forEach(function (el) {
+			if (!canAdd) {
+				el.classList.add('is-disabled');
+				el.setAttribute('aria-disabled', 'true');
+				el.setAttribute('title', titleLocked);
+			} else {
+				el.classList.remove('is-disabled');
+				el.removeAttribute('aria-disabled');
+				el.setAttribute('title', titleOpen);
+			}
+		});
+	}
+
+	function renderLastTouchPanel(lead) {
+		var host = byId('mk-ld-ui-last-touch');
+		var list = byId('mk-ld-ui-last-touch-list');
+		var hint = byId('mk-ld-ui-last-touch-hint');
+		var badge = byId('mk-ld-ui-last-touch-badge');
+		if (!host || !list) {
+			return;
+		}
+		var lt = lead && lead.lastTouchCalls ? lead.lastTouchCalls : null;
+		var calls = (lt && lt.calls) || [];
+		host.hidden = false;
+		if (hint) {
+			hint.textContent =
+				(lt && lt.hint) ||
+				'Last Touch chỉ dành cho Call. Gọi lần 1 → khoảng 5 giờ gọi lần 2 → lần 3 nhắc gọi. Nghe máy → Opp.';
+		}
+		if (badge) {
+			badge.textContent = calls.length + '/' + ((lt && lt.max_calls) || 3);
+			badge.className =
+				'mk-lead-last-touch__badge' +
+				(lt && lt.can_add === false ? ' is-done' : ' is-open');
+		}
+		if (!calls.length) {
+			list.innerHTML =
+				'<li class="mk-lead-last-touch__empty">Chưa có Call #1 — nhấn “Ghi cuộc gọi” để bắt đầu Last Touch.</li>';
+			return;
+		}
+		list.innerHTML = calls
+			.map(function (c) {
+				return (
+					'<li class="mk-lead-last-touch__item">' +
+					'<span class="mk-lead-last-touch__n">Call #' +
+					esc(String(c.n || '')) +
+					'</span>' +
+					'<span class="mk-lead-last-touch__text">' +
+					esc(
+						window.LeadsLeadsLogic && window.LeadsLeadsLogic.decodeHtmlEntities
+							? window.LeadsLeadsLogic.decodeHtmlEntities(c.label || '')
+							: c.label || ''
+					) +
+					'</span></li>'
+				);
+			})
+			.join('');
+	}
+
+	function closeLastTouchModal() {
+		var modal = byId('mk-ld-lt-modal');
+		if (!modal) return;
+		modal.hidden = true;
+		modal.setAttribute('aria-hidden', 'true');
+	}
+
+	function openLastTouchModal(lead) {
+		var modal = byId('mk-ld-lt-modal');
+		if (!modal) {
+			showToast('Không mở được form Last Touch Call.');
+			return;
+		}
+		var lt = lead && lead.lastTouchCalls ? lead.lastTouchCalls : null;
+		if (lt && lt.can_add === false) {
+			showToast((lt && lt.hint) || 'Không thể ghi thêm cuộc gọi Last Touch.');
+			return;
+		}
+		var nextN = (lt && lt.next_n) || 1;
+		var meta = byId('mk-ld-lt-meta');
+		if (meta) {
+			meta.textContent =
+				'Ghi nhận Call #' +
+				nextN +
+				(lt && lt.reminder_at_label
+					? ' · Nhắc lần trước: ' + lt.reminder_at_label
+					: '') +
+				'. Khoảng 5 giờ giữa các lần gọi.';
+		}
+		var resultEl = byId('mk-ld-lt-result');
+		var noteEl = byId('mk-ld-lt-note');
+		if (resultEl) resultEl.value = 'Không nghe máy';
+		if (noteEl) noteEl.value = '';
+		modal.hidden = false;
+		modal.setAttribute('aria-hidden', 'false');
+		modal._mkLead = lead;
+	}
+
+	function submitLastTouchCall() {
+		var modal = byId('mk-ld-lt-modal');
+		var lead = modal && modal._mkLead;
+		if (!lead) return;
+		var resultEl = byId('mk-ld-lt-result');
+		var noteEl = byId('mk-ld-lt-note');
+		var saveBtn = byId('mk-ld-lt-save');
+		var result = resultEl ? String(resultEl.value || '').trim() : '';
+		var note = noteEl ? String(noteEl.value || '').trim() : '';
+		if (!result) {
+			showToast('Vui lòng chọn kết quả cuộc gọi.');
+			return;
+		}
+		var linkId = leadStoreId(lead);
+		if (!linkId) {
+			showToast('Không xác định được Lead.');
+			return;
+		}
+		if (saveBtn) saveBtn.disabled = true;
+		var postData = {
+			module: 'Leads',
+			action: 'ModernApi',
+			mode: 'last_touch_call_log',
+			id: linkId,
+			record: linkId,
+			call_result: result,
+			note: note,
+		};
+		function done(err, res) {
+			if (saveBtn) saveBtn.disabled = false;
+			if (err || !res || res.success === false) {
+				var msg =
+					(err && err.message) ||
+					(res && res.error) ||
+					'Không ghi được cuộc gọi Last Touch.';
+				if (typeof msg === 'object' && msg.message) msg = msg.message;
+				if (app.helper && app.helper.showErrorNotification) {
+					app.helper.showErrorNotification({ message: String(msg) });
+				} else {
+					window.alert(String(msg));
+				}
+				return;
+			}
+			closeLastTouchModal();
+			var lt = res.lastTouchCalls || null;
+			var fresh = res.lead || null;
+			if (fresh) {
+				var row = storeLeadToDemo(fresh);
+				if (lt) row.lastTouchCalls = lt;
+				syncLeadObject(lead, row);
+			} else if (lt) {
+				lead.lastTouchCalls = lt;
+			}
+			render(cloneLeadData(lead));
+			var convert = res.convert || (lt && lt.convert) || null;
+			if (result === 'Nghe máy' && convert) {
+				var url =
+					convert.redirect ||
+					convert.potentialUrl ||
+					(convert.potentialId ? potentialDetailUrl(convert.potentialId) : '') ||
+					lead.potentialUrl;
+				if (app.helper && app.helper.showSuccessNotification) {
+					app.helper.showSuccessNotification({
+						message: 'Nghe máy — đã chuyển sang Cơ hội.',
+					});
+				}
+				if (url) {
+					window.setTimeout(function () {
+						window.location.href = url;
+					}, 600);
+					return;
+				}
+			}
+			if (app.helper && app.helper.showSuccessNotification) {
+				var logged = (lt && lt.logged) || {};
+				app.helper.showSuccessNotification({
+					message: logged.label || 'Đã ghi Last Touch Call.',
+				});
+			}
+		}
+		if (typeof app !== 'undefined' && app.request && app.request.post) {
+			app.request.post({ data: postData }).then(function (err, res) {
+				done(err, res);
+			});
+		} else {
+			done({ message: 'Không kết nối được máy chủ.' }, null);
+		}
+	}
+
+	function bindLastTouchModal() {
+		var modal = byId('mk-ld-lt-modal');
+		if (!modal || modal.getAttribute('data-mk-bound') === '1') return;
+		modal.setAttribute('data-mk-bound', '1');
+		modal.addEventListener('click', function (e) {
+			var t = e.target;
+			if (t && t.getAttribute && t.getAttribute('data-mk-lt-close') === '1') {
+				e.preventDefault();
+				closeLastTouchModal();
+			}
+		});
+		var saveBtn = byId('mk-ld-lt-save');
+		if (saveBtn) {
+			saveBtn.addEventListener('click', function (e) {
+				e.preventDefault();
+				submitLastTouchCall();
+			});
+		}
 	}
 
 	function activityLogLabel(type) {
@@ -479,6 +683,7 @@
 			area: lead.area,
 			next_action: lead.next_action,
 			last_touch: lead.last_touch,
+			lastTouchCalls: lead.lastTouchCalls || null,
 			badges: Object.assign(
 				{
 					contacts: 1,
@@ -584,8 +789,34 @@
 			district: raw.district || '',
 			address: raw.address || '',
 			area: raw.area || '',
+			screening_result: raw.screening_result || '',
+			screening_label: raw.screening_label || '',
+			sheet_source: raw.sheet_source || 0,
+			qa_raw: raw.qa_raw || null,
+			form_c1: raw.form_c1 || '',
+			form_c2: raw.form_c2 || '',
+			form_c3: raw.form_c3 || '',
+			form_c1_label: raw.form_c1_label || '',
+			form_c2_label: raw.form_c2_label || '',
+			form_c3_label: raw.form_c3_label || '',
+			verify_c1: raw.verify_c1 || '',
+			verify_c2: raw.verify_c2 || '',
+			verify_c3: raw.verify_c3 || '',
+			verify_c4: raw.verify_c4 != null ? raw.verify_c4 : null,
+			verify_c5: raw.verify_c5 != null ? raw.verify_c5 : null,
+			eligibility_result: raw.eligibility_result || '',
+			eligibility_label: raw.eligibility_label || '',
+			potential_level: raw.potential_level || '',
+			potential_label: raw.potential_label || '',
+			verify_score: raw.verify_score != null ? raw.verify_score : null,
+			verify_change_reason: raw.verify_change_reason || '',
+			verified_at: raw.verified_at || '',
+			verify_options: raw.verify_options || null,
 			purchases: (raw.purchases || []).slice(),
 			calendarTasks: (raw.calendarTasks || []).slice(),
+			last_touch: raw.last_touch || '',
+			next_action: raw.next_action || '',
+			lastTouchCalls: raw.lastTouchCalls || null,
 			badges: {
 				contacts: 1,
 				comments: (raw.comments || []).length,
@@ -785,6 +1016,302 @@
 		);
 	}
 
+	function verifyDefaultOptions() {
+		return {
+			c1: [
+				{ code: 'A', label: 'Chuẩn bị mở quán' },
+				{ code: 'B', label: 'Đã có quán, muốn cập nhật kiến thức / công thức / menu' },
+				{ code: 'C', label: 'Đã có quán, đang gặp vấn đề cần cải thiện' },
+				{ code: 'D', label: 'Học để biết thêm, phục vụ gia đình hoặc sở thích' },
+			],
+			c2: [
+				{ code: 'A', label: 'Xe đẩy cà phê – trà sữa – trà trái cây' },
+				{ code: 'B', label: 'Trà sữa – topping, có mặt bằng 20–30 m²' },
+				{ code: 'C', label: 'Trà sữa pha máy, có mặt bằng 20–30 m²' },
+				{ code: 'D', label: 'Cà phê – trà sữa, máy lạnh' },
+				{ code: 'E', label: 'Cà phê sân vườn, diện tích vừa – lớn' },
+				{ code: 'F', label: 'Cà phê không gian mở, diện tích nhỏ' },
+				{ code: 'G', label: 'Học pha chế cho gia đình / sở thích' },
+			],
+			c3: [
+				{ code: 'A', label: 'Dưới 50 triệu' },
+				{ code: 'B', label: 'Từ 50 đến dưới 100 triệu' },
+				{ code: 'C', label: 'Từ 100 đến dưới 300 triệu' },
+				{ code: 'D', label: 'Từ 300 đến dưới 500 triệu' },
+				{ code: 'E', label: 'Từ 500 triệu trở lên' },
+			],
+			c4_levels: [1, 2, 3, 4],
+			c5_levels: [1, 2, 3, 4],
+		};
+	}
+
+	function verifySelectHtml(name, options, selected, placeholder) {
+		var html = '<select class="inputElement" data-mk-verify="' + esc(name) + '">';
+		html += '<option value="">' + esc(placeholder || '— Chọn —') + '</option>';
+		(options || []).forEach(function (opt) {
+			var code = String(opt.code || opt);
+			var label = opt.label ? code + ' — ' + opt.label : code;
+			html +=
+				'<option value="' +
+				esc(code) +
+				'"' +
+				(String(selected || '') === code ? ' selected' : '') +
+				'>' +
+				esc(label) +
+				'</option>';
+		});
+		html += '</select>';
+		return html;
+	}
+
+	function renderVerifyPanel(lead) {
+		var host = byId('mk-ld-ui-verify');
+		if (!host) return;
+		var opts = lead.verify_options || verifyDefaultOptions();
+		var c1 = lead.verify_c1 || lead.form_c1 || '';
+		var c2 = lead.verify_c2 || lead.form_c2 || '';
+		var c3 = lead.verify_c3 || lead.form_c3 || '';
+		var c4 = lead.verify_c4 != null ? lead.verify_c4 : '';
+		var c5 = lead.verify_c5 != null ? lead.verify_c5 : '';
+		var formHint = function (code, label) {
+			if (!code) return '';
+			return (
+				'<div class="mk-lead-verify__form-ans">Form: ' +
+				esc(code) +
+				(label ? ' — ' + esc(label) : '') +
+				'</div>'
+			);
+		};
+		var statusHtml = '';
+		if (lead.eligibility_label || lead.potential_label) {
+			statusHtml =
+				'<div class="mk-lead-verify__preview" data-mk-verify-status="1">' +
+				(lead.eligibility_label
+					? '<div><strong>Điều kiện:</strong> ' + esc(lead.eligibility_label) + '</div>'
+					: '') +
+				(lead.potential_label
+					? '<div><strong>Mức tiềm năng:</strong> ' + esc(lead.potential_label) + '</div>'
+					: '') +
+				(lead.verify_score != null
+					? '<div><strong>Điểm:</strong> ' + esc(String(lead.verify_score)) + '</div>'
+					: '') +
+				(lead.verified_at
+					? '<div><strong>Đã xác minh:</strong> ' + esc(String(lead.verified_at).slice(0, 19).replace('T', ' ')) + '</div>'
+					: '') +
+				'</div>';
+		} else {
+			statusHtml = '<div class="mk-lead-verify__preview" data-mk-verify-status="1" hidden></div>';
+		}
+
+		host.innerHTML =
+			'<p class="mk-lead-verify__form-note">Sales gọi xác minh C1–C3. Nếu đủ điều kiện mới chọn C4/C5. Đáp án Form được giữ nguyên, không bị ghi đè.</p>' +
+			'<div class="mk-lead-verify__grid">' +
+			'<div class="mk-lead-verify__field"><label>Câu 1 — Tình trạng</label>' +
+			verifySelectHtml('c1', opts.c1, c1) +
+			formHint(lead.form_c1, lead.form_c1_label) +
+			'</div>' +
+			'<div class="mk-lead-verify__field"><label>Câu 2 — Mô hình</label>' +
+			verifySelectHtml('c2', opts.c2, c2) +
+			formHint(lead.form_c2, lead.form_c2_label) +
+			'</div>' +
+			'<div class="mk-lead-verify__field"><label>Câu 3 — Ngân sách</label>' +
+			verifySelectHtml('c3', opts.c3, c3) +
+			formHint(lead.form_c3, lead.form_c3_label) +
+			'</div>' +
+			'<div class="mk-lead-verify__c45" data-mk-verify-c45>' +
+			'<div class="mk-lead-verify__field"><label>Câu 4 — Mức (1–4)</label>' +
+			verifySelectHtml(
+				'c4',
+				(opts.c4_levels || [1, 2, 3, 4]).map(function (n) {
+					return { code: String(n), label: 'Mức ' + n };
+				}),
+				c4 !== '' && c4 != null ? String(c4) : ''
+			) +
+			'</div>' +
+			'<div class="mk-lead-verify__field"><label>Câu 5 — Mức (1–4)</label>' +
+			verifySelectHtml(
+				'c5',
+				(opts.c5_levels || [1, 2, 3, 4]).map(function (n) {
+					return { code: String(n), label: 'Mức ' + n };
+				}),
+				c5 !== '' && c5 != null ? String(c5) : ''
+			) +
+			'</div></div>' +
+			'<div class="mk-lead-verify__field"><label>Lý do đổi đáp án (bắt buộc nếu khác Form)</label>' +
+			'<textarea class="inputElement" rows="2" data-mk-verify="change_reason" placeholder="Ví dụ: Khách khai Form nhầm mô hình">' +
+			esc(lead.verify_change_reason || '') +
+			'</textarea></div>' +
+			'</div>' +
+			statusHtml +
+			'<div class="mk-lead-verify__actions">' +
+			'<button type="button" class="btn btn-default" data-mk-verify-action="preview">Xem kết luận</button>' +
+			'<button type="button" class="btn btn-success" data-mk-verify-action="save">Lưu xác minh</button>' +
+			'</div>' +
+			'<div class="mk-lead-verify__err" data-mk-verify-err hidden></div>' +
+			'<div class="mk-lead-verify__ok" data-mk-verify-ok hidden></div>';
+
+		bindVerifyPanel(lead);
+		syncVerifyC45Visibility(host);
+	}
+
+	function readVerifyPayload(host) {
+		var get = function (name) {
+			var el = host.querySelector('[data-mk-verify="' + name + '"]');
+			return el ? String(el.value || '').trim() : '';
+		};
+		return {
+			c1: get('c1'),
+			c2: get('c2'),
+			c3: get('c3'),
+			c4: get('c4') ? parseInt(get('c4'), 10) : 0,
+			c5: get('c5') ? parseInt(get('c5'), 10) : 0,
+			change_reason: get('change_reason'),
+		};
+	}
+
+	function syncVerifyC45Visibility(host) {
+		var payload = readVerifyPayload(host);
+		var c45 = host.querySelector('[data-mk-verify-c45]');
+		if (!c45) return;
+		var excluded =
+			payload.c1 === 'D' ||
+			payload.c2 === 'G' ||
+			payload.c3 === 'A' ||
+			(payload.c2 === 'A' && payload.c3 === 'B');
+		c45.style.display = excluded ? 'none' : '';
+	}
+
+	function setVerifyMsg(host, err, ok) {
+		var errEl = host.querySelector('[data-mk-verify-err]');
+		var okEl = host.querySelector('[data-mk-verify-ok]');
+		if (errEl) {
+			if (err) {
+				errEl.hidden = false;
+				errEl.textContent = err;
+			} else {
+				errEl.hidden = true;
+				errEl.textContent = '';
+			}
+		}
+		if (okEl) {
+			if (ok) {
+				okEl.hidden = false;
+				okEl.textContent = ok;
+			} else {
+				okEl.hidden = true;
+				okEl.textContent = '';
+			}
+		}
+	}
+
+	function paintVerifyPreview(host, result) {
+		var box = host.querySelector('[data-mk-verify-status]');
+		if (!box || !result) return;
+		box.hidden = false;
+		var html = '';
+		if (result.eligibility_label) {
+			html += '<div><strong>Điều kiện:</strong> ' + esc(result.eligibility_label) + '</div>';
+		}
+		if (result.reason) {
+			html += '<div><strong>Lý do:</strong> ' + esc(result.reason) + '</div>';
+		}
+		if (result.potential_label) {
+			html += '<div><strong>Mức tiềm năng:</strong> ' + esc(result.potential_label) + '</div>';
+		}
+		if (result.score != null) {
+			html += '<div><strong>Điểm:</strong> ' + esc(String(result.score)) + '</div>';
+		}
+		box.innerHTML = html || '<div class="mk-lead-detail-field__muted">Chưa đủ dữ liệu để chấm điểm.</div>';
+	}
+
+	function bindVerifyPanel(lead) {
+		var host = byId('mk-ld-ui-verify');
+		if (!host || host.getAttribute('data-bound') === '1') {
+			// Re-bind after re-render: clear flag each render
+		}
+		host.setAttribute('data-bound', '1');
+		host.onchange = function (e) {
+			var t = e.target;
+			if (t && t.getAttribute && t.getAttribute('data-mk-verify')) {
+				syncVerifyC45Visibility(host);
+				setVerifyMsg(host, '', '');
+			}
+		};
+		host.onclick = function (e) {
+			var btn = e.target && e.target.closest ? e.target.closest('[data-mk-verify-action]') : null;
+			if (!btn) return;
+			e.preventDefault();
+			var action = btn.getAttribute('data-mk-verify-action');
+			var payload = readVerifyPayload(host);
+			if (!payload.c1 || !payload.c2 || !payload.c3) {
+				setVerifyMsg(host, 'Vui lòng chọn đủ C1, C2, C3.', '');
+				return;
+			}
+			if (action === 'preview') {
+				setVerifyMsg(host, '', '');
+				if (typeof app === 'undefined' || !app.request) {
+					setVerifyMsg(host, 'API không sẵn sàng.', '');
+					return;
+				}
+				btn.disabled = true;
+				app.request
+					.post({
+						data: {
+							module: 'Leads',
+							action: 'ModernApi',
+							mode: 'sales_verify_preview',
+							payload: JSON.stringify(payload),
+						},
+					})
+					.then(function (err, res) {
+						btn.disabled = false;
+						if (err || !res || !res.result) {
+							setVerifyMsg(host, (err && err.message) || (res && res.error) || 'Không tính được kết luận.', '');
+							return;
+						}
+						paintVerifyPreview(host, res.result);
+					});
+				return;
+			}
+			if (action === 'save') {
+				setVerifyMsg(host, '', '');
+				if (typeof app === 'undefined' || !app.request) {
+					setVerifyMsg(host, 'API không sẵn sàng.', '');
+					return;
+				}
+				var recordId = lead.crmid || lead.id;
+				btn.disabled = true;
+				app.request
+					.post({
+						data: {
+							module: 'Leads',
+							action: 'ModernApi',
+							mode: 'sales_verify_save',
+							id: recordId,
+							payload: JSON.stringify(payload),
+						},
+					})
+					.then(function (err, res) {
+						btn.disabled = false;
+						if (err || !res || !res.success) {
+							setVerifyMsg(
+								host,
+								(err && (err.message || err)) || (res && res.error) || 'Lưu xác minh thất bại.',
+								''
+							);
+							return;
+						}
+						var fresh = res.lead || lead;
+						if (window.LeadsLocalStore && typeof window.LeadsLocalStore.importLead === 'function') {
+							window.LeadsLocalStore.importLead(fresh);
+						}
+						setVerifyMsg(host, '', 'Đã lưu kết quả xác minh.');
+						render(storeLeadToDemo(fresh));
+					});
+			}
+		};
+	}
+
 	function renderDetailFields(lead) {
 		var host = byId('mk-ld-ui-detail-fields');
 		if (!host) return;
@@ -802,6 +1329,8 @@
 							return (
 								'<span class="' +
 								tagChipClass(t) +
+								'" data-tag="' +
+								esc(t) +
 								'">' +
 								esc(tagChipLabel(t)) +
 								'</span>'
@@ -841,18 +1370,69 @@
 			else if (lead.area) addressFields += detailField('Khu vực', esc(lead.area));
 		}
 
+		var touchLogHtml =
+			window.LeadsLeadsLogic && window.LeadsLeadsLogic.lastTouchCallLogHtml
+				? window.LeadsLeadsLogic.lastTouchCallLogHtml(lead, esc)
+				: esc(lead.last_touch || '—');
+		var nextActionText = window.LeadsLeadsLogic
+			? window.LeadsLeadsLogic.deriveNextAction(lead)
+			: lead.next_action || '';
+		var nextActionTimeframe = window.LeadsLeadsLogic
+			? window.LeadsLeadsLogic.nextActionTimeframeLabel(lead)
+			: '';
+		var nextActionHtml = '';
+		if (nextActionText || nextActionTimeframe) {
+			nextActionHtml = detailField(
+				'Hành động tiếp theo',
+				(nextActionText ? esc(nextActionText) : '') +
+					(nextActionTimeframe
+						? '<div class="mk-leads-next-action__time' +
+							(lead.next_action_overdue ? ' mk-leads-next-action__time--overdue' : '') +
+							'">' +
+							esc(nextActionTimeframe) +
+							'</div>'
+						: ''),
+				true
+			);
+		}
 		var manageFields =
 			detailField('Phụ trách', esc(lead.owner || '—')) +
 			detailField('Giá trị', esc(formatVnd(lead.value))) +
 			detailField('Ngày dự kiến', esc(lead.closeDate || '—')) +
-			detailField('Chạm cuối', esc(lead.last_touch || '—')) +
-			(lead.next_action ? detailField('Hành động tiếp', esc(lead.next_action), true) : '') +
+			detailField('Tương tác gần đây', touchLogHtml, true) +
+			nextActionHtml +
 			(lead.notes ? detailField('Ghi chú', esc(lead.notes), true) : '');
+
+		var screenFields = '';
+		if (lead.screening_label || lead.screening_result) {
+			screenFields += detailField(
+				'Sàng lọc (Form)',
+				esc(lead.screening_label || lead.screening_result || '—')
+			);
+		}
+		if (lead.eligibility_label) {
+			screenFields += detailField('Điều kiện (Sales)', esc(lead.eligibility_label));
+		}
+		if (lead.potential_label) {
+			screenFields += detailField('Mức tiềm năng', esc(lead.potential_label));
+		}
+		if (lead.verify_score != null) {
+			screenFields += detailField('Điểm Bộ B', esc(String(lead.verify_score)));
+		}
+		var qa = lead.qa_raw;
+		if (qa && typeof qa === 'object' && !Array.isArray(qa)) {
+			Object.keys(qa).forEach(function (q) {
+				var ans = String(qa[q] == null ? '' : qa[q]).trim();
+				if (!ans) return;
+				screenFields += detailField(q, esc(ans), true);
+			});
+		}
 
 		host.innerHTML =
 			detailSection('Thông tin liên hệ', contactFields) +
 			detailSection('Phân loại', classifyFields) +
 			(addressFields ? detailSection('Địa chỉ', addressFields) : '') +
+			(screenFields ? detailSection('Sàng lọc & câu trả lời Form', screenFields) : '') +
 			detailSection('Quản lý', manageFields);
 	}
 
@@ -876,6 +1456,23 @@
 		if (lead.address) rows += kvRow('Địa chỉ', esc(lead.address));
 		else if (lead.area && !lead.district) rows += kvRow('Khu vực / Địa chỉ', esc(lead.area));
 		rows += kvRow('Nguồn', esc(lead.leadsource));
+		if (lead.screening_label || lead.screening_result) {
+			rows += kvRow('Sàng lọc (Form)', esc(lead.screening_label || lead.screening_result));
+		}
+		if (lead.eligibility_label) {
+			rows += kvRow('Điều kiện (Sales)', esc(lead.eligibility_label));
+		}
+		if (lead.potential_label) {
+			rows += kvRow('Mức tiềm năng', esc(lead.potential_label));
+		}
+		var qa = lead.qa_raw;
+		if (qa && typeof qa === 'object' && !Array.isArray(qa)) {
+			Object.keys(qa).forEach(function (q) {
+				var ans = String(qa[q] == null ? '' : qa[q]).trim();
+				if (!ans) return;
+				rows += kvRow(q, esc(ans));
+			});
+		}
 		rows += kvRow('Ngày dự kiến', esc(lead.closeDate || '—'));
 		rows += kvRow('Phụ trách', '<a href="javascript:void(0)">' + esc(lead.owner) + '</a>');
 		rows += kvRow('Giá trị', esc(formatVnd(lead.value)));
@@ -925,7 +1522,11 @@
 		host.innerHTML = (lead.tags || [])
 			.map(function (t) {
 				return (
-					'<span class="tag">' +
+					'<span class="tag ' +
+					tagChipClass(t) +
+					'" data-tag="' +
+					esc(t) +
+					'">' +
 					esc(tagChipLabel(t)) +
 					' <a href="javascript:void(0)" class="mk-ld-ui-tag-remove" data-tag="' +
 					esc(t) +
@@ -933,6 +1534,9 @@
 				);
 			})
 			.join(' ');
+		if (window.MkLeadsDetailTags && window.MkLeadsDetailTags.paintAll) {
+			window.MkLeadsDetailTags.paintAll();
+		}
 	}
 
 	function renderActivityLog(lead) {
@@ -1333,12 +1937,36 @@
 		}
 	}
 
-	function showToast(msg) {
-		if (typeof app !== 'undefined' && app.helper && app.helper.showSuccessNotification) {
-			app.helper.showSuccessNotification({ message: msg });
-			return;
+	function showToast(msg, isError) {
+		var text = String(msg || '').trim();
+		if (!text) return;
+		if (typeof app !== 'undefined' && app.helper) {
+			if (!isError && app.helper.showSuccessNotification) {
+				app.helper.showSuccessNotification({ message: text }, { delay: 2800 });
+				return;
+			}
+			if (isError && app.helper.showErrorNotification) {
+				app.helper.showErrorNotification({ message: text });
+				return;
+			}
 		}
-		window.alert(msg);
+		var old = document.getElementById('mk-leads-convert-toast');
+		if (old && old.parentNode) old.parentNode.removeChild(old);
+		var el = document.createElement('div');
+		el.id = 'mk-leads-convert-toast';
+		el.className = 'mk-leads-convert-toast' + (isError ? ' is-error' : '');
+		el.setAttribute('role', 'status');
+		el.textContent = text;
+		document.body.appendChild(el);
+		window.setTimeout(function () {
+			el.classList.add('is-show');
+		}, 10);
+		window.setTimeout(function () {
+			el.classList.remove('is-show');
+			window.setTimeout(function () {
+				if (el.parentNode) el.parentNode.removeChild(el);
+			}, 280);
+		}, 2800);
 	}
 
 	/** Load <script src> from QuickCreateAjax HTML (jQuery .html() does not execute them). */
@@ -1681,15 +2309,15 @@
 		if (kind === 'call' && isCallAttemptsLocked(lead)) {
 			setButtonBusy(triggerBtn, false);
 			showToast(
-				leadLabel(
-					'LBL_MK_CALL_LOCKED',
-					'Đã ghi ' +
-						countTodayLoggedCalls(lead) +
-						'/' +
-						callAttemptMax() +
-						' cuộc gọi hôm nay. Không thể ghi thêm.'
-				)
+				(lead.lastTouchCalls && lead.lastTouchCalls.hint) ||
+					'Đã đủ số lần gọi Last Touch.'
 			);
+			return;
+		}
+
+		if (kind === 'call') {
+			setButtonBusy(triggerBtn, false);
+			openLastTouchModal(lead);
 			return;
 		}
 
@@ -1813,7 +2441,7 @@
 			(potentialId ? potentialDetailUrl(potentialId) : '');
 		var msg = leadLabel(
 			'LBL_MK_ALREADY_CONVERTED',
-			'Lead này đã được convert sang Opportunity.'
+			'Lead này đã được chuyển sang Cơ hội.'
 		);
 		if (url && app.helper && app.helper.showConfirmationBox) {
 			app.helper
@@ -1822,7 +2450,7 @@
 						msg +
 						'<br><br><a href="' +
 						url +
-						'" class="btn btn-primary btn-sm">Mở Opportunity</a>',
+						'" class="btn btn-primary btn-sm">Mở Cơ hội</a>',
 					htmlSupportEnable: true,
 					buttons: {
 						cancel: {
@@ -1830,7 +2458,7 @@
 							className: 'btn-default confirm-box-btn-pad pull-right',
 						},
 						confirm: {
-							label: leadLabel('LBL_VIEW_OPPORTUNITY', 'Xem Opportunity'),
+							label: leadLabel('LBL_VIEW_OPPORTUNITY', 'Xem Cơ hội'),
 							className: 'confirm-box-ok confirm-box-btn-pad btn-primary',
 						},
 					},
@@ -1855,19 +2483,23 @@
 			if (!canConvert && converted) {
 				btn.classList.add('mk-lead-detail-btn--converted');
 				btn.setAttribute('aria-disabled', 'true');
+				btn.setAttribute('hidden', 'hidden');
+				btn.style.display = 'none';
 				btn.setAttribute(
 					'title',
-					leadLabel('LBL_MK_ALREADY_CONVERTED', 'Đã convert sang Opportunity')
+					leadLabel('LBL_MK_ALREADY_CONVERTED', 'Đã chuyển sang Cơ hội')
 				);
 				if (txt) {
-					txt.textContent = leadLabel('LBL_MK_ALREADY_CONVERTED_SHORT', 'Đã convert');
+					txt.textContent = leadLabel('LBL_MK_ALREADY_CONVERTED_SHORT', 'Đã chuyển');
 				}
 			} else {
 				btn.classList.remove('mk-lead-detail-btn--converted');
 				btn.removeAttribute('aria-disabled');
+				btn.removeAttribute('hidden');
+				btn.style.display = '';
 				btn.removeAttribute('title');
 				if (txt) {
-					txt.textContent = leadLabel('LBL_CONVERT_LEAD', 'Convert Lead');
+					txt.textContent = leadLabel('LBL_CONVERT_LEAD', 'Chuyển sang Cơ hội');
 				}
 			}
 		});
@@ -1883,13 +2515,23 @@
 					action: 'ModernApi',
 					mode: 'convert',
 					id: lead.id,
-					order_category: orderCategory,
+					order_category: orderCategory || 'Internal',
 				},
 			})
 			.then(function (err, res) {
 				app.helper.hideProgress();
 				if (err || !res || res.success === false) {
-					window.alert((err && err.message) || (res && res.error) || 'Convert thất bại');
+					try {
+						console.error('[MK] Lead convert failed', {
+							err: err,
+							res: res,
+							debug: res && res.debug ? res.debug : null,
+						});
+					} catch (e) {}
+					showToast(
+						(err && err.message) || (res && res.error) || 'Chuyển sang Cơ hội thất bại',
+						true
+					);
 					return;
 				}
 				if (res.already_converted) {
@@ -1898,7 +2540,13 @@
 					lead.canConvert = false;
 					lead.potentialUrl = res.redirect || lead.potentialUrl;
 					syncConvertButtonState(lead);
-					showAlreadyConvertedNotice(res);
+					showToast(leadLabel('LBL_MK_ALREADY_CONVERTED', 'Lead này đã được chuyển sang Cơ hội.'));
+					var alreadyUrl = res.redirect || lead.potentialUrl || potentialDetailUrl(res.potentialId);
+					if (alreadyUrl) {
+						window.setTimeout(function () {
+							window.location.href = alreadyUrl;
+						}, 450);
+					}
 					return;
 				}
 				lead.converted = true;
@@ -1906,12 +2554,12 @@
 				lead.canConvert = false;
 				lead.potentialUrl = res.redirect || potentialDetailUrl(res.potentialId);
 				syncConvertButtonState(lead);
-				if (res.redirect) {
-					window.location.href = res.redirect;
-					return;
-				}
-				if (res.potentialId) {
-					window.location.href = potentialDetailUrl(res.potentialId);
+				showToast(leadLabel('LBL_MK_CONVERTED_TO_OPP', 'Đã chuyển sang Cơ hội.'));
+				var url = res.redirect || potentialDetailUrl(res.potentialId);
+				if (url) {
+					window.setTimeout(function () {
+						window.location.href = url;
+					}, 450);
 				}
 			});
 	}
@@ -1921,75 +2569,16 @@
 		refreshConversionStatus(lead).then(function () {
 			if (!lead.canConvert && (lead.converted || lead.potentialId)) {
 				syncConvertButtonState(lead);
-				showAlreadyConvertedNotice(lead);
+				showToast(leadLabel('LBL_MK_ALREADY_CONVERTED', 'Lead này đã được chuyển sang Cơ hội.'));
+				var url = lead.potentialUrl || potentialDetailUrl(lead.potentialId);
+				if (url) {
+					window.setTimeout(function () {
+						window.location.href = url;
+					}, 400);
+				}
 				return;
 			}
-			openConvertLeadModalInner(lead);
-		});
-	}
-
-	function openConvertLeadModalInner(lead) {
-		if (!lead || !lead.id) return;
-		if (!$jq || typeof app === 'undefined' || !app.helper || !app.helper.showModal) {
-			var fallback = window.prompt('Loại Opportunity: gõ Internal hoặc Project', 'Internal');
-			if (fallback === null) return;
-			var cat = String(fallback).trim();
-			if (cat !== 'Internal' && cat !== 'Project') {
-				window.alert('Chỉ chấp nhận Internal hoặc Project.');
-				return;
-			}
-			runConvertLead(lead, cat);
-			return;
-		}
-
-		var modalHtml =
-			'<div class="modal-dialog mk-lead-convert-modal">' +
-			'<div class="modal-content">' +
-			'<div class="modal-header">' +
-			'<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-			'<h4 class="modal-title">Convert Lead</h4>' +
-			'</div>' +
-			'<div class="modal-body">' +
-			'<p class="mk-lead-convert-modal__intro">Chuyển sang <strong>Contact + Account + Opportunity</strong>. Chọn loại đơn hàng cho Opportunity:</p>' +
-			'<div class="mk-lead-convert-modal__choices" role="radiogroup" aria-label="Order category">' +
-			'<label class="mk-lead-convert-modal__choice is-selected">' +
-			'<input type="radio" name="mk_lead_convert_order_category" value="Internal" checked />' +
-			'<span class="mk-lead-convert-modal__choice-body">' +
-			'<span class="mk-lead-convert-modal__choice-title">Internal</span>' +
-			'<span class="mk-lead-convert-modal__choice-desc">Đơn nội bộ / bán hàng thông thường</span>' +
-			'</span></label>' +
-			'<label class="mk-lead-convert-modal__choice">' +
-			'<input type="radio" name="mk_lead_convert_order_category" value="Project" />' +
-			'<span class="mk-lead-convert-modal__choice-body">' +
-			'<span class="mk-lead-convert-modal__choice-title">Project</span>' +
-			'<span class="mk-lead-convert-modal__choice-desc">Đơn dự án / triển khai theo project</span>' +
-			'</span></label>' +
-			'</div></div>' +
-			'<div class="modal-footer">' +
-			'<button type="button" class="btn btn-default" data-dismiss="modal">Hủy</button>' +
-			'<button type="button" class="btn btn-primary mk-lead-convert-modal__submit">Convert</button>' +
-			'</div></div></div>';
-
-		app.helper.showModal(modalHtml, {
-			backdrop: 'static',
-			keyboard: false,
-			cb: function (container) {
-				var $root = container.find('.mk-lead-convert-modal');
-				$root.find('.mk-lead-convert-modal__choice').on('click', function () {
-					$root.find('.mk-lead-convert-modal__choice').removeClass('is-selected');
-					$jq(this).addClass('is-selected');
-					$jq(this).find('input[type="radio"]').prop('checked', true);
-				});
-				$root.find('.mk-lead-convert-modal__submit').on('click', function () {
-					var cat = $root.find('input[name="mk_lead_convert_order_category"]:checked').val();
-					if (cat !== 'Internal' && cat !== 'Project') {
-						window.alert('Vui lòng chọn Internal hoặc Project.');
-						return;
-					}
-					app.helper.hideModal();
-					runConvertLead(lead, cat);
-				});
-			},
+			runConvertLead(lead, 'Internal');
 		});
 	}
 
@@ -2007,11 +2596,32 @@
 				}
 				if (action === 'convert') {
 					e.preventDefault();
+					if (btn.classList.contains('mk-lead-detail-btn--converted') || btn.getAttribute('aria-disabled') === 'true') {
+						return;
+					}
 					if (lead.converted && lead.potentialId) {
-						showAlreadyConvertedNotice(lead);
+						showToast(leadLabel('LBL_MK_ALREADY_CONVERTED', 'Lead này đã được chuyển sang Cơ hội.'));
+						var convertedUrl = lead.potentialUrl || potentialDetailUrl(lead.potentialId);
+						if (convertedUrl) {
+							window.setTimeout(function () {
+								window.location.href = convertedUrl;
+							}, 400);
+						}
 						return;
 					}
 					openConvertLeadModal(lead);
+					return;
+				}
+				if (action === 'call') {
+					e.preventDefault();
+					if (btn.classList.contains('is-disabled') || btn.getAttribute('aria-disabled') === 'true') {
+						showToast(
+							(lead.lastTouchCalls && lead.lastTouchCalls.hint) ||
+								'Không thể ghi thêm cuộc gọi Last Touch.'
+						);
+						return;
+					}
+					openQuickCreateModal('call', lead, btn);
 					return;
 				}
 				if (action !== 'duplicate' && action !== 'delete') {
@@ -2125,15 +2735,18 @@
 		}
 		renderHeroMeta(lead);
 		renderKeyFields(lead);
+		renderVerifyPanel(lead);
 		renderDetailFields(lead);
 		renderTags(lead);
 		renderActivityLog(lead);
+		renderLastTouchPanel(lead);
 		renderActivities(lead);
 		renderComments(lead);
 		renderUpdates(lead);
 		syncBadges(lead);
 		syncConvertButtonState(lead);
 		syncCallLogUiState(lead);
+		bindLastTouchModal();
 	}
 
 	function markReady() {

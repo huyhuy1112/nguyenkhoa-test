@@ -6,12 +6,12 @@ include_once 'vtlib/Vtiger/PDF/inventory/ContentViewer2.php';
 
 class SalesOrderPDFContentViewer extends Vtiger_PDF_InventoryTaxGroupContentViewer {
 
-	const COLOR_HEADER_BG = array(30, 58, 95);
+	const COLOR_HEADER_BG = array(8, 160, 69);
 	const COLOR_HEADER_TEXT = array(255, 255, 255);
 	const COLOR_ROW_ALT = array(248, 250, 252);
 	const COLOR_BORDER = array(226, 232, 240);
-	const COLOR_SUMMARY_BG = array(241, 245, 249);
-	const COLOR_GRAND = array(30, 58, 95);
+	const COLOR_SUMMARY_BG = array(236, 253, 245);
+	const COLOR_GRAND = array(6, 122, 54);
 
 	function __construct() {
 		parent::__construct();

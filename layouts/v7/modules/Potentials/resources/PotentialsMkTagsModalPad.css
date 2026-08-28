@@ -1,0 +1,85 @@
+/**
+ * Potentials tag modal — final overrides (loads after theme CSS).
+ */
+
+.mk-opp-tags-modal-dialog {
+	max-width: 560px;
+	width: calc(100% - 32px);
+	margin: 24px auto;
+}
+.mk-opp-tags-modal-dialog--view {
+	max-width: 480px;
+}
+.mk-opp-tags-modal {
+	border: none !important;
+	border-radius: 16px !important;
+	overflow: hidden;
+	box-shadow: 0 20px 48px rgba(15, 23, 42, 0.12);
+}
+
+.myModal .mk-opp-tags-modal .modal-header,
+.modal .mk-opp-tags-modal .modal-header {
+	background: linear-gradient(135deg, #1c1917 0%, #44403c 100%) !important;
+	border: none !important;
+	padding: 16px 20px !important;
+	border-radius: 0 !important;
+}
+.myModal .mk-opp-tags-modal .modal-title,
+.modal .mk-opp-tags-modal .modal-title {
+	color: #fff !important;
+	font-weight: 700 !important;
+	font-size: 16px !important;
+}
+.myModal .mk-opp-tags-modal .modal-header .close,
+.modal .mk-opp-tags-modal .modal-header .close {
+	color: #fff !important;
+	opacity: 0.9 !important;
+	text-shadow: none !important;
+}
+.myModal .mk-opp-tags-modal__body,
+.modal .mk-opp-tags-modal__body {
+	padding: 20px 22px 24px !important;
+	background: #fff !important;
+}
+.myModal .mk-opp-tags-modal__grid,
+.myModal .mk-opp-tags-modal .currentTag.multiLevelTagList,
+.modal .mk-opp-tags-modal__grid,
+.modal .mk-opp-tags-modal .currentTag.multiLevelTagList {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	gap: 10px !important;
+	min-height: 52px !important;
+	padding: 16px !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	background: #f8fafc !important;
+	box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+	height: auto !important;
+	max-height: none !important;
+	overflow: visible !important;
+}
+.myModal .mk-opp-tags-modal .tag,
+.modal .mk-opp-tags-modal .tag {
+	display: inline-flex !important;
+	align-items: center !important;
+	margin: 0 !important;
+	padding: 6px 12px !important;
+	border-radius: 999px !important;
+	font-size: 12px !important;
+	font-weight: 600 !important;
+	line-height: 1.3 !important;
+}
+.myModal .mk-opp-tags-modal .tag .activeToggleIcon,
+.myModal .mk-opp-tags-modal .tag .editTag,
+.myModal .mk-opp-tags-modal .tag .deleteTag,
+.modal .mk-opp-tags-modal .tag .activeToggleIcon,
+.modal .mk-opp-tags-modal .tag .editTag,
+.modal .mk-opp-tags-modal .tag .deleteTag {
+	display: none !important;
+}
+.myModal .mk-opp-tags-modal .tag .tagLabel,
+.modal .mk-opp-tags-modal .tag .tagLabel {
+	max-width: 200px;
+	font-weight: 600;
+}

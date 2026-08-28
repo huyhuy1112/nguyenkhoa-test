@@ -26,16 +26,6 @@ class Project_Module_Model extends Vtiger_Module_Model {
 							);
 		}
 
-		$projectMileStoneInstance = Vtiger_Module_Model::getInstance('ProjectMilestone');
-		if($userPrivilegesModel->hasModulePermission($projectMileStoneInstance->getId())) {
-			$quickLinks[] = array(
-							'linktype' => 'SIDEBARLINK',
-							'linklabel' => 'LBL_MILESTONES_LIST',
-							'linkurl' => $this->getMilestonesListUrl(),
-							'linkicon' => '',
-						  );
-		}
-
 		foreach($quickLinks as $quickLink) {
 			$links['SIDEBARLINK'][] = Vtiger_Link_Model::getInstanceFromValues($quickLink);
 		}

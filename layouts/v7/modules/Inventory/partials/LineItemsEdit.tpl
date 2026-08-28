@@ -9,7 +9,6 @@
 ********************************************************************************/
 -->*}
 
-{strip}
 	{assign var=LINEITEM_FIELDS value=$RECORD_STRUCTURE['LBL_ITEM_DETAILS']}
 	{assign var=COL_SPAN1 value=1}
 	{assign var=COL_SPAN2 value=2}
@@ -156,7 +155,48 @@
 				</div>
 			</div>
 			<div class="lineitemTableContainer">
+				{assign var=MK_MODERN_LINE_ITEMS value=!empty($MK_MODERN_QUOTE_CREATE) || !empty($MK_MODERN_SALES_ORDER_CREATE)}
 				<table class="table table-bordered" id="lineItemTab">
+					{if !empty($MK_MODERN_QUOTE_CREATE) || !empty($MK_MODERN_SALES_ORDER_CREATE)}
+					<colgroup class="mk-inv-colgroup">
+						<col style="width:44px" />
+						<col style="width:260px" />
+						<col style="width:92px" />
+						<col style="width:110px" />
+						<col style="width:148px" />
+						<col style="width:108px" />
+						<col style="width:148px" />
+						<col style="width:148px" />
+						<col style="width:180px" />
+					</colgroup>
+					<tr class="mk-inv-header-row">
+						<td class="mk-inv-col-drag"></td>
+						<td class="mk-inv-col-product">
+							<span class="mk-inv-th-label"><span class="mk-inv-required" aria-hidden="true">*</span>Tên mục</span>
+						</td>
+						<td class="mk-inv-col-qty">
+							<span class="mk-inv-th-label">Số lượng</span>
+						</td>
+						<td class="mk-inv-col-unit-head mk-inv-col-unit">
+							<span class="mk-inv-th-label">Đơn vị tính</span>
+						</td>
+						<td class="mk-inv-col-price">
+							<span class="mk-inv-th-label">Đơn giá</span>
+						</td>
+						<td class="mk-inv-col-tax-head mk-inv-col-tax mk-inv-col-discount">
+							<span class="mk-inv-th-label">Chiết khấu (%)</span>
+						</td>
+						<td class="mk-inv-col-amount">
+							<span class="mk-inv-th-label">Thành tiền</span>
+						</td>
+						<td class="mk-inv-col-afterck">
+							<span class="mk-inv-th-label">Sau CK</span>
+						</td>
+						<td class="mk-inv-col-note">
+							<span class="mk-inv-th-label">Ghi chú</span>
+						</td>
+					</tr>
+					{else}
 					<tr>
 						<td><strong>{vtranslate('LBL_TOOLS',$MODULE)}</strong></td>
 						{if isset($IMAGE_EDITABLE)}
@@ -190,17 +230,18 @@
 						{/if}
 						<td><strong class="pull-right">{vtranslate('LBL_NET_PRICE',$MODULE)}</strong></td>
 					</tr>
+					{/if}
 					<tr id="row0" class="hide lineItemCloneCopy" data-row-num="0">
-						{include file="partials/LineItemsContent.tpl"|@vtemplate_path:'Inventory' row_no=0 data=[] IGNORE_UI_REGISTRATION=true}
+						{include file="partials/LineItemsContent.tpl"|@vtemplate_path:'Inventory' row_no=0 data=[] IGNORE_UI_REGISTRATION=true MK_MODERN_LINE_ITEMS=$MK_MODERN_LINE_ITEMS}
 					</tr>
 					{foreach key=row_no item=data from=$RELATED_PRODUCTS}
 						<tr id="row{$row_no}" data-row-num="{$row_no}" class="lineItemRow" {if isset($data["entityType$row_no"]) && $data["entityType$row_no"] eq 'Products'}data-quantity-in-stock={(isset($data["qtyInStock$row_no"])) ? $data["qtyInStock$row_no"] : ''}{/if}>
-							{include file="partials/LineItemsContent.tpl"|@vtemplate_path:'Inventory' row_no=$row_no data=$data}
+							{include file="partials/LineItemsContent.tpl"|@vtemplate_path:'Inventory' row_no=$row_no data=$data MK_MODERN_LINE_ITEMS=$MK_MODERN_LINE_ITEMS}
 						</tr>
 					{/foreach}
 					{if $RELATED_PRODUCTS && php7_count($RELATED_PRODUCTS) eq 0 and ($PRODUCT_ACTIVE eq 'true' || $SERVICE_ACTIVE eq 'true')}
 						<tr id="row1" class="lineItemRow" data-row-num="1">
-							{include file="partials/LineItemsContent.tpl"|@vtemplate_path:'Inventory' row_no=1 data=[] IGNORE_UI_REGISTRATION=false}
+							{include file="partials/LineItemsContent.tpl"|@vtemplate_path:'Inventory' row_no=1 data=[] IGNORE_UI_REGISTRATION=false MK_MODERN_LINE_ITEMS=$MK_MODERN_LINE_ITEMS}
 						</tr>
 					{/if}
 				</table>

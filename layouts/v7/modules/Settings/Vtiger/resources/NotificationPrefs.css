@@ -1,0 +1,167 @@
+/* Settings → Quản lý thông báo — full width, large type */
+.nk-notif-prefs {
+	width: 100%;
+	max-width: none;
+	margin: 0;
+	padding: 12px 28px 48px;
+	box-sizing: border-box;
+	font-family: Inter, system-ui, -apple-system, sans-serif;
+	color: #0f172a;
+}
+
+.nk-notif-prefs__hero {
+	margin-bottom: 28px;
+	padding: 28px 32px;
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 18px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.nk-notif-prefs__eyebrow {
+	margin: 0 0 10px;
+	font-size: 1rem;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: #0b6e4f;
+}
+
+.nk-notif-prefs__title {
+	margin: 0 0 12px;
+	font-size: clamp(2.25rem, 3vw, 2.75rem);
+	font-weight: 800;
+	letter-spacing: -0.03em;
+	line-height: 1.15;
+}
+
+.nk-notif-prefs__desc {
+	margin: 0;
+	font-size: 1.375rem;
+	color: #475569;
+	line-height: 1.55;
+	font-weight: 500;
+	max-width: 52rem;
+}
+
+.nk-notif-prefs__form {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 18px;
+}
+
+@media (min-width: 1100px) {
+	.nk-notif-prefs__form {
+		grid-template-columns: 1fr 1fr;
+		align-items: start;
+	}
+
+	.nk-notif-prefs__form > .nk-notif-prefs__card:first-child,
+	.nk-notif-prefs__form > .nk-notif-prefs__actions {
+		grid-column: 1 / -1;
+	}
+}
+
+.nk-notif-prefs__card {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 16px;
+	padding: 10px 6px 12px;
+	margin-bottom: 0;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.nk-notif-prefs__group-title {
+	margin: 0;
+	padding: 16px 28px 10px;
+	font-size: 1.5rem;
+	font-weight: 800;
+	color: #0f172a;
+	letter-spacing: -0.02em;
+}
+
+.nk-notif-prefs__row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+	padding: 20px 28px;
+	margin: 0;
+	cursor: pointer;
+	border-top: 1px solid #f1f5f9;
+	transition: background 0.15s ease;
+}
+
+.nk-notif-prefs__row:hover {
+	background: #f8fafc;
+}
+
+.nk-notif-prefs__row:first-of-type {
+	border-top: none;
+}
+
+.nk-notif-prefs__label {
+	font-size: 1.4375rem;
+	font-weight: 600;
+	color: #0f172a;
+	line-height: 1.45;
+}
+
+.nk-notif-prefs__switch {
+	width: 28px;
+	height: 28px;
+	accent-color: #08a045;
+	flex-shrink: 0;
+	cursor: pointer;
+}
+
+.nk-notif-prefs__actions {
+	display: flex;
+	align-items: center;
+	gap: 18px;
+	margin-top: 8px;
+	padding: 8px 0 0;
+}
+
+.nk-notif-prefs__save {
+	min-width: 180px !important;
+	min-height: 52px !important;
+	font-size: 1.25rem !important;
+	font-weight: 700 !important;
+	padding: 14px 28px !important;
+	border-radius: 12px !important;
+}
+
+.nk-notif-prefs__hint {
+	font-size: 1.1875rem;
+	color: #64748b;
+	font-weight: 600;
+}
+
+@media (max-width: 768px) {
+	.nk-notif-prefs {
+		padding: 8px 12px 36px;
+	}
+
+	.nk-notif-prefs__hero {
+		padding: 20px 18px;
+	}
+
+	.nk-notif-prefs__title {
+		font-size: 2rem;
+	}
+
+	.nk-notif-prefs__desc,
+	.nk-notif-prefs__label {
+		font-size: 1.1875rem;
+	}
+
+	.nk-notif-prefs__group-title {
+		font-size: 1.25rem;
+		padding: 14px 18px 8px;
+	}
+
+	.nk-notif-prefs__row {
+		padding: 16px 18px;
+	}
+}

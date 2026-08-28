@@ -1,6 +1,6 @@
 <?php
 /**
- * Create outbound slip (phiếu xuất) from Sales Order — status "waiting_print", no stock movement.
+ * Create outbound slip (phiếu xuất) from Sales Order — status "waiting_print" (Chờ soạn), deduct stock.
  */
 class GoodsIssue_CreateFromSalesOrder_Helper {
 
@@ -91,7 +91,11 @@ class GoodsIssue_CreateFromSalesOrder_Helper {
 		return $errors;
 	}
 
-	public static function createFromSalesOrder($salesOrderId, $warehouseId, $warehouseName, $userId) {
+	/**
+	 * @param bool $requireStock When true, block if insufficient stock (unless allow-negative is on).
+	 *                           Default true — stock is deducted at waiting_print (Chờ soạn).
+	 */
+	public static function createFromSalesOrder($salesOrderId, $warehouseId, $warehouseName, $userId, $requireStock = true) {
 		$salesOrderId = (int) $salesOrderId;
 		$userId = (int) $userId;
 		if ($salesOrderId <= 0) {
@@ -111,9 +115,13 @@ class GoodsIssue_CreateFromSalesOrder_Helper {
 			return 0;
 		}
 
-		$stockErrors = self::validateWarehouseStock($lines, $warehouseName);
-		if (!empty($stockErrors)) {
-			throw new Exception(implode(' ', $stockErrors));
+		require_once 'modules/Warehouse/helpers/SettingsHelper.php';
+		$allowNegative = Warehouse_Settings_Helper::allowNegativeStock();
+		if ($requireStock && !$allowNegative) {
+			$stockErrors = self::validateWarehouseStock($lines, $warehouseName);
+			if (!empty($stockErrors)) {
+				throw new Exception(implode(' ', $stockErrors));
+			}
 		}
 
 		$db = PearDatabase::getInstance();
@@ -124,16 +132,32 @@ class GoodsIssue_CreateFromSalesOrder_Helper {
 		$soRef = '';
 		$destination = '';
 		$rsSo = $db->pquery(
-			'SELECT so.subject, so.salesorder_no, COALESCE(acc.accountname, \'\') AS organization
+			'SELECT so.subject, so.salesorder_no, so.contactid, so.potentialid,
+			        COALESCE(acc.accountname, \'\') AS organization,
+			        TRIM(CONCAT(IFNULL(cd.firstname, \'\'), \' \', IFNULL(cd.lastname, \'\'))) AS contact_name
 			 FROM vtiger_salesorder so
 			 LEFT JOIN vtiger_account acc ON acc.accountid = so.accountid
+			 LEFT JOIN vtiger_contactdetails cd ON cd.contactid = so.contactid
 			 WHERE so.salesorderid = ? LIMIT 1',
 			array($salesOrderId)
 		);
 		if ($rsSo && $db->num_rows($rsSo) > 0) {
 			$soSubject = trim((string) $db->query_result($rsSo, 0, 'subject'));
 			$soRef = trim((string) $db->query_result($rsSo, 0, 'salesorder_no'));
-			$destination = trim((string) $db->query_result($rsSo, 0, 'organization'));
+			$destination = trim((string) $db->query_result($rsSo, 0, 'contact_name'));
+			$organization = trim((string) $db->query_result($rsSo, 0, 'organization'));
+			$contactId = (int) $db->query_result($rsSo, 0, 'contactid');
+			$potentialId = (int) $db->query_result($rsSo, 0, 'potentialid');
+			if ($destination === '' && $contactId <= 0 && $potentialId > 0) {
+				require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
+				$potContactId = Vtiger_MkSalesCustomerName_Helper::resolveContactIdFromPotentialId($potentialId);
+				if ($potContactId > 0) {
+					$destination = Vtiger_MkSalesCustomerName_Helper::readContactNameById($potContactId);
+				}
+			}
+			if ($destination === '') {
+				$destination = $organization;
+			}
 		}
 		require_once 'modules/Warehouse/helpers/StockHelper.php';
 		$destination = Warehouse_Stock_Helper::decodeDisplayText($destination);
@@ -175,7 +199,7 @@ class GoodsIssue_CreateFromSalesOrder_Helper {
 				array(
 					'at' => gmdate('c'),
 					'by' => $issuedBy,
-					'action' => 'Chờ in phiếu',
+					'action' => 'Chờ soạn',
 					'note' => $note,
 				),
 			),
@@ -211,6 +235,24 @@ class GoodsIssue_CreateFromSalesOrder_Helper {
 
 		foreach ($lines as $line) {
 			$itemId = (int) $db->getUniqueID('vtiger_goodsissue_items');
+			$productId = (int) $line['productid'] > 0 ? (int) $line['productid'] : 0;
+			$sku = '';
+			if (!empty($line['sku'])) {
+				$sku = trim((string) $line['sku']);
+			}
+			if ($sku === '' && $productId > 0) {
+				try {
+					$srs = $db->pquery(
+						'SELECT sku FROM vtiger_productsservices WHERE productsservicesid = ? LIMIT 1',
+						array($productId)
+					);
+					if ($srs && $db->num_rows($srs) > 0) {
+						$sku = trim((string) $db->query_result($srs, 0, 'sku'));
+					}
+				} catch (Exception $e) {
+					$sku = '';
+				}
+			}
 			$db->pquery(
 				'INSERT INTO vtiger_goodsissue_items(
 					itemid, issueid, productid, product_name, product_type, quantity, unit_price,
@@ -219,7 +261,7 @@ class GoodsIssue_CreateFromSalesOrder_Helper {
 				array(
 					$itemId,
 					$issueId,
-					(int) $line['productid'] > 0 ? (int) $line['productid'] : null,
+					$productId > 0 ? $productId : null,
 					(string) $line['product_name'],
 					'Other',
 					(float) $line['quantity'],
@@ -227,9 +269,17 @@ class GoodsIssue_CreateFromSalesOrder_Helper {
 					0,
 					'',
 					(string) $line['comment'],
-					'',
+					// line_note stores SKU so cancel-restore matches deduct keys
+					$sku,
 				)
 			);
+		}
+
+		// Deduct stock at Chờ soạn (waiting_print); finish-pick skips if already deducted.
+		require_once 'modules/Warehouse/models/WhMgmtService.php';
+		$warehouseCode = trim((string) $warehouseId);
+		if ($warehouseCode !== '') {
+			Warehouse_WhMgmtService::deductStockForGoodsIssue($issueId, $warehouseCode, $userId);
 		}
 
 		return $issueId;

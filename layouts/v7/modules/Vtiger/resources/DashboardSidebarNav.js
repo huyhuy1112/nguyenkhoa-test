@@ -25,12 +25,27 @@
       if (isOpen) {
         $g.removeClass("mk-dash-app-group--open");
         $btn.attr("aria-expanded", "false");
+        $btn.trigger("blur");
         return;
       }
       $nav.find(".mk-dash-app-group").removeClass("mk-dash-app-group--open");
       $nav.find(".mk-dash-app-toggle").attr("aria-expanded", "false");
       $g.addClass("mk-dash-app-group--open");
       $btn.attr("aria-expanded", "true");
+      // Avoid stuck :focus white-on-transparent label after click
+      $btn.trigger("blur");
+    });
+
+    // Nested module groups (e.g. Tuibao → Khách hàng / Hợp đồng nhượng quyền)
+    $nav.off("click.mkDashModAcc").on("click.mkDashModAcc", ".mk-dash-mod-toggle", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var $btn = $(this);
+      var $g = $btn.closest(".mk-dash-mod-group");
+      var isOpen = $g.hasClass("mk-dash-mod-group--open");
+      $g.toggleClass("mk-dash-mod-group--open", !isOpen);
+      $btn.attr("aria-expanded", !isOpen ? "true" : "false");
+      $btn.trigger("blur");
     });
   }
 
@@ -62,12 +77,21 @@
     });
   }
 
-  function init() {
+	function init() {
     if (!$(".mk-dash-sidebar-nav--accordion").length) {
       return;
     }
     initAccordion();
     initMobileDrawer();
+    // Settings: đóng mọi app group mặc định + đảm bảo chữ menu luôn hiện
+    if (document.body && document.body.getAttribute("data-parent") === "Settings") {
+      var $nav = $(".mk-dash-sidebar-nav--accordion");
+      $nav.find(".mk-dash-app-group").removeClass("mk-dash-app-group--open");
+      $nav.find(".mk-dash-app-toggle").attr("aria-expanded", "false");
+      $nav.find(".mk-dash-app-toggle, .mk-dash-nav-item").each(function () {
+        if (this.blur) this.blur();
+      });
+    }
   }
 
   $(init);

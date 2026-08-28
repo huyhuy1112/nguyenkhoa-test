@@ -17,7 +17,7 @@
 			</a>
 			<a class="mk-hd-toolbar-link" href="index.php?module=HelpDesk&amp;view=Rules&amp;app=SUPPORT">
 				{include file="partials/TicketListSvgIcon.tpl"|vtemplate_path:$MODULE ICON='RULES'}
-				<span>Rules</span>
+				<span>Quản Lý rule</span>
 			</a>
 		</div>
 		<div class="mk-hd-edit-content">

@@ -11,6 +11,38 @@
 class Quotes_DetailView_Model extends Inventory_DetailView_Model {
 
 	/**
+	 * Allow loading soft-deleted quotes when opened from Sales Order reference.
+	 */
+	public static function getInstance($moduleName, $recordId) {
+		$modelClassName = Vtiger_Loader::getComponentClassName('Model', 'DetailView', $moduleName);
+		$instance = new $modelClassName();
+		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+
+		$allowDeleted = false;
+		$mkSoRef = isset($_REQUEST['mk_so_ref']) ? trim((string) $_REQUEST['mk_so_ref']) : '';
+		if ($mkSoRef === '1') {
+			require_once 'modules/Quotes/helpers/QuoteBaService.php';
+			if (Quotes_QuoteBaService_Helper::hasActiveSalesOrderForQuote((int) $recordId)) {
+				$allowDeleted = true;
+			}
+		}
+
+		if ($allowDeleted) {
+			$recordModel = Quotes_Record_Model::getInstanceByIdIncludingDeleted((int) $recordId, $moduleName);
+			$recordModel->set('mk_so_ref_view', 1);
+			$recordModel->set('mk_quote_converted', 1);
+		} else {
+			$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
+			require_once 'modules/Quotes/helpers/QuoteBaService.php';
+			if (Quotes_QuoteBaService_Helper::hasActiveSalesOrderForQuote((int) $recordId)) {
+				$recordModel->set('mk_quote_converted', 1);
+			}
+		}
+
+		return $instance->setModule($moduleModel)->setRecord($recordModel);
+	}
+
+	/**
 	 * Function to get the detail view links (links and widgets)
 	 * @param <array> $linkParams - parameters which will be used to calicaulate the params
 	 * @return <array> - array of link models in the format as below
@@ -24,7 +56,34 @@ class Quotes_DetailView_Model extends Inventory_DetailView_Model {
 		$linkModelList = parent::getDetailViewLinks($linkParams);
 		$recordModel = $this->getRecord();
 		if (!($recordModel instanceof Quotes_Record_Model) && $recordModel->getId()) {
-			$recordModel = Quotes_Record_Model::getInstanceById($recordModel->getId(), 'Quotes');
+			try {
+				$recordModel = Quotes_Record_Model::getInstanceById($recordModel->getId(), 'Quotes');
+			} catch (Exception $e) {
+				if ((int) $this->getRecord()->get('mk_so_ref_view') === 1) {
+					$recordModel = Quotes_Record_Model::getInstanceByIdIncludingDeleted((int) $this->getRecord()->getId(), 'Quotes');
+					$recordModel->set('mk_so_ref_view', 1);
+					$recordModel->set('mk_quote_converted', 1);
+				} else {
+					throw $e;
+				}
+			}
+		}
+
+		$isConvertedRef = (int) $recordModel->get('mk_so_ref_view') === 1
+			|| (int) $recordModel->get('mk_quote_converted') === 1;
+
+		if ($isConvertedRef && !empty($linkModelList['DETAILVIEWBASIC'])) {
+			$basicFiltered = array();
+			foreach ($linkModelList['DETAILVIEWBASIC'] as $basicLink) {
+				$basicLabel = is_object($basicLink) && method_exists($basicLink, 'getLabel')
+					? (string) $basicLink->getLabel()
+					: '';
+				if ($basicLabel === 'LBL_EDIT' || stripos($basicLabel, 'EDIT') !== false) {
+					continue;
+				}
+				$basicFiltered[] = $basicLink;
+			}
+			$linkModelList['DETAILVIEWBASIC'] = $basicFiltered;
 		}
 
 		// Filter Quote exports based on saved line-item types (Product vs Service).
@@ -32,7 +91,7 @@ class Quotes_DetailView_Model extends Inventory_DetailView_Model {
 		$itemTypeClassification = Quotes_QuoteItemTypeHelper::classifyQuoteByLineItems($quoteId);
 
 		$invoiceModuleModel = Vtiger_Module_Model::getInstance('Invoice');
-		if($currentUserModel->hasModuleActionPermission($invoiceModuleModel->getId(), 'CreateView')) {
+		if (!$isConvertedRef && $currentUserModel->hasModuleActionPermission($invoiceModuleModel->getId(), 'CreateView')) {
 			$basicActionLink = array(
 				'linktype' => 'DETAILVIEW',
 				'linklabel' => vtranslate('LBL_GENERATE').' '.vtranslate($invoiceModuleModel->getSingularLabelKey(), 'Invoice'),
@@ -56,7 +115,7 @@ class Quotes_DetailView_Model extends Inventory_DetailView_Model {
 					$viewSalesOrderLink
 				);
 			}
-		} elseif ($currentUserModel->hasModuleActionPermission($salesOrderModuleModel->getId(), 'CreateView')) {
+		} elseif (!$isConvertedRef && $currentUserModel->hasModuleActionPermission($salesOrderModuleModel->getId(), 'CreateView')) {
 			$createSalesOrderLink = Vtiger_Link_Model::getInstanceFromValues(array(
 				'linktype' => 'DETAILVIEWBASIC',
 				'linklabel' => 'LBL_CREATE_SALES_ORDER',
@@ -70,7 +129,7 @@ class Quotes_DetailView_Model extends Inventory_DetailView_Model {
 		}
 
 		$purchaseOrderModuleModel = Vtiger_Module_Model::getInstance('PurchaseOrder');
-		if($currentUserModel->hasModuleActionPermission($purchaseOrderModuleModel->getId(), 'CreateView')) {
+		if (!$isConvertedRef && $currentUserModel->hasModuleActionPermission($purchaseOrderModuleModel->getId(), 'CreateView')) {
 			$basicActionLink = array(
 				'linktype' => 'DETAILVIEW',
 				'linklabel' => vtranslate('LBL_GENERATE').' '.vtranslate($purchaseOrderModuleModel->getSingularLabelKey(), 'PurchaseOrder'),

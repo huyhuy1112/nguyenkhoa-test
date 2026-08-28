@@ -27,6 +27,29 @@ class Contacts_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('MENU_SELECTED_MODULENAME', 'Contacts');
 		$viewer->assign('MK_MODERN_CONTACT_CREATE', true);
 		$viewer->assign('IS_DUPLICATE', $request->get('isDuplicate'));
+
+		$tags = array();
+		$recordId = (int) $request->get('record');
+		if ($recordId > 0 && !$request->get('isDuplicate')) {
+			try {
+				global $current_user;
+				require_once 'modules/Vtiger/models/Tag.php';
+				$userId = (int) $current_user->id;
+				$tagModels = Vtiger_Tag_Model::getAllAccessible($userId, 'Contacts', $recordId);
+				foreach ($tagModels as $tagModel) {
+					$name = trim(decode_html((string) $tagModel->getName()));
+					if ($name !== '') {
+						$tags[] = $name;
+					}
+				}
+			} catch (Exception $e) {
+				$tags = array();
+			}
+		}
+		$viewer->assign(
+			'MK_CONTACT_EDIT_TAGS_JSON',
+			json_encode(array_values($tags), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)
+		);
 	}
 
 	protected function redirectMarketingToSales(Vtiger_Request $request) {
@@ -91,6 +114,13 @@ class Contacts_Edit_View extends Vtiger_Edit_View {
 	}
 
 	public function process(Vtiger_Request $request) {
+		try {
+			require_once 'modules/Contacts/models/ModernService.php';
+			Contacts_ModernService::ensureEventTimeColumns();
+			Contacts_ModernService::ensureCredentialFields();
+		} catch (Exception $e) {
+			// best-effort schema ensure for Create fields
+		}
 		if ($this->isMkModernContactCreate($request)) {
 			$this->assignModernContext($request);
 		}
@@ -100,25 +130,13 @@ class Contacts_Edit_View extends Vtiger_Edit_View {
 
 	public function getHeaderCss(Vtiger_Request $request) {
 		$headerCssInstances = parent::getHeaderCss($request);
-		if (!$this->isMkModernContactCreate($request)) {
-			return $headerCssInstances;
-		}
-		$cssFileNames = array(
-			'~layouts/v7/modules/Contacts/resources/ContactMkEdit.css',
-		);
-		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
-		return array_merge($headerCssInstances, $cssInstances);
+		// ContactMkEdit.css loads once in EditViewPreProcess.tpl (after SalesMkEditShell)
+		return $headerCssInstances;
 	}
 
 	public function getHeaderScripts(Vtiger_Request $request) {
 		$headerScriptInstances = parent::getHeaderScripts($request);
-		if (!$this->isMkModernContactCreate($request)) {
-			return $headerScriptInstances;
-		}
-		$jsFileNames = array(
-			'~layouts/v7/modules/Contacts/resources/ContactMkEdit.js',
-		);
-		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
-		return array_merge($headerScriptInstances, $jsScriptInstances);
+		// ContactMkEdit.js + ContactsLovableRef.js load in EditViewPreProcess.tpl
+		return $headerScriptInstances;
 	}
 }

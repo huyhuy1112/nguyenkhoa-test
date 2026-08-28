@@ -113,6 +113,7 @@
 		'mk-col-control mk-col-org-name mk-col-company-code mk-col-website mk-col-phone mk-col-email mk-col-address mk-col-assigned mk-col-industry mk-col-type';
 
 	var COL_CLASS_BY_FIELD = {
+		tb_contract_no: 'mk-col-company-code',
 		accountname: 'mk-col-org-name',
 		account_no: 'mk-col-company-code',
 		cf_855: 'mk-col-company-code',
@@ -121,6 +122,7 @@
 		otherphone: 'mk-col-phone',
 		email1: 'mk-col-email',
 		email2: 'mk-col-email',
+		tb_store_address: 'mk-col-address',
 		bill_street: 'mk-col-address',
 		ship_street: 'mk-col-address',
 		assigned_user_id: 'mk-col-assigned',

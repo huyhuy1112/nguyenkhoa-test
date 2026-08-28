@@ -6,7 +6,7 @@
 			<header class="mk-wh-proto-head">
 				<div class="mk-wh-proto-title">
 					<h1 class="mk-wh-proto-title__h1">Prototype — Quản lý kho theo vai trò</h1>
-					<p class="mk-wh-proto-title__sub">Mô phỏng luồng: Thủ kho tạo phiếu nhập/xuất → QC ghi nhận kết quả trên phiếu nhập → Quản lý duyệt xuất.</p>
+					<p class="mk-wh-proto-title__sub">Mô phỏng luồng: Quản lý kho tạo phiếu nhập/xuất → QC ghi nhận kết quả → Quản lý duyệt &amp; nhập kho.</p>
 				</div>
 				<div class="mk-wh-proto-role">
 					<div class="mk-wh-proto-role__label">Đang đăng nhập với vai trò</div>
@@ -16,8 +16,7 @@
 						</span>
 						<select class="mk-wh-proto-select" id="mkWhProtoRole">
 							<option value="qc">QC — QC Minh</option>
-							<option value="stock">Thủ kho — Thủ kho Huy</option>
-							<option value="manager">Quản lý kho — Manager</option>
+							<option value="manager" selected="selected">Quản lý kho — QL Tuấn</option>
 						</select>
 					</div>
 				</div>
@@ -147,13 +146,16 @@
 									<option value="expired">Quá hạn</option>
 								</select>
 							</label>
-							<label class="mk-wh-proto-filter">
-								<span class="mk-wh-proto-filter__label">Tên sản phẩm</span>
-								<select class="mk-wh-proto-filter__control" id="mkWhProtoFilterName">
-									<option value="az">A → Z</option>
-									<option value="za">Z → A</option>
-								</select>
-							</label>
+							<div class="mk-wh-proto-filter mk-wh-proto-filter--search" role="search">
+								<span class="mk-wh-proto-filter__label">Tìm kiếm</span>
+								<div class="mk-wh-stock-search">
+									<span class="mk-wh-stock-search__ic" aria-hidden="true"><i class="fa fa-search"></i></span>
+									<input class="mk-wh-stock-search__input" id="mkWhProtoStockSearch" type="search"
+										placeholder="Tìm theo tên, SKU hoặc lô…" autocomplete="off" />
+									<button type="button" class="mk-wh-stock-search__clear" id="mkWhProtoStockSearchClear"
+										aria-label="Xóa tìm kiếm" hidden>&times;</button>
+								</div>
+							</div>
 							<label class="mk-wh-proto-filter">
 								<span class="mk-wh-proto-filter__label">Giá</span>
 								<select class="mk-wh-proto-filter__control" id="mkWhProtoFilterPrice">

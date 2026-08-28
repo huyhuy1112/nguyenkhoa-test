@@ -98,6 +98,12 @@ class ServiceContractsHandler extends VTEventHandler {
 					$scFocus->retrieve_entity_info($contractId,'ServiceContracts');
 					$scFocus->calculateProgress();
 				}
+				try {
+					require_once 'modules/ServiceContracts/models/ModernService.php';
+					ServiceContracts_ModernService::ensureProfileRow((int) $contractId);
+				} catch (Exception $e) {
+					// profile row is best-effort (AFF created on demand)
+				}
 			}
 		}
 	}

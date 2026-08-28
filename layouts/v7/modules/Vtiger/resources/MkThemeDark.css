@@ -646,6 +646,12 @@ html[data-theme="dark"] #modern-notifications-container .modern-notifications-ac
 	color: var(--mk-text-secondary) !important;
 }
 
+html[data-theme="dark"] #modern-notifications-container #modern-notifications-delete-selected.modern-notifications-delete-selected-btn,
+html[data-theme="dark"] #modern-notifications-container #modern-notifications-delete-selected.modern-notifications-delete-selected-btn .modern-notifications-action-label,
+html[data-theme="dark"] #modern-notifications-container #modern-notifications-delete-selected.modern-notifications-delete-selected-btn .modern-notifications-trash-icon {
+	color: #fff !important;
+}
+
 html[data-theme="dark"] #modern-notifications-container #modern-notifications-mark-all-read.modern-notifications-action-txt,
 html[data-theme="dark"] #modern-notifications-container #modern-notifications-mark-all-read .modern-notifications-action-ic-doublecheck {
 	color: #08A045 !important;

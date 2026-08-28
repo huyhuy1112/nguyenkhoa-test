@@ -1,6 +1,7 @@
 /**
  * ProductsServices Detail (Sales app only).
  * Scope: body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"]
+ * Premium SaaS CRM look: beige/gold border system, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"]
  * Premium SaaS CRM look: beige/gold border system, soft cards, modern typography.
  * Non-SALES ProductsServices Detail is untouched (template + CSS are scoped).
  */
@@ -12,23 +13,23 @@
  * Extra horizontal padding (48px left / 32px right) = safe gutter away from sidebar.
  * ========================================================================== */
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #page,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #page.container-fluid {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #page, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] #page,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #page.container-fluid , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] #page.container-fluid {
 	padding-top: 0 !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.main-container-ProductsServices,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.mk-ps-detail-page {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.main-container-ProductsServices, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .main-container.main-container-ProductsServices,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.mk-ps-detail-page , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .main-container.mk-ps-detail-page {
 	min-height: 0 !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dash-main {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dash-main , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-dash-main {
 	padding: 0 !important;
 	overflow-x: hidden;
 	box-sizing: border-box;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dash-main.mk-ps-detail-main {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-dash-main.mk-ps-detail-main , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-dash-main.mk-ps-detail-main {
 	width: 100%;
 	max-width: none;
 	min-width: 0;
@@ -36,7 +37,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-d
 	box-sizing: border-box;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.mk-ps-detail-page {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.mk-ps-detail-page , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .main-container.mk-ps-detail-page {
 	width: 100%;
 	max-width: none;
 	margin-left: 0 !important;
@@ -50,14 +51,14 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main
 }
 
 @media (max-width: 1199px) {
-	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.mk-ps-detail-page {
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.mk-ps-detail-page , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .main-container.mk-ps-detail-page {
 		padding-left: 32px !important;
 		padding-right: 24px !important;
 	}
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .content-area {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .main-container,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .content-area , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .content-area {
 	width: 100% !important;
 	max-width: none !important;
 	margin-left: 0 !important;
@@ -65,8 +66,8 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .cont
 	min-width: 0 !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.mk-ps-detail-page .content-area,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-inner.detailViewContainer {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.mk-ps-detail-page .content-area, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .main-container.mk-ps-detail-page .content-area,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-inner.detailViewContainer , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-inner.detailViewContainer {
 	padding-left: 0 !important;
 	padding-right: 0 !important;
 	margin-left: 0 !important;
@@ -78,7 +79,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	position: relative !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-inner.detailViewContainer {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-inner.detailViewContainer , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-inner.detailViewContainer {
 	margin: 0;
 	padding: 0;
 	min-height: 0 !important;
@@ -87,25 +88,25 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 }
 
 @media (max-width: 991px) {
-	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.mk-ps-detail-page {
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.mk-ps-detail-page , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .main-container.mk-ps-detail-page {
 		padding: 16px;
 	}
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"], body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] {
 	font-family: Inter, system-ui, -apple-system, sans-serif;
 	color: #2b2b2b;
 }
 
 /* Hide legacy navigators */
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.mk-ps-detail-page #modnavigator.module-nav,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.mk-ps-detail-page #sidebar-essentials.sidebar-essentials,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.mk-ps-detail-page .essentials-toggle,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hide-legacy {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.mk-ps-detail-page #modnavigator.module-nav, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .main-container.mk-ps-detail-page #modnavigator.module-nav,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.mk-ps-detail-page #sidebar-essentials.sidebar-essentials, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .main-container.mk-ps-detail-page #sidebar-essentials.sidebar-essentials,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .main-container.mk-ps-detail-page .essentials-toggle, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .main-container.mk-ps-detail-page .essentials-toggle,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hide-legacy , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hide-legacy {
 	display: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detailview-content {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detailview-content , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detailview-content {
 	padding: 0;
 }
 
@@ -113,11 +114,11 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
  * BREADCRUMB
  * ========================================================================== */
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-breadcrumb {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-breadcrumb , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-breadcrumb {
 	margin: 0 0 8px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-breadcrumb__list {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-breadcrumb__list , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-breadcrumb__list {
 	list-style: none;
 	margin: 0;
 	padding: 0;
@@ -130,24 +131,24 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	color: #6b6358;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-breadcrumb__item a {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-breadcrumb__item a , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-breadcrumb__item a {
 	color: #504533;
 	text-decoration: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-breadcrumb__item a:hover {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-breadcrumb__item a:hover , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-breadcrumb__item a:hover {
 	color: #08A045;
 	text-decoration: underline;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-breadcrumb__item--current .mk-ps-detail-breadcrumb__text {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-breadcrumb__item--current .mk-ps-detail-breadcrumb__text , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-breadcrumb__item--current .mk-ps-detail-breadcrumb__text {
 	color: #8a7d6e;
 	max-width: 360px;
 	display: inline-block;
 	vertical-align: bottom;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-breadcrumb__sep {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-breadcrumb__sep , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-breadcrumb__sep {
 	color: #d4c4ad;
 	user-select: none;
 }
@@ -156,7 +157,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
  * HERO — single card strip; primary row ~127px; tags inset (no overlap)
  * ========================================================================== */
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero-strip.detailview-header-block {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero-strip.detailview-header-block , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero-strip.detailview-header-block {
 	background: #fff !important;
 	border: 1px solid #e2e8f0 !important;
 	border-radius: 12px !important;
@@ -172,7 +173,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	position: relative !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero-strip .detailview-header.mk-ps-detail-hero-head {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero-strip .detailview-header.mk-ps-detail-hero-head , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero-strip .detailview-header.mk-ps-detail-hero-head {
 	background: transparent !important;
 	border: none !important;
 	box-shadow: none !important;
@@ -185,7 +186,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	box-sizing: border-box !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__row {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__row , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__row {
 	display: flex !important;
 	flex-direction: row !important;
 	flex-wrap: nowrap !important;
@@ -200,13 +201,13 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	position: static !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__row::before,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__row::after {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__row::before, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__row::before,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__row::after , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__row::after {
 	display: none !important;
 	content: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon.recordImage {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon.recordImage , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__icon.recordImage {
 	display: flex !important;
 	width: 64px !important;
 	height: 64px !important;
@@ -220,7 +221,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	justify-content: center !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon-svg {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon-svg , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__icon-svg {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -229,22 +230,22 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	color: #14532d;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon-svg svg {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon-svg svg , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__icon-svg svg {
 	display: block;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon.recordImage.bgproductsservices {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon.recordImage.bgproductsservices , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__icon.recordImage.bgproductsservices {
 	background: linear-gradient(145deg, #dbeafe 0%, #bfdbfe 40%, #3b82f6 100%) !important;
 	border: 1px solid #93c5fd;
 	border-radius: 12px;
 	box-sizing: border-box;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon.recordImage.bgproductsservices .mk-ps-detail-hero__icon-svg {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon.recordImage.bgproductsservices .mk-ps-detail-hero__icon-svg , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__icon.recordImage.bgproductsservices .mk-ps-detail-hero__icon-svg {
 	color: #1e3a8a;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-meta-svg {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-meta-svg , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-meta-svg {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -252,8 +253,8 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	flex-shrink: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__tags,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__tags--inset {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__tags, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__tags,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__tags--inset , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__tags--inset {
 	margin-top: 10px !important;
 	margin-bottom: 0 !important;
 	padding: 12px 0 0 !important;
@@ -265,14 +266,14 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	box-sizing: border-box !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__left {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__left , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__left {
 	flex: 1 1 auto;
 	min-width: 0;
 }
 
 /* Stock .recordBasicInfo rules use float + padding-left — breaks SALES flex hero */
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .detailview-header .mk-ps-detail-hero__content.recordBasicInfo,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__content.recordBasicInfo {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .detailview-header .mk-ps-detail-hero__content.recordBasicInfo, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .detailview-header .mk-ps-detail-hero__content.recordBasicInfo,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__content.recordBasicInfo , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__content.recordBasicInfo {
 	float: none !important;
 	padding-left: 0 !important;
 	width: auto !important;
@@ -280,12 +281,12 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	overflow: visible !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__content.recordBasicInfo > .info-row.headerAjaxEdit,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__content.recordBasicInfo > form#headerForm {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__content.recordBasicInfo > .info-row.headerAjaxEdit, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__content.recordBasicInfo > .info-row.headerAjaxEdit,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__content.recordBasicInfo > form#headerForm , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__content.recordBasicInfo > form#headerForm {
 	display: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__identity {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__identity , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__identity {
 	display: flex !important;
 	flex-direction: row !important;
 	align-items: center !important;
@@ -294,7 +295,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	flex: 1 1 auto !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__icon {
 	width: 64px !important;
 	height: 64px !important;
 	min-width: 64px !important;
@@ -312,20 +313,20 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	float: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon .mk-ps-detail-hero__icon-glyph,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon strong,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon i {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon .mk-ps-detail-hero__icon-glyph, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__icon .mk-ps-detail-hero__icon-glyph,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon strong, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__icon strong,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon i , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__icon i {
 	color: #14532d !important;
 	font-size: 22px;
 	line-height: 1;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__text {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__text , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__text {
 	min-width: 0 !important;
 	flex: 1 1 auto !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__content {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__content , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__content {
 	min-width: 0 !important;
 	flex: 1 1 auto !important;
 	display: flex !important;
@@ -333,11 +334,11 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	gap: 8px !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__name-row {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__name-row , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__name-row {
 	margin: 0 0 4px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__title {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__title , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__title {
 	font-family: "Space Grotesk", Inter, sans-serif !important;
 	font-size: 28px !important;
 	line-height: 36px !important;
@@ -347,14 +348,14 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	letter-spacing: -0.02em !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__title .recordLabel {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__title .recordLabel , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__title .recordLabel {
 	white-space: normal;
 	max-width: none;
 	overflow: visible;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__subtitle {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__meta,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__subtitle , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__subtitle {
 	display: flex !important;
 	align-items: center !important;
 	gap: 10px !important;
@@ -363,14 +364,14 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	margin-top: 0 !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta > *,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__subtitle > * {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta > *, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__meta > *,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__subtitle > * , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__subtitle > * {
 	position: static !important;
 	margin: 0 !important;
 	white-space: nowrap;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__meta-item {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
@@ -383,23 +384,23 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	flex-shrink: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item i {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item i , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__meta-item i {
 	font-size: 13px;
 	color: #94a3b8;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item--amount .mk-ps-detail-hero__meta-text {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item--amount .mk-ps-detail-hero__meta-text , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__meta-item--amount .mk-ps-detail-hero__meta-text {
 	font-weight: 700;
 	color: #0B6E4F;
 	font-size: 15px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item--amount i {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item--amount i , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__meta-item--amount i {
 	color: #08A045;
 }
 
 /* Stage pill (also used in Hero meta + list) */
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-stage-pill {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
@@ -415,7 +416,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	white-space: nowrap;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill__dot {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill__dot , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-stage-pill__dot {
 	display: inline-block;
 	width: 8px;
 	height: 8px;
@@ -423,39 +424,39 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	background: currentColor;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--qualification,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--prospecting,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--needs-analysis {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--qualification, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-stage-pill--qualification,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--prospecting, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-stage-pill--prospecting,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--needs-analysis , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-stage-pill--needs-analysis {
 	background: #dcfce7;
 	color: #073B3A;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--proposal,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--value-proposition,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--id-decision-makers,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--perception-analysis {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--proposal, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-stage-pill--proposal,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--value-proposition, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-stage-pill--value-proposition,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--id-decision-makers, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-stage-pill--id-decision-makers,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--perception-analysis , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-stage-pill--perception-analysis {
 	background: #dceeff;
 	color: #1e5a8a;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--negotiation,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--negotiation-review {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--negotiation, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-stage-pill--negotiation,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--negotiation-review , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-stage-pill--negotiation-review {
 	background: #dcfce7;
 	color: #166534;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--closed-won {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--closed-won , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-stage-pill--closed-won {
 	background: #d1fae5;
 	color: #065f46;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--closed-lost {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-stage-pill--closed-lost , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-stage-pill--closed-lost {
 	background: #fee2e2;
 	color: #991b1b;
 }
 
 /* Tags strip below hero row (detail rules above set layout; keep inner flex only) */
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__tags .tagContainer {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__tags .tagContainer , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__tags .tagContainer {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -463,12 +464,12 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	margin: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__tags .tag-contents,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__tags #addTagContainer {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__tags .tag-contents, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__tags .tag-contents,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__tags #addTagContainer , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__tags #addTagContainer {
 	margin: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__tags .detailTagList {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__tags .detailTagList , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__tags .detailTagList {
 	display: inline-flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -479,8 +480,8 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
  * ACTION BUTTONS (Follow, basic actions, More, Send Email)
  * ========================================================================== */
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-actions,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__actions {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-actions, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-actions,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__actions , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__actions {
 	flex: 0 0 auto !important;
 	align-self: center !important;
 	padding: 0 !important;
@@ -491,7 +492,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	float: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-actions__toolbar {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-actions__toolbar , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-actions__toolbar {
 	display: flex;
 	flex-wrap: nowrap;
 	align-items: center;
@@ -502,7 +503,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	max-width: 100%;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-actions__group {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-actions__group , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-actions__group {
 	display: flex;
 	flex-wrap: nowrap;
 	align-items: center;
@@ -510,12 +511,12 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	gap: 12px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__actions .pull-right,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-actions .pull-right {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__actions .pull-right, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__actions .pull-right,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-actions .pull-right , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-actions .pull-right {
 	float: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-btn {
 	border-radius: 10px;
 	font-weight: 600;
 	font-size: 13px;
@@ -531,18 +532,18 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	background-image: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn:hover,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn:focus {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn:hover, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-btn:hover,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn:focus , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-btn:focus {
 	background: rgba(64, 98, 126, 0.06);
 	color: #2c4a66;
 	outline: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn--ghost:hover {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn--ghost:hover , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-btn--ghost:hover {
 	border-color: #40627e;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn--primary {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn--primary , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-btn--primary {
 	background: #08A045 !important;
 	background-image: none !important;
 	border-color: #0B6E4F;
@@ -550,23 +551,23 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	font-weight: 700;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn--primary:hover {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn--primary:hover , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-btn--primary:hover {
 	background: #f0a514 !important;
 	color: #6d4d00;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #starToggle.mk-ps-detail-btn {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #starToggle.mk-ps-detail-btn , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] #starToggle.mk-ps-detail-btn {
 	min-width: auto;
 	width: auto;
 	padding-left: 12px;
 	padding-right: 12px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #starToggle[style*="width"] {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #starToggle[style*="width"] , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] #starToggle[style*="width"] {
 	width: auto;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-actions__pager {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-actions__pager , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-actions__pager {
 	margin-left: 2px;
 }
 
@@ -574,7 +575,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
  * TABS: minimal underline (Summary / Details / Updates) + right-side icons
  * ========================================================================== */
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs.row {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs.row , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs.row {
 	margin: 0 0 12px;
 	padding: 0;
 	border: none !important;
@@ -584,7 +585,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .rela
 	width: 100%;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .navbar {
 	min-height: 0;
 	margin-bottom: 0;
 	background: transparent;
@@ -592,12 +593,12 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .rela
 	box-shadow: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar-header {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar-header , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .navbar-header {
 	display: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar-collapse,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar-collapse.collapse {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar-collapse, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .navbar-collapse,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .navbar-collapse.collapse , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .navbar-collapse.collapse {
 	display: block !important;
 	height: auto !important;
 	visibility: visible !important;
@@ -605,7 +606,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .rela
 	padding: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs {
 	border: none !important;
 	border-bottom: 0 !important;
 	display: flex;
@@ -621,7 +622,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	-webkit-overflow-scrolling: touch;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-tabs-spacer {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-tabs-spacer , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-tabs-spacer {
 	flex: 1 1 8px;
 	min-width: 8px;
 	max-width: 9999px;
@@ -633,49 +634,49 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	pointer-events: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li {
 	flex-shrink: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.related-tab-more-element {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.related-tab-more-element , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.related-tab-more-element {
 	margin-left: auto;
 	flex: 0 0 auto;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module],
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module], body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] {
 	flex: 0 0 auto;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) {
 	flex: 0 0 auto;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-icon .vicon,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-icon i.fa,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-icon strong {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-icon .vicon, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-tab-icon .vicon,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-icon i.fa, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-tab-icon i.fa,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-icon strong , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-tab-icon strong {
 	display: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-svg {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-svg , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-tab-svg {
 	display: block;
 	width: 20px;
 	height: 20px;
 	color: #64748b;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.related-tab-more-element {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .nav.nav-tabs > li.tab-item,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .nav.nav-tabs > li.more-tab,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.related-tab-more-element , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .nav.nav-tabs > li.related-tab-more-element {
 	margin-bottom: -1px !important;
 	margin-right: 4px;
 	float: none;
 	border: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item > a,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab > a,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.related-tab-more-element > a {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item > a, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .nav.nav-tabs > li.tab-item > a,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab > a, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .nav.nav-tabs > li.more-tab > a,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.related-tab-more-element > a , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .nav.nav-tabs > li.related-tab-more-element > a {
 	border: none !important;
 	border-radius: 0;
 	padding: 0 12px;
@@ -695,12 +696,12 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .rela
 	position: relative;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item.active > a,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab.active > a,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item.active > a:hover,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item.active > a:focus,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab.active > a:hover,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab.active > a:focus {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item.active > a, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .nav.nav-tabs > li.tab-item.active > a,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab.active > a, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .nav.nav-tabs > li.more-tab.active > a,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item.active > a:hover, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .nav.nav-tabs > li.tab-item.active > a:hover,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item.active > a:focus, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .nav.nav-tabs > li.tab-item.active > a:focus,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab.active > a:hover, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .nav.nav-tabs > li.more-tab.active > a:hover,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab.active > a:focus , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .nav.nav-tabs > li.more-tab.active > a:focus {
 	color: #2b2b2b;
 	background: transparent;
 	border-bottom: none !important;
@@ -709,8 +710,8 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .rela
 	text-decoration: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item.active > a::after,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab.active > a::after {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item.active > a::after, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .nav.nav-tabs > li.tab-item.active > a::after,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.more-tab.active > a::after , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .nav.nav-tabs > li.more-tab.active > a::after {
 	content: "";
 	position: absolute;
 	left: 8px;
@@ -721,18 +722,18 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .rela
 	background: #08A045;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .navbar {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .navbar , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .navbar {
 	min-height: 47px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item:not(.active) > a:hover {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs .nav.nav-tabs > li.tab-item:not(.active) > a:hover , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs .nav.nav-tabs > li.tab-item:not(.active) > a:hover {
 	color: #504533;
 	background: rgba(8, 160, 69, 0.08);
 }
 
 /* Related-module icon tabs (right side) */
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a {
 	position: relative;
 	padding: 4px 4px !important;
 	display: inline-flex;
@@ -743,8 +744,8 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	overflow: visible;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .tab-icon,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .tab-icon {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .tab-icon, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .tab-icon,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .tab-icon , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .tab-icon {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -756,32 +757,32 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	transition: background 0.12s ease, color 0.12s ease;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .tab-icon i,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .tab-icon i {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .tab-icon i, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .tab-icon i,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .tab-icon i , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .tab-icon i {
 	font-size: 17px;
 	line-height: 1;
 	color: inherit;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a:hover .tab-icon {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a:hover .tab-icon,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a:hover .tab-icon , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a:hover .tab-icon {
 	background: rgba(8, 160, 69, 0.12);
 	color: #2b2b2b;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module].active > a .tab-icon {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a .tab-icon,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module].active > a .tab-icon , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module].active > a .tab-icon {
 	background: rgba(8, 160, 69, 0.2);
 	color: #2b2b2b;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a::after,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module].active > a::after {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a::after, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module].active > a::after,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module].active > a::after , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module].active > a::after {
 	display: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle {
 	display: inline-flex !important;
 	align-items: center;
 	justify-content: center;
@@ -803,13 +804,13 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	pointer-events: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle.hide,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle.hide {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle.hide, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle.hide,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle.hide , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle.hide {
 	display: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle[data-count="0"],
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle[data-count="0"] {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle[data-count="0"], body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item[data-module] > a .numberCircle[data-count="0"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle[data-count="0"] , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.more-tab[data-module] > a .numberCircle[data-count="0"] {
 	background: #0B6E4F;
 	color: #ffffff;
 }
@@ -819,47 +820,47 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
  * ModComments keeps composer + recent list in one widget — comments area spans 2 rows.
  * ========================================================================== */
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-summary-grid {
-	margin: 24px 0 0;
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-summary-grid , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-summary-grid {
+	margin: 16px 0 0;
 	display: grid;
-	grid-template-columns: minmax(300px, 1fr) minmax(0, 1.4fr);
+	grid-template-columns: minmax(280px, 1fr) minmax(0, 1.2fr);
 	grid-template-areas:
 		"key activities"
 		"overview overview"
 		"documents comments";
-	gap: 20px;
+	gap: 14px;
 	align-items: start;
 	width: 100%;
 	min-width: 0;
 	box-sizing: border-box;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-summary-grid__overview {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-summary-grid__overview , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-summary-grid__overview {
 	grid-area: overview;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-summary-grid__key {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-summary-grid__key , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-summary-grid__key {
 	grid-area: key;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-summary-grid__activities {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-summary-grid__activities , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-summary-grid__activities {
 	grid-area: activities;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-summary-grid__documents {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-summary-grid__documents , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-summary-grid__documents {
 	grid-area: documents;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-summary-grid__comments {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-summary-grid__comments , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-summary-grid__comments {
 	grid-area: comments;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--updates {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--updates , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--updates {
 	display: none !important;
 }
 
 @media (max-width: 991px) {
-	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-summary-grid {
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-summary-grid , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-summary-grid {
 		grid-template-columns: 1fr;
 		grid-template-areas:
 			"key"
@@ -870,14 +871,14 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	}
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row {
 	margin: 12px 0 0;
 	width: 100%;
 	overflow: visible;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-summary-form,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-summary-col {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-summary-form, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-summary-form,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-summary-col , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-summary-col {
 	margin: 0;
 	padding: 0;
 	width: 100%;
@@ -886,12 +887,12 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	float: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-page .row {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-page .row , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-page .row {
 	margin-left: 0;
 	margin-right: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-page [class*="col-"] {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-page [class*="col-"] , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-page [class*="col-"] {
 	padding-left: 0;
 	padding-right: 0;
 	float: none;
@@ -899,26 +900,26 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 }
 
 @media (max-width: 991px) {
-	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__tags,
-	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__tags--inset {
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__tags, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__tags,
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__tags--inset , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__tags--inset {
 		padding-left: 0 !important;
 	}
 
-	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__row {
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__row , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__row {
 		flex-wrap: wrap !important;
 		align-items: flex-start !important;
 		min-height: 0 !important;
 	}
 
-	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-actions,
-	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__actions {
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-actions, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-actions,
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__actions , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__actions {
 		width: 100% !important;
 		flex-basis: 100% !important;
 		margin-left: 0 !important;
 		justify-content: flex-end !important;
 	}
 
-	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-actions__toolbar {
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-actions__toolbar , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-actions__toolbar {
 		justify-content: flex-start !important;
 		flex-wrap: wrap !important;
 		width: 100% !important;
@@ -929,28 +930,28 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
  * CARD CHROME
  * ========================================================================== */
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card {
 	background: #fff;
-	border: 1px solid #d4c4ad;
-	border-radius: 12px;
-	box-shadow: none;
-	padding: 24px;
+	border: 1px solid #e5e9ef;
+	border-radius: 14px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	padding: 16px 18px;
 	overflow: visible;
-	height: auto;
-	min-height: auto;
+	height: auto !important;
+	min-height: 0 !important;
 	min-width: 0;
-	align-self: stretch;
+	align-self: start !important;
 	box-sizing: border-box;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--key,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--activities,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--documents,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--key, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--key,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--activities, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--activities,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--documents, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--documents,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments {
 	min-height: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card__head {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card__head , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card__head {
 	padding: 0 0 12px;
 	margin: 0;
 	border: none;
@@ -962,13 +963,13 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	gap: 8px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card__head::before,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card__head::after {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card__head::before, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card__head::before,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card__head::after , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card__head::after {
 	content: none !important;
 	display: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card__title {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card__title , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card__title {
 	font-family: "Space Grotesk", Inter, sans-serif;
 	font-size: 12px;
 	font-weight: 700;
@@ -985,7 +986,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	gap: 8px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card__title::before {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card__title::before , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card__title::before {
 	content: "";
 	width: 4px;
 	height: 16px;
@@ -994,8 +995,8 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	flex: 0 0 4px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--documents .mk-ps-detail-card__title::before,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .mk-ps-detail-card__title::before {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--documents .mk-ps-detail-card__title::before, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--documents .mk-ps-detail-card__title::before,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .mk-ps-detail-card__title::before , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .mk-ps-detail-card__title::before {
 	content: none !important;
 	display: none !important;
 	width: 0 !important;
@@ -1005,8 +1006,8 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 }
 
 /* Neutralize Vtiger widget chrome inside our cards */
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card .summaryWidgetContainer,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-widget-host {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card .summaryWidgetContainer, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card .summaryWidgetContainer,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-widget-host , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-widget-host {
 	background: transparent;
 	border: none;
 	box-shadow: none;
@@ -1014,13 +1015,13 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	padding: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card .summaryView,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-summaryView {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card .summaryView, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card .summaryView,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-summaryView , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-summaryView {
 	padding: 0;
 	overflow: visible;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-heading-svg {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-heading-svg , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-heading-svg {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -1030,7 +1031,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	vertical-align: middle;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-heading-svg svg {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-heading-svg svg , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-heading-svg svg {
 	display: block;
 }
 
@@ -1038,12 +1039,12 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
  * KEY FIELDS card: label-above-value, vertical rhythm
  * ========================================================================== */
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .mk-ps-detail-overview-body {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .mk-ps-detail-overview-body , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--overview .mk-ps-detail-overview-body {
 	padding: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .fieldBlockContainer,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .mk-ps-detail-overview-body .block {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .fieldBlockContainer, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--overview .fieldBlockContainer,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .mk-ps-detail-overview-body .block , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--overview .mk-ps-detail-overview-body .block {
 	background: transparent;
 	border: none;
 	box-shadow: none;
@@ -1051,7 +1052,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	padding: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .fieldBlockHeader {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .fieldBlockHeader , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--overview .fieldBlockHeader {
 	font-family: 'Space Grotesk', system-ui, sans-serif;
 	font-size: 14px;
 	font-weight: 600;
@@ -1061,7 +1062,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	border-bottom: 1px solid #e9ddc4;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .table-borderless td.fieldLabel {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .table-borderless td.fieldLabel , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--overview .table-borderless td.fieldLabel {
 	width: 22%;
 	color: #64748b;
 	font-size: 12px;
@@ -1070,22 +1071,22 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	letter-spacing: 0.04em;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .table-borderless td.fieldValue {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .table-borderless td.fieldValue , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--overview .table-borderless td.fieldValue {
 	font-size: 14px;
 	font-weight: 500;
 	color: #2b2b2b;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--key .mk-ps-detail-card__head {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--key .mk-ps-detail-card__head , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--key .mk-ps-detail-card__head {
 	padding: 0 0 10px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-kv-wrap {
 	min-width: 0;
 	overflow: visible;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-kv-wrap .summary-table {
 	display: block;
 	width: 100%;
 	border: none;
@@ -1093,19 +1094,19 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	background: transparent;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table tbody {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table tbody , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-kv-wrap .summary-table tbody {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: 0 20px;
 }
 
 @media (max-width: 767px) {
-	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table tbody {
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table tbody , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-kv-wrap .summary-table tbody {
 		grid-template-columns: 1fr;
 	}
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table tr.summaryViewEntries {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table tr.summaryViewEntries , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-kv-wrap .summary-table tr.summaryViewEntries {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
 	row-gap: 4px;
@@ -1114,12 +1115,12 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	border-bottom: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table tr.summaryViewEntries:last-child {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table tr.summaryViewEntries:last-child , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-kv-wrap .summary-table tr.summaryViewEntries:last-child {
 	border-bottom: none;
 	padding-bottom: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table td {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table td , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-kv-wrap .summary-table td {
 	display: block;
 	width: auto;
 	border: none;
@@ -1128,7 +1129,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	background: transparent;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table td.fieldLabel {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table td.fieldLabel , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-kv-wrap .summary-table td.fieldLabel {
 	display: block !important;
 	width: 100% !important;
 	font-size: 11px;
@@ -1139,13 +1140,13 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	margin-bottom: 2px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table td.fieldLabel label {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table td.fieldLabel label , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-kv-wrap .summary-table td.fieldLabel label {
 	margin: 0;
 	font-weight: inherit;
 	color: inherit;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table td.fieldValue {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table td.fieldValue , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-kv-wrap .summary-table td.fieldValue {
 	display: block !important;
 	width: 100% !important;
 	font-size: 15px;
@@ -1155,18 +1156,18 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	word-break: break-word;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table td.fieldValue .value {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table td.fieldValue .value , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-kv-wrap .summary-table td.fieldValue .value {
 	font-weight: 600;
 	color: inherit;
 	font-size: 15px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table td.fieldValue a {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table td.fieldValue a , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-kv-wrap .summary-table td.fieldValue a {
 	color: #0B6E4F;
 	text-decoration: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table td.fieldValue a:hover {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table td.fieldValue a:hover , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-kv-wrap .summary-table td.fieldValue a:hover {
 	color: #08A045;
 	text-decoration: underline;
 }
@@ -1175,14 +1176,14 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
  * ACTIVITIES
  * ========================================================================== */
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .summaryWidgetContainer {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .summaryWidgetContainer , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .summaryWidgetContainer {
 	margin: 0;
 	border: none;
 	box-shadow: none;
 	background: transparent;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .widget_header {
 	padding: 0 0 10px;
 	border: none;
 	background: transparent;
@@ -1194,21 +1195,21 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	gap: 8px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header::before,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header::after,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head::before,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head::after,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-products__head::before,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-products__head::after,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-contacts__head::before,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-contacts__head::after {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header::before, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .widget_header::before,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header::after, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .widget_header::after,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head::before, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-documents__head::before,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head::after, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-documents__head::after,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-products__head::before, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-products__head::before,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-products__head::after, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-products__head::after,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-contacts__head::before, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-contacts__head::before,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-contacts__head::after , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-contacts__head::after {
 	content: none !important;
 	display: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header h4,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header h4.display-inline-block,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header h4.mk-ps-detail-activities__title {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header h4, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .widget_header h4,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header h4.display-inline-block, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .widget_header h4.display-inline-block,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header h4.mk-ps-detail-activities__title , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .widget_header h4.mk-ps-detail-activities__title {
 	font-family: "Space Grotesk", Inter, sans-serif;
 	font-size: 12px;
 	font-weight: 700;
@@ -1225,12 +1226,12 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	margin-right: auto;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header h4::before {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header h4::before , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .widget_header h4::before {
 	content: none !important;
 	display: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-activities__actions {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-activities__actions , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-activities__actions {
 	display: flex;
 	flex-wrap: nowrap;
 	align-items: center;
@@ -1241,9 +1242,10 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	margin-left: auto;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_contents {
-	padding: 0;
-	min-height: 0;
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_contents , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .widget_contents {
+	min-height: 0 !important;
+	padding: 0 0 4px;
+	height: auto !important;
 	max-height: 260px;
 	overflow-y: auto;
 	display: flex;
@@ -1252,8 +1254,25 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	gap: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_contents .noContent,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_contents .mk-ps-detail-activities-empty {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--activities,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--activities,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--key,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--key {
+	align-self: start !important;
+	height: auto !important;
+	min-height: 0 !important;
+}
+
+/* Force hero currency symbol away from $ */
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-text--price,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__meta-text--price {
+	font-variant-numeric: tabular-nums;
+	font-weight: 700;
+	color: #0f172a;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_contents .noContent, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .widget_contents .noContent,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_contents .mk-ps-detail-activities-empty , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .widget_contents .mk-ps-detail-activities-empty {
 	align-self: center;
 	width: 100%;
 	max-width: none;
@@ -1266,16 +1285,16 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	flex: 0 0 auto;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .noContent p,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-activities-empty p {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .noContent p, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .noContent p,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-activities-empty p , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-activities-empty p {
 	margin: 0;
 	font-size: 13px;
 	font-weight: 500;
 	color: #5b5b5b;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .noContent::before,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-activities-empty::before {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .noContent::before, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .noContent::before,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-activities-empty::before , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-activities-empty::before {
 	content: "";
 	display: block;
 	width: 44px;
@@ -1285,7 +1304,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	background: rgba(8, 160, 69, 0.15) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23504533' stroke-width='1.65' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header .pull-right {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header .pull-right , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .widget_header .pull-right {
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: flex-end;
@@ -1296,7 +1315,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	margin-left: auto;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header .pull-right .btn {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header .pull-right .btn , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .widget_header .pull-right .btn {
 	flex: 0 1 auto;
 	min-width: 0;
 	border-radius: 8px;
@@ -1310,23 +1329,23 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	background-image: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header .pull-right .btn:hover {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header .pull-right .btn:hover , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .widget_header .pull-right .btn:hover {
 	background: rgba(8, 160, 69, 0.08);
 	color: #2b2b2b;
 	border-color: #c4af8d;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .activityEntries {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .activityEntries , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .activityEntries {
 	padding: 10px 0;
 	border-bottom: 1px solid #f1ebde;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .activityEntries:last-child {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .activityEntries:last-child , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .activityEntries:last-child {
 	border-bottom: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .activityEntries .summaryViewEntries,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .activityEntries .summaryViewEntries a {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .activityEntries .summaryViewEntries, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .activityEntries .summaryViewEntries,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .activityEntries .summaryViewEntries a , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .activityEntries .summaryViewEntries a {
 	font-size: 14px;
 	font-weight: 600;
 	color: #2b2b2b;
@@ -1334,30 +1353,30 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	line-height: 1.4;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .activityEntries .summaryViewEntries a:hover {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .activityEntries .summaryViewEntries a:hover , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .activityEntries .summaryViewEntries a:hover {
 	color: #08A045;
 	text-decoration: underline;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .activityEntries span strong {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .activityEntries span strong , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .activityEntries span strong {
 	font-size: 12px;
 	font-weight: 500;
 	color: #94a3b8;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities hr {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities hr , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities hr {
 	border-color: #f1ebde;
 	margin: 8px 0;
 }
 
 @media (max-width: 640px) {
-	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header .pull-right {
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header .pull-right , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .widget_header .pull-right {
 		width: 100%;
 		justify-content: center;
 		margin-top: 6px;
 	}
 
-	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header .pull-right .btn {
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-activities .widget_header .pull-right .btn , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-activities .widget_header .pull-right .btn {
 		flex: 1 1 100%;
 	}
 }
@@ -1366,7 +1385,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
  * DOCUMENTS card
  * ========================================================================== */
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-documents__head {
 	padding: 0 0 10px;
 	display: flex;
 	flex-wrap: wrap;
@@ -1376,9 +1395,9 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	gap: 8px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head .mk-ps-detail-card__title,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-products__head .mk-ps-detail-card__title,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-contacts__head .mk-ps-detail-card__title {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head .mk-ps-detail-card__title, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-documents__head .mk-ps-detail-card__title,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-products__head .mk-ps-detail-card__title, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-products__head .mk-ps-detail-card__title,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-contacts__head .mk-ps-detail-card__title , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-contacts__head .mk-ps-detail-card__title {
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
@@ -1390,15 +1409,15 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	padding: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head .toggleButton,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-products__head .toggleButton,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-contacts__head .toggleButton {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head .toggleButton, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-documents__head .toggleButton,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-products__head .toggleButton, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-products__head .toggleButton,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-contacts__head .toggleButton , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-contacts__head .toggleButton {
 	display: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head .pull-right,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-products__head .pull-right,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-contacts__head .pull-right {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head .pull-right, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-documents__head .pull-right,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-products__head .pull-right, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-products__head .pull-right,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-contacts__head .pull-right , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-contacts__head .pull-right {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -1407,14 +1426,14 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	margin-top: 0 !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head .dropdown {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head .dropdown , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-documents__head .dropdown {
 	display: inline-flex;
 	align-items: center;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head .pull-right .btn,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-products__head .pull-right .btn,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-contacts__head .pull-right .btn {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head .pull-right .btn, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-documents__head .pull-right .btn,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-products__head .pull-right .btn, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-products__head .pull-right .btn,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-contacts__head .pull-right .btn , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-contacts__head .pull-right .btn {
 	border-radius: 8px;
 	font-weight: 600;
 	font-size: 12px;
@@ -1426,15 +1445,15 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	background-image: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head .pull-right .btn:hover,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-products__head .pull-right .btn:hover,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-contacts__head .pull-right .btn:hover {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__head .pull-right .btn:hover, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-documents__head .pull-right .btn:hover,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-products__head .pull-right .btn:hover, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-products__head .pull-right .btn:hover,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-contacts__head .pull-right .btn:hover , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-contacts__head .pull-right .btn:hover {
 	background: rgba(8, 160, 69, 0.08);
 	color: #2b2b2b;
 	border-color: #c4af8d;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__body {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__body , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-documents__body {
 	padding: 10px 12px;
 	min-height: 56px;
 	max-height: none;
@@ -1448,15 +1467,15 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	justify-content: center;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__body:not(:empty) {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-documents__body:not(:empty) , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-documents__body:not(:empty) {
 	display: block;
 	max-height: 280px;
 	overflow-y: auto;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_documents .widget_contents:empty,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_products .widget_contents:empty,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_contacts .widget_contents:empty {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_documents .widget_contents:empty, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .widgetContainer_documents .widget_contents:empty,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_products .widget_contents:empty, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .widgetContainer_products .widget_contents:empty,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_contacts .widget_contents:empty , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .widgetContainer_contacts .widget_contents:empty {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -1465,7 +1484,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widg
 	text-align: center;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_documents .widget_contents:empty::before {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_documents .widget_contents:empty::before , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .widgetContainer_documents .widget_contents:empty::before {
 	content: "";
 	display: block;
 	width: 36px;
@@ -1474,7 +1493,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widg
 	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_documents .widget_contents:empty::after {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_documents .widget_contents:empty::after , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .widgetContainer_documents .widget_contents:empty::after {
 	content: "Drag files here or use New Document to upload.";
 	font-size: 13px;
 	font-weight: 500;
@@ -1483,12 +1502,12 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widg
 	padding: 0 8px 8px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_products .widget_contents,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_contacts .widget_contents {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_products .widget_contents, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .widgetContainer_products .widget_contents,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_contacts .widget_contents , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .widgetContainer_contacts .widget_contents {
 	padding: 0 24px 18px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_products .widget_contents:empty::before {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_products .widget_contents:empty::before , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .widgetContainer_products .widget_contents:empty::before {
 	content: "No products linked yet.";
 	font-size: 13px;
 	font-weight: 500;
@@ -1496,7 +1515,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widg
 	padding: 8px 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_contacts .widget_contents:empty::before {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widgetContainer_contacts .widget_contents:empty::before , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .widgetContainer_contacts .widget_contents:empty::before {
 	content: "No related contacts yet.";
 	font-size: 13px;
 	font-weight: 500;
@@ -1508,12 +1527,12 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .widg
  * COMMENTS card
  * ========================================================================== */
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .widget_header {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .widget_header , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .widget_header {
 	padding: 0 0 8px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .widget_header h4,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .widget_header .mk-ps-detail-card__title {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .widget_header h4, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .widget_header h4,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .widget_header .mk-ps-detail-card__title , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .widget_header .mk-ps-detail-card__title {
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
@@ -1521,16 +1540,16 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	padding: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .widget_contents {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .widget_contents , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .widget_contents {
 	padding: 0;
 	min-height: 0;
 	max-height: none;
 	overflow: visible;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments textarea,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .commentTextArea,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .commentTextArea textarea {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments textarea, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments textarea,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .commentTextArea, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .commentTextArea,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .commentTextArea textarea , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .commentTextArea textarea {
 	border-radius: 10px;
 	border: 1px solid #e0d8cc;
 	padding: 12px 14px;
@@ -1544,14 +1563,14 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	resize: vertical;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments textarea:focus,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .commentTextArea:focus-within {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments textarea:focus, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments textarea:focus,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .commentTextArea:focus-within , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .commentTextArea:focus-within {
 	border-color: #08A045;
 	outline: none;
 	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.15);
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .modal-comment-widgets-container {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .modal-comment-widgets-container , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .modal-comment-widgets-container {
 	margin-top: 12px;
 	display: flex;
 	flex-wrap: wrap;
@@ -1562,14 +1581,14 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	box-sizing: border-box;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .modal-comment-widgets-container .commentAttachmentRegion,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .modal-comment-widgets-container .attachFiles {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .modal-comment-widgets-container .commentAttachmentRegion, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .modal-comment-widgets-container .commentAttachmentRegion,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .modal-comment-widgets-container .attachFiles , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .modal-comment-widgets-container .attachFiles {
 	margin-right: auto;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .saveComment,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .postComment,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments button[name="saveButton"] {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .saveComment, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .saveComment,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .postComment, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .postComment,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments button[name="saveButton"] , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments button[name="saveButton"] {
 	margin-left: auto;
 	flex-shrink: 0;
 	border-radius: 8px;
@@ -1584,27 +1603,27 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	box-shadow: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .saveComment:hover,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .postComment:hover,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments button[name="saveButton"]:hover {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .saveComment:hover, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .saveComment:hover,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .postComment:hover, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .postComment:hover,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments button[name="saveButton"]:hover , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments button[name="saveButton"]:hover {
 	background: #f0a514 !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .commentDetails {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .commentDetails , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .commentDetails {
 	border-color: #f1ebde;
 }
 
 /* Keep full ModComments widget (composer + rollup + recent list). Previous rule hid .commentContainer.recentComments and broke post/attach/rollup. */
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .commentContainer.recentComments > hr {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .commentContainer.recentComments > hr , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .commentContainer.recentComments > hr {
 	margin: 14px 0;
 	border-top: 1px solid #ede4d4;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .commentsBody {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .commentsBody , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .commentsBody {
 	min-height: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .recentCommentsHeader h4 {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .recentCommentsHeader h4 , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .recentCommentsHeader h4 {
 	font-size: 13px;
 	font-weight: 600;
 	margin: 0 0 8px;
@@ -1612,29 +1631,29 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 }
 
 /* If a second duplicate stream is injected, keep one */
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .commentsBody .recentCommentsBody ~ .recentCommentsBody {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .commentsBody .recentCommentsBody ~ .recentCommentsBody , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .commentsBody .recentCommentsBody ~ .recentCommentsBody {
 	display: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .addCommentBlock {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .addCommentBlock , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .addCommentBlock {
 	padding-bottom: 4px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .detailViewSaveComment,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .btn-success.detailViewSaveComment {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .detailViewSaveComment, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .detailViewSaveComment,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .btn-success.detailViewSaveComment , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .btn-success.detailViewSaveComment {
 	background: #08A045 !important;
 	border-color: #0B6E4F !important;
 	color: #6d4d00 !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon img {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon img , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__icon img {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
 	border-radius: 12px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__map {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__map , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__map {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
@@ -1643,27 +1662,27 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	margin-top: 6px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__map a.showMap {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__map a.showMap , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__map a.showMap {
 	color: #0B6E4F;
 	text-decoration: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__map a.showMap:hover {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__map a.showMap:hover , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__map a.showMap:hover {
 	color: #08A045;
 	text-decoration: underline;
 }
 
 /* Hide stock green module icon block styling */
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon.recordImage.bgcontacts {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon.recordImage.bgcontacts , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__icon.recordImage.bgcontacts {
 	background: linear-gradient(135deg, #fde7b3 0%, #f7c863 100%) !important;
 	box-shadow: inset 0 0 0 1px #e9d29a;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon .name {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon .name , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__icon .name {
 	display: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card .toggleButton {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card .toggleButton , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card .toggleButton {
 	color: #a89882;
 }
 
@@ -1671,7 +1690,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
  * DETAILS TAB (full block view): cleaner card blocks
  * ========================================================================== */
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row #detailView .block {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row #detailView .block , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row #detailView .block {
 	margin-bottom: 16px;
 	background: #fff;
 	border: 1px solid #d4c4ad;
@@ -1680,11 +1699,11 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	box-shadow: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row #detailView .block + br {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row #detailView .block + br , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row #detailView .block + br {
 	display: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row #detailView .block > div:first-child h4 {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row #detailView .block > div:first-child h4 , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row #detailView .block > div:first-child h4 {
 	font-family: "Space Grotesk", Inter, sans-serif;
 	font-size: 12px;
 	font-weight: 700;
@@ -1696,25 +1715,25 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	letter-spacing: 0.08em;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row #detailView .block hr {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row #detailView .block hr , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row #detailView .block hr {
 	display: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row #detailView .blockData {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row #detailView .blockData , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row #detailView .blockData {
 	padding: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .detailview-table {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .detailview-table , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row .detailview-table {
 	border: none;
 	margin: 0;
 	background: transparent;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .detailview-table tbody tr {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .detailview-table tbody tr , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row .detailview-table tbody tr {
 	border: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .detailview-table td.fieldLabel {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .detailview-table td.fieldLabel , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row .detailview-table td.fieldLabel {
 	border: none;
 	padding: 9px 14px 9px 0;
 	vertical-align: top;
@@ -1726,11 +1745,11 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	background: transparent;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .detailview-table td.fieldLabel .muted {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .detailview-table td.fieldLabel .muted , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row .detailview-table td.fieldLabel .muted {
 	color: inherit;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .detailview-table td.fieldValue {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .detailview-table td.fieldValue , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row .detailview-table td.fieldValue {
 	border: none;
 	padding: 9px 0;
 	vertical-align: top;
@@ -1740,22 +1759,22 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	background: transparent;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .detailview-table td.fieldValue a {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .detailview-table td.fieldValue a , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row .detailview-table td.fieldValue a {
 	color: #0B6E4F;
 	text-decoration: none;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .detailview-table td.fieldValue a:hover {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .detailview-table td.fieldValue a:hover , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row .detailview-table td.fieldValue a:hover {
 	color: #08A045;
 	text-decoration: underline;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .blockToggle {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .blockToggle , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row .blockToggle {
 	opacity: 0.65;
 }
 
 /* Related / Updates tab containers */
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .relatedContents {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .relatedContents , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row .relatedContents {
 	background: #fff;
 	border-radius: 14px;
 	border: 1px solid #d4c4ad;
@@ -1765,103 +1784,103 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	overflow-x: auto;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .relatedContents .listViewContentHeader,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .relatedContents .listview-table {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .relatedContents .listViewContentHeader, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row .relatedContents .listViewContentHeader,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .relatedContents .listview-table , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row .relatedContents .listview-table {
 	border-radius: 8px;
 }
 
 /* Action button icons */
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-btn {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	gap: 6px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn__ic {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn__ic , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-btn__ic {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	color: #40627e;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn--primary .mk-ps-detail-btn__ic {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-btn--primary .mk-ps-detail-btn__ic , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-btn--primary .mk-ps-detail-btn__ic {
 	color: #191c1e;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-svg {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-svg , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-svg {
 	width: 18px;
 	height: 18px;
 	flex-shrink: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #starToggle .mk-ps-detail-btn__ic--follow {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #starToggle .mk-ps-detail-btn__ic--follow , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] #starToggle .mk-ps-detail-btn__ic--follow {
 	display: inline-flex !important;
 	align-items: center;
 	justify-content: center;
 	margin-right: 6px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #starToggle.markStar.active .mk-ps-detail-btn__ic--follow {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #starToggle.markStar.active .mk-ps-detail-btn__ic--follow , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] #starToggle.markStar.active .mk-ps-detail-btn__ic--follow {
 	color: #08A045;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #starToggle.markStar.active .mk-ps-detail-btn__ic--follow svg polygon {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #starToggle.markStar.active .mk-ps-detail-btn__ic--follow svg polygon , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] #starToggle.markStar.active .mk-ps-detail-btn__ic--follow svg polygon {
 	fill: currentColor;
 	stroke: currentColor;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #starToggle .unstarredStatus {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #starToggle .unstarredStatus , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] #starToggle .unstarredStatus {
 	display: inline-flex !important;
 	align-items: center;
 	gap: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #starToggle .starredStatus .fa {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] #starToggle .starredStatus .fa , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] #starToggle .starredStatus .fa {
 	display: none !important;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-icon-svg {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-icon-svg , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-tab-icon-svg {
 	display: inline-flex !important;
 	align-items: center;
 	justify-content: center;
 	color: #64748b;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-icon-svg svg {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-icon-svg svg , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-tab-icon-svg svg {
 	display: block;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-icon-svg .mk-contact-tab-svg {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-icon-svg .mk-contact-tab-svg , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-tab-icon-svg .mk-contact-tab-svg {
 	display: block;
 	color: #6b6358;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-icon-row {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-icon-row , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-tab-icon-row {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-more-svg {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-more-svg , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-tab-more-svg {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	color: #504533;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-caret-svg {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-tab-caret-svg , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-tab-caret-svg {
 	display: inline-flex;
 	vertical-align: middle;
 	color: #6b6358;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table tr.summaryViewEntries:empty {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-kv-wrap .summary-table tr.summaryViewEntries:empty , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-kv-wrap .summary-table tr.summaryViewEntries:empty {
 	display: none;
 }
 
 /* Hero meta: assigned user chip */
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-user-chip {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-user-chip , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-user-chip {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -1877,7 +1896,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	flex-shrink: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item--user {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item--user , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__meta-item--user {
 	display: inline-flex !important;
 	align-items: center !important;
 	gap: 8px !important;
@@ -1885,30 +1904,30 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	max-width: 100%;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item--user .mk-ps-detail-user-chip {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item--user .mk-ps-detail-user-chip , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__meta-item--user .mk-ps-detail-user-chip {
 	flex-shrink: 0;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item--user .mk-ps-detail-hero__meta-text {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item--user .mk-ps-detail-hero__meta-text , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__meta-item--user .mk-ps-detail-hero__meta-text {
 	display: inline-block;
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item--user .mk-ps-detail-hero__meta-text a {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item--user .mk-ps-detail-hero__meta-text a , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__meta-item--user .mk-ps-detail-hero__meta-text a {
 	color: #5b5b5b;
 	text-decoration: none;
 	font-weight: 500;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item--user .mk-ps-detail-hero__meta-text a:hover {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item--user .mk-ps-detail-hero__meta-text a:hover , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__meta-item--user .mk-ps-detail-hero__meta-text a:hover {
 	color: #08A045;
 	text-decoration: underline;
 }
 
 /* Key fields: readable values, no clipping */
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-summary-table .fieldLabel label.muted {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-summary-table .fieldLabel label.muted , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-summary-table .fieldLabel label.muted {
 	font-size: 12px;
 	font-weight: 600;
 	color: #94a3b8;
@@ -1916,7 +1935,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	letter-spacing: 0.04em;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-summary-table .fieldValue .value {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-summary-table .fieldValue .value , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-summary-table .fieldValue .value {
 	white-space: normal;
 	overflow: visible;
 	text-overflow: unset;
@@ -1927,9 +1946,9 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 }
 
 /* Comments: Attach Files dark blue */
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .addCommentBlock .btn-default:not(.saveComment):not(.postComment),
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments a.addFile,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .attachFiles {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .addCommentBlock .btn-default:not(.saveComment):not(.postComment), body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .addCommentBlock .btn-default:not(.saveComment):not(.postComment),
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments a.addFile, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments a.addFile,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .attachFiles , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .attachFiles {
 	background: #40627e !important;
 	border-color: #40627e !important;
 	color: #ffffff !important;
@@ -1937,14 +1956,14 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	font-weight: 600;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .addCommentBlock .btn-default:not(.saveComment):not(.postComment):hover,
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments a.addFile:hover {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments .addCommentBlock .btn-default:not(.saveComment):not(.postComment):hover, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments .addCommentBlock .btn-default:not(.saveComment):not(.postComment):hover,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--comments a.addFile:hover , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--comments a.addFile:hover {
 	background: #2c4a66 !important;
 	border-color: #2c4a66 !important;
 }
 
 /* Hero type pill */
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-type-pill {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-type-pill , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-type-pill {
 	display: inline-flex;
 	align-items: center;
 	min-height: 26px;
@@ -1956,20 +1975,821 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-p
 	border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-type-pill--product {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-type-pill--product , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-type-pill--product {
 	background: #e0f2fe;
 	color: #0369a1;
 	border-color: #bae6fd;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-type-pill--service {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-type-pill--service , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-type-pill--service {
 	background: #ede9fe;
 	color: #5b21b6;
 	border-color: #ddd6fe;
 }
 
-body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-text--price {
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-text--price , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__meta-text--price {
 	font-family: "Roboto Mono", ui-monospace, monospace;
 	font-weight: 600;
 	color: #0B6E4F;
+}
+
+/* --------------------------------------------------------------------------
+ * Related-tabs polish: toggle sits right; panel collapses until open
+ * -------------------------------------------------------------------------- */
+body[data-module="ProductsServices"][data-view="Detail"] .mk-ps-detail-related-tabs .nav.nav-tabs {
+	height: auto !important;
+	min-height: 48px !important;
+	overflow-x: auto !important;
+	overflow-y: visible !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"] .mk-ps-detail-related-tabs .nav.nav-tabs > li,
+body[data-module="ProductsServices"][data-view="Detail"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.mk-sales-related-toggle-item {
+	float: none !important;
+	flex: 0 0 auto !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) > a .tab-label,
+body[data-module="ProductsServices"][data-view="Detail"] .mk-ps-detail-related-tabs .nav.nav-tabs > li.tab-item:not([data-module]) > a .tab-label strong {
+	white-space: nowrap !important;
+	overflow: visible !important;
+	text-overflow: clip !important;
+	max-width: none !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"] .mk-ps-detail-related-tabs .mk-sales-related-toggle-item {
+	margin-left: auto !important;
+	align-self: center !important;
+	padding: 4px 0 4px 8px !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"] .mk-ps-detail-related-tabs .mk-sales-related-toggle-btn {
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 6px !important;
+	min-height: 36px !important;
+	padding: 6px 14px !important;
+	border: 1px solid #d1e7d9 !important;
+	border-radius: 999px !important;
+	background: #fff !important;
+	color: #166534 !important;
+	font-size: 13px !important;
+	font-weight: 600 !important;
+	white-space: nowrap !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+body[data-module="ProductsServices"][data-view="Detail"] .mk-ps-detail-related-tabs .mk-sales-related-toggle-btn:hover {
+	border-color: #08a045 !important;
+	background: rgba(8, 160, 69, 0.06) !important;
+	color: #047857 !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"] .mk-ps-detail-related-tabs .mk-sales-related-icons-panel {
+	display: none !important;
+	width: 100% !important;
+	flex-basis: 100% !important;
+	margin: 0 !important;
+	padding: 8px 0 4px !important;
+	border-top: 1px solid #e9f0ec;
+	background: transparent;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"] .mk-ps-detail-related-tabs.is-related-open .mk-sales-related-icons-panel {
+	display: block !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"] .mk-ps-detail-related-tabs.is-related-open .mk-sales-related-toggle-btn {
+	border-color: #08a045 !important;
+	background: rgba(8, 160, 69, 0.08) !important;
+	color: #047857 !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"] .mk-ps-detail-related-tabs .mk-sales-related-icons-row {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	gap: 6px !important;
+	align-items: center !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	list-style: none !important;
+}
+
+/* ==========================================================================
+ * ProductsServices DETAIL V2 — rebuild (catalog sheet)
+ * Appended last so it wins over older summary/hero rules.
+ * ========================================================================== */
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-hero,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-hero {
+	min-width: 0;
+	flex: 1 1 auto;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-hero__sku,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-hero__sku {
+	margin: 4px 0 0;
+	font-size: 13px;
+	font-weight: 500;
+	color: #64748b;
+	letter-spacing: 0.02em;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-hero__sku strong,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-hero__sku strong {
+	color: #0f172a;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-hero__meta,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-hero__meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin-top: 10px;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-hero__price,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-hero__price {
+	display: inline-flex;
+	align-items: center;
+	min-height: 28px;
+	padding: 2px 12px;
+	border-radius: 999px;
+	background: #ecfdf5;
+	border: 1px solid #a7f3d0;
+	color: #047857;
+	font-size: 14px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0.01em;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-hero__qc,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-hero__qc {
+	display: inline-flex;
+	align-items: center;
+	min-height: 28px;
+	padding: 2px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.03em;
+	background: #fff7ed;
+	border: 1px solid #fdba74;
+	color: #9a3412;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-hero__qc.is-on,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-hero__qc.is-on {
+	background: #fff7ed;
+}
+
+/* ---- Summary stack: info then docs (no tall empty activities) ---- */
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-summary,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-summary {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	margin: 16px 0 8px;
+	width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-card,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-card {
+	background: #fff;
+	border: 1px solid #e6ebf0;
+	border-radius: 16px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.03);
+	padding: 0;
+	overflow: hidden;
+	align-self: stretch;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-card__head,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-card__head {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 16px 20px 12px;
+	border-bottom: 1px solid #f1f5f9;
+	background: linear-gradient(180deg, #fbfcfd 0%, #fff 100%);
+	margin: 0;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-card__accent,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-card__accent {
+	display: block;
+	width: 4px;
+	align-self: stretch;
+	min-height: 36px;
+	border-radius: 999px;
+	background: linear-gradient(180deg, #08a045 0%, #0b6e4f 100%);
+	flex: 0 0 4px;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-card__head-text,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-card__head-text {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-card__title,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-card__title {
+	margin: 0;
+	padding: 0;
+	font-size: 15px;
+	font-weight: 700;
+	color: #0f172a;
+	letter-spacing: 0.01em;
+	line-height: 1.3;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-card__hint,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-card__hint {
+	margin: 3px 0 0;
+	font-size: 12px;
+	font-weight: 500;
+	color: #94a3b8;
+	line-height: 1.35;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-summaryView,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-summaryView,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-fields,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-fields {
+	padding: 8px 12px 16px;
+	margin: 0;
+	background: transparent;
+	border: none;
+	box-shadow: none;
+	min-width: 0;
+}
+
+/* Field grid: 3 columns of label-above-value tiles */
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-field-table,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-field-table {
+	display: block;
+	width: 100%;
+	border: none;
+	margin: 0;
+	background: transparent;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-field-table tbody,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-field-table tbody {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 10px;
+	width: 100%;
+}
+
+@media (max-width: 1100px) {
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-field-table tbody,
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-field-table tbody {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 640px) {
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-field-table tbody,
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-field-table tbody {
+		grid-template-columns: 1fr;
+	}
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-field-table tr.mk-ps-v2-field,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-field-table tr.mk-ps-v2-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin: 0;
+	padding: 14px 14px 12px;
+	border: 1px solid #eef2f6;
+	border-radius: 12px;
+	background: #fbfcfd;
+	min-width: 0;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-field-table tr.mk-ps-v2-field:hover,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-field-table tr.mk-ps-v2-field:hover {
+	border-color: #dbe7e0;
+	background: #f7fbf8;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-field-table td,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-field-table td {
+	display: block;
+	width: 100% !important;
+	border: none !important;
+	padding: 0 !important;
+	background: transparent !important;
+	vertical-align: top;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-field-table td.fieldLabel label,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-field-table td.fieldLabel label {
+	margin: 0;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #94a3b8;
+	line-height: 1.2;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-field-table td.fieldValue,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-field-table td.fieldValue {
+	font-size: 15px;
+	font-weight: 600;
+	color: #0f172a;
+	line-height: 1.35;
+	word-break: break-word;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-field__value,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-field__value {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	min-width: 0;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-field__value .value,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-field__value .value {
+	flex: 1 1 auto;
+	min-width: 0;
+	font-size: inherit;
+	font-weight: inherit;
+	color: inherit;
+	white-space: normal;
+	overflow: visible;
+	text-overflow: clip;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-field__value .action,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-field__value .action {
+	flex: 0 0 auto;
+	opacity: 0.35;
+	transition: opacity 0.15s ease;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-field:hover .action,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-field:hover .action {
+	opacity: 1;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-money,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-money {
+	color: #047857;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-qc,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-qc {
+	display: inline-flex;
+	align-items: center;
+	min-height: 26px;
+	padding: 2px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+	background: #f1f5f9;
+	color: #64748b;
+	border: 1px solid #e2e8f0;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-qc.is-on,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-qc.is-on {
+	background: #fff7ed;
+	color: #9a3412;
+	border-color: #fdba74;
+}
+
+/* Full-width description / specification tiles */
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-field-table tr[data-field-name="description"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-field-table tr[data-field-name="description"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-field-table tr[data-field-name="specification"],
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-field-table tr[data-field-name="specification"] {
+	grid-column: 1 / -1;
+}
+
+/* Documents card */
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-docs__head,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-docs__head {
+	position: relative;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-docs__actions,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-docs__actions {
+	margin-left: auto;
+	padding-left: 8px;
+	align-self: center;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-btn,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-btn {
+	display: inline-flex !important;
+	align-items: center;
+	gap: 4px;
+	min-height: 34px;
+	padding: 6px 12px !important;
+	border-radius: 10px !important;
+	font-size: 13px !important;
+	font-weight: 600 !important;
+	box-shadow: none !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-btn--ghost,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-btn--ghost {
+	border: 1px solid #d1e7d9 !important;
+	background: #fff !important;
+	color: #166534 !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-btn--ghost:hover,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-btn--ghost:hover {
+	border-color: #08a045 !important;
+	background: rgba(8, 160, 69, 0.06) !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-docs__body,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-docs__body {
+	padding: 12px 20px 18px;
+	min-height: 96px;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-docs__body .file-upload-wrapper,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-docs__body .file-upload-wrapper {
+	border: 1.5px dashed #d5dde5 !important;
+	border-radius: 12px !important;
+	background: #fafbfc !important;
+	padding: 28px 16px !important;
+	min-height: 0 !important;
+	color: #64748b;
+}
+
+/* Tighten detail tab blocks too */
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .details .blockData,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .details .blockData {
+	background: #fff;
+	border: 1px solid #e6ebf0;
+	border-radius: 14px;
+	overflow: hidden;
+	margin-bottom: 14px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .details .blockHeader,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .details .blockHeader {
+	background: #f8fafb !important;
+	border-bottom: 1px solid #eef2f6 !important;
+	padding: 12px 16px !important;
+}
+
+/* Primary tabs: larger, clearer underline */
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .mk-sales-primary-tabs > li.tab-item:not([data-module]) > a,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .mk-sales-primary-tabs > li.tab-item:not([data-module]) > a {
+	padding: 10px 4px 12px !important;
+	font-size: 14px !important;
+	color: #64748b !important;
+	border: none !important;
+	border-bottom: 2px solid transparent !important;
+	background: transparent !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-related-tabs .mk-sales-primary-tabs > li.tab-item.active:not([data-module]) > a,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-related-tabs .mk-sales-primary-tabs > li.tab-item.active:not([data-module]) > a {
+	color: #0b6e4f !important;
+	border-bottom-color: #08a045 !important;
+	font-weight: 700 !important;
+}
+
+/* Hero icon for inventory catalog */
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__icon.recordImage.bgproductsservices,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon.recordImage.bgproductsservices {
+	background: linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%) !important;
+	border: 1px solid #a7f3d0 !important;
+	color: #047857 !important;
+	box-shadow: none !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__icon .mk-ps-detail-hero__icon-svg,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__icon .mk-ps-detail-hero__icon-svg {
+	color: #047857 !important;
+}
+
+/* Ensure summary body always visible */
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row form#detailView,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row form#detailView,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-summary,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-summary {
+	display: block !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	min-height: 40px;
+	overflow: visible !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-empty,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-empty {
+	margin: 8px 4px 0;
+	padding: 14px 16px;
+	border-radius: 10px;
+	background: #f8fafc;
+	border: 1px dashed #cbd5e1;
+	color: #64748b;
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+/* ==========================================================================
+ * ProductsServices DETAIL TAB V3 — modern CRM field tiles (Attio/HubSpot-ish)
+ * ========================================================================== */
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row {
+	margin-top: 8px;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] form#detailView.mk-ps-v2-detail-form,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] form#detailView.mk-ps-v2-detail-form {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	margin: 0;
+	padding: 0 0 20px;
+	max-width: 1120px;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] form#detailView.mk-ps-v2-detail-form > .block,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] form#detailView.mk-ps-v2-detail-form > .block {
+	margin: 0 !important;
+	padding: 0 !important;
+	background: #fff !important;
+	border: 1px solid #e8edf2 !important;
+	border-radius: 16px !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 28px rgba(15, 23, 42, 0.035) !important;
+	overflow: hidden;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] form#detailView.mk-ps-v2-detail-form > .block + br,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] form#detailView.mk-ps-v2-detail-form > .block + br {
+	display: none !important;
+}
+
+/* Section header */
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-head,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-head {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 14px 18px;
+	background: linear-gradient(180deg, #fbfcfd 0%, #fff 100%);
+	border-bottom: 1px solid #f1f5f9;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-head__accent,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-head__accent {
+	width: 4px;
+	height: 22px;
+	border-radius: 999px;
+	background: linear-gradient(180deg, #08a045 0%, #0b6e4f 100%);
+	flex: 0 0 4px;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-head__title,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-head__title {
+	flex: 1 1 auto;
+	min-width: 0;
+	font-size: 14px;
+	font-weight: 700;
+	color: #0f172a;
+	letter-spacing: 0.01em;
+	line-height: 1.3;
+	text-transform: none;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-head__toggles,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-head__toggles {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	opacity: 0.55;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-head__toggles img.blockToggle,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-head__toggles img.blockToggle {
+	width: 14px;
+	height: 14px;
+	cursor: pointer;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] form#detailView.mk-ps-v2-detail-form .block > div:first-child:not(.mk-ps-v2-df-head),
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] form#detailView.mk-ps-v2-detail-form .block > div:first-child:not(.mk-ps-v2-df-head) {
+	/* legacy header wrapper already empty/hidden after polish */
+	margin: 0;
+	padding: 0;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] form#detailView.mk-ps-v2-detail-form .blockData,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] form#detailView.mk-ps-v2-detail-form .blockData {
+	padding: 14px 16px 16px !important;
+	background: #fff;
+}
+
+/* Field tile grid */
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-grid,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 10px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+@media (max-width: 1100px) {
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-grid,
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 640px) {
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-grid,
+	body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-tile,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-tile {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+	padding: 12px 14px;
+	border: 1px solid #eef2f6;
+	border-radius: 12px;
+	background: #fbfcfd;
+	transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-tile:hover,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-tile:hover {
+	border-color: #d5e7db;
+	background: #f7fbf8;
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.06);
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-tile.is-empty,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-tile.is-empty {
+	opacity: 0.72;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-tile__label,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-tile__label {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #64748b;
+	line-height: 1.25;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-tile__label .muted,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-tile__label .muted {
+	color: inherit !important;
+	font-weight: inherit;
+	font-size: inherit;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-tile__value,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-tile__value {
+	font-size: 15px;
+	font-weight: 600;
+	color: #0f172a;
+	line-height: 1.4;
+	word-break: break-word;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-tile__value .value,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-tile__value .value {
+	font-size: inherit;
+	font-weight: inherit;
+	color: inherit;
+	white-space: normal !important;
+	overflow: visible !important;
+	text-overflow: clip !important;
+	max-width: none !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-tile__value .action,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-tile__value .action {
+	opacity: 0.35;
+	margin-left: 6px;
+	transition: opacity 0.15s ease;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-tile:hover .action,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-tile:hover .action {
+	opacity: 1;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-tile__value a,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-tile__value a {
+	color: #0b6e4f;
+	text-decoration: none;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-tile__value a:hover,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-tile__value a:hover {
+	color: #08a045;
+	text-decoration: underline;
+}
+
+/* Money emphasis */
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-df-tile__value .value:has(~ *),
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-df-tile__value .value {
+	font-variant-numeric: tabular-nums;
+}
+
+/* Images block */
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-detail-images__body,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-detail-images__body {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	padding: 16px 18px 18px !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-v2-detail-images__img,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-v2-detail-images__img {
+	display: block;
+	max-width: 220px;
+	max-height: 180px;
+	object-fit: cover;
+	border-radius: 12px;
+	border: 1px solid #e8edf2;
+	background: #f8fafc;
+}
+
+/* Override older beige full-detail styles when v3 form is active */
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row form#detailView.mk-ps-v2-detail-form .block,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row form#detailView.mk-ps-v2-detail-form .block {
+	border-color: #e8edf2 !important;
+	padding: 0 !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row form#detailView.mk-ps-v2-detail-form .detailview-table.mk-ps-v2-df-source,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row form#detailView.mk-ps-v2-detail-form .detailview-table.mk-ps-v2-df-source {
+	display: none !important;
+}
+
+/* Related contents keep same modern card */
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row .relatedContents,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row .relatedContents {
+	border-color: #e8edf2 !important;
+	border-radius: 16px !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] form#detailView.mk-ps-v2-detail-form table.mk-ps-v2-df-table,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] form#detailView.mk-ps-v2-detail-form table.mk-ps-v2-df-table {
+	display: table !important;
+	width: 100% !important;
+	border: none !important;
+	margin: 0 !important;
+	background: transparent !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] form#detailView.mk-ps-v2-detail-form table.mk-ps-v2-df-table tbody,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] form#detailView.mk-ps-v2-detail-form table.mk-ps-v2-df-table tbody {
+	display: table-row-group;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] form#detailView.mk-ps-v2-detail-form td.mk-ps-v2-df-cell,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] form#detailView.mk-ps-v2-detail-form td.mk-ps-v2-df-cell {
+	display: table-cell !important;
+	width: 100% !important;
+	padding: 0 !important;
+	border: none !important;
+	background: transparent !important;
+}
+
+body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-details-row form#detailView.mk-ps-v2-detail-form .detailview-table.mk-ps-v2-df-source,
+body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-details-row form#detailView.mk-ps-v2-detail-form .detailview-table.mk-ps-v2-df-source {
+	display: table !important;
 }

@@ -97,20 +97,6 @@ class GoodsReceipt_Edit_View extends Vtiger_Index_View {
 			}
 		}
 
-		if (empty($items)) {
-			$items[] = array(
-				'productid' => '',
-				'product_name' => '',
-				'product_type' => 'Other',
-				'quantity' => '1',
-				'unit_price' => '0',
-				'line_note' => '',
-				'serial_number' => '',
-				'expired_date' => '',
-				'description' => '',
-			);
-		}
-
 		$viewer->assign('MODE', $mode);
 		$viewer->assign('RECORD', $record);
 		$viewer->assign('ITEMS', $items);

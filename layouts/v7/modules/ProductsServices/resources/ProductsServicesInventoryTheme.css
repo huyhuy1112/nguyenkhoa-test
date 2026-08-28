@@ -1,0 +1,332 @@
+/**
+ * Hàng hoá (ProductsServices) — Kho / INVENTORY theme.
+ * Green + slate tokens (aligned with Leads polish), not indigo.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap');
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] {
+	--mk-ps-inv-indigo: #08a045;
+	--mk-ps-inv-indigo-deep: #0f172a;
+	--mk-ps-inv-violet: #0b6e4f;
+	--mk-ps-inv-gold: #08a045;
+	--mk-ps-inv-surface: #f8fafc;
+	--mk-ps-inv-card: #ffffff;
+	--mk-ps-inv-border: rgba(15, 23, 42, 0.08);
+	--mk-ps-inv-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-dash-main.mk-ps-list-main,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-dash-main.mk-ps-detail-main {
+	font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+	background: var(--mk-ps-inv-surface) !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-dash-main.mk-ps-edit-main {
+	font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* ---- List header ---- */
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-header--inventory {
+	margin-bottom: 16px;
+}
+
+/* Legacy kicker (removed from tpl) — keep muted if present */
+body[data-module="ProductsServices"][data-app="INVENTORY"]:not([data-view="Edit"]) .mk-ps-inventory-kicker {
+	display: none !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-inventory-kicker__ic {
+	display: none !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-breadcrumb {
+	display: none !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-action-header__title {
+	color: #0f172a !important;
+	font-family: 'Space Grotesk', Inter, sans-serif !important;
+	font-weight: 700;
+	letter-spacing: -0.03em;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-action-header__subtitle {
+	color: #64748b !important;
+	max-width: 520px;
+	font-size: 13px !important;
+	font-weight: 500 !important;
+	padding-bottom: 2px;
+	border-bottom: 2px dotted #e2e8f0;
+	display: inline-block;
+}
+
+/* ---- Buttons — Leads-like slate / green ---- */
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-btn--primary {
+	background: #0f172a !important;
+	border-color: #0f172a !important;
+	color: #fff !important;
+	box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18) !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-btn--primary:hover {
+	background: #08a045 !important;
+	border-color: #08a045 !important;
+	color: #fff !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-btn--outline {
+	border-color: #e2e8f0 !important;
+	color: #0f172a !important;
+	background: #fff !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-btn--outline:hover {
+	background: #eef2ff;
+	border-color: rgba(99, 102, 241, 0.5);
+}
+
+/* ---- Table card ---- */
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-inventory-page .mk-ps-table-card,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-inventory-page .mk-so-table-card {
+	background: var(--mk-ps-inv-card);
+	border: 1px solid var(--mk-ps-inv-border);
+	border-radius: 16px;
+	box-shadow: var(--mk-ps-inv-shadow);
+	overflow: hidden;
+	padding: 0;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] #listview-table thead tr {
+	background: #f8fafc;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] #listview-table thead th {
+	color: #64748b !important;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	border-bottom: 1px solid #e2e8f0 !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] #listview-table tbody tr:hover td {
+	background: #f8fafc !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] #listview-table tbody td {
+	border-color: #f1f5f9 !important;
+	vertical-align: middle;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] #listview-table td[data-name="productsservicesname"] .value a,
+body[data-module="ProductsServices"][data-app="INVENTORY"] #listview-table td[data-name="productsservicesname"] .value {
+	font-weight: 600;
+	color: #0f172a;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-type-pill--product {
+	background: #ecfdf3;
+	color: #0b6e4f;
+	border: 1px solid #bbf7d0;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-type-pill--service {
+	background: #f1f5f9;
+	color: #475569;
+	border: 1px solid #e2e8f0;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-toolbar-count {
+	color: #64748b;
+	font-size: 13px;
+}
+
+/* ---- List toolbar (Kho) ---- */
+body[data-module="ProductsServices"][data-app="INVENTORY"] #listview-actions.mk-so-filter-row,
+body[data-module="ProductsServices"][data-app="INVENTORY"] #listview-actions.mk-ps-filter-row {
+	background: #fff !important;
+	border-bottom: 1px solid #e2e8f0 !important;
+	min-height: 52px;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-filter-row__inner,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-filter-row__inner {
+	padding: 8px 14px;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-icon-btn,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-icon-btn {
+	border-color: #e2e8f0 !important;
+	border-radius: 10px !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-icon-btn:hover:not(:disabled),
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-icon-btn:hover:not(:disabled) {
+	background: #f8fafc !important;
+	border-color: #cbd5e1 !important;
+	box-shadow: none;
+	transform: none;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-icon-btn__ic,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-icon-btn__ic {
+	color: #475569 !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-mass-btn,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-mass-btn {
+	border-color: #e2e8f0 !important;
+	border-radius: 10px !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-mass-btn:hover:not(:disabled),
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-mass-btn:hover:not(:disabled) {
+	background: #f8fafc !important;
+	border-color: #cbd5e1 !important;
+	transform: none;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-mass-actions,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-mass-actions {
+	border-left-color: var(--mk-ps-inv-border) !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-page-numbers .pageNumbersText,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-page-numbers .pageNumbersText {
+	color: var(--mk-ps-inv-indigo-deep);
+	font-weight: 600;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-page-numbers .totalNumberOfRecords,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-page-numbers .totalNumberOfRecords {
+	color: var(--mk-ps-inv-violet);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] #table-content + .mk-ps-filter-row__footer,
+body[data-module="ProductsServices"][data-app="INVENTORY"] #table-content + .mk-so-filter-row__footer {
+	background: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);
+	border-top-color: var(--mk-ps-inv-border) !important;
+	border-radius: 0 0 16px 16px;
+	min-height: 68px;
+	padding: 14px 18px;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-pagination .mk-so-pager {
+	border-color: var(--mk-ps-inv-border) !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-pagination .mk-ps-page-btn,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-pagination .mk-so-page-btn {
+	border-color: #e2e8f0 !important;
+	border-radius: 10px !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-pagination .mk-so-page-btn--nav:hover:not(:disabled) {
+	background: #f8fafc !important;
+	border-color: #cbd5e1 !important;
+	color: #0f172a !important;
+	transform: none;
+	box-shadow: none;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-pagination .mk-so-page-btn--current {
+	background: #0f172a !important;
+	border-color: #0f172a !important;
+	color: #fff !important;
+	box-shadow: none !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-pagination .mk-so-page-btn--current:hover:not(:disabled) {
+	background: #1e293b !important;
+	border-color: #1e293b !important;
+	color: #fff !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-pagination #PageJump.mk-ps-page-btn,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-pagination #PageJump.mk-so-page-btn,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-pagination #PageJump {
+	box-shadow: none !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-so-filter-row__footer #PageJumpDropDown {
+	border-color: var(--mk-ps-inv-border);
+	border-radius: 12px;
+	box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+}
+
+/* ---- Detail ---- */
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-breadcrumb a {
+	color: var(--mk-ps-inv-indigo);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-hero-strip.detailview-header-block {
+	background: linear-gradient(135deg, #ffffff 0%, #f8fafc 45%, #eef2ff 100%);
+	border: 1px solid var(--mk-ps-inv-border);
+	border-radius: 16px;
+	box-shadow: var(--mk-ps-inv-shadow);
+	margin-bottom: 20px;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-hero__title,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-hero__title .recordLabel {
+	color: var(--mk-ps-inv-indigo-deep) !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-card,
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-card--overview .fieldBlockContainer {
+	border-color: var(--mk-ps-inv-border) !important;
+	border-radius: 12px !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-card--overview .fieldBlockHeader {
+	background: #fff !important;
+	color: #0f172a !important;
+	border-bottom-color: #f1f5f9 !important;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .related-tabs.row {
+	border-color: var(--mk-ps-inv-border) !important;
+	background: #fff !important;
+	border-radius: 12px 12px 0 0;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .related-tabs .nav-tabs > li.active > a {
+	color: #0f172a !important;
+	border-bottom-color: #08a045 !important;
+}
+
+/* Create / Edit layout is owned by ProductsServicesMkEdit.css — do not override here. */
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-hero__icon.recordImage {
+	background: #0f172a !important;
+	border: 2px solid rgba(255, 255, 255, 0.85);
+	box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-type-pill--product {
+	background: #ecfdf3;
+	color: #0b6e4f;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-type-pill--service {
+	background: #f1f5f9;
+	color: #475569;
+}
+
+body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-detail-hero__meta-text--price {
+	color: var(--mk-ps-inv-indigo-deep);
+	font-weight: 700;
+}
+
+@media (max-width: 768px) {
+	body[data-module="ProductsServices"][data-app="INVENTORY"] .mk-ps-action-header__title {
+		font-size: 22px;
+	}
+	body[data-module="ProductsServices"][data-app="INVENTORY"] .main-container.mk-ps-list-page,
+	body[data-module="ProductsServices"][data-app="INVENTORY"] .main-container.mk-ps-detail-page {
+		padding-left: 16px !important;
+		padding-right: 16px !important;
+	}
+}

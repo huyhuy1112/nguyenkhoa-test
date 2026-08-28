@@ -1,0 +1,120 @@
+/**
+ * Shared Lovable list shell — Contacts + Potentials (SALES).
+ * Hides legacy vtiger LISTS column, tightens padding next to dashboard sidebar.
+ */
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #page,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #page.container-fluid,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #page,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #page.container-fluid {
+	padding-top: 0 !important;
+	padding-left: 0 !important;
+	margin-left: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] #page > .container-fluid.app-nav,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] #page > .container-fluid.app-nav {
+	display: none !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	overflow: hidden !important;
+	visibility: hidden !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-contacts-list-main,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-opportunity-list-main {
+	padding: 24px !important;
+	box-sizing: border-box;
+	background: #f7f9fb;
+}
+
+/* Kill legacy vtiger list indent (custom.css .content-area padding-left: 296px) */
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container .content-area,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container .listViewPageDiv.content-area,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .main-container .content-area,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .main-container .listViewPageDiv.content-area {
+	padding-left: 0 !important;
+	margin-left: 0 !important;
+	left: auto !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page #modnavigator,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page #sidebar-essentials,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page .essentials-toggle,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contacts-list-hide-legacy,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .main-container.mk-opportunity-list-page #modnavigator,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .main-container.mk-opportunity-list-page #sidebar-essentials,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .main-container.mk-opportunity-list-page .essentials-toggle,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-hide-legacy,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .lists-menu-container,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .lists-menu-container {
+	display: none !important;
+	visibility: hidden !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	max-width: 0 !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: hidden !important;
+	position: absolute !important;
+	left: -9999px !important;
+	top: 0 !important;
+	pointer-events: none !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .main-container.mk-opportunity-list-page {
+	position: relative !important;
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+	min-height: 0 !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page #listViewContent,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page .listViewPageDiv.content-area,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .main-container.mk-contacts-list-page .mk-contacts-list-content,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .main-container.mk-opportunity-list-page #listViewContent,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .main-container.mk-opportunity-list-page .listViewPageDiv.content-area,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .main-container.mk-opportunity-list-page .mk-opportunity-list-content,
+body:not([data-module="Calendar"]):not([data-module="Teams"])[data-module="Potentials"][data-view="List"][data-app="SALES"] .main-container #sidebar-essentials.sidebar-essentials.hide + .listViewPageDiv.content-area,
+body:not([data-module="Calendar"]):not([data-module="Teams"])[data-module="Potentials"][data-view="List"][data-app="SALES"] .main-container #sidebar-essentials.sidebar-essentials.hide + #listViewContent.content-area {
+	padding: 0 !important;
+	padding-left: 0 !important;
+	margin: 0 !important;
+	margin-left: 0 !important;
+	width: 100% !important;
+	max-width: none !important;
+	min-width: 0 !important;
+	left: auto !important;
+	position: relative !important;
+	box-sizing: border-box !important;
+}
+
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-contacts-page,
+body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-so-page.mk-contacts-page,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opps-page,
+body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-so-page.mk-opps-page {
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+}
+
+@media (max-width: 768px) {
+	body[data-module="Contacts"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-contacts-list-main,
+	body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-opportunity-list-main {
+		padding: 16px !important;
+	}
+}

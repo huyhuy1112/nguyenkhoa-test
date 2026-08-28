@@ -28,17 +28,63 @@ class ModCommentsHandler extends VTEventHandler {
             $relatedInfo['module'] = $data->focus->moduleName;
             $relatedInfo['id'] = $data->focus->id;
 			if ($relatedToId && $data->getModuleName() == 'ModComments') {
-				$moduleName = getSalesEntityType($relatedToId);
+				// @mention → chuông Modern Notifications
+				if ($data->isNew()) {
+					try {
+						require_once 'modules/Vtiger/models/NotificationService.php';
+						$commentBody = $data->get('commentcontent');
+						// related_to may be webservice id 19x123
+						$relatedCrmId = $relatedToId;
+						if (is_string($relatedCrmId) && strpos($relatedCrmId, 'x') !== false) {
+							$parts = explode('x', $relatedCrmId);
+							$relatedCrmId = isset($parts[1]) ? $parts[1] : $parts[0];
+						}
+						$authorId = 0;
+						try {
+							global $current_user;
+							if ($current_user && !empty($current_user->id)) {
+								$authorId = (int)$current_user->id;
+							}
+						} catch (Exception $ignore) {
+						}
+						if ($authorId <= 0) {
+							$creator = $data->get('userid');
+							if (empty($creator)) {
+								$creator = $data->get('assigned_user_id');
+							}
+							if (is_string($creator) && strpos($creator, 'x') !== false) {
+								$cp = explode('x', $creator);
+								$creator = isset($cp[1]) ? $cp[1] : $cp[0];
+							}
+							$authorId = (int)$creator;
+						}
+						Vtiger_NotificationService::notifyMentionsFromComment(
+							$commentBody,
+							(int)$data->getId(),
+							(int)$relatedCrmId,
+							$authorId
+						);
+					} catch (Exception $mentionEx) {
+						// never block comment save
+					}
+				}
+
+				$relatedIdForFocus = $relatedToId;
+				if (is_string($relatedIdForFocus) && strpos($relatedIdForFocus, 'x') !== false) {
+					$rp2 = explode('x', $relatedIdForFocus);
+					$relatedIdForFocus = isset($rp2[1]) ? $rp2[1] : $rp2[0];
+				}
+				$moduleName = getSalesEntityType($relatedIdForFocus);
 				$focus = CRMEntity::getInstance($moduleName);
-				$focus->retrieve_entity_info($relatedToId, $moduleName);
-				$focus->id = $relatedToId;
+				$focus->retrieve_entity_info($relatedIdForFocus, $moduleName);
+				$focus->id = $relatedIdForFocus;
 				$fromPortal = $data->get('from_portal');
 				if ($fromPortal) {
 					$focus->column_fields['from_portal'] = $fromPortal;
 				}
 				if($data->isNew()) {
 					// we need to update related to modified and last modified by, whenever a comment is added
-					$focus->trackLinkedInfo($moduleName, $relatedToId, $data->getModuleName(), $data->getId());
+					$focus->trackLinkedInfo($moduleName, $relatedIdForFocus, $data->getModuleName(), $data->getId());
 				}
 
 				//if its Internal comment, workflow should not trigger

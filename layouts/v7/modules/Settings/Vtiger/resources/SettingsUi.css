@@ -232,7 +232,7 @@ body[data-parent="Settings"] .mk-dashboard-sidebar .mk-settings-subnav .list-gro
 .mk-settings-subnav-input:focus {
 	outline: none;
 	border-color: #08A045;
-	box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.15);
 }
 
 .mk-settings-subnav-groups {
@@ -390,25 +390,92 @@ body[data-parent="Settings"] .mk-dash-nav-item--active:hover .mk-dash-svg {
 	color: #ffffff !important;
 }
 
-/* Chỉ highlight Settings — không sáng MARKETING/SALES khi parent=Settings */
-body[data-parent="Settings"] .mk-dash-app-group--active > .mk-dash-app-toggle,
-body[data-parent="Settings"] .mk-dash-app-group--open:not(.mk-dash-app-group--active) > .mk-dash-app-toggle {
-	background: transparent !important;
+/* ========================================================================== */
+/* Sidebar labels — never invisible on Settings                               */
+/* ========================================================================== */
+
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle .mk-dash-app-label,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle .mk-dash-app-chevron,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle .mk-dash-svg,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-nav-item,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-nav-item .mk-dash-nav-label,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-nav-item .mk-dash-svg,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-mod-link,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-mod-link .mk-dash-mod-label,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-mod-toggle .mk-dash-mod-label {
 	color: #475569 !important;
-	box-shadow: none !important;
+	opacity: 1 !important;
+	visibility: visible !important;
 }
 
-body[data-parent="Settings"] .mk-dash-app-group--active > .mk-dash-app-toggle .mk-dash-svg,
-body[data-parent="Settings"] .mk-dash-app-group--open > .mk-dash-app-toggle .mk-dash-svg {
-	color: #64748b !important;
-}
-
-body[data-parent="Settings"] .mk-dash-mod-link--active {
-	font-weight: 500;
-	color: #475569 !important;
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-group--active > .mk-dash-app-toggle,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-group--open > .mk-dash-app-toggle {
 	background: transparent !important;
 	box-shadow: none !important;
+	color: #475569 !important;
 }
+
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle:hover,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-nav-item:hover,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-mod-link:hover {
+	background: #0b6e4f !important;
+	color: #ffffff !important;
+}
+
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle:hover .mk-dash-app-label,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle:hover .mk-dash-app-chevron,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle:hover .mk-dash-svg,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-nav-item:hover .mk-dash-nav-label,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-nav-item:hover .mk-dash-svg,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-mod-link:hover .mk-dash-mod-label {
+	color: #ffffff !important;
+}
+
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-nav-item--active {
+	background: #ecfdf3 !important;
+	color: #0b6e4f !important;
+	box-shadow: inset -4px 0 0 #08a045;
+}
+
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-nav-item--active .mk-dash-nav-label,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-nav-item--active .mk-dash-svg {
+	color: #0b6e4f !important;
+}
+
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-nav-item--active:hover {
+	background: #0b6e4f !important;
+	color: #ffffff !important;
+}
+
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-nav-item--active:hover .mk-dash-nav-label,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-nav-item--active:hover .mk-dash-svg {
+	color: #ffffff !important;
+}
+
+/* Kill sticky :focus white-on-transparent after clicking accordion */
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle:focus,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle:focus-visible,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-nav-item:focus,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-mod-toggle:focus {
+	outline: none;
+}
+
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle:focus:not(:hover),
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle:focus-visible:not(:hover) {
+	background: transparent !important;
+	color: #475569 !important;
+}
+
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle:focus:not(:hover) .mk-dash-app-label,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle:focus:not(:hover) .mk-dash-app-chevron,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle:focus:not(:hover) .mk-dash-svg,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle:focus-visible:not(:hover) .mk-dash-app-label,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle:focus-visible:not(:hover) .mk-dash-app-chevron,
+body[data-parent="Settings"] .mk-dashboard-sidebar .mk-dash-app-toggle:focus-visible:not(:hover) .mk-dash-svg {
+	color: #475569 !important;
+}
+
 
 /* ========================================================================== */
 /* Settings Index page                                                        */
@@ -519,8 +586,15 @@ body[data-parent="Settings"] .mk-dash-mod-link--active {
 .mk-settings-shortcuts-grid {
 	display: grid;
 	grid-template-columns: repeat(4, minmax(0, 1fr));
-	gap: 12px;
+	gap: 14px;
 	min-height: 0;
+}
+
+@media (min-width: 1100px) {
+	.mk-settings-summary-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 14px;
+	}
 }
 
 .mk-settings-shortcut-card {
@@ -606,7 +680,8 @@ body[data-parent="Settings"] .mk-dash-mod-link--active {
 
 .mk-settings-subpage,
 .mk-settings-subpage-shell {
-	max-width: 1200px;
+	max-width: none;
+	width: 100%;
 	margin-bottom: 4px;
 }
 
@@ -628,7 +703,7 @@ body[data-parent="Settings"] .mk-dash-mod-link--active {
 
 .mk-settings-subpage-header__title {
 	margin: 0 0 6px;
-	font-size: 28px;
+	font-size: 26px;
 	font-weight: 800;
 	color: var(--mk-settings-text);
 	letter-spacing: -0.02em;
@@ -700,7 +775,7 @@ body[data-parent="Settings"] .mk-settings-subpage .contents.tabbable,
 body[data-parent="Settings"] .mk-settings-subpage .layoutContent {
 	background: var(--mk-settings-card);
 	border: 1px solid rgba(15, 23, 42, 0.08);
-	border-radius: 20px;
+	border-radius: 18px;
 	padding: 28px 28px 32px;
 	box-shadow:
 		0 1px 2px rgba(15, 23, 42, 0.04),

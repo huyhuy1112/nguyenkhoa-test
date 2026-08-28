@@ -1,0 +1,85 @@
+/**
+ * Contacts tag modal — final overrides (loads after theme CSS).
+ */
+
+.mk-contact-tags-modal-dialog {
+	max-width: 560px;
+	width: calc(100% - 32px);
+	margin: 24px auto;
+}
+.mk-contact-tags-modal-dialog--view {
+	max-width: 480px;
+}
+.mk-contact-tags-modal {
+	border: none !important;
+	border-radius: 16px !important;
+	overflow: hidden;
+	box-shadow: 0 20px 48px rgba(15, 23, 42, 0.12);
+}
+
+.myModal .mk-contact-tags-modal .modal-header,
+.modal .mk-contact-tags-modal .modal-header {
+	background: linear-gradient(135deg, #0B6E4F 0%, #08A045 100%) !important;
+	border: none !important;
+	padding: 16px 20px !important;
+	border-radius: 0 !important;
+}
+.myModal .mk-contact-tags-modal .modal-title,
+.modal .mk-contact-tags-modal .modal-title {
+	color: #fff !important;
+	font-weight: 700 !important;
+	font-size: 16px !important;
+}
+.myModal .mk-contact-tags-modal .modal-header .close,
+.modal .mk-contact-tags-modal .modal-header .close {
+	color: #fff !important;
+	opacity: 0.9 !important;
+	text-shadow: none !important;
+}
+.myModal .mk-contact-tags-modal__body,
+.modal .mk-contact-tags-modal__body {
+	padding: 20px 22px 24px !important;
+	background: #fff !important;
+}
+.myModal .mk-contact-tags-modal__grid,
+.myModal .mk-contact-tags-modal .currentTag.multiLevelTagList,
+.modal .mk-contact-tags-modal__grid,
+.modal .mk-contact-tags-modal .currentTag.multiLevelTagList {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	gap: 10px !important;
+	min-height: 52px !important;
+	padding: 16px !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	background: #f8fafc !important;
+	box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+	height: auto !important;
+	max-height: none !important;
+	overflow: visible !important;
+}
+.myModal .mk-contact-tags-modal .tag,
+.modal .mk-contact-tags-modal .tag {
+	display: inline-flex !important;
+	align-items: center !important;
+	margin: 0 !important;
+	padding: 6px 12px !important;
+	border-radius: 999px !important;
+	font-size: 12px !important;
+	font-weight: 600 !important;
+	line-height: 1.3 !important;
+}
+.myModal .mk-contact-tags-modal .tag .activeToggleIcon,
+.myModal .mk-contact-tags-modal .tag .editTag,
+.myModal .mk-contact-tags-modal .tag .deleteTag,
+.modal .mk-contact-tags-modal .tag .activeToggleIcon,
+.modal .mk-contact-tags-modal .tag .editTag,
+.modal .mk-contact-tags-modal .tag .deleteTag {
+	display: none !important;
+}
+.myModal .mk-contact-tags-modal .tag .tagLabel,
+.modal .mk-contact-tags-modal .tag .tagLabel {
+	max-width: 200px;
+	font-weight: 600;
+}
