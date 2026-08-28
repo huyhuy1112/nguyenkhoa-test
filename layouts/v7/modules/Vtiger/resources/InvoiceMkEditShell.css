@@ -2,8 +2,8 @@
  * Invoice Edit (TOOLS / SUPPORT) — shared shell fixes (sidebar + topbar pages).
  */
 
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] #page, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] #page,
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] #page.container-fluid, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] #page.container-fluid,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] #page,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] #page.container-fluid,
 body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] #page,
 body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] #page.container-fluid {
 	padding-top: 0 !important;
@@ -14,10 +14,10 @@ body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] #page.containe
 	box-sizing: border-box !important;
 }
 
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .navbar.navbar-inverse.navbar-fixed-top, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] .navbar.navbar-inverse.navbar-fixed-top,
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .app-nav, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] .app-nav,
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] #page > .container-fluid.app-nav, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] #page > .container-fluid.app-nav,
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .module-action-bar, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] .module-action-bar,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .navbar.navbar-inverse.navbar-fixed-top,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .app-nav,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] #page > .container-fluid.app-nav,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .module-action-bar,
 body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .navbar.navbar-inverse.navbar-fixed-top,
 body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .app-nav,
 body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] #page > .container-fluid.app-nav,
@@ -25,18 +25,18 @@ body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .module-action
 	display: none !important;
 }
 
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-dash-main, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] .mk-dash-main,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-dash-main,
 body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-dash-main {
 	padding: 0 !important;
 	box-sizing: border-box;
 }
 
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-dash-split-root .content-area, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] .mk-dash-split-root .content-area,
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-dash-split-root .editViewPageDiv, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] .mk-dash-split-root .editViewPageDiv,
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-dash-split-root .content-area.full-width, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] .mk-dash-split-root .content-area.full-width,
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [class*="-form-host"] .content-area, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] [class*="-form-host"] .content-area,
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [class*="-form-host"] .editViewPageDiv, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] [class*="-form-host"] .editViewPageDiv,
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [class*="-form-host"] .main-container, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] [class*="-form-host"] .main-container,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-dash-split-root .content-area,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-dash-split-root .editViewPageDiv,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] .mk-dash-split-root .content-area.full-width,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [class*="-form-host"] .content-area,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [class*="-form-host"] .editViewPageDiv,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [class*="-form-host"] .main-container,
 body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-dash-split-root .content-area,
 body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-dash-split-root .editViewPageDiv,
 body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] .mk-dash-split-root .content-area.full-width,
@@ -53,19 +53,19 @@ body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] [class*="-form
 	box-sizing: border-box !important;
 }
 
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [class*="-form-host"] #modnavigator, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] [class*="-form-host"] #modnavigator,
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [class*="-form-host"] .editViewModNavigator, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] [class*="-form-host"] .editViewModNavigator,
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [class*="-form-host"] .editViewHeader:not(.hide), body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] [class*="-form-host"] .editViewHeader:not(.hide),
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [class*="-form-host"] #modnavigator,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [class*="-form-host"] .editViewModNavigator,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [class*="-form-host"] .editViewHeader:not(.hide),
 body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] [class*="-form-host"] #modnavigator,
 body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] [class*="-form-host"] .editViewModNavigator,
 body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] [class*="-form-host"] .editViewHeader:not(.hide) {
 	display: none !important;
 }
 
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] #mk-dash-split-root .modal-overlay-footer, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] #mk-dash-split-root .modal-overlay-footer,
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [class*="-form-host"] .modal-overlay-footer, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] [class*="-form-host"] .modal-overlay-footer,
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [class*="-form-footer"], body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] [class*="-form-footer"],
-body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [id*="FormHost"] .modal-overlay-footer, body[data-module="Invoice"][data-view="Edit"][data-app="SALES"] [id*="FormHost"] .modal-overlay-footer,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] #mk-dash-split-root .modal-overlay-footer,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [class*="-form-host"] .modal-overlay-footer,
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [class*="-form-footer"],
+body[data-module="Invoice"][data-view="Edit"][data-app="TOOLS"] [id*="FormHost"] .modal-overlay-footer,
 body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] #mk-dash-split-root .modal-overlay-footer,
 body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] [class*="-form-host"] .modal-overlay-footer,
 body[data-module="Invoice"][data-view="Edit"][data-app="SUPPORT"] [class*="-form-footer"],

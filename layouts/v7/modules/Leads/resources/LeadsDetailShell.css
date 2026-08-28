@@ -417,17 +417,6 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 	gap: 6px;
 }
 
-/* Override stock Vtiger .tag pill (blue half-circle) inside hero tag strip */
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags #mk-ld-ui-tag-list .tag,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tagList .tag {
-	border-radius: 999px !important;
-	width: auto !important;
-	background-color: transparent;
-	background-image: none;
-	color: inherit;
-	border-style: solid;
-}
-
 /* ============================================================================
  * ACTION BUTTONS (Follow, basic actions, More, Send Email)
  * ========================================================================== */
@@ -488,17 +477,16 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-btn--primary {
-	background: #16a34a !important;
+	background: #08A045 !important;
 	background-image: none !important;
-	border-color: #15803d;
-	color: #ffffff;
+	border-color: #0B6E4F;
+	color: #6d4d00;
 	font-weight: 700;
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-btn--primary:hover {
-	background: #15803d !important;
-	border-color: #166534;
-	color: #ffffff;
+	background: #f0a514 !important;
+	color: #6d4d00;
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] #starToggle.mk-lead-detail-btn {
@@ -1008,7 +996,7 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-ld-ui-panel.
 	display: none !important;
 }
 
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag {
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tagList .tag {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
@@ -1017,24 +1005,39 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 	border-radius: 999px;
 	font-size: 12px;
 	font-weight: 600;
-	/* Màu từ LeadsMkTagPalette.css [data-tag] — không ép xám base */
-	border: 1px solid transparent;
+	background: #f1f5f9;
+	color: #475569;
+	border: 1px solid #e2e8f0;
 }
 
-/* Tag colors → LeadsMkTagPalette.css */
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag a {
-	color: inherit;
-	opacity: 0.65;
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tagList .tag a {
+	color: #94a3b8;
 	text-decoration: none;
 	margin-left: 2px;
 }
 
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag .editTag,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag .deleteTag,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag .activeToggleIcon {
-	color: inherit;
-	opacity: 0.55;
+/* Dark mode: tag chips should be colorful and readable */
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tagList .tag {
+	background: rgba(148, 163, 184, 0.14) !important;
+	border-color: rgba(148, 163, 184, 0.22) !important;
+	color: rgba(226, 232, 240, 0.88) !important;
+}
+
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tagList .tag a {
+	color: rgba(226, 232, 240, 0.6) !important;
+}
+
+/* Some pages toggle dark theme on BODY (no html[data-theme]) */
+body[data-theme="dark"][data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tagList .tag,
+body.theme-dark[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tagList .tag {
+	background: rgba(148, 163, 184, 0.14) !important;
+	border-color: rgba(148, 163, 184, 0.22) !important;
+	color: rgba(226, 232, 240, 0.88) !important;
+}
+
+body[data-theme="dark"][data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tagList .tag a,
+body.theme-dark[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tagList .tag a {
+	color: rgba(226, 232, 240, 0.6) !important;
 }
 
 /* ============================================================================
@@ -1432,29 +1435,21 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments .commentTextArea,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments .commentTextArea textarea {
 	border-radius: 10px;
-	border: 1px solid #cbd5e1;
+	border: 1px solid #e0d8cc;
 	padding: 12px 14px;
 	font-size: 14px;
-	line-height: 1.5;
-	color: #0f172a;
 	width: 100%;
 	box-sizing: border-box;
 	min-height: 64px;
-	background: #ffffff;
+	background: #fafbfc;
 	box-shadow: none;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments textarea::placeholder,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments .commentTextArea textarea::placeholder {
-	color: #64748b;
-	opacity: 1;
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments textarea:focus,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments .commentTextArea:focus-within {
-	border-color: #16a34a;
+	border-color: #08A045;
 	outline: none;
-	box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18);
+	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.15);
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments .modal-comment-widgets-container {
@@ -1472,23 +1467,19 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 	border-radius: 8px;
 	font-weight: 700;
 	font-size: 13px;
-	background: #16a34a !important;
+	background: #08A045 !important;
 	background-image: none !important;
-	border: 1px solid #15803d;
-	color: #ffffff !important;
+	border: 1px solid #0B6E4F;
+	color: #6d4d00;
 	padding: 8px 18px;
 	min-height: 40px;
 	box-shadow: none;
-	text-shadow: none !important;
-	-webkit-font-smoothing: antialiased;
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments .saveComment:hover,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments .postComment:hover,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments button[name="saveButton"]:hover {
-	background: #15803d !important;
-	border-color: #166534;
-	color: #ffffff !important;
+	background: #f0a514 !important;
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-card--comments .commentDetails {
@@ -1666,7 +1657,18 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 	color: #94a3b8;
 }
 
-/* goi-lan tag colors → LeadsMkTagPalette.css (data-tag) */
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-1 {
+	background: #dbeafe;
+	color: #1d4ed8;
+}
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-2 {
+	background: #dcfce7;
+	color: #b45309;
+}
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-3 {
+	background: #ffedd5;
+	color: #c2410c;
+}
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-activity-log__menu-btn--locked,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-activity-log__menu-btn--locked:hover {
@@ -1677,34 +1679,26 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-activit
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
+	display: inline-block;
 	margin: 0 6px 6px 0;
-	padding: 4px 10px;
+	padding: 3px 10px;
 	border-radius: 999px;
+	background: #ecfdf3;
+	border: 1px solid #bbf7d0;
+	color: #073B3A;
 	font-size: 12px;
 	font-weight: 600;
-	/* Màu từ LeadsMkTagPalette.css [data-tag] — không ép xám base */
-	border: 1px solid transparent;
 }
 
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip:not([data-tag]),
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip[data-tag=""],
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag:not([data-tag]),
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .tag[data-tag=""] {
-	background: #f1f5f9;
-	border-color: #e2e8f0;
-	color: #475569;
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip {
+	background: rgba(99, 102, 241, 0.14) !important;
+	border-color: rgba(99, 102, 241, 0.32) !important;
+	color: rgba(199, 210, 254, 0.95) !important;
 }
 
-/* Tag chip colors → LeadsMkTagPalette.css */
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-hero__tags .mk-ld-ui-tag-remove {
-	color: inherit;
-	opacity: 0.55;
-	text-decoration: none;
-}
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-1 { background: rgba(37, 99, 235, 0.14) !important; border-color: rgba(37, 99, 235, 0.32) !important; color: #93c5fd !important; }
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-2 { background: rgba(245, 158, 11, 0.16) !important; border-color: rgba(245, 158, 11, 0.36) !important; color: #bbf7d0 !important; }
+html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-tag-chip--goi-lan-3 { background: rgba(249, 115, 22, 0.16) !important; border-color: rgba(249, 115, 22, 0.36) !important; color: #fed7aa !important; }
 
 /* Convert Lead modal — order category picker */
 .mk-lead-convert-modal {
@@ -1768,9 +1762,17 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-btn--converted,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-btn--converted:hover,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-btn--converted:focus,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] [data-mk-demo-action="convert"][hidden] {
-	display: none !important;
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-btn--converted:focus {
+	background: #e8edf4 !important;
+	border-color: #c5d0de !important;
+	color: #64748b !important;
+	cursor: not-allowed !important;
+	opacity: 0.92;
+	box-shadow: none !important;
+}
+
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-btn--converted .mk-lead-detail-btn__ic {
+	opacity: 0.55;
 }
 
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-details-row .blockToggle {
@@ -2613,297 +2615,4 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-backend
 	font-size: 12px;
 	color: #64748b;
 	line-height: 1.45;
-}
-
-/* ==========================================================================
- * Last Touch Call panel + modal
- * ========================================================================== */
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-last-touch,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-last-touch {
-	margin: 0 0 12px;
-	padding: 12px 14px;
-	border: 1px solid #e2e8f0;
-	border-radius: 12px;
-	background: #f8fafc;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-last-touch__head,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-last-touch__head {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 8px;
-	margin-bottom: 6px;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-last-touch__title,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-last-touch__title {
-	font-size: 13px;
-	font-weight: 700;
-	color: #0f172a;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-last-touch__badge,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-last-touch__badge {
-	font-size: 11px;
-	font-weight: 700;
-	padding: 2px 8px;
-	border-radius: 999px;
-	background: #ecfdf5;
-	border: 1px solid #a7f3d0;
-	color: #047857;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-last-touch__badge.is-done,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-last-touch__badge.is-done {
-	background: #fff1f2;
-	border-color: #fecdd3;
-	color: #be123c;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-last-touch__hint,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-last-touch__hint {
-	margin: 0 0 8px;
-	font-size: 12px;
-	line-height: 1.45;
-	color: #64748b;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-last-touch__list,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-last-touch__list {
-	list-style: none;
-	margin: 0;
-	padding: 0;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-last-touch__item,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-last-touch__item {
-	display: flex;
-	gap: 8px;
-	align-items: flex-start;
-	padding: 8px 0;
-	border-top: 1px solid #eef2f7;
-	font-size: 13px;
-	color: #1e293b;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-last-touch__item:first-child,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-last-touch__item:first-child {
-	border-top: 0;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-last-touch__n,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-last-touch__n {
-	flex: 0 0 auto;
-	padding: 2px 8px;
-	border-radius: 999px;
-	background: #eff6ff;
-	border: 1px solid #bfdbfe;
-	color: #1d4ed8;
-	font-size: 11px;
-	font-weight: 700;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-last-touch__empty,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-last-touch__empty {
-	padding: 6px 0;
-	color: #94a3b8;
-	font-size: 13px;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-lt-modal,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-lt-modal {
-	position: fixed;
-	inset: 0;
-	z-index: 10050;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 16px;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-lt-modal[hidden],
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-lt-modal[hidden] {
-	display: none !important;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-lt-modal__backdrop,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-lt-modal__backdrop {
-	position: absolute;
-	inset: 0;
-	background: rgba(15, 23, 42, 0.45);
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-lt-modal__dialog,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-lt-modal__dialog {
-	position: relative;
-	z-index: 1;
-	width: 100%;
-	max-width: 420px;
-	background: #fff;
-	border-radius: 14px;
-	box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
-	overflow: hidden;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-lt-modal__head,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-lt-modal__head {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 14px 16px;
-	border-bottom: 1px solid #e2e8f0;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-lt-modal__head h3,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-lt-modal__head h3 {
-	margin: 0;
-	font-size: 16px;
-	font-weight: 700;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-lt-modal__x,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-lt-modal__x {
-	border: 0;
-	background: transparent;
-	font-size: 22px;
-	line-height: 1;
-	cursor: pointer;
-	color: #64748b;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-lt-modal__body,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-lt-modal__body {
-	padding: 14px 16px 8px;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-lt-modal__meta,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-lt-modal__meta {
-	margin: 0 0 12px;
-	font-size: 12px;
-	color: #64748b;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-lt-modal__label,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-lt-modal__label {
-	display: block;
-	margin: 0 0 4px;
-	font-size: 12px;
-	font-weight: 600;
-	color: #475569;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-lt-modal__select,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-lt-modal__select,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-lt-modal__note,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-lt-modal__note {
-	width: 100%;
-	margin-bottom: 12px;
-	border-radius: 8px;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-lt-modal__tip,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-lt-modal__tip {
-	margin: 0 0 8px;
-	font-size: 12px;
-	color: #0f766e;
-}
-
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-lt-modal__foot,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-lt-modal__foot {
-	display: flex;
-	justify-content: flex-end;
-	gap: 8px;
-	padding: 12px 16px 16px;
-}
-
-/* Bộ B — Sales verify */
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify {
-	padding: 12px 16px 16px;
-}
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__form-note,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__form-note {
-	margin: 0 0 12px;
-	font-size: 12px;
-	color: #64748b;
-	line-height: 1.45;
-}
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__grid,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__grid {
-	display: grid;
-	grid-template-columns: 1fr;
-	gap: 10px;
-}
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__field label,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__field label {
-	display: block;
-	margin: 0 0 4px;
-	font-size: 12px;
-	font-weight: 600;
-	color: #475569;
-}
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__field select,
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__field textarea,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__field select,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__field textarea {
-	width: 100%;
-	border-radius: 8px;
-	border: 1px solid #cbd5e1;
-	padding: 7px 10px;
-	font-size: 13px;
-	background: #fff;
-}
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__form-ans,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__form-ans {
-	margin-top: 4px;
-	font-size: 11px;
-	color: #64748b;
-}
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__c45,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__c45 {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 10px;
-}
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__preview,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__preview {
-	margin-top: 12px;
-	padding: 10px 12px;
-	border-radius: 10px;
-	background: #f8fafc;
-	border: 1px solid #e2e8f0;
-	font-size: 13px;
-	line-height: 1.5;
-}
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__preview strong,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__preview strong {
-	font-weight: 700;
-	color: #0f172a;
-}
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__actions,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__actions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	margin-top: 12px;
-}
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__err,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__err {
-	margin-top: 8px;
-	color: #b91c1c;
-	font-size: 12px;
-}
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__ok,
-body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__ok {
-	margin-top: 8px;
-	color: #15803d;
-	font-size: 12px;
-}
-@media (max-width: 640px) {
-	body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__c45,
-	body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__c45 {
-		grid-template-columns: 1fr;
-	}
 }

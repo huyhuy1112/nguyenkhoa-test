@@ -14,29 +14,6 @@ services:
     networks:
       - vtiger_network
 
-  # Vtiger scheduled jobs (Leads Google Sheet poll every 60s, workflows, etc.)
-  # Without this container, cron tasks are registered but never execute.
-  cron:
-    image: vtiger_web:local
-    container_name: vtiger_cron
-    volumes:
-      - .:/var/www/html
-    depends_on:
-      - db
-      - web
-    networks:
-      - vtiger_network
-    restart: unless-stopped
-    entrypoint: ["/bin/bash", "-c"]
-    command:
-      - |
-        mkdir -p /var/www/html/logs
-        echo "[vtiger_cron] watcher started $$(date -Is)" >> /var/www/html/logs/vtigercron.log
-        while true; do
-          php /var/www/html/vtigercron.php >> /var/www/html/logs/vtigercron.log 2>&1 || true
-          sleep 60
-        done
-
   db:
     image: mysql:8.0
     container_name: vtiger_db

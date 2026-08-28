@@ -26,9 +26,9 @@ html[data-theme="dark"] body[data-module="SalesOrder"][data-view="Edit"][data-ap
 html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
 html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
 html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar, body[data-module="ProductsServices"][data-view="Edit"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
 html[data-theme="dark"] body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
 html[data-theme="dark"] body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar,
 html[data-theme="dark"] body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-topbar .mk-dash-app-topbar {
@@ -90,7 +90,7 @@ html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app=
 html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-btn--outline,
 html[data-theme="dark"] body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-btn--outline,
 html[data-theme="dark"] body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-btn--outline,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--outline, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-btn--outline,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--outline,
 html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-sc-btn--outline {
 	background: var(--mk-btn-secondary-bg) !important;
 	border-color: var(--mk-border-color) !important;
@@ -102,7 +102,7 @@ html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app=
 html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-btn--outline:hover,
 html[data-theme="dark"] body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-btn--outline:hover,
 html[data-theme="dark"] body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-btn--outline:hover,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--outline:hover, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-btn--outline:hover,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn--outline:hover,
 html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-sc-btn--outline:hover {
 	background: var(--mk-bg-hover) !important;
 	border-color: var(--mk-border-accent) !important;
@@ -114,7 +114,7 @@ html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app=
 html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-btn__ic,
 html[data-theme="dark"] body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-btn__ic,
 html[data-theme="dark"] body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-btn__ic,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn__ic, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-btn__ic,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-btn__ic,
 html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-sc-btn__ic {
 	color: var(--mk-text-secondary) !important;
 }
@@ -125,7 +125,7 @@ html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app=
 html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-table-card,
 html[data-theme="dark"] body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-qt-table-card,
 html[data-theme="dark"] body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-table-card,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-table-card, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-table-card,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-table-card,
 html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] .mk-sc-table-card,
 html[data-theme="dark"] body[data-view="List"][data-app="SALES"] .mk-so-table-card,
 html[data-theme="dark"] body[data-view="List"][data-app="SALES"] .mk-leads-table-card {
@@ -139,7 +139,7 @@ html[data-theme="dark"] body[data-module="Accounts"][data-view="List"][data-app=
 html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container,
 html[data-theme="dark"] body[data-module="Quotes"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container,
 html[data-theme="dark"] body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent #table-content.table-container,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container,
 html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="List"][data-app="SALES"] #listViewContent #table-content.table-container,
 html[data-theme="dark"] body[data-app="SALES"] #listViewContent #table-content.table-container {
 	background: var(--mk-card-bg) !important;
@@ -673,7 +673,7 @@ html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-ap
 
 html[data-theme="dark"] body[data-app="SALES"][data-view="Detail"] .related-tabs.row,
 html[data-theme="dark"] body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .related-tabs.row,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs.row, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .related-tabs.row,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .related-tabs.row,
 html[data-theme="dark"] body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .related-tabs.row {
 	background: transparent !important;
 	border-color: var(--mk-border-color) !important;
@@ -892,33 +892,33 @@ html[data-theme="dark"] body[data-app="SALES"] #listViewContent tr.searchRow .se
 }
 
 /* Products & Services list — headers + breadcrumbs */
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-breadcrumb,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb__list, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-breadcrumb__list,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__subtitle, body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-action-header__subtitle,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-toolbar-count , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-toolbar-count {
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb__list,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__subtitle,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-toolbar-count {
 	color: var(--mk-text-secondary) !important;
 }
 
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb a , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-breadcrumb a {
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-breadcrumb a {
 	color: var(--mk-text-muted) !important;
 }
 
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__title , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] .mk-ps-action-header__title {
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] .mk-ps-action-header__title {
 	color: var(--mk-text-primary) !important;
 }
 
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent.mk-ps-search-open tr.searchRow.listViewSearchContainer , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listViewContent.mk-ps-search-open tr.searchRow.listViewSearchContainer {
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listViewContent.mk-ps-search-open tr.searchRow.listViewSearchContainer {
 	background: var(--mk-bg-elevated) !important;
 }
 
 /* Type pills — keep Product/Service colors in dark mode */
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--product , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--product {
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--product {
 	background: rgba(14, 165, 233, 0.18) !important;
 	color: #7dd3fc !important;
 	border-color: rgba(14, 165, 233, 0.35) !important;
 }
 
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--service , body[data-module="ProductsServices"][data-view="List"][data-app="INVENTORY"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--service {
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][data-app="SALES"] #listview-table td[data-name="item_type"] .value .mk-ps-type-pill--service {
 	background: rgba(139, 92, 246, 0.18) !important;
 	color: #c4b5fd !important;
 	border-color: rgba(139, 92, 246, 0.35) !important;
@@ -930,38 +930,38 @@ html[data-theme="dark"] body[data-module="ProductsServices"][data-view="List"][d
 /* ProductsServices detail — beat ProductsServicesDetail.css #fff !important */
 /* ========================================================================== */
 
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero-strip.detailview-header-block , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero-strip.detailview-header-block {
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero-strip.detailview-header-block {
 	background: var(--mk-card-bg) !important;
 	border-color: var(--mk-border-color) !important;
 	color: var(--mk-text-primary) !important;
 	box-shadow: var(--mk-shadow-card) !important;
 }
 
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__title, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__title,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__title .recordLabel, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__title .recordLabel,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__meta,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__subtitle, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__subtitle,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-text , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__meta-text {
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__title,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__title .recordLabel,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__subtitle,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-text {
 	color: var(--mk-text-primary) !important;
 }
 
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item--amount .mk-ps-detail-hero__meta-text , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-hero__meta-item--amount .mk-ps-detail-hero__meta-text {
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-hero__meta-item--amount .mk-ps-detail-hero__meta-text {
 	color: var(--mk-primary) !important;
 }
 
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .fieldBlockContainer , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--overview .fieldBlockContainer {
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .fieldBlockContainer {
 	background: var(--mk-card-bg) !important;
 	border-color: var(--mk-border-color) !important;
 }
 
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .fieldBlockHeader , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--overview .fieldBlockHeader {
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .fieldBlockHeader {
 	color: var(--mk-text-secondary) !important;
 	border-bottom-color: var(--mk-border-color) !important;
 }
 
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .table-borderless td.fieldLabel, body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--overview .table-borderless td.fieldLabel,
-html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .table-borderless td.fieldValue , body[data-module="ProductsServices"][data-view="Detail"][data-app="INVENTORY"] .mk-ps-detail-card--overview .table-borderless td.fieldValue {
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .table-borderless td.fieldLabel,
+html[data-theme="dark"] body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-ps-detail-card--overview .table-borderless td.fieldValue {
 	border-color: transparent !important;
 	color: var(--mk-text-primary) !important;
 }

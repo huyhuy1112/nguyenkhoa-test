@@ -21,13 +21,6 @@ $languageStrings = array(
 
 	// Blocks
 	'LBL_SO_INFORMATION' => 'Sales Order Details',
-	'Invoice Price Tier' => 'Price list',
-	'auto' => 'Automatic by order total',
-	'lt_1m' => 'Price under 1M',
-	'gte_1m' => 'Price from 1M',
-	'gte_3m' => 'Price from 3M',
-	'gte_5m' => 'Price from 5M',
-	'gte_7m' => 'Price from 7M',
 
 	//Field labels
 	'SalesOrder No'=>'Sales Order Number',

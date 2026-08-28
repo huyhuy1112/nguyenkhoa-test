@@ -2,47 +2,23 @@
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 <script type="text/javascript">document.documentElement.classList.add('mk-leads-ui-ready');</script>
-<script type="text/javascript">window.__MK_LEADS_UI_BUILD__ = "20260822_gd11_sheet1";</script>
+<script type="text/javascript">window.__MK_LEADS_UI_BUILD__ = "20260619_leads_api3";</script>
 <script type="text/javascript">window.MK_LEADS_API_READY = true;</script>
 {if isset($MK_LEADS_ASSIGNABLE_USERS)}
 <script type="text/javascript">window.MK_LEADS_ASSIGNABLE_USERS = {Zend_Json::encode($MK_LEADS_ASSIGNABLE_USERS)};</script>
 {/if}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkShell.css')}&mk_v=20260720_leads_font1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.css')}&mk_v=20260824_verify_btn_a1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkConvertModal.css')}?mk_v=20260727_convert_toast1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkTagPalette.css')}&mk_v=20260811_sheetmap_gui1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkListLovable.css')}&mk_v=20260820_bizmodel1" />
-<style type="text/css">
-/* Critical: remove 1px clipped input line beside circular checkbox */
-.mk-leads-page--lovable .mk-leads-check { position: relative; width: 16px; height: 16px; isolation: isolate; }
-.mk-leads-page--lovable .mk-leads-check__input {
-	position: absolute; inset: 0; width: 16px; height: 16px; margin: 0; padding: 0; opacity: 0;
-	border: 0 !important; outline: 0 !important; background: transparent !important;
-	-webkit-appearance: none; appearance: none; z-index: 2; cursor: pointer; box-shadow: none !important;
-}
-</style>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkShell.css')}&mk_v=20260520_2030" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.css')}&mk_v=20260612_leads_ba_v1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkConvertModal.css')}?mk_v=20260701_convert_modal_v1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkListLovable.css')}&mk_v=20260701_leads_bulk_convert2" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkMarketingListShared.css')}" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLovableRef.js')}&mk_v=20260811_sheetmap_gui1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsSeedData.js')}&mk_v=20260711_i18n_tags1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLocalStore.js')}&mk_v=20260811_sheetmap_gui1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLeadsLogic.js')}&mk_v=20260811_sheetmap_gui1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkIcons.js')}?mk_v=20260711_i18n_tags1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.js')}&mk_v=20260824_verify_btn_a1"></script>
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260820_sheet1" />
-<script type="text/javascript">
-window.__mkSalesPosInlineConfig = {
-	module: 'Leads',
-	drawer: true,
-	tableSelector: '#mk-leads-table',
-	rowSelector: 'tr.mk-leads-row',
-	colspan: 14,
-	enabledSelector: '[data-mk-leads-list]',
-	loadingText: 'Đang tải chi tiết lead...',
-	errorText: 'Không tải được chi tiết lead.'
-};
-</script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260820_sheet1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLovableRef.js')}&mk_v=20260612_leads_ba_v1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsSeedData.js')}&mk_v=20260612_leads_ba_v1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLocalStore.js')}&mk_v=20260625_leads_assign_v3"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLeadsLogic.js')}&mk_v=20260625_leads_assign_v1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkIcons.js')}?mk_v=20260701_leads_bulk_convert2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.js')}&mk_v=20260701_leads_bulk_convert2"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-leads-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

@@ -175,16 +175,6 @@
 			}
 		} catch (e) {}
 
-		/* Modern slim Create/Edit owns Opp name — skip auto YYMMDD suggest */
-		if (document.getElementById('mkOppCreateWorkspace')) {
-			var $slimForm = jQuery('form[name="EditView"], form#EditView');
-			var $slimName = $slimForm.find('[name="potentialname"]');
-			unlockField($slimName);
-			$slimName.closest('td').find('.js-auto-generated-hint').remove();
-			lockField($slimForm.find('[name="cf_859"]'), 'Auto-generated Project Code');
-			return;
-		}
-
 		var $form = jQuery('form[name="EditView"], form#EditView');
 		if (!$form.length) {
 			return;

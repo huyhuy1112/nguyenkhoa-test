@@ -20,6 +20,9 @@ class Invoice_Edit_View extends Inventory_Edit_View {
 		if ($app !== 'TOOLS' && $app !== 'SUPPORT' && $app !== 'SALES') {
 			$app = 'TOOLS';
 		}
+		if ($app === 'SALES') {
+			$app = 'TOOLS';
+		}
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
 		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));

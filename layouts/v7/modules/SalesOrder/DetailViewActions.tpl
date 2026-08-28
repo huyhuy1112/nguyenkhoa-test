@@ -34,13 +34,6 @@
 					<span class="mk-so-detail-btn__txt">{vtranslate($MK_BASIC_LBL, $MODULE_NAME)}</span>
 				</button>
 			{/foreach}
-			{assign var=MK_SOSTATUS value=$RECORD->get('sostatus')}
-			{if $MK_SOSTATUS neq 'shipped' && $MK_SOSTATUS neq 'Delivered' && $MK_SOSTATUS neq 'Đã giao'
-				&& $MK_SOSTATUS neq 'Hoàn thành' && $MK_SOSTATUS neq 'Cancelled' && $MK_SOSTATUS neq 'Đã hủy' && $MK_SOSTATUS neq 'Đã huỷ'}
-			<button type="button" class="btn btn-default mk-so-detail-btn mk-so-detail-btn--ghost mk-so-detail-cancel-order-btn" data-record-id="{$RECORD->getId()}" title="Huỷ đơn và hoàn kho (nếu đã trừ tồn)">
-				<span class="mk-so-detail-btn__txt">Huỷ đơn</span>
-			</button>
-			{/if}
 			{if !empty($DETAILVIEW_LINKS['DETAILVIEW']) && ($DETAILVIEW_LINKS['DETAILVIEW']|@count gt 0)}
 				<button type="button" class="btn btn-default mk-so-detail-btn mk-so-detail-btn--ghost dropdown-toggle" data-toggle="dropdown" href="javascript:void(0);">
 					<span class="mk-so-detail-btn__ic" aria-hidden="true"><svg class="mk-so-detail-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></span>

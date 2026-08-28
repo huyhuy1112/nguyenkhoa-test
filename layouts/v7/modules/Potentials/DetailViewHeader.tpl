@@ -8,7 +8,7 @@
 			{include file="DetailViewActions.tpl"|vtemplate_path:$MODULE}
 		</div>
 		<div class="mk-opportunity-detail-hero__tags">
-			{include file="DetailViewTagList.tpl"|vtemplate_path:$MODULE}
+			{include file="DetailViewTagList.tpl"|vtemplate_path:'Vtiger'}
 		</div>
 	</div>
 </div>

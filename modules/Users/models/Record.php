@@ -24,10 +24,6 @@ class Users_Record_Model extends Vtiger_Record_Model {
 	 * @return <object>
 	 */
 	public function get($key) {
-		if ($key === 'currency_symbol') {
-			require_once 'include/utils/MkCurrencyBranding.php';
-			return MkCurrencyBranding::normalizeSymbol(parent::get($key));
-		}
 		if(property_exists($this, $key)) {
 			return $this->$key;
 		}

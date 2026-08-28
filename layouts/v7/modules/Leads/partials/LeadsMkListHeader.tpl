@@ -11,9 +11,6 @@
 				<span class="mk-leads-btn__ic" id="mk-leads-import-ic" aria-hidden="true"></span>
 				<span class="mk-leads-btn__txt">{vtranslate('LBL_IMPORT', 'Vtiger')}</span>
 			</a>
-			<button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-leads-sheet-btn" title="Cấu hình Google Sheet (Admin)">
-				<span class="mk-leads-btn__txt">Google Sheet</span>
-			</button>
 			<div class="mk-leads-export-wrap" id="mk-leads-export-wrap">
 				<button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-leads-export-btn" aria-haspopup="true" aria-expanded="false">
 					<span class="mk-leads-btn__ic" id="mk-leads-export-ic" aria-hidden="true"></span>

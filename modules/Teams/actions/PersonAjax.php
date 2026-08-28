@@ -115,9 +115,10 @@ class Teams_PersonAjax_Action extends Vtiger_Action_Controller {
 
 		// Update user status
 		if ($status === 'Inactive') {
-			$response->setError('Không thể xoá/vô hiệu hoá tài khoản từ Teams. Vào Cài đặt → Người sử dụng.');
-			$response->emit();
-			return;
+			// Use Users module deleteRecord behavior (marks status Inactive)
+			$recordModel = Users_Record_Model::getInstanceById($userId, 'Users');
+			$usersModuleModel = Users_Module_Model::getInstance('Users');
+			$usersModuleModel->deleteRecord($recordModel);
 		} else {
 			// Reactivate user
 			$db->pquery("UPDATE vtiger_users SET status = 'Active', deleted = 0 WHERE id = ?", array($userId));

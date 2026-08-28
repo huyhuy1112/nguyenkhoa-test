@@ -163,7 +163,9 @@ class GoodsIssue_Edit_View extends Vtiger_Index_View {
 			'storage_location' => '',
 			'note' => '',
 		);
-		$items = array();
+		$items = array(
+			array('productid' => 0, 'product_name' => '', 'product_type' => 'Other', 'quantity' => 1, 'unit_price' => 0, 'description' => '', 'line_note' => ''),
+		);
 
 		if ($issueId > 0) {
 			$row = $this->loadIssue($db, $issueId);

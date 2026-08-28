@@ -24,7 +24,7 @@ class Potentials_CommerceApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string)$request->get('mode'));
-		if ($mode === 'link_order' || $mode === 'log_call') {
+		if ($mode === 'link_order') {
 			$request->validateWriteAccess();
 		}
 	}
@@ -32,11 +32,6 @@ class Potentials_CommerceApi_Action extends Vtiger_Action_Controller {
 	public function process(Vtiger_Request $request) {
 		$response = new Vtiger_Response();
 		$mode = strtolower((string)$request->get('mode'));
-
-		// Release session lock so Opp detail widgets / navigation are not blocked.
-		if (session_status() === PHP_SESSION_ACTIVE) {
-			@session_write_close();
-		}
 
 		try {
 			switch ($mode) {
@@ -96,38 +91,6 @@ class Potentials_CommerceApi_Action extends Vtiger_Action_Controller {
 						'success' => true,
 						'contracts' => $map[$id] ?? array(),
 					));
-					break;
-
-				case 'interaction_log':
-					$id = (int)$request->get('record');
-					if ($id <= 0) {
-						$id = (int)$request->get('id');
-					}
-					if ($id <= 0) {
-						throw new Exception('Opportunity id is required.');
-					}
-					require_once 'modules/Potentials/models/InteractionLogService.php';
-					$response->setResult(array(
-						'success' => true,
-						'log' => Potentials_InteractionLogService::getLog($id),
-					));
-					break;
-
-				case 'log_call':
-					$id = (int)$request->get('record');
-					if ($id <= 0) {
-						$id = (int)$request->get('id');
-					}
-					if ($id <= 0) {
-						throw new Exception('Opportunity id is required.');
-					}
-					require_once 'modules/Potentials/models/InteractionLogService.php';
-					$result = Potentials_InteractionLogService::logCall(
-						$id,
-						(string)$request->get('result'),
-						(string)$request->get('note')
-					);
-					$response->setResult($result);
 					break;
 
 				default:

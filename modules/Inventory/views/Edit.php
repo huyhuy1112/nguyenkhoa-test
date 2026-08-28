@@ -10,18 +10,6 @@
 
 Class Inventory_Edit_View extends Vtiger_Edit_View {
 
-	protected function isDuplicateRequest(Vtiger_Request $request) {
-		$flag = $request->get('isDuplicate');
-		if ($flag === true || $flag === 1 || $flag === '1') {
-			return true;
-		}
-		if (is_string($flag)) {
-			$normalized = strtolower(trim($flag));
-			return $normalized === 'true' || $normalized === 'yes' || $normalized === 'on';
-		}
-		return false;
-	}
-
 	public function process(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
 		$moduleName = $request->getModule();
@@ -34,7 +22,6 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 		}
 		$relatedProducts = null;
 		$currencyInfo = null;
-		$isDuplicate = $this->isDuplicateRequest($request);
 
 		$viewer->assign('MODE', '');
 		$viewer->assign('IS_DUPLICATE', false);
@@ -46,7 +33,7 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 			}
 			$relatedProducts = $recordModel->convertRequestToProducts($request);
 			$taxes = $relatedProducts[1]['final_details']['taxes'];
-		} else if(!empty($record)  && $isDuplicate) {
+		} else if(!empty($record)  && $request->get('isDuplicate') == true) {
 			$recordModel = Inventory_Record_Model::getInstanceById($record, $moduleName);
 			$currencyInfo = $recordModel->getCurrencyInfo();
 			$taxes = $recordModel->getProductTaxes();
@@ -103,13 +90,6 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 			if ($moduleName === 'SalesOrder' && $request->get('quote_id')) {
 				$recordModel->set('quote_id', $referenceId);
 			}
-			// Create Quote from Sales Order: draft stage, drop SO-only refs
-			if ($moduleName === 'Quotes' && $request->get('salesorder_id')) {
-				if ($recordModel->getModule()->getField('quotestage')) {
-					$recordModel->set('quotestage', 'Created');
-				}
-				$recordModel->set('subject', trim((string) $parentRecordModel->get('subject')));
-			}
 		} else {
 			$taxes = Inventory_Module_Model::getAllProductTaxes();
 			$recordModel = Vtiger_Record_Model::getCleanInstance($moduleName);
@@ -140,12 +120,6 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 			} elseif ($sourceRecord && in_array($sourceModule, array('HelpDesk', 'Leads'))) {
 				$parentRecordModel = Vtiger_Record_Model::getInstanceById($sourceRecord, $sourceModule);
 				$relatedProducts = $recordModel->getParentRecordRelatedLineItems($parentRecordModel);
-			}
-
-			// Prefill Quote from ServiceContracts (Tuibao — Khách hàng nhượng quyền)
-			$scId = (int) $request->get('servicecontract_id');
-			if ($scId > 0 && $moduleName === 'Quotes' && empty($record)) {
-				$this->applyServiceContractPrefillToQuote($recordModel, $scId, $viewer);
 			}
 		}
 
@@ -181,7 +155,7 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 			$viewer->assign('SOURCE_MODULE', $sourceModule);
 			$viewer->assign('SOURCE_RECORD', $sourceRecord);
 		}
-		if(!empty($record)  && $isDuplicate) {
+		if(!empty($record)  && $request->get('isDuplicate') == true) {
 			$viewer->assign('IS_DUPLICATE',true);
 		} else {
 			$viewer->assign('IS_DUPLICATE',false);
@@ -213,25 +187,6 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('CURRENCINFO', $currencyInfo);
 		$viewer->assign('CURRENCIES', $currencies);
 		$viewer->assign('TERMSANDCONDITIONS', $termsAndConditions);
-
-		// Price channel: Tuibao franchise vs retail invoice tiers
-		$priceChannel = 'retail';
-		$scPrefillId = (int) $request->get('servicecontract_id');
-		if ($scPrefillId > 0) {
-			$priceChannel = 'tuibao';
-		} else {
-			$accountId = 0;
-			if ($recordModel) {
-				$accountId = (int) $recordModel->get('account_id');
-			}
-			if ($accountId > 0 && is_file('modules/ProductsServices/models/PricingEngine.php')) {
-				require_once 'modules/ProductsServices/models/PricingEngine.php';
-				if (ProductsServices_PricingEngine_Model::isTuibaoAccount($accountId)) {
-					$priceChannel = 'tuibao';
-				}
-			}
-		}
-		$viewer->assign('MK_PRICE_CHANNEL', $priceChannel);
 
 		$productModuleModel = Vtiger_Module_Model::getInstance('Products');
 		$viewer->assign('PRODUCT_ACTIVE', $productModuleModel->isActive());
@@ -291,77 +246,6 @@ Class Inventory_Edit_View extends Vtiger_Edit_View {
 		$jsFileNames[] = $modulePopUpFile;
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
 		return $jsScriptInstances;
-	}
-
-	/**
-	 * Prefill Quote create form from ServiceContracts (Tuibao franchise customer).
-	 *
-	 * @param Vtiger_Record_Model $recordModel
-	 * @param int $serviceContractId
-	 * @param Vtiger_Viewer $viewer
-	 */
-	protected function applyServiceContractPrefillToQuote($recordModel, $serviceContractId, $viewer) {
-		$serviceContractId = (int) $serviceContractId;
-		if ($serviceContractId <= 0 || !$recordModel) {
-			return;
-		}
-		$db = PearDatabase::getInstance();
-		$rs = $db->pquery(
-			"SELECT sc.servicecontractsid, sc.subject, sc.sc_related_to,
-			        p.phone, p.email, p.business_note, p.address_line
-			 FROM vtiger_servicecontracts sc
-			 INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecontractsid AND ce.deleted = 0
-			 LEFT JOIN bace_sc_profile p ON p.servicecontractsid = sc.servicecontractsid
-			 WHERE sc.servicecontractsid = ?
-			 LIMIT 1",
-			array($serviceContractId)
-		);
-		if (!$rs || $db->num_rows($rs) === 0) {
-			return;
-		}
-		$name = decode_html((string) $db->query_result($rs, 0, 'subject'));
-		$accountId = (int) $db->query_result($rs, 0, 'sc_related_to');
-		$phone = decode_html((string) $db->query_result($rs, 0, 'phone'));
-		$email = decode_html((string) $db->query_result($rs, 0, 'email'));
-		$businessNote = trim(decode_html((string) $db->query_result($rs, 0, 'business_note')));
-		$addressLine = trim(decode_html((string) $db->query_result($rs, 0, 'address_line')));
-		// Địa chỉ kinh doanh (business_note) — fallback address_line.
-		$address = $businessNote !== '' ? $businessNote : $addressLine;
-
-		if ($name !== '') {
-			$recordModel->set('subject', $name);
-		}
-		if ($accountId > 0 && $recordModel->getModule()->getField('account_id')) {
-			$recordModel->set('account_id', $accountId);
-		}
-		if ($phone !== '' && $recordModel->getModule()->getField('mk_customer_phone')) {
-			$recordModel->set('mk_customer_phone', preg_replace('/\D+/', '', $phone));
-		}
-		if ($email !== '' && $recordModel->getModule()->getField('mk_customer_email')) {
-			$recordModel->set('mk_customer_email', $email);
-		}
-		if ($address !== '') {
-			if ($recordModel->getModule()->getField('bill_street')) {
-				$recordModel->set('bill_street', $address);
-			}
-			if ($recordModel->getModule()->getField('ship_street')) {
-				$recordModel->set('ship_street', $address);
-			}
-		}
-		if ($viewer) {
-			$prefill = array(
-				'id' => $serviceContractId,
-				'name' => $name,
-				'phone' => $phone,
-				'email' => $email,
-				'account_id' => $accountId,
-				'address' => $address,
-				'business_note' => $businessNote,
-			);
-			$viewer->assign('MK_SC_PREFILL', $prefill);
-			$viewer->assign('MK_SC_PREFILL_JSON', Zend_Json::encode($prefill));
-			$viewer->assign('MK_SERVICECONTRACT_ID', $serviceContractId);
-		}
 	}
 
 }

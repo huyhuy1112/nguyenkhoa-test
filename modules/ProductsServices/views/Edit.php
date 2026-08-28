@@ -10,7 +10,7 @@ class ProductsServices_Edit_View extends Vtiger_Edit_View {
 			return false;
 		}
 		$app = strtoupper((string)$request->get('app'));
-		return $app === 'INVENTORY' || $app === 'SALES' || $app === '';
+		return $app === 'SALES' || $app === '';
 	}
 
 	protected function assignModernContext(Vtiger_Request $request) {
@@ -20,9 +20,7 @@ class ProductsServices_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
 		$viewer->assign('MODULE_MODEL', Vtiger_Module_Model::getInstance($moduleName));
-		$app = strtoupper((string)$request->get('app'));
-		$menuCategory = ($app === 'SALES') ? 'SALES' : 'INVENTORY';
-		$viewer->assign('SELECTED_MENU_CATEGORY', $menuCategory);
+		$viewer->assign('SELECTED_MENU_CATEGORY', 'SALES');
 		$viewer->assign('VIEW', 'Edit');
 		$viewer->assign('MENU_SELECTED_MODULENAME', 'ProductsServices');
 		$viewer->assign('MK_MODERN_PRODUCTSSERVICES_CREATE', true);

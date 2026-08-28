@@ -3,6 +3,8 @@
  * Scope: body[data-module="Accounts"][data-view="Edit"]
  */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
 :root {
 	--mk-ac-yellow: #08A045;
 	--mk-ac-navy: #40627E;
@@ -136,7 +138,7 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-create,
 body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-ac-create {
 	font-family: var(--mk-ac-font);
 	color: var(--mk-ac-text);
-	padding: 20px 32px 40px;
+	padding: 24px 40px 56px;
 	width: 100%;
 	max-width: none;
 	margin: 0;
@@ -150,7 +152,7 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-ac-form-h
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host [name="editContent"],
 body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-ac-form-host [name="editContent"] {
 	width: 100%;
-	max-width: 960px;
+	max-width: 1120px;
 	margin-left: auto;
 	margin-right: auto;
 	box-sizing: border-box;
@@ -182,12 +184,12 @@ body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-ac-form-h
 /* ========== Page header (create) ========== */
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-page-head,
 body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-ac-page-head {
-	margin-bottom: 18px;
-	padding: 18px 22px;
-	max-width: 960px;
+	margin-bottom: 24px;
+	padding: 22px 28px;
+	max-width: 1120px;
 	margin-left: auto;
 	margin-right: auto;
-	border-radius: 14px;
+	border-radius: 18px;
 	background: var(--mk-ac-white);
 	border: 1px solid var(--mk-ac-border);
 	box-shadow: var(--mk-ac-shadow);
@@ -831,16 +833,16 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-timeline__item time {
 
 /* ========== Form blocks — Project Task–style (wide, label above field) ========== */
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block {
-	margin-bottom: 16px;
-	padding: 16px 20px 18px;
-	border-radius: 14px;
+	margin-bottom: 28px;
+	padding: 28px 32px 32px;
+	border-radius: 18px;
 	background: var(--mk-ac-white);
 	border: 1px solid #e2e8f0;
 	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
 	width: 100%;
 	box-sizing: border-box;
 	position: relative;
-	overflow: visible;
+	overflow: hidden;
 }
 
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block::before {
@@ -857,35 +859,17 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block::be
 
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .fieldBlockHeader,
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .mk-ac-block__header {
-	display: flex !important;
-	align-items: center;
-	gap: 10px;
+	display: block !important;
 	font-family: var(--mk-ac-display);
-	font-size: 1.05rem;
+	font-size: 1.45rem;
 	font-weight: 700;
 	color: var(--mk-ac-navy);
-	text-transform: none;
-	letter-spacing: 0;
-	margin: 0 0 12px 0 !important;
-	padding: 0 0 8px 0 !important;
-	border-bottom: 1px solid rgba(8, 160, 69, 0.35);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin: 0 0 28px 0 !important;
+	padding: 0 0 14px 10px !important;
+	border-bottom: 2px solid rgba(8, 160, 69, 0.45);
 	line-height: 1.3;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .mk-ac-block__icon {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 28px;
-	height: 28px;
-	border-radius: 8px;
-	background: rgba(8, 160, 69, 0.12);
-	color: var(--mk-ac-navy);
-	flex-shrink: 0;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .mk-ac-block__icon .fa {
-	font-size: 13px;
 }
 
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table.table,
@@ -901,43 +885,31 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > t
 	width: 100%;
 }
 
-/* Each row — compact grid after JS reflow */
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr.mk-ac-field-row {
+/* Each vtiger row → 2-column grid; label stacked above input */
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr {
 	display: grid !important;
-	column-gap: 20px;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	column-gap: 40px;
 	row-gap: 0;
 	width: 100%;
-	margin: 0 0 12px;
+	margin: 0 0 28px;
 	padding: 0;
 	border: none;
 	box-sizing: border-box;
 }
 
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr.mk-ac-row--full {
-	grid-template-columns: 1fr !important;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr.mk-ac-row--pair {
-	grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr.mk-ac-row--triple {
-	grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr.mk-ac-row--triple > td.fieldLabel:nth-child(1) { grid-column: 1; grid-row: 1; }
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr.mk-ac-row--triple > td.fieldValue:nth-child(2) { grid-column: 1; grid-row: 2; }
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr.mk-ac-row--triple > td.fieldLabel:nth-child(3) { grid-column: 2; grid-row: 1; }
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr.mk-ac-row--triple > td.fieldValue:nth-child(4) { grid-column: 2; grid-row: 2; }
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr.mk-ac-row--triple > td.fieldLabel:nth-child(5) { grid-column: 3; grid-row: 1; }
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr.mk-ac-row--triple > td.fieldValue:nth-child(6) { grid-column: 3; grid-row: 2; }
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr.mk-ac-field-row:last-child {
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:last-child {
 	margin-bottom: 0;
 }
 
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:not(.mk-ac-field-row) {
-	display: none !important;
+/* Single full-width field (description, etc.) */
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:has(> td.fieldValueWidth80),
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:has(> td.fieldValue[colspan]) {
+	grid-template-columns: 1fr !important;
+}
+
+body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr:not(:has(> td.fieldLabel ~ td.fieldLabel)) {
+	grid-template-columns: 1fr !important;
 }
 
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td {
@@ -961,16 +933,16 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td:
 }
 
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldLabel {
-	font-size: 12px !important;
+	font-size: 13px !important;
 	font-weight: 600 !important;
 	color: #475569 !important;
-	line-height: 1.35;
-	padding: 0 0 5px !important;
+	line-height: 1.4;
+	padding: 0 0 10px !important;
 	text-align: left !important;
 }
 
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue {
-	padding: 0 0 2px !important;
+	padding: 0 0 4px !important;
 	min-width: 0;
 }
 
@@ -1021,17 +993,14 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .re
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group,
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .referencefield-wrapper .input-group {
 	display: flex !important;
-	align-items: stretch !important;
+	align-items: center !important;
 	flex-wrap: nowrap;
 	width: 100% !important;
 	max-width: 100% !important;
-	height: 40px !important;
-	min-height: 40px !important;
-	max-height: 40px !important;
 	margin: 0 !important;
 	border: 1px solid #e2e8f0 !important;
 	border-radius: 12px !important;
-	overflow: hidden !important;
+	overflow: hidden;
 	background: #fafafa !important;
 	box-shadow: none !important;
 	box-sizing: border-box;
@@ -1054,9 +1023,8 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .in
 	min-width: 0;
 	width: auto !important;
 	max-width: none !important;
-	height: 100% !important;
-	min-height: 0 !important;
-	max-height: none !important;
+	height: 46px !important;
+	min-height: 46px !important;
 	margin: 0 !important;
 	padding: 0 14px !important;
 	border: none !important;
@@ -1064,19 +1032,16 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .in
 	box-shadow: none !important;
 	background: transparent !important;
 	font-size: 15px !important;
-	line-height: 38px !important;
+	line-height: 46px !important;
 	box-sizing: border-box !important;
 }
 
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon {
-	flex: 0 0 36px;
-	width: 36px !important;
-	min-width: 36px !important;
-	max-width: 36px !important;
-	height: auto !important;
-	min-height: 0 !important;
-	max-height: none !important;
-	align-self: stretch !important;
+	flex: 0 0 48px;
+	width: 48px;
+	min-width: 48px;
+	height: 46px !important;
+	min-height: 46px !important;
 	margin: 0 !important;
 	padding: 0 !important;
 	border: none !important;
@@ -1088,7 +1053,7 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .in
 	justify-content: center !important;
 	box-shadow: none !important;
 	line-height: 1 !important;
-	font-size: 12px !important;
+	font-size: 15px !important;
 	font-weight: 600;
 	color: #64748b;
 	text-align: center;
@@ -1099,59 +1064,14 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .in
 	border-right: 1px solid #e2e8f0 !important;
 }
 
-/* Currency ₫ prefix — compact, not oversized */
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group:has(.currencyField) .input-group-addon:first-child,
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon.currency-symbol,
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon:first-child {
-	flex: 0 0 32px;
-	width: 32px !important;
-	min-width: 32px !important;
-	max-width: 32px !important;
-	font-size: 12px !important;
-	font-weight: 500 !important;
-	letter-spacing: 0;
-	line-height: 1 !important;
-	color: #94a3b8 !important;
-	background: #f8fafc !important;
-	text-decoration: none !important;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon:first-child,
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon:first-child * {
-	text-decoration: none !important;
-	font-size: 12px !important;
-	font-weight: 500 !important;
-	line-height: 1 !important;
-}
-
-/* Date calendar addon — flush with field, soft icon */
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group:has(.dateField) .input-group-addon,
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group.inputElement .input-group-addon {
-	flex: 0 0 38px;
-	width: 38px !important;
-	min-width: 38px !important;
-	max-width: 38px !important;
-	background: #f8fafc !important;
-	color: #64748b !important;
-	cursor: pointer;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group:has(.dateField) .input-group-addon:hover,
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group.inputElement .input-group-addon:hover {
-	background: #eef2f7 !important;
-	color: var(--mk-ac-navy) !important;
-}
-
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon .fa,
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon i {
 	display: block !important;
 	line-height: 1 !important;
 	margin: 0 !important;
-	padding: 0 !important;
-	font-size: 13px !important;
-	color: inherit !important;
+	font-size: 14px !important;
+	color: #64748b !important;
 	vertical-align: middle;
-	cursor: pointer;
 }
 
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .input-group .input-group-addon.relatedPopup:hover,
@@ -1168,7 +1088,7 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .in
 	justify-content: center !important;
 	margin: 0 4px;
 	padding: 0 10px;
-	height: 28px;
+	height: 32px;
 	min-width: 28px;
 	border: none !important;
 	border-radius: 8px;
@@ -1176,26 +1096,6 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .in
 	color: #475569;
 	text-decoration: none;
 	line-height: 1;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-field-error {
-	margin-top: 6px;
-	font-size: 12px;
-	font-weight: 500;
-	color: #dc2626;
-	line-height: 1.35;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > input.mk-ac-input-invalid,
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .mk-ac-input-invalid {
-	border-color: #fca5a5 !important;
-	background: #fff7f7 !important;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .datepicker.dropdown-menu,
-body[data-module="Accounts"][data-view="Edit"] .datepicker.datepicker-dropdown {
-	z-index: 10600 !important;
-	pointer-events: auto !important;
 }
 
 /* Checkbox / boolean — compact (not full-width text field) */
@@ -1234,8 +1134,8 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .form-control:not([type="checkbox"]) {
 	width: 100% !important;
 	max-width: 100% !important;
-	min-height: 40px !important;
-	padding: 10px 14px !important;
+	min-height: 46px !important;
+	padding: 12px 16px !important;
 	border-radius: 12px !important;
 	border: 1px solid #e2e8f0 !important;
 	background: #fafafa !important;
@@ -1247,7 +1147,7 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.
 
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > textarea.inputElement,
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > textarea.form-control {
-	min-height: 88px !important;
+	min-height: 120px !important;
 	resize: vertical;
 }
 
@@ -1262,8 +1162,8 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.
 	border-radius: 12px !important;
 	background: #fafafa !important;
 	padding: 0 !important;
-	height: 40px !important;
-	min-height: 40px !important;
+	height: 46px !important;
+	min-height: 46px !important;
 	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
 }
 
@@ -1284,8 +1184,8 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .se
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .select2-container--default .select2-selection--multiple {
 	display: flex !important;
 	align-items: center !important;
-	height: 40px !important;
-	min-height: 40px !important;
+	height: 46px !important;
+	min-height: 46px !important;
 	padding: 0 36px 0 0 !important;
 	border-radius: 0 !important;
 	border: none !important;
@@ -1296,7 +1196,7 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .se
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .select2-container--default .select2-selection--single .select2-selection__rendered {
 	flex: 1 1 auto;
 	padding: 0 14px !important;
-	line-height: 40px !important;
+	line-height: 46px !important;
 }
 
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block .select2-container--default .select2-selection--single .select2-selection__arrow {
@@ -1386,8 +1286,8 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.
 	border-radius: 0 !important;
 	background: transparent !important;
 	box-shadow: none !important;
-	height: 40px !important;
-	min-height: 40px !important;
+	height: 46px !important;
+	min-height: 46px !important;
 	line-height: normal !important;
 	padding: 0 40px 0 14px !important;
 	box-sizing: border-box !important;
@@ -1396,7 +1296,7 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container .select2-chosen,
 body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block td.fieldValue > .select2-container .select2-choice > span:first-child {
 	display: block;
-	line-height: 40px !important;
+	line-height: 46px !important;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -1478,21 +1378,9 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-float-bar__keys kbd {
 	}
 }
 
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-franchise-hint {
-	margin: -4px 0 10px;
-	padding: 8px 10px;
-	border-radius: 8px;
-	background: #f3f7f4;
-	border: 1px solid #d7e6db;
-	color: #3d5a45;
-	font-size: 12px;
-	line-height: 1.4;
-}
-
 @media (max-width: 900px) {
-	body[data-module="Accounts"][data-view="Edit"] .mk-ac-create,
-	body[data-module="Accounts"][data-view="Edit"][data-app="SUPPORT"] .mk-ac-create {
-		padding: 16px 16px 32px;
+	body[data-module="Accounts"][data-view="Edit"] .mk-ac-create {
+		padding: 16px 16px 48px;
 	}
 
 	body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr {
@@ -1508,123 +1396,17 @@ body[data-module="Accounts"][data-view="Edit"] .mk-ac-franchise-hint {
 		grid-row: 3 !important;
 	}
 
-	body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr.mk-ac-row--triple > td.fieldLabel:nth-child(5),
-	body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr.mk-ac-row--triple > td.fieldValue:nth-child(6) {
-		grid-column: 1 !important;
+	body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr > td.fieldValue:nth-child(4) {
+		grid-row: 4 !important;
 	}
-
-	body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr.mk-ac-row--triple > td.fieldLabel:nth-child(5) {
-		grid-row: 5 !important;
+	body[data-module="Accounts"][data-view="Edit"] .mk-ac-choice-row--3,
+	body[data-module="Accounts"][data-view="Edit"] .mk-ac-choice-row--4 {
+		grid-template-columns: 1fr 1fr;
 	}
-
-	body[data-module="Accounts"][data-view="Edit"] .mk-ac-form-host .mk-ac-block > table > tbody > tr.mk-ac-row--triple > td.fieldValue:nth-child(6) {
-		grid-row: 6 !important;
+	body[data-module="Accounts"][data-view="Edit"] .mk-ac-float-bar {
+		left: 16px;
+		right: 16px;
+		flex-direction: column;
+		align-items: stretch;
 	}
-}
-
-/* SC customer picker on Hợp đồng create */
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-search-wrap {
-	position: relative;
-	width: 100%;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-select-box {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	width: 100%;
-	min-height: 40px;
-	border-radius: 10px;
-	border: 1px solid rgba(64, 98, 126, 0.22);
-	padding: 8px 12px;
-	font-size: 14px;
-	background: #fff;
-	box-sizing: border-box;
-	cursor: pointer;
-	user-select: none;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-select-box:hover {
-	border-color: #4caf50;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-select-label {
-	color: #94a3b8;
-	flex: 1;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-select-label--chosen {
-	color: #1e293b;
-	font-weight: 500;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-select-arrow {
-	margin-left: 8px;
-	color: #94a3b8;
-	font-size: 12px;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-drop-panel {
-	position: absolute;
-	z-index: 999;
-	top: 100%;
-	left: 0;
-	right: 0;
-	background: #fff;
-	border: 1px solid rgba(64, 98, 126, 0.22);
-	border-top: none;
-	border-radius: 0 0 10px 10px;
-	box-shadow: 0 6px 16px rgba(0,0,0,0.10);
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-search-input {
-	width: 100% !important;
-	min-height: 36px;
-	border: none;
-	border-bottom: 1px solid #e2e8f0;
-	border-radius: 0;
-	padding: 8px 12px;
-	font-size: 14px;
-	background: #f8fafc;
-	box-sizing: border-box;
-	outline: none;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-search-results {
-	max-height: 220px;
-	overflow-y: auto;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-search-item {
-	padding: 8px 12px;
-	cursor: pointer;
-	font-size: 14px;
-	border-bottom: 1px solid #f1f5f9;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-search-item:hover,
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-search-item:focus {
-	background: #e8f5e9;
-	outline: none;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-search-phone {
-	color: #64748b;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-search-empty {
-	padding: 12px;
-	color: #94a3b8;
-	text-align: center;
-	font-size: 13px;
-}
-
-body[data-module="Accounts"][data-view="Edit"] .mk-ac-sc-pick-hint {
-	margin-top: 6px;
-	font-size: 12px;
-	color: #64748b;
-	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }

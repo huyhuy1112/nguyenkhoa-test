@@ -33,7 +33,7 @@ class Quotes_ExportExcelForSale_Action extends Vtiger_Action_Controller {
 			require_once 'libraries/PHPExcel/PHPExcel.php';
 
 			$objPHPExcel = Quotes_QuoteExcelExport_Helper::buildSaleWorkbook($focus, $moduleName);
-			$fileName = Quotes_QuoteExcelExport_Helper::buildSaleFilename($focus, $recordId, $moduleName);
+			$fileName = Quotes_QuoteExcelExport_Helper::buildSaleFilename($focus, $recordId);
 
 			header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 			header('Content-Disposition: attachment;filename="' . $fileName . '"');

@@ -101,8 +101,23 @@ class ProjectTaskHandler extends VTEventHandler {
 			// Send assign notification if owner changed or new record
 			if ($shouldNotify) {
 				$message = "Bạn được assign vào Project Task: " . $taskName;
-				require_once 'modules/Vtiger/models/NotificationService.php';
-				Vtiger_NotificationService::createIfEnabled($newOwnerId, 'ProjectTask', $recordId, $message, 'assign', 'project_assign');
+				$insertSql = "INSERT INTO vtiger_notifications (userid, module, recordid, message, created_at) VALUES (?, 'ProjectTask', ?, ?, NOW())";
+				$insertResult = $adb->pquery($insertSql, array($newOwnerId, $recordId, $message));
+				
+				// DEBUG: Log insert result
+				if ($log) {
+					if ($insertResult) {
+						$insertId = $adb->getLastInsertID();
+						$log->debug("[ProjectTaskHandler] Notification inserted successfully. ID: $insertId, User: $newOwnerId, Record: $recordId");
+					} else {
+						$log->error("[ProjectTaskHandler] Failed to insert notification. User: $newOwnerId, Record: $recordId");
+					}
+				}
+			} else {
+				// DEBUG: Log why notification was not sent
+				if ($log) {
+					$log->debug("[ProjectTaskHandler] Notification NOT sent. isNew: " . ($isNew ? 'true' : 'false') . ", shouldNotify: false, changes: " . (empty($changes) ? 'empty' : json_encode($changes)));
+				}
 			}
 
 			// ALWAYS check deadline reminder (regardless of assign notification)
@@ -135,8 +150,12 @@ class ProjectTaskHandler extends VTEventHandler {
 						
 						// Send reminder notification
 						$reminderMessage = "Project Task \"$taskName\" sắp đến hạn trong $daysUntilDeadline ngày (Deadline: $endDate)";
-						require_once 'modules/Vtiger/models/NotificationService.php';
-						Vtiger_NotificationService::createIfEnabled($newOwnerId, 'ProjectTask', $recordId, $reminderMessage, 'reminder', 'project_reminder');
+						$reminderSql = "INSERT INTO vtiger_notifications (userid, module, recordid, message, created_at) VALUES (?, 'ProjectTask', ?, ?, NOW())";
+						$adb->pquery($reminderSql, array($newOwnerId, $recordId, $reminderMessage));
+						
+						if ($log) {
+							$log->debug("[ProjectTaskHandler] Deadline reminder sent for ProjectTask $recordId to user $newOwnerId");
+						}
 					}
 				}
 			}

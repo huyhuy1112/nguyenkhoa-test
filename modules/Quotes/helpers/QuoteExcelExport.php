@@ -7,143 +7,9 @@ require_once 'modules/Quotes/helpers/QuoteBaService.php';
 
 class Quotes_QuoteExcelExport_Helper {
 
-	const FONT = 'Arial';
+	const FONT = 'Arial Unicode MS';
 	const COL_FIRST = 'B';
 	const COL_LAST = 'H';
-
-	// Nguyên Khoa defaults (used when org profile still has TDB placeholders)
-	const NK_COMPANY_NAME = 'nguyenlieuphachemt';
-	const NK_ADDRESS = '6/24 Đường số 3, Cư Xá Lữ Gia, Phú Thọ, Hồ Chí Minh';
-	const NK_PHONE = '0973969498';
-
-	protected static function resolveNguyenKhoaLogoPath() {
-		global $root_directory;
-		$candidates = array(
-			'layouts/v7/modules/Quotes/resources/images/nguyenkhoa-excel-logo.png',
-			'layouts/v7/resources/Images/nguyenkhoa-logo.png',
-			'layouts/v7/skins/images/nguyenkhoa-logo.png',
-		);
-		$roots = array();
-		if (!empty($root_directory)) {
-			$roots[] = rtrim((string) $root_directory, "/\\");
-		}
-		$repoRoot = realpath(dirname(__FILE__) . '/../../..');
-		if ($repoRoot) {
-			$roots[] = $repoRoot;
-		}
-		$cwd = getcwd();
-		if ($cwd) {
-			$roots[] = rtrim((string) $cwd, "/\\");
-		}
-		foreach ($candidates as $rel) {
-			foreach (array_values(array_unique($roots)) as $root) {
-				$abs = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $rel);
-				if (Quotes_QuoteBaService_Helper::isValidQuoteLogoImage($abs)) {
-					return $abs;
-				}
-			}
-		}
-		return '';
-	}
-
-	protected static function applyNguyenKhoaCompanyBranding(array $company) {
-		$logo = self::resolveNguyenKhoaLogoPath();
-		if ($logo !== '') {
-			$company['logo_path'] = $logo;
-		}
-
-		// Preview always uses NK identity — keep Excel download identical.
-		$company['company_name'] = self::NK_COMPANY_NAME;
-		$company['address'] = self::NK_ADDRESS;
-		$company['phone'] = self::NK_PHONE;
-		return $company;
-	}
-
-	protected static function formatMoneyVn($amount) {
-		return number_format((float) $amount, 0, ',', '.');
-	}
-
-	protected static function formatDateViLong($dateDmY) {
-		$raw = trim((string) $dateDmY);
-		if ($raw === '') {
-			return 'Ngày ' . date('d') . ' tháng ' . date('m') . ' năm ' . date('Y');
-		}
-		// Prefer explicit d/m/Y (or d-m-Y) — never rely on strtotime MM/DD ambiguity.
-		if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $raw, $m)) {
-			$day = (int) $m[1];
-			$month = (int) $m[2];
-			$year = (int) $m[3];
-			if ($month >= 1 && $month <= 12 && $day >= 1 && $day <= 31) {
-				return 'Ngày ' . sprintf('%02d', $day) . ' tháng ' . sprintf('%02d', $month) . ' năm ' . $year;
-			}
-		}
-		// DB datetime: 2026-07-11 12:34:56
-		if (preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $raw, $m)) {
-			return 'Ngày ' . $m[3] . ' tháng ' . $m[2] . ' năm ' . $m[1];
-		}
-		$ts = strtotime($raw);
-		if ($ts) {
-			return 'Ngày ' . date('d', $ts) . ' tháng ' . date('m', $ts) . ' năm ' . date('Y', $ts);
-		}
-		return $raw;
-	}
-
-	/**
-	 * Build d/m/Y from CRM datetime / date fields without MM/DD swap.
-	 */
-	protected static function toDayMonthYear($raw) {
-		$raw = trim((string) $raw);
-		if ($raw === '') {
-			return date('d/m/Y');
-		}
-		if (preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $raw, $m)) {
-			return $m[3] . '/' . $m[2] . '/' . $m[1];
-		}
-		if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $raw, $m)) {
-			$a = (int) $m[1];
-			$b = (int) $m[2];
-			$year = $m[3];
-			// If first part > 12 it must be day (d/m/Y).
-			if ($a > 12 && $b >= 1 && $b <= 12) {
-				return sprintf('%02d/%02d/%s', $a, $b, $year);
-			}
-			// If second part > 12 it must be m/d/Y → swap to d/m/Y.
-			if ($b > 12 && $a >= 1 && $a <= 12) {
-				return sprintf('%02d/%02d/%s', $b, $a, $year);
-			}
-			// Ambiguous: treat as d/m/Y (VN).
-			return sprintf('%02d/%02d/%s', $a, $b, $year);
-		}
-		$ts = strtotime($raw);
-		if ($ts) {
-			return date('d/m/Y', $ts);
-		}
-		return date('d/m/Y');
-	}
-
-	protected static function setTextCell(PHPExcel_Worksheet $sheet, $cell, $value) {
-		$sheet->setCellValueExplicit($cell, (string) $value, PHPExcel_Cell_DataType::TYPE_STRING);
-	}
-
-	/**
-	 * Prefer SO/Quote description (Ghi chú). Ignore default English terms boilerplate.
-	 */
-	protected static function resolveExportNotes(CRMEntity $focus, $termsHtml = '') {
-		$notes = trim(self::decode($focus->column_fields['description'] ?? ''));
-		if ($notes === '') {
-			$notes = trim(self::stripTermsHtml($termsHtml));
-			$notes = preg_replace('/^\s*1\.\s*Thông tin sản phẩm:\s*/iu', '', (string) $notes);
-			$notes = preg_replace('/^\s*2\.\s*Điều khoản.*$/ium', '', (string) $notes);
-			$notes = trim((string) $notes);
-		}
-		if ($notes !== '' && (
-			stripos($notes, 'Unless otherwise agreed') !== false
-			|| stripos($notes, 'all invoices are payable') !== false
-		)) {
-			$notes = '';
-		}
-		return $notes;
-	}
 
 	protected static function colRange($row, $from = self::COL_FIRST, $to = self::COL_LAST) {
 		return $from . $row . ':' . $to . $row;
@@ -265,17 +131,17 @@ class Quotes_QuoteExcelExport_Helper {
 		$range = self::colRange($row);
 		$sheet->getStyle($range)->applyFromArray(array(
 			'fill' => array(
-				'type' => PHPExcel_Style_Fill::FILL_NONE,
+				'type' => PHPExcel_Style_Fill::FILL_SOLID,
+				'color' => array('rgb' => 'D9D9D9'),
 			),
-			'font' => array('bold' => true, 'name' => self::FONT, 'size' => 10, 'color' => array('rgb' => '111111')),
+			'font' => array('bold' => true, 'name' => self::FONT, 'size' => 10),
 			'alignment' => array(
 				'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
 				'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER,
 				'wrap' => true,
 			),
 			'borders' => array(
-				'top' => array('style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('rgb' => '111111')),
-				'bottom' => array('style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('rgb' => '111111')),
+				'allborders' => array('style' => PHPExcel_Style_Border::BORDER_THIN),
 			),
 		));
 	}
@@ -350,7 +216,7 @@ class Quotes_QuoteExcelExport_Helper {
 
 	protected static function gatherQuoteContext(CRMEntity $focus) {
 		require_once 'modules/Quotes/helpers/QuoteBaService.php';
-		$company = self::applyNguyenKhoaCompanyBranding(Quotes_QuoteBaService_Helper::getCompanyProfile());
+		$company = Quotes_QuoteBaService_Helper::getCompanyProfile();
 
 		$accountName = '';
 		$phone = '';
@@ -399,55 +265,18 @@ class Quotes_QuoteExcelExport_Helper {
 		}
 
 		$quoteNo = $focus->column_fields['quote_no'] ?? '';
-		if ($quoteNo === '' && !empty($focus->column_fields['salesorder_no'])) {
-			$quoteNo = $focus->column_fields['salesorder_no'];
-		}
-		$quoteDate = '';
-		if (!empty($focus->column_fields['createdtime'])) {
-			$quoteDate = self::toDayMonthYear($focus->column_fields['createdtime']);
-		} elseif (!empty($focus->column_fields['mk_quote_date'])) {
-			$quoteDate = self::toDayMonthYear($focus->column_fields['mk_quote_date']);
-		} elseif (!empty($focus->column_fields['duedate'])) {
-			$quoteDate = self::toDayMonthYear($focus->column_fields['duedate']);
+		$quoteDate = $focus->column_fields['mk_quote_date'] ?? '';
+		if ($quoteDate === '' && !empty($focus->column_fields['createdtime'])) {
+			$quoteDate = date('d/m/Y', strtotime($focus->column_fields['createdtime']));
+		} elseif ($quoteDate !== '') {
+			$quoteDate = date('d/m/Y', strtotime($quoteDate));
 		} else {
 			$quoteDate = date('d/m/Y');
 		}
 
 		$vatPercent = (float) ($focus->column_fields['mk_vat_percent'] ?? Quotes_QuoteBaService_Helper::DEFAULT_VAT_PERCENT);
-		if ($vatPercent <= 0 || $vatPercent > 100) {
+		if ($vatPercent <= 0) {
 			$vatPercent = Quotes_QuoteBaService_Helper::DEFAULT_VAT_PERCENT;
-		}
-
-		$headerSubTotal = (float) ($focus->column_fields['hdnSubTotal'] ?? $focus->column_fields['pre_tax_total'] ?? $focus->column_fields['subtotal'] ?? 0);
-		$headerGrand = (float) ($focus->column_fields['hdnGrandTotal'] ?? $focus->column_fields['total'] ?? 0);
-		$headerDiscount = (float) ($focus->column_fields['hdnDiscountAmount'] ?? $focus->column_fields['discount_amount'] ?? 0);
-		if (!empty($focus->column_fields['hdnDiscountPercent'])) {
-			$headerDiscount = $headerSubTotal * ((float) $focus->column_fields['hdnDiscountPercent']) / 100;
-		}
-		$mkVatAmount = (float) ($focus->column_fields['mk_vat_amount'] ?? 0);
-		$taxAmount = $mkVatAmount;
-		if ($taxAmount <= 0 && $headerGrand > ($headerSubTotal - $headerDiscount)) {
-			$derived = $headerGrand - ($headerSubTotal - $headerDiscount);
-			if ($headerSubTotal <= 0 || $derived <= ($headerSubTotal * 0.5)) {
-				$taxAmount = $derived;
-			}
-		}
-		if ($taxAmount <= 0 && $headerSubTotal > 0) {
-			$taxAmount = round(($headerSubTotal - $headerDiscount) * $vatPercent / 100);
-		}
-		if ($headerSubTotal > 0 && $taxAmount > ($headerSubTotal * 0.5)) {
-			$taxAmount = round(($headerSubTotal - $headerDiscount) * $vatPercent / 100);
-		}
-		if ($taxAmount < 0) {
-			$taxAmount = 0;
-		}
-		if ($headerGrand <= 0 || ($headerSubTotal > 0 && $headerGrand > ($headerSubTotal * 2))) {
-			$headerGrand = $headerSubTotal - $headerDiscount + $taxAmount;
-		}
-
-		$amountWords = self::decode($focus->column_fields['mk_amount_in_words'] ?? '');
-		if ($amountWords === '' && $headerGrand > 0) {
-			$amountWords = Quotes_QuoteBaService_Helper::amountInWordsVi($headerGrand);
 		}
 
 		return array(
@@ -460,50 +289,10 @@ class Quotes_QuoteExcelExport_Helper {
 			'quote_no' => $quoteNo,
 			'quote_date' => $quoteDate,
 			'vat_percent' => $vatPercent,
-			'tax_amount' => $taxAmount,
-			'discount_amount' => $headerDiscount,
-			'sub_total' => $headerSubTotal,
-			'grand_total' => $headerGrand,
-			'amount_words' => $amountWords,
+			'amount_words' => self::decode($focus->column_fields['mk_amount_in_words'] ?? ''),
 			'terms_html' => $focus->column_fields['terms_conditions'] ?? '',
-			'notes' => self::resolveExportNotes($focus, $focus->column_fields['terms_conditions'] ?? ''),
 			'product_info' => $focus->column_fields['mk_product_info'] ?? '',
 		);
-	}
-
-	/**
-	 * Shared context for Excel + PDF invoice layouts.
-	 */
-	public static function getSaleExportContext(CRMEntity $focus) {
-		return self::gatherQuoteContext($focus);
-	}
-
-	public static function formatDateViLongPublic($dateDmY) {
-		return self::formatDateViLong($dateDmY);
-	}
-
-	public static function formatMoneyVnPublic($amount) {
-		return self::formatMoneyVn($amount);
-	}
-
-	public static function resolveExportNotesPublic(CRMEntity $focus, $termsHtml = '') {
-		return self::resolveExportNotes($focus, $termsHtml);
-	}
-
-	public static function nkCompanyName() {
-		return self::NK_COMPANY_NAME;
-	}
-
-	public static function nkAddress() {
-		return self::NK_ADDRESS;
-	}
-
-	public static function nkPhone() {
-		return self::NK_PHONE;
-	}
-
-	public static function resolveLogoPathPublic() {
-		return self::resolveNguyenKhoaLogoPath();
 	}
 
 	public static function buildSaleWorkbook(CRMEntity $focus, $moduleName = 'Quotes') {
@@ -511,183 +300,99 @@ class Quotes_QuoteExcelExport_Helper {
 
 		$ctx = self::gatherQuoteContext($focus);
 		$company = $ctx['company'];
-		$isSalesOrder = ($moduleName === 'SalesOrder');
-		$sheetTitle = $isSalesOrder ? 'Don hang' : 'Bao gia';
-		$docTitle = $isSalesOrder ? 'HÓA ĐƠN ĐẶT HÀNG' : 'BÁO GIÁ';
-		$docNoLabel = $isSalesOrder ? 'Mã đơn hàng: ' : 'Mã báo giá: ';
 
 		$book = new PHPExcel();
 		$book->getDefaultStyle()->getFont()->setName(self::FONT)->setSize(10);
 		$sheet = $book->setActiveSheetIndex(0);
-		$sheet->setTitle($sheetTitle);
+		$sheet->setTitle('Bao gia');
 
 		foreach (array('A' => 2, 'B' => 6, 'C' => 14, 'D' => 18, 'E' => 12, 'F' => 14, 'G' => 10, 'H' => 16) as $col => $width) {
 			$sheet->getColumnDimension($col)->setWidth($width);
 		}
 
-		// ===== NK invoice-style header (like provided form) =====
-		$row = 1;
-		// Center logo at top (keep clear of header text)
-		try {
-			$logoPath = $company['logo_path'] ?? '';
-			if (Quotes_QuoteBaService_Helper::isValidQuoteLogoImage($logoPath)) {
-				$drawing = new PHPExcel_Worksheet_Drawing();
-				$drawing->setName('NK Logo');
-				$drawing->setDescription('Nguyên Khoa');
-				$drawing->setPath($logoPath);
-				$drawing->setHeight(150);
-				// Center logo across the sheet (B..H).
-				$drawing->setCoordinates('D1');
-				$drawing->setOffsetX(0);
-				$drawing->setOffsetY(2);
-				$drawing->setWorksheet($sheet);
-			}
-		} catch (Exception $e) { /* ignore */ }
+		$row = self::writeCompanyHeader($sheet, $company);
 
-		$sheet->getRowDimension(1)->setRowHeight(128);
-		$sheet->getRowDimension(2)->setRowHeight(6);
-
-		$sheet->mergeCells('B3:H3');
-		$sheet->setCellValue('B3', (string) ($company['company_name'] ?? self::NK_COMPANY_NAME));
-		$sheet->getStyle('B3')->getFont()->setBold(true)->setSize(12)->setName(self::FONT);
-		$sheet->getStyle('B3')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-
-		$sheet->mergeCells('B4:H4');
-		$sheet->setCellValue('B4', 'Địa chỉ: ' . (string) ($company['address'] ?? self::NK_ADDRESS));
-		$sheet->getStyle('B4')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-
-		$sheet->mergeCells('B5:H5');
-		self::setTextCell($sheet, 'B5', 'Điện thoại: ' . (string) ($company['phone'] ?? self::NK_PHONE));
-		$sheet->getStyle('B5')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-
-		$sheet->mergeCells('B7:H7');
-		$sheet->setCellValue('B7', $docTitle);
-		$sheet->getStyle('B7')->applyFromArray(array(
-			'font' => array('bold' => true, 'size' => 13, 'name' => self::FONT),
+		$sheet->mergeCells(self::colRange($row));
+		$sheet->setCellValue('B' . $row, 'BÁO GIÁ');
+		$sheet->getStyle(self::colRange($row))->applyFromArray(array(
+			'font' => array('bold' => true, 'size' => 16, 'name' => self::FONT),
 			'alignment' => array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER),
 		));
-
-		$docNo = $ctx['quote_no'] !== '' ? $ctx['quote_no'] : (($isSalesOrder ? 'DH' : 'BG') . $focus->id);
-		$sheet->mergeCells('B8:H8');
-		$sheet->setCellValue('B8', $docNoLabel . $docNo);
-		$sheet->getStyle('B8')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-
-		$sheet->mergeCells('B9:H9');
-		$sheet->setCellValue('B9', self::formatDateViLong($ctx['quote_date']));
-		$sheet->getStyle('B9')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-
-		$row = 11;
-		$sheet->setCellValue('B' . $row, 'Khách hàng:');
-		$sheet->mergeCells('C' . $row . ':H' . $row);
-		$sheet->setCellValue('C' . $row, $ctx['account_name'] !== '' ? $ctx['account_name'] : $ctx['receiver']);
 		$row++;
-		$sheet->setCellValue('B' . $row, 'SĐT:');
+
+		$sheet->setCellValue('F' . $row, 'Số: ' . ($ctx['quote_no'] !== '' ? $ctx['quote_no'] : ('BG-' . $focus->id)));
+		$sheet->setCellValue('H' . $row, 'Ngày: ' . $ctx['quote_date']);
+		$row += 2;
+
+		$sheet->setCellValue('B' . $row, 'Kính gửi:');
 		$sheet->mergeCells('C' . $row . ':H' . $row);
-		self::setTextCell($sheet, 'C' . $row, (string) ($ctx['phone'] ?? ''));
+		$sheet->setCellValue('C' . $row, $ctx['receiver']);
+		$row++;
+		$sheet->setCellValue('B' . $row, 'Công ty:');
+		$sheet->mergeCells('C' . $row . ':H' . $row);
+		$sheet->setCellValue('C' . $row, $ctx['account_name']);
 		$row++;
 		$sheet->setCellValue('B' . $row, 'Địa chỉ:');
 		$sheet->mergeCells('C' . $row . ':H' . $row);
 		$sheet->setCellValue('C' . $row, $ctx['address']);
 		$row++;
-		// Notes / điều khoản (description) — center for print layout
-		$notes = isset($ctx['notes']) ? trim((string) $ctx['notes']) : self::resolveExportNotes($focus, $ctx['terms_html'] ?? '');
-		$sheet->setCellValue('B' . $row, 'Ghi chú:');
-		$sheet->mergeCells('C' . $row . ':H' . $row);
-		$sheet->setCellValue('C' . $row, $notes !== '' ? $notes : '');
-		$sheet->getStyle('C' . $row)->getAlignment()->setWrapText(true);
-		$sheet->getStyle('C' . $row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-		$sheet->getStyle('C' . $row)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
-		$sheet->getRowDimension($row)->setRowHeight(-1);
-		$row++;
-		$row++;
+		$sheet->setCellValue('B' . $row, 'Điện thoại:');
+		$sheet->setCellValue('C' . $row, $ctx['phone']);
+		$sheet->setCellValue('F' . $row, 'Email:');
+		$sheet->mergeCells('G' . $row . ':H' . $row);
+		$sheet->setCellValue('G' . $row, $ctx['email']);
+		$row += 2;
 
 		$headerRow = $row;
-		// Preview layout: Đơn giá (name + unit + price stacked) | SL | T.Tiền
-		$sheet->setCellValue('B' . $row, 'Đơn giá');
-		$sheet->setCellValue('G' . $row, 'SL');
-		$sheet->setCellValue('H' . $row, 'T.Tiền');
-		$sheet->mergeCells('B' . $row . ':F' . $row);
+		$headers = array(
+			'B' => 'STT',
+			'C' => 'Mã sản phẩm',
+			'D' => 'Mô tả sản phẩm',
+			'E' => 'Đơn vị tính',
+			'F' => 'Đơn giá (VND)',
+			'G' => 'Số lượng',
+			'H' => 'Thành tiền',
+		);
+		foreach ($headers as $col => $label) {
+			$sheet->setCellValue($col . $row, $label);
+		}
 		self::styleTableHeader($sheet, $row);
-		$sheet->getStyle('B' . $row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
-		$sheet->getStyle('G' . $row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-		$sheet->getStyle('H' . $row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 		$row++;
 
 		$firstProductRow = $row;
 		$associated_products = getAssociatedProducts($moduleName, $focus);
 		$productLineItemIndex = 0;
 		$focusProduct = CRMEntity::getInstance('Products');
-		$focusService = CRMEntity::getInstance('Services');
 
 		foreach ($associated_products as $productLineItem) {
 			++$productLineItemIndex;
 			$productId = $productLineItem['hdnProductId' . $productLineItemIndex] ?? '';
+			$productCode = '';
 			$usageUnit = '';
-			$entityType = (string) ($productLineItem['entityType' . $productLineItemIndex] ?? 'Products');
 			if (!empty($productId)) {
-				if (strcasecmp($entityType, 'Services') === 0) {
-					try {
-						$focusService->retrieve_entity_info($productId, 'Services');
-						$usageUnit = self::decode($focusService->column_fields['service_usageunit'] ?? '');
-					} catch (Exception $e) {
-						$usageUnit = '';
-					}
-				} else {
-					try {
-						$focusProduct->retrieve_entity_info($productId, 'Products');
-						$usageUnit = self::decode($focusProduct->column_fields['usageunit'] ?? '');
-					} catch (Exception $e) {
-						$usageUnit = '';
-					}
-				}
+				$focusProduct->retrieve_entity_info($productId, 'Products');
+				$productCode = self::decode($focusProduct->column_fields['productcode'] ?? '');
+				$usageUnit = self::decode($focusProduct->column_fields['usageunit'] ?? '');
 			}
 
 			$quantity = (float) ($productLineItem['qty' . $productLineItemIndex] ?? 0);
 			$listPrice = (float) ($productLineItem['listPrice' . $productLineItemIndex] ?? 0);
 			$discount = (float) ($productLineItem['discountTotal' . $productLineItemIndex] ?? 0);
 			$productName = self::decode($productLineItem['productName' . $productLineItemIndex] ?? '');
-			$productTotal = (float) ($productLineItem['productTotal' . $productLineItemIndex] ?? 0);
-			$totalAfterDiscount = (float) ($productLineItem['totalAfterDiscount' . $productLineItemIndex] ?? 0);
-			if ($quantity <= 0) {
-				$quantity = 1.0;
-			}
-			if ($listPrice <= 0 && $productTotal > 0) {
-				$listPrice = $productTotal / $quantity;
-			}
-			if ($listPrice <= 0 && $totalAfterDiscount > 0) {
-				$listPrice = ($totalAfterDiscount + $discount) / $quantity;
-			}
 			$total = ($quantity * $listPrice) - $discount;
-			if ($total <= 0 && $productTotal > 0) {
-				$total = $productTotal - $discount;
-			}
-			if ($total <= 0 && $totalAfterDiscount > 0) {
-				$total = $totalAfterDiscount;
-			}
 
-			$label = $productName;
-			$usageUnit = trim((string) $usageUnit);
-			if ($usageUnit !== '' && stripos($label, '(' . $usageUnit . ')') === false) {
-				$label .= ' (' . $usageUnit . ')';
-			}
-			$cellText = $label . "\n" . self::formatMoneyVn($listPrice);
-
-			$sheet->mergeCells('B' . $row . ':F' . $row);
-			$sheet->setCellValue('B' . $row, $cellText);
+			$sheet->setCellValue('B' . $row, $productLineItemIndex);
+			$sheet->setCellValue('C' . $row, $productCode);
+			$sheet->setCellValue('D' . $row, $productName);
+			$sheet->setCellValue('E' . $row, $usageUnit);
+			$sheet->setCellValue('F' . $row, $listPrice);
 			$sheet->setCellValue('G' . $row, $quantity);
 			$sheet->setCellValue('H' . $row, $total);
-			// Name on top; SL + T.Tiền sit on the price line (bottom of wrapped cell)
-			$sheet->getStyle('B' . $row)->getFont()->setBold(false);
-			$sheet->getStyle('B' . $row)->getAlignment()->setWrapText(true)->setVertical(PHPExcel_Style_Alignment::VERTICAL_TOP)->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
-			$sheet->getStyle('G' . $row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_BOTTOM);
-			$sheet->getStyle('H' . $row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT)->setVertical(PHPExcel_Style_Alignment::VERTICAL_BOTTOM);
-			$sheet->getStyle('H' . $row)->getNumberFormat()->setFormatCode('#,##0');
-			$sheet->getStyle('B' . $row . ':H' . $row)->applyFromArray(array(
-				'borders' => array(
-					'bottom' => array('style' => PHPExcel_Style_Border::BORDER_DASHED, 'color' => array('rgb' => 'B0B0B0')),
-				),
+			$sheet->getStyle(self::colRange($row))->applyFromArray(array(
+				'borders' => array('allborders' => array('style' => PHPExcel_Style_Border::BORDER_THIN)),
+				'alignment' => array('wrap' => true, 'vertical' => PHPExcel_Style_Alignment::VERTICAL_TOP),
 			));
-			$sheet->getRowDimension($row)->setRowHeight(32);
+			$sheet->getStyle('F' . $row . ':H' . $row)->getNumberFormat()->setFormatCode('#,##0');
 			$row++;
 		}
 
@@ -699,128 +404,64 @@ class Quotes_QuoteExcelExport_Helper {
 		}
 
 		$lastProductRow = $row - 1;
-		// If line prices were saved as 0, backfill from header subtotal.
-		$headerSubForLines = (float) ($focus->column_fields['hdnSubTotal'] ?? $focus->column_fields['pre_tax_total'] ?? 0);
-		if ($headerSubForLines <= 0) {
-			$headerSubForLines = (float) ($ctx['sub_total'] ?? 0);
-		}
-		$lineMoneySum = 0.0;
-		if ($productLineItemIndex > 0 && $firstProductRow <= $lastProductRow) {
-			for ($i = $firstProductRow; $i <= $lastProductRow; $i++) {
-				$lineMoneySum += (float) $sheet->getCell('H' . $i)->getValue();
-			}
-			if ($lineMoneySum <= 0 && $headerSubForLines > 0) {
-				$share = $headerSubForLines / max(1, $productLineItemIndex);
-				for ($i = $firstProductRow; $i <= $lastProductRow; $i++) {
-					$qtyCell = (float) $sheet->getCell('G' . $i)->getValue();
-					if ($qtyCell <= 0) {
-						$qtyCell = 1;
-					}
-					$existing = (string) $sheet->getCell('B' . $i)->getValue();
-					$parts = preg_split("/\r\n|\n|\r/", $existing);
-					$namePart = trim((string) ($parts[0] ?? ''));
-					$sheet->setCellValue('B' . $i, $namePart . "\n" . self::formatMoneyVn($share / $qtyCell));
-					$sheet->setCellValue('H' . $i, $share);
-				}
-			}
-		}
-
 		$totalRow = $row;
-		// Totals on the right (match preview): label in E:F, money in H.
-		$sheet->mergeCells('E' . $totalRow . ':F' . $totalRow);
-		$sheet->setCellValue('E' . $totalRow, 'Tổng tiền hàng:');
+		$sheet->mergeCells('B' . $totalRow . ':G' . $totalRow);
+		$sheet->setCellValue('B' . $totalRow, 'Tổng');
 		$sheet->setCellValue('H' . $totalRow, '=SUM(H' . $firstProductRow . ':H' . $lastProductRow . ')');
-		$sheet->getStyle('E' . $totalRow)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
 		$row++;
 
-		// Prefer actual quote tax/discount amounts so Excel matches UI (not a default VAT %).
-		$lineSubTotal = 0.0;
-		for ($i = $firstProductRow; $i <= $lastProductRow; $i++) {
-			$lineSubTotal += (float) $sheet->getCell('H' . $i)->getValue();
-		}
-		$taxAmount = (float) ($ctx['tax_amount'] ?? 0);
-		$discountAmount = (float) ($ctx['discount_amount'] ?? 0);
-		$grandTotal = (float) ($ctx['grand_total'] ?? 0);
-		$vatPercent = (float) ($ctx['vat_percent'] ?? 0);
-		if ($vatPercent <= 0 || $vatPercent > 100) {
-			$vatPercent = 8.0;
-		}
-		if ($lineSubTotal > 0) {
-			$headerSub = (float) ($focus->column_fields['hdnSubTotal'] ?? $focus->column_fields['pre_tax_total'] ?? 0);
-			if ($headerSub > 0 && $lineSubTotal > ($headerSub * 50)) {
-				$scale = $lineSubTotal / $headerSub;
-				$taxAmount *= $scale;
-				$discountAmount *= $scale;
-				$grandTotal *= $scale;
-			}
-			if ($taxAmount <= 0 && $grandTotal > ($lineSubTotal - $discountAmount)) {
-				$derived = $grandTotal - ($lineSubTotal - $discountAmount);
-				if ($derived <= ($lineSubTotal * 0.5)) {
-					$taxAmount = $derived;
-				}
-			}
-			if ($taxAmount <= 0) {
-				$taxAmount = round(($lineSubTotal - $discountAmount) * $vatPercent / 100);
-			}
-			// Reject absurd tax (bad saved totals leaking into export).
-			if ($taxAmount > ($lineSubTotal * 0.5)) {
-				$taxAmount = round(($lineSubTotal - $discountAmount) * $vatPercent / 100);
-			}
-			$grandTotal = $lineSubTotal - $discountAmount + $taxAmount;
-		}
-
-		$taxRow = $row;
-		$sheet->mergeCells('E' . $taxRow . ':F' . $taxRow);
-		$sheet->setCellValue('E' . $taxRow, 'Thuế:');
-		$sheet->setCellValue('H' . $taxRow, $taxAmount);
-		$sheet->getStyle('E' . $taxRow)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
-		$row++;
-
-		$discountRow = $row;
-		$sheet->mergeCells('E' . $discountRow . ':F' . $discountRow);
-		$sheet->setCellValue('E' . $discountRow, 'Chiết khấu:');
-		$sheet->setCellValue('H' . $discountRow, $discountAmount);
-		$sheet->getStyle('E' . $discountRow)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+		$vatRow = $row;
+		$sheet->mergeCells('B' . $vatRow . ':G' . $vatRow);
+		$sheet->setCellValue('B' . $vatRow, 'Thuế GTGT ' . $ctx['vat_percent'] . '%');
+		$sheet->setCellValue('H' . $vatRow, '=H' . $totalRow . '*' . ($ctx['vat_percent'] / 100));
 		$row++;
 
 		$grandRow = $row;
-		$sheet->mergeCells('E' . $grandRow . ':F' . $grandRow);
-		$sheet->setCellValue('E' . $grandRow, 'Tổng thanh toán:');
-		$sheet->setCellValue('H' . $grandRow, $grandTotal > 0 ? $grandTotal : ('=H' . $totalRow . '+H' . $taxRow . '-H' . $discountRow));
-		$sheet->getStyle('E' . $grandRow)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+		$sheet->mergeCells('B' . $grandRow . ':G' . $grandRow);
+		$sheet->setCellValue('B' . $grandRow, 'Tổng cộng');
+		$sheet->setCellValue('H' . $grandRow, '=H' . $totalRow . '+H' . $vatRow);
 		$sheet->getStyle('H' . $totalRow . ':H' . $grandRow)->getNumberFormat()->setFormatCode('#,##0');
-		$sheet->getStyle('H' . $totalRow . ':H' . $grandRow)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-		$sheet->getStyle('E' . $totalRow . ':E' . $grandRow)->getFont()->setBold(true)->setName(self::FONT);
-		$sheet->getStyle('H' . $totalRow . ':H' . $grandRow)->getFont()->setBold(true)->setName(self::FONT);
-		$row++;
+		$sheet->getStyle(self::colRange($totalRow) . ':' . self::colRange($grandRow))->applyFromArray(array(
+			'font' => array('bold' => true, 'name' => self::FONT),
+			'borders' => array('allborders' => array('style' => PHPExcel_Style_Border::BORDER_THIN)),
+		));
+		$row += 2;
 
-		// BA: unit prices include VAT
-		$sheet->mergeCells('B' . $row . ':H' . $row);
-		$sheet->setCellValue('B' . $row, 'Đơn giá này đã bao gồm VAT.');
-		$sheet->getStyle('B' . $row)->getFont()->setItalic(true)->setName(self::FONT)->setSize(10);
-		$sheet->getStyle('B' . $row)->getFont()->getColor()->setRGB('0B6E4F');
-		$row++;
-
-		// Amount in words: left side, below tổng thanh toán (match preview).
-		$amountWords = trim((string) ($ctx['amount_words'] ?? ''));
-		if ($amountWords === '' && $grandTotal > 0) {
-			$amountWords = Quotes_QuoteBaService_Helper::amountInWordsVi($grandTotal);
-		}
-		if ($amountWords !== '') {
-			$sheet->mergeCells('B' . $row . ':D' . $row);
-			$sheet->setCellValue('B' . $row, '(' . $amountWords . ')');
-			$sheet->getStyle('B' . $row)->getFont()->setItalic(true)->setName(self::FONT)->setSize(11);
-			$sheet->getStyle('B' . $row)->getAlignment()->setWrapText(true)->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+		if ($ctx['amount_words'] !== '') {
+			$sheet->mergeCells(self::colRange($row));
+			$sheet->setCellValue('B' . $row, 'Bằng chữ: ' . $ctx['amount_words']);
+			$sheet->getStyle(self::colRange($row))->getAlignment()->setWrapText(true);
 			$row += 2;
-		} else {
-			$row += 1;
 		}
 
-		$row += 1;
-		$sheet->mergeCells('B' . $row . ':H' . $row);
-		$sheet->setCellValue('B' . $row, 'Cảm ơn và hẹn gặp lại!');
-		$sheet->getStyle('B' . $row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-		$sheet->getStyle('B' . $row)->getFont()->setItalic(true)->setName(self::FONT);
+		$termLines = self::parseTermsLines($ctx['terms_html'], $ctx['product_info'], $company);
+		foreach ($termLines as $line) {
+			$sheet->mergeCells(self::colRange($row));
+			$sheet->setCellValue('B' . $row, $line['text']);
+			if ($line['type'] === 'section') {
+				self::styleSectionBar($sheet, $row);
+			} else {
+				self::styleBodyRow($sheet, $row, true);
+				if ($line['type'] === 'sub') {
+					$sheet->getStyle('B' . $row)->getAlignment()->setIndent(1);
+				}
+			}
+			$sheet->getRowDimension($row)->setRowHeight(-1);
+			$row++;
+		}
+
+		$row += 2;
+		$sheet->setCellValue('B' . $row, 'Giám đốc');
+		$sheet->setCellValue('E' . $row, 'Người báo giá');
+		$sheet->setCellValue('H' . $row, 'Khách hàng');
+		$sheet->getStyle('B' . $row . ':H' . $row)->applyFromArray(array(
+			'font' => array('bold' => true, 'name' => self::FONT, 'size' => 10),
+			'alignment' => array(
+				'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+				'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER,
+			),
+		));
+		$row += 3;
 
 		$sheet->getPageSetup()->setOrientation(PHPExcel_Worksheet_PageSetup::ORIENTATION_PORTRAIT);
 		$sheet->getPageSetup()->setPaperSize(PHPExcel_Worksheet_PageSetup::PAPERSIZE_A4);
@@ -829,8 +470,7 @@ class Quotes_QuoteExcelExport_Helper {
 		return $book;
 	}
 
-	public static function buildSaleFilename(CRMEntity $focus, $recordId, $moduleName = 'Quotes') {
-		$isSalesOrder = ($moduleName === 'SalesOrder');
+	public static function buildSaleFilename(CRMEntity $focus, $recordId) {
 		$fileBase = '';
 		$potentialId = isset($focus->column_fields['potential_id']) ? (int) $focus->column_fields['potential_id'] : 0;
 		if ($potentialId > 0) {
@@ -848,20 +488,12 @@ class Quotes_QuoteExcelExport_Helper {
 		}
 		$fileBase = trim(self::decode($fileBase));
 		if ($fileBase === '') {
-			$docNo = '';
-			if ($isSalesOrder && !empty($focus->column_fields['salesorder_no'])) {
-				$docNo = self::decode($focus->column_fields['salesorder_no']);
-			} elseif (!empty($focus->column_fields['quote_no'])) {
-				$docNo = self::decode($focus->column_fields['quote_no']);
-			}
-			$fileBase = $docNo !== '' ? $docNo : (($isSalesOrder ? 'SalesOrder_' : 'Quote_') . $recordId);
+			$fileBase = 'Quote_' . $recordId;
 		}
 		$fileBase = preg_replace('/^\d{6}-/', '', $fileBase);
 		$fileBase = trim($fileBase);
-		$prefix = $isSalesOrder ? 'NK SO-' : 'NK Quo-';
-		$prefixPattern = $isSalesOrder ? '/^NK SO-/i' : '/^NK Quo-/i';
-		if ($fileBase !== '' && !preg_match($prefixPattern, $fileBase)) {
-			$fileBase = $prefix . $fileBase;
+		if ($fileBase !== '' && !preg_match('/^TDB Quo-/i', $fileBase)) {
+			$fileBase = 'TDB Quo-' . $fileBase;
 		}
 		$fileBase = preg_replace('/[^\p{L}\p{N}\s\-\_\.]/u', '_', $fileBase);
 		$fileBase = preg_replace('/\s+/', ' ', $fileBase);

@@ -55,7 +55,7 @@
 					<span class="mk-wh-detail-field__value mk-wh-detail-field__value--product">
 						{if $STOCK.product_name_display ne ''}
 							{if $CATALOG_PRODUCT_ID > 0}
-								<a class="mk-wh-detail-product-link" href="index.php?module=ProductsServices&amp;view=Detail&amp;record={$CATALOG_PRODUCT_ID}&amp;app=INVENTORY" title="Xem trong Hàng hoá">{decode_html($STOCK.product_name_display)|escape:'html'}</a>
+								<a class="mk-wh-detail-product-link" href="index.php?module=ProductsServices&amp;view=Detail&amp;record={$CATALOG_PRODUCT_ID}&amp;app=SALES" title="View in Products &amp; Services">{decode_html($STOCK.product_name_display)|escape:'html'}</a>
 							{else}
 								<strong class="mk-wh-detail-product-name">{decode_html($STOCK.product_name_display)|escape:'html'}</strong>
 							{/if}

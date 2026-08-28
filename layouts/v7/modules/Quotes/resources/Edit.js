@@ -40,9 +40,6 @@ Inventory_Edit_Js("Quotes_Edit_Js",{},{
             newLineItem.find('.ignore-ui-registration').removeClass('ignore-ui-registration');
             vtUtils.applyFieldElementsView(newLineItem);
             app.event.trigger('post.lineItem.New', newLineItem);
-            if (window.MkInventoryOdooEdit && window.MkInventoryOdooEdit.scheduleLineItemsRestyle) {
-                window.MkInventoryOdooEdit.scheduleLineItemsRestyle(self.getForm(), [0, 120, 400]);
-            }
             self.checkLineItemRow();
             self.registerLineItemAutoComplete(newLineItem);
 
@@ -70,18 +67,27 @@ Inventory_Edit_Js("Quotes_Edit_Js",{},{
     },
 
     /**
-     * Subject ("Tên khách hàng") is auto-filled from the selected Opportunity's
-     * customer (Account first, then Contact). Opportunity is the required primary field.
+     * Subject is auto-filled from Opportunity name (potential_id) and is not required.
      */
     registerAutoSubjectFromOpportunity : function() {
-        var self = this;
         var form = this.getForm();
         if (!form || !form.length) return;
+
+        var normalizeOppName = function(name) {
+            var s = (name || '').toString().trim();
+            // remove leading YYMMDD- (e.g. 260313-)
+            s = s.replace(/^\d{6}-/, '');
+            if (!s.length) return '';
+            if (!/^TDB Quo-/i.test(s)) {
+                s = 'TDB Quo-' + s;
+            }
+            return s;
+        };
 
         var subjectEl = form.find('[name="subject"]');
         var userEditedSubject = false;
         if (subjectEl && subjectEl.length) {
-            // Keep editable; auto-fill unless user typed a custom customer title.
+            // Remove required validation (UI only). Backend will still set if empty.
             subjectEl.removeAttr('data-rule-required');
             subjectEl.removeClass('required');
             subjectEl.prop('readonly', false);
@@ -93,131 +99,31 @@ Inventory_Edit_Js("Quotes_Edit_Js",{},{
             });
         }
 
-        var decode = function(value) {
-            value = (value || '').toString().trim();
-            if (typeof app !== 'undefined' && app.htmlDecode && value) {
-                return app.htmlDecode(value).trim();
-            }
-            return value;
-        };
-
-        var subjectFromOpp = false;
-
-        var setSubject = function(name, opts) {
-            opts = opts || {};
-            if (!subjectEl || !subjectEl.length) return;
-            if (userEditedSubject && !opts.force) return;
-            name = decode(name);
-            subjectEl.val(name).trigger('change');
-            subjectFromOpp = !!name;
-        };
-
-        var clearRefField = function(fieldName) {
-            form.find('[name="' + fieldName + '"]').val('');
-            var $disp = form.find('[name="' + fieldName + '_display"]');
-            if (!$disp.length) {
-                return;
-            }
-            $disp.val('').removeAttr('disabled').removeAttr('readonly');
-            $disp.closest('.referencefield-wrapper').removeClass('selected');
-            $disp.closest('td, .fieldValue').find('.clearReferenceSelection').addClass('hide');
-        };
-
-        var clearOppDependents = function() {
-            userEditedSubject = false;
-            subjectFromOpp = false;
-            if (subjectEl && subjectEl.length) {
-                subjectEl.val('').trigger('change');
-            }
-            clearRefField('account_id');
-            clearRefField('contact_id');
-            if (window.MkInventoryOdooEdit && window.MkInventoryOdooEdit.fillAddressFromPotential) {
-                window.MkInventoryOdooEdit.fillAddressFromPotential(form, { force: true });
-            }
-        };
-
-        var applyCustomerNameFromPotential = function(potentialId, force) {
-            potentialId = parseInt(potentialId, 10) || 0;
-            if (!potentialId) {
-                clearOppDependents();
-                return;
-            }
-            if (force) {
-                userEditedSubject = false;
-                subjectFromOpp = false;
-            }
-            if (userEditedSubject) return;
-
-            self.getRecordDetails({record: potentialId, source_module: 'Potentials'}).then(function(data) {
-                var row = data && data.data ? data.data : null;
-                if (!row) return;
-
-                var accountId = parseInt(row.related_to, 10) || 0;
-                var contactId = parseInt(row.contact_id, 10) || 0;
-
-                var finishWithContact = function() {
-                    if (!contactId) return;
-                    self.getRecordDetails({record: contactId, source_module: 'Contacts'}).then(function(cData) {
-                        var cRow = cData && cData.data ? cData.data : null;
-                        if (!cRow) return;
-                        var cName = ((cRow.firstname || '') + ' ' + (cRow.lastname || '')).trim();
-                        if (!cName) cName = cRow.label || '';
-                        setSubject(cName);
-                    });
-                };
-
-                if (accountId) {
-                    self.getRecordDetails({record: accountId, source_module: 'Accounts'}).then(function(aData) {
-                        var aRow = aData && aData.data ? aData.data : null;
-                        var aName = aRow ? (aRow.accountname || aRow.label || '') : '';
-                        if (decode(aName)) {
-                            setSubject(aName);
-                            return;
-                        }
-                        finishWithContact();
-                    });
-                    return;
+        var potentialNameEl = form.find('[name="potential_id_display"]');
+        var apply = function() {
+            if (!subjectEl || !subjectEl.length || userEditedSubject) return;
+            if (potentialNameEl && potentialNameEl.length) {
+                var oppName = potentialNameEl.val();
+                if (typeof app !== 'undefined' && app.htmlDecode && oppName) {
+                    oppName = app.htmlDecode(oppName);
                 }
-                finishWithContact();
-            });
+                if (oppName && oppName.trim().length) {
+                    subjectEl.val(normalizeOppName(oppName));
+                }
+            }
         };
 
-        // Apply on load (e.g. preselected opportunity) only when subject empty.
-        var initialPotentialId = parseInt(form.find('[name="potential_id"]').val(), 10) || 0;
-        if (initialPotentialId && subjectEl.length && !(subjectEl.val() || '').toString().trim()) {
-            userEditedSubject = false;
-            applyCustomerNameFromPotential(initialPotentialId, false);
-        }
+        // Apply on load (e.g. preselected opportunity)
+        apply();
 
-        form.on('change', '[name="potential_id"]', function() {
-            applyCustomerNameFromPotential(jQuery(this).val(), true);
+        // Apply whenever opportunity changes (via popup selection or manual clear/reselect)
+        form.on('change', '[name="potential_id"], [name="potential_id_display"]', function() {
+            apply();
         });
+
+        // Also hook vtiger reference selection event
         form.on(Vtiger_Edit_Js.referenceSelectionEvent, '[name="potential_id"]', function() {
-            applyCustomerNameFromPotential(form.find('[name="potential_id"]').val(), true);
-        });
-        // Vtiger fires referenceDeSelectionEvent on the clear (x) button, not on potential_id.
-        form.on(Vtiger_Edit_Js.referenceDeSelectionEvent, function(e) {
-            var $src = jQuery(e.target);
-            if (!$src.hasClass('clearReferenceSelection')) {
-                return;
-            }
-            var $fieldValue = $src.closest('td.fieldValue, .fieldValue');
-            if ($fieldValue.find('[name="potential_id"]').length || $src.closest('.mk-qt-opp-ref').length) {
-                clearOppDependents();
-            }
-        });
-        form.on('click.mkQtOppClear', '.mk-qt-opp-ref .clearReferenceSelection', function() {
-            setTimeout(function() {
-                var pid = parseInt(form.find('[name="potential_id"]').val(), 10) || 0;
-                if (!pid) {
-                    clearOppDependents();
-                }
-            }, 0);
-        });
-        form.on('input.mkQtOpp', '[name="potential_id_display"]', function() {
-            if (!jQuery.trim(jQuery(this).val())) {
-                form.find('[name="potential_id"]').val('').trigger('change');
-            }
+            apply();
         });
     },
 
@@ -317,13 +223,6 @@ Inventory_Edit_Js("Quotes_Edit_Js",{},{
 		if(!sourceFieldElement.length) {
 			sourceFieldElement = jQuery('input.sourceField',container);
 		}
-
-		// Quote create/edit: show full Opportunity list (no parent filter).
-		if (sourceFieldElement.attr('name') == 'potential_id' && app.getModuleName() == 'Quotes') {
-			delete params.related_parent_id;
-			delete params.related_parent_module;
-			return params;
-		}
 		
 		if((sourceFieldElement.attr('name') == 'contact_id' || sourceFieldElement.attr('name') == 'potential_id') && referenceModule != 'Leads') {
 			var form = this.getForm();
@@ -387,8 +286,6 @@ Inventory_Edit_Js("Quotes_Edit_Js",{},{
 
 		if (params.search_module == 'Contacts' || params.search_module == 'Potentials') {
 			var form = this.getForm();
-			var skipParentFilter = params.search_module == 'Potentials' && app.getModuleName() == 'Quotes';
-			if (!skipParentFilter) {
 			if(this.accountsReferenceField.length > 0 && this.accountsReferenceField.val().length > 0) {
 				var closestContainer = this.accountsReferenceField.closest('td');
 				params.parent_id = this.accountsReferenceField.val();
@@ -400,7 +297,6 @@ Inventory_Edit_Js("Quotes_Edit_Js",{},{
 					params.parent_id = this.contactsReferenceField.val();
 					params.parent_module = closestContainer.find('[name="popupReferenceModule"]').val();
 				}
-			}
 			}
 		}
         

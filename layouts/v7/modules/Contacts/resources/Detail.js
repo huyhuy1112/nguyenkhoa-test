@@ -8,39 +8,6 @@
  *************************************************************************************/
 
 Vtiger_Detail_Js("Contacts_Detail_Js", {}, {
-	registerMkContactTagShowAll: function () {
-		var $list = jQuery('.mk-contact-detail-hero__tags .detailTagList');
-		if (!$list.length) return;
-		$list.attr('data-num-of-tags-to-show', '999');
-		$list.find('.moreTags').addClass('hide');
-	},
-	registerMkContactTagModalPatch: function () {
-		if (window.__MK_CONTACT_TAG_MODAL_PATCHED__) {
-			return;
-		}
-		window.__MK_CONTACT_TAG_MODAL_PATCHED__ = true;
-		if (typeof Vtiger_Tag_Js === 'undefined' || !Vtiger_Tag_Js.prototype) {
-			return;
-		}
-		Vtiger_Tag_Js.prototype.viewAllTags = function (container) {
-			var viewAllTagContainer = container.find('.viewAllTagsContainer').clone(true);
-			viewAllTagContainer.find('.deleteTag').remove();
-			app.helper.showModal(viewAllTagContainer.find('.modal-dialog'), {
-				cb: function (modalContainer) {
-					modalContainer.find('.modal-content').addClass('mk-contact-tags-modal');
-					var holder = modalContainer.find('.currentTag');
-					holder.css({ height: 'auto', maxHeight: 'none', overflow: 'visible' });
-					if (window.MkLeadsDetailTags && MkLeadsDetailTags.paintAll) {
-						var root = modalContainer[0] || modalContainer;
-						MkLeadsDetailTags.paintAll(root);
-						window.setTimeout(function () {
-							MkLeadsDetailTags.paintAll(root);
-						}, 80);
-					}
-				}
-			});
-		};
-	},
 	registerAjaxPreSaveEvents: function (container) {
 		var thisInstance = this;
 		app.event.on(Vtiger_Detail_Js.PreAjaxSaveEvent, function (e) {
@@ -78,8 +45,6 @@ Vtiger_Detail_Js("Contacts_Detail_Js", {}, {
 	registerEvents: function () {
 		var form = this.getForm();
 		this._super();
-		this.registerMkContactTagShowAll();
-		this.registerMkContactTagModalPatch();
 		this.registerAjaxPreSaveEvents(form);
 	}
 })

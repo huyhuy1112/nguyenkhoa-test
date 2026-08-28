@@ -96,9 +96,7 @@ class Vtiger_WebUI extends Vtiger_EntryPoint {
 		
 		// Better place this here as session get initiated
 		//skipping the csrf checking for the forgot(reset) password 
-		//and public Zalo OA webhook (external POST JSON, no CRM CSRF token)
-		if($request->get('mode') != 'reset' && $request->get('action') != 'Login' && $request->get('mode') != 'fromMig'
-			&& $request->get('action') != 'ZaloOaWebhook')
+		if($request->get('mode') != 'reset' && $request->get('action') != 'Login' && $request->get('mode') != 'fromMig')
 			require_once 'libraries/csrf-magic/csrf-magic.php';
 
 		// TODO - Get rid of global variable $current_user
@@ -120,13 +118,7 @@ class Vtiger_WebUI extends Vtiger_EntryPoint {
 		}
 
 		global $default_language;
-		// Default UI language: Vietnamese, user can override in Preferences.
-		// Avoid committing environment-specific config.inc.php for default_language.
-		$siteLang = trim((string) $default_language);
-		if ($siteLang === '' || strcasecmp($siteLang, 'en_us') === 0 || strcasecmp($siteLang, 'en_gb') === 0) {
-			$siteLang = 'vi_vn';
-		}
-		vglobal('default_language', $siteLang);
+		vglobal('default_language', $default_language);
 		$currentLanguage = Vtiger_Language_Handler::getLanguage();
 		vglobal('current_language',$currentLanguage);
 		$module = $request->getModule();

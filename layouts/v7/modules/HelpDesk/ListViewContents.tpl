@@ -90,7 +90,7 @@
 					</a>
 					<a class="mk-hd-toolbar-link" href="index.php?module=HelpDesk&amp;view=Rules&amp;app=SUPPORT">
 						{include file="partials/TicketListSvgIcon.tpl"|vtemplate_path:$MODULE ICON='RULES'}
-						<span>Quản Lý rule</span>
+						<span>Rules</span>
 					</a>
 				</div>
 			</div>

@@ -176,12 +176,11 @@ body[data-view="List"][data-app="SALES"] .mk-so-table-card > .col-sm-12 > .mk-so
 body[data-view="List"][data-app="SALES"] .mk-so-table-card > .col-xs-12 > .mk-so-filter-row__footer:last-child {
 	display: flex !important;
 	align-items: center;
-	justify-content: space-between;
-	gap: 12px;
-	min-height: 52px;
-	padding: 10px 16px;
-	border-top: 1px solid #e2e8f0;
-	background: #f8fafc;
+	justify-content: center;
+	min-height: 64px;
+	padding: 12px 16px;
+	border-top: 1px solid #d4c4ad;
+	background: #eceef0;
 	box-sizing: border-box;
 	border-radius: 0 0 11px 11px;
 	flex: 0 0 auto;
@@ -190,197 +189,25 @@ body[data-view="List"][data-app="SALES"] .mk-so-table-card > .col-xs-12 > .mk-so
 
 body[data-view="List"][data-app="SALES"] .mk-so-pagination {
 	display: flex;
-	justify-content: flex-end;
-	align-items: center;
-	margin-left: auto;
-	width: auto;
-	flex: 0 0 auto;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-pagination__btns {
-	display: inline-flex;
-	align-items: center;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-pager {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	padding: 0;
-	margin: 0;
-	border: none;
-	border-radius: 0;
-	background: transparent;
-	box-shadow: none;
+	justify-content: center;
+	width: 100%;
 }
 
 body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn {
-	display: inline-flex !important;
-	align-items: center;
-	justify-content: center;
-	gap: 6px;
-	min-width: 0;
-	height: auto;
-	padding: 6px 12px !important;
-	border-radius: 8px !important;
-	border: 1px solid #e2e8f0 !important;
+	min-width: 40px;
+	height: 40px;
+	border-radius: 10px !important;
+	border: 1px solid #d4c4ad !important;
 	background: #fff !important;
-	color: #334155 !important;
-	margin: 0 !important;
+	color: #191c1e;
+	margin: 0 2px;
 	font-weight: 600;
-	font-size: 12px;
-	line-height: 1.2;
-	box-shadow: none !important;
-	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn .fa {
-	display: none !important;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn--nav {
-	min-width: 72px;
-	color: #334155 !important;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn--current {
-	min-width: 0;
-	padding: 0 8px !important;
-	background: transparent !important;
-	border-color: transparent !important;
-	color: #64748b !important;
-	gap: 4px;
-	cursor: default;
-	pointer-events: none;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current {
-	display: inline-flex;
-	align-items: baseline;
-	gap: 4px;
-	font-variant-numeric: tabular-nums;
-	font-size: 12px;
-	font-weight: 600;
-	color: #64748b;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current__label {
-	display: none !important;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current__num,
-body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current__sep,
-body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current__total {
-	font-size: 12px;
-	font-weight: 600;
-	opacity: 1;
-}
-
-/* Placeholder while page count is still loading (must stay empty for Vtiger pageJump) */
-body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current__total:empty::before,
-body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .mk-so-pagejump-total:empty::before {
-	content: '…';
-	opacity: 0.75;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn__caret {
-	display: none !important;
 }
 
 body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:hover:not(:disabled),
 body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:focus:not(:disabled) {
-	background: #f1f5f9 !important;
-	border-color: #cbd5e1 !important;
-	color: #0f172a !important;
-	outline: none;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn--current:hover:not(:disabled),
-body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn--current:focus:not(:disabled) {
-	background: transparent !important;
-	border-color: transparent !important;
-	color: #64748b !important;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:disabled {
-	opacity: 0.45;
-	cursor: default;
-}
-
-/* Footer count (Leads-style left: Hiển thị 1–N / total) — built by MkSalesListShared */
-body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .mk-so-page-numbers--footer {
-	display: inline-flex;
-	align-items: center;
-	flex: 1 1 auto;
-	min-width: 0;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	font-size: 12px;
-	color: #64748b;
-	font-weight: 500;
-	margin-right: auto;
-	line-height: 1.4;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .mk-so-page-numbers--footer .pageNumbersText,
-body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .mk-so-page-numbers--footer .totalNumberOfRecords,
-body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .mk-so-page-numbers--footer .mk-so-page-numbers__prefix,
-body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer .mk-so-page-numbers--footer .mk-so-page-numbers__suffix {
-	font-size: inherit;
-	color: inherit;
-	font-weight: inherit;
-	white-space: nowrap;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer #PageJumpDropDown.mk-so-pagejump-menu,
-body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer #PageJumpDropDown {
-	min-width: 240px;
-	padding: 12px 14px 14px;
-	border-radius: 12px;
-	border: 1px solid #e2e8f0;
-	box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagenum {
-	margin-bottom: 10px;
-	font-size: 13px;
-	color: #64748b;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagejump {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagejump input {
-	flex: 1 1 auto;
-	min-width: 0;
-	height: 36px;
-	border: 1px solid #e2e8f0;
-	border-radius: 8px;
-	padding: 0 10px;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-filter-row__footer #PageJumpDropDown .listview-pagejump .btn {
-	height: 36px;
-	border-radius: 8px;
-	padding: 0 14px;
-	font-weight: 700;
-}
-
-@media (max-width: 640px) {
-	body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn__label {
-		display: none;
-	}
-	body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn--nav {
-		min-width: 40px;
-		padding: 0 10px !important;
-	}
-	body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current__label {
-		display: none;
-	}
+	background: #08A045 !important;
+	border-color: #0B6E4F !important;
 }
 
 /* Footer pagination: menu opens upward / floats above overflow containers */
@@ -1128,8 +955,6 @@ body.mk-list-confirm-open .modal-backdrop.in {
 /* Confirm / bootbox must sit above backdrop so Yes/No stays clickable */
 body[data-view="List"][data-app="SALES"] .bootbox.modal,
 body[data-view="List"][data-app="SALES"] .myModal,
-body[data-view="List"][data-app="SALES"] .mk-so-wh-modal,
-body[data-view="List"][data-app="SALES"] #mkSoConfirmWarehouseModal,
 body[data-view="List"][data-app="MARKETING"] .bootbox.modal,
 body[data-view="List"][data-app="MARKETING"] .myModal,
 body[data-view="List"][data-app="SUPPORT"] .bootbox.modal,
@@ -1137,19 +962,6 @@ body[data-view="List"][data-app="SUPPORT"] .myModal,
 body[data-module="Accounts"][data-view="List"] .bootbox.modal,
 body[data-module="Accounts"][data-view="List"] .myModal {
 	z-index: 110020 !important;
-}
-
-body[data-view="List"][data-app="SALES"] .mk-so-wh-modal .modal-dialog,
-body[data-view="List"][data-app="SALES"] #mkSoConfirmWarehouseModal .modal-dialog {
-	pointer-events: auto !important;
-	z-index: 110021 !important;
-}
-
-/* Inline fullscreen backdrop must not cover confirm warehouse modal */
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"].modal-open .mk-so-inline-detail-backdrop.is-open,
-body[data-module="SalesOrder"][data-view="List"][data-app="SALES"].mk-so-confirm-modal-open .mk-so-inline-detail-backdrop.is-open {
-	z-index: 109990 !important;
-	pointer-events: none !important;
 }
 
 body[data-view="List"][data-app="SALES"] .bootbox.modal .modal-dialog,

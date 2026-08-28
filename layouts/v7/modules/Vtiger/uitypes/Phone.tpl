@@ -15,9 +15,8 @@
 {if (!$FIELD_NAME)}
   {assign var="FIELD_NAME" value=$FIELD_MODEL->getFieldName()}
 {/if}
-{assign var="PHONE_EDIT_VALUE" value=$FIELD_MODEL->getEditViewDisplayValue($FIELD_MODEL->get('fieldvalue'))}
 <input id="{$MODULE}_editView_fieldName_{$FIELD_NAME}" type="text" class="inputElement" name="{$FIELD_NAME}"
-value="{$PHONE_EDIT_VALUE}" {if !empty($SPECIAL_VALIDATOR)}data-validator='{Zend_Json::encode($SPECIAL_VALIDATOR)}'{/if}
+value="{$FIELD_MODEL->get('fieldvalue')}" {if !empty($SPECIAL_VALIDATOR)}data-validator='{Zend_Json::encode($SPECIAL_VALIDATOR)}'{/if}
 {if $FIELD_INFO["mandatory"] eq true} data-rule-required="true" {/if}
 {if php7_count($FIELD_INFO['validator'])}
     data-specific-rules='{ZEND_JSON::encode($FIELD_INFO["validator"])}'

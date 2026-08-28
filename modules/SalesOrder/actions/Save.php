@@ -156,26 +156,12 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 
 	public function saveRecord($request) {
 		$this->assertQuoteCanCreateSalesOrder($request);
-		require_once 'include/utils/MkEntityNumbering.php';
-		MkEntityNumbering::ensureModuleSequence('SalesOrder');
-		try {
-			$contactId = (int) $request->get('contact_id');
-			$potentialId = (int) $request->get('potential_id');
-			if ($contactId <= 0 && $potentialId > 0) {
-				require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
-				$potContactId = Vtiger_MkSalesCustomerName_Helper::resolveContactIdFromPotentialId($potentialId);
-				if ($potContactId > 0) {
-					$request->set('contact_id', $potContactId);
-					$request->set('contact_id_display', Vtiger_MkSalesCustomerName_Helper::readContactNameById($potContactId));
-				}
-			}
-		} catch (Exception $e) {
-			// keep default save behavior
-		}
+		$isCreate = empty($request->get('record'));
 		$recordModel = parent::saveRecord($request);
 		$this->ensurePotentialCommerceLink($request, $recordModel);
-		// Outbound (phiếu xuất kho) is created only when the order is confirmed,
-		// not on create — new orders stay as Phiếu tạm (Created).
+		if ($isCreate && !$this->isToolsOrdersContext($request)) {
+			$this->createOutboundFromSalesOrder($request, $recordModel);
+		}
 		return $recordModel;
 	}
 
@@ -195,12 +181,9 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 			return;
 		}
 		$lines = GoodsIssue_CreateFromSalesOrder_Helper::loadSalesOrderLines($salesOrderId);
-		require_once 'modules/Warehouse/helpers/SettingsHelper.php';
-		if (!Warehouse_Settings_Helper::allowNegativeStock()) {
-			$errors = GoodsIssue_CreateFromSalesOrder_Helper::validateWarehouseStock($lines, $warehouse['name']);
-			if (!empty($errors)) {
-				throw new Exception(implode("\n", $errors));
-			}
+		$errors = GoodsIssue_CreateFromSalesOrder_Helper::validateWarehouseStock($lines, $warehouse['name']);
+		if (!empty($errors)) {
+			throw new Exception(implode("\n", $errors));
 		}
 		try {
 			$userId = (int) Users_Record_Model::getCurrentUserModel()->getId();
@@ -208,8 +191,7 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 				$salesOrderId,
 				$warehouse['id'],
 				$warehouse['name'],
-				$userId,
-				!Warehouse_Settings_Helper::allowNegativeStock()
+				$userId
 			);
 		} catch (Exception $e) {
 			global $log;
@@ -226,7 +208,7 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 		}
 		$quoteId = (int) $request->get('quote_id');
 		if ($quoteId <= 0) {
-			throw new AppException('Vui lòng chọn Báo giá trước khi tạo đơn hàng.');
+			return;
 		}
 		$quoteModel = Vtiger_Record_Model::getInstanceById($quoteId, 'Quotes');
 		if ($quoteModel instanceof Quotes_Record_Model && $quoteModel->hasLinkedSalesOrder()) {
@@ -256,39 +238,6 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 			exit;
 		}
 
-		try {
-			$this->assertQuoteCanCreateSalesOrder($request);
-		} catch (AppException $e) {
-			if ($request->isAjax()) {
-				$response = new Vtiger_Response();
-				$response->setError('Validation Error', $e->getMessage(), $e->getMessage());
-				$response->emit();
-				return;
-			}
-			throw $e;
-		} catch (Exception $e) {
-			if ($request->isAjax()) {
-				$response = new Vtiger_Response();
-				$response->setError('Validation Error', $e->getMessage(), $e->getMessage());
-				$response->emit();
-				return;
-			}
-			throw $e;
-		}
-
-		// After create/edit in SALES: always return to list (not detail).
-		if (!$this->isToolsOrdersContext($request)) {
-			$request->set('returnToList', 1);
-			$appName = (string) $request->get('appName');
-			if ($appName === '') {
-				$app = strtoupper((string) $request->get('app'));
-				if ($app === '') {
-					$app = 'SALES';
-				}
-				$request->set('appName', '&app=' . $app);
-			}
-		}
-
 		parent::process($request);
 	}
 
@@ -298,16 +247,6 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 			$potentialId = $this->resolvePotentialIdFromRequest($request, $recordModel);
 			if ($potentialId > 0 && (int) $recordModel->get('potential_id') <= 0) {
 				$recordModel->set('potential_id', $potentialId);
-			}
-			// New sales orders (create / from quote) always start as Phiếu tạm.
-			$recordId = (int) $request->get('record');
-			if ($recordId <= 0) {
-				$recordModel->set('sostatus', 'Created');
-			}
-			// Always assign to the user who is saving (no UI to pick another owner).
-			$currentUser = Users_Record_Model::getCurrentUserModel();
-			if ($currentUser) {
-				$recordModel->set('assigned_user_id', $currentUser->getId());
 			}
 			return $recordModel;
 		}

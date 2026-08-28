@@ -22,26 +22,7 @@ class Accounts_ListView_Model extends Vtiger_ListView_Model {
 	}
 
 	private function getModernOrganizationsListFieldOrder() {
-		// Tuibao list: số HĐ, tên công ty, SĐT, địa chỉ, phụ trách
-		return array('tb_contract_no', 'accountname', 'phone', 'tb_store_address', 'assigned_user_id');
-	}
-
-	/**
-	 * Headers alone are not enough — QueryGenerator must SELECT these columns
-	 * or list cells stay empty.
-	 */
-	private function syncModernListQueryFields() {
-		if (!$this->isModernOrganizationsListRequest()) {
-			return;
-		}
-		$queryGenerator = $this->get('query_generator');
-		if (!$queryGenerator) {
-			return;
-		}
-		$fields = $this->getModernOrganizationsListFieldOrder();
-		$fields[] = 'id';
-		$fields[] = 'starred';
-		$queryGenerator->setFields($fields);
+		return array('accountname', 'website', 'phone', 'assigned_user_id');
 	}
 
 	public function getListViewHeaders() {
@@ -50,33 +31,17 @@ class Accounts_ListView_Model extends Vtiger_ListView_Model {
 			return $headers;
 		}
 
-		$this->syncModernListQueryFields();
-
 		$module = $this->getModule();
 		$filtered = array();
 		foreach ($this->getModernOrganizationsListFieldOrder() as $fieldName) {
 			if (isset($headers[$fieldName])) {
 				$filtered[$fieldName] = $headers[$fieldName];
-			} else {
-				$fieldInstance = Vtiger_Field_Model::getInstance($fieldName, $module);
-				if ($fieldInstance && in_array((int) $fieldInstance->get('presence'), array(0, 2), true)) {
-					$fieldInstance->set('listViewRawFieldName', $fieldInstance->get('column'));
-					$filtered[$fieldName] = $fieldInstance;
-				}
+				continue;
 			}
-		}
-
-		$labelOverrides = array(
-			'tb_contract_no' => 'Số hợp đồng',
-			'accountname' => 'Tên công ty',
-			'phone' => 'Số điện thoại',
-			'tb_store_address' => 'Địa chỉ',
-			'assigned_user_id' => 'Phụ trách',
-		);
-		foreach ($filtered as $fieldName => $fieldInstance) {
-			if (isset($labelOverrides[$fieldName])) {
-				$fieldInstance->set('label', $labelOverrides[$fieldName]);
-				$fieldInstance->set('fieldlabel', $labelOverrides[$fieldName]);
+			$fieldInstance = Vtiger_Field_Model::getInstance($fieldName, $module);
+			if ($fieldInstance && in_array($fieldInstance->getPresence(), array(0, 2), true)) {
+				$fieldInstance->set('listViewRawFieldName', $fieldInstance->get('column'));
+				$filtered[$fieldName] = $fieldInstance;
 			}
 		}
 		return $filtered;
@@ -151,7 +116,6 @@ class Accounts_ListView_Model extends Vtiger_ListView_Model {
 	 * Non-privileged users can only see records tagged with their role name.
 	 */
 	function getQuery() {
-		$this->syncModernListQueryFields();
 		$listQuery = parent::getQuery();
 
 		$currentUser = Users_Record_Model::getCurrentUserModel();

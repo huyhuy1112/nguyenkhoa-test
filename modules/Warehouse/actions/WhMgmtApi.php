@@ -22,7 +22,7 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'save_issue', 'receipt_action', 'issue_action', 'save_return', 'return_action', 'set_settings', 'qc_upload_image', 'qc_delete_image', 'qc_update'), true)) {
+		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'receipt_action', 'issue_action'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -119,18 +119,6 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					$response->setResult(array_merge(array('success' => true), $result));
 					break;
 
-				case 'save_issue':
-					global $current_user;
-					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
-					$whId = trim((string) $request->get('whId'));
-					if ($whId === '') {
-						$whId = trim((string) $request->get('id'));
-					}
-					$payload = $this->decodePayload($request);
-					$result = Warehouse_WhMgmtService::saveOutboundIssue($whId, $payload, $userId);
-					$response->setResult(array_merge(array('success' => true), $result));
-					break;
-
 				case 'receipt_action':
 					global $current_user;
 					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
@@ -142,8 +130,7 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					$action = trim((string) $request->get('actionKey'));
 					$note = $this->readActionNote($request);
 					$role = trim((string) $request->get('role'));
-					$targetStatus = trim((string) $request->get('targetStatus'));
-					$result = Warehouse_WhMgmtService::applyReceiptAction($whId, $code, $action, $role, $note, $userId, $targetStatus);
+					$result = Warehouse_WhMgmtService::applyReceiptAction($whId, $code, $action, $role, $note, $userId);
 					$response->setResult(array_merge(array('success' => true), $result));
 					break;
 
@@ -158,146 +145,7 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					$action = trim((string) $request->get('actionKey'));
 					$note = $this->readActionNote($request);
 					$role = trim((string) $request->get('role'));
-					$targetStatus = trim((string) $request->get('targetStatus'));
-					$result = Warehouse_WhMgmtService::applyIssueAction($whId, $code, $action, $role, $note, $userId, $targetStatus);
-					$response->setResult(array_merge(array('success' => true), $result));
-					break;
-
-				case 'get_settings':
-					$response->setResult(array(
-						'success' => true,
-						'settings' => Warehouse_WhMgmtService::publicSettings(),
-					));
-					break;
-
-				case 'set_settings':
-					require_once 'modules/Warehouse/helpers/SettingsHelper.php';
-					global $current_user;
-					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
-					$payload = $this->decodePayload($request);
-					$allow = null;
-					if (array_key_exists('wh_allow_negative_stock', $payload)) {
-						$allow = $payload['wh_allow_negative_stock'];
-					} else if ($request->has('wh_allow_negative_stock')) {
-						$allow = $request->get('wh_allow_negative_stock');
-					}
-					$expiryDays = null;
-					if (array_key_exists('wh_expiry_warn_days', $payload)) {
-						$expiryDays = $payload['wh_expiry_warn_days'];
-					} else if ($request->has('wh_expiry_warn_days')) {
-						$expiryDays = $request->get('wh_expiry_warn_days');
-					}
-					if ($allow === null && $expiryDays === null) {
-						throw new Exception('Thiếu cấu hình kho.');
-					}
-					if ($allow !== null) {
-						$enabled = in_array(strtolower(trim((string) $allow)), array('1', 'true', 'yes', 'on'), true)
-							|| $allow === 1 || $allow === true;
-						Warehouse_Settings_Helper::setAllowNegativeStock($enabled, $userId);
-					}
-					if ($expiryDays !== null && $expiryDays !== '') {
-						Warehouse_Settings_Helper::setExpiryWarnDays((int) $expiryDays, $userId);
-					}
-					$response->setResult(array(
-						'success' => true,
-						'settings' => Warehouse_WhMgmtService::publicSettings(),
-					));
-					break;
-
-				case 'search_return_sources':
-					require_once 'modules/Warehouse/helpers/ReturnHelper.php';
-					$q = trim((string) $request->get('q'));
-					$whId = trim((string) $request->get('whId'));
-					if ($whId === '') {
-						$whId = trim((string) $request->get('id'));
-					}
-					$payload = $this->decodePayload($request);
-					if ($q === '' && isset($payload['q'])) {
-						$q = trim((string) $payload['q']);
-					}
-					if ($whId === '' && isset($payload['whId'])) {
-						$whId = trim((string) $payload['whId']);
-					}
-					$response->setResult(array(
-						'success' => true,
-						'issues' => Warehouse_Return_Helper::searchOutboundIssues($whId, $q),
-						'sources' => array(),
-					));
-					break;
-
-				case 'save_return':
-					require_once 'modules/Warehouse/helpers/ReturnHelper.php';
-					global $current_user;
-					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
-					$whId = trim((string) $request->get('whId'));
-					if ($whId === '') {
-						$whId = trim((string) $request->get('id'));
-					}
-					$payload = $this->decodePayload($request);
-					$result = Warehouse_Return_Helper::save($whId, $payload, $userId);
-					$response->setResult(array_merge(array('success' => true), $result));
-					break;
-
-				case 'return_action':
-					require_once 'modules/Warehouse/helpers/ReturnHelper.php';
-					global $current_user;
-					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
-					$whId = trim((string) $request->get('whId'));
-					if ($whId === '') {
-						$whId = trim((string) $request->get('id'));
-					}
-					$code = trim((string) $request->get('code'));
-					$action = strtolower(trim((string) $request->get('actionKey')));
-					if ($action === 'confirm') {
-						$result = Warehouse_Return_Helper::confirm($whId, $code, $userId);
-					} else if ($action === 'cancel') {
-						$result = Warehouse_Return_Helper::cancel($whId, $code);
-					} else {
-						throw new Exception('Hành động phiếu thu hồi không hợp lệ.');
-					}
-					$response->setResult(array_merge(array('success' => true), $result));
-					break;
-
-				case 'qc_upload_image':
-					global $current_user;
-					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
-					$whId = trim((string) $request->get('whId'));
-					if ($whId === '') {
-						$whId = trim((string) $request->get('id'));
-					}
-					$code = trim((string) $request->get('code'));
-					$role = trim((string) $request->get('role'));
-					if (!isset($_FILES['qcImage']) || !is_array($_FILES['qcImage'])) {
-						throw new Exception('Không có file ảnh.');
-					}
-					$result = Warehouse_WhMgmtService::uploadQcImage($whId, $code, $_FILES['qcImage'], $userId, $role);
-					$response->setResult(array_merge(array('success' => true), $result));
-					break;
-
-				case 'qc_delete_image':
-					global $current_user;
-					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
-					$whId = trim((string) $request->get('whId'));
-					if ($whId === '') {
-						$whId = trim((string) $request->get('id'));
-					}
-					$code = trim((string) $request->get('code'));
-					$imageId = trim((string) $request->get('imageId'));
-					$result = Warehouse_WhMgmtService::deleteQcImage($whId, $code, $imageId, $userId);
-					$response->setResult(array_merge(array('success' => true), $result));
-					break;
-
-				case 'qc_update':
-					global $current_user;
-					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
-					$whId = trim((string) $request->get('whId'));
-					if ($whId === '') {
-						$whId = trim((string) $request->get('id'));
-					}
-					$code = trim((string) $request->get('code'));
-					$role = trim((string) $request->get('role'));
-					$note = $this->readActionNote($request);
-					$result = Warehouse_WhMgmtService::updateQcRecord($whId, $code, $note, $userId, $role);
+					$result = Warehouse_WhMgmtService::applyIssueAction($whId, $code, $action, $role, $note, $userId);
 					$response->setResult(array_merge(array('success' => true), $result));
 					break;
 

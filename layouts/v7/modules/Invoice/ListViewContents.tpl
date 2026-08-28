@@ -1,25 +1,10 @@
-{* Invoice ListViewContents: SALES POS shell (like SalesOrder), SUPPORT/TOOLS legacy shell *}
+{* Invoice ListViewContents: SUPPORT app — Opportunities-style card shell *}
 {strip}
-{assign var=MK_INV_IS_SALES value=false}
 {assign var=MK_INV_MK_LIST value=false}
-{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES') || (isset($smarty.request.app) && $smarty.request.app eq 'SALES')}
-	{assign var=MK_INV_IS_SALES value=true}
-{/if}
 {if (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY eq 'SUPPORT' || $SELECTED_MENU_CATEGORY eq 'TOOLS')) || (isset($smarty.get.app) && ($smarty.get.app eq 'SUPPORT' || $smarty.get.app eq 'TOOLS')) || (isset($smarty.request.app) && ($smarty.request.app eq 'SUPPORT' || $smarty.request.app eq 'TOOLS'))}
 	{assign var=MK_INV_MK_LIST value=true}
 {/if}
-{if $MK_INV_IS_SALES}
-	<div class="mk-so-page mk-so-list-sales-root mk-so-pos-page mk-so-pos-list-enabled">
-		<div class="mk-so-pos-layout" id="mk-so-pos-layout">
-			<div class="mk-so-pos-main">
-				{include file="partials/InvoiceSupportListHeader.tpl"|vtemplate_path:$MODULE}
-				<div class="mk-so-table-card">
-					{include file="partials/InvoiceListViewContentsPos.tpl"|vtemplate_path:$MODULE}
-				</div>
-			</div>
-		</div>
-	</div>
-{elseif $MK_INV_MK_LIST}
+{if $MK_INV_MK_LIST}
 	<div class="mk-so-page mk-so-list-sales-root mk-opportunity-page">
 		{include file="partials/InvoiceSupportListHeader.tpl"|vtemplate_path:$MODULE}
 		<div class="mk-so-table-card mk-opportunity-table-card">

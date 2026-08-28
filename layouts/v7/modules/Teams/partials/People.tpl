@@ -89,7 +89,7 @@
 									<li><a href="index.php?module=Users&view=EditAjax&mode=changePassword&recordId={$ROW.id}" target="_blank">{vtranslate('LBL_CHANGE_PASSWORD','Users')}</a></li>
 									<li><a href="index.php?module=Teams&view=AddToGroup&app=Management&userid={$ROW.id}">{vtranslate('LBL_ADD_GROUP','Vtiger')}</a></li>
 									{if $CAN_DEACTIVATE}
-										<li><a href="#" class="js-delete-person dropdown-item" data-userid="{$ROW.id|escape}">Xoá tài khoản</a></li>
+										<li><a href="#" class="js-delete-person dropdown-item" data-userid="{$ROW.id|escape}">Delete</a></li>
 									{/if}
 								</ul>
 							</div>

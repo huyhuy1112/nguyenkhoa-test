@@ -59,10 +59,7 @@
 						<h2 class="mk-gr-detail-card__title" id="mkGrEditLinesTitle">Line Items</h2>
 					</header>
 					<div class="mk-gr-detail-card__body mk-gr-detail-card__body--flush">
-						<div class="mk-wh-line-quick-search" role="search">
-							<label class="mk-wh-line-quick-search__label" for="mkGrQuickProductSearch">Tìm hàng hoá</label>
-							<select id="mkGrQuickProductSearch" class="mk-wh-quick-product-search" title="Tìm và thêm hàng hoá"></select>
-						</div>
+						<p class="mk-gr-edit-hint mk-gr-edit-hint--block">Enter product name and line details manually. Inbound does not use storage-based autocomplete (that is for Outbound only).</p>
 						<div class="mk-gi-table-wrap">
 							<table class="mk-gi-table mk-gr-edit-table" id="inboundItemsTable">
 								<thead>
@@ -83,7 +80,7 @@
 									<tr>
 										<td>
 											<input type="hidden" name="item_productid[]" value="{$IT.productid|escape:'html'}" />
-											<input type="text" name="item_product_name[]" class="mk-gr-edit-input mk-wh-line-product-name" value="{decode_html($IT.product_name)|escape:'html'}" readonly="readonly" autocomplete="off" required="required" />
+											<input type="text" name="item_product_name[]" class="mk-gr-edit-input" value="{decode_html($IT.product_name)|escape:'html'}" placeholder="Product name" autocomplete="off" required="required" />
 										</td>
 										<td>
 											<select name="item_product_type[]" class="mk-gr-edit-input js-product-type">
@@ -106,6 +103,7 @@
 								</tbody>
 							</table>
 						</div>
+						<button type="button" class="mk-gi-btn mk-gi-btn--filter mk-gi-btn--ghost mk-gr-edit-add-row" id="addInboundRow">+ Add line</button>
 					</div>
 				</section>
 
@@ -167,14 +165,10 @@
 </div>
 {else}
 <link rel="stylesheet" href="layouts/v7/modules/Inventory/resources/FlowModern.css?v=20260325" />
-<link rel="stylesheet" href="layouts/v7/modules/Vtiger/resources/MkInventoryOdooEdit.css?v=20260720_wh_line1" />
-<link rel="stylesheet" href="layouts/v7/modules/Vtiger/resources/MkWarehouseLineEdit.css?v=20260720_wh_line1" />
-<script type="text/javascript" src="layouts/v7/lib/jquery/select2/select2.min.js"></script>
-<script type="text/javascript" src="layouts/v7/modules/Vtiger/resources/MkWarehouseLineEdit.js?v=20260720_wh_line1"></script>
 <div class="main-container clearfix">
 	<div class="editViewPageDiv viewContent inv-modern-page">
 		<div class="col-sm-12 col-xs-12 content-area full-width" style="margin-left:0;">
-			<form method="post" action="index.php" class="container-fluid inv-modern-card" enctype="multipart/form-data" id="GoodsReceiptEditForm">
+			<form method="post" action="index.php" class="container-fluid inv-modern-card" enctype="multipart/form-data">
 				<div class="inv-topnav">
 					<a class="active" href="index.php?module=GoodsReceipt&view=List&app=INVENTORY">{vtranslate('GoodsReceipt','GoodsReceipt')}</a>
 					<a href="index.php?module=Warehouse&view=List&app=INVENTORY">{vtranslate('Warehouse','Warehouse')}</a>
@@ -218,16 +212,12 @@
 				<div class="panel panel-default inv-panel" style="margin-top:12px;">
 					<div class="panel-heading"><strong>Line items</strong></div>
 					<div class="panel-body">
-						<div class="mk-wh-line-quick-search" role="search">
-							<label class="mk-wh-line-quick-search__label" for="mkGrQuickProductSearchLegacy">Tìm hàng hoá</label>
-							<select id="mkGrQuickProductSearchLegacy" class="mk-wh-quick-product-search" title="Tìm và thêm hàng hoá"></select>
-						</div>
 						<table class="table table-bordered inv-modern-table" id="inboundItemsTable">
 							<thead><tr><th>Product Name</th><th>Type</th><th>Serial Number</th><th>Expired date</th><th>Qty</th><th>Price</th><th>Description</th><th>Line Note</th><th></th></tr></thead>
 							<tbody>
 								{foreach from=$ITEMS item=IT}
 								<tr>
-									<td><input type="hidden" name="item_productid[]" value="{$IT.productid|escape:'html'}" /><input type="text" name="item_product_name[]" class="form-control mk-wh-line-product-name" value="{$IT.product_name|escape:'html'}" readonly="readonly" required /></td>
+									<td><input type="hidden" name="item_productid[]" value="{$IT.productid|escape:'html'}" /><input type="text" name="item_product_name[]" class="form-control" value="{$IT.product_name|escape:'html'}" required /></td>
 									<td>
 										<select name="item_product_type[]" class="form-control js-product-type">
 											{assign var=ITYPE value=$IT.product_type|default:''}
@@ -248,6 +238,7 @@
 								{/foreach}
 							</tbody>
 						</table>
+						<button type="button" class="btn btn-default" id="addInboundRow">+ Add Line</button>
 					</div>
 				</div>
 				<div class="row inv-form-actions">
@@ -261,4 +252,34 @@
 	</div>
 </div>
 {/if}
+{literal}
+<script>
+(function(){
+  var tbody = document.querySelector('#inboundItemsTable tbody');
+  if (!tbody) return;
+  var addBtn = document.getElementById('addInboundRow');
+  if (addBtn) {
+    addBtn.addEventListener('click', function() {
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td><input type="hidden" name="item_productid[]" value="" /><input type="text" name="item_product_name[]" class="form-control mk-gr-edit-input" placeholder="Product name" autocomplete="off" required /></td>' +
+        '<td><select name="item_product_type[]" class="form-control mk-gr-edit-input"><option value="Hardware">Hardware</option><option value="Software">Software</option><option value="Service">Service</option><option value="Other" selected="selected">Other</option></select></td>' +
+        '<td><input type="text" name="item_serial[]" class="form-control mk-gr-edit-input" /></td>' +
+        '<td><input type="date" name="item_expired_date[]" class="form-control mk-gr-edit-input" /></td>' +
+        '<td class="mk-gi-table__num"><input type="number" step="0.0001" min="0" name="item_quantity[]" class="form-control mk-gr-edit-input" value="1" required /></td>' +
+        '<td class="mk-gi-table__num"><input type="number" step="0.0001" min="0" name="item_unit_price[]" class="form-control mk-gr-edit-input" value="0" /></td>' +
+        '<td><input type="text" name="description[]" class="form-control mk-gr-edit-input" /></td>' +
+        '<td><input type="text" name="item_line_note[]" class="form-control mk-gr-edit-input" /></td>' +
+        '<td class="mk-gi-table__actions"><button type="button" class="mk-gi-btn mk-gi-btn--filter mk-gi-btn--ghost js-remove-row">Remove</button></td>';
+      tbody.appendChild(tr);
+    });
+  }
+  tbody.addEventListener('click', function(e) {
+    if (e.target && e.target.classList && e.target.classList.contains('js-remove-row')) {
+      var tr = e.target.closest('tr');
+      if (tr) tr.remove();
+    }
+  });
+})();
+</script>
+{/literal}
 {/strip}

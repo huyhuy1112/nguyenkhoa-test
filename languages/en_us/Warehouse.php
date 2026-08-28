@@ -6,5 +6,4 @@ $languageStrings = array(
 	'LBL_WH_LIST' => 'Warehouse list',
 	'LBL_WH_DASHBOARD' => 'Warehouse dashboard',
 	'LBL_WH_TRANSFER' => 'Warehouse transfer',
-	'LBL_WH_PROTO' => 'Warehouse prototype',
 );

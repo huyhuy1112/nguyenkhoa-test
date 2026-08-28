@@ -87,38 +87,6 @@ class Leads_ModernService {
 		if (!$colRes || $adb->num_rows($colRes) < 1) {
 			$adb->pquery("ALTER TABLE bace_lead_profile ADD COLUMN potential_id INT(19) DEFAULT NULL AFTER mk_cache_id", array());
 		}
-		$colRes = $adb->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE 'contact_id'", array());
-		if (!$colRes || $adb->num_rows($colRes) < 1) {
-			$adb->pquery("ALTER TABLE bace_lead_profile ADD COLUMN contact_id INT(19) DEFAULT NULL AFTER potential_id", array());
-		}
-		$colRes = $adb->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE 'business_model'", array());
-		if (!$colRes || $adb->num_rows($colRes) < 1) {
-			$adb->pquery("ALTER TABLE bace_lead_profile ADD COLUMN business_model VARCHAR(80) DEFAULT NULL AFTER area", array());
-		}
-		try {
-			require_once 'modules/Leads/models/LastTouchCallService.php';
-			Leads_LastTouchCallService::ensureSchema($adb);
-		} catch (Exception $e) {
-			// best-effort
-		}
-		try {
-			require_once 'modules/Leads/models/SheetImportService.php';
-			Leads_SheetImportService::installSchema($adb);
-		} catch (Exception $e) {
-			// best-effort
-		}
-		try {
-			require_once 'modules/Leads/models/SalesVerifyService.php';
-			Leads_SalesVerifyService::installSchema($adb);
-		} catch (Exception $e) {
-			// best-effort
-		}
-	}
-
-	/** Bộ B columns for SELECT lists. */
-	protected static function verifyProfileSelectSql() {
-		return ', p.form_c1, p.form_c2, p.form_c3, p.verify_c1, p.verify_c2, p.verify_c3, p.verify_c4, p.verify_c5,
-			p.eligibility_result, p.potential_level, p.verify_score, p.verify_change_reason, p.verified_at, p.verified_by';
 	}
 
 	public static function isInstalled(PearDatabase $adb) {
@@ -131,19 +99,15 @@ class Leads_ModernService {
 		if (!self::isInstalled($adb)) {
 			return array();
 		}
-		self::installSchema($adb);
-		self::ensureModernProfilesForAliveLeads();
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
-				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
-				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw" . self::verifyProfileSelectSql() . ",
+				p.segment, p.district, p.address_line, p.area, p.cccd, p.customer_type, p.purchase_reason,
 				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
-				la.phone, ce.smownerid, ce.createdtime, ce.description
+				la.phone, ce.smownerid
 			FROM bace_lead_profile p
 			INNER JOIN vtiger_leaddetails ld ON ld.leadid = p.leadid
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
 			LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = p.leadid
 			WHERE p.is_modern = 1
-			  AND (p.potential_id IS NULL OR p.potential_id = 0)
 			ORDER BY p.last_touch DESC, p.leadid DESC";
 		$res = $adb->pquery($sql, array());
 		$rows = array();
@@ -161,103 +125,7 @@ class Leads_ModernService {
 			$leadId = (int)$row['leadid'];
 			$out[] = self::composeCacheRow($row, $tagsByLead[$leadId] ?? array(), $purchasesByLead[$leadId] ?? array(), $tasksByLead[$leadId] ?? array());
 		}
-		return self::attachPhoneDupFlags($out);
-	}
-
-	/**
-	 * Soft-deleted modern leads (thùng rác Leads).
-	 */
-	public static function listTrashLeads($userId = null) {
-		$adb = PearDatabase::getInstance();
-		if (!self::isInstalled($adb)) {
-			return array();
-		}
-		self::installSchema($adb);
-		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
-				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
-				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw" . self::verifyProfileSelectSql() . ",
-				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
-				la.phone, ce.smownerid, ce.createdtime, ce.description
-			FROM bace_lead_profile p
-			INNER JOIN vtiger_leaddetails ld ON ld.leadid = p.leadid
-			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 1 AND ce.setype = 'Leads'
-			LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = p.leadid
-			WHERE p.is_modern = 1
-			ORDER BY ce.modifiedtime DESC, p.leadid DESC";
-		$res = $adb->pquery($sql, array());
-		$rows = array();
-		$leadIds = array();
-		for ($i = 0; $i < $adb->num_rows($res); $i++) {
-			$row = $adb->query_result_rowdata($res, $i);
-			$leadIds[] = (int)$row['leadid'];
-			$rows[] = $row;
-		}
-		$tagsByLead = self::getTagsForLeadIds($leadIds, $userId);
-		$out = array();
-		foreach ($rows as $row) {
-			$leadId = (int)$row['leadid'];
-			$item = self::composeCacheRow(
-				$row,
-				$tagsByLead[$leadId] ?? array(),
-				array(),
-				array()
-			);
-			$item['in_trash'] = true;
-			$out[] = $item;
-		}
 		return $out;
-	}
-
-	/** @param array $leads */
-	protected static function attachPhoneDupFlags(array $leads) {
-		$counts = array();
-		foreach ($leads as $l) {
-			$p = self::normalizePhone(isset($l['phone']) ? $l['phone'] : '');
-			if ($p === '') {
-				continue;
-			}
-			if (!isset($counts[$p])) {
-				$counts[$p] = 0;
-			}
-			$counts[$p]++;
-		}
-		foreach ($leads as &$l) {
-			$p = self::normalizePhone(isset($l['phone']) ? $l['phone'] : '');
-			$c = ($p !== '' && isset($counts[$p])) ? (int) $counts[$p] : 1;
-			$l['phone_dup_count'] = $c;
-			$l['phone_dup'] = $c > 1;
-		}
-		unset($l);
-		return $leads;
-	}
-
-	/**
-	 * Ensure every alive CRM lead has a modern profile row so List API can surface it.
-	 */
-	protected static function ensureModernProfilesForAliveLeads() {
-		$adb = PearDatabase::getInstance();
-		$res = $adb->pquery(
-			"SELECT e.crmid
-			 FROM vtiger_crmentity e
-			 INNER JOIN vtiger_leaddetails ld ON ld.leadid = e.crmid
-			 LEFT JOIN bace_lead_profile p ON p.leadid = e.crmid
-			 WHERE e.setype = 'Leads' AND e.deleted = 0 AND p.leadid IS NULL",
-			array()
-		);
-		if (!$res) {
-			return;
-		}
-		for ($i = 0; $i < $adb->num_rows($res); $i++) {
-			self::ensureModernProfile((int)$adb->query_result($res, $i, 'crmid'));
-		}
-		// Re-enable profiles that were soft-flagged off.
-		$adb->pquery(
-			"UPDATE bace_lead_profile p
-			 INNER JOIN vtiger_crmentity e ON e.crmid = p.leadid AND e.deleted = 0 AND e.setype = 'Leads'
-			 SET p.is_modern = 1
-			 WHERE p.is_modern <> 1 OR p.is_modern IS NULL",
-			array()
-		);
 	}
 
 	public static function getLead($idOrCacheId, $userId = null) {
@@ -270,13 +138,11 @@ class Leads_ModernService {
 			return null;
 		}
 		$adb = PearDatabase::getInstance();
-		$verifyCols = self::verifyProfileSelectSql();
 		$res = $adb->pquery(
 			"SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
-				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
-				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw{$verifyCols},
+				p.segment, p.district, p.address_line, p.area, p.cccd, p.customer_type, p.purchase_reason,
 				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
-				la.phone, ce.smownerid, ce.createdtime
+				la.phone, ce.smownerid
 			FROM bace_lead_profile p
 			INNER JOIN vtiger_leaddetails ld ON ld.leadid = p.leadid
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
@@ -289,10 +155,9 @@ class Leads_ModernService {
 				self::ensureModernProfile($leadId);
 				$res = $adb->pquery(
 					"SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
-						p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
-						p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw{$verifyCols},
+						p.segment, p.district, p.address_line, p.area, p.cccd, p.customer_type, p.purchase_reason,
 						ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
-						la.phone, ce.smownerid, ce.createdtime
+						la.phone, ce.smownerid
 					FROM bace_lead_profile p
 					INNER JOIN vtiger_leaddetails ld ON ld.leadid = p.leadid
 					INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
@@ -332,27 +197,6 @@ class Leads_ModernService {
 		self::syncCallAttemptTagsIfNeeded($resolved, $tagsByLead[$resolved] ?? array(), $userId);
 	}
 
-	/** Resolve cache id / crm id → leadid (public for Last Touch / APIs). */
-	public static function resolveLeadRecordId($idOrCacheId) {
-		return self::resolveLeadId($idOrCacheId);
-	}
-
-	/** Gắn tag goi_lan_N (Last Touch Call #N), gỡ các goi_lan_* khác. */
-	public static function setGoiLanTag($leadId, $callN, $userId = null) {
-		global $current_user;
-		if ($userId === null) {
-			$userId = (int)$current_user->id;
-		}
-		$leadId = (int)self::resolveLeadId($leadId);
-		if ($leadId <= 0) {
-			return;
-		}
-		$callN = max(1, min((int)$callN, self::MAX_CALLS_PER_DAY));
-		$tagsByLead = self::getTagsForLeadIds(array($leadId), $userId);
-		$expected = self::applyCallAttemptTags($tagsByLead[$leadId] ?? array(), $callN);
-		self::syncTags($leadId, $expected, $userId);
-	}
-
 	public static function applyCallAttemptTags(array $tags, $todayCallCount) {
 		$out = array();
 		foreach ($tags as $tag) {
@@ -368,40 +212,13 @@ class Leads_ModernService {
 		return array_values(array_unique($out));
 	}
 
-	/** Đồng bộ Trạng thái khách (Đã/Chưa có quán / Gia đình) vào freetags. */
-	public static function applyCustomerStatusTag(array $tags, $segment) {
-		$statusPool = array('co_quan', 'chuan_bi_mo', 'gia_dinh');
-		$out = array();
-		foreach ($tags as $tag) {
-			$key = strtolower(trim((string)$tag));
-			if (in_array($key, $statusPool, true)) {
-				continue;
-			}
-			$out[] = $tag;
-		}
-		$segment = strtolower(trim((string)$segment));
-		if (in_array($segment, $statusPool, true)) {
-			$out[] = $segment;
-		}
-		return array_values(array_unique($out));
-	}
-
 	protected static function syncCallAttemptTagsIfNeeded($leadId, array $tags, $userId = null) {
 		global $current_user;
 		if ($userId === null) {
 			$userId = (int)$current_user->id;
 		}
-		$callCount = 0;
-		try {
-			require_once 'modules/Leads/models/LastTouchCallService.php';
-			$callCount = Leads_LastTouchCallService::countCalls($leadId);
-		} catch (Exception $e) {
-			$callCount = 0;
-		}
-		if ($callCount <= 0) {
-			$callCount = Leads_CommerceService::countTodayCallsForLead($leadId);
-		}
-		$expected = self::applyCallAttemptTags($tags, $callCount);
+		$todayCalls = Leads_CommerceService::countTodayCallsForLead($leadId);
+		$expected = self::applyCallAttemptTags($tags, $todayCalls);
 		$current = array_values(array_unique(array_map('strval', $tags)));
 		sort($current);
 		$next = array_values(array_unique(array_map('strval', $expected)));
@@ -444,33 +261,11 @@ class Leads_ModernService {
 		global $current_user;
 		$adb = PearDatabase::getInstance();
 		$userId = (int)$current_user->id;
-		$forceCreate = !empty($payload['force_create']) || !empty($payload['sheet_source']);
-		$skipPotential = !empty($payload['skip_potential']) || !empty($payload['sheet_source']);
-
-		$requestedId = ($recordId !== null && $recordId !== '') ? $recordId : null;
-		if ($requestedId === null && isset($payload['id']) && $payload['id'] !== '') {
-			$requestedId = $payload['id'];
-		}
-		if ($requestedId === null && isset($payload['crmid']) && $payload['crmid'] !== '') {
-			$requestedId = $payload['crmid'];
-		}
-
-		$leadId = self::resolveLeadId($requestedId);
-		if (!$leadId && $recordId !== null && $recordId !== '' && (string)$recordId !== (string)$requestedId) {
-			$leadId = self::resolveLeadId($recordId);
-		}
-		if (!$leadId && is_numeric($requestedId) && self::vtigerLeadExists((int)$requestedId)) {
-			$leadId = (int)$requestedId;
-			self::ensureModernProfile($leadId);
-		}
-		if (!$leadId && isset($payload['crmid'])) {
-			$leadId = self::resolveLeadId($payload['crmid']);
-		}
+		$leadId = self::resolveLeadId($recordId);
 		if (!$leadId && isset($payload['id'])) {
 			$leadId = self::resolveLeadId($payload['id']);
 		}
-		// Sheet import / explicit force_create: always insert new Lead (no phone merge).
-		if (!$forceCreate && !$leadId && ($requestedId === null || $requestedId === '')) {
+		if (!$leadId) {
 			$existingId = self::findExistingLeadIdByPhoneOrEmail(
 				isset($payload['phone']) ? $payload['phone'] : '',
 				isset($payload['email']) ? $payload['email'] : ''
@@ -478,6 +273,10 @@ class Leads_ModernService {
 			if ($existingId) {
 				$leadId = $existingId;
 			}
+		}
+		$requestedId = ($recordId !== null && $recordId !== '') ? $recordId : null;
+		if ($requestedId === null && isset($payload['id']) && $payload['id'] !== '') {
+			$requestedId = $payload['id'];
 		}
 		if ($requestedId !== null && $requestedId !== '' && !$leadId) {
 			throw new Exception('Lead not found.');
@@ -503,8 +302,6 @@ class Leads_ModernService {
 		$isNew = !$leadId;
 		if ($leadId) {
 			$recordModel = Vtiger_Record_Model::getInstanceById($leadId, self::MODULE);
-			$recordModel->set('id', $leadId);
-			$recordModel->set('mode', 'edit');
 		} else {
 			$recordModel = Vtiger_Record_Model::getCleanInstance(self::MODULE);
 		}
@@ -523,54 +320,12 @@ class Leads_ModernService {
 		$leadId = (int)$recordModel->getId();
 
 		$now = date('Y-m-d H:i:s');
-		// last_touch chỉ cập nhật khi payload gửi (hoặc Last Touch Call) — không bump mỗi lần Save.
-		$lastTouch = null;
-		if (isset($payload['last_touch']) && $payload['last_touch'] !== '') {
-			$lastTouch = self::normalizeDateTime($payload['last_touch']);
-		} elseif ($leadId) {
-			$prevTouch = $adb->pquery('SELECT last_touch FROM bace_lead_profile WHERE leadid = ?', array($leadId));
-			if ($prevTouch && $adb->num_rows($prevTouch) > 0) {
-				$prevVal = $adb->query_result($prevTouch, 0, 'last_touch');
-				if ($prevVal && $prevVal !== '0000-00-00 00:00:00') {
-					$lastTouch = $prevVal;
-				}
-			}
-		}
-		if ($lastTouch === null || $lastTouch === '') {
-			$lastTouch = $now;
-		}
+		$lastTouch = isset($payload['last_touch']) ? self::normalizeDateTime($payload['last_touch']) : $now;
 		$mkCacheId = isset($payload['id']) && !is_numeric($payload['id']) ? $payload['id'] : null;
 		if (!$mkCacheId && $leadId) {
 			$existing = $adb->pquery("SELECT mk_cache_id FROM bace_lead_profile WHERE leadid = ?", array($leadId));
 			if ($existing && $adb->num_rows($existing) > 0) {
 				$mkCacheId = $adb->query_result($existing, 0, 'mk_cache_id');
-			}
-		}
-
-		$screening = isset($payload['screening_result']) ? trim((string) $payload['screening_result']) : '';
-		$allowed = array(
-			'khong_dat', 'tiem_nang', 'sieu_tiem_nang',
-			'so_luoc_du_dk', 'can_xm_muc_dich', 'can_xm_mo_hinh', 'so_luoc_khong_dk',
-		);
-		if ($screening !== '' && !in_array($screening, $allowed, true)) {
-			require_once 'modules/Leads/models/SheetImportService.php';
-			$screening = Leads_SheetImportService::normalizeScreeningResult($screening);
-		}
-		$qaRaw = '';
-		if (isset($payload['qa_raw'])) {
-			if (is_array($payload['qa_raw'])) {
-				$qaRaw = json_encode($payload['qa_raw'], JSON_UNESCAPED_UNICODE);
-			} else {
-				$qaRaw = (string) $payload['qa_raw'];
-			}
-		}
-		$businessModel = '';
-		if (array_key_exists('business_model', $payload)) {
-			$businessModel = self::normalizeBusinessModel($payload['business_model']);
-		} elseif ($leadId && !$isNew) {
-			$bizRes = $adb->pquery('SELECT business_model FROM bace_lead_profile WHERE leadid = ?', array($leadId));
-			if ($bizRes && $adb->num_rows($bizRes) > 0) {
-				$businessModel = self::normalizeBusinessModel($adb->query_result($bizRes, 0, 'business_model'));
 			}
 		}
 
@@ -581,68 +336,24 @@ class Leads_ModernService {
 			'district' => isset($payload['district']) ? $payload['district'] : '',
 			'address_line' => isset($payload['address']) ? $payload['address'] : '',
 			'area' => isset($payload['area']) ? $payload['area'] : '',
-			'business_model' => $businessModel,
 			'lead_value' => isset($payload['value']) ? (float)$payload['value'] : 0,
 			'last_touch' => $lastTouch,
 			'next_action' => isset($payload['next_action']) ? $payload['next_action'] : '',
 			'open_tickets' => isset($payload['openTickets']) ? (int)$payload['openTickets'] : 0,
 			'customer_type' => self::findTag($tags, array('individual', 'company')),
 			'purchase_reason' => isset($payload['purchaseReason']) ? $payload['purchaseReason'] : '',
-			'screening_result' => $screening,
-			'sheet_source' => !empty($payload['sheet_source']) ? 1 : 0,
-			'sheet_row_key' => isset($payload['sheet_row_key']) ? (string) $payload['sheet_row_key'] : '',
-			'qa_raw' => $qaRaw,
 		);
 		self::upsertProfile($leadId, $profile);
 		$todayCalls = Leads_CommerceService::countTodayCallsForLead($leadId);
 		$tags = self::applyCallAttemptTags($tags, $todayCalls);
 		$tags = self::applyRegionTags($tags, isset($payload['district']) ? $payload['district'] : '');
-		$tags = self::applyCustomerStatusTag($tags, isset($profile['segment']) ? $profile['segment'] : '');
-		// Enforce screening tags (no potential tags when Không đạt)
-		$tags = self::applyScreeningTags($tags, $screening);
 		self::syncTags($leadId, $tags, $userId);
 
-		if (!$isNew) {
-			require_once 'modules/Leads/models/ConvertService.php';
-			Leads_ConvertService::syncRelatedTagsFromLead($leadId, $userId);
-		}
-
-		if ($isNew && empty($mkCacheId) && !$skipPotential) {
+		if ($isNew && empty($mkCacheId)) {
 			Leads_ConvertService::ensurePotentialForLead($leadId, $payload, $ownerId);
 		}
 
 		return self::getLead((string)$leadId, $userId);
-	}
-
-	/**
-	 * Create Lead from Google Sheet row — always new record, never merge by phone.
-	 */
-	public static function saveLeadFromSheet(array $payload) {
-		$payload['force_create'] = 1;
-		$payload['sheet_source'] = 1;
-		$payload['skip_potential'] = 1;
-		unset($payload['id'], $payload['crmid']);
-		return self::saveLead($payload, null);
-	}
-
-	/** Keep tiem_nang / sieu_tiem_nang aligned with screening_result. */
-	public static function applyScreeningTags(array $tags, $screening) {
-		$pool = array('tiem_nang', 'sieu_tiem_nang');
-		$out = array();
-		foreach ($tags as $tag) {
-			$key = strtolower(trim((string) $tag));
-			if (in_array($key, $pool, true)) {
-				continue;
-			}
-			$out[] = $tag;
-		}
-		if ($screening === 'tiem_nang') {
-			$out[] = 'tiem_nang';
-		} elseif ($screening === 'sieu_tiem_nang') {
-			$out[] = 'sieu_tiem_nang';
-		}
-		/* Bộ A sơ lược: không gắn tag Tiềm năng / Siêu — chỉ sau Bộ B. */
-		return array_values(array_unique($out));
 	}
 
 	/**
@@ -686,268 +397,18 @@ class Leads_ModernService {
 		return $updated;
 	}
 
-	public static function updateNextAction($leadIdOrCacheId, $nextAction) {
-		$adb = PearDatabase::getInstance();
-		self::installSchema($adb);
-		$leadId = self::resolveLeadId($leadIdOrCacheId);
-		if (!$leadId) {
-			throw new Exception('Lead not found.');
-		}
-		$nextAction = self::decodeText(trim((string) $nextAction));
-		if (function_exists('mb_substr')) {
-			$nextAction = mb_substr($nextAction, 0, 255, 'UTF-8');
-		} else {
-			$nextAction = substr($nextAction, 0, 255);
-		}
-		$now = date('Y-m-d H:i:s');
-		$exists = $adb->pquery('SELECT leadid FROM bace_lead_profile WHERE leadid = ?', array($leadId));
-		if ($exists && $adb->num_rows($exists) > 0) {
-			$adb->pquery(
-				'UPDATE bace_lead_profile SET next_action = ?, modified_at = ? WHERE leadid = ?',
-				array($nextAction, $now, $leadId)
-			);
-		} else {
-			$adb->pquery(
-				'INSERT INTO bace_lead_profile(leadid, next_action, is_modern, created_at, modified_at)
-				 VALUES(?,?,1,?,?)',
-				array($leadId, $nextAction, $now, $now)
-			);
-		}
-		return $nextAction;
-	}
-
-	/**
-	 * UI "Xóa" default → soft-delete (thùng rác) so merge trash works.
-	 * Pass purge=true for permanent (legacy hard wipe).
-	 */
-	public static function deleteLead($idOrCacheId, $purge = false) {
-		if ($purge) {
-			return self::purgeLead($idOrCacheId);
-		}
-		return self::softDeleteLead($idOrCacheId);
-	}
-
-	/** Soft-delete: keep profile/side tables; set crmentity.deleted=1 */
-	public static function softDeleteLead($idOrCacheId) {
-		$leadId = self::resolveLeadIdIncludingDeleted($idOrCacheId);
-		if (!$leadId) {
-			$leadId = self::resolveLeadId($idOrCacheId);
-		}
-		if (!$leadId) {
-			return false;
-		}
-		$adb = PearDatabase::getInstance();
-		// Prefer CRMEntity trash for related RB snapshot
-		try {
-			$recordModel = Vtiger_Record_Model::getInstanceById($leadId, self::MODULE);
-			$recordModel->delete();
-		} catch (Exception $e) {
-			$adb->pquery(
-				"UPDATE vtiger_crmentity SET deleted = 1, modifiedtime = ? WHERE crmid = ? AND setype = ?",
-				array(date('Y-m-d H:i:s'), $leadId, self::MODULE)
-			);
-		}
-		return true;
-	}
-
-	public static function restoreLead($idOrCacheId) {
-		$leadId = self::resolveLeadIdIncludingDeleted($idOrCacheId);
-		if (!$leadId) {
-			return false;
-		}
-		$adb = PearDatabase::getInstance();
-		try {
-			$focus = CRMEntity::getInstance(self::MODULE);
-			if (method_exists($focus, 'restore')) {
-				$focus->restore(self::MODULE, $leadId);
-			} else {
-				$adb->pquery(
-					"UPDATE vtiger_crmentity SET deleted = 0, modifiedtime = ? WHERE crmid = ? AND setype = ?",
-					array(date('Y-m-d H:i:s'), $leadId, self::MODULE)
-				);
-			}
-		} catch (Exception $e) {
-			$adb->pquery(
-				"UPDATE vtiger_crmentity SET deleted = 0, modifiedtime = ? WHERE crmid = ? AND setype = ?",
-				array(date('Y-m-d H:i:s'), $leadId, self::MODULE)
-			);
-		}
-		self::ensureModernProfile($leadId);
-		return true;
-	}
-
-	/** Permanent delete + wipe modern side data */
-	public static function purgeLead($idOrCacheId) {
-		$leadId = self::resolveLeadIdIncludingDeleted($idOrCacheId);
-		if (!$leadId) {
-			$leadId = self::resolveLeadId($idOrCacheId);
-		}
+	public static function deleteLead($idOrCacheId) {
+		$leadId = self::resolveLeadId($idOrCacheId);
 		if (!$leadId) {
 			return false;
 		}
 		$adb = PearDatabase::getInstance();
 		$adb->pquery("DELETE FROM bace_lead_purchases WHERE leadid = ?", array($leadId));
 		$adb->pquery("DELETE FROM bace_lead_calendar_tasks WHERE leadid = ?", array($leadId));
-		try {
-			require_once 'modules/Leads/models/LastTouchCallService.php';
-			$adb->pquery("DELETE FROM bace_lead_last_touch_call WHERE leadid = ?", array($leadId));
-		} catch (Exception $e) {
-			// optional table
-		}
-		$adb->pquery("DELETE FROM bace_lead_sheet_import WHERE leadid = ?", array($leadId));
 		$adb->pquery("DELETE FROM bace_lead_profile WHERE leadid = ?", array($leadId));
-		// Ensure deleted then empty from recycle if possible
-		$adb->pquery(
-			"UPDATE vtiger_crmentity SET deleted = 1 WHERE crmid = ? AND setype = ?",
-			array($leadId, self::MODULE)
-		);
-		try {
-			require_once 'modules/RecycleBin/models/Module.php';
-			if (class_exists('RecycleBin_Module_Model')) {
-				$rb = RecycleBin_Module_Model::getInstance('RecycleBin');
-				if ($rb && method_exists($rb, 'deleteRecords')) {
-					// fall through — direct entity wipe below is more reliable
-				}
-			}
-		} catch (Exception $e) {
-			// ignore
-		}
-		// Hard-remove entity rows
-		try {
-			$focus = CRMEntity::getInstance(self::MODULE);
-			if (method_exists($focus, 'unlinkDependencies')) {
-				// avoid incomplete
-			}
-			$adb->pquery("DELETE FROM vtiger_seattachmentsrel WHERE crmid = ?", array($leadId));
-			$adb->pquery("DELETE FROM vtiger_crmentityrel WHERE crmid = ? OR relcrmid = ?", array($leadId, $leadId));
-			$adb->pquery("DELETE FROM vtiger_leadsubdetails WHERE leadsubscriptionid = ?", array($leadId));
-			$adb->pquery("DELETE FROM vtiger_leadaddress WHERE leadaddressid = ?", array($leadId));
-			$adb->pquery("DELETE FROM vtiger_leadscf WHERE leadid = ?", array($leadId));
-			$adb->pquery("DELETE FROM vtiger_leaddetails WHERE leadid = ?", array($leadId));
-			$adb->pquery("DELETE FROM vtiger_crmentity WHERE crmid = ?", array($leadId));
-		} catch (Exception $e) {
-			// best-effort
-		}
+		$recordModel = Vtiger_Record_Model::getInstanceById($leadId, self::MODULE);
+		$recordModel->delete();
 		return true;
-	}
-
-	/**
-	 * Merge discard → keeper (union tags, reassign side data, soft-delete discard).
-	 * UI chooses keeper (name retained is keeper's name).
-	 */
-	public static function mergeLeads($keeperId, $discardId, $userId = null) {
-		global $current_user;
-		if ($userId === null) {
-			$userId = (int) $current_user->id;
-		}
-		$keeperId = (int) self::resolveLeadId($keeperId);
-		$discardId = (int) self::resolveLeadId($discardId);
-		if ($keeperId <= 0 || $discardId <= 0 || $keeperId === $discardId) {
-			throw new Exception('Lead gộp không hợp lệ.');
-		}
-		$adb = PearDatabase::getInstance();
-		self::installSchema($adb);
-
-		$keeper = self::getLead((string) $keeperId, $userId);
-		$discard = self::getLead((string) $discardId, $userId);
-		if (!$keeper || !$discard) {
-			throw new Exception('Không tìm thấy lead để gộp.');
-		}
-
-		// Merge empty scalar fields from discard into keeper
-		$patch = array(
-			'id' => $keeper['id'],
-			'crmid' => $keeperId,
-			'name' => $keeper['name'],
-			'phone' => $keeper['phone'],
-			'tags' => array_values(array_unique(array_merge(
-				isset($keeper['tags']) && is_array($keeper['tags']) ? $keeper['tags'] : array(),
-				isset($discard['tags']) && is_array($discard['tags']) ? $discard['tags'] : array()
-			))),
-			'force_create' => 0,
-		);
-		foreach (array('email', 'address', 'district', 'area', 'cccd', 'companyName', 'segment', 'next_action', 'notes') as $f) {
-			$kv = isset($keeper[$f]) ? trim((string) $keeper[$f]) : '';
-			$dv = isset($discard[$f]) ? trim((string) $discard[$f]) : '';
-			$patch[$f] = $kv !== '' ? $kv : $dv;
-		}
-		// Screening/QA: keep keeper if set
-		$kScr = isset($keeper['screening_result']) ? $keeper['screening_result'] : '';
-		$dScr = isset($discard['screening_result']) ? $discard['screening_result'] : '';
-		$patch['screening_result'] = $kScr !== '' ? $kScr : $dScr;
-		if (!empty($keeper['qa_raw'])) {
-			$patch['qa_raw'] = $keeper['qa_raw'];
-		} elseif (!empty($discard['qa_raw'])) {
-			$patch['qa_raw'] = $discard['qa_raw'];
-		}
-		if (empty($keeper['phone']) && !empty($discard['phone'])) {
-			$patch['phone'] = $discard['phone'];
-		}
-		self::saveLead($patch, $keeperId);
-
-		// Reassign side tables
-		$adb->pquery("UPDATE bace_lead_purchases SET leadid = ? WHERE leadid = ?", array($keeperId, $discardId));
-		$adb->pquery("UPDATE bace_lead_calendar_tasks SET leadid = ? WHERE leadid = ?", array($keeperId, $discardId));
-		try {
-			$adb->pquery("UPDATE bace_lead_last_touch_call SET leadid = ? WHERE leadid = ?", array($keeperId, $discardId));
-		} catch (Exception $e) {
-			// optional
-		}
-		$adb->pquery("UPDATE bace_lead_sheet_import SET leadid = ? WHERE leadid = ?", array($keeperId, $discardId));
-
-		// Reassign comments (ModComments related)
-		try {
-			$adb->pquery(
-				"UPDATE vtiger_crmentityrel SET crmid = ? WHERE crmid = ? AND relmodule = 'ModComments'",
-				array($keeperId, $discardId)
-			);
-			$adb->pquery(
-				"UPDATE vtiger_crmentityrel SET relcrmid = ? WHERE relcrmid = ? AND module = 'ModComments'",
-				array($keeperId, $discardId)
-			);
-			$adb->pquery(
-				"UPDATE vtiger_modcomments SET related_to = ? WHERE related_to = ?",
-				array($keeperId, $discardId)
-			);
-		} catch (Exception $e) {
-			// best-effort
-		}
-
-		self::softDeleteLead($discardId);
-
-		$adb->pquery(
-			'INSERT INTO bace_lead_merge_log (keeper_id, discarded_id, merged_by, merged_at) VALUES (?,?,?,?)',
-			array($keeperId, $discardId, $userId, date('Y-m-d H:i:s'))
-		);
-
-		return self::getLead((string) $keeperId, $userId);
-	}
-
-	/** Resolve id even if soft-deleted */
-	protected static function resolveLeadIdIncludingDeleted($idOrCacheId) {
-		if ($idOrCacheId === null || $idOrCacheId === '') {
-			return null;
-		}
-		$adb = PearDatabase::getInstance();
-		if (is_numeric($idOrCacheId)) {
-			$res = $adb->pquery(
-				"SELECT ce.crmid FROM vtiger_crmentity ce
-				 INNER JOIN vtiger_leaddetails ld ON ld.leadid = ce.crmid
-				 WHERE ce.crmid = ? AND ce.setype = ?",
-				array((int) $idOrCacheId, self::MODULE)
-			);
-			if ($res && $adb->num_rows($res) > 0) {
-				return (int) $adb->query_result($res, 0, 'crmid');
-			}
-		}
-		$res = $adb->pquery(
-			"SELECT p.leadid FROM bace_lead_profile p WHERE p.mk_cache_id = ? LIMIT 1",
-			array((string) $idOrCacheId)
-		);
-		if ($res && $adb->num_rows($res) > 0) {
-			return (int) $adb->query_result($res, 0, 'leadid');
-		}
-		return null;
 	}
 
 	public static function getSegments($userId) {
@@ -1049,71 +510,6 @@ class Leads_ModernService {
 		return decode_html($value);
 	}
 
-	/**
-	 * Bỏ next_action auto từ Last Touch / Calendar (giữ ghi chú tay kiểu "Chăm hạng Đồng...").
-	 */
-	protected static function sanitizeManualNextAction($text) {
-		$text = trim((string)$text);
-		if ($text === '') {
-			return '';
-		}
-		if (preg_match('/^(Nhắc gọi Call\s*#|Đã nghe máy|Đã đủ 3 lần gọi|Gọi:\s*Nhắc gọi)/iu', $text)) {
-			return '';
-		}
-		return $text;
-	}
-
-	/**
-	 * Kịch bản tiếp theo + khung thời gian (alert_days) từ Tag Rule khớp thẻ.
-	 * @return array{next_action:string,rule_id:?string,rule_name:?string,rule_alert_days:?int,next_action_due_at:?string,next_action_overdue:bool,next_action_days_remaining:?int,next_action_days_overdue:?int}
-	 */
-	protected static function resolveRuleNextActionMeta(array $tags, $lastTouchRaw, $manualNextAction) {
-		$meta = array(
-			'next_action' => (string)$manualNextAction,
-			'rule_id' => null,
-			'rule_name' => null,
-			'rule_alert_days' => null,
-			'next_action_due_at' => null,
-			'next_action_overdue' => false,
-			'next_action_days_remaining' => null,
-			'next_action_days_overdue' => null,
-		);
-		try {
-			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
-			$ruleMatch = HelpDesk_TagRuleEngineService::getInstance()->matchRules($tags, true);
-			$best = !empty($ruleMatch['best']) ? $ruleMatch['best'] : null;
-			if (!$best) {
-				return $meta;
-			}
-			$meta['rule_id'] = isset($best['id']) ? (string)$best['id'] : null;
-			$meta['rule_name'] = isset($best['name']) ? (string)$best['name'] : null;
-			if ($meta['next_action'] === '' && !empty($best['next_action'])) {
-				$meta['next_action'] = (string)$best['next_action'];
-			}
-			if ($best['alert_days'] === null || (int)$best['alert_days'] <= 0) {
-				return $meta;
-			}
-			$alertDays = (int)$best['alert_days'];
-			$meta['rule_alert_days'] = $alertDays;
-			$lastTs = $lastTouchRaw ? strtotime((string)$lastTouchRaw) : false;
-			if (!$lastTs) {
-				return $meta;
-			}
-			$meta['next_action_due_at'] = date('c', strtotime('+' . $alertDays . ' days', $lastTs));
-			$daysIdle = max(0, (int)floor((time() - $lastTs) / 86400));
-			$remaining = $alertDays - $daysIdle;
-			if ($remaining < 0) {
-				$meta['next_action_overdue'] = true;
-				$meta['next_action_days_overdue'] = -$remaining;
-			} else {
-				$meta['next_action_days_remaining'] = $remaining;
-			}
-		} catch (Exception $e) {
-			// ignore — rule metadata is best-effort
-		}
-		return $meta;
-	}
-
 	protected static function composeDisplayName($firstname, $lastname) {
 		$firstname = self::decodeText(trim((string)$firstname));
 		$lastname = self::decodeText(trim((string)$lastname));
@@ -1141,56 +537,11 @@ class Leads_ModernService {
 		}
 		$id = !empty($row['mk_cache_id']) ? $row['mk_cache_id'] : (string)$leadId;
 		$lastTouch = !empty($row['last_touch']) ? date('c', strtotime($row['last_touch'])) : date('c');
-		$createdTime = '';
-		if (!empty($row['createdtime'])) {
-			$createdTs = strtotime($row['createdtime']);
-			if ($createdTs) {
-				$createdTime = date('c', $createdTs);
-			}
-		}
 		$company = self::decodeText(isset($row['company']) ? $row['company'] : '');
 		$storedNext = self::decodeText(isset($row['next_action']) ? $row['next_action'] : '');
-		// Hành động tiếp theo = ghi chú tự do đã lưu; khung thời gian = alert_days từ Tag Rule khớp thẻ.
-		$ruleMeta = self::resolveRuleNextActionMeta(
-			$tags,
-			!empty($row['last_touch']) ? $row['last_touch'] : null,
-			self::sanitizeManualNextAction($storedNext)
-		);
-		$nextAction = $ruleMeta['next_action'];
+		$nextAction = Leads_CommerceService::deriveNextActionLabel($calendarTasks, $storedNext);
 
-		$conversion = array(
-			'potentialId' => null,
-			'converted' => false,
-			'canConvert' => true,
-			'potentialUrl' => '',
-		);
-		try {
-			$conversion = Leads_ConvertService::getConversionStatus($leadId);
-		} catch (Exception $e) {
-			// trash / edge cases
-		}
-
-		$lastTouchCalls = array('calls' => array(), 'count' => 0, 'can_add' => true, 'hint' => '');
-		try {
-			require_once 'modules/Leads/models/LastTouchCallService.php';
-			$lastTouchCalls = Leads_LastTouchCallService::getSummary($leadId);
-		} catch (Exception $e) {
-			// ignore
-		}
-
-		$screening = isset($row['screening_result']) ? trim((string) $row['screening_result']) : '';
-		$qaRaw = '';
-		$qaDecoded = null;
-		if (isset($row['qa_raw']) && $row['qa_raw'] !== null && $row['qa_raw'] !== '') {
-			$qaRaw = (string) $row['qa_raw'];
-			$try = json_decode($qaRaw, true);
-			if (is_array($try)) {
-				$qaDecoded = $try;
-			}
-		}
-		require_once 'modules/Leads/models/SheetImportService.php';
-		$screeningLabel = Leads_SheetImportService::screeningLabel($screening);
-		$verify = self::composeVerifyBlock($row);
+		$conversion = Leads_ConvertService::getConversionStatus($leadId);
 
 		return array(
 			'id' => $id,
@@ -1209,159 +560,46 @@ class Leads_ModernService {
 			'owner_username' => self::getUsername((int)$row['smownerid']),
 			'value' => (float)$row['lead_value'],
 			'last_touch' => $lastTouch,
-			'lastTouchCalls' => $lastTouchCalls,
-			'createdtime' => $createdTime,
 			'next_action' => $nextAction,
-			'rule_id' => $ruleMeta['rule_id'],
-			'rule_name' => $ruleMeta['rule_name'],
-			'rule_alert_days' => $ruleMeta['rule_alert_days'],
-			'next_action_due_at' => $ruleMeta['next_action_due_at'],
-			'next_action_overdue' => $ruleMeta['next_action_overdue'],
-			'next_action_days_remaining' => $ruleMeta['next_action_days_remaining'],
-			'next_action_days_overdue' => $ruleMeta['next_action_days_overdue'],
 			'segment' => self::decodeText(isset($row['segment']) ? $row['segment'] : ''),
 			'district' => self::decodeText(isset($row['district']) ? $row['district'] : ''),
 			'address' => self::decodeText(isset($row['address_line']) ? $row['address_line'] : ''),
 			'area' => self::decodeText(isset($row['area']) ? $row['area'] : ''),
-			'business_model' => self::normalizeBusinessModel(isset($row['business_model']) ? $row['business_model'] : ''),
 			'openTickets' => (int)$row['open_tickets'],
 			'purchases' => $purchases,
 			'calendarTasks' => $calendarTasks,
 			'activities' => array(),
-			'notes' => self::decodeText(isset($row['description']) ? $row['description'] : ''),
-			'screening_result' => $screening,
-			'screening_label' => $screeningLabel,
-			'sheet_source' => !empty($row['sheet_source']) ? 1 : 0,
-			'sheet_row_key' => isset($row['sheet_row_key']) ? (string) $row['sheet_row_key'] : '',
-			'qa_raw' => $qaDecoded !== null ? $qaDecoded : $qaRaw,
-			'phone_dup' => false,
-			'phone_dup_count' => 1,
-		) + $verify;
-	}
-
-	protected static function composeVerifyBlock(array $row) {
-		require_once 'modules/Leads/models/SalesVerifyService.php';
-		$catalog = Leads_SalesVerifyService::optionsCatalog();
-		$formC1 = isset($row['form_c1']) ? trim((string) $row['form_c1']) : '';
-		$formC2 = isset($row['form_c2']) ? trim((string) $row['form_c2']) : '';
-		$formC3 = isset($row['form_c3']) ? trim((string) $row['form_c3']) : '';
-		$verifyC1 = isset($row['verify_c1']) ? trim((string) $row['verify_c1']) : '';
-		$verifyC2 = isset($row['verify_c2']) ? trim((string) $row['verify_c2']) : '';
-		$verifyC3 = isset($row['verify_c3']) ? trim((string) $row['verify_c3']) : '';
-		$verifyC4 = isset($row['verify_c4']) && $row['verify_c4'] !== null && $row['verify_c4'] !== ''
-			? (int) $row['verify_c4'] : null;
-		$verifyC5 = isset($row['verify_c5']) && $row['verify_c5'] !== null && $row['verify_c5'] !== ''
-			? (int) $row['verify_c5'] : null;
-		$eligibility = isset($row['eligibility_result']) ? trim((string) $row['eligibility_result']) : '';
-		$potential = isset($row['potential_level']) ? trim((string) $row['potential_level']) : '';
-		$score = isset($row['verify_score']) && $row['verify_score'] !== null && $row['verify_score'] !== ''
-			? (int) $row['verify_score'] : null;
-		$changeReason = isset($row['verify_change_reason']) ? trim((string) $row['verify_change_reason']) : '';
-		$verifiedAt = '';
-		if (!empty($row['verified_at']) && $row['verified_at'] !== '0000-00-00 00:00:00') {
-			$ts = strtotime($row['verified_at']);
-			if ($ts) {
-				$verifiedAt = date('c', $ts);
-			}
-		}
-		return array(
-			'form_c1' => $formC1,
-			'form_c2' => $formC2,
-			'form_c3' => $formC3,
-			'form_c1_label' => self::verifyOptionLabel($catalog['c1'], $formC1),
-			'form_c2_label' => self::verifyOptionLabel($catalog['c2'], $formC2),
-			'form_c3_label' => self::verifyOptionLabel($catalog['c3'], $formC3),
-			'verify_c1' => $verifyC1,
-			'verify_c2' => $verifyC2,
-			'verify_c3' => $verifyC3,
-			'verify_c4' => $verifyC4,
-			'verify_c5' => $verifyC5,
-			'verify_c1_label' => self::verifyOptionLabel($catalog['c1'], $verifyC1),
-			'verify_c2_label' => self::verifyOptionLabel($catalog['c2'], $verifyC2),
-			'verify_c3_label' => self::verifyOptionLabel($catalog['c3'], $verifyC3),
-			'eligibility_result' => $eligibility,
-			'eligibility_label' => Leads_SalesVerifyService::eligibilityLabel($eligibility),
-			'potential_level' => $potential,
-			'potential_label' => Leads_SalesVerifyService::potentialLabel($potential),
-			'verify_score' => $score,
-			'verify_change_reason' => $changeReason,
-			'verified_at' => $verifiedAt,
-			'verified_by' => isset($row['verified_by']) ? (int) $row['verified_by'] : null,
-			'verify_options' => $catalog,
+			'notes' => '',
 		);
-	}
-
-	protected static function verifyOptionLabel(array $options, $code) {
-		$code = strtoupper(trim((string) $code));
-		if ($code === '') {
-			return '';
-		}
-		foreach ($options as $opt) {
-			if (isset($opt['code']) && strtoupper((string) $opt['code']) === $code) {
-				return isset($opt['label']) ? (string) $opt['label'] : $code;
-			}
-		}
-		return $code;
-	}
-
-	public static function normalizeBusinessModel($value) {
-		require_once 'modules/Vtiger/helpers/BusinessModelHelper.php';
-		return Vtiger_BusinessModel_Helper::normalize($value);
 	}
 
 	protected static function upsertProfile($leadId, array $profile) {
 		$adb = PearDatabase::getInstance();
-		self::installSchema($adb);
 		$now = date('Y-m-d H:i:s');
 		$exists = $adb->pquery("SELECT leadid FROM bace_lead_profile WHERE leadid = ?", array($leadId));
-		$screening = isset($profile['screening_result']) ? $profile['screening_result'] : null;
-		$sheetSource = !empty($profile['sheet_source']) ? 1 : 0;
-		$sheetRowKey = isset($profile['sheet_row_key']) ? $profile['sheet_row_key'] : null;
-		$qaRaw = isset($profile['qa_raw']) ? $profile['qa_raw'] : null;
-		$hasBiz = array_key_exists('business_model', $profile);
-		$businessModel = $hasBiz ? self::normalizeBusinessModel($profile['business_model']) : '';
 		if ($exists && $adb->num_rows($exists) > 0) {
-			$sql = "UPDATE bace_lead_profile SET mk_cache_id=?, cccd=?, segment=?, district=?, address_line=?, area=?,
-				 lead_value=?, last_touch=?, next_action=?, open_tickets=?, customer_type=?, purchase_reason=?,
-				 screening_result=?, sheet_source=?, sheet_row_key=?, qa_raw=?, modified_at=?";
-			$params = array(
-				$profile['mk_cache_id'], $profile['cccd'], $profile['segment'], $profile['district'],
-				$profile['address_line'], $profile['area'], $profile['lead_value'], $profile['last_touch'],
-				$profile['next_action'], $profile['open_tickets'], $profile['customer_type'],
-				$profile['purchase_reason'],
-				$screening !== '' ? $screening : null,
-				$sheetSource,
-				$sheetRowKey !== '' ? $sheetRowKey : null,
-				$qaRaw !== '' ? $qaRaw : null,
-				$now,
+			$adb->pquery(
+				"UPDATE bace_lead_profile SET mk_cache_id=?, cccd=?, segment=?, district=?, address_line=?, area=?,
+				 lead_value=?, last_touch=?, next_action=?, open_tickets=?, customer_type=?, purchase_reason=?, modified_at=?
+				 WHERE leadid=?",
+				array(
+					$profile['mk_cache_id'], $profile['cccd'], $profile['segment'], $profile['district'],
+					$profile['address_line'], $profile['area'], $profile['lead_value'], $profile['last_touch'],
+					$profile['next_action'], $profile['open_tickets'], $profile['customer_type'],
+					$profile['purchase_reason'], $now, $leadId,
+				)
 			);
-			if ($hasBiz) {
-				$sql .= ", business_model=?";
-				$params[] = $businessModel !== '' ? $businessModel : null;
-			}
-			$sql .= " WHERE leadid=?";
-			$params[] = $leadId;
-			$adb->pquery($sql, $params);
 			return;
 		}
 		$adb->pquery(
-			"INSERT INTO bace_lead_profile(leadid, mk_cache_id, cccd, segment, district, address_line, area, business_model, lead_value,
-			 last_touch, next_action, open_tickets, customer_type, purchase_reason,
-			 screening_result, sheet_source, sheet_row_key, qa_raw,
-			 is_modern, created_at, modified_at)
-			 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,?)",
+			"INSERT INTO bace_lead_profile(leadid, mk_cache_id, cccd, segment, district, address_line, area, lead_value,
+			 last_touch, next_action, open_tickets, customer_type, purchase_reason, is_modern, created_at, modified_at)
+			 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,?)",
 			array(
 				$leadId, $profile['mk_cache_id'], $profile['cccd'], $profile['segment'], $profile['district'],
-				$profile['address_line'], $profile['area'],
-				$businessModel !== '' ? $businessModel : null,
-				$profile['lead_value'], $profile['last_touch'],
+				$profile['address_line'], $profile['area'], $profile['lead_value'], $profile['last_touch'],
 				$profile['next_action'], $profile['open_tickets'], $profile['customer_type'],
-				$profile['purchase_reason'],
-				$screening !== '' ? $screening : null,
-				$sheetSource,
-				$sheetRowKey !== '' ? $sheetRowKey : null,
-				$qaRaw !== '' ? $qaRaw : null,
-				$now, $now,
+				$profile['purchase_reason'], $now, $now,
 			)
 		);
 	}
@@ -1418,13 +656,8 @@ class Leads_ModernService {
 					$payload[$field] = $existing[$field];
 				}
 			}
-			if (!array_key_exists('business_model', $payload) && isset($existing['business_model'])) {
-				$payload['business_model'] = $existing['business_model'];
-			}
-			if (!isset($payload['tags']) || !is_array($payload['tags'])) {
-				if (!empty($existing['tags'])) {
-					$payload['tags'] = $existing['tags'];
-				}
+			if ((!isset($payload['tags']) || !is_array($payload['tags']) || empty($payload['tags'])) && !empty($existing['tags'])) {
+				$payload['tags'] = $existing['tags'];
 			}
 			if (!isset($payload['id']) || $payload['id'] === '') {
 				$payload['id'] = $existing['id'];
@@ -1671,12 +904,6 @@ class Leads_ModernService {
 		if (!empty($toRemove)) {
 			Vtiger_Tag_Model::deleteForRecord($leadId, $toRemove, $userId, self::MODULE);
 		}
-		try {
-			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
-			HelpDesk_TagRuleEngineService::getInstance()->applyNextActionToLead($leadId);
-		} catch (Exception $e) {
-			// ignore — next_action sync is best-effort
-		}
 	}
 
 	protected static function resolveLeadId($idOrCacheId) {
@@ -1758,18 +985,6 @@ class Leads_ModernService {
 		return (int)$fallbackUserId;
 	}
 
-	
-	protected static function sanitizeOwnerDisplayName($name) {
-		$name = trim((string)$name);
-		if ($name === '') {
-			return '';
-		}
-		// Bỏ hậu tố role tiếng Anh thường gặp trong userlabel demo.
-		$cleaned = preg_replace('/\s+(Administrator|Admin|Manager|User)$/iu', '', $name);
-		$cleaned = trim((string)$cleaned);
-		return $cleaned !== '' ? $cleaned : $name;
-	}
-
 	protected static function getOwnerLabel($userId) {
 		$userId = (int)$userId;
 		if ($userId <= 0) {
@@ -1778,12 +993,12 @@ class Leads_ModernService {
 		try {
 			$userRecord = Users_Record_Model::getInstanceById($userId, 'Users');
 			if (method_exists($userRecord, 'getName')) {
-				$name = self::sanitizeOwnerDisplayName(decode_html($userRecord->getName()));
+				$name = trim(decode_html($userRecord->getName()));
 				if ($name !== '') {
 					return $name;
 				}
 			}
-			$label = self::sanitizeOwnerDisplayName(decode_html((string)$userRecord->get('userlabel')));
+			$label = trim(decode_html((string)$userRecord->get('userlabel')));
 			if ($label !== '') {
 				return $label;
 			}
@@ -1796,17 +1011,17 @@ class Leads_ModernService {
 			array($userId)
 		);
 		if ($res && $adb->num_rows($res) > 0) {
-			$userlabel = self::sanitizeOwnerDisplayName(self::decodeText($adb->query_result($res, 0, 'userlabel')));
+			$userlabel = self::decodeText($adb->query_result($res, 0, 'userlabel'));
 			if ($userlabel !== '') {
 				return $userlabel;
 			}
 			$first = self::decodeText($adb->query_result($res, 0, 'first_name'));
 			$last = self::decodeText($adb->query_result($res, 0, 'last_name'));
-			$full = self::sanitizeOwnerDisplayName(trim($first . ' ' . $last));
+			$full = trim($first . ' ' . $last);
 			if ($full !== '') {
 				return $full;
 			}
-			return self::sanitizeOwnerDisplayName(self::decodeText($adb->query_result($res, 0, 'user_name')));
+			return self::decodeText($adb->query_result($res, 0, 'user_name'));
 		}
 		return '';
 	}
@@ -1861,147 +1076,6 @@ class Leads_ModernService {
 			}
 		}
 		return null;
-	}
-
-	/**
-	 * Inline list edit: replace one-of category tags (source / customer / purchase / tier).
-	 * Empty string clears that category. Keys not present in $cats are left untouched.
-	 */
-	public static function updateInlineCategoryTags($leadIdOrCacheId, array $cats, $userId = null) {
-		global $current_user;
-		if ($userId === null) {
-			$userId = (int) $current_user->id;
-		}
-		$leadId = self::resolveLeadId($leadIdOrCacheId);
-		if (!$leadId) {
-			throw new Exception('Lead not found.');
-		}
-
-		$sourcePool = self::$sourceTags;
-		$customerPool = array('individual', 'company', 'co_quan', 'chuan_bi_mo', 'gia_dinh');
-		$purchasePool = array_keys(self::$purchaseMap);
-		$tierPool = array('vang', 'bac', 'dong');
-
-		$tagMap = self::getTagsForLeadIds(array($leadId), $userId);
-		$tags = isset($tagMap[$leadId]) ? array_values($tagMap[$leadId]) : array();
-
-		$normalize = function ($raw, array $pool) {
-			$key = trim((string) $raw);
-			if ($key === '') {
-				return '';
-			}
-			if ($key === 'other_source') {
-				$key = 'other';
-			}
-			if ($key === 'ca_nhan') {
-				$key = 'individual';
-			}
-			return in_array($key, $pool, true) ? $key : null;
-		};
-
-		$replacePool = function (array $tags, array $pool, $next) {
-			$out = array();
-			foreach ($tags as $t) {
-				if (!in_array($t, $pool, true)) {
-					$out[] = $t;
-				}
-			}
-			if ($next !== '' && $next !== null) {
-				$out[] = $next;
-			}
-			return array_values(array_unique($out));
-		};
-
-		$applied = array(
-			'source' => self::findTag($tags, $sourcePool) ?: '',
-			'customer' => self::findTag($tags, $customerPool) ?: '',
-			'purchase' => self::findTag($tags, $purchasePool) ?: '',
-			'tier' => self::findTag($tags, $tierPool) ?: '',
-		);
-
-		if (array_key_exists('source', $cats)) {
-			$next = $normalize($cats['source'], $sourcePool);
-			if ($next === null) {
-				throw new Exception('Nguồn không hợp lệ.');
-			}
-			$tags = $replacePool($tags, $sourcePool, $next);
-			$applied['source'] = $next;
-		}
-		if (array_key_exists('customer', $cats)) {
-			$next = $normalize($cats['customer'], $customerPool);
-			if ($next === null) {
-				throw new Exception('Loại khách không hợp lệ.');
-			}
-			$tags = $replacePool($tags, $customerPool, $next);
-			$applied['customer'] = $next;
-		}
-		if (array_key_exists('purchase', $cats)) {
-			$next = $normalize($cats['purchase'], $purchasePool);
-			if ($next === null) {
-				throw new Exception('Giai đoạn không hợp lệ.');
-			}
-			$tags = $replacePool($tags, $purchasePool, $next);
-			$applied['purchase'] = $next;
-		}
-		if (array_key_exists('tier', $cats)) {
-			$next = $normalize($cats['tier'], $tierPool);
-			if ($next === null) {
-				throw new Exception('Hạng không hợp lệ.');
-			}
-			$tags = $replacePool($tags, $tierPool, $next);
-			$applied['tier'] = $next;
-		}
-
-		$segmentTags = array('co_quan', 'chuan_bi_mo', 'gia_dinh');
-		$segment = self::findTag($tags, $segmentTags);
-		$customerType = self::findTag($tags, array('individual', 'company'));
-
-		$recordModel = Vtiger_Record_Model::getInstanceById($leadId, self::MODULE);
-		$recordModel->set('id', $leadId);
-		$recordModel->set('mode', 'edit');
-		$recordModel->set('leadsource', self::mapLeadsource($tags));
-		$recordModel->set('leadstatus', self::mapLeadstatus($tags));
-		$recordModel->save();
-
-		$adb = PearDatabase::getInstance();
-		$exists = $adb->pquery('SELECT leadid, segment, customer_type FROM bace_lead_profile WHERE leadid = ?', array($leadId));
-		if ($exists && $adb->num_rows($exists) > 0) {
-			$adb->pquery(
-				'UPDATE bace_lead_profile SET segment = ?, customer_type = ?, modified_at = ? WHERE leadid = ?',
-				array($segment ?: '', $customerType ?: '', date('Y-m-d H:i:s'), $leadId)
-			);
-		} else {
-			self::upsertProfile($leadId, array(
-				'mk_cache_id' => null,
-				'cccd' => '',
-				'segment' => $segment ?: '',
-				'district' => '',
-				'address_line' => '',
-				'area' => '',
-				'lead_value' => 0,
-				'last_touch' => date('Y-m-d H:i:s'),
-				'next_action' => '',
-				'open_tickets' => 0,
-				'customer_type' => $customerType ?: '',
-				'purchase_reason' => '',
-			));
-		}
-
-		$tags = self::applyCustomerStatusTag($tags, $segment ?: '');
-		self::syncTags($leadId, $tags, $userId);
-		try {
-			require_once 'modules/Leads/models/ConvertService.php';
-			Leads_ConvertService::syncRelatedTagsFromLead($leadId, $userId);
-		} catch (Exception $e) {
-			/* best-effort */
-		}
-
-		$fresh = self::getTagsForLeadIds(array($leadId), $userId);
-		return array(
-			'tags' => isset($fresh[$leadId]) ? array_values($fresh[$leadId]) : $tags,
-			'categories' => $applied,
-			'segment' => $segment ?: '',
-		);
 	}
 
 	/**

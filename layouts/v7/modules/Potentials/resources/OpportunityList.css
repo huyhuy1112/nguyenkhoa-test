@@ -171,50 +171,7 @@ body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportuni
 }
 
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-btn--primary .mk-opportunity-btn__ic {
-	color: #ffffff;
-}
-
-/* Make list page feel closer to Leads: subtle colored top accent on table card */
-body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-table-card {
-	position: relative;
-}
-
-body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-table-card::before {
-	content: '';
-	position: absolute;
-	left: 0;
-	right: 0;
-	top: 0;
-	height: 3px;
-	background: linear-gradient(
-		90deg,
-		rgba(8, 160, 69, 0.12) 0%,
-		#08A045 18%,
-		#6BBF59 50%,
-		#0B6E4F 82%,
-		rgba(7, 59, 58, 0.12) 100%
-	);
-	pointer-events: none;
-	z-index: 1;
-}
-
-/* Make sales_stage look like a pill (more colorful like Leads list tags) */
-body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td[data-name="sales_stage"] .value,
-body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td.mk-col-sales-stage .value {
-	display: inline-flex;
-	align-items: center;
-	gap: 8px;
-	padding: 4px 10px;
-	border-radius: 999px;
-	background: #f1f5f9;
-	border: 1px solid #e2e8f0;
-}
-
-/* Dark mode: keep stage pills readable */
-html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td[data-name="sales_stage"] .value,
-html[data-theme="dark"] body[data-module="Potentials"][data-view="List"][data-app="SALES"] #listview-table td.mk-col-sales-stage .value {
-	background: rgba(148, 163, 184, 0.14);
-	border-color: rgba(148, 163, 184, 0.22);
+	color: #191c1e;
 }
 
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-opportunity-btn .mk-dash-topbar-svg {
@@ -812,8 +769,6 @@ body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-category-
 	letter-spacing: 0.4px;
 	text-transform: uppercase;
 	white-space: nowrap;
-	border: 1px solid rgba(226, 232, 240, 0.95);
-	box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
 }
 
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-cat-project {
@@ -840,13 +795,6 @@ body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-cat-inter
 	background: #e2e8f0;
 	color: #475569;
 }
-
-/* Make category pills feel more alive (subtle gradient) */
-body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-cat-project { background: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 100%); color: #1d4ed8; border-color: #bfdbfe; }
-body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-cat-service { background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 100%); color: #065f46; border-color: #bbf7d0; }
-body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-cat-consulting { background: linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%); color: #6d28d9; border-color: #e9d5ff; }
-body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-cat-default { background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); color: #475569; border-color: #e2e8f0; }
-body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-cat-internal { background: linear-gradient(135deg, #ffedd5 0%, #fef3c7 100%); color: #92400e; border-color: #fed7aa; }
 
 body[data-module="Potentials"][data-view="List"][data-app="SALES"] .mk-stage {
 	display: inline-flex;

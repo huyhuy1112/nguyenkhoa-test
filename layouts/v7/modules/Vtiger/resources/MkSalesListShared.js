@@ -73,12 +73,12 @@
 			return false;
 		}
 		var appName = (b.getAttribute('data-app') || '').toUpperCase();
-		if (appName === 'SUPPORT' || appName === 'TOOLS' || appName === 'SALES') {
+		if (appName === 'SUPPORT' || appName === 'TOOLS') {
 			return true;
 		}
 		var params = new URLSearchParams(window.location.search || '');
 		var app = params.get('app');
-		return params.get('module') === 'Invoice' && params.get('view') === 'List' && (app === 'SUPPORT' || app === 'TOOLS' || app === 'SALES');
+		return params.get('module') === 'Invoice' && params.get('view') === 'List' && (app === 'SUPPORT' || app === 'TOOLS');
 	}
 
 	function isSalesOrderToolsList() {
@@ -92,19 +92,6 @@
 		}
 		var params = new URLSearchParams(window.location.search || '');
 		return params.get('module') === 'SalesOrder' && params.get('view') === 'List' && params.get('app') === 'TOOLS';
-	}
-
-	function isSalesOrderSalesPosList() {
-		var b = document.body;
-		if (!b || b.getAttribute('data-module') !== 'SalesOrder' || b.getAttribute('data-view') !== 'List') {
-			return false;
-		}
-		var appName = (b.getAttribute('data-app') || '').toUpperCase();
-		if (appName === 'SALES') {
-			return true;
-		}
-		var params = new URLSearchParams(window.location.search || '');
-		return params.get('module') === 'SalesOrder' && params.get('view') === 'List' && params.get('app') === 'SALES';
 	}
 
 	function isRecycleBinToolsList() {
@@ -121,7 +108,7 @@
 	}
 
 	function shouldRelocatePaginationFooter() {
-		return isMkEnhancedList() || isSupportAppList() || isInvoiceMkList() || isSalesOrderToolsList() || isRecycleBinToolsList() || isSalesOrderSalesPosList();
+		return isMkEnhancedList() || isSupportAppList() || isInvoiceMkList() || isSalesOrderToolsList() || isRecycleBinToolsList();
 	}
 
 	function isManagementProjectTaskList() {
@@ -386,71 +373,9 @@
 		/* Append last inside card column — after #scroller_wrapper (top:-19px in custom.css overlaps footer if placed before it) */
 		if ($inner.length && ($inner.is('.col-sm-12') || $inner.is('.col-xs-12'))) {
 			$inner.append($footer);
-		} else {
-			$table.after($footer);
-		}
-		syncFooterPageInfo($scope, $footer);
-	}
-
-	/** Leads-style footer: single clean "Hiển thị 1–N / total" on the left, pager on the right. */
-	function syncFooterPageInfo($scope, $footer) {
-		$scope = $scope && $scope.length ? $scope : getListViewContainer();
-		$footer = $footer && $footer.length ? $footer : $scope.find('.mk-so-filter-row__footer').first();
-		if (!$scope.length || !$footer.length) {
 			return;
 		}
-		// VN labels on stock buttons (Leads-style)
-		$footer.find('.mk-so-page-btn--prev .mk-so-page-btn__label').text('Trước');
-		$footer.find('.mk-so-page-btn--next .mk-so-page-btn__label').text('Sau');
-		$footer.find('.mk-so-page-current__label').text('');
-
-		var pageStart = String(jQuery('#pageStartRange', $scope).val() || '').trim();
-		var pageEnd = String(jQuery('#pageEndRange', $scope).val() || '').trim();
-		var totalCount = String(jQuery('#totalCount', $scope).val() || '').trim();
-		var entries = parseInt(jQuery('#noOfEntries', $scope).val(), 10) || 0;
-
-		// Prefer toolbar numbers if range inputs empty (AJAX mid-state)
-		var $src = $scope.find('#listview-actions .mk-so-page-numbers').first();
-		if (!$src.length) {
-			$src = $scope.find('.mk-so-page-numbers').not('.mk-so-page-numbers--footer').first();
-		}
-		if ((!pageStart || !pageEnd) && $src.length) {
-			var rawRange = jQuery.trim($src.find('.pageNumbersText').text() || '');
-			var m = rawRange.match(/(\d+)\s*(?:[\u2013\-]|to|đến)\s*(\d+)/i);
-			if (m) {
-				pageStart = m[1];
-				pageEnd = m[2];
-			}
-			if (!totalCount || totalCount === '0') {
-				var rawTotal = jQuery.trim(
-					$src.find('.mk-so-total-count').text() ||
-					$src.find('.totalNumberOfRecords').text().replace(/[^\d]/g, '') ||
-					''
-				);
-				if (rawTotal) {
-					totalCount = rawTotal;
-				}
-			}
-		}
-
-		var infoText = '';
-		if (entries && pageStart && pageEnd) {
-			infoText = 'Hiển thị ' + pageStart + '\u2013' + pageEnd;
-			if (totalCount && totalCount !== '0') {
-				infoText += ' / ' + totalCount;
-			}
-		} else if (entries === 0) {
-			infoText = 'Hiển thị 0 / 0';
-		}
-
-		var $existing = $footer.find('.mk-so-page-numbers--footer').first();
-		if (!$existing.length) {
-			$existing = jQuery(
-				'<span class="pageNumbers mk-so-page-numbers mk-so-page-numbers--footer" aria-live="polite"></span>'
-			);
-			$footer.prepend($existing);
-		}
-		$existing.empty().text(infoText);
+		$table.after($footer);
 	}
 
 	/** Update toolbar counts + pagination controls without replacing #listview-actions (Potentials). */
@@ -1003,7 +928,6 @@
 			dedupePaginationFooters($card);
 		}
 		relocatePaginationFooter();
-		syncFooterPageInfo();
 		autoLoadTotalRecordCount();
 		if (supportsLayoutToggle()) {
 			applyLayoutMode(getSavedLayoutMode());
@@ -1030,30 +954,23 @@
 			var pageEndRange = jQuery('#pageEndRange', listViewContainer).val();
 			var totalCount = jQuery('#totalCount', listViewContainer).val();
 			var listViewEntriesCount = parseInt(jQuery('#noOfEntries', listViewContainer).val(), 10);
-			var $totalSpans = listViewContainer.find('.mk-so-page-numbers .totalNumberOfRecords');
+			var $totalSpan = listViewContainer.find('.mk-so-page-numbers .totalNumberOfRecords').first();
 
 			if (listViewEntriesCount) {
-				// Use en-dash like Leads "1–15 / 17"
-				var rangeText =
-					pageStartRange + '\u2013' + pageEndRange;
-				listViewContainer.find('.pageNumbersText').html(rangeText);
+				listViewContainer.find('.pageNumbersText').html(
+					pageStartRange + ' ' + app.vtranslate('to') + ' ' + pageEndRange
+				);
 				if (totalCount && String(totalCount).trim() !== '' && String(totalCount) !== '0') {
-					$totalSpans.removeClass('hide').html(
-						' / <span class="mk-so-total-count">' +
+					$totalSpan.removeClass('hide').html(
+						'&nbsp;' + app.vtranslate('of') + ' <span class="mk-so-total-count">' +
 						app.helper.purifyContent(totalCount) + '</span>'
 					);
 				} else {
-					$totalSpans.removeClass('hide');
+					$totalSpan.removeClass('hide');
 				}
 			} else {
 				listViewContainer.find('.pageNumbersText').html('<span>&nbsp;</span>');
-				$totalSpans.addClass('hide');
-			}
-			// Keep Leads-style footer mirror in sync
-			try {
-				syncFooterPageInfo(listViewContainer);
-			} catch (e) {
-				/* ignore */
+				$totalSpan.addClass('hide');
 			}
 		};
 	}
@@ -1223,6 +1140,7 @@
 	var inflightSalesSearchId = 0;
 	var pendingSalesSearchRowState = null;
 	var globalQuickSearchBound = false;
+	var globalQuickSearchTimer = null;
 
 	function normalizeSearchFieldNameForColumn(fieldName) {
 		if (!fieldName) {
@@ -1808,17 +1726,7 @@
 		}
 		try {
 			var url = new URL(window.location.href);
-			var hasConditions = false;
-			var gi;
-			if (searchParams && searchParams.length) {
-				for (gi = 0; gi < searchParams.length; gi++) {
-					if (searchParams[gi] && searchParams[gi].length) {
-						hasConditions = true;
-						break;
-					}
-				}
-			}
-			if (!hasConditions) {
+			if (!searchParams || !searchParams.length || !searchParams[0] || !searchParams[0].length) {
 				url.searchParams.delete('search_params');
 			} else {
 				url.searchParams.set('search_params', JSON.stringify(searchParams));
@@ -1832,8 +1740,6 @@
 
 	function runSalesListSearch(options) {
 		options = options || {};
-		lastGlobalSearchPayload = '';
-		liveGlobalSearchQuery = '';
 		ensureSearchRowVisible();
 		syncSearchFieldMeta();
 		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
@@ -1848,17 +1754,7 @@
 			pendingSalesSearchRowState = null;
 		}
 		var searchParams = getListSearchParamsSafe(listInstance, false);
-		var hasConditions = false;
-		var gi;
-		if (searchParams && searchParams.length) {
-			for (gi = 0; gi < searchParams.length; gi++) {
-				if (searchParams[gi] && searchParams[gi].length) {
-					hasConditions = true;
-					break;
-				}
-			}
-		}
-		if (!hasConditions) {
+		if (!searchParams.length || !searchParams[0] || !searchParams[0].length) {
 			getSalesTableRoot().find('#currentSearchParams').val('');
 			searchParams = [];
 		}
@@ -2143,9 +2039,6 @@
 		if (!isSalesStyleTableList()) {
 			return;
 		}
-		if (isSalesOrderSalesPosList()) {
-			return;
-		}
 		ensureSearchRowVisible();
 		if (!options.skipSearchReinit) {
 			reinitSearchRow();
@@ -2170,210 +2063,83 @@
 	function shouldUseGlobalQuickSearch() {
 		// Leads list is a bespoke UI (LeadsMkList.js) — don't inject here.
 		var mod = (document.body && document.body.getAttribute('data-module')) || '';
-		var modLc = String(mod).toLowerCase();
-		if (modLc === 'leads') {
-			return false;
-		}
-		// ProductsServices owns its own #mk-ps-global-search (name+SKU). Shared inject
-		// would send empty [] and wipe the filter.
-		if (modLc === 'productsservices') {
-			return false;
-		}
-		if (isSalesOrderSalesPosList()) {
+		if (String(mod).toLowerCase() === 'leads') {
 			return false;
 		}
 		return isSalesStyleTableList();
 	}
 
-	var serverGlobalSearchTimer = null;
-	var lastGlobalSearchPayload = '';
-	var liveGlobalSearchQuery = '';
-	var globalSearchUrlInitialized = false;
-	var globalSearchInputFocused = false;
-	var GLOBAL_SEARCH_DEBOUNCE_MS = 800;
+	var accountsGlobalSearchTimer = null;
 
-	function getModulePrimarySearchField() {
-		return REFERENCE_NAME_FIELD_BY_MODULE[getListModuleName()] || null;
-	}
-
-	function findPrimarySearchInput() {
-		var fieldName = getModulePrimarySearchField();
-		if (!fieldName) {
-			return $();
-		}
+	function findAccountsNameSearchInput() {
 		var $root = getSalesTableRoot();
-		var $inp = $root.find('tr.searchRow th[data-columnname="' + fieldName + '"] input.listSearchContributor').first();
+		var $inp = $root.find('tr.searchRow th[data-columnname="accountname"] input.listSearchContributor').first();
 		if (!$inp.length) {
-			$inp = $root.find('tr.searchRow input[name="' + fieldName + '"]').first();
+			$inp = $root.find('tr.searchRow input[name="accountname"]').first();
 		}
 		return $inp;
 	}
 
-	function isGlobalSearchSkippableFieldType(fieldType) {
-		return (
-			fieldType === 'date' ||
-			fieldType === 'datetime' ||
-			fieldType === 'picklist' ||
-			fieldType === 'currency' ||
-			fieldType === 'double' ||
-			fieldType === 'integer' ||
-			fieldType === 'number' ||
-			fieldType === 'boolean' ||
-			fieldType === 'percentage' ||
-			fieldType === 'time'
-		);
-	}
-
-	function collectGlobalSearchFields() {
-		var fields = [];
-		var seen = {};
-		getSalesTableRoot().find('tr.searchRow .listSearchContributor[name]').each(function () {
-			var $el = $(this);
-			if ($el.hasClass('select2_input_element') || $el.is('div')) {
-				return;
-			}
-			var name = $el.attr('name');
-			if (!name || seen[name]) {
-				return;
-			}
-			var fieldInfo =
-				typeof uimeta !== 'undefined' && uimeta.field && uimeta.field.get
-					? uimeta.field.get(name)
-					: $el.data('fieldinfo');
-			if (!fieldInfo || typeof fieldInfo !== 'object') {
-				fieldInfo = { type: 'string' };
-			}
-			if (isGlobalSearchSkippableFieldType(fieldInfo.type || 'string')) {
-				return;
-			}
-			seen[name] = true;
-			fields.push({ name: name, fieldInfo: fieldInfo });
-		});
-		if (!fields.length) {
-			var primary = getModulePrimarySearchField();
-			if (primary) {
-				fields.push({ name: primary, fieldInfo: { type: 'string' } });
-			}
-		}
-		return fields;
-	}
-
-	function buildGlobalOrSearchParams(query) {
-		query = (query || '').toString().trim();
-		if (!query.length) {
-			return [];
-		}
-		var fieldEntries = collectGlobalSearchFields();
-		var conditions = [];
-		var i;
-		for (i = 0; i < fieldEntries.length; i++) {
-			conditions.push([
-				resolveReferenceSearchFieldName(fieldEntries[i].name, fieldEntries[i].fieldInfo),
-				'c',
-				query
-			]);
-		}
-		if (!conditions.length) {
-			return [];
-		}
-		if (conditions.length === 1) {
-			return [conditions];
-		}
-		// Empty first group + OR group: vtiger glueOrder uses "or" for group index 1.
-		return [[], conditions];
-	}
-
-	function readGlobalSearchValueFromParams(parsed) {
-		var val = '';
-		var i;
-		var j;
-		if (!parsed || !parsed.length) {
-			return val;
-		}
-		for (i = 0; i < parsed.length; i++) {
-			var group = parsed[i];
-			if (!group || !group.length) {
-				continue;
-			}
-			for (j = 0; j < group.length; j++) {
-				if (group[j] && group[j][2]) {
-					val = group[j][2];
-					break;
-				}
-			}
-			if (val) {
-				break;
-			}
-		}
-		return val;
-	}
-
-	function rememberLiveGlobalSearchQuery(val) {
-		liveGlobalSearchQuery = (val != null ? String(val) : getGlobalQuickSearchQuery()).trim();
-	}
-
-	function initGlobalSearchFromUrlOnce() {
-		if (globalSearchUrlInitialized || liveGlobalSearchQuery) {
+	function syncAccountsGlobalSearchInput() {
+		if (!isAccountsSalesGlobalSearch()) {
 			return;
 		}
-		globalSearchUrlInitialized = true;
+		var $bar = $('#mk-so-global-search');
+		if (!$bar.length) {
+			return;
+		}
+		var val = '';
 		try {
 			var params = new URLSearchParams(window.location.search || '');
 			var sp = params.get('search_params');
 			if (sp) {
-				liveGlobalSearchQuery = readGlobalSearchValueFromParams(JSON.parse(sp));
+				var parsed = JSON.parse(sp);
+				if (parsed && parsed[0] && parsed[0][0] && parsed[0][0][0] === 'accountname') {
+					val = parsed[0][0][2] || '';
+				}
 			}
 		} catch (parseErr) {
 			/* ignore */
 		}
-	}
-
-	function restoreGlobalSearchInput() {
-		var $bar = $('#mk-so-global-search');
-		if (!$bar.length) {
-			return;
-		}
-		$bar.val(liveGlobalSearchQuery);
-		$('#mk-so-global-search-clear').prop('hidden', !liveGlobalSearchQuery);
-	}
-
-	function captureGlobalSearchUiState() {
-		var $bar = $('#mk-so-global-search');
-		return {
-			hadFocus: globalSearchInputFocused || ($bar.length && document.activeElement === $bar[0])
-		};
-	}
-
-	function restoreGlobalSearchUiState(state) {
-		restoreGlobalSearchInput();
-		if (!state || !state.hadFocus) {
-			return;
-		}
-		var $bar = $('#mk-so-global-search');
-		if (!$bar.length) {
-			return;
-		}
-		$bar.focus();
-		var len = ($bar.val() || '').length;
-		if ($bar[0] && $bar[0].setSelectionRange) {
-			try {
-				$bar[0].setSelectionRange(len, len);
-			} catch (focusErr) {
-				/* ignore */
+		if (!val) {
+			var $col = findAccountsNameSearchInput();
+			if ($col.length) {
+				val = $.trim($col.val());
 			}
 		}
+		$bar.val(val);
+		$('#mk-so-global-search-clear').prop('hidden', !val);
 	}
 
-	function maybeRunPendingGlobalSearch() {
-		var pendingPayload = JSON.stringify(buildGlobalOrSearchParams(liveGlobalSearchQuery));
-		if (pendingPayload !== lastGlobalSearchPayload) {
-			scheduleGlobalQuickSearch();
+	function applyAccountsServerGlobalSearch() {
+		if (!isAccountsSalesGlobalSearch()) {
+			return;
 		}
+		var q = getGlobalQuickSearchQuery();
+		var $inp = findAccountsNameSearchInput();
+		if ($inp.length && $.trim($inp.val()) === q) {
+			return;
+		}
+		getSalesTableRoot().find('tr.searchRow input.listSearchContributor, tr.searchRow select.listSearchContributor').each(function () {
+			var $field = $(this);
+			var name = $field.attr('name') || '';
+			if (name === 'accountname') {
+				$field.val(q);
+			} else if (q) {
+				$field.val('');
+			}
+		});
+		runSalesListSearch({ silent: true });
 	}
 
-	function syncGlobalSearchInput() {
-		initGlobalSearchFromUrlOnce();
-		restoreGlobalSearchInput();
+	function scheduleAccountsServerGlobalSearch() {
+		if (accountsGlobalSearchTimer) {
+			clearTimeout(accountsGlobalSearchTimer);
+		}
+		accountsGlobalSearchTimer = setTimeout(function () {
+			accountsGlobalSearchTimer = null;
+			applyAccountsServerGlobalSearch();
+		}, 350);
 	}
 
 	function getGlobalQuickSearchQuery() {
@@ -2381,91 +2147,75 @@
 		return $input.length ? $.trim($input.val()) : '';
 	}
 
-	function runGlobalQuickServerSearch(options) {
-		options = options || {};
-		if (!shouldUseGlobalQuickSearch()) {
-			return;
+	function normalizeText(s) {
+		return String(s || '')
+			.toLowerCase()
+			.replace(/\s+/g, ' ')
+			.trim();
+	}
+
+	function rowTextForFilter(rowEl) {
+		if (!rowEl) {
+			return '';
 		}
-		var query =
-			options.query != null ? String(options.query).trim() : (liveGlobalSearchQuery || getGlobalQuickSearchQuery());
-		rememberLiveGlobalSearchQuery(query);
-		var searchParams = buildGlobalOrSearchParams(query);
-		var payload = JSON.stringify(searchParams);
-		if (payload === lastGlobalSearchPayload) {
-			return;
+		var t = rowEl.getAttribute('data-mk-rowtext');
+		if (t != null) {
+			return t;
 		}
-		lastGlobalSearchPayload = payload;
-		var uiState = captureGlobalSearchUiState();
-		ensureSearchRowVisible();
-		syncSearchFieldMeta();
-		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
-		if (!listInstance || !listInstance.loadListViewRecords) {
-			return;
-		}
-		var requestId = ++inflightSalesSearchId;
-		listInstance.filterClick = false;
-		pendingSalesSearchRowState = null;
-		getSalesTableRoot().find('#currentSearchParams').val('');
-		syncUrlSearchParams(searchParams);
-		var $root = getSalesTableRoot();
-		$root.toggleClass('mk-so-global-search-active', !!query.length);
-		if (!options.silent) {
-			try {
-				if (typeof app !== 'undefined' && app.helper && app.helper.showProgress) {
-					app.helper.showProgress();
+		// Exclude action/control cell to avoid noisy icons.
+		var parts = [];
+		$(rowEl)
+			.children('td')
+			.not('.listViewRecordActions, .mk-col-control')
+			.each(function () {
+				var text = $(this).text();
+				if (text) {
+					parts.push(text);
 				}
-			} catch (progressErr) {
-				/* ignore */
-			}
-		}
-		listInstance
-			.loadListViewRecords({
-				page: '1',
-				search_params: payload,
-				nolistcache: '1'
-			})
-			.done(function (html) {
-				var isLatest = requestId === inflightSalesSearchId;
-				if (!isLatest) {
-					return;
-				}
-				if (isMkShellList()) {
-					if (!applySalesShellListResponse(html, requestId, { preserveSearchRow: true })) {
-						hideProgressSafe();
-					}
-				} else {
-					hideProgressSafe();
-				}
-				ensureGlobalQuickSearch();
-				restoreGlobalSearchUiState(uiState);
-			})
-			.always(function () {
-				if (requestId === inflightSalesSearchId) {
-					pendingSalesSearchRowState = null;
-					hideProgressSafe();
-					inflightSalesSearchId = 0;
-				}
-				maybeRunPendingGlobalSearch();
 			});
+		t = normalizeText(parts.join(' '));
+		rowEl.setAttribute('data-mk-rowtext', t);
+		return t;
+	}
+
+	function clearRowTextCache() {
+		getSalesTableRoot()
+			.find('#listview-table tbody tr.listViewEntries[data-mk-rowtext]')
+			.removeAttr('data-mk-rowtext');
 	}
 
 	function applyGlobalQuickSearchFilter() {
-		runGlobalQuickServerSearch({ silent: true });
-	}
-
-	function scheduleGlobalQuickSearch(immediate) {
-		if (serverGlobalSearchTimer) {
-			clearTimeout(serverGlobalSearchTimer);
-			serverGlobalSearchTimer = null;
-		}
-		if (immediate) {
-			applyGlobalQuickSearchFilter();
+		if (isAccountsSalesGlobalSearch()) {
+			scheduleAccountsServerGlobalSearch();
 			return;
 		}
-		serverGlobalSearchTimer = setTimeout(function () {
-			serverGlobalSearchTimer = null;
+		var $root = getSalesTableRoot();
+		if (!$root.length) {
+			return;
+		}
+		var q = normalizeText(getGlobalQuickSearchQuery());
+		var $rows = $root.find('#listview-table tbody tr.listViewEntries');
+		if (!q) {
+			$rows.show();
+			$root.removeClass('mk-so-global-search-active');
+			return;
+		}
+		$root.addClass('mk-so-global-search-active');
+		$rows.each(function () {
+			var hit = rowTextForFilter(this).indexOf(q) >= 0;
+			$(this).toggle(hit);
+		});
+	}
+
+	function scheduleGlobalQuickSearch() {
+		if (globalQuickSearchTimer) {
+			clearTimeout(globalQuickSearchTimer);
+		}
+		// Very small debounce to feel instant but avoid layout thrash.
+		globalQuickSearchTimer = setTimeout(function () {
+			globalQuickSearchTimer = null;
 			applyGlobalQuickSearchFilter();
-		}, GLOBAL_SEARCH_DEBOUNCE_MS);
+		}, 40);
 	}
 
 	function injectGlobalQuickSearchUi() {
@@ -2498,44 +2248,29 @@
 		}
 		globalQuickSearchBound = true;
 		$(document)
-			.off('focus.mkSoGlobalSearch', '#mk-so-global-search')
-			.on('focus.mkSoGlobalSearch', '#mk-so-global-search', function () {
-				globalSearchInputFocused = true;
-			})
-			.off('blur.mkSoGlobalSearch', '#mk-so-global-search')
-			.on('blur.mkSoGlobalSearch', '#mk-so-global-search', function () {
-				globalSearchInputFocused = false;
-			})
 			.off('input.mkSoGlobalSearch', '#mk-so-global-search')
 			.on('input.mkSoGlobalSearch', '#mk-so-global-search', function () {
 				var val = $.trim($(this).val());
-				rememberLiveGlobalSearchQuery(val);
 				$('#mk-so-global-search-clear').prop('hidden', !val);
 				scheduleGlobalQuickSearch();
 			})
 			.off('keydown.mkSoGlobalSearch', '#mk-so-global-search')
 			.on('keydown.mkSoGlobalSearch', '#mk-so-global-search', function (ev) {
-				if (ev.key === 'Enter') {
-					ev.preventDefault();
-					scheduleGlobalQuickSearch(true);
-					return;
-				}
 				if (ev.key === 'Escape') {
 					ev.preventDefault();
-					rememberLiveGlobalSearchQuery('');
 					$(this).val('');
 					$('#mk-so-global-search-clear').prop('hidden', true);
-					lastGlobalSearchPayload = '';
-					scheduleGlobalQuickSearch(true);
+					clearRowTextCache();
+					applyGlobalQuickSearchFilter();
 				}
 			});
 		$(document)
 			.off('click.mkSoGlobalSearchClear', '#mk-so-global-search-clear')
 			.on('click.mkSoGlobalSearchClear', '#mk-so-global-search-clear', function (e) {
 				e.preventDefault();
-				lastGlobalSearchPayload = '';
-				rememberLiveGlobalSearchQuery('');
 				$('#mk-so-global-search').val('').trigger('input').focus();
+				clearRowTextCache();
+				applyGlobalQuickSearchFilter();
 			});
 	}
 
@@ -2550,7 +2285,13 @@
 		$root.addClass('mk-so-global-search-enabled');
 		injectGlobalQuickSearchUi();
 		bindGlobalQuickSearchEvents();
-		syncGlobalSearchInput();
+		if (isAccountsSalesGlobalSearch()) {
+			syncAccountsGlobalSearchInput();
+		} else {
+			// After PJAX swaps, rows are new → clear cache and reapply current query.
+			clearRowTextCache();
+			applyGlobalQuickSearchFilter();
+		}
 	}
 
 	function scheduleApply() {
@@ -2641,8 +2382,7 @@
 		applyPotentialsListContents: applyPotentialsListContents,
 		wrapAccountsListShellContents: wrapAccountsListShellContents,
 		isAccountsModernList: isAccountsModernList,
-		syncGlobalSearchInput: syncGlobalSearchInput,
-		syncAccountsGlobalSearchInput: syncGlobalSearchInput,
+		syncAccountsGlobalSearchInput: syncAccountsGlobalSearchInput,
 		isSearchRowFocused: isSearchRowFocused,
 		captureSearchFocusState: captureSearchFocusState,
 		restoreSearchFocusState: restoreSearchFocusState,

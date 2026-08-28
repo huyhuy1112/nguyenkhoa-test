@@ -61,35 +61,30 @@
 					],
 				},
 			],
-			returns: [],
 			stock: [
-				{ sku: 'MED-001', name: 'Paracetamol 500mg', lot: 'LOT-2605A', mfg: '2026-05-01', expiry: '2027-05-01', qty: 800, location: 'A1-02', price: 25000 },
-				{ sku: 'MED-002', name: 'Amoxicillin 250mg', lot: 'LOT-2604B', mfg: '2026-02-15', expiry: '2026-08-15', qty: 120, location: 'B2-01', price: 45000 },
-				{ sku: 'MED-003', name: 'Vitamin C 1000mg', lot: 'LOT-2603C', mfg: '2025-12-01', expiry: '2026-06-01', qty: 45, location: 'C1-03', price: 120000 },
+				{ sku: 'MED-001', name: 'Paracetamol 500mg', lot: 'LOT-2605A', expiry: '2027-05-01', qty: 800, location: 'A1-02', price: 25000 },
+				{ sku: 'MED-002', name: 'Amoxicillin 250mg', lot: 'LOT-2604B', expiry: '2026-08-15', qty: 120, location: 'B2-01', price: 45000 },
+				{ sku: 'MED-003', name: 'Vitamin C 1000mg', lot: 'LOT-2603C', expiry: '2026-06-01', qty: 45, location: 'C1-03', price: 120000 },
 			],
 		},
 		'WH-002': {
 			receipts: [],
 			issues: [],
-			returns: [],
 			stock: [
-				{ sku: 'MED-001', name: 'Paracetamol 500mg', lot: 'LOT-HN01', mfg: '2026-04-01', expiry: '2027-04-01', qty: 300, location: 'B1-01' },
-				{ sku: 'MED-003', name: 'Vitamin C 1000mg', lot: 'LOT-HN02', mfg: '2026-09-01', expiry: '2027-09-01', qty: 220, location: 'B1-02' },
+				{ sku: 'MED-001', name: 'Paracetamol 500mg', lot: 'LOT-HN01', expiry: '2027-04-01', qty: 300, location: 'B1-01' },
+				{ sku: 'MED-003', name: 'Vitamin C 1000mg', lot: 'LOT-HN02', expiry: '2027-09-01', qty: 220, location: 'B1-02' },
 			],
 		},
 		'WH-003': {
 			receipts: [],
 			issues: [],
-			returns: [],
 			stock: [
-				{ sku: 'MED-002', name: 'Amoxicillin 250mg', lot: 'LOT-BD01', mfg: '2026-06-01', expiry: '2026-12-01', qty: 180, location: 'C1-01' },
+				{ sku: 'MED-002', name: 'Amoxicillin 250mg', lot: 'LOT-BD01', expiry: '2026-12-01', qty: 180, location: 'C1-01' },
 			],
 		},
 	};
 
-	var DEFAULT_SETTINGS = { wh_allow_negative_stock: 1, wh_expiry_warn_days: 90 };
-	var STOCKOUT_SOON_DAYS = 14;
-	var state = { warehouses: SEED_WH.slice(), transfers: [], data: JSON.parse(JSON.stringify(SEED_DATA)), settings: Object.assign({}, DEFAULT_SETTINGS) };
+	var state = { warehouses: SEED_WH.slice(), transfers: [], data: JSON.parse(JSON.stringify(SEED_DATA)) };
 	var hydrated = false;
 	var listeners = [];
 
@@ -175,7 +170,7 @@
 	}
 
 	function ensureData(id) {
-		return state.data[id] || { receipts: [], issues: [], stock: [], returns: [] };
+		return state.data[id] || { receipts: [], issues: [], stock: [] };
 	}
 
 	function patchData(id, fn) {
@@ -185,7 +180,6 @@
 				receipts: (d.receipts || []).slice(),
 				issues: (d.issues || []).slice(),
 				stock: (d.stock || []).slice(),
-				returns: (d.returns || []).slice(),
 			}));
 			var data = Object.assign({}, s.data);
 			data[id] = next;
@@ -202,7 +196,6 @@
 				warehouses: global.MK_WH_DB_STATE.warehouses || [],
 				transfers: global.MK_WH_DB_STATE.transfers || [],
 				data: global.MK_WH_DB_STATE.data || {},
-				settings: Object.assign({}, DEFAULT_SETTINGS, global.MK_WH_DB_STATE.settings || {}),
 			};
 			emit();
 			return;
@@ -215,7 +208,6 @@
 					warehouses: parsed.warehouses || SEED_WH.slice(),
 					transfers: parsed.transfers || [],
 					data: Object.assign({}, JSON.parse(JSON.stringify(SEED_DATA)), parsed.data || {}),
-					settings: Object.assign({}, DEFAULT_SETTINGS, parsed.settings || {}),
 				};
 				emit();
 			}
@@ -256,7 +248,7 @@
 			var w = Object.assign({}, input, { id: id, status: input.status || 'active', createdAt: nowISO() });
 			set(function (s) {
 				var data = Object.assign({}, s.data);
-				data[id] = { receipts: [], issues: [], stock: [], returns: [] };
+				data[id] = { receipts: [], issues: [], stock: [] };
 				return Object.assign({}, s, { warehouses: s.warehouses.concat([w]), data: data });
 			});
 			return w;
@@ -337,26 +329,7 @@
 			});
 			return def.promise();
 		},
-		saveIssue: function (whId, issue) {
-			if (!useDb) {
-				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
-			}
-			var def = $.Deferred();
-			apiPost({
-				mode: 'save_issue',
-				whId: whId,
-				payload: JSON.stringify(issue || {}),
-			}).then(function (res) {
-				if (res && res.data) {
-					patchData(whId, function () { return res.data; });
-				}
-				def.resolve(res);
-			}).fail(function (err) {
-				def.reject(err);
-			});
-			return def.promise();
-		},
-		receiptAction: function (whId, code, actionKey, role, note, targetStatus) {
+		receiptAction: function (whId, code, actionKey, role, note) {
 			if (!useDb) {
 				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
 			}
@@ -370,8 +343,7 @@
 				role: role || '',
 				qcNote: qcNote,
 				note: qcNote,
-				targetStatus: targetStatus || '',
-				payload: JSON.stringify({ qcNote: qcNote, targetStatus: targetStatus || '' }),
+				payload: JSON.stringify({ qcNote: qcNote }),
 			}).then(function (res) {
 				if (res && res.data) {
 					patchData(whId, function () { return res.data; });
@@ -380,7 +352,7 @@
 			}).fail(function (err) { def.reject(err); });
 			return def.promise();
 		},
-		issueAction: function (whId, code, actionKey, role, note, targetStatus) {
+		issueAction: function (whId, code, actionKey, role, note) {
 			if (!useDb) {
 				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
 			}
@@ -392,172 +364,6 @@
 				actionKey: actionKey,
 				role: role || '',
 				note: note || '',
-				targetStatus: targetStatus || '',
-			}).then(function (res) {
-				if (res && res.data) {
-					patchData(whId, function () { return res.data; });
-				}
-				def.resolve(res);
-			}).fail(function (err) { def.reject(err); });
-			return def.promise();
-		},
-		uploadQcImage: function (whId, code, file, role) {
-			if (!useDb) {
-				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
-			}
-			var def = $.Deferred();
-			var fd = new FormData();
-			fd.append('module', 'Warehouse');
-			fd.append('action', 'WhMgmtApi');
-			fd.append('mode', 'qc_upload_image');
-			fd.append('whId', whId);
-			fd.append('code', code);
-			fd.append('role', role || '');
-			fd.append('qcImage', file);
-			$.ajax({
-				url: 'index.php',
-				method: 'POST',
-				data: fd,
-				processData: false,
-				contentType: false,
-				dataType: 'json',
-			}).done(function (res) {
-				var out = unwrapApiResponse(res);
-				if (!out || out.success === false || out.error) {
-					def.reject({ message: String((out && out.error) || 'Upload thất bại') });
-					return;
-				}
-				if (out.data) {
-					patchData(whId, function () { return out.data; });
-				}
-				def.resolve(out);
-			}).fail(function (xhr) {
-				var msg = (xhr && xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : 'Upload thất bại';
-				def.reject({ message: String(msg) });
-			});
-			return def.promise();
-		},
-		deleteQcImage: function (whId, code, imageId) {
-			if (!useDb) {
-				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
-			}
-			var def = $.Deferred();
-			apiPost({
-				mode: 'qc_delete_image',
-				whId: whId,
-				code: code,
-				imageId: imageId,
-			}).then(function (res) {
-				if (res && res.data) {
-					patchData(whId, function () { return res.data; });
-				}
-				def.resolve(res);
-			}).fail(function (err) { def.reject(err); });
-			return def.promise();
-		},
-		updateQcRecord: function (whId, code, role, note) {
-			if (!useDb) {
-				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
-			}
-			var def = $.Deferred();
-			apiPost({
-				mode: 'qc_update',
-				whId: whId,
-				code: code,
-				role: role || '',
-				qcNote: note || '',
-				note: note || '',
-				payload: JSON.stringify({ qcNote: note || '' }),
-			}).then(function (res) {
-				if (res && res.data) {
-					patchData(whId, function () { return res.data; });
-				}
-				def.resolve(res);
-			}).fail(function (err) { def.reject(err); });
-			return def.promise();
-		},
-	};
-
-	function getExpiryWarnDays() {
-		var n = Number(state.settings && state.settings.wh_expiry_warn_days);
-		if (!isFinite(n) || n <= 0) return 90;
-		if (n > 730) return 730;
-		return n;
-	}
-
-	function expiryWarnDaysFor(stockRow) {
-		var p = Number(stockRow && stockRow.expiryWarnDays);
-		if (isFinite(p) && p > 0) return p;
-		return getExpiryWarnDays();
-	}
-
-	function isExpiringSoon(stockRow) {
-		if (!stockRow || !stockRow.expiry || (Number(stockRow.qty) || 0) === 0) return false;
-		var days = (new Date(stockRow.expiry).getTime() - Date.now()) / 86400000;
-		return days < expiryWarnDaysFor(stockRow);
-	}
-
-	function stockoutDays(stockRow) {
-		if (!stockRow || stockRow.daysToStockout === null || stockRow.daysToStockout === undefined || stockRow.daysToStockout === '') {
-			return null;
-		}
-		var n = Number(stockRow.daysToStockout);
-		return isFinite(n) ? n : null;
-	}
-
-	function isStockoutSoon(stockRow) {
-		var days = stockoutDays(stockRow);
-		return days !== null && days <= STOCKOUT_SOON_DAYS && (Number(stockRow.qty) || 0) !== 0;
-	}
-
-	function stockoutLabel(stockRow) {
-		var days = stockoutDays(stockRow);
-		if (days === null) return 'Không đủ dữ liệu';
-		var rounded = Math.max(0, Math.round(days));
-		if (days <= STOCKOUT_SOON_DAYS) return 'Sắp hết · còn ~' + rounded + ' ngày';
-		return 'Còn ~' + rounded + ' ngày';
-	}
-
-	var returnActions = {
-		searchSources: function (q, whId) {
-			if (!useDb) {
-				return $.Deferred().resolve({ success: true, issues: [], sources: [] }).promise();
-			}
-			return apiPost({ mode: 'search_return_sources', q: q || '', whId: whId || '' });
-		},
-		save: function (whId, payload) {
-			if (!useDb) {
-				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
-			}
-			var def = $.Deferred();
-			apiPost({
-				mode: 'save_return',
-				whId: whId,
-				payload: JSON.stringify(payload || {}),
-			}).then(function (res) {
-				if (res && res.data) {
-					patchData(whId, function () { return res.data; });
-				}
-				def.resolve(res);
-			}).fail(function (err) { def.reject(err); });
-			return def.promise();
-		},
-		confirm: function (whId, code) {
-			return returnActions.action(whId, code, 'confirm');
-		},
-		cancel: function (whId, code) {
-			return returnActions.action(whId, code, 'cancel');
-		},
-		action: function (whId, code, actionKey) {
-			if (!useDb) {
-				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
-			}
-			var def = $.Deferred();
-			apiPost({
-				mode: 'return_action',
-				whId: whId,
-				code: code,
-				actionKey: actionKey,
 			}).then(function (res) {
 				if (res && res.data) {
 					patchData(whId, function () { return res.data; });
@@ -573,7 +379,6 @@
 		var pendingQC = 0;
 		var pendingExport = 0;
 		var expiring = 0;
-		var stockoutSoon = 0;
 		var perWh = state.warehouses.map(function (w) {
 			var d = ensureData(w.id);
 			var stock = (d.stock || []).reduce(function (s, x) { return s + x.qty; }, 0);
@@ -581,18 +386,19 @@
 			(d.stock || []).forEach(function (x) { skus[x.sku] = true; });
 			var pQC = (d.receipts || []).filter(function (r) { return r.status === 'pending_qc'; }).length;
 			var pEx = (d.issues || []).filter(function (i) {
-				return i.status !== 'shipped' && i.status !== 'rejected' && i.status !== 'cancelled';
+				return i.status !== 'shipped' && i.status !== 'rejected';
 			}).length;
-			var exp = (d.stock || []).filter(isExpiringSoon).length;
-			var so = (d.stock || []).filter(isStockoutSoon).length;
+			var exp = (d.stock || []).filter(function (s) {
+				var days = (new Date(s.expiry).getTime() - Date.now()) / 86400000;
+				return days < 90 && s.qty > 0;
+			}).length;
 			totalStock += stock;
 			pendingQC += pQC;
 			pendingExport += pEx;
 			expiring += exp;
-			stockoutSoon += so;
-			return { w: w, stock: stock, skus: Object.keys(skus).length, pQC: pQC, pEx: pEx, exp: exp, stockoutSoon: so };
+			return { w: w, stock: stock, skus: Object.keys(skus).length, pQC: pQC, pEx: pEx, exp: exp };
 		});
-		return { perWh: perWh, totalStock: totalStock, pendingQC: pendingQC, pendingExport: pendingExport, expiring: expiring, stockoutSoon: stockoutSoon };
+		return { perWh: perWh, totalStock: totalStock, pendingQC: pendingQC, pendingExport: pendingExport, expiring: expiring };
 	}
 
 	function totalStockOf(id) {
@@ -695,15 +501,8 @@
 		getState: getState,
 		warehouseActions: warehouseActions,
 		warehouseDataActions: warehouseDataActions,
-		returnActions: returnActions,
 		transferActions: transferActions,
 		computeSummary: computeSummary,
-		getExpiryWarnDays: getExpiryWarnDays,
-		expiryWarnDaysFor: expiryWarnDaysFor,
-		isExpiringSoon: isExpiringSoon,
-		isStockoutSoon: isStockoutSoon,
-		stockoutLabel: stockoutLabel,
-		STOCKOUT_SOON_DAYS: STOCKOUT_SOON_DAYS,
 		totalStockOf: totalStockOf,
 		skuCountOf: skuCountOf,
 		ensureData: ensureData,

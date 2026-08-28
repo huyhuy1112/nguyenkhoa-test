@@ -4,4 +4,4 @@
 		</main>
 	</div>
 </div>
-{include file="modules/Vtiger/Footer.tpl"}
+{include file="partials/MkThemeStylesLast.tpl"|vtemplate_path:'Vtiger'}

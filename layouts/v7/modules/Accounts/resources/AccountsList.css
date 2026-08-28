@@ -1167,17 +1167,3 @@ body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table 
 body[data-module="Accounts"][data-view="List"] #listViewContent #listview-table tbody tr.listViewEntries.mk-org-row-selected {
 	background: #fff8eb;
 }
-
-/* Hide legacy Figma header when POS toolbar is present */
-body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-so-pos-page .mk-org-action-header,
-body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-so-pos-page .mk-org-header,
-body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-pos-page .mk-org-action-header,
-body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-pos-page .mk-org-header {
-	display: none !important;
-}
-
-body[data-module="Accounts"][data-view="List"][data-app="SALES"] .mk-so-pos-page .mk-org-table-card,
-body[data-module="Accounts"][data-view="List"][data-app="SUPPORT"] .mk-so-pos-page .mk-org-table-card {
-	border-radius: 0 0 12px 12px;
-	border-top: none;
-}

@@ -154,215 +154,14 @@ class SalesOrder_List_View extends Inventory_List_View {
 		return $statusField;
 	}
 
-	protected function resolveSalesPaidFieldName(Vtiger_Module_Model $moduleModel) {
-		foreach (array('received', 'paid', 'mk_customer_paid') as $fieldName) {
-			$fieldModel = Vtiger_Field_Model::getInstance($fieldName, $moduleModel);
-			if ($fieldModel && $fieldModel->isViewable()) {
-				return $fieldName;
-			}
-		}
-		return null;
-	}
-
-	protected function isSalesListFieldAvailable(Vtiger_Module_Model $moduleModel, $fieldName) {
-		if (!$moduleModel || $fieldName === '') {
-			return false;
-		}
-		$fields = $moduleModel->getFields();
-		if (is_array($fields) && isset($fields[$fieldName])) {
-			return true;
-		}
-		$fieldModel = Vtiger_Field_Model::getInstance($fieldName, $moduleModel);
-		return ($fieldModel && $fieldModel->isViewable());
-	}
-
-	protected function clearSalesPosListHeadersSession(Vtiger_Request $request) {
-		$customView = new CustomView();
-		$cvId = $request->get('viewname');
-		if (empty($cvId)) {
-			$cvId = $customView->getViewId('SalesOrder');
-		}
-		if (!empty($cvId)) {
-			Vtiger_ListView_Model::deleteParamsSession('SalesOrder_' . $cvId, array('list_headers'));
-		}
-	}
-
-	protected function resetSalesPosListViewState() {
-		$this->listViewModel = false;
-		$this->listViewHeaders = false;
-		$this->listViewEntries = false;
-		$this->listviewinitcalled = false;
-	}
-
-	protected function applySalesListPosDefaults(Vtiger_Request $request) {
-		if (!$this->isSalesListContext($request) || $this->isToolsOrdersContext($request)) {
-			return null;
-		}
-
-		$moduleModel = Vtiger_Module_Model::getInstance('SalesOrder');
-		if (!$moduleModel) {
-			return null;
-		}
-
-		$statusField = $this->resolveSalesStatusFieldName($moduleModel);
-		$paidField = $this->resolveSalesPaidFieldName($moduleModel);
-
-		$preferredHeaders = array(
-			'salesorder_no',
-			'createdtime',
-			'account_id',
-		);
-		if ($paidField) {
-			$preferredHeaders[] = $paidField;
-		}
-		// Status before grand total — list column order: … | Khách đã trả | Trạng thái | Tổng cộng
-		if ($statusField) {
-			$preferredHeaders[] = $statusField;
-		}
-		$preferredHeaders[] = 'total';
-		$preferredHeaders[] = 'hdnGrandTotal';
-
-		$resolvedHeaders = array();
-		foreach ($preferredHeaders as $fieldName) {
-			if ($this->isSalesListFieldAvailable($moduleModel, $fieldName)) {
-				$resolvedHeaders[] = $fieldName;
-			}
-		}
-		if (!empty($resolvedHeaders)) {
-			$this->clearSalesPosListHeadersSession($request);
-			$request->set('list_headers', $resolvedHeaders);
-			$_REQUEST['list_headers'] = $resolvedHeaders;
-		}
-
-		if (!$request->get('orderby') && !$request->isAjax()) {
-			$request->set('orderby', 'createdtime');
-			$request->set('sortorder', 'DESC');
-			$_REQUEST['orderby'] = 'createdtime';
-			$_REQUEST['sortorder'] = 'DESC';
-		}
-
-		return array(
-			'statusField' => $statusField,
-			'paidField' => $paidField,
-		);
-	}
-
-	protected function getPosStatusLabelMap() {
-		return array(
-			'Created' => 'Phiếu tạm',
-			'Approved' => 'Đã xác nhận',
-			'Delivered' => 'Hoàn thành',
-			'Cancelled' => 'Đã hủy',
-			'Pending' => 'Đang chờ',
-			'Paid' => 'Đã thanh toán',
-			'Sent' => 'Đã gửi',
-			'Rejected' => 'Từ chối',
-			'waiting_print' => 'Chờ soạn',
-			'picking' => 'Đang soạn',
-			'packed' => 'Đã soạn',
-			'shipped' => 'Đã giao',
-			'rejected' => 'Từ chối',
-			'Đã duyệt' => 'Đã xác nhận',
-			'Đã tạo' => 'Phiếu tạm',
-			'Đang chờ xử lý' => 'Đang chờ',
-			'Đang giao hàng' => 'Đang giao hàng',
-			'Hoàn thành' => 'Hoàn thành',
-			'Đã gửi' => 'Đã gửi',
-			'Đã thanh toán' => 'Đã thanh toán',
-			'Đã hủy' => 'Đã hủy',
-			'Từ chối' => 'Từ chối',
-			'Chờ soạn' => 'Chờ soạn',
-			'Đang soạn' => 'Đang soạn',
-			'Đã soạn' => 'Đã soạn',
-			'Đã giao' => 'Đã giao',
-		);
-	}
-
-	protected function mapPosStatusFilterOptions(array $options) {
-		$map = $this->getPosStatusLabelMap();
-		$mapped = array();
-		foreach ($options as $key => $label) {
-			if (isset($map[$key])) {
-				$mapped[$key] = $map[$key];
-			} elseif (isset($map[$label])) {
-				$mapped[$key] = $map[$label];
-			} else {
-				$mapped[$key] = $label;
-			}
-		}
-		return $mapped;
-	}
-
-	protected function assignSalesListPosTemplateVars(Vtiger_Viewer $viewer, $posMeta) {
-		if (empty($posMeta) || !is_array($posMeta)) {
+	protected function assignSalesListTemplateVars(Vtiger_Viewer $viewer, $statusField) {
+		if (empty($statusField)) {
 			return;
 		}
-		$statusField = !empty($posMeta['statusField']) ? $posMeta['statusField'] : 'sostatus';
-		$paidField = !empty($posMeta['paidField']) ? $posMeta['paidField'] : 'received';
-
-		$labelOverrides = array(
-			'salesorder_no' => 'Mã đặt hàng',
-			'createdtime' => 'Thời gian',
-			'account_id' => 'Người liên hệ',
-			'hdnGrandTotal' => 'Tổng cộng',
-			'total' => 'Tổng cộng',
-			$paidField => 'Khách đã trả',
-			$statusField => 'Trạng thái',
-		);
-		// Prefer grand-total column label even when both total + hdnGrandTotal exist.
-		$viewer->assign('LISTVIEW_HEADER_LABEL_OVERRIDES', $labelOverrides);
-		$viewer->assign('MK_SO_POS_PAID_FIELD', $paidField);
-		$viewer->assign('MK_SO_POS_STATUS_FIELD', $statusField);
-		$viewer->assign('MK_SO_STATUS_FIELD', $statusField);
-		$viewer->assign('MK_SO_POS_LIST', true);
-		$this->assignSalesListPosFilterVars($viewer, $posMeta, $statusField);
+		$viewer->assign('LISTVIEW_HEADER_LABEL_OVERRIDES', array(
+			$statusField => vtranslate('Status', 'SalesOrder'),
+		));
 	}
-
-	protected function assignSalesListPosFilterVars(Vtiger_Viewer $viewer, $posMeta, $statusField) {
-		$moduleModel = Vtiger_Module_Model::getInstance('SalesOrder');
-		if (!$moduleModel) {
-			return;
-		}
-
-		$picklistOptions = function ($fieldName) use ($moduleModel) {
-			$fieldModel = Vtiger_Field_Model::getInstance($fieldName, $moduleModel);
-			if (!$fieldModel || !$fieldModel->isViewable()) {
-				return array();
-			}
-			$values = $fieldModel->getPicklistValues();
-			return is_array($values) ? $values : array();
-		};
-
-		$paymentField = '';
-		foreach (array('mk_payment_method', 'mk_payment_terms', 'payment_duration') as $candidate) {
-			$fieldModel = Vtiger_Field_Model::getInstance($candidate, $moduleModel);
-			if ($fieldModel && $fieldModel->isViewable()) {
-				$paymentField = $candidate;
-				break;
-			}
-		}
-
-		$filterMeta = array(
-			'statusField' => $statusField,
-			'carrierField' => $this->isSalesListFieldAvailable($moduleModel, 'carrier') ? 'carrier' : '',
-			'dueDateField' => $this->isSalesListFieldAvailable($moduleModel, 'duedate') ? 'duedate' : '',
-			'createdTimeField' => 'createdtime',
-			'shipCityField' => $this->isSalesListFieldAvailable($moduleModel, 'ship_city') ? 'ship_city' : '',
-			'paymentField' => $paymentField,
-		);
-
-		$viewer->assign('MK_SO_POS_FILTER_META', $filterMeta);
-		$viewer->assign('MK_SO_POS_FILTER_STATUS_OPTIONS', $this->mapPosStatusFilterOptions($picklistOptions($statusField)));
-		$viewer->assign('MK_SO_POS_FILTER_CARRIER_OPTIONS', $picklistOptions('carrier'));
-		$paymentOptions = array(
-			'Tiền mặt' => 'Tiền mặt',
-			'Chuyển khoản' => 'Chuyển khoản',
-			'Thẻ' => 'Thẻ',
-			'Ví' => 'Ví',
-		);
-		$viewer->assign('MK_SO_POS_FILTER_PAYMENT_OPTIONS', $paymentField ? $paymentOptions : array());
-	}
-
 
 	protected function applyToolsOrdersDefaults(Vtiger_Request $request) {
 		if (!$this->isToolsOrdersContext($request)) {
@@ -423,13 +222,6 @@ class SalesOrder_List_View extends Inventory_List_View {
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
 		$this->applyToolsOrdersDefaults($request);
-		require_once 'include/utils/MkEntityNumbering.php';
-		MkEntityNumbering::ensureModuleSequence('SalesOrder');
-		$posMeta = null;
-		if ($this->isSalesListContext($request) && !$this->isToolsOrdersContext($request)) {
-			$this->clearSalesPosListHeadersSession($request);
-			$posMeta = $this->applySalesListPosDefaults($request);
-		}
 		parent::preProcess($request, false);
 		$viewer = $this->getViewer($request);
 		$appName = $request->get('app');
@@ -439,15 +231,8 @@ class SalesOrder_List_View extends Inventory_List_View {
 		$this->assignSalesAppCategory($request, $viewer);
 		if ($this->isToolsOrdersContext($request)) {
 			$this->assignMkToolsListHeaderVars($request, $viewer);
-		} elseif ($this->isSalesListContext($request)) {
-			$this->assignMkToolsListHeaderVars($request, $viewer);
-			$this->assignSalesListPosTemplateVars($viewer, $posMeta);
-			$this->resetSalesPosListViewState();
-			$this->applySalesListPosDefaults($request);
-			$this->initializeListViewContents($request, $viewer);
-		} else {
-			$this->applySalesListHeaders($request);
 		}
+		$this->applySalesListHeaders($request);
 		if ($display) {
 			$this->preProcessDisplay($request);
 		}
@@ -483,13 +268,12 @@ class SalesOrder_List_View extends Inventory_List_View {
 		$this->applyToolsOrdersDefaults($request);
 		$viewer = $this->getViewer($request);
 		$this->assignSalesAppCategory($request, $viewer);
-		$posMeta = null;
-		if ($this->isSalesListContext($request) && !$this->isToolsOrdersContext($request)) {
-			$posMeta = $this->applySalesListPosDefaults($request);
-			$this->assignSalesListPosTemplateVars($viewer, $posMeta);
-			$this->resetSalesPosListViewState();
-		} else {
-			$this->applySalesListHeaders($request);
+		$statusField = $this->applySalesListHeaders($request);
+		$this->assignSalesListTemplateVars($viewer, $statusField);
+
+		// Full page load: build list data once in process() with adjusted headers (not stale preProcess only).
+		if (!$request->isAjax()) {
+			$this->listviewinitcalled = false;
 		}
 
 		parent::process($request);
@@ -497,11 +281,10 @@ class SalesOrder_List_View extends Inventory_List_View {
 
 	public function initializeListViewContents(Vtiger_Request $request, Vtiger_Viewer $viewer) {
 		$this->applyToolsOrdersDefaults($request);
-		$posMeta = null;
+		$statusField = null;
 		if ($this->isSalesListContext($request) && !$this->isToolsOrdersContext($request)) {
-			$posMeta = $this->applySalesListPosDefaults($request);
-			$this->assignSalesListPosTemplateVars($viewer, $posMeta);
-			$this->resetSalesPosListViewState();
+			$statusField = $this->applySalesListHeaders($request);
+			$this->assignSalesListTemplateVars($viewer, $statusField);
 		}
 		parent::initializeListViewContents($request, $viewer);
 

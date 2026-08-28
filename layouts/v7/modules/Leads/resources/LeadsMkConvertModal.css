@@ -126,33 +126,3 @@
 	border-radius: 10px;
 	padding: 9px 18px;
 }
-
-/* Fallback toast when app.helper notification is unavailable */
-.mk-leads-convert-toast {
-	position: fixed;
-	top: 24px;
-	right: 24px;
-	z-index: 10050;
-	max-width: min(420px, calc(100vw - 32px));
-	padding: 14px 18px;
-	border-radius: 12px;
-	background: #0f766e;
-	color: #fff;
-	font-size: 14px;
-	font-weight: 600;
-	line-height: 1.4;
-	box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
-	opacity: 0;
-	transform: translateY(-8px);
-	transition: opacity 0.22s ease, transform 0.22s ease;
-	pointer-events: none;
-}
-
-.mk-leads-convert-toast.is-show {
-	opacity: 1;
-	transform: translateY(0);
-}
-
-.mk-leads-convert-toast.is-error {
-	background: #b91c1c;
-}

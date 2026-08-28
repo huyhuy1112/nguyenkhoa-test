@@ -483,14 +483,7 @@
 		}
 		if (meta.module === 'Potentials' && /^CommerceApi$/i.test(meta.action)) {
 			var mode = String(meta.mode || '').toLowerCase();
-			// Read-only / history modes must never re-trigger commerce refresh loops.
-			if (
-				mode === 'get' ||
-				mode === 'get_service_contracts' ||
-				mode === 'search_orders' ||
-				mode === 'interaction_log' ||
-				mode === 'log_call'
-			) {
+			if (mode === 'get' || mode === 'get_service_contracts' || mode === 'search_orders') {
 				return false;
 			}
 			return true;

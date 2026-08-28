@@ -6,8 +6,8 @@ include_once 'vtlib/Vtiger/PDF/inventory/HeaderViewer.php';
 
 class SalesOrderPDFHeaderViewer extends Vtiger_PDF_InventoryHeaderViewer {
 
-	const COLOR_PRIMARY = array(8, 160, 69);
-	const COLOR_ACCENT = array(8, 160, 69);
+	const COLOR_PRIMARY = array(15, 76, 129);
+	const COLOR_ACCENT = array(0, 163, 224);
 	const COLOR_MUTED = array(100, 116, 139);
 	const COLOR_TEXT = array(30, 41, 59);
 	const COLOR_BOX_BG = array(247, 249, 252);
