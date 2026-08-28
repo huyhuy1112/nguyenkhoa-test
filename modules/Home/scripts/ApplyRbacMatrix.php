@@ -497,7 +497,7 @@ echo "  CEO → Administrator profile (#$SOURCE_PROFILE_ID)\n";
 // 3) Demo users for Kế toán / Kho if missing (optional, inactive credentials)
 // ---------------------------------------------------------------------------
 echo "\n-- Sample user assignment --\n";
-function rbac_ensure_demo_user($userName, $firstName, $roleId, $passwordPlain = 'Demo@123') {
+function rbac_ensure_demo_user($userName, $firstName, $roleId) {
 	global $adb;
 	$r = $adb->pquery('SELECT id FROM vtiger_users WHERE user_name=? AND deleted=0', array($userName));
 	if ($adb->num_rows($r)) {
