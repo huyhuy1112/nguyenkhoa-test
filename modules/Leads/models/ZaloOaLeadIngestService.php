@@ -55,9 +55,10 @@ class Leads_ZaloOaLeadIngestService {
 		}
 		$state = self::loadState($ev['oa_user_id']);
 		$merged = self::mergeState($state, $ev, $payload);
-		self::saveState($ev['oa_user_id'], $merged);
 
 		if (!$merged['is_completed']) {
+			$merged['is_completed'] = 0;
+			self::saveState($ev['oa_user_id'], $merged);
 			return array(
 				'success' => true,
 				'pending' => true,
@@ -66,12 +67,13 @@ class Leads_ZaloOaLeadIngestService {
 			);
 		}
 
-		$existingLeadId = !empty($merged['leadid']) ? (int) $merged['leadid'] : 0;
+		$existingLeadId = self::resolveTargetLeadId($merged, $state);
 		$lead = self::upsertLeadFromState($merged, $existingLeadId > 0 ? $existingLeadId : null);
 		$newLeadId = isset($lead['crmid']) ? (int) $lead['crmid'] : (isset($lead['id']) ? (int) $lead['id'] : 0);
-		if ($newLeadId > 0) {
-			$merged['leadid'] = $newLeadId;
+		if ($newLeadId <= 0) {
+			throw new Exception('Không tạo được Lead từ Zalo OA.');
 		}
+		$merged['leadid'] = $newLeadId;
 		$merged['is_completed'] = 1;
 		self::saveState($ev['oa_user_id'], $merged);
 
@@ -82,6 +84,59 @@ class Leads_ZaloOaLeadIngestService {
 			'lead' => $lead,
 			'oa_user_id' => $ev['oa_user_id'],
 		);
+	}
+
+	/**
+	 * Pick update target; drop stale/deleted leadid and create new when phone changes on form submit.
+	 */
+	protected static function resolveTargetLeadId(array $merged, array $previousState) {
+		$leadId = !empty($merged['leadid']) ? (int) $merged['leadid'] : 0;
+		if ($leadId > 0 && !self::leadRecordExists($leadId)) {
+			$leadId = 0;
+		}
+
+		$phone = self::normalizeVnMobile(isset($merged['phone']) ? $merged['phone'] : '');
+		if ($leadId > 0 && $phone !== '') {
+			$adb = PearDatabase::getInstance();
+			$res = $adb->pquery(
+				"SELECT REPLACE(REPLACE(REPLACE(IFNULL(la.phone,''),' ',''),'-',''),'.','') AS p
+				 FROM vtiger_leadaddress la
+				 INNER JOIN vtiger_crmentity ce ON ce.crmid = la.leadaddressid AND ce.deleted = 0
+				 WHERE la.leadaddressid = ?",
+				array($leadId)
+			);
+			$storedPhone = '';
+			if ($res && $adb->num_rows($res) > 0) {
+				$storedPhone = self::normalizeVnMobile((string) $adb->query_result($res, 0, 'p'));
+			}
+			if ($storedPhone !== '' && $storedPhone !== $phone) {
+				$leadId = 0;
+			}
+		}
+
+		if ($leadId <= 0 && $phone !== '') {
+			$found = Leads_ModernService::findExistingLeadIdByPhoneOrEmail($phone, '');
+			if ($found && self::leadRecordExists((int) $found)) {
+				$leadId = (int) $found;
+			}
+		}
+
+		return $leadId;
+	}
+
+	protected static function leadRecordExists($leadId) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return false;
+		}
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			"SELECT 1 FROM vtiger_crmentity ce
+			 INNER JOIN vtiger_leaddetails ld ON ld.leadid = ce.crmid
+			 WHERE ce.crmid = ? AND ce.deleted = 0 AND ce.setype = 'Leads'",
+			array($leadId)
+		);
+		return ($res && $adb->num_rows($res) > 0);
 	}
 
 	protected static function upsertLeadFromState(array $state, $existingLeadId = null) {
@@ -105,7 +160,17 @@ class Leads_ZaloOaLeadIngestService {
 			'force_create' => 0,
 		);
 		$recordId = ($existingLeadId !== null && (int) $existingLeadId > 0) ? (int) $existingLeadId : null;
-		return Leads_ModernService::saveLead($payload, $recordId);
+		if ($recordId !== null && !self::leadRecordExists($recordId)) {
+			$recordId = null;
+		}
+		try {
+			return Leads_ModernService::saveLead($payload, $recordId);
+		} catch (Exception $e) {
+			if ($recordId !== null) {
+				return Leads_ModernService::saveLead($payload, null);
+			}
+			throw $e;
+		}
 	}
 
 	protected static function isPlaceholderName($name) {
@@ -156,6 +221,7 @@ class Leads_ZaloOaLeadIngestService {
 		}
 
 		$fromForm = !empty($ev['contact_form_raw']);
+		$prevPhone = self::normalizeVnMobile(isset($out['phone']) ? $out['phone'] : '');
 		if (!empty($ev['oa_id'])) {
 			$out['oa_id'] = $ev['oa_id'];
 		}
@@ -182,6 +248,16 @@ class Leads_ZaloOaLeadIngestService {
 		}
 		if (!empty($ev['business_model'])) {
 			$out['business_model'] = $ev['business_model'];
+		}
+
+		if ($fromForm) {
+			$newPhone = self::normalizeVnMobile(isset($out['phone']) ? $out['phone'] : '');
+			if ($prevPhone !== '' && $newPhone !== '' && $prevPhone !== $newPhone) {
+				$out['leadid'] = 0;
+			}
+		}
+		if (!empty($out['leadid']) && !self::leadRecordExists((int) $out['leadid'])) {
+			$out['leadid'] = 0;
 		}
 
 		$answers = array('source' => 'zalo_oa_form');
@@ -294,7 +370,8 @@ class Leads_ZaloOaLeadIngestService {
 				$ev['business_model'] = $form['business_model'];
 			}
 			$ev['contact_form_raw'] = $messageText;
-			if ($recipientId !== '' && $senderId !== '' && $ev['oa_user_id'] === $senderId) {
+			// OA confirmation (oa_send*): user is recipient. Do not swap on user_send_text.
+			if ($isOaOutbound && $recipientId !== '' && $senderId !== '') {
 				$ev['oa_user_id'] = $recipientId;
 				$ev['oa_id'] = $senderId;
 			}
