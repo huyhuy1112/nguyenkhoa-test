@@ -1256,7 +1256,8 @@ class Leads_ModernService {
 		$potential = isset($row['potential_level']) ? trim((string) $row['potential_level']) : '';
 		$score = isset($row['verify_score']) && $row['verify_score'] !== null && $row['verify_score'] !== ''
 			? (int) $row['verify_score'] : null;
-		$changeReason = isset($row['verify_change_reason']) ? trim((string) $row['verify_change_reason']) : '';
+		$changeReason = self::decodeText(isset($row['verify_change_reason']) ? $row['verify_change_reason'] : '');
+		$changeReason = trim((string) $changeReason);
 		$verifiedAt = '';
 		if (!empty($row['verified_at']) && $row['verified_at'] !== '0000-00-00 00:00:00') {
 			$ts = strtotime($row['verified_at']);

@@ -1,9 +1,9 @@
 <?php
 /*+***********************************************************************************
  * Zalo OA contact form -> Leads.
- * Parses OA confirmation message (oa_send_text) after user submits the Zalo OA form:
+ * Parses OA confirmation message after user submits the Zalo OA form:
  *   Họ Tên, Số điện thoại, Địa chỉ, Mô hình kinh doanh
- * Lead source: tag zalo (list column Nguồn).
+ * Lead source: tag zalo (leadsource).
  *************************************************************************************/
 
 require_once 'modules/Leads/models/ModernService.php';
@@ -11,7 +11,6 @@ require_once 'modules/Leads/models/ModernService.php';
 class Leads_ZaloOaLeadIngestService {
 
 	const STATE_TABLE = 'bace_zalo_oa_state';
-	const DEDUP_MINUTES = 15;
 
 	public static function ensureSchema() {
 		$adb = PearDatabase::getInstance();
@@ -51,19 +50,9 @@ class Leads_ZaloOaLeadIngestService {
 	public static function ingestWebhook(array $payload) {
 		self::ensureSchema();
 		$ev = self::extractEvent($payload);
-
 		if (!$ev['oa_user_id']) {
 			return array('success' => true, 'ignored' => true, 'reason' => 'missing_oa_user_id');
 		}
-
-		// Only ingest OA confirmation with parsed form fields — ignore user_send_text / partial events.
-		if (empty($ev['contact_form_matched'])) {
-			return array('success' => true, 'ignored' => true, 'reason' => 'not_oa_contact_form');
-		}
-		if (!empty($ev['event_name']) && strpos($ev['event_name'], 'oa_send') !== 0) {
-			return array('success' => true, 'ignored' => true, 'reason' => 'not_oa_send_event');
-		}
-
 		$state = self::loadState($ev['oa_user_id']);
 		$merged = self::mergeState($state, $ev, $payload);
 		self::saveState($ev['oa_user_id'], $merged);
@@ -78,18 +67,10 @@ class Leads_ZaloOaLeadIngestService {
 		}
 
 		$existingLeadId = !empty($merged['leadid']) ? (int) $merged['leadid'] : 0;
-		if ($existingLeadId <= 0) {
-			$existingLeadId = self::resolveExistingLeadId($merged);
-		}
-		if ($existingLeadId <= 0 && !empty($merged['form_fingerprint'])) {
-			$existingLeadId = self::findLeadIdByFormFingerprint($merged['form_fingerprint']);
-		}
-
 		$lead = self::upsertLeadFromState($merged, $existingLeadId > 0 ? $existingLeadId : null);
 		$newLeadId = isset($lead['crmid']) ? (int) $lead['crmid'] : (isset($lead['id']) ? (int) $lead['id'] : 0);
 		if ($newLeadId > 0) {
 			$merged['leadid'] = $newLeadId;
-			self::linkPhoneStateToLead($merged['phone'], $newLeadId);
 		}
 		$merged['is_completed'] = 1;
 		self::saveState($ev['oa_user_id'], $merged);
@@ -110,74 +91,21 @@ class Leads_ZaloOaLeadIngestService {
 			$name = 'Khách Zalo OA';
 		}
 
-		$businessModel = self::normalizeBusinessModelForIngest((string) $state['business_model']);
-
 		$payload = array(
 			'name' => $name,
 			'phone' => (string) $state['phone'],
 			'email' => (string) $state['email'],
-			'address' => trim((string) $state['address']),
+			'address' => (string) $state['address'],
 			'companyName' => '-',
 			'tags' => array('zalo'),
-			'business_model' => $businessModel,
+			'business_model' => (string) $state['business_model'],
 			'qa_raw' => isset($state['answers_json']) ? $state['answers_json'] : '',
 			'skip_potential' => 1,
 			'sheet_source' => 0,
 			'force_create' => 0,
 		);
 		$recordId = ($existingLeadId !== null && (int) $existingLeadId > 0) ? (int) $existingLeadId : null;
-		$lead = Leads_ModernService::saveLead($payload, $recordId);
-		self::ensureZaloSourceTag($recordId ?: (isset($lead['crmid']) ? (int) $lead['crmid'] : 0));
-		return $lead;
-	}
-
-	/**
-	 * Map to picklist label when possible; keep raw text if no catalog match.
-	 */
-	protected static function normalizeBusinessModelForIngest($raw) {
-		$raw = trim((string) $raw);
-		if ($raw === '') {
-			return '';
-		}
-		require_once 'modules/Vtiger/helpers/BusinessModelHelper.php';
-		$normalized = Vtiger_BusinessModel_Helper::normalize($raw);
-		return $normalized !== '' ? $normalized : $raw;
-	}
-
-	protected static function ensureZaloSourceTag($leadId) {
-		$leadId = (int) $leadId;
-		if ($leadId <= 0) {
-			return;
-		}
-		try {
-			global $current_user;
-			$userId = ($current_user && !empty($current_user->id)) ? (int) $current_user->id : 0;
-			if ($userId <= 0) {
-				$admin = Users::getActiveAdminUser();
-				$userId = $admin && !empty($admin->id) ? (int) $admin->id : 1;
-			}
-			$existing = Vtiger_Tag_Model::getAllAccessible($userId, 'Leads', $leadId);
-			$names = array();
-			foreach ($existing as $tagModel) {
-				$names[] = strtolower((string) $tagModel->getName());
-			}
-			if (in_array('zalo', $names, true)) {
-				return;
-			}
-			$tagModel = Vtiger_Tag_Model::getInstanceByName('zalo', $userId);
-			if (!$tagModel) {
-				$tagModel = new Vtiger_Tag_Model();
-				$tagModel->setName('zalo')->setType(Vtiger_Tag_Model::PUBLIC_TYPE);
-				$tagId = $tagModel->create();
-			} else {
-				$tagId = $tagModel->getId();
-			}
-			if ($tagId) {
-				Vtiger_Tag_Model::saveForRecord($leadId, array($tagId), $userId, 'Leads');
-			}
-		} catch (Exception $e) {
-			// best-effort
-		}
+		return Leads_ModernService::saveLead($payload, $recordId);
 	}
 
 	protected static function isPlaceholderName($name) {
@@ -203,14 +131,10 @@ class Leads_ZaloOaLeadIngestService {
 	}
 
 	/**
-	 * Complete only when OA form was parsed with name + phone (+ address from form).
+	 * Complete when we have name + valid VN mobile (email optional).
 	 */
 	protected static function missingFields(array $state) {
 		$missing = array();
-		if (empty($state['form_matched'])) {
-			$missing[] = 'form';
-			return $missing;
-		}
 		$name = trim((string) $state['full_name']);
 		if ($name === '' || self::isPlaceholderName($name)) {
 			$missing[] = 'full_name';
@@ -218,9 +142,6 @@ class Leads_ZaloOaLeadIngestService {
 		$phone = trim((string) $state['phone']);
 		if ($phone === '' || !self::isValidVnMobile($phone)) {
 			$missing[] = 'phone';
-		}
-		if (trim((string) $state['address']) === '') {
-			$missing[] = 'address';
 		}
 		return $missing;
 	}
@@ -234,41 +155,33 @@ class Leads_ZaloOaLeadIngestService {
 			$out['phone'] = '';
 		}
 
-		$fromForm = !empty($ev['contact_form_matched']);
-		if ($fromForm) {
-			$out['form_matched'] = 1;
-		}
+		$fromForm = !empty($ev['contact_form_raw']);
 		if (!empty($ev['oa_id'])) {
 			$out['oa_id'] = $ev['oa_id'];
 		}
-		if (!empty($ev['form_fingerprint'])) {
-			$out['form_fingerprint'] = $ev['form_fingerprint'];
+
+		$incomingName = trim((string) (isset($ev['full_name']) ? $ev['full_name'] : ''));
+		if ($incomingName !== '' && !self::isPlaceholderName($incomingName)) {
+			if ($fromForm || trim((string) $out['full_name']) === '' || self::isPlaceholderName($out['full_name'])) {
+				$out['full_name'] = $incomingName;
+			}
 		}
 
-		if ($fromForm) {
-			if (!empty($ev['full_name'])) {
-				$out['full_name'] = $ev['full_name'];
-			}
-			if (!empty($ev['phone'])) {
-				$out['phone'] = $ev['phone'];
-			}
-			if (!empty($ev['address'])) {
-				$out['address'] = $ev['address'];
-			}
-			if (!empty($ev['business_model'])) {
-				$out['business_model'] = $ev['business_model'];
+		$incomingPhone = trim((string) (isset($ev['phone']) ? $ev['phone'] : ''));
+		if ($incomingPhone !== '' && self::isValidVnMobile($incomingPhone)) {
+			if ($fromForm || trim((string) $out['phone']) === '' || !self::isValidVnMobile($out['phone'])) {
+				$out['phone'] = $incomingPhone;
 			}
 		}
 
 		if (!empty($ev['email'])) {
 			$out['email'] = $ev['email'];
 		}
-
-		if (!empty($out['phone']) && empty($out['leadid'])) {
-			$byPhone = self::findRecentLeadIdByPhone($out['phone']);
-			if ($byPhone > 0) {
-				$out['leadid'] = $byPhone;
-			}
+		if (!empty($ev['address'])) {
+			$out['address'] = $ev['address'];
+		}
+		if (!empty($ev['business_model'])) {
+			$out['business_model'] = $ev['business_model'];
 		}
 
 		$answers = array('source' => 'zalo_oa_form');
@@ -278,12 +191,12 @@ class Leads_ZaloOaLeadIngestService {
 				$answers = array_merge($decoded, $answers);
 			}
 		}
-		foreach (array('full_name', 'phone', 'email', 'address', 'business_model', 'form_fingerprint') as $k) {
+		foreach (array('full_name', 'phone', 'email', 'address', 'business_model') as $k) {
 			if (!empty($out[$k])) {
 				$answers[$k] = $out[$k];
 			}
 		}
-		if ($fromForm && !empty($ev['contact_form_raw'])) {
+		if ($fromForm) {
 			$answers['contact_form_raw'] = $ev['contact_form_raw'];
 		}
 		$out['answers_json'] = json_encode($answers, JSON_UNESCAPED_UNICODE);
@@ -301,8 +214,6 @@ class Leads_ZaloOaLeadIngestService {
 			'address' => '',
 			'business_model' => '',
 			'sales_channel' => '',
-			'form_matched' => 0,
-			'form_fingerprint' => '',
 			'answers_json' => '',
 			'last_payload' => '',
 			'leadid' => 0,
@@ -314,21 +225,19 @@ class Leads_ZaloOaLeadIngestService {
 		$ev = array(
 			'oa_user_id' => '',
 			'oa_id' => '',
-			'event_name' => '',
 			'full_name' => '',
 			'phone' => '',
 			'email' => '',
 			'address' => '',
 			'business_model' => '',
 			'contact_form_raw' => '',
-			'contact_form_matched' => false,
-			'form_fingerprint' => '',
 		);
 
 		$flat = self::flatten($payload);
+		$eventName = '';
 		foreach (array('event_name', 'event', 'eventName') as $ek) {
 			if (!empty($flat[$ek])) {
-				$ev['event_name'] = strtolower(trim((string) $flat[$ek]));
+				$eventName = strtolower(trim((string) $flat[$ek]));
 				break;
 			}
 		}
@@ -336,7 +245,7 @@ class Leads_ZaloOaLeadIngestService {
 		$senderId = !empty($flat['sender.id']) ? trim((string) $flat['sender.id']) : '';
 		$recipientId = !empty($flat['recipient.id']) ? trim((string) $flat['recipient.id']) : '';
 
-		$isOaOutbound = ($ev['event_name'] !== '' && strpos($ev['event_name'], 'oa_send') === 0);
+		$isOaOutbound = ($eventName !== '' && strpos($eventName, 'oa_send') === 0);
 		if ($isOaOutbound && $recipientId !== '') {
 			$ev['oa_user_id'] = $recipientId;
 			if ($senderId !== '') {
@@ -363,10 +272,15 @@ class Leads_ZaloOaLeadIngestService {
 			}
 		}
 
-		$messageText = self::collectMessageText($flat);
+		$messageText = '';
+		if (!empty($flat['message.text'])) {
+			$messageText = trim((string) $flat['message.text']);
+		} elseif (!empty($flat['text'])) {
+			$messageText = trim((string) $flat['text']);
+		}
+
 		$form = self::extractZaloOaContactForm($messageText);
 		if (!empty($form['matched'])) {
-			$ev['contact_form_matched'] = true;
 			if (!empty($form['full_name'])) {
 				$ev['full_name'] = $form['full_name'];
 			}
@@ -380,45 +294,40 @@ class Leads_ZaloOaLeadIngestService {
 				$ev['business_model'] = $form['business_model'];
 			}
 			$ev['contact_form_raw'] = $messageText;
-			$ev['form_fingerprint'] = self::formFingerprint($form);
 			if ($recipientId !== '' && $senderId !== '' && $ev['oa_user_id'] === $senderId) {
 				$ev['oa_user_id'] = $recipientId;
 				$ev['oa_id'] = $senderId;
 			}
 		}
 
+		if ($ev['full_name'] === '') {
+			foreach (array('sender.name', 'sender.display_name', 'contact.name', 'shared_info.name', 'user.name') as $key) {
+				if (!empty($flat[$key])) {
+					$ev['full_name'] = trim((string) $flat[$key]);
+					break;
+				}
+			}
+		}
+
+		if ($ev['phone'] === '' && $messageText !== '') {
+			$phone = self::extractPhone($messageText);
+			if ($phone !== '') {
+				$ev['phone'] = $phone;
+			}
+		}
+
 		return $ev;
 	}
 
-	protected static function collectMessageText(array $flat) {
-		$parts = array();
-		foreach (array('message.text', 'text', 'message.payload.text', 'message.body', 'body') as $key) {
-			if (!empty($flat[$key])) {
-				$parts[] = (string) $flat[$key];
-			}
-		}
-		$joined = trim(implode("\n", $parts));
-		if ($joined !== '') {
-			return $joined;
-		}
-		foreach ($flat as $key => $val) {
-			if (!is_string($val) || strlen($val) < 20) {
-				continue;
-			}
-			if (preg_match('/(ho\s*ten|so\s*dien\s*thoai|dia\s*chi|mo\s*hinh)/iu', $val)) {
-				$parts[] = $val;
-			}
-		}
-		return trim(implode("\n", array_unique($parts)));
-	}
-
-	protected static function formFingerprint(array $form) {
-		$phone = isset($form['phone']) ? preg_replace('/\D+/', '', (string) $form['phone']) : '';
-		$name = self::fold(isset($form['full_name']) ? $form['full_name'] : '');
-		$addr = self::fold(isset($form['address']) ? $form['address'] : '');
-		return sha1($phone . '|' . $name . '|' . $addr);
-	}
-
+	/**
+	 * Parse Zalo OA contact form confirmation.
+	 * Example:
+	 * Bạn đã gửi thông tin cho OA ... với nội dung:
+	 * Họ Tên: Đặng Quốc Huy
+	 * Số điện thoại: 0906345551
+	 * Địa chỉ: 213 LTT, Phường Phước Long, Thành phố Hồ Chí Minh
+	 * Mô hình kinh doanh: cà phê sân vườn
+	 */
 	protected static function extractZaloOaContactForm($text) {
 		$out = array(
 			'matched' => false,
@@ -435,7 +344,6 @@ class Leads_ZaloOaLeadIngestService {
 		$fold = self::fold($text);
 		$looksLikeForm = (strpos($fold, 'ban da gui thong tin cho oa') !== false)
 			|| (strpos($fold, 'chia se thong tin') !== false)
-			|| (strpos($fold, 'voi noi dung') !== false)
 			|| (strpos($fold, 'ho ten') !== false && strpos($fold, 'so dien thoai') !== false);
 		if (!$looksLikeForm) {
 			return $out;
@@ -449,8 +357,6 @@ class Leads_ZaloOaLeadIngestService {
 		$phoneRaw = self::extractLabeledValue($text, array(
 			'số\s*điện\s*thoại',
 			'so\s*dien\s*thoai',
-			'điện\s*thoại',
-			'dien\s*thoai',
 		));
 		$out['phone'] = self::extractPhone($phoneRaw !== '' ? $phoneRaw : $text);
 		$out['address'] = self::extractLabeledValue($text, array(
@@ -471,11 +377,13 @@ class Leads_ZaloOaLeadIngestService {
 			return '';
 		}
 		$text = str_replace(array("\\r\\n", "\\n", "\\r"), array("\n", "\n", "\n"), $text);
-		$text = html_entity_decode(strip_tags($text), ENT_QUOTES, 'UTF-8');
-		$text = preg_replace('/\*+/u', '', $text);
-		return trim($text);
+		return html_entity_decode(strip_tags($text), ENT_QUOTES, 'UTF-8');
 	}
 
+	/**
+	 * @param string $text
+	 * @param string[] $labelPatterns regex fragments (unicode), without trailing colon
+	 */
 	protected static function extractLabeledValue($text, array $labelPatterns) {
 		$text = self::normalizeMessageText($text);
 		foreach ($labelPatterns as $label) {
@@ -491,84 +399,6 @@ class Leads_ZaloOaLeadIngestService {
 			}
 		}
 		return '';
-	}
-
-	protected static function resolveExistingLeadId(array $state) {
-		$leadId = !empty($state['leadid']) ? (int) $state['leadid'] : 0;
-		if ($leadId > 0) {
-			return $leadId;
-		}
-		$phone = trim((string) $state['phone']);
-		if ($phone === '') {
-			return 0;
-		}
-		$recent = self::findRecentLeadIdByPhone($phone);
-		if ($recent > 0) {
-			return $recent;
-		}
-		$found = Leads_ModernService::findExistingLeadIdByPhoneOrEmail($phone, '');
-		return $found ? (int) $found : 0;
-	}
-
-	protected static function findRecentLeadIdByPhone($phone) {
-		$phone = self::normalizeVnMobile($phone);
-		if ($phone === '') {
-			return 0;
-		}
-		$adb = PearDatabase::getInstance();
-		$mins = (int) self::DEDUP_MINUTES;
-		$res = $adb->pquery(
-			"SELECT ce.crmid
-			 FROM vtiger_crmentity ce
-			 INNER JOIN vtiger_leaddetails ld ON ld.leadid = ce.crmid
-			 LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = ce.crmid
-			 WHERE ce.deleted = 0 AND ce.setype = 'Leads'
-			   AND ce.createdtime >= DATE_SUB(NOW(), INTERVAL {$mins} MINUTE)
-			   AND REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(IFNULL(la.phone,''),' ',''),'-',''),'.',''),'+',''),' ','') = ?
-			 ORDER BY ce.createdtime DESC
-			 LIMIT 1",
-			array($phone)
-		);
-		if ($res && $adb->num_rows($res) > 0) {
-			return (int) $adb->query_result($res, 0, 'crmid');
-		}
-		return 0;
-	}
-
-	protected static function findLeadIdByFormFingerprint($fingerprint) {
-		$fingerprint = trim((string) $fingerprint);
-		if ($fingerprint === '') {
-			return 0;
-		}
-		$adb = PearDatabase::getInstance();
-		$mins = (int) self::DEDUP_MINUTES;
-		$res = $adb->pquery(
-			"SELECT p.leadid
-			 FROM bace_lead_profile p
-			 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
-			 WHERE p.qa_raw LIKE ?
-			   AND ce.createdtime >= DATE_SUB(NOW(), INTERVAL {$mins} MINUTE)
-			 ORDER BY ce.createdtime DESC
-			 LIMIT 1",
-			array('%' . $fingerprint . '%')
-		);
-		if ($res && $adb->num_rows($res) > 0) {
-			return (int) $adb->query_result($res, 0, 'leadid');
-		}
-		return 0;
-	}
-
-	protected static function linkPhoneStateToLead($phone, $leadId) {
-		$phone = self::normalizeVnMobile($phone);
-		$leadId = (int) $leadId;
-		if ($phone === '' || $leadId <= 0) {
-			return;
-		}
-		$adb = PearDatabase::getInstance();
-		$adb->pquery(
-			'UPDATE ' . self::STATE_TABLE . ' SET leadid = ?, updated_at = NOW() WHERE phone = ?',
-			array($leadId, $phone)
-		);
 	}
 
 	protected static function extractPhone($text) {
@@ -666,8 +496,6 @@ class Leads_ZaloOaLeadIngestService {
 			'last_payload' => (string) $adb->query_result($rs, 0, 'last_payload'),
 			'leadid' => (int) $adb->query_result($rs, 0, 'leadid'),
 			'is_completed' => (int) $adb->query_result($rs, 0, 'is_completed'),
-			'form_matched' => 0,
-			'form_fingerprint' => '',
 		);
 	}
 
