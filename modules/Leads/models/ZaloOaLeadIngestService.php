@@ -67,8 +67,14 @@ class Leads_ZaloOaLeadIngestService {
 			);
 		}
 
-		$existingLeadId = self::resolveTargetLeadId($merged, $state);
-		$lead = self::upsertLeadFromState($merged, $existingLeadId > 0 ? $existingLeadId : null);
+		$fromForm = !empty($ev['contact_form_raw']);
+		if ($fromForm) {
+			$lead = self::upsertLeadFromState($merged, null, true);
+			$existingLeadId = 0;
+		} else {
+			$existingLeadId = self::resolveTargetLeadId($merged, $state);
+			$lead = self::upsertLeadFromState($merged, $existingLeadId > 0 ? $existingLeadId : null, false);
+		}
 		$newLeadId = isset($lead['crmid']) ? (int) $lead['crmid'] : (isset($lead['id']) ? (int) $lead['id'] : 0);
 		if ($newLeadId <= 0) {
 			throw new Exception('Không tạo được Lead từ Zalo OA.');
@@ -79,8 +85,8 @@ class Leads_ZaloOaLeadIngestService {
 
 		return array(
 			'success' => true,
-			'created' => $existingLeadId <= 0,
-			'updated' => $existingLeadId > 0,
+			'created' => $fromForm || $existingLeadId <= 0,
+			'updated' => !$fromForm && $existingLeadId > 0,
 			'lead' => $lead,
 			'oa_user_id' => $ev['oa_user_id'],
 		);
@@ -139,7 +145,7 @@ class Leads_ZaloOaLeadIngestService {
 		return ($res && $adb->num_rows($res) > 0);
 	}
 
-	protected static function upsertLeadFromState(array $state, $existingLeadId = null) {
+	protected static function upsertLeadFromState(array $state, $existingLeadId = null, $forceCreate = false) {
 		self::ensureCurrentUser();
 		$name = trim((string) $state['full_name']);
 		if ($name === '' || self::isPlaceholderName($name)) {
@@ -157,16 +163,19 @@ class Leads_ZaloOaLeadIngestService {
 			'qa_raw' => isset($state['answers_json']) ? $state['answers_json'] : '',
 			'skip_potential' => 1,
 			'sheet_source' => 0,
-			'force_create' => 0,
+			'force_create' => $forceCreate ? 1 : 0,
 		);
-		$recordId = ($existingLeadId !== null && (int) $existingLeadId > 0) ? (int) $existingLeadId : null;
-		if ($recordId !== null && !self::leadRecordExists($recordId)) {
-			$recordId = null;
+		$recordId = null;
+		if (!$forceCreate) {
+			$recordId = ($existingLeadId !== null && (int) $existingLeadId > 0) ? (int) $existingLeadId : null;
+			if ($recordId !== null && !self::leadRecordExists($recordId)) {
+				$recordId = null;
+			}
 		}
 		try {
 			return Leads_ModernService::saveLead($payload, $recordId);
 		} catch (Exception $e) {
-			if ($recordId !== null) {
+			if ($recordId !== null && !$forceCreate) {
 				return Leads_ModernService::saveLead($payload, null);
 			}
 			throw $e;
@@ -221,7 +230,6 @@ class Leads_ZaloOaLeadIngestService {
 		}
 
 		$fromForm = !empty($ev['contact_form_raw']);
-		$prevPhone = self::normalizeVnMobile(isset($out['phone']) ? $out['phone'] : '');
 		if (!empty($ev['oa_id'])) {
 			$out['oa_id'] = $ev['oa_id'];
 		}
@@ -251,10 +259,7 @@ class Leads_ZaloOaLeadIngestService {
 		}
 
 		if ($fromForm) {
-			$newPhone = self::normalizeVnMobile(isset($out['phone']) ? $out['phone'] : '');
-			if ($prevPhone !== '' && $newPhone !== '' && $prevPhone !== $newPhone) {
-				$out['leadid'] = 0;
-			}
+			$out['leadid'] = 0;
 		}
 		if (!empty($out['leadid']) && !self::leadRecordExists((int) $out['leadid'])) {
 			$out['leadid'] = 0;
