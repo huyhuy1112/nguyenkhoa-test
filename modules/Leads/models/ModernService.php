@@ -1236,7 +1236,26 @@ class Leads_ModernService {
 			'qa_raw' => $qaDecoded !== null ? $qaDecoded : $qaRaw,
 			'phone_dup' => false,
 			'phone_dup_count' => 1,
+			'needs_sales_verify' => self::computeNeedsSalesVerify($row, $tags, $verify) ? 1 : 0,
 		) + $verify;
+	}
+
+	/**
+	 * Sheet / Zalo form intake → Sales xác minh. CRM-created leads → không.
+	 */
+	protected static function computeNeedsSalesVerify(array $row, array $tags, array $verify) {
+		if (!empty($row['sheet_source'])) {
+			return true;
+		}
+		if (!empty($verify['form_c1']) || !empty($verify['form_c2']) || !empty($verify['form_c3'])) {
+			return true;
+		}
+		foreach ($tags as $tag) {
+			if (strtolower(trim((string) $tag)) === 'zalo') {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected static function composeVerifyBlock(array $row) {
@@ -1421,6 +1440,17 @@ class Leads_ModernService {
 			}
 			if (!array_key_exists('business_model', $payload) && isset($existing['business_model'])) {
 				$payload['business_model'] = $existing['business_model'];
+			}
+			if (empty($payload['sheet_source']) && !empty($existing['sheet_source'])) {
+				$payload['sheet_source'] = 1;
+			}
+			if ((!isset($payload['screening_result']) || $payload['screening_result'] === '')
+				&& !empty($existing['screening_result'])) {
+				$payload['screening_result'] = $existing['screening_result'];
+			}
+			if ((!isset($payload['qa_raw']) || $payload['qa_raw'] === '' || $payload['qa_raw'] === null)
+				&& !empty($existing['qa_raw'])) {
+				$payload['qa_raw'] = $existing['qa_raw'];
 			}
 			if (!isset($payload['tags']) || !is_array($payload['tags'])) {
 				if (!empty($existing['tags'])) {

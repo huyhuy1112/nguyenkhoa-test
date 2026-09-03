@@ -1067,6 +1067,25 @@
 	function renderVerifyPanel(lead) {
 		var host = byId('mk-ld-ui-verify');
 		if (!host) return;
+		var tags = lead.tags || [];
+		var hasZalo = false;
+		for (var ti = 0; ti < tags.length; ti++) {
+			if (String(tags[ti]).toLowerCase() === 'zalo') {
+				hasZalo = true;
+				break;
+			}
+		}
+		var needsVerify =
+			Number(lead.needs_sales_verify) === 1 ||
+			Number(lead.sheet_source) === 1 ||
+			!!(lead.form_c1 || lead.form_c2 || lead.form_c3) ||
+			hasZalo;
+		if (!needsVerify) {
+			host.innerHTML = '';
+			host.hidden = true;
+			return;
+		}
+		host.hidden = false;
 		var opts = lead.verify_options || verifyDefaultOptions();
 		var c1 = lead.verify_c1 || lead.form_c1 || '';
 		var c2 = lead.verify_c2 || lead.form_c2 || '';

@@ -931,6 +931,17 @@
     return { id: id, crmid: id, canConvert: true };
   }
 
+  function needsSalesVerify(l) {
+    if (!l) return false;
+    if (Number(l.needs_sales_verify) === 1 || Number(l.sheet_source) === 1) return true;
+    if (l.form_c1 || l.form_c2 || l.form_c3) return true;
+    var tags = l.tags || [];
+    for (var i = 0; i < tags.length; i++) {
+      if (String(tags[i]).toLowerCase() === "zalo") return true;
+    }
+    return false;
+  }
+
   function screeningStatusHtml(l) {
     var pot = l.potential_level || "";
     var elig = l.eligibility_result || "";
@@ -1149,17 +1160,17 @@
       '<div class="mk-leads-verify-formcard"><em>C1</em><strong>' +
       esc(lead.form_c1 || "—") +
       "</strong><small>" +
-      esc(lead.form_c1_label || "Chưa có từ Sheet") +
+      esc(lead.form_c1_label || "Chưa có từ Form") +
       "</small></div>" +
       '<div class="mk-leads-verify-formcard"><em>C2</em><strong>' +
       esc(lead.form_c2 || "—") +
       "</strong><small>" +
-      esc(lead.form_c2_label || "Chưa có từ Sheet") +
+      esc(lead.form_c2_label || "Chưa có từ Form") +
       "</small></div>" +
       '<div class="mk-leads-verify-formcard"><em>C3</em><strong>' +
       esc(lead.form_c3 || "—") +
       "</strong><small>" +
-      esc(lead.form_c3_label || "Chưa có từ Sheet") +
+      esc(lead.form_c3_label || "Chưa có từ Form") +
       "</small></div></div></section>" +
       '<section class="mk-leads-verify-section">' +
       "<h4>Sau cuộc gọi</h4>" +
@@ -2101,18 +2112,20 @@
             esc(l.name) +
             "</a>" +
             screeningStatusHtml(l) +
-            '<button type="button" class="mk-leads-verify-btn' +
-            (l.eligibility_result || l.potential_level ? " is-done" : "") +
-            '" data-lead-id="' +
-            esc(l.id) +
-            '" title="Sales xác minh Bộ B">' +
-            '<svg class="mk-leads-verify-btn__ic" width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
-            '<path d="M12 3 5 6v6c0 5 3.2 8.2 7 9.5 3.8-1.3 7-4.5 7-9.5V6l-7-3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>' +
-            '<path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
-            "</svg>" +
-            "<span>" +
-            (l.eligibility_result || l.potential_level ? "Đã xác minh" : "Xác minh") +
-            "</span></button>" +
+            (needsSalesVerify(l)
+              ? '<button type="button" class="mk-leads-verify-btn' +
+                (l.eligibility_result || l.potential_level ? " is-done" : "") +
+                '" data-lead-id="' +
+                esc(l.id) +
+                '" title="Sales xác minh Bộ B">' +
+                '<svg class="mk-leads-verify-btn__ic" width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+                '<path d="M12 3 5 6v6c0 5 3.2 8.2 7 9.5 3.8-1.3 7-4.5 7-9.5V6l-7-3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>' +
+                '<path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+                "</svg>" +
+                "<span>" +
+                (l.eligibility_result || l.potential_level ? "Đã xác minh" : "Xác minh") +
+                "</span></button>"
+              : "") +
             "</span></span></td>" +
             '<td class="mk-leads-td mk-leads-td--phone">' +
             '<span class="mk-leads-phone-wrap">' +

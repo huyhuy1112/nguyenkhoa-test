@@ -2,8 +2,9 @@
 /*+***********************************************************************************
  * Zalo OA contact form -> Leads.
  * Parses OA confirmation message after user submits the Zalo OA form:
- *   Họ Tên, Số điện thoại, Địa chỉ, Mô hình kinh doanh
- * Lead source: tag zalo (leadsource).
+ *   Họ Tên, Số điện thoại, Địa chỉ, Tình trạng, Mô hình kinh doanh, Ngân sách
+ * Maps Tình trạng / Mô hình / Ngân sách → form_c1/c2/c3 (same as Google Sheet)
+ * and seeds Sales xác minh. Lead source: tag zalo.
  *************************************************************************************/
 
 require_once 'modules/Leads/models/ModernService.php';
@@ -152,17 +153,48 @@ class Leads_ZaloOaLeadIngestService {
 			$name = 'Khách Zalo OA';
 		}
 
+		require_once 'modules/Leads/models/SheetImportService.php';
+		require_once 'modules/Leads/models/SalesVerifyService.php';
+		require_once 'modules/Vtiger/helpers/BusinessModelHelper.php';
+
+		$formAnswers = self::resolveFormAnswersFromState($state);
+		$c1 = $formAnswers['c1'];
+		$c2 = $formAnswers['c2'];
+		$c3 = $formAnswers['c3'];
+		$screening = '';
+		if ($c1 !== '' || $c2 !== '' || $c3 !== '') {
+			$screening = Leads_SheetImportService::computeSoLuocResult($c1, $c2, $c3);
+		}
+
+		$tags = array('zalo');
+		$cust = Leads_SheetImportService::customerTagFromQ1($c1);
+		if ($cust !== '') {
+			$tags[] = $cust;
+		}
+
+		$businessModel = '';
+		if (!empty($state['business_model'])) {
+			$businessModel = Vtiger_BusinessModel_Helper::fromFormAnswer($state['business_model']);
+			if ($businessModel === '') {
+				$businessModel = Vtiger_BusinessModel_Helper::normalize($state['business_model']);
+			}
+		}
+
+		$qaRaw = self::buildQaRaw($state, $formAnswers);
+
 		$payload = array(
 			'name' => $name,
 			'phone' => (string) $state['phone'],
 			'email' => (string) $state['email'],
 			'address' => (string) $state['address'],
 			'companyName' => '-',
-			'tags' => array('zalo'),
-			'business_model' => (string) $state['business_model'],
-			'qa_raw' => isset($state['answers_json']) ? $state['answers_json'] : '',
+			'tags' => $tags,
+			'business_model' => $businessModel,
+			'qa_raw' => $qaRaw,
+			'screening_result' => $screening,
 			'skip_potential' => 1,
-			'sheet_source' => 0,
+			// External form intake → Sales xác minh (same flag as Google Sheet).
+			'sheet_source' => ($forceCreate || $c1 !== '' || $c2 !== '' || $c3 !== '') ? 1 : 0,
 			'force_create' => $forceCreate ? 1 : 0,
 		);
 		$recordId = null;
@@ -173,13 +205,103 @@ class Leads_ZaloOaLeadIngestService {
 			}
 		}
 		try {
-			return Leads_ModernService::saveLead($payload, $recordId);
+			$lead = Leads_ModernService::saveLead($payload, $recordId);
 		} catch (Exception $e) {
 			if ($recordId !== null && !$forceCreate) {
-				return Leads_ModernService::saveLead($payload, null);
+				$lead = Leads_ModernService::saveLead($payload, null);
+			} else {
+				throw $e;
 			}
-			throw $e;
 		}
+
+		$leadId = 0;
+		if (is_array($lead)) {
+			$leadId = isset($lead['crmid']) ? (int) $lead['crmid'] : (isset($lead['id']) ? (int) $lead['id'] : 0);
+		}
+		if ($leadId > 0 && ($c1 !== '' || $c2 !== '' || $c3 !== '')) {
+			Leads_SalesVerifyService::seedFormAnswers($leadId, $c1, $c2, $c3);
+			$lead = Leads_ModernService::getLead((string) $leadId);
+		}
+		return $lead;
+	}
+
+	/**
+	 * Map Zalo form free-text → C1/C2/C3 codes (reuse Sheet parsers).
+	 * @return array{c1:string,c2:string,c3:string,q1_raw:string,q2_raw:string,q3_raw:string}
+	 */
+	protected static function resolveFormAnswersFromState(array $state) {
+		require_once 'modules/Leads/models/SheetImportService.php';
+		$q1 = trim((string) (isset($state['tinh_trang']) ? $state['tinh_trang'] : ''));
+		$q2 = trim((string) (isset($state['business_model']) ? $state['business_model'] : ''));
+		$q3 = trim((string) (isset($state['ngan_sach']) ? $state['ngan_sach'] : ''));
+
+		// Fallback: parse again from stored raw form text if state fields empty.
+		if (($q1 === '' || $q3 === '') && !empty($state['answers_json'])) {
+			$decoded = json_decode($state['answers_json'], true);
+			if (is_array($decoded)) {
+				if ($q1 === '' && !empty($decoded['tinh_trang'])) {
+					$q1 = trim((string) $decoded['tinh_trang']);
+				}
+				if ($q2 === '' && !empty($decoded['business_model'])) {
+					$q2 = trim((string) $decoded['business_model']);
+				}
+				if ($q3 === '' && !empty($decoded['ngan_sach'])) {
+					$q3 = trim((string) $decoded['ngan_sach']);
+				}
+				if (($q1 === '' || $q2 === '' || $q3 === '') && !empty($decoded['contact_form_raw'])) {
+					$form = self::extractZaloOaContactForm($decoded['contact_form_raw']);
+					if ($q1 === '' && !empty($form['tinh_trang'])) {
+						$q1 = $form['tinh_trang'];
+					}
+					if ($q2 === '' && !empty($form['business_model'])) {
+						$q2 = $form['business_model'];
+					}
+					if ($q3 === '' && !empty($form['ngan_sach'])) {
+						$q3 = $form['ngan_sach'];
+					}
+				}
+			}
+		}
+
+		return array(
+			'c1' => Leads_SheetImportService::parseFormQ1($q1),
+			'c2' => Leads_SheetImportService::parseFormQ2($q2),
+			'c3' => Leads_SheetImportService::parseFormQ3($q3),
+			'q1_raw' => $q1,
+			'q2_raw' => $q2,
+			'q3_raw' => $q3,
+		);
+	}
+
+	protected static function buildQaRaw(array $state, array $formAnswers) {
+		$qa = array('source' => 'zalo_oa_form');
+		if (!empty($state['answers_json'])) {
+			$decoded = json_decode($state['answers_json'], true);
+			if (is_array($decoded)) {
+				$qa = array_merge($decoded, $qa);
+			}
+		}
+		if ($formAnswers['q1_raw'] !== '') {
+			$qa['Câu 1 – Tình trạng'] = $formAnswers['q1_raw'];
+			$qa['tinh_trang'] = $formAnswers['q1_raw'];
+		}
+		if ($formAnswers['q2_raw'] !== '') {
+			$qa['Câu 2 – Mô hình'] = $formAnswers['q2_raw'];
+		}
+		if ($formAnswers['q3_raw'] !== '') {
+			$qa['Câu 3 – Ngân sách'] = $formAnswers['q3_raw'];
+			$qa['ngan_sach'] = $formAnswers['q3_raw'];
+		}
+		if ($formAnswers['c1'] !== '') {
+			$qa['form_c1'] = $formAnswers['c1'];
+		}
+		if ($formAnswers['c2'] !== '') {
+			$qa['form_c2'] = $formAnswers['c2'];
+		}
+		if ($formAnswers['c3'] !== '') {
+			$qa['form_c3'] = $formAnswers['c3'];
+		}
+		return $qa;
 	}
 
 	protected static function isPlaceholderName($name) {
@@ -257,6 +379,12 @@ class Leads_ZaloOaLeadIngestService {
 		if (!empty($ev['business_model'])) {
 			$out['business_model'] = $ev['business_model'];
 		}
+		if (!empty($ev['tinh_trang'])) {
+			$out['tinh_trang'] = $ev['tinh_trang'];
+		}
+		if (!empty($ev['ngan_sach'])) {
+			$out['ngan_sach'] = $ev['ngan_sach'];
+		}
 
 		if ($fromForm) {
 			$out['leadid'] = 0;
@@ -272,7 +400,7 @@ class Leads_ZaloOaLeadIngestService {
 				$answers = array_merge($decoded, $answers);
 			}
 		}
-		foreach (array('full_name', 'phone', 'email', 'address', 'business_model') as $k) {
+		foreach (array('full_name', 'phone', 'email', 'address', 'business_model', 'tinh_trang', 'ngan_sach') as $k) {
 			if (!empty($out[$k])) {
 				$answers[$k] = $out[$k];
 			}
@@ -294,6 +422,8 @@ class Leads_ZaloOaLeadIngestService {
 			'email' => '',
 			'address' => '',
 			'business_model' => '',
+			'tinh_trang' => '',
+			'ngan_sach' => '',
 			'sales_channel' => '',
 			'answers_json' => '',
 			'last_payload' => '',
@@ -311,6 +441,8 @@ class Leads_ZaloOaLeadIngestService {
 			'email' => '',
 			'address' => '',
 			'business_model' => '',
+			'tinh_trang' => '',
+			'ngan_sach' => '',
 			'contact_form_raw' => '',
 		);
 
@@ -374,6 +506,12 @@ class Leads_ZaloOaLeadIngestService {
 			if (!empty($form['business_model'])) {
 				$ev['business_model'] = $form['business_model'];
 			}
+			if (!empty($form['tinh_trang'])) {
+				$ev['tinh_trang'] = $form['tinh_trang'];
+			}
+			if (!empty($form['ngan_sach'])) {
+				$ev['ngan_sach'] = $form['ngan_sach'];
+			}
 			$ev['contact_form_raw'] = $messageText;
 			// OA confirmation (oa_send*): user is recipient. Do not swap on user_send_text.
 			if ($isOaOutbound && $recipientId !== '' && $senderId !== '') {
@@ -408,7 +546,9 @@ class Leads_ZaloOaLeadIngestService {
 	 * Họ Tên: Đặng Quốc Huy
 	 * Số điện thoại: 0906345551
 	 * Địa chỉ: 213 LTT, Phường Phước Long, Thành phố Hồ Chí Minh
+	 * Tình trạng: Chuẩn bị mở quán
 	 * Mô hình kinh doanh: cà phê sân vườn
+	 * Ngân sách: 300–500 triệu
 	 */
 	protected static function extractZaloOaContactForm($text) {
 		$out = array(
@@ -417,6 +557,8 @@ class Leads_ZaloOaLeadIngestService {
 			'phone' => '',
 			'address' => '',
 			'business_model' => '',
+			'tinh_trang' => '',
+			'ngan_sach' => '',
 		);
 		$text = self::normalizeMessageText($text);
 		if ($text === '') {
@@ -445,9 +587,19 @@ class Leads_ZaloOaLeadIngestService {
 			'địa\s*chỉ',
 			'dia\s*chi',
 		));
+		$out['tinh_trang'] = self::extractLabeledValue($text, array(
+			'tình\s*trạng',
+			'tinh\s*trang',
+		));
 		$out['business_model'] = self::extractLabeledValue($text, array(
 			'mô\s*hình\s*kinh\s*doanh',
 			'mo\s*hinh\s*kinh\s*doanh',
+			'mô\s*hình',
+			'mo\s*hinh',
+		));
+		$out['ngan_sach'] = self::extractLabeledValue($text, array(
+			'ngân\s*sách',
+			'ngan\s*sach',
 		));
 
 		return $out;

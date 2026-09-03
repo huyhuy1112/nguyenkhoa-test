@@ -708,6 +708,10 @@ class Leads_SheetImportService {
 		if (strpos($f, '300') !== false && strpos($f, '500') !== false) {
 			return 'D';
 		}
+		// Zalo short form: "300-500 triệu" / "300 – 500"
+		if (preg_match('/\b300\b/', $f) && preg_match('/\b500\b/', $f)) {
+			return 'D';
+		}
 		if (strpos($f, '100') !== false && strpos($f, '300') !== false) {
 			return 'C';
 		}
