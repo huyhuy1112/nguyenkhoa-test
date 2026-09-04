@@ -20,6 +20,92 @@ class Leads_OnlineGd12Service {
 	);
 
 	/**
+	 * Catalog Q1–Q4 for CRM verify panel (Online OA).
+	 */
+	public static function optionsCatalog() {
+		return array(
+			'q1' => array(
+				array('code' => 'A', 'label' => 'Học phục vụ gia đình / sở thích'),
+				array('code' => 'B', 'label' => 'Xe đẩy / mang đi / online / tại nhà'),
+				array('code' => 'C', 'label' => 'Chuẩn bị mở quán, đã có mặt bằng'),
+				array('code' => 'D', 'label' => 'Đã có quán, kinh doanh chưa tốt'),
+				array('code' => 'E', 'label' => 'Đã có quán, kinh doanh ổn định / tốt'),
+			),
+			'q2' => array(
+				array('code' => 'A', 'label' => 'Trong 1 tháng / ngay bây giờ'),
+				array('code' => 'B', 'label' => '1–3 tháng'),
+				array('code' => 'C', 'label' => '3–6 tháng'),
+				array('code' => 'D', 'label' => 'Trên 6 tháng / chưa xác định'),
+			),
+			'q3' => array(
+				array('code' => 'A', 'label' => 'Dưới 50 triệu'),
+				array('code' => 'B', 'label' => 'Từ 50 đến dưới 100 triệu'),
+				array('code' => 'C', 'label' => 'Từ 100 đến dưới 300 triệu'),
+				array('code' => 'D', 'label' => 'Từ 300 đến dưới 500 triệu'),
+				array('code' => 'E', 'label' => 'Từ 500 triệu trở lên'),
+			),
+			'q4' => array(
+				array('code' => 'A', 'label' => 'Xe đẩy cà phê – trà sữa – trà trái cây'),
+				array('code' => 'B', 'label' => 'Trà sữa – topping, mặt bằng 20–30 m²'),
+				array('code' => 'C', 'label' => 'Trà sữa pha máy, mặt bằng 20–30 m²'),
+				array('code' => 'D', 'label' => 'Cà phê – trà sữa, máy lạnh'),
+				array('code' => 'E', 'label' => 'Cà phê sân vườn, diện tích vừa – lớn'),
+				array('code' => 'F', 'label' => 'Cà phê không gian mở, diện tích nhỏ'),
+				array('code' => 'G', 'label' => 'Học pha chế cho gia đình / sở thích'),
+			),
+		);
+	}
+
+	public static function eligibilityLabel($code) {
+		$map = array(
+			'du_dk' => 'Đủ điều kiện',
+			'khong_du_dk' => 'Không đủ điều kiện',
+		);
+		$code = trim((string) $code);
+		return isset($map[$code]) ? $map[$code] : '';
+	}
+
+	public static function potentialLabelPublic($level) {
+		return self::potentialLabel($level);
+	}
+
+	public static function optionLabel($question, $code) {
+		$catalog = self::optionsCatalog();
+		$code = strtoupper(trim((string) $code));
+		if ($code === '' || empty($catalog[$question])) {
+			return '';
+		}
+		foreach ($catalog[$question] as $opt) {
+			if (isset($opt['code']) && strtoupper((string) $opt['code']) === $code) {
+				return isset($opt['label']) ? (string) $opt['label'] : $code;
+			}
+		}
+		return $code;
+	}
+
+	/**
+	 * Sales re-score / save Online 4-question answers on a lead.
+	 */
+	public static function saveForLead($leadId, array $payload, $userId = null) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu lead id');
+		}
+		$q1 = isset($payload['q1']) ? $payload['q1'] : (isset($payload['c1']) ? $payload['c1'] : '');
+		$q2 = isset($payload['q2']) ? $payload['q2'] : (isset($payload['c2']) ? $payload['c2'] : '');
+		$q3 = isset($payload['q3']) ? $payload['q3'] : (isset($payload['c3']) ? $payload['c3'] : '');
+		$q4 = isset($payload['q4']) ? $payload['q4'] : (isset($payload['c4']) ? $payload['c4'] : '');
+		$result = self::compute($q1, $q2, $q3, $q4);
+		if (empty($result['success'])) {
+			return array('success' => false, 'error' => 'Không chấm được bộ 4 câu', 'result' => $result);
+		}
+		self::applyToLead($leadId, $result, '');
+		require_once 'modules/Leads/models/ModernService.php';
+		$lead = Leads_ModernService::getLead((string) $leadId, $userId);
+		return array('success' => true, 'result' => $result, 'lead' => $lead);
+	}
+
+	/**
 	 * Profile columns for GD 1.2.
 	 */
 	public static function installSchema(PearDatabase $adb = null) {

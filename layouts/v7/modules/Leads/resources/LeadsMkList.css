@@ -1010,6 +1010,9 @@ body.mk-leads-verify-open {
 	grid-template-columns: repeat(3, 1fr);
 	gap: 8px;
 }
+.mk-leads-verify-formcards--4 {
+	grid-template-columns: repeat(2, 1fr);
+}
 .mk-leads-verify-formcard {
 	padding: 10px 10px 12px;
 	border-radius: 12px;

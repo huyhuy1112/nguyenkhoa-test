@@ -131,10 +131,11 @@ class Leads_ModernService {
 		}
 	}
 
-	/** Bộ B columns for SELECT lists. */
+	/** Bộ B + Online GD1.2 columns for SELECT lists. */
 	protected static function verifyProfileSelectSql() {
 		return ', p.form_c1, p.form_c2, p.form_c3, p.verify_c1, p.verify_c2, p.verify_c3, p.verify_c4, p.verify_c5,
-			p.eligibility_result, p.potential_level, p.verify_score, p.verify_change_reason, p.verified_at, p.verified_by';
+			p.eligibility_result, p.potential_level, p.verify_score, p.verify_change_reason, p.verified_at, p.verified_by,
+			p.online_status, p.online_q1, p.online_q2, p.online_q3, p.online_q4, p.online_path, p.zalo_user_id';
 	}
 
 	public static function isInstalled(PearDatabase $adb) {
@@ -1276,7 +1277,7 @@ class Leads_ModernService {
 		}
 		require_once 'modules/Leads/models/SheetImportService.php';
 		$screeningLabel = Leads_SheetImportService::screeningLabel($screening);
-		$verify = self::composeVerifyBlock($row);
+		$verify = self::composeVerifyBlock($row, $tags);
 
 		$address = self::decodeText(isset($row['address_line']) ? $row['address_line'] : '');
 		if ($address === '') {
@@ -1345,10 +1346,13 @@ class Leads_ModernService {
 	}
 
 	/**
-	 * Sheet / Zalo form intake → Sales xác minh. CRM-created leads → không.
+	 * Sheet → Sales Bộ B (3 câu). Zalo OA Online → GD1.2 (4 câu). CRM-created → không.
 	 */
 	protected static function computeNeedsSalesVerify(array $row, array $tags, array $verify) {
 		if (!empty($row['sheet_source'])) {
+			return true;
+		}
+		if (self::isOnlineGd12Row($row, $tags, $verify)) {
 			return true;
 		}
 		if (!empty($verify['form_c1']) || !empty($verify['form_c2']) || !empty($verify['form_c3'])) {
@@ -1362,9 +1366,37 @@ class Leads_ModernService {
 		return false;
 	}
 
-	protected static function composeVerifyBlock(array $row) {
+	/**
+	 * Online GD 1.2 (Zalo OA) vs Google Sheet Sales Bộ B.
+	 */
+	protected static function isOnlineGd12Row(array $row, array $tags = array(), array $verify = array()) {
+		if (!empty($row['sheet_source'])) {
+			return false;
+		}
+		$onlineStatus = isset($row['online_status']) ? trim((string) $row['online_status']) : '';
+		$onlinePath = isset($row['online_path']) ? trim((string) $row['online_path']) : '';
+		if ($onlineStatus !== '' || $onlinePath === 'oa') {
+			return true;
+		}
+		foreach (array('online_q1', 'online_q2', 'online_q3', 'online_q4') as $k) {
+			if (!empty($row[$k]) || !empty($verify[$k])) {
+				return true;
+			}
+		}
+		foreach ($tags as $tag) {
+			$t = strtolower(trim((string) $tag));
+			if ($t === 'mien_phi_online' || strpos($t, 'online_') === 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected static function composeVerifyBlock(array $row, array $tags = array()) {
 		require_once 'modules/Leads/models/SalesVerifyService.php';
+		require_once 'modules/Leads/models/OnlineGd12Service.php';
 		$catalog = Leads_SalesVerifyService::optionsCatalog();
+		$onlineCatalog = Leads_OnlineGd12Service::optionsCatalog();
 		$formC1 = isset($row['form_c1']) ? trim((string) $row['form_c1']) : '';
 		$formC2 = isset($row['form_c2']) ? trim((string) $row['form_c2']) : '';
 		$formC3 = isset($row['form_c3']) ? trim((string) $row['form_c3']) : '';
@@ -1375,6 +1407,12 @@ class Leads_ModernService {
 			? (int) $row['verify_c4'] : null;
 		$verifyC5 = isset($row['verify_c5']) && $row['verify_c5'] !== null && $row['verify_c5'] !== ''
 			? (int) $row['verify_c5'] : null;
+		$onlineQ1 = isset($row['online_q1']) ? strtoupper(trim((string) $row['online_q1'])) : '';
+		$onlineQ2 = isset($row['online_q2']) ? strtoupper(trim((string) $row['online_q2'])) : '';
+		$onlineQ3 = isset($row['online_q3']) ? strtoupper(trim((string) $row['online_q3'])) : '';
+		$onlineQ4 = isset($row['online_q4']) ? strtoupper(trim((string) $row['online_q4'])) : '';
+		$onlineStatus = isset($row['online_status']) ? trim((string) $row['online_status']) : '';
+		$onlinePath = isset($row['online_path']) ? trim((string) $row['online_path']) : '';
 		$eligibility = isset($row['eligibility_result']) ? trim((string) $row['eligibility_result']) : '';
 		$potential = isset($row['potential_level']) ? trim((string) $row['potential_level']) : '';
 		$score = isset($row['verify_score']) && $row['verify_score'] !== null && $row['verify_score'] !== ''
@@ -1388,7 +1426,21 @@ class Leads_ModernService {
 				$verifiedAt = date('c', $ts);
 			}
 		}
+		$isOnline = self::isOnlineGd12Row($row, $tags);
+		$eligLabel = $isOnline
+			? Leads_OnlineGd12Service::eligibilityLabel($eligibility)
+			: Leads_SalesVerifyService::eligibilityLabel($eligibility);
+		if ($eligLabel === '') {
+			$eligLabel = Leads_SalesVerifyService::eligibilityLabel($eligibility);
+		}
+		$potLabel = $isOnline
+			? Leads_OnlineGd12Service::potentialLabelPublic($potential)
+			: Leads_SalesVerifyService::potentialLabel($potential);
+		if ($potLabel === '') {
+			$potLabel = Leads_SalesVerifyService::potentialLabel($potential);
+		}
 		return array(
+			'verify_mode' => $isOnline ? 'online_gd12' : 'sales_b',
 			'form_c1' => $formC1,
 			'form_c2' => $formC2,
 			'form_c3' => $formC3,
@@ -1403,10 +1455,21 @@ class Leads_ModernService {
 			'verify_c1_label' => self::verifyOptionLabel($catalog['c1'], $verifyC1),
 			'verify_c2_label' => self::verifyOptionLabel($catalog['c2'], $verifyC2),
 			'verify_c3_label' => self::verifyOptionLabel($catalog['c3'], $verifyC3),
+			'online_status' => $onlineStatus,
+			'online_path' => $onlinePath,
+			'online_q1' => $onlineQ1,
+			'online_q2' => $onlineQ2,
+			'online_q3' => $onlineQ3,
+			'online_q4' => $onlineQ4,
+			'online_q1_label' => Leads_OnlineGd12Service::optionLabel('q1', $onlineQ1),
+			'online_q2_label' => Leads_OnlineGd12Service::optionLabel('q2', $onlineQ2),
+			'online_q3_label' => Leads_OnlineGd12Service::optionLabel('q3', $onlineQ3),
+			'online_q4_label' => Leads_OnlineGd12Service::optionLabel('q4', $onlineQ4),
+			'online_verify_options' => $onlineCatalog,
 			'eligibility_result' => $eligibility,
-			'eligibility_label' => Leads_SalesVerifyService::eligibilityLabel($eligibility),
+			'eligibility_label' => $eligLabel,
 			'potential_level' => $potential,
-			'potential_label' => Leads_SalesVerifyService::potentialLabel($potential),
+			'potential_label' => $potLabel,
 			'verify_score' => $score,
 			'verify_change_reason' => $changeReason,
 			'verified_at' => $verifiedAt,

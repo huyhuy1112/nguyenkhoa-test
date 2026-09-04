@@ -32,7 +32,7 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 			'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save', 'bulk_assign_owner',
 			'dedupe_leads', 'last_touch_call_log',
 			'sheet_settings_save', 'sheet_poll_now', 'merge_leads', 'restore_lead', 'purge_lead', 'soft_delete',
-			'sales_verify_save',
+			'sales_verify_save', 'online_verify_save',
 			'product_upsert', 'product_remove', 'product_set_stage',
 		), true)) {
 			$request->validateWriteAccess();
@@ -323,6 +323,32 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 						$id = $payload['id'];
 					}
 					$saved = Leads_SalesVerifyService::saveForLead($id, $payload, $userId);
+					$response->setResult($saved);
+					break;
+
+				case 'online_verify_preview':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$payload = $this->decodePayload($request);
+					$result = Leads_OnlineGd12Service::compute(
+						isset($payload['q1']) ? $payload['q1'] : (isset($payload['c1']) ? $payload['c1'] : ''),
+						isset($payload['q2']) ? $payload['q2'] : (isset($payload['c2']) ? $payload['c2'] : ''),
+						isset($payload['q3']) ? $payload['q3'] : (isset($payload['c3']) ? $payload['c3'] : ''),
+						isset($payload['q4']) ? $payload['q4'] : (isset($payload['c4']) ? $payload['c4'] : '')
+					);
+					$response->setResult(array('success' => !empty($result['success']), 'result' => $result));
+					break;
+
+				case 'online_verify_save':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					$saved = Leads_OnlineGd12Service::saveForLead($id, $payload, $userId);
 					$response->setResult($saved);
 					break;
 
