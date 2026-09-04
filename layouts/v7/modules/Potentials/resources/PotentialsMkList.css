@@ -120,10 +120,6 @@
 	min-width: 240px;
 }
 
-.mk-opps-page .mk-leads-pipeline-bar {
-	margin: 0 0 14px;
-}
-
 @media (max-width: 1365px) {
 	.mk-opps-page .mk-leads-kpi-grid {
 		grid-template-columns: repeat(3, minmax(0, 1fr));

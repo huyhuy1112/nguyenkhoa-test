@@ -29,27 +29,6 @@
 			<div id="mk-opps-filters-panel" class="mk-leads-filters-panel" hidden></div>
 		</div>
 
-		<div class="mk-leads-pipeline-bar" id="mk-opps-pipeline-bar">
-			<div class="mk-leads-view-toggle" role="tablist" aria-label="Kiểu xem" data-mode="table" id="mk-opps-view-toggle">
-				<span class="mk-leads-view-toggle__glow" aria-hidden="true"></span>
-				<span class="mk-leads-view-toggle__thumb" aria-hidden="true"></span>
-				<button type="button" class="mk-leads-view-btn is-active" data-opps-view="table" id="mk-opps-view-table" role="tab" aria-selected="true">
-					<svg class="mk-leads-view-btn__ic" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-						<path d="M4 6.5h16M4 12h16M4 17.5h16" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"/>
-					</svg>
-					<span>Bảng</span>
-				</button>
-				<button type="button" class="mk-leads-view-btn" data-opps-view="kanban" id="mk-opps-view-kanban" role="tab" aria-selected="false" disabled title="Sắp có">
-					<svg class="mk-leads-view-btn__ic" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-						<rect x="3.5" y="4.5" width="5.5" height="15" rx="1.5" stroke="currentColor" stroke-width="1.75"/>
-						<rect x="9.25" y="4.5" width="5.5" height="10" rx="1.5" stroke="currentColor" stroke-width="1.75"/>
-						<rect x="15" y="4.5" width="5.5" height="13" rx="1.5" stroke="currentColor" stroke-width="1.75"/>
-					</svg>
-					<span>Kanban</span>
-				</button>
-			</div>
-		</div>
-
 		<div class="mk-so-table-card mk-leads-table-card mk-opps-table-card" role="region" aria-label="{vtranslate('LBL_MK_OPPS_TABLE', 'Potentials')}">
 			<div id="mk-opps-bulk" class="mk-leads-bulk-bar" hidden></div>
 			<div class="mk-leads-table-scroll">
