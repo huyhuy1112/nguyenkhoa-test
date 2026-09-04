@@ -32,7 +32,7 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 			'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save', 'bulk_assign_owner',
 			'dedupe_leads', 'last_touch_call_log',
 			'sheet_settings_save', 'sheet_poll_now', 'merge_leads', 'restore_lead', 'purge_lead', 'soft_delete',
-			'sales_verify_save', 'online_verify_save',
+			'sales_verify_save', 'online_verify_save', 'offline_gd11_apply',
 			'product_upsert', 'product_remove', 'product_set_stage',
 		), true)) {
 			$request->validateWriteAccess();
@@ -349,6 +349,21 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 						$id = $payload['id'];
 					}
 					$saved = Leads_OnlineGd12Service::saveForLead($id, $payload, $userId);
+					$response->setResult($saved);
+					break;
+
+				case 'offline_gd11_apply':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					$action = isset($payload['action']) ? $payload['action'] : $request->get('offline_action');
+					$saved = Leads_OfflineGd11Service::applyAction($id, $action, $payload, $userId);
 					$response->setResult($saved);
 					break;
 

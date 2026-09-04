@@ -125,17 +125,25 @@ class Leads_ModernService {
 		} catch (Exception $e) {
 			// best-effort
 		}
+		try {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			Leads_OfflineGd11Service::installSchema($adb);
+		} catch (Exception $e) {
+			// best-effort
+		}
 		$colRes = $adb->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE 'pipeline_closed'", array());
 		if (!$colRes || $adb->num_rows($colRes) < 1) {
 			$adb->pquery("ALTER TABLE bace_lead_profile ADD COLUMN pipeline_closed TINYINT(1) NOT NULL DEFAULT 0", array());
 		}
 	}
 
-	/** Bộ B + Online GD1.2 columns for SELECT lists. */
+	/** Bộ B + Online GD1.2 + Offline GD1.1 columns for SELECT lists. */
 	protected static function verifyProfileSelectSql() {
 		return ', p.form_c1, p.form_c2, p.form_c3, p.verify_c1, p.verify_c2, p.verify_c3, p.verify_c4, p.verify_c5,
 			p.eligibility_result, p.potential_level, p.verify_score, p.verify_change_reason, p.verified_at, p.verified_by,
-			p.online_status, p.online_q1, p.online_q2, p.online_q3, p.online_q4, p.online_path, p.zalo_user_id';
+			p.online_status, p.online_q1, p.online_q2, p.online_q3, p.online_q4, p.online_path, p.zalo_user_id,
+			p.offline_status, p.offline_r1_contact, p.offline_r2_schedule, p.offline_r3_class, p.offline_r4_transfer,
+			p.offline_preclass_confirm, p.offline_class_date';
 	}
 
 	public static function isInstalled(PearDatabase $adb) {
@@ -1475,7 +1483,12 @@ class Leads_ModernService {
 			'verified_at' => $verifiedAt,
 			'verified_by' => isset($row['verified_by']) ? (int) $row['verified_by'] : null,
 			'verify_options' => $catalog,
-		);
+		) + self::composeOfflineBlock($row);
+	}
+
+	protected static function composeOfflineBlock(array $row) {
+		require_once 'modules/Leads/models/OfflineGd11Service.php';
+		return Leads_OfflineGd11Service::profileBlock($row);
 	}
 
 	protected static function verifyOptionLabel(array $options, $code) {

@@ -322,6 +322,18 @@ class Leads_SalesVerifyService {
 		);
 		Leads_ModernService::saveLead($savePayload, $leadId);
 
+		try {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			$scheduleOutcome = isset($payload['schedule_outcome']) ? $payload['schedule_outcome'] : '';
+			$result['schedule_outcome'] = $scheduleOutcome;
+			if (!empty($payload['class_date'])) {
+				$result['class_date'] = $payload['class_date'];
+			}
+			Leads_OfflineGd11Service::onSalesVerified($leadId, $result, $userId);
+		} catch (Exception $e) {
+			// best-effort
+		}
+
 		$fresh = Leads_ModernService::getLead((string) $leadId, $userId);
 		return array(
 			'success' => true,

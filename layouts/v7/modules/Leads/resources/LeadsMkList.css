@@ -1098,14 +1098,29 @@ body.mk-leads-verify-open {
 	font-weight: 600;
 	color: #0369a1;
 }
-.mk-leads-verify-c45-skip {
-	margin: 8px 0;
-	padding: 10px 12px;
-	border-radius: 10px;
-	background: #f8fafc;
-	border: 1px dashed #cbd5e1;
+.mk-leads-verify-offline {
+	margin: 12px 0;
+	padding: 12px;
+	border-radius: 12px;
+	background: #fff7ed;
+	border: 1px solid #fed7aa;
+}
+.mk-leads-verify-offline h4 {
+	margin: 0 0 6px;
+	font-size: 13px;
+	font-weight: 700;
+	color: #9a3412;
+}
+.mk-leads-verify-offline__meta {
+	margin: 0 0 10px;
 	font-size: 12px;
-	color: #64748b;
+	color: #9a3412;
+	line-height: 1.45;
+}
+.mk-leads-verify-offline__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
 }
 .mk-leads-verify-c45[hidden] {
 	display: none !important;

@@ -674,3 +674,24 @@
 .mk-leads-bulk-dot[data-tag="vang"] { background: #facc15; border-color: #facc15; }
 .mk-leads-bulk-dot[data-tag="website"] { background: #6ee7b7; border-color: #6ee7b7; }
 .mk-leads-bulk-dot[data-tag="zalo"] { background: #7dd3fc; border-color: #7dd3fc; }
+
+/* Offline GD1.1 status tags */
+.mk-tag[data-tag^="offline_"],
+.mk-td-tag-pill[data-tag^="offline_"],
+.mk-lead-detail-tag-chip[data-tag^="offline_"] {
+    background: #ffedd5;
+    border-color: #fdba74;
+    color: #9a3412;
+}
+.mk-tag[data-tag="offline_da_tham_gia"],
+.mk-tag[data-tag="offline_da_xac_nhan_lich"] {
+    background: #dcfce7;
+    border-color: #86efac;
+    color: #166534;
+}
+.mk-tag[data-tag="offline_ngung_cskh"],
+.mk-tag[data-tag="offline_khong_tham_gia"] {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #991b1b;
+}

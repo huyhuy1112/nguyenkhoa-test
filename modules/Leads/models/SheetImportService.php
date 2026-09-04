@@ -611,6 +611,8 @@ class Leads_SheetImportService {
 		if ($cust !== '') {
 			$tags[] = $cust;
 		}
+		require_once 'modules/Leads/models/OfflineGd11Service.php';
+		$tags = Leads_OfflineGd11Service::ensureProgramTag($tags);
 
 		return array(
 			'name' => $name !== '' ? $name : ('KH ' . $phone),
