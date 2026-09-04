@@ -1564,6 +1564,12 @@
       }
     });
     wrap.addEventListener("click", function (e) {
+      var kbBtn = e.target && e.target.closest ? e.target.closest("[data-mk-offline-kb-copy]") : null;
+      if (kbBtn) {
+        e.preventDefault();
+        copyOfflineKb(kbBtn.getAttribute("data-mk-kb-text") || "", kbBtn);
+        return;
+      }
       var offlineBtn = e.target && e.target.closest ? e.target.closest("[data-mk-offline-action]") : null;
       if (offlineBtn) {
         e.preventDefault();
@@ -1842,7 +1848,63 @@
       offlineActionBtn("hen_lich_lai", "Hẹn lịch lại") +
       offlineActionBtn("chuyen_chuong_trinh", "Chuyển CT") +
       offlineActionBtn("ngung_cskh", "Ngưng CSKH") +
-      "</div></div>"
+      "</div>" +
+      offlineKbHtml(lead) +
+      "</div>"
+    );
+  }
+
+  function offlineKbHtml(lead) {
+    var items = (lead && lead.offline_kb) || [];
+    if (!items.length) {
+      items = [
+        {
+          id: "mo_dau",
+          title: "Mở đầu gọi",
+          text:
+            "Em chào anh/chị, em [Tên] bên [Thương hiệu]. Anh/chị vừa đăng ký lớp miễn phí Offline, em gọi xác nhận thông tin và hỗ trợ xếp lịch ạ.",
+        },
+        {
+          id: "xac_minh_b",
+          title: "Xác minh Bộ B",
+          text:
+            "Em xin phép hỏi nhanh vài câu để xếp đúng nhóm: mục tiêu học, thời gian có thể đến lớp, và khu vực thuận tiện nhất của anh/chị ạ.",
+        },
+        {
+          id: "hen_goi_lai",
+          title: "Hẹn gọi lại",
+          text:
+            "Dạ em hiểu anh/chị đang bận. Em xin phép gọi lại vào [giờ/ngày] được không ạ? Em sẽ nhắc lịch ngắn gọn thôi.",
+        },
+        {
+          id: "chot_lich",
+          title: "Chốt lịch Offline",
+          text:
+            "Em xếp anh/chị lớp Offline ngày [ngày] lúc [giờ] tại [địa điểm]. Anh/chị xác nhận giúp em để giữ chỗ nhé.",
+        },
+      ];
+    }
+    var rows = items
+      .map(function (it) {
+        return (
+          '<div class="mk-leads-verify-offline__kb-row">' +
+          '<div class="mk-leads-verify-offline__kb-meta"><strong>' +
+          esc(it.title || it.id || "Mẫu") +
+          "</strong></div>" +
+          '<p class="mk-leads-verify-offline__kb-text">' +
+          esc(it.text || "") +
+          "</p>" +
+          '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-offline-kb-copy="1" data-mk-kb-text="' +
+          esc(it.text || "") +
+          '">Copy</button></div>'
+        );
+      })
+      .join("");
+    return (
+      '<div class="mk-leads-verify-offline__kb">' +
+      "<h5>KB 1.1 — mẫu thoại</h5>" +
+      rows +
+      "</div>"
     );
   }
 
@@ -1854,6 +1916,46 @@
       esc(label) +
       "</button>"
     );
+  }
+
+  function copyOfflineKb(text, btn) {
+    text = String(text || "");
+    if (!text) return;
+    var done = function () {
+      setListVerifyMsg("", "Đã copy mẫu thoại.");
+      if (btn) {
+        var old = btn.textContent;
+        btn.textContent = "Đã copy";
+        window.setTimeout(function () {
+          btn.textContent = old || "Copy";
+        }, 1200);
+      }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(function () {
+        fallbackCopy(text);
+        done();
+      });
+      return;
+    }
+    fallbackCopy(text);
+    done();
+  }
+
+  function fallbackCopy(text) {
+    try {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "1");
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    } catch (e) {
+      /* ignore */
+    }
   }
 
   function fillListVerifyBody(lead) {
@@ -2030,6 +2132,9 @@
         panel._mkLead = fresh;
         fillListVerifyBody(fresh);
         setListVerifyMsg("", "Đã cập nhật: " + (res.status_label || res.status || action));
+        if (res.convert && res.convert.converted) {
+          setListVerifyMsg("", "Đã cập nhật & chuyển sang Cơ hội.");
+        }
         renderTable();
       });
   }
@@ -2101,12 +2206,24 @@
       }
       panel._mkLead = fresh;
       fillListVerifyBody(fresh);
-      setListVerifyMsg("", "Đã lưu kết quả xác minh.");
+      var okMsg = "Đã lưu kết quả xác minh.";
+      if (res.convert && res.convert.converted) {
+        okMsg = "Đã lưu & chuyển sang Cơ hội (đủ ĐK Offline).";
+      } else if (res.convert && res.convert.skipped) {
+        okMsg = "Đã lưu xác minh (Opp đã tồn tại).";
+      } else if (res.convert && res.convert.reason && res.convert.reason !== "ok" && !res.convert.skipped) {
+        okMsg = "Đã lưu xác minh. Convert Opp: " + res.convert.reason;
+      }
+      setListVerifyMsg("", okMsg);
       if (res.result) paintListVerifyPreview(res.result);
       renderTable();
       if (window.app && app.helper && app.helper.showSuccessNotification) {
         app.helper.showSuccessNotification({
-          message: online ? "Đã lưu xác minh Online (4 câu)." : "Đã lưu xác minh Bộ B.",
+          message: online
+            ? "Đã lưu xác minh Online (4 câu)."
+            : res.convert && res.convert.converted
+              ? "Đã lưu Bộ B & tạo Cơ hội."
+              : "Đã lưu xác minh Bộ B.",
         });
       }
     });

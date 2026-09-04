@@ -182,10 +182,12 @@ class Leads_OfflineGd11Service {
 		}
 		$bump = self::bumpCounter($leadId, 'r1');
 		if (!empty($bump['stopped'])) {
-			self::applyStatus($leadId, self::STATUS_NGUNG_CSKH, $userId);
-			return array('status' => self::STATUS_NGUNG_CSKH, 'r1' => $bump['count'], 'drop' => 'R1');
-		}
+				self::applyStatus($leadId, self::STATUS_NGUNG_CSKH, $userId);
+				self::setNextActionHint($leadId, self::STATUS_NGUNG_CSKH);
+				return array('status' => self::STATUS_NGUNG_CSKH, 'r1' => $bump['count'], 'drop' => 'R1');
+			}
 		self::applyStatus($leadId, self::STATUS_KHONG_NGHE_MAY, $userId);
+		self::setNextActionHint($leadId, self::STATUS_KHONG_NGHE_MAY);
 		return array('status' => self::STATUS_KHONG_NGHE_MAY, 'r1' => $bump['count'], 'drop' => '');
 	}
 
@@ -210,6 +212,7 @@ class Leads_OfflineGd11Service {
 
 	/**
 	 * Sau Sales Bộ B lưu xác minh.
+	 * @return array|null includes convert meta when đủ ĐK
 	 */
 	public static function onSalesVerified($leadId, array $result, $userId = null) {
 		$leadId = (int) $leadId;
@@ -217,12 +220,14 @@ class Leads_OfflineGd11Service {
 			return null;
 		}
 		$elig = isset($result['eligibility_result']) ? $result['eligibility_result'] : '';
+		$out = array();
 		if ($elig === 'khong_du_dk') {
 			self::applyStatus($leadId, self::STATUS_CHUYEN_CT, $userId);
-			return array('status' => self::STATUS_CHUYEN_CT);
+			self::setNextActionHint($leadId, self::STATUS_CHUYEN_CT);
+			$out['status'] = self::STATUS_CHUYEN_CT;
+			return $out;
 		}
 		if ($elig === 'du_dk') {
-			// Đủ ĐK nhưng chưa chốt lịch trong payload → Chưa xác nhận lịch.
 			$schedule = isset($result['schedule_outcome']) ? $result['schedule_outcome'] : '';
 			if ($schedule === 'da_xac_nhan_lich' || $schedule === self::STATUS_DA_XN_LICH) {
 				self::applyStatus($leadId, self::STATUS_DA_XN_LICH, $userId);
@@ -230,11 +235,24 @@ class Leads_OfflineGd11Service {
 				if ($classDate !== '') {
 					self::setClassDate($leadId, $classDate);
 				}
-				self::bumpCounter($leadId, 'r3'); // lần hẹn lớp = 1 khi chốt lần đầu
-				return array('status' => self::STATUS_DA_XN_LICH);
+				$res = PearDatabase::getInstance()->pquery(
+					'SELECT offline_r3_class AS c FROM bace_lead_profile WHERE leadid = ?',
+					array($leadId)
+				);
+				$adb = PearDatabase::getInstance();
+				$cur = ($res && $adb->num_rows($res) > 0) ? (int) $adb->query_result($res, 0, 'c') : 0;
+				if ($cur < 1) {
+					self::bumpCounter($leadId, 'r3');
+				}
+				self::setNextActionHint($leadId, self::STATUS_DA_XN_LICH, $classDate);
+				$out['status'] = self::STATUS_DA_XN_LICH;
+			} else {
+				self::applyStatus($leadId, self::STATUS_CHUA_XN_LICH, $userId);
+				self::setNextActionHint($leadId, self::STATUS_CHUA_XN_LICH);
+				$out['status'] = self::STATUS_CHUA_XN_LICH;
 			}
-			self::applyStatus($leadId, self::STATUS_CHUA_XN_LICH, $userId);
-			return array('status' => self::STATUS_CHUA_XN_LICH);
+			$out['convert'] = self::tryConvertEligible($leadId, $userId);
+			return $out;
 		}
 		return null;
 	}
@@ -269,6 +287,7 @@ class Leads_OfflineGd11Service {
 		}
 		$status = $map[$action];
 		$drop = '';
+		$classDate = isset($payload['class_date']) ? trim((string) $payload['class_date']) : '';
 
 		if (in_array($status, self::R1_TAGS, true)) {
 			$bump = self::bumpCounter($leadId, 'r1');
@@ -292,10 +311,6 @@ class Leads_OfflineGd11Service {
 			if ($cur < 1) {
 				self::bumpCounter($leadId, 'r3');
 			}
-			$classDate = isset($payload['class_date']) ? trim((string) $payload['class_date']) : '';
-			if ($classDate !== '') {
-				self::setClassDate($leadId, $classDate);
-			}
 		} elseif ($status === self::STATUS_KHONG_THAM_GIA) {
 			$bump = self::bumpCounter($leadId, 'r3');
 			if (!empty($bump['stopped'])) {
@@ -311,15 +326,24 @@ class Leads_OfflineGd11Service {
 		}
 
 		self::applyStatus($leadId, $status, $userId);
+		if ($status === self::STATUS_DA_XN_LICH && $classDate !== '') {
+			self::setClassDate($leadId, $classDate);
+		}
+		self::setNextActionHint($leadId, $status, $classDate);
 		$lead = Leads_ModernService::getLead((string) $leadId, $userId);
 		$labels = self::statusLabels();
-		return array(
+		$out = array(
 			'success' => true,
 			'status' => $status,
 			'status_label' => isset($labels[$status]) ? $labels[$status] : $status,
 			'drop' => $drop,
 			'lead' => $lead,
 		);
+		if ($status === self::STATUS_DA_XN_LICH || $status === self::STATUS_CHUA_XN_LICH) {
+			// Đủ ĐK thường đã convert lúc verify; nếu Sales gắn lịch sau thì thử convert lần nữa (idempotent).
+			$out['convert'] = self::tryConvertEligible($leadId, $userId);
+		}
+		return $out;
 	}
 
 	public static function profileBlock(array $row) {
@@ -336,7 +360,135 @@ class Leads_OfflineGd11Service {
 			'offline_class_date' => (!empty($row['offline_class_date']) && $row['offline_class_date'] !== '0000-00-00')
 				? (string) $row['offline_class_date'] : '',
 			'offline_status_options' => self::statusLabels(),
+			'offline_kb' => self::kbSnippets(),
 		);
+	}
+
+	/**
+	 * KB 1.1 — mẫu copy ngắn cho Sales (Bước 1).
+	 */
+	public static function kbSnippets() {
+		return array(
+			array(
+				'id' => 'mo_dau',
+				'title' => 'Mở đầu gọi',
+				'text' => "Em chào anh/chị, em [Tên] bên [Thương hiệu]. Anh/chị vừa đăng ký lớp miễn phí Offline, em gọi xác nhận thông tin và hỗ trợ xếp lịch ạ.",
+			),
+			array(
+				'id' => 'xac_minh_b',
+				'title' => 'Xác minh Bộ B',
+				'text' => "Em xin phép hỏi nhanh vài câu để xếp đúng nhóm: mục tiêu học, thời gian có thể đến lớp, và khu vực thuận tiện nhất của anh/chị ạ.",
+			),
+			array(
+				'id' => 'hen_goi_lai',
+				'title' => 'Hẹn gọi lại',
+				'text' => "Dạ em hiểu anh/chị đang bận. Em xin phép gọi lại vào [giờ/ngày] được không ạ? Em sẽ nhắc lịch ngắn gọn thôi.",
+			),
+			array(
+				'id' => 'khong_nghe',
+				'title' => 'Không nghe máy (ghi chú)',
+				'text' => "Gọi lần [n] — không nghe máy. Đã để lại tin nhắn/Zalo (nếu có). Hẹn follow theo SLA R1.",
+			),
+			array(
+				'id' => 'sai_tt',
+				'title' => 'Sai thông tin',
+				'text' => "Số/thông tin trên form không khớp. Em đã ghi chú sai thông tin — cần xác minh lại nguồn hoặc chuyển xử lý theo quy trình.",
+			),
+			array(
+				'id' => 'chot_lich',
+				'title' => 'Chốt lịch Offline',
+				'text' => "Em xếp anh/chị lớp Offline ngày [ngày] lúc [giờ] tại [địa điểm]. Anh/chị xác nhận giúp em để giữ chỗ nhé.",
+			),
+			array(
+				'id' => 'chua_xn_lich',
+				'title' => 'Chưa xác nhận lịch',
+				'text' => "Anh/chị đủ điều kiện lớp Offline rồi ạ. Em gửi lại khung giờ gần nhất — anh/chị chọn giúp em 1 slot để em giữ chỗ.",
+			),
+			array(
+				'id' => 'chuyen_ct',
+				'title' => 'Chuyển chương trình',
+				'text' => "Hiện lớp Offline chưa phù hợp nhu cầu anh/chị. Em đề xuất chuyển sang chương trình phù hợp hơn và nhờ team hỗ trợ tiếp ạ.",
+			),
+		);
+	}
+
+	public static function nextActionForStatus($status, $classDate = '') {
+		$map = array(
+			self::STATUS_HEN_GOI_LAI => 'Gọi lại theo lịch hẹn (R1)',
+			self::STATUS_KHONG_NGHE_MAY => 'Gọi lại — không nghe máy (R1)',
+			self::STATUS_SAI_THONG_TIN => 'Xác minh lại thông tin / nguồn',
+			self::STATUS_CHUYEN_CT => 'Chuyển chương trình phù hợp (R4)',
+			self::STATUS_CHUA_XN_LICH => 'Chốt & xác nhận lịch Offline (R2)',
+			self::STATUS_DA_XN_LICH => $classDate !== ''
+				? ('Nhắc lịch lớp Offline ' . $classDate)
+				: 'Chuẩn bị lớp / nhắc lịch Offline',
+			self::STATUS_HEN_LICH_LAI => 'Hẹn lịch lại với HV (R3)',
+			self::STATUS_KHONG_THAM_GIA => 'Ghi nhận không tham gia — follow nếu cần',
+			self::STATUS_DA_THAM_GIA => 'CSKH sau lớp Offline',
+			self::STATUS_NGUNG_CSKH => 'Ngưng CSKH Offline (đã đủ R)',
+		);
+		return isset($map[$status]) ? $map[$status] : '';
+	}
+
+	public static function setNextActionHint($leadId, $status, $classDate = '') {
+		$leadId = (int) $leadId;
+		$text = self::nextActionForStatus($status, $classDate);
+		if ($leadId <= 0 || $text === '') {
+			return;
+		}
+		require_once 'modules/Leads/models/ModernService.php';
+		try {
+			Leads_ModernService::updateNextAction($leadId, $text);
+		} catch (Exception $e) {
+			// ignore
+		}
+	}
+
+	/**
+	 * Convert Lead → Opp khi đủ ĐK Offline (idempotent nếu đã có Opp).
+	 */
+	public static function tryConvertEligible($leadId, $userId = null) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return array('converted' => false, 'reason' => 'invalid');
+		}
+		require_once 'modules/Leads/models/ConvertService.php';
+		$status = Leads_ConvertService::getConversionStatus($leadId);
+		if (empty($status['canConvert'])) {
+			return array(
+				'converted' => false,
+				'reason' => 'already_opportunity',
+				'skipped' => true,
+				'potentialId' => isset($status['potentialId']) ? $status['potentialId'] : null,
+			);
+		}
+		try {
+			$opts = array(
+				'create_account' => false,
+				'order_category' => 'Internal',
+			);
+			if ($userId) {
+				$opts['assigned_user_id'] = (int) $userId;
+			}
+			$res = Leads_ConvertService::convertLead($leadId, $opts);
+			if (!empty($res['already_converted'])) {
+				return array(
+					'converted' => false,
+					'reason' => 'already_opportunity',
+					'skipped' => true,
+					'potentialId' => isset($res['potentialId']) ? $res['potentialId'] : null,
+				);
+			}
+			$ok = is_array($res) && !empty($res['success']);
+			return array(
+				'converted' => $ok,
+				'potentialId' => isset($res['potentialId']) ? $res['potentialId'] : null,
+				'redirect' => isset($res['redirect']) ? $res['redirect'] : '',
+				'reason' => $ok ? 'ok' : 'convert_failed',
+			);
+		} catch (Exception $e) {
+			return array('converted' => false, 'reason' => $e->getMessage());
+		}
 	}
 
 	protected static function leadIsOffline($leadId) {
