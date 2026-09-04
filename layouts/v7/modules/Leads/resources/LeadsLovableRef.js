@@ -229,12 +229,6 @@
   ];
 
   var PRESET_SEGMENTS = [
-    { id: "new", nameVi: "Khách mới", nameEn: "New customers", filters: { purchase: "mua_lan_dau" } },
-    { id: "repeat", nameVi: "Khách mua lại", nameEn: "Repeat customers", filters: { purchase: "mua_lai" } },
-    { id: "nobuy", nameVi: "Khách không mua", nameEn: "Not buying", filters: { purchase: "khong_mua" } },
-    { id: "chain", nameVi: "Khách chuỗi (PCTH)", nameEn: "Chain (PCTH)", filters: { program: "pcth" } },
-    { id: "franchise", nameVi: "Khách nhượng quyền", nameEn: "Franchise", filters: { program: "nhuong_quyen" } },
-    { id: "cskh", nameVi: "Khách cần CSKH", nameEn: "Needs care", filters: { staleOnly: true } },
     { id: "phone_dup", nameVi: "Trùng SĐT", nameEn: "Duplicate phone", filters: { phoneDupOnly: true } },
   ];
 

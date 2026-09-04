@@ -44,15 +44,7 @@
 
   function getPresetSegments() {
     if (ref && ref.getPresetSegments) return ref.getPresetSegments();
-    return [
-      { id: "new", name: "Khách mới", filters: { purchase: "mua_lan_dau" } },
-      { id: "repeat", name: "Khách mua lại", filters: { purchase: "mua_lai" } },
-      { id: "nobuy", name: "Khách không mua", filters: { purchase: "khong_mua" } },
-      { id: "chain", name: "Khách chuỗi (PCTH)", filters: { program: "pcth" } },
-      { id: "franchise", name: "Khách nhượng quyền", filters: { program: "nhuong_quyen" } },
-      { id: "cskh", name: "Khách cần CSKH", filters: { staleOnly: true } },
-      { id: "phone_dup", name: "Trùng SĐT", filters: { phoneDupOnly: true } },
-    ];
+    return [{ id: "phone_dup", name: "Trùng SĐT", filters: { phoneDupOnly: true } }];
   }
 
   var PRESET_SEGMENTS = getPresetSegments();
@@ -381,25 +373,26 @@
     });
   }
 
-  function applyProductTabCounts(baseLeads) {
-    var tabs = $("mk-leads-product-tabs");
-    if (!tabs) return;
+  function countLeadsForProductTab(baseLeads, tab) {
     var prev = state.productTab;
-    function count(tab) {
-      state.productTab = tab;
-      return filterLeads(baseLeads).length;
-    }
-    var items = [{ id: "all", label: "Tất cả" }, { id: "unclassified", label: "Chưa phân loại" }].concat(
+    state.productTab = tab;
+    var n = filterLeads(baseLeads).length;
+    state.productTab = prev;
+    return n;
+  }
+
+  function productTabItemsHtml(baseLeads) {
+    var items = [{ id: "unclassified", label: "Chưa phân loại" }].concat(
       productGroups().map(function (g) {
         return { id: g.code, label: g.label };
       }),
     );
-    var html = items
+    return items
       .map(function (it) {
-        var n = count(it.id);
+        var n = countLeadsForProductTab(baseLeads, it.id);
         return (
-          '<button type="button" class="mk-leads-ptab' +
-          (prev === it.id ? " is-active" : "") +
+          '<button type="button" class="mk-leads-segment-btn mk-leads-ptab' +
+          (state.productTab === it.id ? " is-active" : "") +
           '" data-product-tab="' +
           esc(it.id) +
           '">' +
@@ -410,8 +403,6 @@
         );
       })
       .join("");
-    state.productTab = prev;
-    tabs.innerHTML = html;
   }
 
   function applyViewMode() {
@@ -420,14 +411,22 @@
     var isKanban = state.viewMode === "kanban";
     if (tableWrap) tableWrap.hidden = isKanban;
     if (kanban) kanban.hidden = !isKanban;
+    var toggle = $("mk-leads-view-toggle");
     var tableBtn = $("mk-leads-view-table");
     var kanbanBtn = $("mk-leads-view-kanban");
-    if (tableBtn) tableBtn.classList.toggle("is-active", !isKanban);
-    if (kanbanBtn) kanbanBtn.classList.toggle("is-active", isKanban);
+    if (toggle) toggle.setAttribute("data-mode", isKanban ? "kanban" : "table");
+    if (tableBtn) {
+      tableBtn.classList.toggle("is-active", !isKanban);
+      tableBtn.setAttribute("aria-selected", !isKanban ? "true" : "false");
+    }
+    if (kanbanBtn) {
+      kanbanBtn.classList.toggle("is-active", isKanban);
+      kanbanBtn.setAttribute("aria-selected", isKanban ? "true" : "false");
+    }
   }
 
   function refreshListBody() {
-    applyProductTabCounts(getLeads());
+    renderSegments();
     applyViewMode();
     if (state.viewMode === "kanban") {
       renderKanban();
@@ -2127,7 +2126,10 @@
     var host = $("mk-leads-segments");
     if (!host) return;
     var saved = store ? store.getSegments() : [];
-    var allOn = !state.activeSegment && state.listMode !== "trash" ? " is-active" : "";
+    var allOn =
+      !state.activeSegment && state.listMode !== "trash" && state.productTab === "all"
+        ? " is-active"
+        : "";
     PRESET_SEGMENTS = getPresetSegments();
     var html =
       '<button type="button" class="mk-leads-segment-btn' +
@@ -2155,6 +2157,7 @@
         "</button>"
       );
     }).join("");
+    html += productTabItemsHtml(getLeads());
     html += saved
       .map(function (s) {
         var on = state.activeSegment === s.id ? " is-active" : "";
@@ -2789,6 +2792,7 @@
     state.activeSegment = null;
     state.listMode = "active";
     state.trashCache = null;
+    state.productTab = "all";
     state.page = 1;
     var search = $("mk-leads-search");
     if (search) search.value = "";
@@ -2886,6 +2890,8 @@
       var ptab = e.target.closest && e.target.closest("[data-product-tab]");
       if (ptab) {
         e.preventDefault();
+        state.listMode = "active";
+        state.trashCache = null;
         state.productTab = ptab.getAttribute("data-product-tab") || "all";
         state.page = 1;
         refreshListBody();
@@ -3055,17 +3061,6 @@
           }
           applySegment(id, preset.filters, false);
         }
-      });
-
-    $("mk-leads-save-segment") &&
-      $("mk-leads-save-segment").addEventListener("click", function () {
-        var name = prompt("Tên phân đoạn");
-        if (!name || !store) return;
-        var list = store.getSegments();
-        list.push({ id: "seg_" + Date.now(), name: name, filters: Object.assign({}, state.filters) });
-        store.saveSegments(list).then(function () {
-          renderSegments();
-        });
       });
 
     document.addEventListener(
@@ -3300,6 +3295,64 @@
     }
   }
 
+  function closeMergeModal() {
+    var el = document.getElementById("mk-leads-merge-modal");
+    if (el) el.hidden = true;
+  }
+
+  function ensureMergeModal() {
+    var existing = document.getElementById("mk-leads-merge-modal");
+    if (existing) return existing;
+    var root = document.createElement("div");
+    root.id = "mk-leads-merge-modal";
+    root.className = "mk-leads-sheet-modal mk-leads-merge-modal";
+    root.hidden = true;
+    root.innerHTML =
+      '<div class="mk-leads-sheet-modal__backdrop" data-merge-close="1"></div>' +
+      '<div class="mk-leads-sheet-modal__panel mk-leads-merge-modal__panel" role="dialog" aria-modal="true" aria-labelledby="mk-merge-title">' +
+      '  <header class="mk-leads-sheet-modal__head">' +
+      '    <h2 id="mk-merge-title">Gộp lead</h2>' +
+      '    <button type="button" class="mk-leads-sheet-modal__x" data-merge-close="1" aria-label="Đóng">×</button>' +
+      "  </header>" +
+      '  <div class="mk-leads-sheet-modal__body">' +
+      '    <p class="mk-leads-sheet-modal__hint">Chọn lead <strong>giữ lại</strong> — tên và hồ sơ của lead này sẽ được giữ. Lead còn lại vào thùng rác.</p>' +
+      '    <div class="mk-leads-merge-warn" id="mk-merge-warn" hidden></div>' +
+      '    <div class="mk-leads-merge-list" id="mk-merge-list" role="radiogroup" aria-label="Lead giữ lại"></div>' +
+      "  </div>" +
+      '  <footer class="mk-leads-sheet-modal__foot">' +
+      '    <button type="button" class="mk-leads-btn mk-leads-btn--outline" data-merge-close="1">Huỷ</button>' +
+      '    <button type="button" class="mk-leads-btn mk-leads-btn--primary" id="mk-merge-confirm">Gộp lead</button>' +
+      "  </footer>" +
+      "</div>";
+    document.body.appendChild(root);
+    root.addEventListener("click", function (e) {
+      if (e.target && e.target.getAttribute && e.target.getAttribute("data-merge-close") === "1") {
+        closeMergeModal();
+      }
+    });
+    return root;
+  }
+
+  function runMergeLeads(keeper, others) {
+    var chain = Promise.resolve();
+    others.forEach(function (d) {
+      chain = chain.then(function () {
+        return store.mergeLeads(keeper.crmid || keeper.id, d.crmid || d.id);
+      });
+    });
+    return chain
+      .then(function () {
+        clearSelection();
+        return store.refreshLeadsList ? store.refreshLeadsList() : Promise.resolve();
+      })
+      .then(function () {
+        renderAll();
+        if (window.app && app.helper && app.helper.showSuccessNotification) {
+          app.helper.showSuccessNotification({ message: "Đã gộp lead. Lead thừa đã vào thùng rác." });
+        }
+      });
+  }
+
   function openMergeDialog(rows) {
     if (!rows || rows.length < 2) {
       window.alert("Chọn ít nhất 2 lead để gộp (thường cùng SĐT).");
@@ -3311,68 +3364,86 @@
       if (k) phones[k] = true;
     });
     var phoneKeys = Object.keys(phones);
-    if (phoneKeys.length > 1) {
-      var ok = window.confirm(
-        "Cảnh báo: các lead đã chọn thuộc " +
+    var modal = ensureMergeModal();
+    var list = document.getElementById("mk-merge-list");
+    var warn = document.getElementById("mk-merge-warn");
+    var confirmBtn = document.getElementById("mk-merge-confirm");
+    if (!list || !confirmBtn) return;
+
+    if (warn) {
+      if (phoneKeys.length > 1) {
+        warn.hidden = false;
+        warn.innerHTML =
+          "Các lead thuộc <strong>" +
           phoneKeys.length +
-          " SĐT khác nhau (" +
+          "</strong> SĐT khác nhau (" +
           phoneKeys.map(maskPhoneKey).join(", ") +
-          ").\n\nChỉ nên gộp lead CÙNG nhóm SĐT (cùng badge Nhóm A/B…).\n\nVẫn gộp?",
-      );
-      if (!ok) return;
+          "). Nên chỉ gộp lead cùng nhóm SĐT.";
+      } else {
+        warn.hidden = true;
+        warn.textContent = "";
+      }
     }
-    var labels = rows
+
+    var groups = buildPhoneDupGroups(getLeads());
+    list.innerHTML = rows
       .map(function (l, i) {
-        var g = phoneDupGroupOf(l, buildPhoneDupGroups(getLeads()));
-        var gLabel = g ? " [Nhóm " + g.letter + "]" : "";
+        var g = phoneDupGroupOf(l, groups);
+        var gLabel = g ? '<span class="mk-leads-merge-badge">Nhóm ' + esc(g.letter) + "</span>" : "";
+        var checked = i === 0 ? " checked" : "";
         return (
+          '<label class="mk-leads-merge-item">' +
+          '<input type="radio" name="mk-merge-keeper" value="' +
           i +
-          1 +
-          ". " +
-          (l.name || "—") +
-          " · " +
-          (l.phone || "") +
+          '"' +
+          checked +
+          " />" +
+          '<span class="mk-leads-merge-item__body">' +
+          '<span class="mk-leads-merge-item__name">' +
+          esc(l.name || "—") +
+          "</span>" +
+          '<span class="mk-leads-merge-item__meta">' +
+          esc(l.phone || "Không có SĐT") +
+          " · id " +
+          esc(String(l.crmid || l.id)) +
+          " " +
           gLabel +
-          " (id " +
-          (l.crmid || l.id) +
-          ")"
+          "</span>" +
+          "</span></label>"
         );
       })
-      .join("\n");
-    var pick = window.prompt(
-      "Gộp lead — nhập số thứ tự lead GIỮ LẠI (tên của lead này sẽ được giữ):\n\n" + labels + "\n\nSố:",
-      "1",
-    );
-    if (pick === null) return;
-    var idx = parseInt(pick, 10) - 1;
-    if (isNaN(idx) || idx < 0 || idx >= rows.length) {
-      window.alert("Số không hợp lệ.");
-      return;
-    }
-    var keeper = rows[idx];
-    var others = rows.filter(function (_, i) {
-      return i !== idx;
-    });
-    var chain = Promise.resolve();
-    others.forEach(function (d) {
-      chain = chain.then(function () {
-        return store.mergeLeads(keeper.crmid || keeper.id, d.crmid || d.id);
+      .join("");
+
+    confirmBtn.disabled = false;
+    confirmBtn.onclick = function () {
+      var picked = list.querySelector('input[name="mk-merge-keeper"]:checked');
+      var idx = picked ? parseInt(picked.value, 10) : 0;
+      if (isNaN(idx) || idx < 0 || idx >= rows.length) {
+        window.alert("Chọn lead giữ lại.");
+        return;
+      }
+      if (phoneKeys.length > 1) {
+        var ok = window.confirm(
+          "Bạn đang gộp lead khác SĐT. Chỉ nên gộp cùng nhóm SĐT.\n\nVẫn tiếp tục?",
+        );
+        if (!ok) return;
+      }
+      var keeper = rows[idx];
+      var others = rows.filter(function (_, i) {
+        return i !== idx;
       });
-    });
-    chain
-      .then(function () {
-        clearSelection();
-        return store.refreshLeadsList ? store.refreshLeadsList() : Promise.resolve();
-      })
-      .then(function () {
-        renderAll();
-        if (window.app && app.helper && app.helper.showSuccessNotification) {
-          app.helper.showSuccessNotification({ message: "Đã gộp lead. Lead thừa đã vào thùng rác." });
-        }
-      })
-      .catch(function (err) {
-        window.alert((err && (err.message || err)) || "Gộp lead thất bại.");
-      });
+      confirmBtn.disabled = true;
+      runMergeLeads(keeper, others)
+        .then(function () {
+          closeMergeModal();
+        })
+        .catch(function (err) {
+          confirmBtn.disabled = false;
+          window.alert((err && (err.message || err)) || "Gộp lead thất bại.");
+        });
+    };
+
+    modal.hidden = false;
   }
 
   function mapFieldRowHtml(key, label) {
@@ -3660,7 +3731,6 @@
   function decorateStaticIcons() {
     var map = {
       "mk-leads-segments-icon": "bookmark",
-      "mk-leads-save-segment-ic": "save",
       "mk-leads-search-ic": "search",
       "mk-leads-filters-ic": "filter",
       "mk-leads-filters-chev": "chevron",
