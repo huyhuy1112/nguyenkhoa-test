@@ -1,13 +1,12 @@
 <?php
 /*+***********************************************************************************
- * Zalo OA contact form -> Leads.
- * Parses OA confirmation message after user submits the Zalo OA form:
- *   Họ Tên, Số điện thoại, Địa chỉ, Tình trạng, Mô hình kinh doanh, Ngân sách
- * Maps Tình trạng / Mô hình / Ngân sách → form_c1/c2/c3 (same as Google Sheet)
- * and seeds Sales xác minh. Lead source: tag zalo.
+ * Zalo OA contact form -> Leads (Giai đoạn 1.2 — Online miễn phí).
+ * Parses OA form: Họ Tên, SĐT, Địa chỉ, Tình trạng, Thời gian, Mô hình, Ngân sách.
+ * Chấm GD 1.2 tức thì (không Sales xác minh 1.1). Tag Online + product mien_phi_online.
  *************************************************************************************/
 
 require_once 'modules/Leads/models/ModernService.php';
+require_once 'modules/Leads/models/OnlineGd12Service.php';
 
 class Leads_ZaloOaLeadIngestService {
 
@@ -46,6 +45,7 @@ class Leads_ZaloOaLeadIngestService {
 		} catch (Exception $e) {
 			// column may already exist
 		}
+		Leads_OnlineGd12Service::installSchema($adb);
 	}
 
 	public static function ingestWebhook(array $payload) {
@@ -54,10 +54,44 @@ class Leads_ZaloOaLeadIngestService {
 		if (!$ev['oa_user_id']) {
 			return array('success' => true, 'ignored' => true, 'reason' => 'missing_oa_user_id');
 		}
+
+		// Mốc 1: vào OA / follow — tạo hồ sơ Chưa điền form + gửi KB-01 từ CRM.
+		if (!empty($ev['is_entry']) && empty($ev['contact_form_raw'])) {
+			$stubId = Leads_OnlineGd12Service::ensureStubLead(
+				$ev['oa_user_id'],
+				isset($ev['oa_id']) ? $ev['oa_id'] : '',
+				isset($ev['full_name']) ? $ev['full_name'] : ''
+			);
+			$state = self::loadState($ev['oa_user_id']);
+			$merged = self::mergeState($state, $ev, $payload);
+			if ($stubId) {
+				$merged['leadid'] = $stubId;
+			}
+			$merged['is_completed'] = 0;
+			self::saveState($ev['oa_user_id'], $merged);
+			return array(
+				'success' => true,
+				'entry' => true,
+				'leadid' => $stubId,
+				'oa_user_id' => $ev['oa_user_id'],
+			);
+		}
+
 		$state = self::loadState($ev['oa_user_id']);
 		$merged = self::mergeState($state, $ev, $payload);
 
 		if (!$merged['is_completed']) {
+			// Still create/keep stub so D0 can run even without form yet.
+			if (empty($merged['leadid'])) {
+				$stubId = Leads_OnlineGd12Service::ensureStubLead(
+					$ev['oa_user_id'],
+					isset($merged['oa_id']) ? $merged['oa_id'] : '',
+					isset($merged['full_name']) ? $merged['full_name'] : ''
+				);
+				if ($stubId) {
+					$merged['leadid'] = $stubId;
+				}
+			}
 			$merged['is_completed'] = 0;
 			self::saveState($ev['oa_user_id'], $merged);
 			return array(
@@ -65,13 +99,17 @@ class Leads_ZaloOaLeadIngestService {
 				'pending' => true,
 				'oa_user_id' => $ev['oa_user_id'],
 				'missing' => self::missingFields($merged),
+				'leadid' => isset($merged['leadid']) ? (int) $merged['leadid'] : 0,
 			);
 		}
 
 		$fromForm = !empty($ev['contact_form_raw']);
+		$existingStubId = !empty($merged['leadid']) ? (int) $merged['leadid'] : 0;
+		$merged['_oa_user_id'] = $ev['oa_user_id'];
 		if ($fromForm) {
-			$lead = self::upsertLeadFromState($merged, null, true);
-			$existingLeadId = 0;
+			// Update stub if present; else force-create.
+			$lead = self::upsertLeadFromState($merged, $existingStubId > 0 ? $existingStubId : null, $existingStubId <= 0);
+			$existingLeadId = $existingStubId;
 		} else {
 			$existingLeadId = self::resolveTargetLeadId($merged, $state);
 			$lead = self::upsertLeadFromState($merged, $existingLeadId > 0 ? $existingLeadId : null, false);
@@ -153,34 +191,27 @@ class Leads_ZaloOaLeadIngestService {
 			$name = 'Khách Zalo OA';
 		}
 
-		require_once 'modules/Leads/models/SheetImportService.php';
-		require_once 'modules/Leads/models/SalesVerifyService.php';
-		require_once 'modules/Vtiger/helpers/BusinessModelHelper.php';
+		require_once 'modules/Leads/models/OnlineGd12Service.php';
 
 		$formAnswers = self::resolveFormAnswersFromState($state);
-		$c1 = $formAnswers['c1'];
-		$c2 = $formAnswers['c2'];
-		$c3 = $formAnswers['c3'];
-		$screening = '';
-		if ($c1 !== '' || $c2 !== '' || $c3 !== '') {
-			$screening = Leads_SheetImportService::computeSoLuocResult($c1, $c2, $c3);
+		$q1 = $formAnswers['q1'];
+		$q2 = $formAnswers['q2'];
+		$q3 = $formAnswers['q3'];
+		$q4 = $formAnswers['q4'];
+		$gd = array('success' => false);
+		if ($q1 !== '' && $q4 !== '') {
+			$gd = Leads_OnlineGd12Service::compute($q1, $q2, $q3, $q4);
 		}
 
-		$tags = array('zalo');
-		$cust = Leads_SheetImportService::customerTagFromQ1($c1);
-		if ($cust !== '') {
-			$tags[] = $cust;
+		$statusTag = Leads_OnlineGd12Service::STATUS_CHUA_DK_TK;
+		if (!empty($gd['status_tag'])) {
+			$statusTag = $gd['status_tag'];
+		} elseif ($q1 === '' || $q4 === '') {
+			$statusTag = Leads_OnlineGd12Service::STATUS_CHUA_DIEN_FORM;
 		}
 
-		$businessModel = '';
-		if (!empty($state['business_model'])) {
-			$businessModel = Vtiger_BusinessModel_Helper::fromFormAnswer($state['business_model']);
-			if ($businessModel === '') {
-				$businessModel = Vtiger_BusinessModel_Helper::normalize($state['business_model']);
-			}
-		}
-
-		$qaRaw = self::buildQaRaw($state, $formAnswers);
+		$tags = array('zalo', 'mien_phi_online', $statusTag);
+		$qaRaw = self::buildQaRaw($state, $formAnswers, $gd);
 
 		$payload = array(
 			'name' => $name,
@@ -189,14 +220,17 @@ class Leads_ZaloOaLeadIngestService {
 			'address' => (string) $state['address'],
 			'companyName' => '-',
 			'tags' => $tags,
-			'business_model' => $businessModel,
+			'business_model' => !empty($gd['business_model'])
+				? Leads_OnlineGd12Service::businessModelKey($gd['business_model'])
+				: '',
 			'qa_raw' => $qaRaw,
-			'screening_result' => $screening,
+			'screening_result' => '',
 			'skip_potential' => 1,
-			// External form intake → Sales xác minh (same flag as Google Sheet).
-			'sheet_source' => ($forceCreate || $c1 !== '' || $c2 !== '' || $c3 !== '') ? 1 : 0,
+			// Online 1.2 — không đưa vào Sales xác minh 1.1
+			'sheet_source' => 0,
 			'force_create' => $forceCreate ? 1 : 0,
 		);
+
 		$recordId = null;
 		if (!$forceCreate) {
 			$recordId = ($existingLeadId !== null && (int) $existingLeadId > 0) ? (int) $existingLeadId : null;
@@ -218,63 +252,72 @@ class Leads_ZaloOaLeadIngestService {
 		if (is_array($lead)) {
 			$leadId = isset($lead['crmid']) ? (int) $lead['crmid'] : (isset($lead['id']) ? (int) $lead['id'] : 0);
 		}
-		if ($leadId > 0 && ($c1 !== '' || $c2 !== '' || $c3 !== '')) {
-			Leads_SalesVerifyService::seedFormAnswers($leadId, $c1, $c2, $c3);
+		if ($leadId > 0 && !empty($gd['success'])) {
+			$oaUid = isset($state['_oa_user_id']) ? (string) $state['_oa_user_id'] : '';
+			Leads_OnlineGd12Service::applyToLead($leadId, $gd, $oaUid);
 			$lead = Leads_ModernService::getLead((string) $leadId);
 		}
 		return $lead;
 	}
 
 	/**
-	 * Map Zalo form free-text → C1/C2/C3 codes (reuse Sheet parsers).
-	 * @return array{c1:string,c2:string,c3:string,q1_raw:string,q2_raw:string,q3_raw:string}
+	 * Map Zalo form free-text → GD 1.2 Q1–Q4 codes.
+	 * @return array{q1:string,q2:string,q3:string,q4:string,q1_raw:string,q2_raw:string,q3_raw:string,q4_raw:string}
 	 */
 	protected static function resolveFormAnswersFromState(array $state) {
-		require_once 'modules/Leads/models/SheetImportService.php';
+		require_once 'modules/Leads/models/OnlineGd12Service.php';
 		$q1 = trim((string) (isset($state['tinh_trang']) ? $state['tinh_trang'] : ''));
-		$q2 = trim((string) (isset($state['business_model']) ? $state['business_model'] : ''));
+		$q2 = trim((string) (isset($state['thoi_gian']) ? $state['thoi_gian'] : ''));
 		$q3 = trim((string) (isset($state['ngan_sach']) ? $state['ngan_sach'] : ''));
+		$q4 = trim((string) (isset($state['business_model']) ? $state['business_model'] : ''));
 
-		// Fallback: parse again from stored raw form text if state fields empty.
-		if (($q1 === '' || $q3 === '') && !empty($state['answers_json'])) {
+		if (($q1 === '' || $q2 === '' || $q3 === '' || $q4 === '') && !empty($state['answers_json'])) {
 			$decoded = json_decode($state['answers_json'], true);
 			if (is_array($decoded)) {
 				if ($q1 === '' && !empty($decoded['tinh_trang'])) {
 					$q1 = trim((string) $decoded['tinh_trang']);
 				}
-				if ($q2 === '' && !empty($decoded['business_model'])) {
-					$q2 = trim((string) $decoded['business_model']);
+				if ($q2 === '' && !empty($decoded['thoi_gian'])) {
+					$q2 = trim((string) $decoded['thoi_gian']);
 				}
 				if ($q3 === '' && !empty($decoded['ngan_sach'])) {
 					$q3 = trim((string) $decoded['ngan_sach']);
 				}
-				if (($q1 === '' || $q2 === '' || $q3 === '') && !empty($decoded['contact_form_raw'])) {
+				if ($q4 === '' && !empty($decoded['business_model'])) {
+					$q4 = trim((string) $decoded['business_model']);
+				}
+				if (($q1 === '' || $q2 === '' || $q3 === '' || $q4 === '') && !empty($decoded['contact_form_raw'])) {
 					$form = self::extractZaloOaContactForm($decoded['contact_form_raw']);
 					if ($q1 === '' && !empty($form['tinh_trang'])) {
 						$q1 = $form['tinh_trang'];
 					}
-					if ($q2 === '' && !empty($form['business_model'])) {
-						$q2 = $form['business_model'];
+					if ($q2 === '' && !empty($form['thoi_gian'])) {
+						$q2 = $form['thoi_gian'];
 					}
 					if ($q3 === '' && !empty($form['ngan_sach'])) {
 						$q3 = $form['ngan_sach'];
+					}
+					if ($q4 === '' && !empty($form['business_model'])) {
+						$q4 = $form['business_model'];
 					}
 				}
 			}
 		}
 
 		return array(
-			'c1' => Leads_SheetImportService::parseFormQ1($q1),
-			'c2' => Leads_SheetImportService::parseFormQ2($q2),
-			'c3' => Leads_SheetImportService::parseFormQ3($q3),
+			'q1' => Leads_OnlineGd12Service::parseQ1($q1),
+			'q2' => Leads_OnlineGd12Service::parseQ2($q2),
+			'q3' => Leads_OnlineGd12Service::parseQ3($q3),
+			'q4' => Leads_OnlineGd12Service::parseQ4($q4),
 			'q1_raw' => $q1,
 			'q2_raw' => $q2,
 			'q3_raw' => $q3,
+			'q4_raw' => $q4,
 		);
 	}
 
-	protected static function buildQaRaw(array $state, array $formAnswers) {
-		$qa = array('source' => 'zalo_oa_form');
+	protected static function buildQaRaw(array $state, array $formAnswers, array $gd = array()) {
+		$qa = array('source' => 'zalo_oa_form', 'pipeline' => 'gd12_online');
 		if (!empty($state['answers_json'])) {
 			$decoded = json_decode($state['answers_json'], true);
 			if (is_array($decoded)) {
@@ -286,20 +329,29 @@ class Leads_ZaloOaLeadIngestService {
 			$qa['tinh_trang'] = $formAnswers['q1_raw'];
 		}
 		if ($formAnswers['q2_raw'] !== '') {
-			$qa['Câu 2 – Mô hình'] = $formAnswers['q2_raw'];
+			$qa['Câu 2 – Thời gian triển khai'] = $formAnswers['q2_raw'];
+			$qa['thoi_gian'] = $formAnswers['q2_raw'];
 		}
 		if ($formAnswers['q3_raw'] !== '') {
 			$qa['Câu 3 – Ngân sách'] = $formAnswers['q3_raw'];
 			$qa['ngan_sach'] = $formAnswers['q3_raw'];
 		}
-		if ($formAnswers['c1'] !== '') {
-			$qa['form_c1'] = $formAnswers['c1'];
+		if ($formAnswers['q4_raw'] !== '') {
+			$qa['Câu 4 – Mô hình'] = $formAnswers['q4_raw'];
 		}
-		if ($formAnswers['c2'] !== '') {
-			$qa['form_c2'] = $formAnswers['c2'];
+		foreach (array('q1', 'q2', 'q3', 'q4') as $k) {
+			if (!empty($formAnswers[$k])) {
+				$qa['online_' . $k] = $formAnswers[$k];
+			}
 		}
-		if ($formAnswers['c3'] !== '') {
-			$qa['form_c3'] = $formAnswers['c3'];
+		if (!empty($gd['eligibility_label'])) {
+			$qa['Kết luận điều kiện'] = $gd['eligibility_label'];
+		}
+		if (!empty($gd['potential_label'])) {
+			$qa['Mức độ tiềm năng'] = $gd['potential_label'];
+		}
+		if (!empty($gd['customer_group_label'])) {
+			$qa['Loại khách'] = $gd['customer_group_label'];
 		}
 		return $qa;
 	}
@@ -382,12 +434,15 @@ class Leads_ZaloOaLeadIngestService {
 		if (!empty($ev['tinh_trang'])) {
 			$out['tinh_trang'] = $ev['tinh_trang'];
 		}
+		if (!empty($ev['thoi_gian'])) {
+			$out['thoi_gian'] = $ev['thoi_gian'];
+		}
 		if (!empty($ev['ngan_sach'])) {
 			$out['ngan_sach'] = $ev['ngan_sach'];
 		}
 
 		if ($fromForm) {
-			$out['leadid'] = 0;
+			$out['leadid'] = !empty($out['leadid']) ? $out['leadid'] : 0;
 		}
 		if (!empty($out['leadid']) && !self::leadRecordExists((int) $out['leadid'])) {
 			$out['leadid'] = 0;
@@ -400,7 +455,7 @@ class Leads_ZaloOaLeadIngestService {
 				$answers = array_merge($decoded, $answers);
 			}
 		}
-		foreach (array('full_name', 'phone', 'email', 'address', 'business_model', 'tinh_trang', 'ngan_sach') as $k) {
+		foreach (array('full_name', 'phone', 'email', 'address', 'business_model', 'tinh_trang', 'thoi_gian', 'ngan_sach') as $k) {
 			if (!empty($out[$k])) {
 				$answers[$k] = $out[$k];
 			}
@@ -423,6 +478,7 @@ class Leads_ZaloOaLeadIngestService {
 			'address' => '',
 			'business_model' => '',
 			'tinh_trang' => '',
+			'thoi_gian' => '',
 			'ngan_sach' => '',
 			'sales_channel' => '',
 			'answers_json' => '',
@@ -442,8 +498,10 @@ class Leads_ZaloOaLeadIngestService {
 			'address' => '',
 			'business_model' => '',
 			'tinh_trang' => '',
+			'thoi_gian' => '',
 			'ngan_sach' => '',
 			'contact_form_raw' => '',
+			'is_entry' => false,
 		);
 
 		$flat = self::flatten($payload);
@@ -452,6 +510,21 @@ class Leads_ZaloOaLeadIngestService {
 			if (!empty($flat[$ek])) {
 				$eventName = strtolower(trim((string) $flat[$ek]));
 				break;
+			}
+		}
+
+		// OA entry / follow / open chat (Mốc 1)
+		$entryHints = array(
+			'follow', 'user_follow_oa', 'oa_follow', 'follow_oa',
+			'user_click_button', 'user_click_chatnow',
+			'user_received_message', 'open_chat',
+		);
+		if ($eventName !== '') {
+			foreach ($entryHints as $h) {
+				if ($eventName === $h || strpos($eventName, $h) !== false) {
+					$ev['is_entry'] = true;
+					break;
+				}
 			}
 		}
 
@@ -509,10 +582,14 @@ class Leads_ZaloOaLeadIngestService {
 			if (!empty($form['tinh_trang'])) {
 				$ev['tinh_trang'] = $form['tinh_trang'];
 			}
+			if (!empty($form['thoi_gian'])) {
+				$ev['thoi_gian'] = $form['thoi_gian'];
+			}
 			if (!empty($form['ngan_sach'])) {
 				$ev['ngan_sach'] = $form['ngan_sach'];
 			}
 			$ev['contact_form_raw'] = $messageText;
+			$ev['is_entry'] = false;
 			// OA confirmation (oa_send*): user is recipient. Do not swap on user_send_text.
 			if ($isOaOutbound && $recipientId !== '' && $senderId !== '') {
 				$ev['oa_user_id'] = $recipientId;
@@ -558,6 +635,7 @@ class Leads_ZaloOaLeadIngestService {
 			'address' => '',
 			'business_model' => '',
 			'tinh_trang' => '',
+			'thoi_gian' => '',
 			'ngan_sach' => '',
 		);
 		$text = self::normalizeMessageText($text);
@@ -590,6 +668,14 @@ class Leads_ZaloOaLeadIngestService {
 		$out['tinh_trang'] = self::extractLabeledValue($text, array(
 			'tình\s*trạng',
 			'tinh\s*trang',
+		));
+		$out['thoi_gian'] = self::extractLabeledValue($text, array(
+			'thời\s*gian\s*triển\s*khai',
+			'thoi\s*gian\s*trien\s*khai',
+			'thời\s*gian',
+			'thoi\s*gian',
+			'dự\s*định\s*triển\s*khai',
+			'du\s*dinh\s*trien\s*khai',
 		));
 		$out['business_model'] = self::extractLabeledValue($text, array(
 			'mô\s*hình\s*kinh\s*doanh',

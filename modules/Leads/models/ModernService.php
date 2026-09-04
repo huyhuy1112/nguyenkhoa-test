@@ -119,6 +119,12 @@ class Leads_ModernService {
 		} catch (Exception $e) {
 			// best-effort
 		}
+		try {
+			require_once 'modules/Leads/models/OnlineGd12Service.php';
+			Leads_OnlineGd12Service::installSchema($adb);
+		} catch (Exception $e) {
+			// best-effort
+		}
 		$colRes = $adb->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE 'pipeline_closed'", array());
 		if (!$colRes || $adb->num_rows($colRes) < 1) {
 			$adb->pquery("ALTER TABLE bace_lead_profile ADD COLUMN pipeline_closed TINYINT(1) NOT NULL DEFAULT 0", array());
@@ -547,7 +553,15 @@ class Leads_ModernService {
 		$ownerId = self::resolveUserId(isset($payload['owner']) ? $payload['owner'] : '', $userId);
 		$name = trim((string)(isset($payload['name']) ? $payload['name'] : ''));
 		$phone = trim((string)(isset($payload['phone']) ? $payload['phone'] : ''));
-		if ($name === '' || $phone === '') {
+		$isOnlineStub = !empty($payload['online_stub']);
+		if ($isOnlineStub) {
+			if ($name === '') {
+				$name = 'Khách Zalo OA';
+			}
+			if ($phone === '') {
+				$phone = '0900000001';
+			}
+		} elseif ($name === '' || $phone === '') {
 			throw new Exception('Name and phone are required.');
 		}
 
