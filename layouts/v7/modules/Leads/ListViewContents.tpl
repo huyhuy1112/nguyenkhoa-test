@@ -30,7 +30,15 @@
 			<div id="mk-leads-filters-panel" class="mk-leads-filters-panel" hidden></div>
 		</div>
 
-		<div class="mk-so-table-card mk-leads-table-card" role="region" aria-label="{vtranslate('LBL_MK_LEADS_TABLE', 'Leads')}">
+		<div class="mk-leads-pipeline-bar" id="mk-leads-pipeline-bar">
+			<div class="mk-leads-pipeline-tabs" id="mk-leads-product-tabs"></div>
+			<div class="mk-leads-view-toggle" role="tablist" aria-label="Kiểu xem">
+				<button type="button" class="mk-leads-view-btn is-active" data-leads-view="table" id="mk-leads-view-table">Bảng</button>
+				<button type="button" class="mk-leads-view-btn" data-leads-view="kanban" id="mk-leads-view-kanban">Kanban</button>
+			</div>
+		</div>
+
+		<div class="mk-so-table-card mk-leads-table-card" role="region" aria-label="{vtranslate('LBL_MK_LEADS_TABLE', 'Leads')}" id="mk-leads-table-wrap">
 			<div id="mk-leads-bulk" class="mk-leads-bulk-bar" hidden></div>
 			<div class="mk-leads-table-scroll">
 				<table class="mk-leads-table" id="mk-leads-table">
@@ -41,6 +49,9 @@
 						<col class="mk-leads-col mk-leads-col--phone" />
 						<col class="mk-leads-col mk-leads-col--area" />
 						<col class="mk-leads-col mk-leads-col--address" />
+						<col class="mk-leads-col mk-leads-col--biz" />
+						<col class="mk-leads-col mk-leads-col--products" />
+						<col class="mk-leads-col mk-leads-col--pstage" />
 						<col class="mk-leads-col mk-leads-col--source" />
 						<col class="mk-leads-col mk-leads-col--ctype" />
 						<col class="mk-leads-col mk-leads-col--owner" />
@@ -62,6 +73,8 @@
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_AREA', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_ADDRESS', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">Mô hình kinh doanh</th>
+							<th class="mk-leads-th" scope="col">Sản phẩm</th>
+							<th class="mk-leads-th" scope="col">Stage</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_SOURCE', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_CUSTOMER_TYPE', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_OWNER', 'Leads')}</th>
@@ -76,5 +89,6 @@
 			</div>
 			<div class="mk-leads-pagination" id="mk-leads-pagination"></div>
 		</div>
+		<div id="mk-leads-kanban" class="mk-leads-kanban" hidden></div>
 	</div>
 {/strip}

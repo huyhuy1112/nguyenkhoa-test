@@ -83,10 +83,447 @@
     filtersOpen: false,
     listMode: "active", // active | trash
     trashCache: null,
+    viewMode: "table", // table | kanban
+    productTab: "all", // all | unclassified | online | offline | nvl | franchise
+  };
+
+  var FALLBACK_PRODUCT_CATALOG = {
+    groups: [
+      {
+        code: "online",
+        label: "Online",
+        stages: [
+          { code: "moi", label: "Mới" },
+          { code: "dang_tu_van", label: "Đang tư vấn" },
+          { code: "da_bao_gia", label: "Đã báo giá" },
+          { code: "da_chot", label: "Đã chốt" },
+          { code: "khong_mua", label: "Không mua" },
+        ],
+      },
+      {
+        code: "offline",
+        label: "Offline",
+        stages: [
+          { code: "moi", label: "Mới" },
+          { code: "dang_tu_van", label: "Đang tư vấn" },
+          { code: "da_bao_gia", label: "Đã báo giá" },
+          { code: "da_hen_lop", label: "Đã hẹn lớp" },
+          { code: "da_chot", label: "Đã chốt" },
+          { code: "khong_mua", label: "Không mua" },
+        ],
+      },
+      {
+        code: "nvl",
+        label: "NVL",
+        stages: [
+          { code: "moi", label: "Mới" },
+          { code: "dang_tu_van", label: "Đang tư vấn" },
+          { code: "da_bao_gia", label: "Đã báo giá" },
+          { code: "da_chot", label: "Đã chốt" },
+          { code: "da_giao", label: "Đã giao" },
+          { code: "khong_mua", label: "Không mua" },
+        ],
+      },
+      {
+        code: "franchise",
+        label: "Nhượng quyền",
+        stages: [
+          { code: "moi", label: "Mới" },
+          { code: "dang_tu_van", label: "Đang tư vấn" },
+          { code: "da_bao_gia", label: "Đã báo giá" },
+          { code: "da_chot", label: "Đã chốt" },
+          { code: "khong_mua", label: "Không mua" },
+        ],
+      },
+    ],
+    stage_labels: {
+      moi: "Mới",
+      dang_tu_van: "Đang tư vấn",
+      da_bao_gia: "Đã báo giá",
+      da_hen_lop: "Đã hẹn lớp",
+      da_chot: "Đã chốt",
+      da_giao: "Đã giao",
+      khong_mua: "Không mua",
+    },
   };
 
   function $(id) {
     return document.getElementById(id);
+  }
+
+  function productCatalog() {
+    var cat = store && store.getProductCatalog ? store.getProductCatalog() : null;
+    return cat && cat.groups && cat.groups.length ? cat : FALLBACK_PRODUCT_CATALOG;
+  }
+
+  function productGroups() {
+    return productCatalog().groups || [];
+  }
+
+  function stageLabelOf(code) {
+    var labels = productCatalog().stage_labels || {};
+    return labels[code] || code || "";
+  }
+
+  function leadProducts(lead) {
+    if (!lead || !lead.products || !lead.products.length) return [];
+    if (Object.prototype.toString.call(lead.products) !== "[object Array]") return [];
+    return lead.products.slice();
+  }
+
+  function leadIsUnclassified(lead) {
+    return leadProducts(lead).length === 0;
+  }
+
+  function leadHasProductGroup(lead, group) {
+    return leadProducts(lead).some(function (p) {
+      return p.group === group;
+    });
+  }
+
+  function visibleProducts(lead) {
+    var list = leadProducts(lead);
+    if (state.productTab && state.productTab !== "all" && state.productTab !== "unclassified") {
+      return list.filter(function (p) {
+        return p.group === state.productTab;
+      });
+    }
+    return list;
+  }
+
+  function canEditPipeline(lead) {
+    return !!(lead && (lead.can_edit_pipeline === 1 || lead.can_edit_pipeline === true));
+  }
+
+  function daysInStageLabel(product) {
+    if (!product || product.stage === "khong_mua") return "";
+    var d = product.days_in_stage;
+    if (d == null || d === "") return "";
+    var n = parseInt(d, 10);
+    if (isNaN(n)) return "";
+    return n + " ngày";
+  }
+
+  function productChipHtml(product, lead) {
+    var canEdit = canEditPipeline(lead);
+    var title = product.product_name
+      ? product.group_label + " — " + product.product_name
+      : product.group_label;
+    return (
+      '<span class="mk-lead-pchip mk-lead-pchip--' +
+      esc(product.group) +
+      '" title="' +
+      esc(title) +
+      '">' +
+      esc(product.group_label || product.group) +
+      (canEdit
+        ? '<button type="button" class="mk-lead-pchip__x" data-product-remove="' +
+          esc(product.id) +
+          '" title="Bỏ nhóm">×</button>'
+        : "") +
+      "</span>"
+    );
+  }
+
+  function renderProductChipsCell(lead) {
+    var list = visibleProducts(lead);
+    var canEdit = canEditPipeline(lead);
+    if (!list.length) {
+      return (
+        '<span class="mk-lead-pchips">' +
+        '<span class="mk-lead-pchip mk-lead-pchip--none">Chưa phân loại</span>' +
+        (canEdit
+          ? '<button type="button" class="mk-lead-padd" data-product-add="' +
+            esc(lead.id) +
+            '" title="Gắn nhóm sản phẩm">+</button>'
+          : "") +
+        "</span>"
+      );
+    }
+    var html = '<span class="mk-lead-pchips">' + list.map(function (p) {
+      return productChipHtml(p, lead);
+    }).join("");
+    var have = {};
+    leadProducts(lead).forEach(function (p) {
+      have[p.group] = 1;
+    });
+    var leftover = productGroups().some(function (g) {
+      return !have[g.code];
+    });
+    if (canEdit && leftover && state.productTab === "all") {
+      html +=
+        '<button type="button" class="mk-lead-padd" data-product-add="' +
+        esc(lead.id) +
+        '" title="Gắn nhóm sản phẩm">+</button>';
+    }
+    return html + "</span>";
+  }
+
+  function stageSelectHtml(product, lead) {
+    var group = productGroups().find(function (g) {
+      return g.code === product.group;
+    });
+    var stages = group && group.stages ? group.stages : [];
+    if (!canEditPipeline(lead) || !stages.length) {
+      return (
+        '<span class="mk-lead-pstage-line">' +
+        "<strong>" +
+        esc(product.group_label || product.group) +
+        ":</strong> " +
+        esc(product.stage_label || stageLabelOf(product.stage)) +
+        (daysInStageLabel(product)
+          ? ' <em class="mk-lead-pdays">' + esc(daysInStageLabel(product)) + "</em>"
+          : "") +
+        "</span>"
+      );
+    }
+    return (
+      '<span class="mk-lead-pstage-line">' +
+      "<strong>" +
+      esc(product.group_label || product.group) +
+      ":</strong> " +
+      '<select class="mk-lead-pstage-select" data-product-id="' +
+      esc(product.id) +
+      '">' +
+      stages
+        .map(function (st) {
+          var code = st.code || st;
+          var label = st.label || stageLabelOf(code);
+          return (
+            '<option value="' +
+            esc(code) +
+            '"' +
+            (product.stage === code ? " selected" : "") +
+            ">" +
+            esc(label) +
+            "</option>"
+          );
+        })
+        .join("") +
+      "</select>" +
+      (daysInStageLabel(product)
+        ? ' <em class="mk-lead-pdays">' + esc(daysInStageLabel(product)) + "</em>"
+        : "") +
+      "</span>"
+    );
+  }
+
+  function renderProductStageCell(lead) {
+    var list = visibleProducts(lead);
+    if (!list.length) {
+      return '<span class="mk-leads-muted">—</span>';
+    }
+    return (
+      '<div class="mk-lead-pstages">' +
+      list
+        .map(function (p) {
+          return stageSelectHtml(p, lead);
+        })
+        .join("") +
+      "</div>"
+    );
+  }
+
+  function closeProductPopover() {
+    var el = document.getElementById("mk-leads-product-popover");
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  }
+
+  function openProductAddPopover(btn, lead) {
+    closeProductPopover();
+    var have = {};
+    leadProducts(lead).forEach(function (p) {
+      have[p.group] = 1;
+    });
+    var groups = productGroups().filter(function (g) {
+      return !have[g.code];
+    });
+    if (!groups.length) {
+      window.alert("Lead đã gắn đủ 4 nhóm sản phẩm.");
+      return;
+    }
+    var pop = document.createElement("div");
+    pop.id = "mk-leads-product-popover";
+    pop.className = "mk-lead-ppop";
+    pop.innerHTML =
+      '<div class="mk-lead-ppop__title">Gắn nhóm sản phẩm</div>' +
+      groups
+        .map(function (g) {
+          return (
+            '<button type="button" class="mk-lead-ppop__item" data-group="' +
+            esc(g.code) +
+            '">' +
+            esc(g.label) +
+            "</button>"
+          );
+        })
+        .join("");
+    document.body.appendChild(pop);
+    var rect = btn.getBoundingClientRect();
+    pop.style.left = Math.min(rect.left, window.innerWidth - 220) + "px";
+    pop.style.top = rect.bottom + 6 + window.scrollY + "px";
+    pop.addEventListener("click", function (e) {
+      var item = e.target.closest("[data-group]");
+      if (!item) return;
+      e.preventDefault();
+      var group = item.getAttribute("data-group");
+      var name = window.prompt("Tên sản phẩm cụ thể (mô tả, có thể để trống)", "") || "";
+      closeProductPopover();
+      if (!store || !store.productUpsert) return;
+      store
+        .productUpsert(leadCrmId(lead) || lead.id, group, name)
+        .then(function () {
+          refreshListBody();
+        })
+        .catch(function (err) {
+          window.alert(typeof err === "string" ? err : (err && err.message) || "Không gắn được sản phẩm.");
+        });
+    });
+  }
+
+  function applyProductTabCounts(baseLeads) {
+    var tabs = $("mk-leads-product-tabs");
+    if (!tabs) return;
+    var prev = state.productTab;
+    function count(tab) {
+      state.productTab = tab;
+      return filterLeads(baseLeads).length;
+    }
+    var items = [{ id: "all", label: "Tất cả" }, { id: "unclassified", label: "Chưa phân loại" }].concat(
+      productGroups().map(function (g) {
+        return { id: g.code, label: g.label };
+      }),
+    );
+    var html = items
+      .map(function (it) {
+        var n = count(it.id);
+        return (
+          '<button type="button" class="mk-leads-ptab' +
+          (prev === it.id ? " is-active" : "") +
+          '" data-product-tab="' +
+          esc(it.id) +
+          '">' +
+          esc(it.label) +
+          ' <span class="mk-leads-ptab__n">' +
+          n +
+          "</span></button>"
+        );
+      })
+      .join("");
+    state.productTab = prev;
+    tabs.innerHTML = html;
+  }
+
+  function applyViewMode() {
+    var tableWrap = $("mk-leads-table-wrap");
+    var kanban = $("mk-leads-kanban");
+    var isKanban = state.viewMode === "kanban";
+    if (tableWrap) tableWrap.hidden = isKanban;
+    if (kanban) kanban.hidden = !isKanban;
+    var tableBtn = $("mk-leads-view-table");
+    var kanbanBtn = $("mk-leads-view-kanban");
+    if (tableBtn) tableBtn.classList.toggle("is-active", !isKanban);
+    if (kanbanBtn) kanbanBtn.classList.toggle("is-active", isKanban);
+  }
+
+  function refreshListBody() {
+    applyProductTabCounts(getLeads());
+    applyViewMode();
+    if (state.viewMode === "kanban") {
+      renderKanban();
+    } else {
+      renderTable();
+    }
+  }
+
+  function renderKanban() {
+    var root = $("mk-leads-kanban");
+    if (!root) return;
+    var tab = state.productTab;
+    if (tab === "all" || tab === "unclassified") {
+      root.innerHTML =
+        '<div class="mk-leads-kanban-empty">Chọn tab Online / Offline / NVL / Nhượng quyền để kéo stage trên Kanban. Lead chưa gắn nhóm không nằm trong cột nào.</div>';
+      return;
+    }
+    var group = productGroups().find(function (g) {
+      return g.code === tab;
+    });
+    if (!group) {
+      root.innerHTML = "";
+      return;
+    }
+    var rows = filterLeads(getLeads());
+    var byStage = {};
+    (group.stages || []).forEach(function (st) {
+      byStage[st.code] = [];
+    });
+    rows.forEach(function (l) {
+      var prod = leadProducts(l).find(function (p) {
+        return p.group === tab;
+      });
+      if (!prod) return;
+      if (!byStage[prod.stage]) byStage[prod.stage] = [];
+      byStage[prod.stage].push({ lead: l, product: prod });
+    });
+    root.innerHTML =
+      '<div class="mk-leads-kanban__cols">' +
+      (group.stages || [])
+        .map(function (st) {
+          var cards = byStage[st.code] || [];
+          return (
+            '<section class="mk-leads-kanban-col mk-leads-kanban-col--' +
+            esc(st.code) +
+            '" data-stage="' +
+            esc(st.code) +
+            '">' +
+            '<header class="mk-leads-kanban-col__head"><span>' +
+            esc(st.label) +
+            '</span><span class="mk-leads-kanban-col__n">' +
+            cards.length +
+            "</span></header>" +
+            '<div class="mk-leads-kanban-col__body">' +
+            cards
+              .map(function (item) {
+                var l = item.lead;
+                var p = item.product;
+                var days = daysInStageLabel(p);
+                var can = canEditPipeline(l);
+                return (
+                  '<article class="mk-leads-kanban-card' +
+                  (can ? " is-draggable" : "") +
+                  '" data-product-id="' +
+                  esc(p.id) +
+                  '" data-lead-id="' +
+                  esc(l.id) +
+                  '"' +
+                  (can ? ' draggable="true"' : "") +
+                  ">" +
+                  '<a class="mk-leads-kanban-card__name" href="' +
+                  detailUrl(l.id) +
+                  '">' +
+                  esc(decodeHtmlEntities(l.name)) +
+                  "</a>" +
+                  (l.phone
+                    ? '<div class="mk-leads-kanban-card__phone">' +
+                      esc(decodeHtmlEntities(l.phone)) +
+                      "</div>"
+                    : "") +
+                  (p.product_name
+                    ? '<div class="mk-leads-kanban-card__sub">' +
+                      esc(decodeHtmlEntities(p.product_name)) +
+                      "</div>"
+                    : "") +
+                  (days ? '<div class="mk-leads-kanban-card__days">' + esc(days) + "</div>" : "") +
+                  (!can ? '<div class="mk-leads-kanban-card__ro">Chỉ xem</div>' : "") +
+                  "</article>"
+                );
+              })
+              .join("") +
+            "</div></section>"
+          );
+        })
+        .join("") +
+      "</div>";
   }
 
   function tagMeta(t) {
@@ -213,7 +650,7 @@
 
   function addressOf(lead) {
     if (!lead) return "";
-    var address = String(lead.address || "").trim();
+    var address = decodeHtmlEntities(String(lead.address || "")).trim();
     if (address) return address;
     var area = String(lead.area || "").trim();
     if (!area) return "";
@@ -294,7 +731,7 @@
       shown = window.MkPhoneFormat.format(value) || value;
     }
     var display = shown
-      ? esc(shown)
+      ? esc(decodeHtmlEntities(shown))
       : '<span class="mk-leads-muted">' + esc(placeholder || "—") + "</span>";
     return (
       '<button type="button" class="mk-leads-inline-edit" data-field="' +
@@ -573,10 +1010,16 @@
   }
 
   function decodeHtmlEntities(s) {
-    if (logic && logic.decodeHtmlEntities) return logic.decodeHtmlEntities(s);
+    var str = String(s == null ? "" : s);
     var ta = document.createElement("textarea");
-    ta.innerHTML = String(s == null ? "" : s);
-    return ta.value;
+    var i;
+    for (i = 0; i < 3; i++) {
+      ta.innerHTML = str;
+      var next = ta.value;
+      if (next === str) break;
+      str = next;
+    }
+    return str;
   }
 
   function renderInlineLastTouchPanel(panelOrBtn, lt) {
@@ -1497,7 +1940,8 @@
     return leads.filter(function (l) {
       // Converted leads live only as Opp — never show them on Leads list.
       if (state.listMode !== "trash") {
-        if (l.converted || l.potentialId || l.canConvert === false) return false;
+        var hasProducts = leadProducts(l).length > 0;
+        if (!hasProducts && (l.converted || l.potentialId || l.canConvert === false)) return false;
       }
       var d = logic.derive(l);
       if (q) {
@@ -1519,6 +1963,11 @@
         return false;
       if (f.hasOpenTicket && !(l.openTickets > 0)) return false;
       if (f.phoneDupOnly && !l.phone_dup) return false;
+      if (state.productTab === "unclassified") {
+        if (!leadIsUnclassified(l)) return false;
+      } else if (state.productTab && state.productTab !== "all") {
+        if (!leadHasProductGroup(l, state.productTab)) return false;
+      }
       return true;
     });
   }
@@ -2020,7 +2469,7 @@
           '<div style="margin-top:12px"><button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-leads-clear-filters-empty">Xóa bộ lọc</button></div>';
       }
       tbody.innerHTML =
-        '<tr><td colspan="14" class="mk-leads-empty">' + esc(emptyMsg) + extraBtn + "</td></tr>";
+        '<tr><td colspan="16" class="mk-leads-empty">' + esc(emptyMsg) + extraBtn + "</td></tr>";
     } else {
       tbody.innerHTML = pageRows
         .map(function (l) {
@@ -2109,7 +2558,7 @@
             '<span class="mk-leads-lead-text"><a class="mk-leads-name" href="' +
             detailUrl(l.id) +
             '">' +
-            esc(l.name) +
+            esc(decodeHtmlEntities(l.name)) +
             "</a>" +
             screeningStatusHtml(l) +
             (needsSalesVerify(l)
@@ -2142,6 +2591,12 @@
             '<td class="mk-leads-td mk-leads-td--biz">' +
             businessModelSelectHtml(l.id, l.business_model) +
             "</td>" +
+            '<td class="mk-leads-td mk-leads-td--products">' +
+            renderProductChipsCell(l) +
+            "</td>" +
+            '<td class="mk-leads-td mk-leads-td--pstage">' +
+            renderProductStageCell(l) +
+            "</td>" +
             '<td class="mk-leads-td">' +
             (src ? tagBadgeHtml(src) : '<span class="mk-leads-muted">—</span>') +
             "</td>" +
@@ -2155,7 +2610,7 @@
             '">' +
             esc(logic.ownerInitials(l.owner)) +
             '</span><span>' +
-            esc(l.owner) +
+            esc(decodeHtmlEntities(l.owner)) +
             "</span></span></td>" +
             '<td class="mk-leads-td mk-leads-td--tags"><button type="button" class="mk-leads-tags-edit" data-lead-id="' +
             esc(l.id) +
@@ -2180,7 +2635,7 @@
             "</td>" +
             '<td class="mk-leads-td" data-col="notes">' +
             (function () {
-              var n = String(l.notes || "").trim();
+              var n = decodeHtmlEntities(String(l.notes || "").trim());
               if (!n) return '<span class="mk-leads-muted">—</span>';
               var short = n.length > 80 ? n.slice(0, 80) + "…" : n;
               return (
@@ -2326,7 +2781,7 @@
     renderSegments();
     renderFiltersPanel();
     syncFilterControls();
-    renderTable();
+    refreshListBody();
   }
 
   function clearSegmentFilters() {
@@ -2382,7 +2837,7 @@
         state.filters.search = search.value;
         state.activeSegment = null;
         state.page = 1;
-        renderTable();
+        refreshListBody();
       });
     }
 
@@ -2425,6 +2880,51 @@
       if (!(e.target.closest && e.target.closest("#mk-leads-tag-popover"))) {
         closeTagPopover();
       }
+      if (!(e.target.closest && e.target.closest("#mk-leads-product-popover"))) {
+        closeProductPopover();
+      }
+      var ptab = e.target.closest && e.target.closest("[data-product-tab]");
+      if (ptab) {
+        e.preventDefault();
+        state.productTab = ptab.getAttribute("data-product-tab") || "all";
+        state.page = 1;
+        refreshListBody();
+        return;
+      }
+      var viewBtn = e.target.closest && e.target.closest("[data-leads-view]");
+      if (viewBtn) {
+        e.preventDefault();
+        state.viewMode = viewBtn.getAttribute("data-leads-view") === "kanban" ? "kanban" : "table";
+        refreshListBody();
+        return;
+      }
+      var addBtn = e.target.closest && e.target.closest("[data-product-add]");
+      if (addBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var addId = addBtn.getAttribute("data-product-add");
+        var addLead = getLeads().find(function (l) {
+          return String(l.id) === String(addId) || String(leadCrmId(l)) === String(addId);
+        });
+        if (addLead) openProductAddPopover(addBtn, addLead);
+        return;
+      }
+      var rmBtn = e.target.closest && e.target.closest("[data-product-remove]");
+      if (rmBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!store || !store.productRemove) return;
+        if (!window.confirm("Bỏ nhóm sản phẩm này khỏi lead?")) return;
+        store
+          .productRemove(rmBtn.getAttribute("data-product-remove"))
+          .then(function () {
+            refreshListBody();
+          })
+          .catch(function (err) {
+            window.alert(typeof err === "string" ? err : (err && err.message) || "Không bỏ được nhóm.");
+          });
+        return;
+      }
       var t = e.target;
       if (!t || !t.id) return;
       if (t.id === "mk-leads-reload-list") {
@@ -2466,13 +2966,31 @@
         commitRegionChange(t);
         return;
       }
+      if (t.classList && t.classList.contains("mk-lead-pstage-select")) {
+        e.stopPropagation();
+        var productId = t.getAttribute("data-product-id");
+        var stage = t.value;
+        if (!store || !store.productSetStage || !productId) return;
+        t.disabled = true;
+        store
+          .productSetStage(productId, stage)
+          .then(function () {
+            refreshListBody();
+          })
+          .catch(function (err) {
+            t.disabled = false;
+            window.alert(typeof err === "string" ? err : (err && err.message) || "Không đổi được stage.");
+            refreshListBody();
+          });
+        return;
+      }
       var key = t.getAttribute("data-fkey");
       if (!key) return;
       if (t.type === "checkbox") state.filters[key] = t.checked;
       else state.filters[key] = t.value;
       state.activeSegment = null;
       state.page = 1;
-      renderTable();
+      refreshListBody();
     });
 
     $("mk-leads-segments") &&
@@ -2584,7 +3102,7 @@
       if (idx < 0) return;
       leads[idx] = Object.assign({}, leads[idx], detail.patch || {});
       if (store.setLeads) store.setLeads(leads);
-      renderTable();
+      refreshListBody();
     });
 
     $("mk-leads-table") &&
@@ -2739,6 +3257,47 @@
         if (menu) menu.hidden = true;
       }
     });
+
+    var kanbanRoot = $("mk-leads-kanban");
+    if (kanbanRoot) {
+      kanbanRoot.addEventListener("dragstart", function (e) {
+        var card = e.target.closest && e.target.closest(".mk-leads-kanban-card.is-draggable");
+        if (!card) return;
+        e.dataTransfer.setData("text/plain", card.getAttribute("data-product-id") || "");
+        e.dataTransfer.effectAllowed = "move";
+        card.classList.add("is-dragging");
+      });
+      kanbanRoot.addEventListener("dragend", function (e) {
+        var card = e.target.closest && e.target.closest(".mk-leads-kanban-card");
+        if (card) card.classList.remove("is-dragging");
+        var cols = kanbanRoot.querySelectorAll(".mk-leads-kanban-col");
+        for (var i = 0; i < cols.length; i++) cols[i].classList.remove("is-drop");
+      });
+      kanbanRoot.addEventListener("dragover", function (e) {
+        var col = e.target.closest && e.target.closest(".mk-leads-kanban-col");
+        if (!col) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        var cols = kanbanRoot.querySelectorAll(".mk-leads-kanban-col");
+        for (var j = 0; j < cols.length; j++) cols[j].classList.toggle("is-drop", cols[j] === col);
+      });
+      kanbanRoot.addEventListener("drop", function (e) {
+        var col = e.target.closest && e.target.closest(".mk-leads-kanban-col");
+        if (!col) return;
+        e.preventDefault();
+        var productId = e.dataTransfer.getData("text/plain");
+        var stage = col.getAttribute("data-stage");
+        if (!productId || !stage || !store || !store.productSetStage) return;
+        store
+          .productSetStage(productId, stage)
+          .then(function () {
+            refreshListBody();
+          })
+          .catch(function (err) {
+            window.alert(typeof err === "string" ? err : (err && err.message) || "Không kéo được stage.");
+          });
+      });
+    }
   }
 
   function openMergeDialog(rows) {

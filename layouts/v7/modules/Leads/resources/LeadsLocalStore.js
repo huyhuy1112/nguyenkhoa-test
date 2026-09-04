@@ -65,6 +65,9 @@
         phone_dup: false,
         phone_dup_count: 1,
         qa_raw: null,
+        products: [],
+        can_edit_pipeline: 0,
+        pipeline_closed: 0,
       },
       lead,
     );
@@ -97,10 +100,13 @@
     });
   }
 
+  var _productCatalog = null;
+
   function bootstrapFromApi() {
     return apiRequest("list").then(function (res) {
       _memLeads = dedupeLeadsByCrmid((res.leads || []).map(normalizeLead));
       _assignableUsers = Array.isArray(res.assignable_users) ? res.assignable_users.slice() : null;
+      _productCatalog = res.product_catalog || null;
       _bootstrapped = true;
       return _memLeads;
     }).then(function () {
@@ -262,6 +268,9 @@
       _memLeads = dedupeLeadsByCrmid((res.leads || []).map(normalizeLead));
       if (Array.isArray(res.assignable_users)) {
         _assignableUsers = res.assignable_users.slice();
+      }
+      if (res.product_catalog) {
+        _productCatalog = res.product_catalog;
       }
       _bootstrapped = true;
       return _memLeads;
@@ -512,6 +521,40 @@
     return Promise.resolve();
   }
 
+  function getProductCatalog() {
+    return _productCatalog;
+  }
+
+  function productUpsert(leadId, group, productName) {
+    return apiRequest("product_upsert", {
+      record: leadId,
+      payload: JSON.stringify({ id: leadId, group: group, product_name: productName || "" }),
+    }).then(function (res) {
+      if (res.lead) upsertMemLead(res.lead);
+      return res;
+    });
+  }
+
+  function productSetStage(productId, stage) {
+    return apiRequest("product_set_stage", {
+      product_id: productId,
+      payload: JSON.stringify({ product_id: productId, stage: stage }),
+    }).then(function (res) {
+      if (res.lead) upsertMemLead(res.lead);
+      return res;
+    });
+  }
+
+  function productRemove(productId) {
+    return apiRequest("product_remove", {
+      product_id: productId,
+      payload: JSON.stringify({ product_id: productId }),
+    }).then(function (res) {
+      if (res.lead) upsertMemLead(res.lead);
+      return res;
+    });
+  }
+
   if (!useApi()) {
     ensureSeeded();
   }
@@ -554,5 +597,9 @@
     saveSegments: saveSegments,
     resetDemo: resetDemo,
     ensureSeeded: ensureSeeded,
+    getProductCatalog: getProductCatalog,
+    productUpsert: productUpsert,
+    productSetStage: productSetStage,
+    productRemove: productRemove,
   };
 })(typeof window !== "undefined" ? window : this);

@@ -398,7 +398,7 @@ body[data-module="ProductsServices"][data-view="Detail"][data-app="SALES"] .mk-d
     left: 0;
     width: var(--mk-dash-sidebar-w);
     z-index: 1000;
-    overflow: hidden;
+    overflow: visible;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -445,8 +445,8 @@ body[data-view="ModernDashboard"] .mk-dashboard-sidebar {
     flex: 0 0 auto;
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 14px 0;
+    gap: 10px;
+    padding: 10px 12px 0;
     margin: 0 0 12px;
     min-height: 0;
     border: none;
@@ -454,6 +454,10 @@ body[data-view="ModernDashboard"] .mk-dashboard-sidebar {
     box-shadow: none;
     background: #ffffff;
     box-sizing: border-box;
+}
+.mk-dash-sidebar-brand .mk-dash-sidebar-logo {
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 /* Bootstrap .row inside brand — tránh margin âm đẩy logo lệch */
@@ -6809,4 +6813,196 @@ body[data-theme="dark"] .app-footer.mk-app-footer .mk-app-footer__dot {
 body .mk-dash-in-shell-footer,
 body .mk-sf-faq-footer {
     display: none !important;
+}
+
+/* ========== Desktop sidebar collapse — GPU transform only (smooth) ========== */
+:root {
+    --mk-dash-sidebar-open-w: 256px;
+}
+.mk-dashboard-sidebar {
+    transition: transform 0.42s cubic-bezier(0.25, 0.1, 0.25, 1);
+    backface-visibility: hidden;
+}
+/* Do NOT transition margin/width/left — those cause layout thrash / jank. */
+.mk-dash-main,
+.mk-topbar,
+.mk-app-shell,
+.mk-app-shell > .mk-content,
+.mk-dash-app-topbar {
+    transition: none;
+}
+html.mk-dash-sidebar-animating .mk-app-shell {
+    will-change: transform;
+    backface-visibility: hidden;
+}
+/* Fixed topbar must ride the shell FLIP (transform creates containing block). */
+html.mk-dash-sidebar-animating .mk-dash-app-topbar {
+    left: 0 !important;
+    right: 0 !important;
+    width: auto !important;
+}
+
+.mk-dash-sidebar-rail-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    position: absolute;
+    top: 50%;
+    right: -14px;
+    z-index: 1003;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 56px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid rgba(11, 110, 79, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.96);
+    color: #0B6E4F;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1);
+    transform: translate3d(0, -50%, 0);
+    overflow: hidden;
+    isolation: isolate;
+    transition:
+        transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1),
+        box-shadow 0.25s ease,
+        border-color 0.25s ease,
+        color 0.25s ease,
+        opacity 0.25s ease,
+        visibility 0.25s ease;
+}
+.mk-dash-sidebar-rail-btn__glow {
+    position: absolute;
+    inset: -30%;
+    background: radial-gradient(circle at 35% 35%, rgba(52, 211, 153, 0.28), transparent 60%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 0;
+}
+.mk-dash-sidebar-rail-btn__icon {
+    position: relative;
+    z-index: 1;
+    width: 16px;
+    height: 16px;
+    transition: transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.mk-dash-sidebar-rail-btn:hover {
+    color: #065f46;
+    border-color: rgba(16, 185, 129, 0.4);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12), 0 0 16px rgba(16, 185, 129, 0.16);
+    transform: translate3d(0, -50%, 0) scale(1.03);
+}
+.mk-dash-sidebar-rail-btn:hover .mk-dash-sidebar-rail-btn__glow {
+    opacity: 1;
+}
+.mk-dash-sidebar-rail-btn:hover .mk-dash-sidebar-rail-btn__icon {
+    transform: translateX(-1px);
+}
+.mk-dash-sidebar-rail-btn:active {
+    transform: translate3d(0, -50%, 0) scale(0.98);
+}
+.mk-dash-sidebar-rail-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25), 0 6px 16px rgba(15, 23, 42, 0.1);
+}
+
+.mk-dash-sidebar-collapse-btn.mk-dash-sidebar-rail-btn {
+    z-index: 1004;
+}
+
+.mk-dash-sidebar-expand-fab {
+    position: fixed;
+    left: 0;
+    right: auto;
+    top: 50%;
+    z-index: 1005;
+    width: 28px;
+    height: 64px;
+    border-radius: 0 999px 999px 0;
+    border-left: 0;
+    transform: translate3d(0, -50%, 0);
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+}
+.mk-dash-sidebar-expand-fab:hover {
+    transform: translate3d(2px, -50%, 0) scale(1.03);
+}
+.mk-dash-sidebar-expand-fab:hover .mk-dash-sidebar-rail-btn__icon {
+    transform: translateX(1px);
+}
+.mk-dash-sidebar-expand-fab:active {
+    transform: translate3d(0, -50%, 0) scale(0.98);
+}
+
+@media (min-width: 992px) {
+    .mk-dash-sidebar-collapse-btn {
+        display: inline-flex;
+    }
+    html.mk-dash-sidebar-collapsed,
+    html.mk-dash-sidebar-collapsed body {
+        --mk-dash-sidebar-w: 0px !important;
+    }
+    html.mk-dash-sidebar-collapsed .mk-dashboard-sidebar {
+        transform: translate3d(-100%, 0, 0);
+        pointer-events: none;
+        border-right-color: transparent;
+        box-shadow: none;
+    }
+    html.mk-dash-sidebar-collapsed .mk-dash-sidebar-collapse-btn {
+        opacity: 0;
+        pointer-events: none;
+        visibility: hidden;
+    }
+    html.mk-dash-sidebar-collapsed .mk-dash-sidebar-expand-fab {
+        display: inline-flex;
+        opacity: 1;
+        pointer-events: auto;
+        visibility: visible;
+        animation: mk-dash-rail-in 0.35s cubic-bezier(0.25, 0.1, 0.25, 1) both;
+    }
+}
+
+@keyframes mk-dash-rail-in {
+    from {
+        opacity: 0;
+        transform: translate3d(-8px, -50%, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, -50%, 0);
+    }
+}
+
+@media (max-width: 991px) {
+    .mk-dash-sidebar-collapse-btn,
+    .mk-dash-sidebar-expand-fab {
+        display: none !important;
+    }
+    html.mk-dash-sidebar-collapsed {
+        --mk-dash-sidebar-w: 256px;
+    }
+    html.mk-dash-sidebar-collapsed .mk-dashboard-sidebar {
+        transform: translate3d(-100%, 0, 0);
+        pointer-events: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mk-dashboard-sidebar,
+    .mk-dash-main,
+    .mk-topbar,
+    .mk-app-shell,
+    .mk-app-shell > .mk-content,
+    .mk-dash-app-topbar,
+    .mk-dash-sidebar-rail-btn,
+    .mk-dash-sidebar-expand-fab,
+    .mk-dash-sidebar-collapse-btn,
+    html.mk-dash-sidebar-animating .mk-app-shell {
+        transition: none !important;
+        animation: none !important;
+    }
 }
