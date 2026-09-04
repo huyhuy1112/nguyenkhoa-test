@@ -1,48 +1,26 @@
-/* Potentials list — colorful accents on top of Leads Lovable shell */
+/* Potentials list — align with Leads Lovable shell (minimal Opp overrides) */
 .mk-opps-page .mk-leads-kpi-grid {
-	grid-template-columns: repeat(8, minmax(0, 1fr));
+	grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
 .mk-opps-page .mk-leads-kpi-card {
 	min-width: 0;
-	overflow: hidden;
-}
-
-.mk-opps-page .mk-leads-kpi-card__value {
-	min-width: 0;
-	max-width: 100%;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	font-size: clamp(13px, 1.35vw, 22px);
-	line-height: 1.2;
-	letter-spacing: -0.03em;
 }
 
 .mk-opps-page .mk-opps-kpi-card[data-kpi="pipeline"] .mk-leads-kpi-card__value {
 	color: #7c3aed;
-	font-size: clamp(12px, 1.2vw, 20px);
 }
 
 .mk-opps-page .mk-opps-kpi-card[data-kpi="closing"] .mk-leads-kpi-card__value {
 	color: #4f46e5;
-	font-size: clamp(12px, 1.2vw, 20px);
-}
-
-.mk-opps-page .mk-leads-segment-chip.is-active {
-	background: linear-gradient(135deg, #eff6ff 0%, #ede9fe 100%);
-	border-color: #818cf8;
-	color: #4338ca;
-	font-weight: 600;
-	box-shadow: 0 1px 3px rgba(79, 70, 229, 0.12);
 }
 
 .mk-opps-table-card {
-	border-top: 3px solid #6366f1;
+	border-top: none;
 }
 
 .mk-opps-row:hover {
-	background: linear-gradient(90deg, rgba(99, 102, 241, 0.04) 0%, rgba(255, 255, 255, 0) 48%);
+	background: #f8fafc;
 }
 
 .mk-opps-amount {
@@ -129,62 +107,32 @@
 	border-color: #fecaca;
 }
 
-.mk-opps-page .mk-leads-tags-stack {
-	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 4px 6px;
-	align-items: start;
-	justify-items: start;
-	width: 100%;
-	min-width: 0;
-	max-width: 220px;
-}
-
-.mk-opps-page .mk-leads-tags-stack .mk-tag {
-	font-size: 10px;
-	padding: 2px 8px;
-	max-width: 100%;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
 .mk-opps-page .mk-leads-td--tags {
-	min-width: 160px;
-	max-width: 240px;
+	min-width: 220px;
+	max-width: 220px;
+	overflow: hidden;
 }
 
-/* Laptop trở xuống: 4 cột — tránh số tiền Pipeline lố khi 8 card trên 1 hàng */
-@media (max-width: 1600px) {
-	.mk-opps-page .mk-leads-kpi-grid {
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-	}
+.mk-opps-page .mk-leads-td--touch {
+	padding-left: 20px !important;
+	position: relative;
+	z-index: 1;
+	min-width: 240px;
+}
 
-	.mk-opps-page .mk-leads-kpi-card__value {
-		font-size: clamp(14px, 1.1vw, 22px);
-	}
-
-	.mk-opps-page .mk-opps-kpi-card[data-kpi="pipeline"] .mk-leads-kpi-card__value,
-	.mk-opps-page .mk-opps-kpi-card[data-kpi="closing"] .mk-leads-kpi-card__value {
-		font-size: clamp(13px, 1.05vw, 20px);
-	}
+.mk-opps-page .mk-leads-pipeline-bar {
+	margin: 0 0 14px;
 }
 
 @media (max-width: 1365px) {
 	.mk-opps-page .mk-leads-kpi-grid {
-		grid-template-columns: repeat(4, minmax(0, 1fr));
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 }
 
 @media (max-width: 1023px) {
 	.mk-opps-page .mk-leads-kpi-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-}
-
-@media (max-width: 767px) {
-	.mk-opps-page .mk-leads-kpi-grid {
-		grid-template-columns: 1fr 1fr;
 	}
 }
 

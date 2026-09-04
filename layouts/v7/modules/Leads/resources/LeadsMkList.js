@@ -1387,6 +1387,7 @@
 
   function isOnlineVerifyLead(l) {
     if (!l || Number(l.sheet_source) === 1) return false;
+    if (l.verify_mode === "sales_b") return false;
     if (l.verify_mode === "online_gd12") return true;
     if (l.online_status || l.online_path === "oa") return true;
     if (l.online_q1 || l.online_q2 || l.online_q3 || l.online_q4) return true;
@@ -1715,9 +1716,18 @@
     var c3 = lead.verify_c3 || lead.form_c3 || "";
     var c4 = lead.verify_c4 != null && lead.verify_c4 !== "" ? String(lead.verify_c4) : "";
     var c5 = lead.verify_c5 != null && lead.verify_c5 !== "" ? String(lead.verify_c5) : "";
-    var levels = [1, 2, 3, 4].map(function (n) {
-      return { code: String(n), label: "Mức " + n };
-    });
+    var levels =
+      opts.c4 && opts.c4.length
+        ? opts.c4
+        : [1, 2, 3, 4].map(function (n) {
+            return { code: String(n), label: "Mức " + n };
+          });
+    var levels5 =
+      opts.c5 && opts.c5.length
+        ? opts.c5
+        : levels;
+    var c4Label = opts.c4_label || "Câu 4 — Đánh giá mức độ quyết tâm / nhu cầu (1–4)";
+    var c5Label = opts.c5_label || "Câu 5 — Đánh giá mức độ phù hợp / khả năng triển khai (1–4)";
     paintListVerifyHeader(lead, false);
     body.innerHTML =
       '<div class="mk-leads-verify-hero">' +
@@ -1747,7 +1757,7 @@
       esc(lead.form_c3_label || "Chưa có từ Form") +
       "</small></div></div></section>" +
       '<section class="mk-leads-verify-section">' +
-      "<h4>Sau cuộc gọi</h4>" +
+      "<h4>Sau cuộc gọi — Bộ B</h4>" +
       '<label class="mk-leads-verify-field"><span>Câu 1 — Tình trạng</span>' +
       listVerifySelectHtml("c1", opts.c1, c1) +
       listVerifyFormHint(lead.form_c1, lead.form_c1_label) +
@@ -1761,12 +1771,18 @@
       listVerifyFormHint(lead.form_c3, lead.form_c3_label) +
       "</label>" +
       '<div class="mk-leads-verify-c45" data-mk-verify-c45>' +
-      '<label class="mk-leads-verify-field"><span>Câu 4 — Mức</span>' +
-      listVerifySelectHtml("c4", levels, c4, "—") +
+      '<p class="mk-leads-verify-c45__hint" data-mk-verify-c45-hint>Đủ điều kiện sơ lược — chọn C4 và C5 để chấm mức tiềm năng.</p>' +
+      '<label class="mk-leads-verify-field"><span>' +
+      esc(c4Label) +
+      "</span>" +
+      listVerifySelectHtml("c4", levels, c4, "— Chọn mức —") +
       "</label>" +
-      '<label class="mk-leads-verify-field"><span>Câu 5 — Mức</span>' +
-      listVerifySelectHtml("c5", levels, c5, "—") +
+      '<label class="mk-leads-verify-field"><span>' +
+      esc(c5Label) +
+      "</span>" +
+      listVerifySelectHtml("c5", levels5, c5, "— Chọn mức —") +
       "</label></div>" +
+      '<p class="mk-leads-verify-c45-skip" data-mk-verify-c45-skip hidden>Không đủ điều kiện (lớp loại) — không cần C4/C5.</p>' +
       '<label class="mk-leads-verify-field"><span>Lý do đổi đáp án <em>(bắt buộc nếu khác Form)</em></span>' +
       '<textarea class="mk-leads-verify-note" rows="2" data-mk-verify="change_reason" placeholder="Ví dụ: Khách khai Form nhầm mô hình">' +
       esc(lead.verify_change_reason || "") +
@@ -1815,9 +1831,10 @@
   }
 
   function syncListVerifyC45(host) {
-    if (!host) return;
+    if (!host || host._mkVerifyMode === "online_gd12") return;
     var payload = readListVerifyPayload(host);
     var c45 = host.querySelector("[data-mk-verify-c45]");
+    var skip = host.querySelector("[data-mk-verify-c45-skip]");
     if (!c45) return;
     var excluded =
       payload.c1 === "D" ||
@@ -1825,6 +1842,7 @@
       payload.c3 === "A" ||
       (payload.c2 === "A" && payload.c3 === "B");
     c45.hidden = !!excluded;
+    if (skip) skip.hidden = !excluded;
   }
 
   function setListVerifyMsg(err, ok) {
@@ -1916,9 +1934,20 @@
         setListVerifyMsg("Vui lòng chọn đủ Q1–Q4 (4 câu Online).", "");
         return;
       }
-    } else if (!payload.c1 || !payload.c2 || !payload.c3) {
-      setListVerifyMsg("Vui lòng chọn đủ C1, C2, C3.", "");
-      return;
+    } else {
+      if (!payload.c1 || !payload.c2 || !payload.c3) {
+        setListVerifyMsg("Vui lòng chọn đủ C1, C2, C3.", "");
+        return;
+      }
+      var excluded =
+        payload.c1 === "D" ||
+        payload.c2 === "G" ||
+        payload.c3 === "A" ||
+        (payload.c2 === "A" && payload.c3 === "B");
+      if (!excluded && (!payload.c4 || !payload.c5)) {
+        setListVerifyMsg("Đủ điều kiện — vui lòng chọn Câu 4 và Câu 5 (mức 1–4) để chấm tiềm năng.", "");
+        return;
+      }
     }
     if (typeof app === "undefined" || !app.request) {
       setListVerifyMsg("API không sẵn sàng.", "");

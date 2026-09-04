@@ -2866,6 +2866,18 @@ body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-ver
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 10px;
+	padding: 12px;
+	border-radius: 12px;
+	background: #f0f9ff;
+	border: 1px solid #bae6fd;
+}
+body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__c45-hint,
+body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__c45-hint {
+	grid-column: 1 / -1;
+	margin: 0;
+	font-size: 12px;
+	font-weight: 600;
+	color: #0369a1;
 }
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-verify__preview,
 body[data-module="Leads"][data-view="Detail"][data-app="MARKETING"] .mk-lead-verify__preview {

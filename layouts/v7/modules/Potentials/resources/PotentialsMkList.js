@@ -849,16 +849,17 @@
             '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner">' +
             '<span class="mk-owner-avatar" style="background:' + ownerColor(o.owner) + '">' + esc(ownerInitials(o.owner)) + "</span>" +
             "<span>" + esc(o.owner || "—") + "</span></span></td>" +
-            '<td class="mk-leads-td" data-col="tags"><button type="button" class="mk-leads-tags-edit" data-opp-id="' +
+            '<td class="mk-leads-td mk-leads-td--tags" data-col="tags"><button type="button" class="mk-leads-tags-edit" data-opp-id="' +
             esc(o.id) +
             '" title="Sửa thẻ">' +
             stackedTagsHtml(cats) +
             "</button></td>" +
-            '<td class="mk-leads-td" data-col="confirm">' + tagBadgeHtml(cats.confirm) + "</td>" +
-            '<td class="mk-leads-td" data-col="confirmed_at">' +
-            (o.confirmed_at
-              ? esc(formatDateTimeFull(o.confirmed_at))
-              : '<span class="mk-leads-muted">—</span>') +
+            '<td class="mk-leads-td mk-leads-td--touch" data-col="last_touch">' +
+            (window.MkLastTouchCall && window.MkLastTouchCall.lastTouchCallLogHtml
+              ? window.MkLastTouchCall.lastTouchCallLogHtml(o, esc)
+              : window.LeadsLeadsLogic && window.LeadsLeadsLogic.lastTouchCallLogHtml
+                ? window.LeadsLeadsLogic.lastTouchCallLogHtml(o, esc)
+                : '<span class="mk-leads-muted">Chưa có cuộc gọi</span>') +
             "</td>" +
             '<td class="mk-leads-td mk-leads-td--next">' +
             (function () {
@@ -882,12 +883,11 @@
               return html + "</div>";
             })() +
             "</td>" +
-            '<td class="mk-leads-td mk-leads-td--touch" data-col="last_touch">' +
-            (window.MkLastTouchCall && window.MkLastTouchCall.lastTouchCallLogHtml
-              ? window.MkLastTouchCall.lastTouchCallLogHtml(o, esc)
-              : window.LeadsLeadsLogic && window.LeadsLeadsLogic.lastTouchCallLogHtml
-                ? window.LeadsLeadsLogic.lastTouchCallLogHtml(o, esc)
-                : '<span class="mk-leads-muted">Chưa có cuộc gọi</span>') +
+            '<td class="mk-leads-td" data-col="confirm">' + tagBadgeHtml(cats.confirm) + "</td>" +
+            '<td class="mk-leads-td" data-col="confirmed_at">' +
+            (o.confirmed_at
+              ? esc(formatDateTimeFull(o.confirmed_at))
+              : '<span class="mk-leads-muted">—</span>') +
             "</td>" +
             '<td class="mk-leads-td" data-col="notes">' + notesCell(o.notes) + "</td></tr>"
           );

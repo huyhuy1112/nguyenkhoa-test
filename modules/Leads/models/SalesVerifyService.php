@@ -409,6 +409,20 @@ class Leads_SalesVerifyService {
 				array('code' => 'D', 'label' => 'Từ 300 đến dưới 500 triệu'),
 				array('code' => 'E', 'label' => 'Từ 500 triệu trở lên'),
 			),
+			'c4' => array(
+				array('code' => '1', 'label' => 'Mức 1 — Rất cao'),
+				array('code' => '2', 'label' => 'Mức 2 — Cao'),
+				array('code' => '3', 'label' => 'Mức 3 — Trung bình'),
+				array('code' => '4', 'label' => 'Mức 4 — Thấp'),
+			),
+			'c5' => array(
+				array('code' => '1', 'label' => 'Mức 1 — Rất cao'),
+				array('code' => '2', 'label' => 'Mức 2 — Cao'),
+				array('code' => '3', 'label' => 'Mức 3 — Trung bình'),
+				array('code' => '4', 'label' => 'Mức 4 — Thấp'),
+			),
+			'c4_label' => 'Câu 4 — Đánh giá mức độ quyết tâm / nhu cầu (1–4)',
+			'c5_label' => 'Câu 5 — Đánh giá mức độ phù hợp / khả năng triển khai (1–4)',
 			'c4_levels' => array(1, 2, 3, 4),
 			'c5_levels' => array(1, 2, 3, 4),
 		);
