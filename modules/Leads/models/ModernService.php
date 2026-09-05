@@ -128,6 +128,8 @@ class Leads_ModernService {
 		try {
 			require_once 'modules/Leads/models/OfflineGd11Service.php';
 			Leads_OfflineGd11Service::installSchema($adb);
+			require_once 'modules/Leads/models/OfflineGd11Step2Service.php';
+			Leads_OfflineGd11Step2Service::installSchema($adb);
 		} catch (Exception $e) {
 			// best-effort
 		}
@@ -142,8 +144,10 @@ class Leads_ModernService {
 		return ', p.form_c1, p.form_c2, p.form_c3, p.verify_c1, p.verify_c2, p.verify_c3, p.verify_c4, p.verify_c5,
 			p.eligibility_result, p.potential_level, p.verify_score, p.verify_change_reason, p.verified_at, p.verified_by,
 			p.online_status, p.online_q1, p.online_q2, p.online_q3, p.online_q4, p.online_path, p.zalo_user_id,
-			p.offline_status, p.offline_r1_contact, p.offline_r2_schedule, p.offline_r3_class, p.offline_r4_transfer,
-			p.offline_preclass_confirm, p.offline_class_date';
+			p.offline_status, p.offline_r1_contact, p.offline_r1_hen_goi, p.offline_r1_khong_nghe, p.offline_r1_sai_tt,
+			p.offline_r2_schedule, p.offline_r3_class, p.offline_r4_transfer,
+			p.offline_preclass_confirm, p.offline_class_date, p.offline_class_time, p.offline_class_place,
+			p.offline_step2_entered_at, p.offline_step2_sent';
 	}
 
 	public static function isInstalled(PearDatabase $adb) {

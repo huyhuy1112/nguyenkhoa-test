@@ -1162,6 +1162,37 @@ body.mk-leads-verify-open {
 	padding: 4px 8px;
 	font-size: 11px;
 }
+.mk-leads-verify-offline__step2 {
+	margin-top: 12px;
+	padding-top: 10px;
+	border-top: 1px dashed #fdba74;
+}
+.mk-leads-verify-offline__step2 h5 {
+	margin: 0 0 8px;
+	font-size: 12px;
+	font-weight: 700;
+	color: #9a3412;
+}
+.mk-leads-verify-offline__ms-list {
+	margin-top: 10px;
+	font-size: 12px;
+	color: #9a3412;
+}
+.mk-leads-verify-offline__ms {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-top: 6px;
+	padding: 6px 8px;
+	border-radius: 8px;
+	background: rgba(255, 255, 255, 0.7);
+}
+.mk-leads-verify-offline__ms > button {
+	padding: 4px 8px;
+	font-size: 11px;
+	flex-shrink: 0;
+}
 .mk-leads-verify-c45[hidden] {
 	display: none !important;
 }

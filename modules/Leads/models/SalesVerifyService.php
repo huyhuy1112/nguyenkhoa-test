@@ -349,6 +349,9 @@ class Leads_SalesVerifyService {
 			if (!empty($offlineMeta['convert'])) {
 				$out['convert'] = $offlineMeta['convert'];
 			}
+			if (!empty($offlineMeta['calendar'])) {
+				$out['calendar'] = $offlineMeta['calendar'];
+			}
 		}
 		return $out;
 	}

@@ -65,6 +65,10 @@ class Leads_OfflineGd11Service {
 		$cols = array(
 			'offline_status' => "VARCHAR(48) DEFAULT NULL",
 			'offline_r1_contact' => "TINYINT(1) NOT NULL DEFAULT 0",
+			// R1 trần kép: 3 lượt / tag (Hẹn gọi · Không nghe · Sai TT), tối đa 9.
+			'offline_r1_hen_goi' => "TINYINT(1) NOT NULL DEFAULT 0",
+			'offline_r1_khong_nghe' => "TINYINT(1) NOT NULL DEFAULT 0",
+			'offline_r1_sai_tt' => "TINYINT(1) NOT NULL DEFAULT 0",
 			'offline_r2_schedule' => "TINYINT(1) NOT NULL DEFAULT 0",
 			'offline_r3_class' => "TINYINT(1) NOT NULL DEFAULT 0",
 			'offline_r4_transfer' => "TINYINT(1) NOT NULL DEFAULT 0",
@@ -145,13 +149,12 @@ class Leads_OfflineGd11Service {
 	}
 
 	/**
-	 * @param string $counter r1|r2|r3|r4
+	 * @param string $counter r2|r3|r4 (R1 dùng bumpR1ForTag)
 	 * @return array{count:int,stopped:bool}
 	 */
 	public static function bumpCounter($leadId, $counter) {
 		$leadId = (int) $leadId;
 		$map = array(
-			'r1' => 'offline_r1_contact',
 			'r2' => 'offline_r2_schedule',
 			'r3' => 'offline_r3_class',
 			'r4' => 'offline_r4_transfer',
@@ -173,22 +176,107 @@ class Leads_OfflineGd11Service {
 	}
 
 	/**
+	 * R1 trần kép: mỗi tag 3 lượt; đổi tag đếm theo cột riêng; hết cả 3 tag → Ngưng.
+	 * @return array{count:int,stopped:bool,tag_exhausted:bool,sum:int,per_tag:array}
+	 */
+	public static function bumpR1ForTag($leadId, $statusTag) {
+		$leadId = (int) $leadId;
+		$statusTag = strtolower(trim((string) $statusTag));
+		$colMap = array(
+			self::STATUS_HEN_GOI_LAI => 'offline_r1_hen_goi',
+			self::STATUS_KHONG_NGHE_MAY => 'offline_r1_khong_nghe',
+			self::STATUS_SAI_THONG_TIN => 'offline_r1_sai_tt',
+		);
+		if ($leadId <= 0 || !isset($colMap[$statusTag])) {
+			return array('count' => 0, 'stopped' => false, 'tag_exhausted' => false, 'sum' => 0, 'per_tag' => array());
+		}
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT offline_r1_hen_goi AS h, offline_r1_khong_nghe AS k, offline_r1_sai_tt AS s
+			 FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		$h = ($res && $adb->num_rows($res) > 0) ? (int) $adb->query_result($res, 0, 'h') : 0;
+		$k = ($res && $adb->num_rows($res) > 0) ? (int) $adb->query_result($res, 0, 'k') : 0;
+		$s = ($res && $adb->num_rows($res) > 0) ? (int) $adb->query_result($res, 0, 's') : 0;
+		$per = array(
+			self::STATUS_HEN_GOI_LAI => $h,
+			self::STATUS_KHONG_NGHE_MAY => $k,
+			self::STATUS_SAI_THONG_TIN => $s,
+		);
+		$col = $colMap[$statusTag];
+		$cur = $per[$statusTag];
+		if ($cur >= self::COUNTER_MAX) {
+			$allDone = ($h >= self::COUNTER_MAX && $k >= self::COUNTER_MAX && $s >= self::COUNTER_MAX);
+			return array(
+				'count' => $cur,
+				'stopped' => $allDone,
+				'tag_exhausted' => true,
+				'sum' => $h + $k + $s,
+				'per_tag' => $per,
+			);
+		}
+		$next = $cur + 1;
+		$per[$statusTag] = $next;
+		$sum = $per[self::STATUS_HEN_GOI_LAI] + $per[self::STATUS_KHONG_NGHE_MAY] + $per[self::STATUS_SAI_THONG_TIN];
+		$adb->pquery(
+			"UPDATE bace_lead_profile SET {$col} = ?, offline_r1_contact = ?, modified_at = ? WHERE leadid = ?",
+			array($next, $sum, date('Y-m-d H:i:s'), $leadId)
+		);
+		$stopped = (
+			$per[self::STATUS_HEN_GOI_LAI] >= self::COUNTER_MAX
+			&& $per[self::STATUS_KHONG_NGHE_MAY] >= self::COUNTER_MAX
+			&& $per[self::STATUS_SAI_THONG_TIN] >= self::COUNTER_MAX
+		);
+		return array(
+			'count' => $next,
+			'stopped' => $stopped,
+			'tag_exhausted' => false,
+			'sum' => $sum,
+			'per_tag' => $per,
+		);
+	}
+
+	/**
 	 * Last Touch — Không nghe máy trên lead Offline → R1.
+	 * Calendar nhắc gọi đã do LastTouch tạo — không nhân đôi ở đây.
 	 */
 	public static function onLastTouchMissed($leadId, $userId = null) {
 		$leadId = (int) $leadId;
 		if ($leadId <= 0 || !self::leadIsOffline($leadId)) {
 			return null;
 		}
-		$bump = self::bumpCounter($leadId, 'r1');
+		$bump = self::bumpR1ForTag($leadId, self::STATUS_KHONG_NGHE_MAY);
 		if (!empty($bump['stopped'])) {
-				self::applyStatus($leadId, self::STATUS_NGUNG_CSKH, $userId);
-				self::setNextActionHint($leadId, self::STATUS_NGUNG_CSKH);
-				return array('status' => self::STATUS_NGUNG_CSKH, 'r1' => $bump['count'], 'drop' => 'R1');
-			}
+			self::applyStatus($leadId, self::STATUS_NGUNG_CSKH, $userId);
+			self::setNextActionHint($leadId, self::STATUS_NGUNG_CSKH);
+			return array(
+				'status' => self::STATUS_NGUNG_CSKH,
+				'r1' => $bump['count'],
+				'r1_sum' => $bump['sum'],
+				'drop' => 'R1',
+			);
+		}
+		if (!empty($bump['tag_exhausted'])) {
+			// Tag Không nghe đã hết 3 — giữ trạng thái, Sales chọn Hẹn gọi / Sai TT khác.
+			self::setNextActionHint($leadId, self::STATUS_KHONG_NGHE_MAY);
+			return array(
+				'status' => self::STATUS_KHONG_NGHE_MAY,
+				'r1' => $bump['count'],
+				'r1_sum' => $bump['sum'],
+				'drop' => '',
+				'tag_exhausted' => true,
+			);
+		}
 		self::applyStatus($leadId, self::STATUS_KHONG_NGHE_MAY, $userId);
 		self::setNextActionHint($leadId, self::STATUS_KHONG_NGHE_MAY);
-		return array('status' => self::STATUS_KHONG_NGHE_MAY, 'r1' => $bump['count'], 'drop' => '');
+		return array(
+			'status' => self::STATUS_KHONG_NGHE_MAY,
+			'r1' => $bump['count'],
+			'r1_sum' => $bump['sum'],
+			'drop' => '',
+		);
 	}
 
 	/**
@@ -222,9 +310,18 @@ class Leads_OfflineGd11Service {
 		$elig = isset($result['eligibility_result']) ? $result['eligibility_result'] : '';
 		$out = array();
 		if ($elig === 'khong_du_dk') {
-			self::applyStatus($leadId, self::STATUS_CHUYEN_CT, $userId);
-			self::setNextActionHint($leadId, self::STATUS_CHUYEN_CT);
-			$out['status'] = self::STATUS_CHUYEN_CT;
+			$bump = self::bumpCounter($leadId, 'r4');
+			if (!empty($bump['stopped'])) {
+				self::applyStatus($leadId, self::STATUS_NGUNG_CSKH, $userId);
+				self::setNextActionHint($leadId, self::STATUS_NGUNG_CSKH);
+				$out['status'] = self::STATUS_NGUNG_CSKH;
+				$out['drop'] = 'R4';
+			} else {
+				self::applyStatus($leadId, self::STATUS_CHUYEN_CT, $userId);
+				self::setNextActionHint($leadId, self::STATUS_CHUYEN_CT);
+				$out['status'] = self::STATUS_CHUYEN_CT;
+				$out['calendar'] = self::createFollowUpTask($leadId, self::STATUS_CHUYEN_CT, array(), $userId);
+			}
 			return $out;
 		}
 		if ($elig === 'du_dk') {
@@ -246,10 +343,35 @@ class Leads_OfflineGd11Service {
 				}
 				self::setNextActionHint($leadId, self::STATUS_DA_XN_LICH, $classDate);
 				$out['status'] = self::STATUS_DA_XN_LICH;
+				$out['calendar'] = self::createFollowUpTask(
+					$leadId,
+					self::STATUS_DA_XN_LICH,
+					array('class_date' => $classDate),
+					$userId
+				);
+				try {
+					require_once 'modules/Leads/models/OfflineGd11Step2Service.php';
+					$out['step2'] = Leads_OfflineGd11Step2Service::onScheduleConfirmed(
+						$leadId,
+						array('class_date' => $classDate),
+						$userId
+					);
+				} catch (Exception $e) {
+					$out['step2'] = array('success' => false, 'error' => $e->getMessage());
+				}
 			} else {
-				self::applyStatus($leadId, self::STATUS_CHUA_XN_LICH, $userId);
-				self::setNextActionHint($leadId, self::STATUS_CHUA_XN_LICH);
-				$out['status'] = self::STATUS_CHUA_XN_LICH;
+				$bump = self::bumpCounter($leadId, 'r2');
+				if (!empty($bump['stopped'])) {
+					self::applyStatus($leadId, self::STATUS_NGUNG_CSKH, $userId);
+					self::setNextActionHint($leadId, self::STATUS_NGUNG_CSKH);
+					$out['status'] = self::STATUS_NGUNG_CSKH;
+					$out['drop'] = 'R2';
+				} else {
+					self::applyStatus($leadId, self::STATUS_CHUA_XN_LICH, $userId);
+					self::setNextActionHint($leadId, self::STATUS_CHUA_XN_LICH);
+					$out['status'] = self::STATUS_CHUA_XN_LICH;
+					$out['calendar'] = self::createFollowUpTask($leadId, self::STATUS_CHUA_XN_LICH, array(), $userId);
+				}
 			}
 			$out['convert'] = self::tryConvertEligible($leadId, $userId);
 			return $out;
@@ -288,9 +410,21 @@ class Leads_OfflineGd11Service {
 		$status = $map[$action];
 		$drop = '';
 		$classDate = isset($payload['class_date']) ? trim((string) $payload['class_date']) : '';
+		$calendarMeta = null;
 
 		if (in_array($status, self::R1_TAGS, true)) {
-			$bump = self::bumpCounter($leadId, 'r1');
+			$bump = self::bumpR1ForTag($leadId, $status);
+			if (!empty($bump['tag_exhausted']) && empty($bump['stopped'])) {
+				$labels = self::statusLabels();
+				$lab = isset($labels[$status]) ? $labels[$status] : $status;
+				return array(
+					'success' => false,
+					'error' => $lab . ' đã hết 3 lượt R1. Chọn tag R1 khác hoặc Ngưng CSKH.',
+					'r1' => $bump['count'],
+					'r1_sum' => $bump['sum'],
+					'per_tag' => $bump['per_tag'],
+				);
+			}
 			if (!empty($bump['stopped'])) {
 				$status = self::STATUS_NGUNG_CSKH;
 				$drop = 'R1';
@@ -330,6 +464,30 @@ class Leads_OfflineGd11Service {
 			self::setClassDate($leadId, $classDate);
 		}
 		self::setNextActionHint($leadId, $status, $classDate);
+
+		$taskStatuses = array(
+			self::STATUS_HEN_GOI_LAI,
+			self::STATUS_KHONG_NGHE_MAY,
+			self::STATUS_SAI_THONG_TIN,
+			self::STATUS_CHUA_XN_LICH,
+			self::STATUS_DA_XN_LICH,
+			self::STATUS_HEN_LICH_LAI,
+			self::STATUS_CHUYEN_CT,
+		);
+		if (in_array($status, $taskStatuses, true)) {
+			$calendarMeta = self::createFollowUpTask($leadId, $status, $payload, $userId);
+		}
+
+		$step2Meta = null;
+		if ($status === self::STATUS_DA_XN_LICH) {
+			try {
+				require_once 'modules/Leads/models/OfflineGd11Step2Service.php';
+				$step2Meta = Leads_OfflineGd11Step2Service::onScheduleConfirmed($leadId, $payload, $userId);
+			} catch (Exception $e) {
+				$step2Meta = array('success' => false, 'error' => $e->getMessage());
+			}
+		}
+
 		$lead = Leads_ModernService::getLead((string) $leadId, $userId);
 		$labels = self::statusLabels();
 		$out = array(
@@ -337,6 +495,8 @@ class Leads_OfflineGd11Service {
 			'status' => $status,
 			'status_label' => isset($labels[$status]) ? $labels[$status] : $status,
 			'drop' => $drop,
+			'calendar' => $calendarMeta,
+			'step2' => $step2Meta,
 			'lead' => $lead,
 		);
 		if ($status === self::STATUS_DA_XN_LICH || $status === self::STATUS_CHUA_XN_LICH) {
@@ -349,10 +509,20 @@ class Leads_OfflineGd11Service {
 	public static function profileBlock(array $row) {
 		$status = isset($row['offline_status']) ? trim((string) $row['offline_status']) : '';
 		$labels = self::statusLabels();
+		$r1h = isset($row['offline_r1_hen_goi']) ? (int) $row['offline_r1_hen_goi'] : 0;
+		$r1k = isset($row['offline_r1_khong_nghe']) ? (int) $row['offline_r1_khong_nghe'] : 0;
+		$r1s = isset($row['offline_r1_sai_tt']) ? (int) $row['offline_r1_sai_tt'] : 0;
+		$r1Sum = $r1h + $r1k + $r1s;
+		if ($r1Sum <= 0 && !empty($row['offline_r1_contact'])) {
+			$r1Sum = (int) $row['offline_r1_contact'];
+		}
 		return array(
 			'offline_status' => $status,
 			'offline_status_label' => isset($labels[$status]) ? $labels[$status] : '',
-			'offline_r1_contact' => isset($row['offline_r1_contact']) ? (int) $row['offline_r1_contact'] : 0,
+			'offline_r1_contact' => $r1Sum,
+			'offline_r1_hen_goi' => $r1h,
+			'offline_r1_khong_nghe' => $r1k,
+			'offline_r1_sai_tt' => $r1s,
 			'offline_r2_schedule' => isset($row['offline_r2_schedule']) ? (int) $row['offline_r2_schedule'] : 0,
 			'offline_r3_class' => isset($row['offline_r3_class']) ? (int) $row['offline_r3_class'] : 0,
 			'offline_r4_transfer' => isset($row['offline_r4_transfer']) ? (int) $row['offline_r4_transfer'] : 0,
@@ -361,7 +531,17 @@ class Leads_OfflineGd11Service {
 				? (string) $row['offline_class_date'] : '',
 			'offline_status_options' => self::statusLabels(),
 			'offline_kb' => self::kbSnippets(),
-		);
+		) + self::composeStep2Block($row);
+	}
+
+	protected static function composeStep2Block(array $row) {
+		try {
+			require_once 'modules/Leads/models/OfflineGd11Step2Service.php';
+			Leads_OfflineGd11Step2Service::installSchema();
+			return Leads_OfflineGd11Step2Service::profileExtras($row);
+		} catch (Exception $e) {
+			return array();
+		}
 	}
 
 	/**
@@ -445,6 +625,107 @@ class Leads_OfflineGd11Service {
 	}
 
 	/**
+	 * Tạo Calendar Call (Planned) gắn Lead — assign owner Lead (Sales) hoặc user hiện tại.
+	 * @return array
+	 */
+	public static function createFollowUpTask($leadId, $status, array $payload = array(), $userId = null) {
+		global $current_user;
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'invalid_lead');
+		}
+		$assignId = self::resolveTaskAssignee($leadId, $userId);
+		$when = self::resolveTaskDueAt($status, $payload);
+		$labels = self::statusLabels();
+		$statusLabel = isset($labels[$status]) ? $labels[$status] : $status;
+		$subject = 'Offline 1.1 — ' . $statusLabel;
+		$desc = self::nextActionForStatus(
+			$status,
+			isset($payload['class_date']) ? trim((string) $payload['class_date']) : ''
+		);
+		if ($desc === '') {
+			$desc = $subject;
+		}
+		try {
+			$record = Vtiger_Record_Model::getCleanInstance('Calendar');
+			$record->set('mode', '');
+			$record->set('subject', $subject);
+			$record->set('activitytype', 'Call');
+			$record->set('date_start', date('Y-m-d', strtotime($when)));
+			$record->set('time_start', date('H:i:s', strtotime($when)));
+			$endTs = strtotime($when) + 30 * 60;
+			$record->set('due_date', date('Y-m-d', $endTs));
+			$record->set('time_end', date('H:i:s', $endTs));
+			$record->set('assigned_user_id', $assignId);
+			$record->set('parent_id', $leadId);
+			$record->set('visibility', 'Public');
+			$record->set('description', $desc . "\n(GD 1.1 Bước 1)");
+			$record->set('eventstatus', 'Planned');
+			$record->set('taskstatus', 'Not Started');
+			$record->set('taskpriority', 'High');
+			$record->set('set_reminder', 'Yes');
+			$record->set('remdays', '0');
+			$record->set('remhrs', '0');
+			$record->set('remmin', '15');
+			$record->save();
+			$activityId = (int) $record->getId();
+			if ($activityId <= 0) {
+				return array('success' => false, 'error' => 'save_failed');
+			}
+			require_once 'modules/Leads/models/CommerceService.php';
+			Leads_CommerceService::linkActivityToLead($leadId, $activityId);
+			return array(
+				'success' => true,
+				'activity_id' => $activityId,
+				'due_at' => $when,
+				'assigned_user_id' => $assignId,
+			);
+		} catch (Exception $e) {
+			return array('success' => false, 'error' => $e->getMessage());
+		} catch (Throwable $e) {
+			return array('success' => false, 'error' => $e->getMessage());
+		}
+	}
+
+	protected static function resolveTaskAssignee($leadId, $userId = null) {
+		global $current_user;
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT smownerid FROM vtiger_crmentity WHERE crmid = ? AND deleted = 0',
+			array((int) $leadId)
+		);
+		$owner = ($res && $adb->num_rows($res) > 0) ? (int) $adb->query_result($res, 0, 'smownerid') : 0;
+		if ($owner > 0) {
+			return $owner;
+		}
+		if ($userId) {
+			return (int) $userId;
+		}
+		return !empty($current_user->id) ? (int) $current_user->id : 1;
+	}
+
+	protected static function resolveTaskDueAt($status, array $payload) {
+		foreach (array('due_at', 'callback_at', 'follow_up_at') as $key) {
+			if (!empty($payload[$key])) {
+				$ts = strtotime((string) $payload[$key]);
+				if ($ts && $ts > time() - 3600) {
+					return date('Y-m-d H:i:s', $ts);
+				}
+			}
+		}
+		$classDate = isset($payload['class_date']) ? trim((string) $payload['class_date']) : '';
+		if ($status === self::STATUS_DA_XN_LICH && $classDate !== '') {
+			$ts = strtotime($classDate . ' 09:00:00');
+			if ($ts && $ts > time()) {
+				return date('Y-m-d H:i:s', $ts);
+			}
+		}
+		// Mặc định: ngày mai 09:00 (Sales/Admin chỉnh trên Calendar nếu cần).
+		$tomorrow = strtotime('+1 day');
+		return date('Y-m-d', $tomorrow) . ' 09:00:00';
+	}
+
+	/**
 	 * Convert Lead → Opp khi đủ ĐK Offline (idempotent nếu đã có Opp).
 	 */
 	public static function tryConvertEligible($leadId, $userId = null) {
@@ -498,6 +779,10 @@ class Leads_OfflineGd11Service {
 			return false;
 		}
 		return self::isOfflineLead($lead, isset($lead['tags']) ? $lead['tags'] : array());
+	}
+
+	public static function setClassDatePublic($leadId, $classDate) {
+		self::setClassDate($leadId, $classDate);
 	}
 
 	protected static function setClassDate($leadId, $classDate) {

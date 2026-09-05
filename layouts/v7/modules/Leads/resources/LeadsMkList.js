@@ -1570,6 +1570,16 @@
         copyOfflineKb(kbBtn.getAttribute("data-mk-kb-text") || "", kbBtn);
         return;
       }
+      var step2Btn = e.target && e.target.closest ? e.target.closest("[data-mk-step2-action]") : null;
+      if (step2Btn) {
+        e.preventDefault();
+        submitOfflineStep2Action(
+          step2Btn.getAttribute("data-mk-step2-action"),
+          step2Btn.getAttribute("data-mk-milestone") || "",
+          step2Btn
+        );
+        return;
+      }
       var offlineBtn = e.target && e.target.closest ? e.target.closest("[data-mk-offline-action]") : null;
       if (offlineBtn) {
         e.preventDefault();
@@ -1823,9 +1833,16 @@
 
   function offlineStep1ActionsHtml(lead) {
     var st = lead.offline_status_label || lead.offline_status || "—";
+    var r1h = lead.offline_r1_hen_goi || 0;
+    var r1k = lead.offline_r1_khong_nghe || 0;
+    var r1s = lead.offline_r1_sai_tt || 0;
     var counters =
-      "R1 liên hệ " +
-      (lead.offline_r1_contact || 0) +
+      "R1 Hẹn " +
+      r1h +
+      "/3 · Không nghe " +
+      r1k +
+      "/3 · Sai TT " +
+      r1s +
       "/3 · R2 lịch " +
       (lead.offline_r2_schedule || 0) +
       "/3 · R3 lớp " +
@@ -1850,7 +1867,67 @@
       offlineActionBtn("ngung_cskh", "Ngưng CSKH") +
       "</div>" +
       offlineKbHtml(lead) +
+      offlineStep2Html(lead) +
       "</div>"
+    );
+  }
+
+  function offlineStep2Html(lead) {
+    var st = lead.offline_status || "";
+    if (st !== "offline_da_xac_nhan_lich" && st !== "offline_hen_lich_lai") {
+      return "";
+    }
+    var confirmed = Number(lead.offline_preclass_confirm) === 1;
+    var plan = lead.offline_step2_plan || {};
+    var planRows = "";
+    var keys = ["t1", "t2", "t3", "t4", "t5", "t6"];
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      var it = plan[k] || {};
+      planRows +=
+        '<div class="mk-leads-verify-offline__ms">' +
+        "<span><strong>" +
+        esc(k.toUpperCase()) +
+        "</strong> " +
+        esc(it.label || "") +
+        (it.sent ? " · đã gửi" : it.due_at ? " · " + esc(it.due_at) : "") +
+        "</span>" +
+        '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="send_milestone" data-mk-milestone="' +
+        esc(k) +
+        '">Gửi</button></div>';
+    }
+    return (
+      '<div class="mk-leads-verify-offline__step2" data-mk-step2-box="1">' +
+      "<h5>Bước 2 — Trước lớp</h5>" +
+      '<p class="mk-leads-verify-offline__meta">Xác nhận tham gia: <strong>' +
+      (confirmed ? "Đã xác nhận" : "Chưa xác nhận") +
+      "</strong></p>" +
+      '<label class="mk-leads-verify-field"><span>Giờ học</span>' +
+      '<input type="time" class="mk-leads-verify-select" data-mk-step2="class_time" value="' +
+      esc(lead.offline_class_time || "09:00") +
+      '" /></label>' +
+      '<label class="mk-leads-verify-field"><span>Địa điểm</span>' +
+      '<input type="text" class="mk-leads-verify-select" data-mk-step2="class_place" value="' +
+      esc(lead.offline_class_place || "") +
+      '" placeholder="Địa chỉ lớp" /></label>' +
+      '<label class="mk-leads-verify-field"><span>Zalo OA user id <em>(để gửi OA)</em></span>' +
+      '<input type="text" class="mk-leads-verify-select" data-mk-step2="zalo_user_id" value="' +
+      esc(lead.zalo_user_id || "") +
+      '" placeholder="user_id OA" /></label>' +
+      '<div class="mk-leads-verify-offline__actions">' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="save_class_meta">Lưu giờ/địa điểm</button>' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="set_zalo_user">Lưu OA id</button>' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="preclass_confirm">' +
+      (confirmed ? "Đã XN tham gia ✓" : "Đánh dấu sẽ đến") +
+      "</button>" +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="preclass_unconfirm">Chưa XN tham gia</button>' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="hen_lich_lai">Hẹn lịch lại</button>' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="chot_lich_moi">Chốt lịch mới</button>' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="tu_choi_tham_gia">Từ chối / Ngưng</button>' +
+      "</div>" +
+      '<div class="mk-leads-verify-offline__ms-list"><strong>Mốc nhắc (T1–T6)</strong>' +
+      planRows +
+      "</div></div>"
     );
   }
 
@@ -2090,6 +2167,72 @@
       });
   }
 
+  function submitOfflineStep2Action(action, milestone, btn) {
+    var panel = document.getElementById("mk-leads-verify-panel");
+    var lead = panel && panel._mkLead;
+    var id = (lead && (lead.crmid || lead.id)) || "";
+    if (!action || !id) {
+      setListVerifyMsg("Thiếu lead / action Bước 2.", "");
+      return;
+    }
+    if (typeof app === "undefined" || !app.request) {
+      setListVerifyMsg("API không sẵn sàng.", "");
+      return;
+    }
+    var get = function (name) {
+      var el = panel ? panel.querySelector('[data-mk-step2="' + name + '"]') : null;
+      return el ? String(el.value || "").trim() : "";
+    };
+    var classDateEl = panel ? panel.querySelector('[data-mk-verify="class_date"]') : null;
+    var payload = {
+      action: action,
+      class_date: classDateEl ? classDateEl.value || "" : lead.offline_class_date || "",
+      class_time: get("class_time"),
+      class_place: get("class_place"),
+      zalo_user_id: get("zalo_user_id"),
+      milestone: milestone || "",
+    };
+    if (action === "chot_lich_moi" && !payload.class_date) {
+      setListVerifyMsg("Chốt lịch mới — chọn Ngày học phía trên.", "");
+      return;
+    }
+    if (btn) btn.disabled = true;
+    setListVerifyMsg("", "");
+    app.request
+      .post({
+        data: {
+          module: "Leads",
+          action: "ModernApi",
+          mode: "offline_gd11_step2",
+          id: id,
+          record: id,
+          payload: JSON.stringify(payload),
+        },
+      })
+      .then(function (err, res) {
+        if (btn) btn.disabled = false;
+        if (err || !res || !res.success) {
+          setListVerifyMsg((err && (err.message || err)) || (res && res.error) || "Bước 2 thất bại.", "");
+          return;
+        }
+        var fresh = res.lead || lead;
+        if (store && typeof store.importLead === "function" && fresh) {
+          store.importLead(fresh);
+        }
+        panel._mkLead = fresh;
+        fillListVerifyBody(fresh);
+        var ok = "Đã cập nhật Bước 2: " + action;
+        if (res.milestone && res.milestone.success) {
+          ok = "Đã gửi mốc " + (milestone || "") + (res.milestone.note ? " — " + res.milestone.note : "");
+        }
+        if (res.step2 && res.step2.t1 && res.step2.t1.success) {
+          ok += " · T1 đã gửi";
+        }
+        setListVerifyMsg("", ok);
+        renderTable();
+      });
+  }
+
   function submitOfflineGd11Action(action, btn) {
     var panel = document.getElementById("mk-leads-verify-panel");
     var lead = panel && panel._mkLead;
@@ -2131,10 +2274,14 @@
         }
         panel._mkLead = fresh;
         fillListVerifyBody(fresh);
-        setListVerifyMsg("", "Đã cập nhật: " + (res.status_label || res.status || action));
+        var okMsg = "Đã cập nhật: " + (res.status_label || res.status || action);
         if (res.convert && res.convert.converted) {
-          setListVerifyMsg("", "Đã cập nhật & chuyển sang Cơ hội.");
+          okMsg = "Đã cập nhật & chuyển sang Cơ hội.";
         }
+        if (res.calendar && res.calendar.success) {
+          okMsg += " Đã tạo Calendar task.";
+        }
+        setListVerifyMsg("", okMsg);
         renderTable();
       });
   }
@@ -2213,6 +2360,13 @@
         okMsg = "Đã lưu xác minh (Opp đã tồn tại).";
       } else if (res.convert && res.convert.reason && res.convert.reason !== "ok" && !res.convert.skipped) {
         okMsg = "Đã lưu xác minh. Convert Opp: " + res.convert.reason;
+      }
+      if (res.convert && res.offline && res.offline.calendar && res.offline.calendar.success) {
+        okMsg += " Đã tạo Calendar task.";
+      } else if (res.offline && res.offline.calendar && res.offline.calendar.success) {
+        okMsg += " Đã tạo Calendar task.";
+      } else if (res.calendar && res.calendar.success) {
+        okMsg += " Đã tạo Calendar task.";
       }
       setListVerifyMsg("", okMsg);
       if (res.result) paintListVerifyPreview(res.result);
