@@ -120,6 +120,92 @@
 	min-width: 240px;
 }
 
+.mk-opps-page .mk-leads-td--checkin {
+	min-width: 168px;
+	max-width: 200px;
+	width: 200px;
+	overflow: hidden;
+	vertical-align: top;
+}
+
+.mk-opps-checkin {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+}
+
+.mk-opps-checkin__status {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	font-size: 12px;
+	line-height: 1.35;
+	color: #334155;
+	font-weight: 600;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+	max-width: 100%;
+}
+
+.mk-opps-checkin__label {
+	display: block;
+}
+
+.mk-opps-checkin__date,
+.mk-opps-checkin__at {
+	display: block;
+	font-weight: 500;
+	color: #64748b;
+}
+
+.mk-opps-checkin__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.mk-opps-checkin__btn {
+	border: 1px solid #cbd5e1;
+	background: #fff;
+	border-radius: 6px;
+	font-size: 11px;
+	line-height: 1.2;
+	padding: 4px 8px;
+	cursor: pointer;
+	color: #0f172a;
+}
+
+.mk-opps-checkin__btn:hover {
+	background: #f8fafc;
+}
+
+.mk-opps-checkin__btn--ok {
+	border-color: #86efac;
+	background: #ecfdf5;
+	color: #047857;
+}
+
+.mk-opps-checkin__btn--no {
+	border-color: #fecdd3;
+	background: #fff1f2;
+	color: #be123c;
+}
+
+.mk-opps-checkin__btn:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+.mk-opps-checkin__hint {
+	font-size: 11px;
+	color: #94a3b8;
+}
+
 @media (max-width: 1365px) {
 	.mk-opps-page .mk-leads-kpi-grid {
 		grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -150,7 +150,7 @@ class Leads_ModernService {
 			p.offline_status, p.offline_r1_contact, p.offline_r1_hen_goi, p.offline_r1_khong_nghe, p.offline_r1_sai_tt,
 			p.offline_r2_schedule, p.offline_r3_class, p.offline_r4_transfer,
 			p.offline_preclass_confirm, p.offline_class_date, p.offline_class_time, p.offline_class_place,
-			p.offline_step2_entered_at, p.offline_step2_sent';
+			p.offline_step2_entered_at, p.offline_step2_sent, p.offline_checked_in_at';
 	}
 
 	public static function isInstalled(PearDatabase $adb) {

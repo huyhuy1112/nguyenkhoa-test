@@ -78,6 +78,7 @@ class Leads_OfflineGd11Service {
 			'offline_r4_transfer' => "TINYINT(1) NOT NULL DEFAULT 0",
 			'offline_preclass_confirm' => "TINYINT(1) NOT NULL DEFAULT 0",
 			'offline_class_date' => "DATE DEFAULT NULL",
+			'offline_checked_in_at' => "DATETIME NULL",
 		);
 		foreach ($cols as $name => $def) {
 			$res = $adb->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE ?", array($name));
@@ -468,6 +469,11 @@ class Leads_OfflineGd11Service {
 		if ($status === self::STATUS_DA_XN_LICH && $classDate !== '') {
 			self::setClassDate($leadId, $classDate);
 		}
+		if ($status === self::STATUS_DA_THAM_GIA) {
+			self::setCheckedInAt($leadId, date('Y-m-d H:i:s'));
+		} elseif ($status === self::STATUS_KHONG_THAM_GIA) {
+			self::setCheckedInAt($leadId, null);
+		}
 		self::setNextActionHint($leadId, $status, $classDate);
 
 		$taskStatuses = array(
@@ -538,6 +544,8 @@ class Leads_OfflineGd11Service {
 			'offline_preclass_confirm' => !empty($row['offline_preclass_confirm']) ? 1 : 0,
 			'offline_class_date' => (!empty($row['offline_class_date']) && $row['offline_class_date'] !== '0000-00-00')
 				? (string) $row['offline_class_date'] : '',
+			'offline_checked_in_at' => (!empty($row['offline_checked_in_at']) && $row['offline_checked_in_at'] !== '0000-00-00 00:00:00')
+				? date('c', strtotime((string) $row['offline_checked_in_at'])) : '',
 		);
 		if ($detailed) {
 			$out['offline_status_options'] = $labels;
@@ -800,6 +808,136 @@ class Leads_OfflineGd11Service {
 
 	public static function setClassDatePublic($leadId, $classDate) {
 		self::setClassDate($leadId, $classDate);
+	}
+
+	/**
+	 * Bước 3 — Admin check-in tại máy điểm danh (Opp). Không gửi OA.
+	 * @param string $action da_tham_gia|khong_tham_gia
+	 */
+	public static function checkinFromPotential($potentialId, $action, $userId = null) {
+		global $current_user;
+		$potentialId = (int) $potentialId;
+		$action = strtolower(trim((string) $action));
+		if ($potentialId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu opportunity id');
+		}
+		if (!in_array($action, array('da_tham_gia', 'khong_tham_gia'), true)) {
+			return array('success' => false, 'error' => 'Action check-in không hợp lệ');
+		}
+		if ($userId === null && !empty($current_user->id)) {
+			$userId = (int) $current_user->id;
+		}
+		$isAdmin = !empty($current_user->is_admin) && $current_user->is_admin === 'on';
+		if (!$isAdmin) {
+			return array('success' => false, 'error' => 'Chỉ Admin được điểm danh lớp Offline (Bước 3).');
+		}
+
+		require_once 'modules/Leads/models/ConvertService.php';
+		$leadId = (int) Leads_ConvertService::getLinkedLeadIdByPotential($potentialId);
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'Opp chưa gắn Lead Offline');
+		}
+
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT offline_status FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		$cur = ($res && $adb->num_rows($res) > 0)
+			? trim((string) $adb->query_result($res, 0, 'offline_status')) : '';
+		$eligible = array(
+			self::STATUS_DA_XN_LICH,
+			self::STATUS_HEN_LICH_LAI,
+			self::STATUS_KHONG_THAM_GIA,
+			self::STATUS_DA_THAM_GIA,
+		);
+		if ($cur === '' || !in_array($cur, $eligible, true)) {
+			return array(
+				'success' => false,
+				'error' => 'Chỉ điểm danh khi đã xác nhận lịch Offline (hoặc đang ở trạng thái tham gia / không tham gia).',
+				'offline_status' => $cur,
+			);
+		}
+
+		$out = self::applyAction($leadId, $action, array(), $userId);
+		if (empty($out['success'])) {
+			return $out;
+		}
+		$sync = self::syncOfflineStatusToPotential($leadId, isset($out['status']) ? $out['status'] : '', $userId);
+		$out['potential_id'] = $potentialId;
+		$out['lead_id'] = $leadId;
+		$out['opp_tags'] = isset($sync['tags']) ? $sync['tags'] : array();
+		$out['checked_in_at'] = ($action === 'da_tham_gia') ? date('c') : '';
+		return $out;
+	}
+
+	/**
+	 * Đồng bộ tag trạng thái Offline lên Opportunity (list Opp đọc tags trên Potentials).
+	 */
+	public static function syncOfflineStatusToPotential($leadId, $statusTag, $userId = null) {
+		global $current_user;
+		$leadId = (int) $leadId;
+		$statusTag = strtolower(trim((string) $statusTag));
+		if ($leadId <= 0 || $statusTag === '' || !in_array($statusTag, self::STATUS_TAGS, true)) {
+			return array('success' => false, 'tags' => array());
+		}
+		if ($userId === null && !empty($current_user->id)) {
+			$userId = (int) $current_user->id;
+		}
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT potential_id FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		$potentialId = ($res && $adb->num_rows($res) > 0)
+			? (int) $adb->query_result($res, 0, 'potential_id') : 0;
+		if ($potentialId <= 0) {
+			return array('success' => false, 'tags' => array());
+		}
+		try {
+			require_once 'modules/Potentials/models/ModernService.php';
+			$tagsMap = Potentials_ModernService::getTagsForPotentialIdsPublic(array($potentialId), $userId);
+			$current = isset($tagsMap[$potentialId]) ? $tagsMap[$potentialId] : array();
+			$kept = array();
+			foreach ($current as $t) {
+				$key = strtolower(trim((string) $t));
+				if (in_array($key, self::STATUS_TAGS, true)) {
+					continue;
+				}
+				$kept[] = $t;
+			}
+			$kept = self::ensureProgramTag($kept);
+			$kept[] = $statusTag;
+			if ($statusTag === self::STATUS_DA_THAM_GIA) {
+				$kept[] = 'da_tg_free';
+			} else {
+				$kept = array_values(array_filter($kept, function ($t) {
+					return strtolower(trim((string) $t)) !== 'da_tg_free';
+				}));
+			}
+			$saved = Potentials_ModernService::saveTags($potentialId, $kept, $userId);
+			return array(
+				'success' => !empty($saved['success']),
+				'tags' => isset($saved['tags']) ? $saved['tags'] : $kept,
+				'potential_id' => $potentialId,
+			);
+		} catch (Exception $e) {
+			return array('success' => false, 'tags' => array(), 'error' => $e->getMessage());
+		}
+	}
+
+	protected static function setCheckedInAt($leadId, $datetimeOrNull) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return;
+		}
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$adb->pquery(
+			'UPDATE bace_lead_profile SET offline_checked_in_at = ?, modified_at = ? WHERE leadid = ?',
+			array($datetimeOrNull, date('Y-m-d H:i:s'), $leadId)
+		);
 	}
 
 	protected static function setClassDate($leadId, $classDate) {

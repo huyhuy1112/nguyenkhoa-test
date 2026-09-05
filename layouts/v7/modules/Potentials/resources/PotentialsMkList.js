@@ -7,7 +7,7 @@
   var ref = window.PotentialsLovableRef;
   var store = window.PotentialsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 16;
+  var COL_COUNT = 15;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -592,6 +592,85 @@
     );
   }
 
+  function canOfflineCheckin(o) {
+    var st = String((o && o.offline_status) || "");
+    return (
+      st === "offline_da_xac_nhan_lich" ||
+      st === "offline_hen_lich_lai" ||
+      st === "offline_khong_tham_gia" ||
+      st === "offline_da_tham_gia"
+    );
+  }
+
+  function isAdminUser() {
+    return !!window.MK_OPPS_IS_ADMIN;
+  }
+
+  function offlineCheckinCell(o) {
+    if (!canOfflineCheckin(o)) {
+      return '<span class="mk-leads-muted">—</span>';
+    }
+    var label = String(o.offline_status_label || o.offline_status || "").trim();
+    var checkedAt = o.offline_checked_in_at
+      ? formatDateTimeFull(o.offline_checked_in_at)
+      : "";
+    var classDate = o.offline_class_date ? String(o.offline_class_date) : "";
+    var html =
+      '<div class="mk-opps-checkin" data-opp-id="' +
+      esc(o.id) +
+      '">' +
+      '<div class="mk-opps-checkin__status">' +
+      '<span class="mk-opps-checkin__label">' +
+      esc(label || "Offline") +
+      "</span>" +
+      (classDate
+        ? '<span class="mk-opps-checkin__date">Lớp: ' + esc(classDate) + "</span>"
+        : "") +
+      (checkedAt
+        ? '<span class="mk-opps-checkin__at">Lúc: ' + esc(checkedAt) + "</span>"
+        : "") +
+      "</div>";
+    if (isAdminUser()) {
+      html +=
+        '<div class="mk-opps-checkin__actions">' +
+        '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--ok" data-mk-opp-checkin="da_tham_gia" data-opp-id="' +
+        esc(o.id) +
+        '">Đã tham gia</button>' +
+        '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--no" data-mk-opp-checkin="khong_tham_gia" data-opp-id="' +
+        esc(o.id) +
+        '">Không tham gia</button>' +
+        "</div>";
+    } else {
+      html += '<div class="mk-opps-checkin__hint">Chỉ Admin ghi nhận</div>';
+    }
+    return html + "</div>";
+  }
+
+  function submitOfflineCheckin(action, btn) {
+    var oid = btn && btn.getAttribute ? btn.getAttribute("data-opp-id") : "";
+    if (!oid || !store || !store.offlineCheckin) return;
+    var label =
+      action === "da_tham_gia" ? "Ghi nhận Đã tham gia?" : "Ghi nhận Không tham gia?";
+    if (!window.confirm(label)) return;
+    btn.disabled = true;
+    store
+      .offlineCheckin(oid, action)
+      .then(function (res) {
+        if (res && res.drop) {
+          window.alert("Đã đủ R3 → Ngưng CSKH Offline.");
+        }
+        renderAll();
+      })
+      .catch(function (err) {
+        var msg =
+          (err && err.message) ||
+          (typeof err === "string" ? err : "") ||
+          "Không ghi nhận được.";
+        window.alert(msg);
+        btn.disabled = false;
+      });
+  }
+
   function sortOpps(rows) {
     var key = state.sortKey;
     var dir = state.sortDir === "asc" ? 1 : -1;
@@ -883,11 +962,8 @@
               return html + "</div>";
             })() +
             "</td>" +
-            '<td class="mk-leads-td" data-col="confirm">' + tagBadgeHtml(cats.confirm) + "</td>" +
-            '<td class="mk-leads-td" data-col="confirmed_at">' +
-            (o.confirmed_at
-              ? esc(formatDateTimeFull(o.confirmed_at))
-              : '<span class="mk-leads-muted">—</span>') +
+            '<td class="mk-leads-td mk-leads-td--checkin" data-col="attendance">' +
+            offlineCheckinCell(o) +
             "</td>" +
             '<td class="mk-leads-td" data-col="notes">' + notesCell(o.notes) + "</td></tr>"
           );
@@ -1307,6 +1383,14 @@
         if (opp) openTagPopover(tagsBtn, opp);
         return;
       }
+      var checkinBtn =
+        e.target.closest && e.target.closest("[data-mk-opp-checkin][data-opp-id]");
+      if (checkinBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        submitOfflineCheckin(checkinBtn.getAttribute("data-mk-opp-checkin"), checkinBtn);
+        return;
+      }
       if (!e.target.closest || !e.target.closest("#mk-opps-tag-popover")) {
         closeTagPopover();
       }
@@ -1367,6 +1451,16 @@
       if (summary) {
         summary.textContent =
           rows.length + " / " + all.length + " " + t("JS_MK_OPPS_COUNT_LABEL", "cơ hội");
+      }
+    });
+
+    document.addEventListener("mk-opps-attendance-updated", function () {
+      if (store && store.refresh) {
+        store.refresh().then(function () {
+          renderAll();
+        });
+      } else {
+        renderAll();
       }
     });
 
@@ -1475,4 +1569,15 @@
   } else {
     init();
   }
+
+  window.PotentialsMkListRefresh = function () {
+    if (!document.querySelector(".mk-opps-page")) return;
+    if (store && store.refresh) {
+      return store.refresh().then(function () {
+        renderAll();
+      });
+    }
+    renderAll();
+    return Promise.resolve();
+  };
 })();

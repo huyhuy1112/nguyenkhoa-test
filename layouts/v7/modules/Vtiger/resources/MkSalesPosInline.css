@@ -1407,6 +1407,40 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 	border-radius: 10px;
 }
 
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__attendance {
+	margin: 0 0 14px;
+	padding: 12px 12px 10px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__attendance-status {
+	margin: 0 0 8px;
+	font-size: 13px;
+	line-height: 1.4;
+	color: #334155;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__attendance-meta,
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__attendance-hint,
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__attendance-empty {
+	margin: 0;
+	font-size: 12px;
+	color: #64748b;
+	font-weight: 500;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__attendance-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__attendance-actions .mk-opps-checkin__btn {
+	margin: 0;
+}
+
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__tags-head {
 	display: flex;
 	align-items: center;

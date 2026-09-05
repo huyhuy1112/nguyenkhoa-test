@@ -998,6 +998,106 @@
 		$panel.data('mkGetEditableTags', selectedKeys);
 	}
 
+	function initOppAttendance($panel) {
+		if (!$panel || !$panel.length) return;
+		var mod = String($panel.data('module') || moduleName());
+		if (mod !== 'Potentials') return;
+		var $box = $panel.find('[data-mk-opp-attendance="1"]');
+		if (!$box.length || $box.data('mkAttendanceInit')) return;
+		$box.data('mkAttendanceInit', true);
+
+		$box.on('click', '[data-mk-opp-checkin]', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var $btn = $(this);
+			var action = String($btn.attr('data-mk-opp-checkin') || '');
+			var oid = String($btn.attr('data-opp-id') || $panel.data('record-id') || '');
+			if (!action || !oid) return;
+			var label =
+				action === 'da_tham_gia' ? 'Ghi nhận Đã tham gia?' : 'Ghi nhận Không tham gia?';
+			if (!window.confirm(label)) return;
+			$btn.prop('disabled', true);
+			$box.find('[data-mk-opp-checkin]').prop('disabled', true);
+
+			var store = window.PotentialsLocalStore;
+			var done = function (res) {
+				if (res && res.drop) {
+					app.helper && app.helper.showAlertNotification
+						? app.helper.showAlertNotification({ message: 'Đã đủ R3 → Ngưng CSKH Offline.' })
+						: window.alert('Đã đủ R3 → Ngưng CSKH Offline.');
+				}
+				var statusLabel = (res && res.status_label) || (res && res.status) || '';
+				var checkedAt = (res && res.checked_in_at) || '';
+				var checkedLabel = '';
+				if (checkedAt) {
+					try {
+						var d = new Date(checkedAt);
+						if (!isNaN(d.getTime())) {
+							checkedLabel =
+								('0' + d.getDate()).slice(-2) +
+								'/' +
+								('0' + (d.getMonth() + 1)).slice(-2) +
+								'/' +
+								d.getFullYear() +
+								' ' +
+								('0' + d.getHours()).slice(-2) +
+								':' +
+								('0' + d.getMinutes()).slice(-2);
+						}
+					} catch (err) {}
+				}
+				var $status = $box.find('.mk-so-inline-detail__attendance-status');
+				if ($status.length && statusLabel) {
+					var meta = '';
+					if (checkedLabel) {
+						meta = '<br/><span class="mk-so-inline-detail__attendance-meta">Lúc: ' +
+							$('<div/>').text(checkedLabel).html() +
+							'</span>';
+					}
+					$status.html('<strong>' + $('<div/>').text(statusLabel).html() + '</strong>' + meta);
+				}
+				$box.find('[data-mk-opp-checkin]').prop('disabled', false);
+				if (window.PotentialsMkListRefresh) {
+					try {
+						window.PotentialsMkListRefresh();
+					} catch (err2) {}
+				} else if (document.querySelector('.mk-opps-page')) {
+					document.dispatchEvent(new CustomEvent('mk-opps-attendance-updated', { detail: { id: oid } }));
+				}
+			};
+			var fail = function (err) {
+				var msg =
+					(err && err.message) ||
+					(typeof err === 'string' ? err : '') ||
+					'Không ghi nhận được.';
+				window.alert(msg);
+				$box.find('[data-mk-opp-checkin]').prop('disabled', false);
+			};
+
+			if (store && typeof store.offlineCheckin === 'function') {
+				store.offlineCheckin(oid, action).then(done).catch(fail);
+				return;
+			}
+			app.request
+				.post({
+					data: {
+						module: 'Potentials',
+						action: 'ModernApi',
+						mode: 'offline_checkin',
+						record: oid,
+						offline_action: action
+					}
+				})
+				.then(function (err, res) {
+					if (err || !res || res.success === false) {
+						fail((res && res.error) || err || 'API failed');
+						return;
+					}
+					done(res);
+				});
+		});
+	}
+
 	function initPanel($detailRow) {
 		var $panel = $detailRow.find('.mk-so-inline-detail');
 		if (!$panel.length || $panel.data('mkPosInlineInit')) {
@@ -1009,6 +1109,7 @@
 		var snapshot = captureSnapshot($panel);
 		setEditMode($panel, true);
 		initLeadTagPicker($panel);
+		initOppAttendance($panel);
 
 		// Boolean toggles (e.g. Cần QC)
 		$panel.on('change', '.mk-so-inline-detail__bool-input', function () {

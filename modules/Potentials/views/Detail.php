@@ -109,16 +109,9 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 		);
 		array_splice($infoFields, 1, 0, $locationFields);
 
-		$confirmKey = '';
-		$confirmLabel = '—';
 		$inlineTags = Vtiger_MkSalesInlineDetailHelper::buildInlineTags($moduleName, $recordId);
 		foreach ($inlineTags as $tag) {
 			$key = isset($tag['key']) ? (string) $tag['key'] : '';
-			if ($key === 'xac_nhan_tham_gia' || $key === 'khong_xac_nhan_tham_gia') {
-				$confirmKey = $key;
-				$confirmLabel = isset($tag['label']) ? (string) $tag['label'] : $key;
-				break;
-			}
 			if ($regionKey === '' && preg_match('/^kv([123])$/i', $key, $km)) {
 				$regionKey = 'kv' . $km[1];
 			}
@@ -133,19 +126,59 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 			}
 			unset($f);
 		}
-		$infoFields[] = array(
-			'name' => 'mk_confirm_tag',
-			'label' => 'Xác nhận tham gia',
-			'value' => $confirmLabel !== '' ? $confirmLabel : '—',
-			'raw_value' => $confirmKey,
-			'data_type' => 'picklist',
-			'editable' => true,
-			'picklist_values' => array(
-				'' => '—',
-				'xac_nhan_tham_gia' => 'Xác nhận tham gia',
-				'khong_xac_nhan_tham_gia' => 'Không tham gia',
-			),
+
+		$attendance = array(
+			'eligible' => false,
+			'can_edit' => false,
+			'status' => '',
+			'status_label' => '',
+			'class_date' => '',
+			'checked_in_at' => '',
+			'checked_in_at_label' => '',
 		);
+		try {
+			require_once 'modules/Leads/models/ConvertService.php';
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			Leads_OfflineGd11Service::installSchema();
+			$leadId = (int) Leads_ConvertService::getLinkedLeadIdByPotential($recordId);
+			if ($leadId > 0) {
+				$adb = PearDatabase::getInstance();
+				$ores = $adb->pquery(
+					'SELECT offline_status, offline_class_date, offline_checked_in_at
+					 FROM bace_lead_profile WHERE leadid = ?',
+					array($leadId)
+				);
+				if ($ores && $adb->num_rows($ores) > 0) {
+					$status = trim((string) $adb->query_result($ores, 0, 'offline_status'));
+					$classDate = (string) $adb->query_result($ores, 0, 'offline_class_date');
+					if ($classDate === '0000-00-00') {
+						$classDate = '';
+					}
+					$checkedRaw = (string) $adb->query_result($ores, 0, 'offline_checked_in_at');
+					if ($checkedRaw === '0000-00-00 00:00:00') {
+						$checkedRaw = '';
+					}
+					$labels = Leads_OfflineGd11Service::statusLabels();
+					$eligibleStatuses = array(
+						Leads_OfflineGd11Service::STATUS_DA_XN_LICH,
+						Leads_OfflineGd11Service::STATUS_HEN_LICH_LAI,
+						Leads_OfflineGd11Service::STATUS_KHONG_THAM_GIA,
+						Leads_OfflineGd11Service::STATUS_DA_THAM_GIA,
+					);
+					$attendance['status'] = $status;
+					$attendance['status_label'] = isset($labels[$status]) ? $labels[$status] : $status;
+					$attendance['class_date'] = $classDate;
+					$attendance['checked_in_at'] = $checkedRaw !== '' ? date('c', strtotime($checkedRaw)) : '';
+					$attendance['checked_in_at_label'] = $checkedRaw !== ''
+						? date('d/m/Y H:i', strtotime($checkedRaw)) : '';
+					$attendance['eligible'] = ($status !== '' && in_array($status, $eligibleStatuses, true));
+					$cu = Users_Record_Model::getCurrentUserModel();
+					$attendance['can_edit'] = $attendance['eligible'] && $cu && $cu->isAdminUser();
+				}
+			}
+		} catch (Exception $e) {
+			// keep defaults
+		}
 
 		$nextAction = '';
 		$nextActionTimeframe = '';
@@ -200,6 +233,7 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 		$viewer->assign('INLINE_NEXT_ACTION_OVERDUE', $nextActionOverdue);
 		$viewer->assign('INLINE_NEXT_ACTION_ALERT_DAYS', $nextActionAlertDays);
 		$viewer->assign('INLINE_LAST_TOUCH', $lastTouch);
+		$viewer->assign('INLINE_ATTENDANCE', $attendance);
 		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}
 

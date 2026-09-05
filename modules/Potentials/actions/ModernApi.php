@@ -22,7 +22,7 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_inline_business_model', 'save_tags', 'delete', 'last_touch_call_log'), true)) {
+		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_inline_business_model', 'save_tags', 'delete', 'last_touch_call_log', 'offline_checkin'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -142,6 +142,39 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 						'success' => true,
 						'lastTouchCalls' => $logged,
 						'logged' => isset($logged['logged']) ? $logged['logged'] : null,
+					));
+					break;
+				case 'offline_checkin':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$action = $request->get('offline_action');
+					if ($action === null || $action === '') {
+						$action = $request->get('action_name');
+					}
+					$checkin = Leads_OfflineGd11Service::checkinFromPotential($recordId, $action, $userId);
+					if (empty($checkin['success'])) {
+						throw new Exception(isset($checkin['error']) ? $checkin['error'] : 'Check-in thất bại');
+					}
+					// Refresh Opp row fields for UI patch
+					$list = Potentials_ModernService::listPotentials($userId);
+					$opp = null;
+					foreach ($list as $row) {
+						if ((int) $row['crmid'] === $recordId || (string) $row['id'] === (string) $recordId) {
+							$opp = $row;
+							break;
+						}
+					}
+					$response->setResult(array(
+						'success' => true,
+						'status' => isset($checkin['status']) ? $checkin['status'] : '',
+						'status_label' => isset($checkin['status_label']) ? $checkin['status_label'] : '',
+						'drop' => isset($checkin['drop']) ? $checkin['drop'] : '',
+						'checked_in_at' => isset($checkin['checked_in_at']) ? $checkin['checked_in_at'] : '',
+						'tags' => isset($checkin['opp_tags']) ? $checkin['opp_tags'] : array(),
+						'opportunity' => $opp,
 					));
 					break;
 				default:

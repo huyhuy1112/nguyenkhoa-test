@@ -23,6 +23,10 @@ class Potentials_OppTagCatalog {
 		'nhuong_quyen', 'da_ky_quy',
 		// Xác nhận tham gia
 		'xac_nhan_tham_gia', 'khong_xac_nhan_tham_gia',
+		// Offline GD1.1 trạng thái (Bước 3 check-in trên Opp)
+		'offline_hen_goi_lai', 'offline_khong_nghe_may', 'offline_sai_thong_tin',
+		'offline_chuyen_chuong_trinh', 'offline_chua_xac_nhan_lich', 'offline_da_xac_nhan_lich',
+		'offline_hen_lich_lai', 'offline_khong_tham_gia', 'offline_da_tham_gia', 'offline_ngung_cskh',
 		// Hạng khách (tier)
 		'vang', 'bac', 'dong',
 	);
