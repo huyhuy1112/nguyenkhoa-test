@@ -204,7 +204,9 @@ class Leads_OfflineGd11Step2Service {
 			$classTime = isset($cfg['default_class_time']) ? $cfg['default_class_time'] : '09:00';
 		}
 		if ($classPlace === '' && !empty($cfg['default_class_place'])) {
-			$classPlace = (string) $cfg['default_class_place'];
+			$classPlace = self::decodeUtfText($cfg['default_class_place']);
+		} else {
+			$classPlace = self::decodeUtfText($classPlace);
 		}
 		if ($classDate !== '') {
 			Leads_OfflineGd11Service::setClassDatePublic($leadId, $classDate);
@@ -237,18 +239,27 @@ class Leads_OfflineGd11Step2Service {
 	 */
 	public static function profileExtras(array $row, $detailed = false) {
 		$sent = self::parseSent(isset($row['offline_step2_sent']) ? $row['offline_step2_sent'] : '');
+		$place = self::decodeUtfText(isset($row['offline_class_place']) ? $row['offline_class_place'] : '');
+		if ($place === '') {
+			$cfg = self::getConfig();
+			$place = self::decodeUtfText(isset($cfg['default_class_place']) ? $cfg['default_class_place'] : '');
+		}
 		$out = array(
 			'offline_class_time' => isset($row['offline_class_time']) && $row['offline_class_time']
 				? (string) $row['offline_class_time'] : '09:00',
-			'offline_class_place' => isset($row['offline_class_place']) ? (string) $row['offline_class_place'] : '',
+			'offline_class_place' => $place,
 			'offline_step2_entered_at' => (!empty($row['offline_step2_entered_at']) && $row['offline_step2_entered_at'] !== '0000-00-00 00:00:00')
 				? (string) $row['offline_step2_entered_at'] : '',
 			'offline_step2_sent' => $sent,
 			'zalo_user_id' => isset($row['zalo_user_id']) ? (string) $row['zalo_user_id'] : '',
 		);
 		if ($detailed) {
+			$cfg = self::getConfig();
+			if (!empty($cfg['default_class_place'])) {
+				$cfg['default_class_place'] = self::decodeUtfText($cfg['default_class_place']);
+			}
 			$out['offline_step2_plan'] = self::planFromRow($row);
-			$out['offline_step2_config'] = self::getConfig();
+			$out['offline_step2_config'] = $cfg;
 			$out['offline_kb_step2'] = self::kbSnippetsStep2();
 		}
 		return $out;
@@ -361,7 +372,7 @@ class Leads_OfflineGd11Step2Service {
 			}
 			if ($place !== null) {
 				$sets[] = 'offline_class_place = ?';
-				$params[] = $place !== '' ? $place : null;
+				$params[] = $place !== '' ? self::decodeUtfText($place) : null;
 			}
 			if ($sets) {
 				$sets[] = 'modified_at = ?';
@@ -632,9 +643,9 @@ class Leads_OfflineGd11Step2Service {
 
 	protected static function templateVars(array $row) {
 		$cfg = self::getConfig();
-		$place = isset($row['offline_class_place']) ? trim((string) $row['offline_class_place']) : '';
+		$place = self::decodeUtfText(isset($row['offline_class_place']) ? $row['offline_class_place'] : '');
 		if ($place === '' && !empty($cfg['default_class_place'])) {
-			$place = (string) $cfg['default_class_place'];
+			$place = self::decodeUtfText($cfg['default_class_place']);
 		}
 		$date = isset($row['offline_class_date']) ? (string) $row['offline_class_date'] : '';
 		$time = isset($row['offline_class_time']) && $row['offline_class_time']
@@ -644,6 +655,28 @@ class Leads_OfflineGd11Step2Service {
 			'class_time' => $time,
 			'class_place' => $place,
 		);
+	}
+
+	/**
+	 * Decode HTML entities (&ecirc; → ê) — tránh hiện lỗi font trên UI.
+	 */
+	protected static function decodeUtfText($value) {
+		if ($value === null || $value === '') {
+			return '';
+		}
+		$text = is_string($value) ? $value : (string) $value;
+		if (function_exists('decode_html')) {
+			$text = decode_html($text);
+		}
+		$prev = $text;
+		for ($i = 0; $i < 3; $i++) {
+			$decoded = html_entity_decode($prev, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+			if ($decoded === $prev) {
+				break;
+			}
+			$prev = $decoded;
+		}
+		return $prev;
 	}
 
 	protected static function renderKb($kbKey, array $vars) {
