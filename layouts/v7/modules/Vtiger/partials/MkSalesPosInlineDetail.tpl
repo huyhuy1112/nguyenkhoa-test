@@ -67,6 +67,36 @@
 		</div>
 	{/if}
 
+	{if $MODULE eq 'Potentials'}
+		{assign var=ATT value=$INLINE_ATTENDANCE|default:[]}
+		<div class="mk-so-inline-detail__attendance" data-mk-opp-attendance="1" data-record-id="{$RECORD->getId()|escape}">
+			<h3 class="mk-so-inline-detail__sec-title">Tham gia</h3>
+			{if !empty($ATT.eligible)}
+				<p class="mk-so-inline-detail__attendance-status">
+					<strong>{if $ATT.status_label}{$ATT.status_label|escape}{else}—{/if}</strong>
+					{if !empty($ATT.class_date)}
+						<span class="mk-so-inline-detail__attendance-meta"> · Lớp {$ATT.class_date|escape}</span>
+					{/if}
+					{if !empty($ATT.checked_in_at_label)}
+						<br/><span class="mk-so-inline-detail__attendance-meta">Lúc: {$ATT.checked_in_at_label|escape}</span>
+					{/if}
+				</p>
+				{if !empty($ATT.can_edit)}
+					<div class="mk-so-inline-detail__attendance-actions">
+						<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-opps-checkin__btn mk-opps-checkin__btn--ok" data-mk-opp-checkin="da_tham_gia" data-opp-id="{$RECORD->getId()|escape}">Đã tham gia</button>
+						<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-opps-checkin__btn mk-opps-checkin__btn--no" data-mk-opp-checkin="khong_tham_gia" data-opp-id="{$RECORD->getId()|escape}">Không tham gia</button>
+					</div>
+				{elseif !empty($ATT.locked)}
+					<p class="mk-so-inline-detail__attendance-hint">Đã ghi nhận · khóa chọn lại</p>
+				{else}
+					<p class="mk-so-inline-detail__attendance-hint">Chỉ Admin ghi nhận tham gia tại lớp.</p>
+				{/if}
+			{else}
+				<p class="mk-so-inline-detail__attendance-empty">Chưa đến bước điểm danh (cần đã xác nhận lịch Offline).</p>
+			{/if}
+		</div>
+	{/if}
+
 	{assign var=MK_EDITABLE_TAGS value=($MODULE eq 'Leads' || $MODULE eq 'Potentials' || $MODULE eq 'Contacts')}
 	{if empty($INLINE_HIDE_TAGS)}
 	<div class="mk-so-inline-detail__tags{if $MK_EDITABLE_TAGS} is-editable{/if}"{if $MK_EDITABLE_TAGS} data-editable-tags="1"{/if}>
@@ -248,7 +278,7 @@
 				<i class="fa fa-file-text-o" aria-hidden="true"></i>
 				<span>Báo giá</span>
 			</a>
-			<label class="mk-so-inline-detail__aff-toggle" title="Tắt chỉ ẩn mã, không xóa">
+				<label class="mk-so-inline-detail__aff-toggle" title="Tắt: xóa mã khỏi hệ thống. Bật: tạo lại mã giới thiệu.">
 				<input type="checkbox" class="mk-so-inline-detail__aff-visible-input"{if !empty($INLINE_SC_AFF_VISIBLE)} checked="checked"{/if} />
 				<span class="mk-so-inline-detail__aff-toggle-ui" aria-hidden="true"></span>
 				<span class="mk-so-inline-detail__aff-toggle-label">Cho phép giới thiệu</span>

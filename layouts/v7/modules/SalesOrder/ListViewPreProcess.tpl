@@ -15,16 +15,17 @@
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/SalesOrder/resources/SalesOrderToolsListContent.css')}?mk_v=20260605_so_tools2" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/SalesOrder/resources/SalesOrderToolsList.css')}?mk_v=20260605_so_tools2" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260811_vat_sku_ui1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260821_listfix5" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_search2" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260811_vat_sku_ui1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260821_listfix5"></script>
 {else}
 {include file="partials/MkSalesListAntiFouc.tpl"|@vtemplate_path:'Vtiger'}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/SalesOrder/resources/SalesOrderList.css')}?mk_v=20260819_fix8" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260811_vat_sku_ui1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/SalesOrder/resources/SalesOrderList.css')}?mk_v=20260821_listfix5" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260821_listfix5" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosList.css')}?mk_v=20260812_sku_cols1" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260811_vat_sku_ui1"></script>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosLovable.css')}?mk_v=20260821_listfix5" />
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.js')}?mk_v=20260821_listfix5"></script>
 {/if}
 {assign var=mk_so_mod value=Vtiger_Module_Model::getInstance($MODULE)}
 {assign var=mk_so_status_fm value=Vtiger_Field_Model::getInstance('sostatus', $mk_so_mod)}
@@ -64,7 +65,7 @@ window.__mkSoToolsListConfig.statusHeaderLabel = window.__mkSoSalesListConfig.st
 {if $MK_SO_IS_TOOLS}
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/SalesOrder/resources/ListToolsBoot.js')}?mk_v=20260605_so_tools2"></script>
 {else}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260820_sheet1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260821_panel1" />
 <script type="text/javascript">
 window.__mkSalesPosInlineConfig = {
 	module: 'SalesOrder',
@@ -77,8 +78,8 @@ window.__mkSalesPosInlineConfig = {
 	errorText: 'Không tải được chi tiết đơn.'
 };
 </script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260820_sheet1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/SalesOrder/resources/List.js')}?mk_v=20260820_panel2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260821_affdel1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/SalesOrder/resources/List.js')}?mk_v=20260821_listfix5"></script>
 {/if}
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-sales-order-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}

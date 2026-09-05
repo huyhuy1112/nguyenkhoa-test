@@ -55,6 +55,12 @@ class Potentials_ModernService {
 		} catch (Exception $e) {
 			// lead profile column is best-effort for business_model fallback
 		}
+		try {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			Leads_OfflineGd11Service::installSchema($adb);
+		} catch (Exception $e) {
+			// offline columns best-effort
+		}
 		$sql = "SELECT p.potentialid, p.potentialname, p.sales_stage, p.closingdate, p.amount,
 				p.leadsource, p.order_category, p.related_to, p.contact_id,
 				ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description,
@@ -63,8 +69,12 @@ class Potentials_ModernService {
 				cd.phone AS contact_phone, cd.mobile AS contact_mobile,
 				pp.district AS pot_district, pp.address_line AS pot_address, pp.confirmed_at, pp.last_touch AS pot_last_touch,
 				pp.business_model AS pot_business_model,
+				lp.leadid AS linked_leadid,
 				lp.district AS lead_district, lp.address_line AS lead_address, lp.area AS lead_area,
-				lp.business_model AS lead_business_model
+				lp.business_model AS lead_business_model,
+				lp.offline_status, lp.offline_r1_contact, lp.offline_r1_hen_goi, lp.offline_r1_khong_nghe, lp.offline_r1_sai_tt,
+				lp.offline_r2_schedule, lp.offline_r3_class, lp.offline_r4_transfer,
+				lp.offline_preclass_confirm, lp.offline_class_date, lp.offline_checked_in_at
 			FROM vtiger_potential p
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid AND ce.deleted = 0
 			LEFT JOIN vtiger_account acc ON acc.accountid = p.related_to
@@ -193,6 +203,22 @@ class Potentials_ModernService {
 			// ignore — rule metadata is best-effort
 		}
 
+		$offline = array();
+		try {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			Leads_OfflineGd11Service::installSchema();
+			$offline = Leads_OfflineGd11Service::profileBlock($row, false);
+			if (!empty($offline['offline_status'])) {
+				$classDate = isset($offline['offline_class_date']) ? $offline['offline_class_date'] : '';
+				$hint = Leads_OfflineGd11Service::nextActionForStatus($offline['offline_status'], $classDate);
+				if ($hint !== '') {
+					$ruleMeta['next_action'] = $hint;
+				}
+			}
+		} catch (Exception $e) {
+			$offline = array();
+		}
+
 		return array(
 			'id' => (string)$potentialId,
 			'crmid' => $potentialId,
@@ -226,7 +252,13 @@ class Potentials_ModernService {
 			'next_action_days_remaining' => $ruleMeta['next_action_days_remaining'],
 			'next_action_days_overdue' => $ruleMeta['next_action_days_overdue'],
 			'next_action_timeframe' => $ruleMeta['timeframe_label'],
-		);
+			'linked_leadid' => !empty($row['linked_leadid']) ? (int) $row['linked_leadid'] : 0,
+		) + $offline;
+	}
+
+	/** Public wrapper for Offline check-in tag sync. */
+	public static function getTagsForPotentialIdsPublic(array $potentialIds, $userId = null) {
+		return self::getTagsForPotentialIds($potentialIds, $userId);
 	}
 
 	protected static function getConfirmTaggedOn(array $potentialIds) {

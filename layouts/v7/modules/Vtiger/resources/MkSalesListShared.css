@@ -250,8 +250,8 @@ body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn--curr
 	border-color: transparent !important;
 	color: #64748b !important;
 	gap: 4px;
-	cursor: default;
-	pointer-events: none;
+	cursor: pointer;
+	pointer-events: auto;
 }
 
 body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-current {
@@ -297,9 +297,9 @@ body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:focus
 
 body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn--current:hover:not(:disabled),
 body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn--current:focus:not(:disabled) {
-	background: transparent !important;
-	border-color: transparent !important;
-	color: #64748b !important;
+	background: #f1f5f9 !important;
+	border-color: #cbd5e1 !important;
+	color: #0f172a !important;
 }
 
 body[data-view="List"][data-app="SALES"] .mk-so-pagination .mk-so-page-btn:disabled {

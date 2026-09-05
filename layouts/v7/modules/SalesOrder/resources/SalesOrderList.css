@@ -242,7 +242,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-table-
 	border: 1px solid #d4c4ad;
 	border-radius: 12px;
 	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06);
-	overflow: hidden;
+	overflow: visible;
 	box-sizing: border-box;
 	width: 100%;
 	max-width: none;
@@ -951,9 +951,11 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-dash-main
 	background: #f7f9fb;
 }
 
-/* Active page indicator (amber underline on page jump) */
+/* Active page indicator — clickable PageJump */
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pagination #PageJump.mk-so-page-btn {
 	box-shadow: inset 0 -3px 0 #08A045;
+	cursor: pointer !important;
+	pointer-events: auto !important;
 }
 
 /* ====================================================================== */
@@ -2070,7 +2072,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-li
 	border-radius: 10px;
 	border-color: #e2e8f0;
 	box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
-	overflow: hidden;
+	overflow: visible !important;
 }
 
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-pos-list-enabled .mk-so-pos-main > .mk-so-table-card {

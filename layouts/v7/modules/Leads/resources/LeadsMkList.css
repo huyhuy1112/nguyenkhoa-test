@@ -750,6 +750,80 @@ body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-so-page.mk-lea
 	border-top: 1px solid #e2e8f0;
 }
 
+/* Merge leads modal */
+.mk-leads-merge-modal__panel {
+	width: min(480px, 100%);
+	max-height: min(85vh, 640px);
+}
+.mk-leads-merge-warn {
+	padding: 10px 12px;
+	border-radius: 10px;
+	background: #fff7ed;
+	border: 1px solid #fdba74;
+	color: #9a3412;
+	font-size: 13px;
+	line-height: 1.45;
+}
+.mk-leads-merge-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.mk-leads-merge-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 12px 14px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	background: #fff;
+	cursor: pointer;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.mk-leads-merge-item:hover {
+	border-color: #93c5fd;
+	background: #f8fbff;
+}
+.mk-leads-merge-item:has(input:checked) {
+	border-color: #0B6E4F;
+	box-shadow: 0 0 0 3px rgba(11, 110, 79, 0.14);
+	background: #f0fdf7;
+}
+.mk-leads-merge-item input {
+	margin-top: 3px;
+	accent-color: #0B6E4F;
+	flex-shrink: 0;
+}
+.mk-leads-merge-item__body {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+.mk-leads-merge-item__name {
+	font-size: 14px;
+	font-weight: 700;
+	color: #0f172a;
+}
+.mk-leads-merge-item__meta {
+	font-size: 12px;
+	color: #64748b;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+}
+.mk-leads-merge-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 1px 8px;
+	border-radius: 999px;
+	background: #ffedd5;
+	color: #c2410c;
+	font-size: 11px;
+	font-weight: 700;
+}
+
 .mk-leads-lead-text {
 	display: inline-flex;
 	flex-wrap: wrap;
@@ -936,6 +1010,9 @@ body.mk-leads-verify-open {
 	grid-template-columns: repeat(3, 1fr);
 	gap: 8px;
 }
+.mk-leads-verify-formcards--4 {
+	grid-template-columns: repeat(2, 1fr);
+}
 .mk-leads-verify-formcard {
 	padding: 10px 10px 12px;
 	border-radius: 12px;
@@ -1008,6 +1085,113 @@ body.mk-leads-verify-open {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 10px;
+	padding: 12px;
+	margin: 8px 0 4px;
+	border-radius: 12px;
+	background: #f0f9ff;
+	border: 1px solid #bae6fd;
+}
+.mk-leads-verify-c45__hint {
+	grid-column: 1 / -1;
+	margin: 0 0 2px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #0369a1;
+}
+.mk-leads-verify-offline {
+	margin: 12px 0;
+	padding: 12px;
+	border-radius: 12px;
+	background: #fff7ed;
+	border: 1px solid #fed7aa;
+}
+.mk-leads-verify-offline h4 {
+	margin: 0 0 6px;
+	font-size: 13px;
+	font-weight: 700;
+	color: #9a3412;
+}
+.mk-leads-verify-offline__meta {
+	margin: 0 0 10px;
+	font-size: 12px;
+	color: #9a3412;
+	line-height: 1.45;
+}
+.mk-leads-verify-offline__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+.mk-leads-verify-offline__kb {
+	margin-top: 12px;
+	padding-top: 10px;
+	border-top: 1px dashed #fdba74;
+}
+.mk-leads-verify-offline__kb h5 {
+	margin: 0 0 8px;
+	font-size: 12px;
+	font-weight: 700;
+	color: #9a3412;
+}
+.mk-leads-verify-offline__kb-row {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 4px 8px;
+	align-items: start;
+	margin-bottom: 10px;
+	padding: 8px;
+	border-radius: 8px;
+	background: rgba(255, 255, 255, 0.7);
+}
+.mk-leads-verify-offline__kb-meta {
+	grid-column: 1 / -1;
+	font-size: 12px;
+	color: #9a3412;
+}
+.mk-leads-verify-offline__kb-text {
+	margin: 0;
+	grid-column: 1;
+	font-size: 12px;
+	line-height: 1.45;
+	color: #7c2d12;
+}
+.mk-leads-verify-offline__kb-row > button {
+	grid-column: 2;
+	grid-row: 2;
+	align-self: start;
+	padding: 4px 8px;
+	font-size: 11px;
+}
+.mk-leads-verify-offline__step2 {
+	margin-top: 12px;
+	padding-top: 10px;
+	border-top: 1px dashed #fdba74;
+}
+.mk-leads-verify-offline__step2 h5 {
+	margin: 0 0 8px;
+	font-size: 12px;
+	font-weight: 700;
+	color: #9a3412;
+}
+.mk-leads-verify-offline__ms-list {
+	margin-top: 10px;
+	font-size: 12px;
+	color: #9a3412;
+}
+.mk-leads-verify-offline__ms {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-top: 6px;
+	padding: 6px 8px;
+	border-radius: 8px;
+	background: rgba(255, 255, 255, 0.7);
+}
+.mk-leads-verify-offline__ms > button {
+	padding: 4px 8px;
+	font-size: 11px;
+	flex-shrink: 0;
 }
 .mk-leads-verify-c45[hidden] {
 	display: none !important;

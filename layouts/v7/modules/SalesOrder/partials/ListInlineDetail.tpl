@@ -10,7 +10,7 @@
 	<div class="mk-so-inline-detail__hero">
 		<div class="mk-so-inline-detail__hero-main">
 			<div class="mk-so-inline-detail__customer">
-				<span class="mk-so-inline-detail__customer-name">{if isset($INLINE_CUSTOMER_NAME) && $INLINE_CUSTOMER_NAME neq '' && $INLINE_CUSTOMER_NAME neq '—'}{$INLINE_CUSTOMER_NAME}{else}--{/if}</span>
+				<span class="mk-so-inline-detail__customer-name">{if isset($INLINE_CUSTOMER_NAME) && $INLINE_CUSTOMER_NAME neq '' && $INLINE_CUSTOMER_NAME neq '—' && $INLINE_CUSTOMER_NAME neq '--'}{$INLINE_CUSTOMER_NAME}{else}{/if}</span>
 			</div>
 			<div class="mk-so-inline-detail__order-no">{$RECORD->getDisplayValue('salesorder_no')}</div>
 		</div>
@@ -193,7 +193,7 @@
 				<i class="fa fa-copy" aria-hidden="true"></i>
 				<span>Nhân bản</span>
 			</a>
-			<a class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__to-quote-btn" href="index.php?module=Quotes&view=Edit&app=SALES&salesorder_id={$RECORD->getId()}" title="Tạo báo giá từ đơn hàng này">
+			<a class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__to-quote-btn" href="index.php?module=Quotes&view=Edit&app=SALES&salesorder_id={$RECORD->getId()}" data-record-id="{$RECORD->getId()}" title="Tạo báo giá từ đơn hàng này">
 				<i class="fa fa-file-text-o" aria-hidden="true"></i>
 				<span>Tạo báo giá</span>
 			</a>

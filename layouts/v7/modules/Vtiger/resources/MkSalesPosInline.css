@@ -1407,6 +1407,40 @@ body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="I
 	border-radius: 10px;
 }
 
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__attendance {
+	margin: 0 0 14px;
+	padding: 12px 12px 10px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__attendance-status {
+	margin: 0 0 8px;
+	font-size: 13px;
+	line-height: 1.4;
+	color: #334155;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__attendance-meta,
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__attendance-hint,
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__attendance-empty {
+	margin: 0;
+	font-size: 12px;
+	color: #64748b;
+	font-weight: 500;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__attendance-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__attendance-actions .mk-opps-checkin__btn {
+	margin: 0;
+}
+
 body[data-view="List"]:is([data-app="SALES"], [data-app="SUPPORT"], [data-app="INVENTORY"]) .mk-so-inline-detail__tags-head {
 	display: flex;
 	align-items: center;
@@ -1908,6 +1942,137 @@ body.mk-crm-inline-drawer-open {
 	overflow: hidden;
 }
 
+/* Confirm / toasts must sit above the record drawer (z-index 10080). */
+body[data-view="List"][data-app="SALES"] .bootbox,
+body[data-view="List"][data-app="SALES"] .bootbox.modal {
+	z-index: 110080 !important;
+}
+body[data-view="List"][data-app="SALES"] .vt-notification,
+body[data-view="List"][data-app="SALES"] [data-notify="container"] {
+	z-index: 110090 !important;
+}
+
+/* Shared POS confirm modal (SO→Quote, Quote→SO) — works on any SALES list. */
+body[data-view="List"][data-app="SALES"] .bootbox.mk-quote-convert-modal,
+.bootbox.mk-quote-convert-modal {
+	z-index: 110100 !important;
+}
+body[data-view="List"][data-app="SALES"] .bootbox.mk-quote-convert-modal .modal-dialog,
+.bootbox.mk-quote-convert-modal .modal-dialog {
+	max-width: 440px;
+	width: calc(100% - 32px);
+	margin: 10vh auto;
+}
+body[data-view="List"][data-app="SALES"] .bootbox.mk-quote-convert-modal .modal-content,
+.bootbox.mk-quote-convert-modal .modal-content {
+	border: none;
+	border-radius: 16px;
+	box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
+	overflow: hidden;
+}
+body[data-view="List"][data-app="SALES"] .bootbox.mk-quote-convert-modal .modal-header,
+.bootbox.mk-quote-convert-modal .modal-header {
+	border-bottom: 1px solid #eef2f6;
+	padding: 18px 22px 14px;
+	background: #fff;
+}
+body[data-view="List"][data-app="SALES"] .bootbox.mk-quote-convert-modal .modal-title,
+.bootbox.mk-quote-convert-modal .modal-title {
+	font-size: 18px;
+	font-weight: 600;
+	color: #0f172a;
+}
+body[data-view="List"][data-app="SALES"] .bootbox.mk-quote-convert-modal .modal-body,
+.bootbox.mk-quote-convert-modal .modal-body {
+	padding: 8px 22px 6px;
+}
+.mk-quote-convert-modal__body {
+	text-align: center;
+	padding: 8px 4px 12px;
+}
+.mk-quote-convert-modal__icon {
+	width: 52px;
+	height: 52px;
+	margin: 0 auto 12px;
+	border-radius: 14px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #ecfdf5;
+	color: #08a045;
+	font-size: 22px;
+}
+.mk-quote-convert-modal__title {
+	margin: 0 0 8px;
+	font-size: 17px;
+	font-weight: 700;
+	color: #0f172a;
+}
+.mk-quote-convert-modal__hint {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.45;
+	color: #64748b;
+}
+body[data-view="List"][data-app="SALES"] .bootbox.mk-quote-convert-modal .modal-footer,
+.bootbox.mk-quote-convert-modal .modal-footer {
+	border-top: 1px solid #eef2f6;
+	padding: 14px 22px 18px;
+	background: #f8fafc;
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+}
+body[data-view="List"][data-app="SALES"] .bootbox.mk-quote-convert-modal .modal-footer .btn,
+.bootbox.mk-quote-convert-modal .modal-footer .btn {
+	min-width: 108px;
+	height: 40px;
+	padding: 0 18px;
+	border-radius: 999px;
+	font-size: 14px;
+	font-weight: 600;
+	border: none;
+	box-shadow: none;
+}
+.mk-quote-convert-modal__btn--ghost {
+	background: #fff !important;
+	color: #475569 !important;
+	border: 1px solid #dbe3ee !important;
+}
+.mk-quote-convert-modal__btn--ghost:hover,
+.mk-quote-convert-modal__btn--ghost:focus {
+	background: #f8fafc !important;
+	color: #334155 !important;
+}
+.mk-quote-convert-modal__btn--primary {
+	background: linear-gradient(135deg, #08a045 0%, #067a37 100%) !important;
+	color: #fff !important;
+}
+.mk-quote-convert-modal__btn--primary:hover,
+.mk-quote-convert-modal__btn--primary:focus {
+	background: linear-gradient(135deg, #079a41 0%, #056b31 100%) !important;
+	color: #fff !important;
+}
+
+/* Drawer: confirm-order split button must not look clipped / left-cramped */
+#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__confirm-split {
+	flex: 1 1 100%;
+	display: flex;
+	width: 100%;
+	max-width: none;
+}
+#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__confirm-order-btn {
+	flex: 1 1 auto;
+	justify-content: center;
+	text-align: center;
+	min-width: 0;
+}
+#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__confirm-caret {
+	flex: 0 0 40px;
+	width: 40px;
+	padding: 0;
+}
+
 .mk-crm-inline-drawer {
 	position: fixed;
 	inset: 0;
@@ -2359,16 +2524,22 @@ body.mk-crm-inline-drawer-open {
 
 #mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__actions {
 	flex: 0 0 auto;
+	margin-top: auto;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: stretch;
 	gap: 8px;
-	margin: 0;
+	margin-left: 0;
+	margin-right: 0;
+	margin-bottom: 0;
 	padding: 12px 16px 14px;
 	padding-bottom: max(14px, env(safe-area-inset-bottom));
 	background: #fff;
 	border-top: 1px solid #f1f5f9;
-	position: static;
+	position: sticky;
+	bottom: 0;
+	z-index: 6;
+	box-shadow: 0 -8px 20px rgba(15, 23, 42, 0.04);
 }
 
 #mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__actions-left,
@@ -2388,9 +2559,26 @@ body.mk-crm-inline-drawer-open {
 	white-space: nowrap;
 }
 
+/* Thứ tự nút cuối panel: Xác nhận → Huỷ/Sửa → Nhân bản/Báo giá → Export/Xem → In → Lưu */
+#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__confirm-split {
+	order: -20;
+	flex: 1 1 100%;
+}
+
+#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__cancel-order-btn,
+#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__process-btn {
+	order: 1;
+}
+
+#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__dup-btn,
+#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__to-quote-btn {
+	order: 2;
+}
+
+#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__export-btn,
 #mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__view-full-btn,
 #mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__edit-btn {
-	order: 1;
+	order: 3;
 	background: #fff !important;
 	border: 1px solid #e5e7eb !important;
 	color: #334155 !important;
@@ -2398,19 +2586,20 @@ body.mk-crm-inline-drawer-open {
 }
 
 #mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__print-btn,
-#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__word-btn,
-#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__create-quote-btn {
-	order: 2;
+#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__word-btn {
+	order: 20;
+	flex: 1 1 100%;
 }
 
 #mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__convert-btn,
-#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__to-customer-btn {
-	order: 3;
+#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__to-customer-btn,
+#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__create-quote-btn {
+	order: 21;
 	flex: 1 1 100%;
 }
 
 #mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__save-btn {
-	order: 4;
+	order: 30;
 	flex: 1 1 100%;
 	background: #059669 !important;
 	border: 1px solid #059669 !important;
@@ -2425,7 +2614,7 @@ body.mk-crm-inline-drawer-open {
 
 #mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__aff-toggle,
 #mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__aff-pill {
-	order: 5;
+	order: 40;
 	flex: 1 1 100%;
 }
 

@@ -9,7 +9,6 @@
 				<span class="mk-leads-segments-card__icon" id="mk-leads-segments-icon" aria-hidden="true"></span> {vtranslate('LBL_MK_SEGMENTS', 'Leads')}
 			</div>
 			<div id="mk-leads-segments" class="mk-leads-segments"></div>
-			<button type="button" class="mk-leads-segments-save" id="mk-leads-save-segment"><span id="mk-leads-save-segment-ic" aria-hidden="true"></span> {vtranslate('LBL_MK_SAVE_CURRENT', 'Leads')}</button>
 		</div>
 
 		<div class="mk-leads-filters-card" role="region" aria-label="{vtranslate('LBL_FILTERS', 'Vtiger')}">
@@ -30,7 +29,28 @@
 			<div id="mk-leads-filters-panel" class="mk-leads-filters-panel" hidden></div>
 		</div>
 
-		<div class="mk-so-table-card mk-leads-table-card" role="region" aria-label="{vtranslate('LBL_MK_LEADS_TABLE', 'Leads')}">
+		<div class="mk-leads-pipeline-bar" id="mk-leads-pipeline-bar">
+			<div class="mk-leads-view-toggle" role="tablist" aria-label="Kiểu xem" data-mode="table" id="mk-leads-view-toggle">
+				<span class="mk-leads-view-toggle__glow" aria-hidden="true"></span>
+				<span class="mk-leads-view-toggle__thumb" aria-hidden="true"></span>
+				<button type="button" class="mk-leads-view-btn is-active" data-leads-view="table" id="mk-leads-view-table" role="tab" aria-selected="true">
+					<svg class="mk-leads-view-btn__ic" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<path d="M4 6.5h16M4 12h16M4 17.5h16" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"/>
+					</svg>
+					<span>Bảng</span>
+				</button>
+				<button type="button" class="mk-leads-view-btn" data-leads-view="kanban" id="mk-leads-view-kanban" role="tab" aria-selected="false">
+					<svg class="mk-leads-view-btn__ic" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<rect x="3.5" y="4.5" width="5.5" height="15" rx="1.5" stroke="currentColor" stroke-width="1.75"/>
+						<rect x="9.25" y="4.5" width="5.5" height="10" rx="1.5" stroke="currentColor" stroke-width="1.75"/>
+						<rect x="15" y="4.5" width="5.5" height="13" rx="1.5" stroke="currentColor" stroke-width="1.75"/>
+					</svg>
+					<span>Kanban</span>
+				</button>
+			</div>
+		</div>
+
+		<div class="mk-so-table-card mk-leads-table-card" role="region" aria-label="{vtranslate('LBL_MK_LEADS_TABLE', 'Leads')}" id="mk-leads-table-wrap">
 			<div id="mk-leads-bulk" class="mk-leads-bulk-bar" hidden></div>
 			<div class="mk-leads-table-scroll">
 				<table class="mk-leads-table" id="mk-leads-table">
@@ -41,6 +61,9 @@
 						<col class="mk-leads-col mk-leads-col--phone" />
 						<col class="mk-leads-col mk-leads-col--area" />
 						<col class="mk-leads-col mk-leads-col--address" />
+						<col class="mk-leads-col mk-leads-col--biz" />
+						<col class="mk-leads-col mk-leads-col--products" />
+						<col class="mk-leads-col mk-leads-col--pstage" />
 						<col class="mk-leads-col mk-leads-col--source" />
 						<col class="mk-leads-col mk-leads-col--ctype" />
 						<col class="mk-leads-col mk-leads-col--owner" />
@@ -62,6 +85,8 @@
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_AREA', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_ADDRESS', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">Mô hình kinh doanh</th>
+							<th class="mk-leads-th" scope="col">Sản phẩm</th>
+							<th class="mk-leads-th" scope="col">Stage</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_SOURCE', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_CUSTOMER_TYPE', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_OWNER', 'Leads')}</th>
@@ -76,5 +101,6 @@
 			</div>
 			<div class="mk-leads-pagination" id="mk-leads-pagination"></div>
 		</div>
+		<div id="mk-leads-kanban" class="mk-leads-kanban" hidden></div>
 	</div>
 {/strip}

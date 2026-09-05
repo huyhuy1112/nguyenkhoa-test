@@ -611,6 +611,8 @@ class Leads_SheetImportService {
 		if ($cust !== '') {
 			$tags[] = $cust;
 		}
+		require_once 'modules/Leads/models/OfflineGd11Service.php';
+		$tags = Leads_OfflineGd11Service::ensureProgramTag($tags);
 
 		return array(
 			'name' => $name !== '' ? $name : ('KH ' . $phone),
@@ -706,6 +708,10 @@ class Leads_SheetImportService {
 			return 'E';
 		}
 		if (strpos($f, '300') !== false && strpos($f, '500') !== false) {
+			return 'D';
+		}
+		// Zalo short form: "300-500 triệu" / "300 – 500"
+		if (preg_match('/\b300\b/', $f) && preg_match('/\b500\b/', $f)) {
 			return 'D';
 		}
 		if (strpos($f, '100') !== false && strpos($f, '300') !== false) {

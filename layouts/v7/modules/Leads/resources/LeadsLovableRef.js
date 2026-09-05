@@ -36,6 +36,20 @@
     chua_hoc: { vi: "Chưa học", en: "Not studied", cat: "learning", cls: "mk-tag--chua-hoc" },
     da_hoc: { vi: "Đã học", en: "Studied", cat: "learning", cls: "mk-tag--da-hoc" },
     mien_phi_online: { vi: "Miễn phí Online", en: "Free Online", cat: "program", cls: "mk-tag--free-online" },
+    online_chua_dien_form: { vi: "Online — Chưa điền form", en: "Online — Form pending", cat: "online", cls: "mk-tag--online-status" },
+    online_chua_dk_tk: { vi: "Online — Chưa đăng ký TK", en: "Online — Account pending", cat: "online", cls: "mk-tag--online-status" },
+    online_khong_du_dk: { vi: "Online — Không đủ điều kiện", en: "Online — Ineligible", cat: "online", cls: "mk-tag--online-status" },
+    online_ngung_cskh: { vi: "Online — Ngưng chăm sóc", en: "Online — Stop care", cat: "online", cls: "mk-tag--online-status" },
+    offline_hen_goi_lai: { vi: "Offline — Hẹn gọi lại", en: "Offline — Call back", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_khong_nghe_may: { vi: "Offline — Không nghe máy", en: "Offline — No answer", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_sai_thong_tin: { vi: "Offline — Sai thông tin liên hệ", en: "Offline — Bad contact", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_chuyen_chuong_trinh: { vi: "Offline — Chuyển chương trình khác", en: "Offline — Switch program", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_chua_xac_nhan_lich: { vi: "Offline — Chưa xác nhận lịch học", en: "Offline — Schedule pending", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_da_xac_nhan_lich: { vi: "Offline — Đã xác nhận lịch học", en: "Offline — Schedule confirmed", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_hen_lich_lai: { vi: "Offline — Hẹn lịch học lại", en: "Offline — Reschedule class", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_khong_tham_gia: { vi: "Offline — Không tham gia lớp học free", en: "Offline — No-show", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_da_tham_gia: { vi: "Offline — Đã tham gia lớp học free", en: "Offline — Attended", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_ngung_cskh: { vi: "Offline — Ngưng chăm sóc", en: "Offline — Stop care", cat: "offline", cls: "mk-tag--offline-status" },
     mien_phi_offline: { vi: "Miễn phí Offline", en: "Free Offline", cat: "program", cls: "mk-tag--free-offline" },
     pcth: { vi: "PCTH", en: "PCTH", cat: "program", cls: "mk-tag--pcth" },
     van_hanh: { vi: "Vận hành", en: "Operations", cat: "program", cls: "mk-tag--van-hanh" },
@@ -196,6 +210,34 @@
       tags: ["chua_hoc", "da_hoc"],
     },
     {
+      id: "online",
+      labelVi: "Online 1.2",
+      labelEn: "Online 1.2",
+      tags: [
+        "online_chua_dien_form",
+        "online_chua_dk_tk",
+        "online_khong_du_dk",
+        "online_ngung_cskh",
+      ],
+    },
+    {
+      id: "offline",
+      labelVi: "Offline 1.1",
+      labelEn: "Offline 1.1",
+      tags: [
+        "offline_hen_goi_lai",
+        "offline_khong_nghe_may",
+        "offline_sai_thong_tin",
+        "offline_chuyen_chuong_trinh",
+        "offline_chua_xac_nhan_lich",
+        "offline_da_xac_nhan_lich",
+        "offline_hen_lich_lai",
+        "offline_khong_tham_gia",
+        "offline_da_tham_gia",
+        "offline_ngung_cskh",
+      ],
+    },
+    {
       id: "program",
       labelVi: "Chương trình",
       labelEn: "Program",
@@ -229,12 +271,6 @@
   ];
 
   var PRESET_SEGMENTS = [
-    { id: "new", nameVi: "Khách mới", nameEn: "New customers", filters: { purchase: "mua_lan_dau" } },
-    { id: "repeat", nameVi: "Khách mua lại", nameEn: "Repeat customers", filters: { purchase: "mua_lai" } },
-    { id: "nobuy", nameVi: "Khách không mua", nameEn: "Not buying", filters: { purchase: "khong_mua" } },
-    { id: "chain", nameVi: "Khách chuỗi (PCTH)", nameEn: "Chain (PCTH)", filters: { program: "pcth" } },
-    { id: "franchise", nameVi: "Khách nhượng quyền", nameEn: "Franchise", filters: { program: "nhuong_quyen" } },
-    { id: "cskh", nameVi: "Khách cần CSKH", nameEn: "Needs care", filters: { staleOnly: true } },
     { id: "phone_dup", nameVi: "Trùng SĐT", nameEn: "Duplicate phone", filters: { phoneDupOnly: true } },
   ];
 

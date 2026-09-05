@@ -104,7 +104,6 @@
 				{/if}
 			</tbody>
 		</table>
-		<p class="mk-so-inline-detail__vat-note" role="note"><strong>Đơn giá này đã bao gồm VAT</strong></p>
 	</div>
 
 	<div class="mk-so-inline-detail__bottom">

@@ -12,6 +12,9 @@ class Leads_ModernService {
 
 	const MODULE = 'Leads';
 
+	/** true = getLead (đầy đủ options/plan); false = list (nhẹ). */
+	protected static $composeDetailed = false;
+
 	const MAX_CALLS_PER_DAY = 10;
 
 	protected static $sourceTags = array('facebook', 'tiktok', 'website', 'zalo', 'other', 'other_source');
@@ -113,12 +116,41 @@ class Leads_ModernService {
 		} catch (Exception $e) {
 			// best-effort
 		}
+		try {
+			require_once 'modules/Leads/models/LeadProductsService.php';
+			Leads_LeadProductsService::installSchema($adb);
+		} catch (Exception $e) {
+			// best-effort
+		}
+		try {
+			require_once 'modules/Leads/models/OnlineGd12Service.php';
+			Leads_OnlineGd12Service::installSchema($adb);
+		} catch (Exception $e) {
+			// best-effort
+		}
+		try {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			Leads_OfflineGd11Service::installSchema($adb);
+			require_once 'modules/Leads/models/OfflineGd11Step2Service.php';
+			Leads_OfflineGd11Step2Service::installSchema($adb);
+		} catch (Exception $e) {
+			// best-effort
+		}
+		$colRes = $adb->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE 'pipeline_closed'", array());
+		if (!$colRes || $adb->num_rows($colRes) < 1) {
+			$adb->pquery("ALTER TABLE bace_lead_profile ADD COLUMN pipeline_closed TINYINT(1) NOT NULL DEFAULT 0", array());
+		}
 	}
 
-	/** Bộ B columns for SELECT lists. */
+	/** Bộ B + Online GD1.2 + Offline GD1.1 columns for SELECT lists. */
 	protected static function verifyProfileSelectSql() {
 		return ', p.form_c1, p.form_c2, p.form_c3, p.verify_c1, p.verify_c2, p.verify_c3, p.verify_c4, p.verify_c5,
-			p.eligibility_result, p.potential_level, p.verify_score, p.verify_change_reason, p.verified_at, p.verified_by';
+			p.eligibility_result, p.potential_level, p.verify_score, p.verify_change_reason, p.verified_at, p.verified_by,
+			p.online_status, p.online_q1, p.online_q2, p.online_q3, p.online_q4, p.online_path, p.zalo_user_id,
+			p.offline_status, p.offline_r1_contact, p.offline_r1_hen_goi, p.offline_r1_khong_nghe, p.offline_r1_sai_tt,
+			p.offline_r2_schedule, p.offline_r3_class, p.offline_r4_transfer,
+			p.offline_preclass_confirm, p.offline_class_date, p.offline_class_time, p.offline_class_place,
+			p.offline_step2_entered_at, p.offline_step2_sent, p.offline_checked_in_at';
 	}
 
 	public static function isInstalled(PearDatabase $adb) {
@@ -131,13 +163,14 @@ class Leads_ModernService {
 		if (!self::isInstalled($adb)) {
 			return array();
 		}
+		self::$composeDetailed = false;
 		self::installSchema($adb);
 		self::ensureModernProfilesForAliveLeads();
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
 				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw" . self::verifyProfileSelectSql() . ",
 				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
-				la.phone, ce.smownerid, ce.createdtime, ce.description
+				la.phone, la.lane, ce.smownerid, ce.createdtime, ce.description, p.pipeline_closed
 			FROM bace_lead_profile p
 			INNER JOIN vtiger_leaddetails ld ON ld.leadid = p.leadid
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
@@ -148,18 +181,55 @@ class Leads_ModernService {
 		$res = $adb->pquery($sql, array());
 		$rows = array();
 		$leadIds = array();
-		for ($i = 0; $i < $adb->num_rows($res); $i++) {
-			$row = $adb->query_result_rowdata($res, $i);
-			$leadIds[] = (int)$row['leadid'];
-			$rows[] = $row;
+		if ($res) {
+			for ($i = 0; $i < $adb->num_rows($res); $i++) {
+				$row = $adb->query_result_rowdata($res, $i);
+				$leadIds[] = (int)$row['leadid'];
+				$rows[] = $row;
+			}
 		}
 		$tagsByLead = self::getTagsForLeadIds($leadIds, $userId);
+		try {
+			require_once 'modules/Leads/models/LeadProductsService.php';
+			foreach ($leadIds as $syncId) {
+				$syncId = (int) $syncId;
+				$t = isset($tagsByLead[$syncId]) ? $tagsByLead[$syncId] : array();
+				if ($t) {
+					Leads_LeadProductsService::syncFromTags($syncId, $t, $userId, false);
+				}
+			}
+		} catch (Exception $e) {
+			// chips still load from existing product rows
+		} catch (Throwable $e) {
+			// ignore
+		}
 		$purchasesByLead = self::getPurchasesForLeadIds($leadIds);
 		$tasksByLead = self::getCalendarTasksForLeadIds($leadIds);
+		$productsByLead = array();
+		try {
+			require_once 'modules/Leads/models/LeadProductsService.php';
+			$productsByLead = Leads_LeadProductsService::listForLeadIds($leadIds);
+		} catch (Exception $e) {
+			$productsByLead = array();
+		} catch (Throwable $e) {
+			$productsByLead = array();
+		}
 		$out = array();
 		foreach ($rows as $row) {
 			$leadId = (int)$row['leadid'];
-			$out[] = self::composeCacheRow($row, $tagsByLead[$leadId] ?? array(), $purchasesByLead[$leadId] ?? array(), $tasksByLead[$leadId] ?? array());
+			try {
+				$out[] = self::composeCacheRow(
+					$row,
+					$tagsByLead[$leadId] ?? array(),
+					$purchasesByLead[$leadId] ?? array(),
+					$tasksByLead[$leadId] ?? array(),
+					isset($productsByLead[$leadId]) ? $productsByLead[$leadId] : array()
+				);
+			} catch (Exception $e) {
+				error_log('[listLeads] skip lead ' . $leadId . ': ' . $e->getMessage());
+			} catch (Throwable $e) {
+				error_log('[listLeads] skip lead ' . $leadId . ': ' . $e->getMessage());
+			}
 		}
 		return self::attachPhoneDupFlags($out);
 	}
@@ -172,12 +242,13 @@ class Leads_ModernService {
 		if (!self::isInstalled($adb)) {
 			return array();
 		}
+		self::$composeDetailed = false;
 		self::installSchema($adb);
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
 				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw" . self::verifyProfileSelectSql() . ",
 				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
-				la.phone, ce.smownerid, ce.createdtime, ce.description
+				la.phone, la.lane, ce.smownerid, ce.createdtime, ce.description, p.pipeline_closed
 			FROM bace_lead_profile p
 			INNER JOIN vtiger_leaddetails ld ON ld.leadid = p.leadid
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 1 AND ce.setype = 'Leads'
@@ -187,10 +258,12 @@ class Leads_ModernService {
 		$res = $adb->pquery($sql, array());
 		$rows = array();
 		$leadIds = array();
-		for ($i = 0; $i < $adb->num_rows($res); $i++) {
-			$row = $adb->query_result_rowdata($res, $i);
-			$leadIds[] = (int)$row['leadid'];
-			$rows[] = $row;
+		if ($res) {
+			for ($i = 0; $i < $adb->num_rows($res); $i++) {
+				$row = $adb->query_result_rowdata($res, $i);
+				$leadIds[] = (int)$row['leadid'];
+				$rows[] = $row;
+			}
 		}
 		$tagsByLead = self::getTagsForLeadIds($leadIds, $userId);
 		$out = array();
@@ -261,6 +334,7 @@ class Leads_ModernService {
 	}
 
 	public static function getLead($idOrCacheId, $userId = null) {
+		self::$composeDetailed = true;
 		$leadId = self::resolveLeadId($idOrCacheId);
 		if (!$leadId && is_numeric($idOrCacheId) && self::vtigerLeadExists((int)$idOrCacheId)) {
 			$leadId = (int)$idOrCacheId;
@@ -276,7 +350,7 @@ class Leads_ModernService {
 				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
 				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw{$verifyCols},
 				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
-				la.phone, ce.smownerid, ce.createdtime
+				la.phone, la.lane, ce.smownerid, ce.createdtime, p.pipeline_closed
 			FROM bace_lead_profile p
 			INNER JOIN vtiger_leaddetails ld ON ld.leadid = p.leadid
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
@@ -292,7 +366,7 @@ class Leads_ModernService {
 						p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
 						p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw{$verifyCols},
 						ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
-						la.phone, ce.smownerid, ce.createdtime
+						la.phone, la.lane, ce.smownerid, ce.createdtime, p.pipeline_closed
 					FROM bace_lead_profile p
 					INNER JOIN vtiger_leaddetails ld ON ld.leadid = p.leadid
 					INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
@@ -311,11 +385,20 @@ class Leads_ModernService {
 		$tagList = self::syncCallAttemptTagsIfNeeded($leadId, $tagList, $userId);
 		$purchases = self::getPurchasesForLeadIds(array($leadId));
 		$tasks = self::getCalendarTasksForLeadIds(array($leadId));
+		$products = array();
+		try {
+			require_once 'modules/Leads/models/LeadProductsService.php';
+			$map = Leads_LeadProductsService::listForLeadIds(array($leadId));
+			$products = isset($map[$leadId]) ? $map[$leadId] : array();
+		} catch (Exception $e) {
+			$products = array();
+		}
 		return self::composeCacheRow(
 			$row,
 			$tagList,
 			$purchases[$leadId] ?? array(),
-			$tasks[$leadId] ?? array()
+			$tasks[$leadId] ?? array(),
+			$products
 		);
 	}
 
@@ -489,7 +572,15 @@ class Leads_ModernService {
 		$ownerId = self::resolveUserId(isset($payload['owner']) ? $payload['owner'] : '', $userId);
 		$name = trim((string)(isset($payload['name']) ? $payload['name'] : ''));
 		$phone = trim((string)(isset($payload['phone']) ? $payload['phone'] : ''));
-		if ($name === '' || $phone === '') {
+		$isOnlineStub = !empty($payload['online_stub']);
+		if ($isOnlineStub) {
+			if ($name === '') {
+				$name = 'Khách Zalo OA';
+			}
+			if ($phone === '') {
+				$phone = '0900000001';
+			}
+		} elseif ($name === '' || $phone === '') {
 			throw new Exception('Name and phone are required.');
 		}
 
@@ -579,7 +670,7 @@ class Leads_ModernService {
 			'cccd' => isset($payload['cccd']) ? $payload['cccd'] : '',
 			'segment' => isset($payload['segment']) ? $payload['segment'] : '',
 			'district' => isset($payload['district']) ? $payload['district'] : '',
-			'address_line' => isset($payload['address']) ? $payload['address'] : '',
+			'address_line' => self::decodeText(isset($payload['address']) ? $payload['address'] : ''),
 			'area' => isset($payload['area']) ? $payload['area'] : '',
 			'business_model' => $businessModel,
 			'lead_value' => isset($payload['value']) ? (float)$payload['value'] : 0,
@@ -601,6 +692,12 @@ class Leads_ModernService {
 		// Enforce screening tags (no potential tags when Không đạt)
 		$tags = self::applyScreeningTags($tags, $screening);
 		self::syncTags($leadId, $tags, $userId);
+		try {
+			require_once 'modules/Leads/models/LeadProductsService.php';
+			Leads_LeadProductsService::syncFromTags($leadId, $tags, $userId, true);
+		} catch (Exception $e) {
+			error_log('[lead_products] sync after save: ' . $e->getMessage());
+		}
 
 		if (!$isNew) {
 			require_once 'modules/Leads/models/ConvertService.php';
@@ -1046,7 +1143,15 @@ class Leads_ModernService {
 		if (!is_string($value)) {
 			return $value;
 		}
-		return decode_html($value);
+		$prev = $value;
+		for ($i = 0; $i < 3; $i++) {
+			$decoded = html_entity_decode($prev, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+			if ($decoded === $prev) {
+				break;
+			}
+			$prev = $decoded;
+		}
+		return $prev;
 	}
 
 	/**
@@ -1129,7 +1234,7 @@ class Leads_ModernService {
 		return trim($lastname . ' ' . $firstname);
 	}
 
-	protected static function composeCacheRow(array $row, array $tags, array $purchases, array $calendarTasks) {
+	protected static function composeCacheRow(array $row, array $tags, array $purchases, array $calendarTasks, array $products = array()) {
 		$leadId = (int)$row['leadid'];
 		$name = self::composeDisplayName(
 			isset($row['firstname']) ? $row['firstname'] : '',
@@ -1190,7 +1295,21 @@ class Leads_ModernService {
 		}
 		require_once 'modules/Leads/models/SheetImportService.php';
 		$screeningLabel = Leads_SheetImportService::screeningLabel($screening);
-		$verify = self::composeVerifyBlock($row);
+		$verify = self::composeVerifyBlock($row, $tags);
+
+		$address = self::decodeText(isset($row['address_line']) ? $row['address_line'] : '');
+		if ($address === '') {
+			$address = self::decodeText(isset($row['lane']) ? $row['lane'] : '');
+		}
+		$canEditPipeline = false;
+		try {
+			require_once 'modules/Leads/models/LeadProductsService.php';
+			$canEditPipeline = Leads_LeadProductsService::canEditLead($leadId);
+		} catch (Exception $e) {
+			$canEditPipeline = false;
+		} catch (Throwable $e) {
+			$canEditPipeline = false;
+		}
 
 		return array(
 			'id' => $id,
@@ -1206,7 +1325,9 @@ class Leads_ModernService {
 			'companyName' => ($company === '-' || $company === '') ? '' : $company,
 			'tags' => array_values($tags),
 			'owner' => self::decodeText($ownerName),
+			'owner_id' => (int)$row['smownerid'],
 			'owner_username' => self::getUsername((int)$row['smownerid']),
+			'can_edit_pipeline' => $canEditPipeline ? 1 : 0,
 			'value' => (float)$row['lead_value'],
 			'last_touch' => $lastTouch,
 			'lastTouchCalls' => $lastTouchCalls,
@@ -1221,7 +1342,7 @@ class Leads_ModernService {
 			'next_action_days_overdue' => $ruleMeta['next_action_days_overdue'],
 			'segment' => self::decodeText(isset($row['segment']) ? $row['segment'] : ''),
 			'district' => self::decodeText(isset($row['district']) ? $row['district'] : ''),
-			'address' => self::decodeText(isset($row['address_line']) ? $row['address_line'] : ''),
+			'address' => $address,
 			'area' => self::decodeText(isset($row['area']) ? $row['area'] : ''),
 			'business_model' => self::normalizeBusinessModel(isset($row['business_model']) ? $row['business_model'] : ''),
 			'openTickets' => (int)$row['open_tickets'],
@@ -1236,12 +1357,78 @@ class Leads_ModernService {
 			'qa_raw' => $qaDecoded !== null ? $qaDecoded : $qaRaw,
 			'phone_dup' => false,
 			'phone_dup_count' => 1,
+			'needs_sales_verify' => self::computeNeedsSalesVerify($row, $tags, $verify) ? 1 : 0,
+			'products' => $products,
+			'pipeline_closed' => !empty($row['pipeline_closed']) ? 1 : 0,
 		) + $verify;
 	}
 
-	protected static function composeVerifyBlock(array $row) {
+	/**
+	 * Sheet → Sales Bộ B (3 câu). Zalo OA Online → GD1.2 (4 câu). CRM-created → không.
+	 */
+	protected static function computeNeedsSalesVerify(array $row, array $tags, array $verify) {
+		if (!empty($row['sheet_source'])) {
+			return true;
+		}
+		if (self::isOnlineGd12Row($row, $tags, $verify)) {
+			return true;
+		}
+		if (!empty($verify['form_c1']) || !empty($verify['form_c2']) || !empty($verify['form_c3'])) {
+			return true;
+		}
+		foreach ($tags as $tag) {
+			if (strtolower(trim((string) $tag)) === 'zalo') {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Online GD 1.2 (Zalo OA) vs Google Sheet Sales Bộ B.
+	 */
+	protected static function isOnlineGd12Row(array $row, array $tags = array(), array $verify = array()) {
+		if (!empty($row['sheet_source'])) {
+			return false;
+		}
+		$onlineStatus = isset($row['online_status']) ? trim((string) $row['online_status']) : '';
+		$onlinePath = isset($row['online_path']) ? trim((string) $row['online_path']) : '';
+		if ($onlineStatus !== '' || $onlinePath === 'oa') {
+			return true;
+		}
+		foreach (array('online_q1', 'online_q2', 'online_q3', 'online_q4') as $k) {
+			if (!empty($row[$k]) || !empty($verify[$k])) {
+				return true;
+			}
+		}
+		foreach ($tags as $tag) {
+			$t = strtolower(trim((string) $tag));
+			if ($t === 'mien_phi_online' || strpos($t, 'online_') === 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected static function composeVerifyBlock(array $row, array $tags = array()) {
 		require_once 'modules/Leads/models/SalesVerifyService.php';
-		$catalog = Leads_SalesVerifyService::optionsCatalog();
+		require_once 'modules/Leads/models/OnlineGd12Service.php';
+		static $catalogCache = null;
+		static $onlineCatalogCache = null;
+		$detailed = self::$composeDetailed;
+		if ($detailed) {
+			if ($catalogCache === null) {
+				$catalogCache = Leads_SalesVerifyService::optionsCatalog();
+			}
+			if ($onlineCatalogCache === null) {
+				$onlineCatalogCache = Leads_OnlineGd12Service::optionsCatalog();
+			}
+			$catalog = $catalogCache;
+			$onlineCatalog = $onlineCatalogCache;
+		} else {
+			$catalog = array();
+			$onlineCatalog = array();
+		}
 		$formC1 = isset($row['form_c1']) ? trim((string) $row['form_c1']) : '';
 		$formC2 = isset($row['form_c2']) ? trim((string) $row['form_c2']) : '';
 		$formC3 = isset($row['form_c3']) ? trim((string) $row['form_c3']) : '';
@@ -1252,11 +1439,18 @@ class Leads_ModernService {
 			? (int) $row['verify_c4'] : null;
 		$verifyC5 = isset($row['verify_c5']) && $row['verify_c5'] !== null && $row['verify_c5'] !== ''
 			? (int) $row['verify_c5'] : null;
+		$onlineQ1 = isset($row['online_q1']) ? strtoupper(trim((string) $row['online_q1'])) : '';
+		$onlineQ2 = isset($row['online_q2']) ? strtoupper(trim((string) $row['online_q2'])) : '';
+		$onlineQ3 = isset($row['online_q3']) ? strtoupper(trim((string) $row['online_q3'])) : '';
+		$onlineQ4 = isset($row['online_q4']) ? strtoupper(trim((string) $row['online_q4'])) : '';
+		$onlineStatus = isset($row['online_status']) ? trim((string) $row['online_status']) : '';
+		$onlinePath = isset($row['online_path']) ? trim((string) $row['online_path']) : '';
 		$eligibility = isset($row['eligibility_result']) ? trim((string) $row['eligibility_result']) : '';
 		$potential = isset($row['potential_level']) ? trim((string) $row['potential_level']) : '';
 		$score = isset($row['verify_score']) && $row['verify_score'] !== null && $row['verify_score'] !== ''
 			? (int) $row['verify_score'] : null;
-		$changeReason = isset($row['verify_change_reason']) ? trim((string) $row['verify_change_reason']) : '';
+		$changeReason = self::decodeText(isset($row['verify_change_reason']) ? $row['verify_change_reason'] : '');
+		$changeReason = trim((string) $changeReason);
 		$verifiedAt = '';
 		if (!empty($row['verified_at']) && $row['verified_at'] !== '0000-00-00 00:00:00') {
 			$ts = strtotime($row['verified_at']);
@@ -1264,31 +1458,67 @@ class Leads_ModernService {
 				$verifiedAt = date('c', $ts);
 			}
 		}
-		return array(
+		$isOnline = self::isOnlineGd12Row($row, $tags);
+		$eligLabel = $isOnline
+			? Leads_OnlineGd12Service::eligibilityLabel($eligibility)
+			: Leads_SalesVerifyService::eligibilityLabel($eligibility);
+		if ($eligLabel === '') {
+			$eligLabel = Leads_SalesVerifyService::eligibilityLabel($eligibility);
+		}
+		$potLabel = $isOnline
+			? Leads_OnlineGd12Service::potentialLabelPublic($potential)
+			: Leads_SalesVerifyService::potentialLabel($potential);
+		if ($potLabel === '') {
+			$potLabel = Leads_SalesVerifyService::potentialLabel($potential);
+		}
+		$c1opts = isset($catalog['c1']) ? $catalog['c1'] : array();
+		$c2opts = isset($catalog['c2']) ? $catalog['c2'] : array();
+		$c3opts = isset($catalog['c3']) ? $catalog['c3'] : array();
+		$block = array(
+			'verify_mode' => $isOnline ? 'online_gd12' : 'sales_b',
 			'form_c1' => $formC1,
 			'form_c2' => $formC2,
 			'form_c3' => $formC3,
-			'form_c1_label' => self::verifyOptionLabel($catalog['c1'], $formC1),
-			'form_c2_label' => self::verifyOptionLabel($catalog['c2'], $formC2),
-			'form_c3_label' => self::verifyOptionLabel($catalog['c3'], $formC3),
+			'form_c1_label' => $detailed ? self::verifyOptionLabel($c1opts, $formC1) : $formC1,
+			'form_c2_label' => $detailed ? self::verifyOptionLabel($c2opts, $formC2) : $formC2,
+			'form_c3_label' => $detailed ? self::verifyOptionLabel($c3opts, $formC3) : $formC3,
 			'verify_c1' => $verifyC1,
 			'verify_c2' => $verifyC2,
 			'verify_c3' => $verifyC3,
 			'verify_c4' => $verifyC4,
 			'verify_c5' => $verifyC5,
-			'verify_c1_label' => self::verifyOptionLabel($catalog['c1'], $verifyC1),
-			'verify_c2_label' => self::verifyOptionLabel($catalog['c2'], $verifyC2),
-			'verify_c3_label' => self::verifyOptionLabel($catalog['c3'], $verifyC3),
+			'verify_c1_label' => $detailed ? self::verifyOptionLabel($c1opts, $verifyC1) : $verifyC1,
+			'verify_c2_label' => $detailed ? self::verifyOptionLabel($c2opts, $verifyC2) : $verifyC2,
+			'verify_c3_label' => $detailed ? self::verifyOptionLabel($c3opts, $verifyC3) : $verifyC3,
+			'online_status' => $onlineStatus,
+			'online_path' => $onlinePath,
+			'online_q1' => $onlineQ1,
+			'online_q2' => $onlineQ2,
+			'online_q3' => $onlineQ3,
+			'online_q4' => $onlineQ4,
+			'online_q1_label' => $detailed ? Leads_OnlineGd12Service::optionLabel('q1', $onlineQ1) : $onlineQ1,
+			'online_q2_label' => $detailed ? Leads_OnlineGd12Service::optionLabel('q2', $onlineQ2) : $onlineQ2,
+			'online_q3_label' => $detailed ? Leads_OnlineGd12Service::optionLabel('q3', $onlineQ3) : $onlineQ3,
+			'online_q4_label' => $detailed ? Leads_OnlineGd12Service::optionLabel('q4', $onlineQ4) : $onlineQ4,
 			'eligibility_result' => $eligibility,
-			'eligibility_label' => Leads_SalesVerifyService::eligibilityLabel($eligibility),
+			'eligibility_label' => $eligLabel,
 			'potential_level' => $potential,
-			'potential_label' => Leads_SalesVerifyService::potentialLabel($potential),
+			'potential_label' => $potLabel,
 			'verify_score' => $score,
 			'verify_change_reason' => $changeReason,
 			'verified_at' => $verifiedAt,
 			'verified_by' => isset($row['verified_by']) ? (int) $row['verified_by'] : null,
-			'verify_options' => $catalog,
 		);
+		if ($detailed) {
+			$block['online_verify_options'] = $onlineCatalog;
+			$block['verify_options'] = $catalog;
+		}
+		return $block + self::composeOfflineBlock($row);
+	}
+
+	protected static function composeOfflineBlock(array $row) {
+		require_once 'modules/Leads/models/OfflineGd11Service.php';
+		return Leads_OfflineGd11Service::profileBlock($row, self::$composeDetailed);
 	}
 
 	protected static function verifyOptionLabel(array $options, $code) {
@@ -1420,6 +1650,17 @@ class Leads_ModernService {
 			}
 			if (!array_key_exists('business_model', $payload) && isset($existing['business_model'])) {
 				$payload['business_model'] = $existing['business_model'];
+			}
+			if (empty($payload['sheet_source']) && !empty($existing['sheet_source'])) {
+				$payload['sheet_source'] = 1;
+			}
+			if ((!isset($payload['screening_result']) || $payload['screening_result'] === '')
+				&& !empty($existing['screening_result'])) {
+				$payload['screening_result'] = $existing['screening_result'];
+			}
+			if ((!isset($payload['qa_raw']) || $payload['qa_raw'] === '' || $payload['qa_raw'] === null)
+				&& !empty($existing['qa_raw'])) {
+				$payload['qa_raw'] = $existing['qa_raw'];
 			}
 			if (!isset($payload['tags']) || !is_array($payload['tags'])) {
 				if (!empty($existing['tags'])) {
@@ -1989,6 +2230,12 @@ class Leads_ModernService {
 
 		$tags = self::applyCustomerStatusTag($tags, $segment ?: '');
 		self::syncTags($leadId, $tags, $userId);
+		try {
+			require_once 'modules/Leads/models/LeadProductsService.php';
+			Leads_LeadProductsService::syncFromTags($leadId, $tags, $userId, true);
+		} catch (Exception $e) {
+			error_log('[lead_products] sync after inline tags: ' . $e->getMessage());
+		}
 		try {
 			require_once 'modules/Leads/models/ConvertService.php';
 			Leads_ConvertService::syncRelatedTagsFromLead($leadId, $userId);

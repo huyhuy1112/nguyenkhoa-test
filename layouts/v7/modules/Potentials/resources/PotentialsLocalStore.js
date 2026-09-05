@@ -172,5 +172,35 @@
         return res;
       });
     },
+    /**
+     * Bước 3 Offline — Admin điểm danh tại lớp (không OA).
+     * @param {string|number} id potential id
+     * @param {string} action da_tham_gia|khong_tham_gia
+     */
+    offlineCheckin: function (id, action) {
+      var oid = String(id || "");
+      return apiRequest("offline_checkin", {
+        record: oid,
+        offline_action: action || "",
+      }).then(function (res) {
+        if (res && res.opportunity) {
+          root.PotentialsLocalStore.patchOpportunity(oid, res.opportunity);
+        } else {
+          var patch = {};
+          if (res && res.status) {
+            patch.offline_status = res.status;
+            patch.offline_status_label = res.status_label || "";
+          }
+          if (res && Array.isArray(res.tags)) {
+            patch.tags = res.tags;
+          }
+          if (res && res.checked_in_at !== undefined) {
+            patch.offline_checked_in_at = res.checked_in_at || "";
+          }
+          root.PotentialsLocalStore.patchOpportunity(oid, patch);
+        }
+        return res;
+      });
+    },
   };
 })(window);

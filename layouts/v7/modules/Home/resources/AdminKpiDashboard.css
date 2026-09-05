@@ -1,18 +1,26 @@
-/* Admin KPI Dashboard */
+/* Admin KPI Dashboard — multi-tone redesign */
 .mk-admin-kpi-page {
-	--mk-kpi-ink: #14201a;
-	--mk-kpi-muted: #5c6b63;
-	--mk-kpi-line: #d7e0da;
-	--mk-kpi-soft: #f3f7f4;
-	--mk-kpi-accent: #0f8a4b;
-	--mk-kpi-accent-soft: #e6f6ec;
+	--mk-kpi-ink: #0f172a;
+	--mk-kpi-muted: #64748b;
+	--mk-kpi-line: #e2e8f0;
+	--mk-kpi-soft: #f8fafc;
+	--mk-kpi-accent: #2563eb;
+	--mk-kpi-accent-soft: #eff6ff;
+	--mk-kpi-emerald: #10b981;
+	--mk-kpi-blue: #2563eb;
+	--mk-kpi-violet: #7c3aed;
+	--mk-kpi-amber: #f59e0b;
+	--mk-kpi-cyan: #06b6d4;
+	--mk-kpi-rose: #f43f5e;
 	padding: 8px 4px 32px;
+	background: linear-gradient(180deg, #f1f5f9 0%, #f8fafc 48%, #fff 100%);
+	border-radius: 16px;
 }
 
 .mk-admin-kpi-shell {
-	max-width: 1180px;
+	max-width: 1240px;
 	margin: 0 auto;
-	padding: 8px 16px 24px;
+	padding: 8px 16px 28px;
 }
 
 .mk-admin-kpi-header {
@@ -23,14 +31,14 @@
 	font-size: 11px;
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
-	color: var(--mk-kpi-accent);
+	color: var(--mk-kpi-blue);
 	font-weight: 700;
 	margin-bottom: 4px;
 }
 
 .mk-admin-kpi-title {
 	margin: 0;
-	font-size: 26px;
+	font-size: 28px;
 	font-weight: 800;
 	color: var(--mk-kpi-ink);
 	letter-spacing: -0.02em;
@@ -45,7 +53,7 @@
 .mk-admin-kpi-grid {
 	display: grid;
 	grid-template-columns: repeat(6, minmax(0, 1fr));
-	gap: 10px;
+	gap: 12px;
 	margin-bottom: 18px;
 }
 
@@ -65,27 +73,47 @@
 	appearance: none;
 	border: 1px solid var(--mk-kpi-line);
 	background: #fff;
-	border-radius: 12px;
+	border-radius: 14px;
 	padding: 14px 12px 12px;
 	text-align: left;
 	cursor: pointer;
 	transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
-	min-height: 92px;
+	min-height: 96px;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
 	gap: 10px;
+	position: relative;
+	overflow: hidden;
 }
 
+.mk-admin-kpi-card::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 4px;
+	background: var(--mk-tone, var(--mk-kpi-accent));
+}
+
+.mk-admin-kpi-card[data-tone="emerald"] { --mk-tone: var(--mk-kpi-emerald); }
+.mk-admin-kpi-card[data-tone="blue"] { --mk-tone: var(--mk-kpi-blue); }
+.mk-admin-kpi-card[data-tone="violet"] { --mk-tone: var(--mk-kpi-violet); }
+.mk-admin-kpi-card[data-tone="amber"] { --mk-tone: var(--mk-kpi-amber); }
+.mk-admin-kpi-card[data-tone="cyan"] { --mk-tone: var(--mk-kpi-cyan); }
+.mk-admin-kpi-card[data-tone="rose"] { --mk-tone: var(--mk-kpi-rose); }
+
 .mk-admin-kpi-card:hover {
-	border-color: #a8cbb6;
-	box-shadow: 0 6px 18px rgba(15, 138, 75, 0.08);
+	border-color: #cbd5e1;
+	box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+	transform: translateY(-1px);
 }
 
 .mk-admin-kpi-card.is-active {
-	border-color: var(--mk-kpi-accent);
-	background: linear-gradient(180deg, var(--mk-kpi-accent-soft), #fff 70%);
-	box-shadow: 0 8px 22px rgba(15, 138, 75, 0.12);
+	border-color: var(--mk-tone, var(--mk-kpi-accent));
+	background: linear-gradient(180deg, #fff, #f8fafc);
+	box-shadow: 0 10px 28px rgba(37, 99, 235, 0.12);
 }
 
 .mk-admin-kpi-card-label {
@@ -93,6 +121,7 @@
 	font-weight: 600;
 	color: var(--mk-kpi-muted);
 	line-height: 1.35;
+	padding-left: 6px;
 }
 
 .mk-admin-kpi-card-value {
@@ -101,6 +130,7 @@
 	color: var(--mk-kpi-ink);
 	letter-spacing: -0.02em;
 	font-variant-numeric: tabular-nums;
+	padding-left: 6px;
 }
 
 .mk-admin-kpi-detail {
@@ -505,11 +535,7 @@ button.mk-admin-kpi-vbar,
 }
 
 .mk-admin-kpi-vbar-fill {
-	width: 100%;
-	max-width: 42px;
-	background: linear-gradient(180deg, #14a85a, #0f8a4b);
-	border-radius: 8px 8px 4px 4px;
-	min-height: 4px;
+	/* animated via .is-grown + --bar-h */
 }
 
 .mk-admin-kpi-vbar-val {
@@ -682,3 +708,206 @@ tr.is-clickable-row:hover {
 	background: var(--mk-kpi-soft);
 }
 
+
+
+/* Offline GD1.1 + chart polish */
+.mk-admin-kpi-panel--offline {
+	margin-top: 14px;
+	border-color: #c7d2fe;
+	background: linear-gradient(180deg, #eef2ff 0%, #fff 55%);
+}
+
+.mk-admin-kpi-panel-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-bottom: 12px;
+}
+
+.mk-admin-kpi-panel-head .mk-admin-kpi-panel-title {
+	margin: 0;
+}
+
+.mk-admin-kpi-pill {
+	display: inline-flex;
+	align-items: center;
+	padding: 6px 12px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+	background: #ecfdf5;
+	color: #047857;
+	border: 1px solid #a7f3d0;
+}
+
+.mk-admin-kpi-offline-grid {
+	display: grid;
+	grid-template-columns: minmax(180px, 220px) 1fr;
+	gap: 18px;
+	align-items: center;
+}
+
+@media (max-width: 800px) {
+	.mk-admin-kpi-offline-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+.mk-admin-kpi-offline-stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+	gap: 8px;
+}
+
+.mk-admin-kpi-offline-stat {
+	background: #fff;
+	border: 1px solid var(--mk-kpi-line);
+	border-radius: 12px;
+	padding: 10px 12px;
+}
+
+.mk-admin-kpi-offline-stat strong {
+	display: block;
+	font-size: 20px;
+	font-weight: 800;
+	color: var(--mk-kpi-ink);
+	margin-top: 4px;
+}
+
+.mk-admin-kpi-offline-stat span {
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--mk-kpi-muted);
+}
+
+.mk-admin-kpi-funnel-layout {
+	display: grid;
+	grid-template-columns: minmax(160px, 200px) 1fr;
+	gap: 16px;
+	align-items: center;
+}
+
+@media (max-width: 800px) {
+	.mk-admin-kpi-funnel-layout {
+		grid-template-columns: 1fr;
+	}
+}
+
+.mk-admin-kpi-vbar-fill {
+	border-radius: 10px 10px 4px 4px;
+	background: linear-gradient(180deg, #60a5fa, #2563eb);
+}
+
+.mk-admin-kpi-vbar:nth-child(2n) .mk-admin-kpi-vbar-fill {
+	background: linear-gradient(180deg, #34d399, #059669);
+}
+
+.mk-admin-kpi-vbar:nth-child(3n) .mk-admin-kpi-vbar-fill {
+	background: linear-gradient(180deg, #c4b5fd, #7c3aed);
+}
+
+.mk-admin-kpi-vbar:nth-child(4n) .mk-admin-kpi-vbar-fill {
+	background: linear-gradient(180deg, #fcd34d, #f59e0b);
+}
+
+.mk-admin-kpi-vbar:nth-child(5n) .mk-admin-kpi-vbar-fill {
+	background: linear-gradient(180deg, #67e8f9, #0891b2);
+}
+
+
+/* Chart animations */
+.mk-admin-kpi-vbar-track {
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	width: 100%;
+	height: 140px;
+}
+
+.mk-admin-kpi-vbar-fill {
+	width: 100%;
+	max-width: 42px;
+	height: var(--bar-h, 4%);
+	min-height: 4px;
+	transform: scaleY(0);
+	transform-origin: bottom center;
+	border-radius: 10px 10px 4px 4px;
+	background: linear-gradient(180deg, #60a5fa, #2563eb);
+	transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+	transition-delay: var(--bar-delay, 0s);
+}
+
+.mk-admin-kpi-vbar-fill.is-grown {
+	transform: scaleY(1);
+}
+
+.mk-admin-kpi-donut-svg {
+	animation: mkDonutSpinIn 0.55s ease-out both;
+}
+
+.mk-admin-kpi-donut-seg {
+	stroke-dasharray: 0 999;
+	stroke-dashoffset: 0;
+	animation: mkDonutDraw 0.85s ease-out forwards;
+	animation-delay: var(--donut-delay, 0s);
+}
+
+@keyframes mkDonutDraw {
+	to {
+		stroke-dasharray: var(--donut-len) var(--donut-gap);
+		stroke-dashoffset: var(--donut-off);
+	}
+}
+
+@keyframes mkDonutSpinIn {
+	from {
+		transform: rotate(-40deg) scale(0.92);
+		opacity: 0.35;
+	}
+	to {
+		transform: rotate(0deg) scale(1);
+		opacity: 1;
+	}
+}
+
+.mk-admin-kpi-pie path {
+	transform-origin: 70px 70px;
+	animation: mkPiePop 0.55s ease both;
+}
+
+.mk-admin-kpi-pie path:nth-child(1) { animation-delay: 0.05s; }
+.mk-admin-kpi-pie path:nth-child(2) { animation-delay: 0.12s; }
+.mk-admin-kpi-pie path:nth-child(3) { animation-delay: 0.19s; }
+.mk-admin-kpi-pie path:nth-child(4) { animation-delay: 0.26s; }
+.mk-admin-kpi-pie path:nth-child(5) { animation-delay: 0.33s; }
+
+@keyframes mkPiePop {
+	from {
+		opacity: 0;
+		transform: scale(0.82);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.mk-admin-kpi-vbar-fill,
+	.mk-admin-kpi-donut-svg,
+	.mk-admin-kpi-donut-seg,
+	.mk-admin-kpi-pie path {
+		animation: none !important;
+		transition: none !important;
+	}
+	.mk-admin-kpi-vbar-fill.is-grown,
+	.mk-admin-kpi-vbar-fill {
+		transform: scaleY(1);
+	}
+	.mk-admin-kpi-donut-seg {
+		stroke-dasharray: var(--donut-len) var(--donut-gap);
+		stroke-dashoffset: var(--donut-off);
+	}
+}

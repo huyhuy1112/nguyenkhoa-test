@@ -59,6 +59,40 @@ class Leads_ConvertService {
 		return $potentialId;
 	}
 
+	/**
+	 * Create an Opportunity linked to a Lead without marking the Lead converted
+	 * (used when one product line is won while others stay open).
+	 */
+	public static function createRelatedPotential($leadId, $name, $ownerId) {
+		$leadId = (int) $leadId;
+		$ownerId = (int) $ownerId;
+		if ($leadId <= 0) {
+			return null;
+		}
+		$name = trim((string) $name);
+		if ($name === '') {
+			$name = 'Lead #' . $leadId;
+		}
+		if ($ownerId <= 0) {
+			global $current_user;
+			$ownerId = (int) $current_user->id;
+		}
+		$potential = Vtiger_Record_Model::getCleanInstance('Potentials');
+		$potential->set('potentialname', $name);
+		$potential->set('amount', 0);
+		$potential->set('assigned_user_id', $ownerId);
+		$potential->set('sales_stage', 'Closed Won');
+		$potential->set('closingdate', date('Y-m-d'));
+		$potential->set('order_category', self::defaultOrderCategory());
+		$potential->save();
+		$potentialId = (int) $potential->getId();
+		if ($potentialId <= 0) {
+			return null;
+		}
+		self::relateRecords($leadId, self::MODULE, $potentialId, 'Potentials');
+		return $potentialId;
+	}
+
 	public static function convertLead($leadId, array $options = array()) {
 		global $current_user;
 		$leadId = (int)$leadId;

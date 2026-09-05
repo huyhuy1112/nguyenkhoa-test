@@ -1067,6 +1067,25 @@
 	function renderVerifyPanel(lead) {
 		var host = byId('mk-ld-ui-verify');
 		if (!host) return;
+		var tags = lead.tags || [];
+		var hasZalo = false;
+		for (var ti = 0; ti < tags.length; ti++) {
+			if (String(tags[ti]).toLowerCase() === 'zalo') {
+				hasZalo = true;
+				break;
+			}
+		}
+		var needsVerify =
+			Number(lead.needs_sales_verify) === 1 ||
+			Number(lead.sheet_source) === 1 ||
+			!!(lead.form_c1 || lead.form_c2 || lead.form_c3) ||
+			hasZalo;
+		if (!needsVerify) {
+			host.innerHTML = '';
+			host.hidden = true;
+			return;
+		}
+		host.hidden = false;
 		var opts = lead.verify_options || verifyDefaultOptions();
 		var c1 = lead.verify_c1 || lead.form_c1 || '';
 		var c2 = lead.verify_c2 || lead.form_c2 || '';
@@ -1119,21 +1138,22 @@
 			formHint(lead.form_c3, lead.form_c3_label) +
 			'</div>' +
 			'<div class="mk-lead-verify__c45" data-mk-verify-c45>' +
-			'<div class="mk-lead-verify__field"><label>Câu 4 — Mức (1–4)</label>' +
+			'<p class="mk-lead-verify__c45-hint">Đủ điều kiện sơ lược — chọn C4 và C5 để chấm mức tiềm năng.</p>' +
+			'<div class="mk-lead-verify__field"><label>Câu 4 — Đánh giá mức độ quyết tâm / nhu cầu (1–4)</label>' +
 			verifySelectHtml(
 				'c4',
-				(opts.c4_levels || [1, 2, 3, 4]).map(function (n) {
+				(opts.c4 || (opts.c4_levels || [1, 2, 3, 4]).map(function (n) {
 					return { code: String(n), label: 'Mức ' + n };
-				}),
+				})),
 				c4 !== '' && c4 != null ? String(c4) : ''
 			) +
 			'</div>' +
-			'<div class="mk-lead-verify__field"><label>Câu 5 — Mức (1–4)</label>' +
+			'<div class="mk-lead-verify__field"><label>Câu 5 — Đánh giá mức độ phù hợp / khả năng triển khai (1–4)</label>' +
 			verifySelectHtml(
 				'c5',
-				(opts.c5_levels || [1, 2, 3, 4]).map(function (n) {
+				(opts.c5 || (opts.c5_levels || [1, 2, 3, 4]).map(function (n) {
 					return { code: String(n), label: 'Mức ' + n };
-				}),
+				})),
 				c5 !== '' && c5 != null ? String(c5) : ''
 			) +
 			'</div></div>' +

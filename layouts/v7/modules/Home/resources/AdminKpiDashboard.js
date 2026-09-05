@@ -175,11 +175,13 @@
 				renderFunnel($root, (data && data.funnel) || { stages: [] });
 				renderChart($root, (data && data.revenue_chart) || {});
 				renderPerf($root, (data && data.performance) || {});
+				renderOffline($root, (data && data.offline_gd11) || {});
 			})
 			.fail(function (msg) {
 				setError($root.find('#mkAdminKpiFunnelBody'), msg);
 				setError($root.find('#mkAdminKpiChartBody'), msg);
 				setError($root.find('#mkAdminKpiPerfBody'), msg);
+				setError($root.find('#mkAdminKpiOfflineBody'), msg);
 			});
 	}
 
@@ -245,7 +247,9 @@
 		$box.html(html).removeAttr('hidden');
 	}
 
-	var PERF_PIE_COLORS = ['#0f8a4b', '#14a85a', '#3ecf8e', '#7dd3a7', '#b8e6ce'];
+	var PERF_PIE_COLORS = ['#2563eb', '#10b981', '#7c3aed', '#f59e0b', '#f43f5e', '#06b6d4'];
+	var FUNNEL_COLORS = ['#2563eb', '#06b6d4', '#10b981', '#f59e0b', '#7c3aed', '#f43f5e'];
+	var OFFLINE_COLORS = ['#2563eb', '#f59e0b', '#06b6d4', '#10b981', '#f43f5e', '#64748b'];
 
 	function polarToCartesian(cx, cy, r, angleDeg) {
 		var rad = ((angleDeg - 90) * Math.PI) / 180;
@@ -380,20 +384,115 @@
 		$root.find('#mkAdminKpiPerfBody').html(html);
 	}
 
+	function renderDonut(items, colors) {
+		colors = colors || PERF_PIE_COLORS;
+		var list = (items || []).filter(function (it) {
+			return Number(it.count != null ? it.count : it.value) > 0;
+		});
+		if (!list.length) {
+			return '<div class="mk-admin-kpi-placeholder">Chưa có dữ liệu</div>';
+		}
+		var total = 0;
+		list.forEach(function (it) {
+			total += Number(it.count != null ? it.count : it.value) || 0;
+		});
+		if (total <= 0) {
+			return '<div class="mk-admin-kpi-placeholder">Chưa có dữ liệu</div>';
+		}
+		var r = 54;
+		var c = 2 * Math.PI * r;
+		var offset = 0;
+		var circles = '';
+		list.forEach(function (it, i) {
+			var val = Number(it.count != null ? it.count : it.value) || 0;
+			var len = (val / total) * c;
+			var color = it.color || colors[i % colors.length];
+			circles +=
+				'<circle class="mk-admin-kpi-donut-seg" cx="70" cy="70" r="' +
+				r +
+				'" fill="none" stroke="' +
+				color +
+				'" stroke-width="16" stroke-linecap="butt" style="--donut-len:' +
+				len +
+				';--donut-gap:' +
+				(c - len) +
+				';--donut-off:' +
+				(-offset) +
+				';--donut-delay:' +
+				(i * 0.08) +
+				's" transform="rotate(-90 70 70)"></circle>';
+			offset += len;
+		});
+		return (
+			'<div class="mk-admin-kpi-pie-wrap mk-admin-kpi-pie-wrap--anim">' +
+			'<svg class="mk-admin-kpi-donut-svg" viewBox="0 0 140 140" width="140" height="140" aria-hidden="true">' +
+			'<circle cx="70" cy="70" r="' +
+			r +
+			'" fill="none" stroke="#e2e8f0" stroke-width="16"></circle>' +
+			circles +
+			'<text x="70" y="74" text-anchor="middle" font-size="18" font-weight="800" fill="#0f172a">' +
+			num(total) +
+			'</text></svg></div>'
+		);
+	}
+
+	function renderOffline($root, data) {
+		data = data || {};
+		var stages = data.stages || [];
+		$root.find('#mkAdminKpiOfflineRate').text(
+			'Tỷ lệ tham gia: ' + (data.attend_rate != null ? data.attend_rate + '%' : '—')
+		);
+		if (!stages.length && !(data.total > 0)) {
+			$root
+				.find('#mkAdminKpiOfflineBody')
+				.html('<div class="mk-admin-kpi-placeholder">Chưa có lead Offline GD 1.1</div>');
+			return;
+		}
+		var stats = '';
+		stages.forEach(function (s) {
+			stats +=
+				'<div class="mk-admin-kpi-offline-stat">' +
+				'<span>' +
+				safeLabel(s.label) +
+				'</span><strong style="color:' +
+				escapeHtml(s.color || '#0f172a') +
+				'">' +
+				num(s.count) +
+				'</strong></div>';
+		});
+		var html =
+			'<div class="mk-admin-kpi-offline-grid">' +
+			renderDonut(stages, OFFLINE_COLORS) +
+			'<div class="mk-admin-kpi-offline-stats">' +
+			stats +
+			'</div></div>';
+		$root.find('#mkAdminKpiOfflineBody').html(html);
+	}
+
 	function renderFunnel($root, funnel) {
 		var stages = funnel.stages || [];
 		if (!stages.length) {
 			$root.find('#mkAdminKpiFunnelBody').html('<div class="mk-admin-kpi-placeholder">Chưa có dữ liệu phễu bán hàng</div>');
 			return;
 		}
-		var html = '<div class="mk-admin-kpi-funnel-steps">';
+		var donutItems = stages.map(function (s, i) {
+			return {
+				count: s.count,
+				label: s.label,
+				color: FUNNEL_COLORS[i % FUNNEL_COLORS.length],
+			};
+		});
+		var html = '<div class="mk-admin-kpi-funnel-layout">' + renderDonut(donutItems, FUNNEL_COLORS);
+		html += '<div class="mk-admin-kpi-funnel-steps">';
 		stages.forEach(function (s, i) {
 			html +=
 				'<a class="mk-admin-kpi-funnel-step" href="' +
 				escapeHtml(s.url || '#') +
 				'" style="--w:' +
 				Math.max(18, Number(s.percent) || 0) +
-				'%">' +
+				'%; border-left:4px solid ' +
+				FUNNEL_COLORS[i % FUNNEL_COLORS.length] +
+				'">' +
 				'<span class="mk-admin-kpi-funnel-label">' +
 				safeLabel(s.label) +
 				'</span>' +
@@ -404,7 +503,7 @@
 				html += '<span class="mk-admin-kpi-funnel-arrow" aria-hidden="true">→</span>';
 			}
 		});
-		html += '</div>';
+		html += '</div></div>';
 		$root.find('#mkAdminKpiFunnelBody').html(html);
 	}
 
@@ -455,9 +554,12 @@
 				tag +
 				attrs +
 				'>' +
-				'<div class="mk-admin-kpi-vbar-fill" style="height:' +
-				h +
-				'%"></div>' +
+				'<div class="mk-admin-kpi-vbar-track">' +
+				'<div class="mk-admin-kpi-vbar-fill" style="--bar-h:' +
+				Math.max(h, 4) +
+				'%; --bar-delay:' +
+				(i * 0.05) +
+				's"></div></div>' +
 				'<span class="mk-admin-kpi-vbar-val">' +
 				(v >= 1000000 ? num(Math.round(v / 1000000)) + 'tr' : num(Math.round(v))) +
 				'</span>' +
@@ -469,6 +571,12 @@
 		});
 		html += '</div>';
 		$root.find('#mkAdminKpiChartBody').html(html);
+		// Retrigger grow animation on each re-render (filter change)
+		window.requestAnimationFrame(function () {
+			window.requestAnimationFrame(function () {
+				$root.find('#mkAdminKpiChartBody .mk-admin-kpi-vbar-fill').addClass('is-grown');
+			});
+		});
 	}
 
 	function renderStatRow(items) {

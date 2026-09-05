@@ -44,15 +44,7 @@
 
   function getPresetSegments() {
     if (ref && ref.getPresetSegments) return ref.getPresetSegments();
-    return [
-      { id: "new", name: "Khách mới", filters: { purchase: "mua_lan_dau" } },
-      { id: "repeat", name: "Khách mua lại", filters: { purchase: "mua_lai" } },
-      { id: "nobuy", name: "Khách không mua", filters: { purchase: "khong_mua" } },
-      { id: "chain", name: "Khách chuỗi (PCTH)", filters: { program: "pcth" } },
-      { id: "franchise", name: "Khách nhượng quyền", filters: { program: "nhuong_quyen" } },
-      { id: "cskh", name: "Khách cần CSKH", filters: { staleOnly: true } },
-      { id: "phone_dup", name: "Trùng SĐT", filters: { phoneDupOnly: true } },
-    ];
+    return [{ id: "phone_dup", name: "Trùng SĐT", filters: { phoneDupOnly: true } }];
   }
 
   var PRESET_SEGMENTS = getPresetSegments();
@@ -83,10 +75,454 @@
     filtersOpen: false,
     listMode: "active", // active | trash
     trashCache: null,
+    viewMode: "table", // table | kanban
+    productTab: "all", // all | unclassified | online | offline | nvl | franchise
+  };
+
+  var FALLBACK_PRODUCT_CATALOG = {
+    groups: [
+      {
+        code: "online",
+        label: "Online",
+        stages: [
+          { code: "moi", label: "Mới" },
+          { code: "dang_tu_van", label: "Đang tư vấn" },
+          { code: "da_bao_gia", label: "Đã báo giá" },
+          { code: "da_chot", label: "Đã chốt" },
+          { code: "khong_mua", label: "Không mua" },
+        ],
+      },
+      {
+        code: "offline",
+        label: "Offline",
+        stages: [
+          { code: "moi", label: "Mới" },
+          { code: "dang_tu_van", label: "Đang tư vấn" },
+          { code: "da_bao_gia", label: "Đã báo giá" },
+          { code: "da_hen_lop", label: "Đã hẹn lớp" },
+          { code: "da_chot", label: "Đã chốt" },
+          { code: "khong_mua", label: "Không mua" },
+        ],
+      },
+      {
+        code: "nvl",
+        label: "NVL",
+        stages: [
+          { code: "moi", label: "Mới" },
+          { code: "dang_tu_van", label: "Đang tư vấn" },
+          { code: "da_bao_gia", label: "Đã báo giá" },
+          { code: "da_chot", label: "Đã chốt" },
+          { code: "da_giao", label: "Đã giao" },
+          { code: "khong_mua", label: "Không mua" },
+        ],
+      },
+      {
+        code: "franchise",
+        label: "Nhượng quyền",
+        stages: [
+          { code: "moi", label: "Mới" },
+          { code: "dang_tu_van", label: "Đang tư vấn" },
+          { code: "da_bao_gia", label: "Đã báo giá" },
+          { code: "da_chot", label: "Đã chốt" },
+          { code: "khong_mua", label: "Không mua" },
+        ],
+      },
+    ],
+    stage_labels: {
+      moi: "Mới",
+      dang_tu_van: "Đang tư vấn",
+      da_bao_gia: "Đã báo giá",
+      da_hen_lop: "Đã hẹn lớp",
+      da_chot: "Đã chốt",
+      da_giao: "Đã giao",
+      khong_mua: "Không mua",
+    },
   };
 
   function $(id) {
     return document.getElementById(id);
+  }
+
+  function productCatalog() {
+    var cat = store && store.getProductCatalog ? store.getProductCatalog() : null;
+    return cat && cat.groups && cat.groups.length ? cat : FALLBACK_PRODUCT_CATALOG;
+  }
+
+  function productGroups() {
+    return productCatalog().groups || [];
+  }
+
+  function stageLabelOf(code) {
+    var labels = productCatalog().stage_labels || {};
+    return labels[code] || code || "";
+  }
+
+  function leadProducts(lead) {
+    if (!lead || !lead.products || !lead.products.length) return [];
+    if (Object.prototype.toString.call(lead.products) !== "[object Array]") return [];
+    return lead.products.slice();
+  }
+
+  function leadIsUnclassified(lead) {
+    return leadProducts(lead).length === 0;
+  }
+
+  function leadHasProductGroup(lead, group) {
+    return leadProducts(lead).some(function (p) {
+      return p.group === group;
+    });
+  }
+
+  function visibleProducts(lead) {
+    var list = leadProducts(lead);
+    if (state.productTab && state.productTab !== "all" && state.productTab !== "unclassified") {
+      return list.filter(function (p) {
+        return p.group === state.productTab;
+      });
+    }
+    return list;
+  }
+
+  function canEditPipeline(lead) {
+    return !!(lead && (lead.can_edit_pipeline === 1 || lead.can_edit_pipeline === true));
+  }
+
+  function daysInStageLabel(product) {
+    if (!product || product.stage === "khong_mua") return "";
+    var d = product.days_in_stage;
+    if (d == null || d === "") return "";
+    var n = parseInt(d, 10);
+    if (isNaN(n)) return "";
+    return n + " ngày";
+  }
+
+  function productChipHtml(product, lead) {
+    var canEdit = canEditPipeline(lead);
+    var title = product.product_name
+      ? product.group_label + " — " + product.product_name
+      : product.group_label;
+    return (
+      '<span class="mk-lead-pchip mk-lead-pchip--' +
+      esc(product.group) +
+      '" title="' +
+      esc(title) +
+      '">' +
+      esc(product.group_label || product.group) +
+      (canEdit
+        ? '<button type="button" class="mk-lead-pchip__x" data-product-remove="' +
+          esc(product.id) +
+          '" title="Bỏ nhóm">×</button>'
+        : "") +
+      "</span>"
+    );
+  }
+
+  function renderProductChipsCell(lead) {
+    var list = visibleProducts(lead);
+    var canEdit = canEditPipeline(lead);
+    if (!list.length) {
+      return (
+        '<span class="mk-lead-pchips">' +
+        '<span class="mk-lead-pchip mk-lead-pchip--none">Chưa phân loại</span>' +
+        (canEdit
+          ? '<button type="button" class="mk-lead-padd" data-product-add="' +
+            esc(lead.id) +
+            '" title="Gắn nhóm sản phẩm">+</button>'
+          : "") +
+        "</span>"
+      );
+    }
+    var html = '<span class="mk-lead-pchips">' + list.map(function (p) {
+      return productChipHtml(p, lead);
+    }).join("");
+    var have = {};
+    leadProducts(lead).forEach(function (p) {
+      have[p.group] = 1;
+    });
+    var leftover = productGroups().some(function (g) {
+      return !have[g.code];
+    });
+    if (canEdit && leftover && state.productTab === "all") {
+      html +=
+        '<button type="button" class="mk-lead-padd" data-product-add="' +
+        esc(lead.id) +
+        '" title="Gắn nhóm sản phẩm">+</button>';
+    }
+    return html + "</span>";
+  }
+
+  function stageSelectHtml(product, lead) {
+    var group = productGroups().find(function (g) {
+      return g.code === product.group;
+    });
+    var stages = group && group.stages ? group.stages : [];
+    if (!canEditPipeline(lead) || !stages.length) {
+      return (
+        '<span class="mk-lead-pstage-line">' +
+        "<strong>" +
+        esc(product.group_label || product.group) +
+        ":</strong> " +
+        esc(product.stage_label || stageLabelOf(product.stage)) +
+        (daysInStageLabel(product)
+          ? ' <em class="mk-lead-pdays">' + esc(daysInStageLabel(product)) + "</em>"
+          : "") +
+        "</span>"
+      );
+    }
+    return (
+      '<span class="mk-lead-pstage-line">' +
+      "<strong>" +
+      esc(product.group_label || product.group) +
+      ":</strong> " +
+      '<select class="mk-lead-pstage-select" data-product-id="' +
+      esc(product.id) +
+      '">' +
+      stages
+        .map(function (st) {
+          var code = st.code || st;
+          var label = st.label || stageLabelOf(code);
+          return (
+            '<option value="' +
+            esc(code) +
+            '"' +
+            (product.stage === code ? " selected" : "") +
+            ">" +
+            esc(label) +
+            "</option>"
+          );
+        })
+        .join("") +
+      "</select>" +
+      (daysInStageLabel(product)
+        ? ' <em class="mk-lead-pdays">' + esc(daysInStageLabel(product)) + "</em>"
+        : "") +
+      "</span>"
+    );
+  }
+
+  function renderProductStageCell(lead) {
+    var list = visibleProducts(lead);
+    if (!list.length) {
+      return '<span class="mk-leads-muted">—</span>';
+    }
+    return (
+      '<div class="mk-lead-pstages">' +
+      list
+        .map(function (p) {
+          return stageSelectHtml(p, lead);
+        })
+        .join("") +
+      "</div>"
+    );
+  }
+
+  function closeProductPopover() {
+    var el = document.getElementById("mk-leads-product-popover");
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  }
+
+  function openProductAddPopover(btn, lead) {
+    closeProductPopover();
+    var have = {};
+    leadProducts(lead).forEach(function (p) {
+      have[p.group] = 1;
+    });
+    var groups = productGroups().filter(function (g) {
+      return !have[g.code];
+    });
+    if (!groups.length) {
+      window.alert("Lead đã gắn đủ 4 nhóm sản phẩm.");
+      return;
+    }
+    var pop = document.createElement("div");
+    pop.id = "mk-leads-product-popover";
+    pop.className = "mk-lead-ppop";
+    pop.innerHTML =
+      '<div class="mk-lead-ppop__title">Gắn nhóm sản phẩm</div>' +
+      groups
+        .map(function (g) {
+          return (
+            '<button type="button" class="mk-lead-ppop__item" data-group="' +
+            esc(g.code) +
+            '">' +
+            esc(g.label) +
+            "</button>"
+          );
+        })
+        .join("");
+    document.body.appendChild(pop);
+    var rect = btn.getBoundingClientRect();
+    pop.style.left = Math.min(rect.left, window.innerWidth - 220) + "px";
+    pop.style.top = rect.bottom + 6 + window.scrollY + "px";
+    pop.addEventListener("click", function (e) {
+      var item = e.target.closest("[data-group]");
+      if (!item) return;
+      e.preventDefault();
+      var group = item.getAttribute("data-group");
+      var name = window.prompt("Tên sản phẩm cụ thể (mô tả, có thể để trống)", "") || "";
+      closeProductPopover();
+      if (!store || !store.productUpsert) return;
+      store
+        .productUpsert(leadCrmId(lead) || lead.id, group, name)
+        .then(function () {
+          refreshListBody();
+        })
+        .catch(function (err) {
+          window.alert(typeof err === "string" ? err : (err && err.message) || "Không gắn được sản phẩm.");
+        });
+    });
+  }
+
+  function countLeadsForProductTab(baseLeads, tab) {
+    var prev = state.productTab;
+    state.productTab = tab;
+    var n = filterLeads(baseLeads).length;
+    state.productTab = prev;
+    return n;
+  }
+
+  function productTabItemsHtml(baseLeads) {
+    var items = [{ id: "unclassified", label: "Chưa phân loại" }].concat(
+      productGroups().map(function (g) {
+        return { id: g.code, label: g.label };
+      }),
+    );
+    return items
+      .map(function (it) {
+        var n = countLeadsForProductTab(baseLeads, it.id);
+        return (
+          '<button type="button" class="mk-leads-segment-btn mk-leads-ptab' +
+          (state.productTab === it.id ? " is-active" : "") +
+          '" data-product-tab="' +
+          esc(it.id) +
+          '">' +
+          esc(it.label) +
+          ' <span class="mk-leads-ptab__n">' +
+          n +
+          "</span></button>"
+        );
+      })
+      .join("");
+  }
+
+  function applyViewMode() {
+    var tableWrap = $("mk-leads-table-wrap");
+    var kanban = $("mk-leads-kanban");
+    var isKanban = state.viewMode === "kanban";
+    if (tableWrap) tableWrap.hidden = isKanban;
+    if (kanban) kanban.hidden = !isKanban;
+    var toggle = $("mk-leads-view-toggle");
+    var tableBtn = $("mk-leads-view-table");
+    var kanbanBtn = $("mk-leads-view-kanban");
+    if (toggle) toggle.setAttribute("data-mode", isKanban ? "kanban" : "table");
+    if (tableBtn) {
+      tableBtn.classList.toggle("is-active", !isKanban);
+      tableBtn.setAttribute("aria-selected", !isKanban ? "true" : "false");
+    }
+    if (kanbanBtn) {
+      kanbanBtn.classList.toggle("is-active", isKanban);
+      kanbanBtn.setAttribute("aria-selected", isKanban ? "true" : "false");
+    }
+  }
+
+  function refreshListBody() {
+    renderSegments();
+    applyViewMode();
+    if (state.viewMode === "kanban") {
+      renderKanban();
+    } else {
+      renderTable();
+    }
+  }
+
+  function renderKanban() {
+    var root = $("mk-leads-kanban");
+    if (!root) return;
+    var tab = state.productTab;
+    if (tab === "all" || tab === "unclassified") {
+      root.innerHTML =
+        '<div class="mk-leads-kanban-empty">Chọn tab Online / Offline / NVL / Nhượng quyền để kéo stage trên Kanban. Lead chưa gắn nhóm không nằm trong cột nào.</div>';
+      return;
+    }
+    var group = productGroups().find(function (g) {
+      return g.code === tab;
+    });
+    if (!group) {
+      root.innerHTML = "";
+      return;
+    }
+    var rows = filterLeads(getLeads());
+    var byStage = {};
+    (group.stages || []).forEach(function (st) {
+      byStage[st.code] = [];
+    });
+    rows.forEach(function (l) {
+      var prod = leadProducts(l).find(function (p) {
+        return p.group === tab;
+      });
+      if (!prod) return;
+      if (!byStage[prod.stage]) byStage[prod.stage] = [];
+      byStage[prod.stage].push({ lead: l, product: prod });
+    });
+    root.innerHTML =
+      '<div class="mk-leads-kanban__cols">' +
+      (group.stages || [])
+        .map(function (st) {
+          var cards = byStage[st.code] || [];
+          return (
+            '<section class="mk-leads-kanban-col mk-leads-kanban-col--' +
+            esc(st.code) +
+            '" data-stage="' +
+            esc(st.code) +
+            '">' +
+            '<header class="mk-leads-kanban-col__head"><span>' +
+            esc(st.label) +
+            '</span><span class="mk-leads-kanban-col__n">' +
+            cards.length +
+            "</span></header>" +
+            '<div class="mk-leads-kanban-col__body">' +
+            cards
+              .map(function (item) {
+                var l = item.lead;
+                var p = item.product;
+                var days = daysInStageLabel(p);
+                var can = canEditPipeline(l);
+                return (
+                  '<article class="mk-leads-kanban-card' +
+                  (can ? " is-draggable" : "") +
+                  '" data-product-id="' +
+                  esc(p.id) +
+                  '" data-lead-id="' +
+                  esc(l.id) +
+                  '"' +
+                  (can ? ' draggable="true"' : "") +
+                  ">" +
+                  '<a class="mk-leads-kanban-card__name" href="' +
+                  detailUrl(l.id) +
+                  '">' +
+                  esc(decodeHtmlEntities(l.name)) +
+                  "</a>" +
+                  (l.phone
+                    ? '<div class="mk-leads-kanban-card__phone">' +
+                      esc(decodeHtmlEntities(l.phone)) +
+                      "</div>"
+                    : "") +
+                  (p.product_name
+                    ? '<div class="mk-leads-kanban-card__sub">' +
+                      esc(decodeHtmlEntities(p.product_name)) +
+                      "</div>"
+                    : "") +
+                  (days ? '<div class="mk-leads-kanban-card__days">' + esc(days) + "</div>" : "") +
+                  (!can ? '<div class="mk-leads-kanban-card__ro">Chỉ xem</div>' : "") +
+                  "</article>"
+                );
+              })
+              .join("") +
+            "</div></section>"
+          );
+        })
+        .join("") +
+      "</div>";
   }
 
   function tagMeta(t) {
@@ -213,7 +649,7 @@
 
   function addressOf(lead) {
     if (!lead) return "";
-    var address = String(lead.address || "").trim();
+    var address = decodeHtmlEntities(String(lead.address || "")).trim();
     if (address) return address;
     var area = String(lead.area || "").trim();
     if (!area) return "";
@@ -294,7 +730,7 @@
       shown = window.MkPhoneFormat.format(value) || value;
     }
     var display = shown
-      ? esc(shown)
+      ? esc(decodeHtmlEntities(shown))
       : '<span class="mk-leads-muted">' + esc(placeholder || "—") + "</span>";
     return (
       '<button type="button" class="mk-leads-inline-edit" data-field="' +
@@ -573,10 +1009,16 @@
   }
 
   function decodeHtmlEntities(s) {
-    if (logic && logic.decodeHtmlEntities) return logic.decodeHtmlEntities(s);
+    var str = String(s == null ? "" : s);
     var ta = document.createElement("textarea");
-    ta.innerHTML = String(s == null ? "" : s);
-    return ta.value;
+    var i;
+    for (i = 0; i < 3; i++) {
+      ta.innerHTML = str;
+      var next = ta.value;
+      if (next === str) break;
+      str = next;
+    }
+    return str;
   }
 
   function renderInlineLastTouchPanel(panelOrBtn, lt) {
@@ -931,6 +1373,66 @@
     return { id: id, crmid: id, canConvert: true };
   }
 
+  function needsSalesVerify(l) {
+    if (!l) return false;
+    if (Number(l.needs_sales_verify) === 1 || Number(l.sheet_source) === 1) return true;
+    if (isOnlineVerifyLead(l)) return true;
+    if (l.form_c1 || l.form_c2 || l.form_c3) return true;
+    var tags = l.tags || [];
+    for (var i = 0; i < tags.length; i++) {
+      if (String(tags[i]).toLowerCase() === "zalo") return true;
+    }
+    return false;
+  }
+
+  function isOnlineVerifyLead(l) {
+    if (!l || Number(l.sheet_source) === 1) return false;
+    if (l.verify_mode === "sales_b") return false;
+    if (l.verify_mode === "online_gd12") return true;
+    if (l.online_status || l.online_path === "oa") return true;
+    if (l.online_q1 || l.online_q2 || l.online_q3 || l.online_q4) return true;
+    var tags = l.tags || [];
+    for (var i = 0; i < tags.length; i++) {
+      var t = String(tags[i]).toLowerCase();
+      if (t === "mien_phi_online" || t.indexOf("online_") === 0) return true;
+    }
+    return false;
+  }
+
+  function listOnlineVerifyOptions() {
+    return {
+      q1: [
+        { code: "A", label: "Học phục vụ gia đình / sở thích" },
+        { code: "B", label: "Xe đẩy / mang đi / online / tại nhà" },
+        { code: "C", label: "Chuẩn bị mở quán, đã có mặt bằng" },
+        { code: "D", label: "Đã có quán, kinh doanh chưa tốt" },
+        { code: "E", label: "Đã có quán, kinh doanh ổn định / tốt" },
+      ],
+      q2: [
+        { code: "A", label: "Trong 1 tháng / ngay bây giờ" },
+        { code: "B", label: "1–3 tháng" },
+        { code: "C", label: "3–6 tháng" },
+        { code: "D", label: "Trên 6 tháng / chưa xác định" },
+      ],
+      q3: [
+        { code: "A", label: "Dưới 50 triệu" },
+        { code: "B", label: "Từ 50 đến dưới 100 triệu" },
+        { code: "C", label: "Từ 100 đến dưới 300 triệu" },
+        { code: "D", label: "Từ 300 đến dưới 500 triệu" },
+        { code: "E", label: "Từ 500 triệu trở lên" },
+      ],
+      q4: [
+        { code: "A", label: "Xe đẩy cà phê – trà sữa – trà trái cây" },
+        { code: "B", label: "Trà sữa – topping, mặt bằng 20–30 m²" },
+        { code: "C", label: "Trà sữa pha máy, mặt bằng 20–30 m²" },
+        { code: "D", label: "Cà phê – trà sữa, máy lạnh" },
+        { code: "E", label: "Cà phê sân vườn, diện tích vừa – lớn" },
+        { code: "F", label: "Cà phê không gian mở, diện tích nhỏ" },
+        { code: "G", label: "Học pha chế cho gia đình / sở thích" },
+      ],
+    };
+  }
+
   function screeningStatusHtml(l) {
     var pot = l.potential_level || "";
     var elig = l.eligibility_result || "";
@@ -1035,7 +1537,7 @@
       '<aside class="mk-leads-verify-panel__sheet" role="dialog" aria-modal="true" aria-labelledby="mk-leads-verify-title">' +
       '<header class="mk-leads-verify-panel__head">' +
       '<div class="mk-leads-verify-panel__head-main">' +
-      '<span class="mk-leads-verify-panel__badge">Bộ B</span>' +
+      '<span class="mk-leads-verify-panel__badge" id="mk-leads-verify-badge">Bộ B</span>' +
       "<div>" +
       '<h3 id="mk-leads-verify-title">Sales xác minh</h3>' +
       '<p class="mk-leads-verify-panel__sub" id="mk-leads-verify-sub">Gọi xác minh C1–C3, rồi C4/C5 nếu đủ điều kiện</p>' +
@@ -1062,6 +1564,28 @@
       }
     });
     wrap.addEventListener("click", function (e) {
+      var kbBtn = e.target && e.target.closest ? e.target.closest("[data-mk-offline-kb-copy]") : null;
+      if (kbBtn) {
+        e.preventDefault();
+        copyOfflineKb(kbBtn.getAttribute("data-mk-kb-text") || "", kbBtn);
+        return;
+      }
+      var step2Btn = e.target && e.target.closest ? e.target.closest("[data-mk-step2-action]") : null;
+      if (step2Btn) {
+        e.preventDefault();
+        submitOfflineStep2Action(
+          step2Btn.getAttribute("data-mk-step2-action"),
+          step2Btn.getAttribute("data-mk-milestone") || "",
+          step2Btn
+        );
+        return;
+      }
+      var offlineBtn = e.target && e.target.closest ? e.target.closest("[data-mk-offline-action]") : null;
+      if (offlineBtn) {
+        e.preventDefault();
+        submitOfflineGd11Action(offlineBtn.getAttribute("data-mk-offline-action"), offlineBtn);
+        return;
+      }
       var btn = e.target && e.target.closest ? e.target.closest("[data-mk-verify-action]") : null;
       if (!btn) return;
       e.preventDefault();
@@ -1082,6 +1606,7 @@
     panel.setAttribute("aria-hidden", "true");
     document.body.classList.remove("mk-leads-verify-open");
     panel._mkLead = null;
+    panel._mkVerifyMode = null;
   }
 
   function listVerifyFormHint(code, label) {
@@ -1095,25 +1620,26 @@
     );
   }
 
-  function fillListVerifyBody(lead) {
-    var body = document.getElementById("mk-leads-verify-body");
+  function paintListVerifyHeader(lead, online) {
+    var badge = document.getElementById("mk-leads-verify-badge");
+    var title = document.getElementById("mk-leads-verify-title");
     var sub = document.getElementById("mk-leads-verify-sub");
-    if (!body || !lead) return;
-    var opts = (lead.verify_options && lead.verify_options.c1 ? lead.verify_options : null) || listVerifyOptions();
-    var c1 = lead.verify_c1 || lead.form_c1 || "";
-    var c2 = lead.verify_c2 || lead.form_c2 || "";
-    var c3 = lead.verify_c3 || lead.form_c3 || "";
-    var c4 = lead.verify_c4 != null && lead.verify_c4 !== "" ? String(lead.verify_c4) : "";
-    var c5 = lead.verify_c5 != null && lead.verify_c5 !== "" ? String(lead.verify_c5) : "";
-    var levels = [1, 2, 3, 4].map(function (n) {
-      return { code: String(n), label: "Mức " + n };
-    });
+    if (badge) badge.textContent = online ? "Online 1.2" : "Bộ B";
+    if (title) title.textContent = online ? "Xác minh Online (4 câu)" : "Sales xác minh";
     if (sub) {
-      sub.textContent = (lead.name || "Lead") + (lead.phone ? " · " + lead.phone : "");
+      sub.textContent = online
+        ? (lead.name || "Lead") +
+          (lead.phone ? " · " + lead.phone : "") +
+          " · Zalo OA — bộ 4 câu"
+        : (lead.name || "Lead") +
+          (lead.phone ? " · " + lead.phone : "") +
+          " · Google Sheet — C1–C3";
     }
-    var statusHtml = "";
+  }
+
+  function listVerifyStatusHtml(lead) {
     if (lead.eligibility_label || lead.potential_label) {
-      statusHtml =
+      return (
         '<div class="mk-leads-verify-result" data-mk-verify-status="1">' +
         (lead.eligibility_label
           ? '<div class="mk-leads-verify-result__row"><span>Điều kiện</span><strong>' +
@@ -1130,10 +1656,24 @@
             esc(String(lead.verify_score)) +
             "</strong></div>"
           : "") +
-        "</div>";
-    } else {
-      statusHtml = '<div class="mk-leads-verify-result" data-mk-verify-status="1" hidden></div>';
+        "</div>"
+      );
     }
+    return '<div class="mk-leads-verify-result" data-mk-verify-status="1" hidden></div>';
+  }
+
+  function fillListVerifyBodyOnline(lead) {
+    var body = document.getElementById("mk-leads-verify-body");
+    if (!body || !lead) return;
+    var opts =
+      (lead.online_verify_options && lead.online_verify_options.q1
+        ? lead.online_verify_options
+        : null) || listOnlineVerifyOptions();
+    var q1 = lead.online_q1 || "";
+    var q2 = lead.online_q2 || "";
+    var q3 = lead.online_q3 || "";
+    var q4 = lead.online_q4 || "";
+    paintListVerifyHeader(lead, true);
     body.innerHTML =
       '<div class="mk-leads-verify-hero">' +
       '<div class="mk-leads-verify-hero__name">' +
@@ -1144,25 +1684,102 @@
       (lead.phone ? '<span class="mk-leads-verify-phone">' + esc(lead.phone) + "</span>" : "") +
       "</div></div>" +
       '<section class="mk-leads-verify-section">' +
-      '<h4>Đáp án Form <span>(không bị ghi đè)</span></h4>' +
+      "<h4>Đáp án Form Zalo OA <span>(4 câu)</span></h4>" +
+      '<div class="mk-leads-verify-formcards mk-leads-verify-formcards--4">' +
+      '<div class="mk-leads-verify-formcard"><em>Q1</em><strong>' +
+      esc(lead.online_q1 || "—") +
+      "</strong><small>" +
+      esc(lead.online_q1_label || "Chưa có từ Form OA") +
+      "</small></div>" +
+      '<div class="mk-leads-verify-formcard"><em>Q2</em><strong>' +
+      esc(lead.online_q2 || "—") +
+      "</strong><small>" +
+      esc(lead.online_q2_label || "Chưa có từ Form OA") +
+      "</small></div>" +
+      '<div class="mk-leads-verify-formcard"><em>Q3</em><strong>' +
+      esc(lead.online_q3 || "—") +
+      "</strong><small>" +
+      esc(lead.online_q3_label || "Chưa có từ Form OA") +
+      "</small></div>" +
+      '<div class="mk-leads-verify-formcard"><em>Q4</em><strong>' +
+      esc(lead.online_q4 || "—") +
+      "</strong><small>" +
+      esc(lead.online_q4_label || "Chưa có từ Form OA") +
+      "</small></div></div></section>" +
+      '<section class="mk-leads-verify-section">' +
+      "<h4>Sau cuộc gọi / chỉnh đáp án</h4>" +
+      '<label class="mk-leads-verify-field"><span>Câu 1 — Tình trạng</span>' +
+      listVerifySelectHtml("q1", opts.q1, q1) +
+      listVerifyFormHint(lead.online_q1, lead.online_q1_label) +
+      "</label>" +
+      '<label class="mk-leads-verify-field"><span>Câu 2 — Thời gian dự kiến</span>' +
+      listVerifySelectHtml("q2", opts.q2, q2) +
+      listVerifyFormHint(lead.online_q2, lead.online_q2_label) +
+      "</label>" +
+      '<label class="mk-leads-verify-field"><span>Câu 3 — Ngân sách</span>' +
+      listVerifySelectHtml("q3", opts.q3, q3) +
+      listVerifyFormHint(lead.online_q3, lead.online_q3_label) +
+      "</label>" +
+      '<label class="mk-leads-verify-field"><span>Câu 4 — Mô hình</span>' +
+      listVerifySelectHtml("q4", opts.q4, q4) +
+      listVerifyFormHint(lead.online_q4, lead.online_q4_label) +
+      "</label></section>" +
+      listVerifyStatusHtml(lead) +
+      '<p class="mk-leads-verify-err" data-mk-verify-err hidden></p>' +
+      '<p class="mk-leads-verify-ok" data-mk-verify-ok hidden></p>';
+  }
+
+  function fillListVerifyBodySheet(lead) {
+    var body = document.getElementById("mk-leads-verify-body");
+    if (!body || !lead) return;
+    var opts = (lead.verify_options && lead.verify_options.c1 ? lead.verify_options : null) || listVerifyOptions();
+    var c1 = lead.verify_c1 || lead.form_c1 || "";
+    var c2 = lead.verify_c2 || lead.form_c2 || "";
+    var c3 = lead.verify_c3 || lead.form_c3 || "";
+    var c4 = lead.verify_c4 != null && lead.verify_c4 !== "" ? String(lead.verify_c4) : "";
+    var c5 = lead.verify_c5 != null && lead.verify_c5 !== "" ? String(lead.verify_c5) : "";
+    var levels =
+      opts.c4 && opts.c4.length
+        ? opts.c4
+        : [1, 2, 3, 4].map(function (n) {
+            return { code: String(n), label: "Mức " + n };
+          });
+    var levels5 =
+      opts.c5 && opts.c5.length
+        ? opts.c5
+        : levels;
+    var c4Label = opts.c4_label || "Câu 4 — Đánh giá mức độ quyết tâm / nhu cầu (1–4)";
+    var c5Label = opts.c5_label || "Câu 5 — Đánh giá mức độ phù hợp / khả năng triển khai (1–4)";
+    paintListVerifyHeader(lead, false);
+    body.innerHTML =
+      '<div class="mk-leads-verify-hero">' +
+      '<div class="mk-leads-verify-hero__name">' +
+      esc(lead.name || "Lead") +
+      "</div>" +
+      '<div class="mk-leads-verify-hero__meta">' +
+      screeningStatusHtml(lead) +
+      (lead.phone ? '<span class="mk-leads-verify-phone">' + esc(lead.phone) + "</span>" : "") +
+      "</div></div>" +
+      '<section class="mk-leads-verify-section">' +
+      '<h4>Đáp án Form Google Sheet <span>(3 câu)</span></h4>' +
       '<div class="mk-leads-verify-formcards">' +
       '<div class="mk-leads-verify-formcard"><em>C1</em><strong>' +
       esc(lead.form_c1 || "—") +
       "</strong><small>" +
-      esc(lead.form_c1_label || "Chưa có từ Sheet") +
+      esc(lead.form_c1_label || "Chưa có từ Form") +
       "</small></div>" +
       '<div class="mk-leads-verify-formcard"><em>C2</em><strong>' +
       esc(lead.form_c2 || "—") +
       "</strong><small>" +
-      esc(lead.form_c2_label || "Chưa có từ Sheet") +
+      esc(lead.form_c2_label || "Chưa có từ Form") +
       "</small></div>" +
       '<div class="mk-leads-verify-formcard"><em>C3</em><strong>' +
       esc(lead.form_c3 || "—") +
       "</strong><small>" +
-      esc(lead.form_c3_label || "Chưa có từ Sheet") +
+      esc(lead.form_c3_label || "Chưa có từ Form") +
       "</small></div></div></section>" +
       '<section class="mk-leads-verify-section">' +
-      "<h4>Sau cuộc gọi</h4>" +
+      "<h4>Sau cuộc gọi — Bộ B</h4>" +
       '<label class="mk-leads-verify-field"><span>Câu 1 — Tình trạng</span>' +
       listVerifySelectHtml("c1", opts.c1, c1) +
       listVerifyFormHint(lead.form_c1, lead.form_c1_label) +
@@ -1176,20 +1793,256 @@
       listVerifyFormHint(lead.form_c3, lead.form_c3_label) +
       "</label>" +
       '<div class="mk-leads-verify-c45" data-mk-verify-c45>' +
-      '<label class="mk-leads-verify-field"><span>Câu 4 — Mức</span>' +
-      listVerifySelectHtml("c4", levels, c4, "—") +
+      '<p class="mk-leads-verify-c45__hint" data-mk-verify-c45-hint>Đủ điều kiện sơ lược — chọn C4 và C5 để chấm mức tiềm năng.</p>' +
+      '<label class="mk-leads-verify-field"><span>' +
+      esc(c4Label) +
+      "</span>" +
+      listVerifySelectHtml("c4", levels, c4, "— Chọn mức —") +
       "</label>" +
-      '<label class="mk-leads-verify-field"><span>Câu 5 — Mức</span>' +
-      listVerifySelectHtml("c5", levels, c5, "—") +
+      '<label class="mk-leads-verify-field"><span>' +
+      esc(c5Label) +
+      "</span>" +
+      listVerifySelectHtml("c5", levels5, c5, "— Chọn mức —") +
       "</label></div>" +
+      '<p class="mk-leads-verify-c45-skip" data-mk-verify-c45-skip hidden>Không đủ điều kiện (lớp loại) — không cần C4/C5.</p>' +
+      '<label class="mk-leads-verify-field"><span>Lịch học sau xác minh <em>(Offline 1.1)</em></span>' +
+      listVerifySelectHtml(
+        "schedule_outcome",
+        [
+          { code: "chua_xac_nhan_lich", label: "Chưa xác nhận lịch học" },
+          { code: "da_xac_nhan_lich", label: "Đã xác nhận lịch học" },
+        ],
+        lead.offline_status === "offline_da_xac_nhan_lich" ? "da_xac_nhan_lich" : "chua_xac_nhan_lich",
+        "— Chọn —"
+      ) +
+      "</label>" +
+      '<label class="mk-leads-verify-field"><span>Ngày học (nếu đã xác nhận)</span>' +
+      '<input type="date" class="mk-leads-verify-select" data-mk-verify="class_date" value="' +
+      esc(lead.offline_class_date || "") +
+      '" /></label>' +
+      offlineStep1ActionsHtml(lead) +
       '<label class="mk-leads-verify-field"><span>Lý do đổi đáp án <em>(bắt buộc nếu khác Form)</em></span>' +
       '<textarea class="mk-leads-verify-note" rows="2" data-mk-verify="change_reason" placeholder="Ví dụ: Khách khai Form nhầm mô hình">' +
       esc(lead.verify_change_reason || "") +
       "</textarea></label></section>" +
-      statusHtml +
+      listVerifyStatusHtml(lead) +
       '<p class="mk-leads-verify-err" data-mk-verify-err hidden></p>' +
       '<p class="mk-leads-verify-ok" data-mk-verify-ok hidden></p>';
     syncListVerifyC45(document.getElementById("mk-leads-verify-panel"));
+  }
+
+  function offlineStep1ActionsHtml(lead) {
+    var st = lead.offline_status_label || lead.offline_status || "—";
+    var r1h = lead.offline_r1_hen_goi || 0;
+    var r1k = lead.offline_r1_khong_nghe || 0;
+    var r1s = lead.offline_r1_sai_tt || 0;
+    var counters =
+      "R1 Hẹn " +
+      r1h +
+      "/3 · Không nghe " +
+      r1k +
+      "/3 · Sai TT " +
+      r1s +
+      "/3 · R2 lịch " +
+      (lead.offline_r2_schedule || 0) +
+      "/3 · R3 lớp " +
+      (lead.offline_r3_class || 0) +
+      "/3 · R4 CT " +
+      (lead.offline_r4_transfer || 0) +
+      "/3";
+    return (
+      '<div class="mk-leads-verify-offline" data-mk-offline-box="1">' +
+      '<h4>Offline 1.1 — trạng thái &amp; điểm rơi</h4>' +
+      '<p class="mk-leads-verify-offline__meta"><strong>' +
+      esc(st) +
+      "</strong><br/><span>" +
+      esc(counters) +
+      "</span></p>" +
+      '<div class="mk-leads-verify-offline__actions">' +
+      offlineActionBtn("hen_goi_lai", "Hẹn gọi lại") +
+      offlineActionBtn("khong_nghe_may", "Không nghe máy") +
+      offlineActionBtn("sai_thong_tin", "Sai thông tin") +
+      offlineActionBtn("hen_lich_lai", "Hẹn lịch lại") +
+      offlineActionBtn("chuyen_chuong_trinh", "Chuyển CT") +
+      offlineActionBtn("ngung_cskh", "Ngưng CSKH") +
+      "</div>" +
+      offlineKbHtml(lead) +
+      offlineStep2Html(lead) +
+      "</div>"
+    );
+  }
+
+  function offlineStep2Html(lead) {
+    var st = lead.offline_status || "";
+    if (st !== "offline_da_xac_nhan_lich" && st !== "offline_hen_lich_lai") {
+      return "";
+    }
+    var confirmed = Number(lead.offline_preclass_confirm) === 1;
+    var plan = lead.offline_step2_plan || {};
+    var planRows = "";
+    var keys = ["t1", "t2", "t3", "t4", "t5", "t6"];
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      var it = plan[k] || {};
+      planRows +=
+        '<div class="mk-leads-verify-offline__ms">' +
+        "<span><strong>" +
+        esc(k.toUpperCase()) +
+        "</strong> " +
+        esc(it.label || "") +
+        (it.sent ? " · đã gửi" : it.due_at ? " · " + esc(it.due_at) : "") +
+        "</span>" +
+        '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="send_milestone" data-mk-milestone="' +
+        esc(k) +
+        '">Gửi</button></div>';
+    }
+    return (
+      '<div class="mk-leads-verify-offline__step2" data-mk-step2-box="1">' +
+      "<h5>Bước 2 — Trước lớp</h5>" +
+      '<p class="mk-leads-verify-offline__meta">Xác nhận tham gia: <strong>' +
+      (confirmed ? "Đã xác nhận" : "Chưa xác nhận") +
+      "</strong></p>" +
+      '<label class="mk-leads-verify-field"><span>Giờ học</span>' +
+      '<input type="time" class="mk-leads-verify-select" data-mk-step2="class_time" value="' +
+      esc(lead.offline_class_time || "09:00") +
+      '" /></label>' +
+      '<label class="mk-leads-verify-field"><span>Địa điểm</span>' +
+      '<input type="text" class="mk-leads-verify-select" data-mk-step2="class_place" value="' +
+      esc(lead.offline_class_place || "") +
+      '" placeholder="Địa chỉ lớp" /></label>' +
+      '<label class="mk-leads-verify-field"><span>Zalo OA user id <em>(để gửi OA)</em></span>' +
+      '<input type="text" class="mk-leads-verify-select" data-mk-step2="zalo_user_id" value="' +
+      esc(lead.zalo_user_id || "") +
+      '" placeholder="user_id OA" /></label>' +
+      '<div class="mk-leads-verify-offline__actions">' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="save_class_meta">Lưu giờ/địa điểm</button>' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="set_zalo_user">Lưu OA id</button>' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="preclass_confirm">' +
+      (confirmed ? "Đã XN tham gia ✓" : "Đánh dấu sẽ đến") +
+      "</button>" +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="preclass_unconfirm">Chưa XN tham gia</button>' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="hen_lich_lai">Hẹn lịch lại</button>' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="chot_lich_moi">Chốt lịch mới</button>' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="tu_choi_tham_gia">Từ chối / Ngưng</button>' +
+      "</div>" +
+      '<div class="mk-leads-verify-offline__ms-list"><strong>Mốc nhắc (T1–T6)</strong>' +
+      planRows +
+      "</div></div>"
+    );
+  }
+
+  function offlineKbHtml(lead) {
+    var items = (lead && lead.offline_kb) || [];
+    if (!items.length) {
+      items = [
+        {
+          id: "mo_dau",
+          title: "Mở đầu gọi",
+          text:
+            "Em chào anh/chị, em [Tên] bên [Thương hiệu]. Anh/chị vừa đăng ký lớp miễn phí Offline, em gọi xác nhận thông tin và hỗ trợ xếp lịch ạ.",
+        },
+        {
+          id: "xac_minh_b",
+          title: "Xác minh Bộ B",
+          text:
+            "Em xin phép hỏi nhanh vài câu để xếp đúng nhóm: mục tiêu học, thời gian có thể đến lớp, và khu vực thuận tiện nhất của anh/chị ạ.",
+        },
+        {
+          id: "hen_goi_lai",
+          title: "Hẹn gọi lại",
+          text:
+            "Dạ em hiểu anh/chị đang bận. Em xin phép gọi lại vào [giờ/ngày] được không ạ? Em sẽ nhắc lịch ngắn gọn thôi.",
+        },
+        {
+          id: "chot_lich",
+          title: "Chốt lịch Offline",
+          text:
+            "Em xếp anh/chị lớp Offline ngày [ngày] lúc [giờ] tại [địa điểm]. Anh/chị xác nhận giúp em để giữ chỗ nhé.",
+        },
+      ];
+    }
+    var rows = items
+      .map(function (it) {
+        return (
+          '<div class="mk-leads-verify-offline__kb-row">' +
+          '<div class="mk-leads-verify-offline__kb-meta"><strong>' +
+          esc(it.title || it.id || "Mẫu") +
+          "</strong></div>" +
+          '<p class="mk-leads-verify-offline__kb-text">' +
+          esc(it.text || "") +
+          "</p>" +
+          '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-offline-kb-copy="1" data-mk-kb-text="' +
+          esc(it.text || "") +
+          '">Copy</button></div>'
+        );
+      })
+      .join("");
+    return (
+      '<div class="mk-leads-verify-offline__kb">' +
+      "<h5>KB 1.1 — mẫu thoại</h5>" +
+      rows +
+      "</div>"
+    );
+  }
+
+  function offlineActionBtn(action, label) {
+    return (
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-offline-action="' +
+      esc(action) +
+      '">' +
+      esc(label) +
+      "</button>"
+    );
+  }
+
+  function copyOfflineKb(text, btn) {
+    text = String(text || "");
+    if (!text) return;
+    var done = function () {
+      setListVerifyMsg("", "Đã copy mẫu thoại.");
+      if (btn) {
+        var old = btn.textContent;
+        btn.textContent = "Đã copy";
+        window.setTimeout(function () {
+          btn.textContent = old || "Copy";
+        }, 1200);
+      }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(function () {
+        fallbackCopy(text);
+        done();
+      });
+      return;
+    }
+    fallbackCopy(text);
+    done();
+  }
+
+  function fallbackCopy(text) {
+    try {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "1");
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function fillListVerifyBody(lead) {
+    var body = document.getElementById("mk-leads-verify-body");
+    var panel = document.getElementById("mk-leads-verify-panel");
+    if (!body || !lead) return;
+    var online = isOnlineVerifyLead(lead);
+    if (panel) panel._mkVerifyMode = online ? "online_gd12" : "sales_b";
+    if (online) fillListVerifyBodyOnline(lead);
+    else fillListVerifyBodySheet(lead);
   }
 
   function readListVerifyPayload(host) {
@@ -1198,20 +2051,34 @@
       var el = host ? host.querySelector('[data-mk-verify="' + name + '"]') : null;
       return el ? String(el.value || "").trim() : "";
     };
+    var mode = (host && host._mkVerifyMode) || "sales_b";
+    if (mode === "online_gd12") {
+      return {
+        mode: "online_gd12",
+        q1: get("q1"),
+        q2: get("q2"),
+        q3: get("q3"),
+        q4: get("q4"),
+      };
+    }
     return {
+      mode: "sales_b",
       c1: get("c1"),
       c2: get("c2"),
       c3: get("c3"),
       c4: get("c4") ? parseInt(get("c4"), 10) : 0,
       c5: get("c5") ? parseInt(get("c5"), 10) : 0,
       change_reason: get("change_reason"),
+      schedule_outcome: get("schedule_outcome"),
+      class_date: get("class_date"),
     };
   }
 
   function syncListVerifyC45(host) {
-    if (!host) return;
+    if (!host || host._mkVerifyMode === "online_gd12") return;
     var payload = readListVerifyPayload(host);
     var c45 = host.querySelector("[data-mk-verify-c45]");
+    var skip = host.querySelector("[data-mk-verify-c45-skip]");
     if (!c45) return;
     var excluded =
       payload.c1 === "D" ||
@@ -1219,6 +2086,7 @@
       payload.c3 === "A" ||
       (payload.c2 === "A" && payload.c3 === "B");
     c45.hidden = !!excluded;
+    if (skip) skip.hidden = !excluded;
   }
 
   function setListVerifyMsg(err, ok) {
@@ -1299,14 +2167,150 @@
       });
   }
 
+  function submitOfflineStep2Action(action, milestone, btn) {
+    var panel = document.getElementById("mk-leads-verify-panel");
+    var lead = panel && panel._mkLead;
+    var id = (lead && (lead.crmid || lead.id)) || "";
+    if (!action || !id) {
+      setListVerifyMsg("Thiếu lead / action Bước 2.", "");
+      return;
+    }
+    if (typeof app === "undefined" || !app.request) {
+      setListVerifyMsg("API không sẵn sàng.", "");
+      return;
+    }
+    var get = function (name) {
+      var el = panel ? panel.querySelector('[data-mk-step2="' + name + '"]') : null;
+      return el ? String(el.value || "").trim() : "";
+    };
+    var classDateEl = panel ? panel.querySelector('[data-mk-verify="class_date"]') : null;
+    var payload = {
+      action: action,
+      class_date: classDateEl ? classDateEl.value || "" : lead.offline_class_date || "",
+      class_time: get("class_time"),
+      class_place: get("class_place"),
+      zalo_user_id: get("zalo_user_id"),
+      milestone: milestone || "",
+    };
+    if (action === "chot_lich_moi" && !payload.class_date) {
+      setListVerifyMsg("Chốt lịch mới — chọn Ngày học phía trên.", "");
+      return;
+    }
+    if (btn) btn.disabled = true;
+    setListVerifyMsg("", "");
+    app.request
+      .post({
+        data: {
+          module: "Leads",
+          action: "ModernApi",
+          mode: "offline_gd11_step2",
+          id: id,
+          record: id,
+          payload: JSON.stringify(payload),
+        },
+      })
+      .then(function (err, res) {
+        if (btn) btn.disabled = false;
+        if (err || !res || !res.success) {
+          setListVerifyMsg((err && (err.message || err)) || (res && res.error) || "Bước 2 thất bại.", "");
+          return;
+        }
+        var fresh = res.lead || lead;
+        if (store && typeof store.importLead === "function" && fresh) {
+          store.importLead(fresh);
+        }
+        panel._mkLead = fresh;
+        fillListVerifyBody(fresh);
+        var ok = "Đã cập nhật Bước 2: " + action;
+        if (res.milestone && res.milestone.success) {
+          ok = "Đã gửi mốc " + (milestone || "") + (res.milestone.note ? " — " + res.milestone.note : "");
+        }
+        if (res.step2 && res.step2.t1 && res.step2.t1.success) {
+          ok += " · T1 đã gửi";
+        }
+        setListVerifyMsg("", ok);
+        renderTable();
+      });
+  }
+
+  function submitOfflineGd11Action(action, btn) {
+    var panel = document.getElementById("mk-leads-verify-panel");
+    var lead = panel && panel._mkLead;
+    var id = (lead && (lead.crmid || lead.id)) || "";
+    if (!action || !id) {
+      setListVerifyMsg("Thiếu lead / action Offline.", "");
+      return;
+    }
+    if (typeof app === "undefined" || !app.request) {
+      setListVerifyMsg("API không sẵn sàng.", "");
+      return;
+    }
+    if (btn) btn.disabled = true;
+    setListVerifyMsg("", "");
+    var classDateEl = panel ? panel.querySelector('[data-mk-verify="class_date"]') : null;
+    app.request
+      .post({
+        data: {
+          module: "Leads",
+          action: "ModernApi",
+          mode: "offline_gd11_apply",
+          id: id,
+          record: id,
+          payload: JSON.stringify({
+            action: action,
+            class_date: classDateEl ? classDateEl.value || "" : "",
+          }),
+        },
+      })
+      .then(function (err, res) {
+        if (btn) btn.disabled = false;
+        if (err || !res || !res.success) {
+          setListVerifyMsg((err && (err.message || err)) || (res && res.error) || "Cập nhật Offline thất bại.", "");
+          return;
+        }
+        var fresh = res.lead || lead;
+        if (store && typeof store.importLead === "function" && fresh) {
+          store.importLead(fresh);
+        }
+        panel._mkLead = fresh;
+        fillListVerifyBody(fresh);
+        var okMsg = "Đã cập nhật: " + (res.status_label || res.status || action);
+        if (res.convert && res.convert.converted) {
+          okMsg = "Đã cập nhật & chuyển sang Cơ hội.";
+        }
+        if (res.calendar && res.calendar.success) {
+          okMsg += " Đã tạo Calendar task.";
+        }
+        setListVerifyMsg("", okMsg);
+        renderTable();
+      });
+  }
+
   function submitListVerify(action, btn) {
     var panel = document.getElementById("mk-leads-verify-panel");
     var lead = panel && panel._mkLead;
     var payload = readListVerifyPayload(panel);
+    var online = payload.mode === "online_gd12";
     setListVerifyMsg("", "");
-    if (!payload.c1 || !payload.c2 || !payload.c3) {
-      setListVerifyMsg("Vui lòng chọn đủ C1, C2, C3.", "");
-      return;
+    if (online) {
+      if (!payload.q1 || !payload.q2 || !payload.q3 || !payload.q4) {
+        setListVerifyMsg("Vui lòng chọn đủ Q1–Q4 (4 câu Online).", "");
+        return;
+      }
+    } else {
+      if (!payload.c1 || !payload.c2 || !payload.c3) {
+        setListVerifyMsg("Vui lòng chọn đủ C1, C2, C3.", "");
+        return;
+      }
+      var excluded =
+        payload.c1 === "D" ||
+        payload.c2 === "G" ||
+        payload.c3 === "A" ||
+        (payload.c2 === "A" && payload.c3 === "B");
+      if (!excluded && (!payload.c4 || !payload.c5)) {
+        setListVerifyMsg("Đủ điều kiện — vui lòng chọn Câu 4 và Câu 5 (mức 1–4) để chấm tiềm năng.", "");
+        return;
+      }
     }
     if (typeof app === "undefined" || !app.request) {
       setListVerifyMsg("API không sẵn sàng.", "");
@@ -1316,7 +2320,13 @@
     var data = {
       module: "Leads",
       action: "ModernApi",
-      mode: action === "save" ? "sales_verify_save" : "sales_verify_preview",
+      mode: online
+        ? action === "save"
+          ? "online_verify_save"
+          : "online_verify_preview"
+        : action === "save"
+          ? "sales_verify_save"
+          : "sales_verify_preview",
       payload: JSON.stringify(payload),
     };
     if (action === "save") {
@@ -1343,11 +2353,32 @@
       }
       panel._mkLead = fresh;
       fillListVerifyBody(fresh);
-      setListVerifyMsg("", "Đã lưu kết quả xác minh.");
+      var okMsg = "Đã lưu kết quả xác minh.";
+      if (res.convert && res.convert.converted) {
+        okMsg = "Đã lưu & chuyển sang Cơ hội (đủ ĐK Offline).";
+      } else if (res.convert && res.convert.skipped) {
+        okMsg = "Đã lưu xác minh (Opp đã tồn tại).";
+      } else if (res.convert && res.convert.reason && res.convert.reason !== "ok" && !res.convert.skipped) {
+        okMsg = "Đã lưu xác minh. Convert Opp: " + res.convert.reason;
+      }
+      if (res.convert && res.offline && res.offline.calendar && res.offline.calendar.success) {
+        okMsg += " Đã tạo Calendar task.";
+      } else if (res.offline && res.offline.calendar && res.offline.calendar.success) {
+        okMsg += " Đã tạo Calendar task.";
+      } else if (res.calendar && res.calendar.success) {
+        okMsg += " Đã tạo Calendar task.";
+      }
+      setListVerifyMsg("", okMsg);
       if (res.result) paintListVerifyPreview(res.result);
       renderTable();
       if (window.app && app.helper && app.helper.showSuccessNotification) {
-        app.helper.showSuccessNotification({ message: "Đã lưu xác minh Bộ B." });
+        app.helper.showSuccessNotification({
+          message: online
+            ? "Đã lưu xác minh Online (4 câu)."
+            : res.convert && res.convert.converted
+              ? "Đã lưu Bộ B & tạo Cơ hội."
+              : "Đã lưu xác minh Bộ B.",
+        });
       }
     });
   }
@@ -1486,7 +2517,8 @@
     return leads.filter(function (l) {
       // Converted leads live only as Opp — never show them on Leads list.
       if (state.listMode !== "trash") {
-        if (l.converted || l.potentialId || l.canConvert === false) return false;
+        var hasProducts = leadProducts(l).length > 0;
+        if (!hasProducts && (l.converted || l.potentialId || l.canConvert === false)) return false;
       }
       var d = logic.derive(l);
       if (q) {
@@ -1508,6 +2540,11 @@
         return false;
       if (f.hasOpenTicket && !(l.openTickets > 0)) return false;
       if (f.phoneDupOnly && !l.phone_dup) return false;
+      if (state.productTab === "unclassified") {
+        if (!leadIsUnclassified(l)) return false;
+      } else if (state.productTab && state.productTab !== "all") {
+        if (!leadHasProductGroup(l, state.productTab)) return false;
+      }
       return true;
     });
   }
@@ -1667,7 +2704,10 @@
     var host = $("mk-leads-segments");
     if (!host) return;
     var saved = store ? store.getSegments() : [];
-    var allOn = !state.activeSegment && state.listMode !== "trash" ? " is-active" : "";
+    var allOn =
+      !state.activeSegment && state.listMode !== "trash" && state.productTab === "all"
+        ? " is-active"
+        : "";
     PRESET_SEGMENTS = getPresetSegments();
     var html =
       '<button type="button" class="mk-leads-segment-btn' +
@@ -1695,6 +2735,7 @@
         "</button>"
       );
     }).join("");
+    html += productTabItemsHtml(getLeads());
     html += saved
       .map(function (s) {
         var on = state.activeSegment === s.id ? " is-active" : "";
@@ -2009,7 +3050,7 @@
           '<div style="margin-top:12px"><button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-leads-clear-filters-empty">Xóa bộ lọc</button></div>';
       }
       tbody.innerHTML =
-        '<tr><td colspan="14" class="mk-leads-empty">' + esc(emptyMsg) + extraBtn + "</td></tr>";
+        '<tr><td colspan="16" class="mk-leads-empty">' + esc(emptyMsg) + extraBtn + "</td></tr>";
     } else {
       tbody.innerHTML = pageRows
         .map(function (l) {
@@ -2098,21 +3139,25 @@
             '<span class="mk-leads-lead-text"><a class="mk-leads-name" href="' +
             detailUrl(l.id) +
             '">' +
-            esc(l.name) +
+            esc(decodeHtmlEntities(l.name)) +
             "</a>" +
             screeningStatusHtml(l) +
-            '<button type="button" class="mk-leads-verify-btn' +
-            (l.eligibility_result || l.potential_level ? " is-done" : "") +
-            '" data-lead-id="' +
-            esc(l.id) +
-            '" title="Sales xác minh Bộ B">' +
-            '<svg class="mk-leads-verify-btn__ic" width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
-            '<path d="M12 3 5 6v6c0 5 3.2 8.2 7 9.5 3.8-1.3 7-4.5 7-9.5V6l-7-3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>' +
-            '<path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
-            "</svg>" +
-            "<span>" +
-            (l.eligibility_result || l.potential_level ? "Đã xác minh" : "Xác minh") +
-            "</span></button>" +
+            (needsSalesVerify(l)
+              ? '<button type="button" class="mk-leads-verify-btn' +
+                (l.eligibility_result || l.potential_level ? " is-done" : "") +
+                '" data-lead-id="' +
+                esc(l.id) +
+                '" title="' +
+                (isOnlineVerifyLead(l) ? "Xác minh Online (4 câu)" : "Sales xác minh Bộ B (3 câu)") +
+                '">' +
+                '<svg class="mk-leads-verify-btn__ic" width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+                '<path d="M12 3 5 6v6c0 5 3.2 8.2 7 9.5 3.8-1.3 7-4.5 7-9.5V6l-7-3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>' +
+                '<path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+                "</svg>" +
+                "<span>" +
+                (l.eligibility_result || l.potential_level ? "Đã xác minh" : "Xác minh") +
+                "</span></button>"
+              : "") +
             "</span></span></td>" +
             '<td class="mk-leads-td mk-leads-td--phone">' +
             '<span class="mk-leads-phone-wrap">' +
@@ -2129,6 +3174,12 @@
             '<td class="mk-leads-td mk-leads-td--biz">' +
             businessModelSelectHtml(l.id, l.business_model) +
             "</td>" +
+            '<td class="mk-leads-td mk-leads-td--products">' +
+            renderProductChipsCell(l) +
+            "</td>" +
+            '<td class="mk-leads-td mk-leads-td--pstage">' +
+            renderProductStageCell(l) +
+            "</td>" +
             '<td class="mk-leads-td">' +
             (src ? tagBadgeHtml(src) : '<span class="mk-leads-muted">—</span>') +
             "</td>" +
@@ -2142,7 +3193,7 @@
             '">' +
             esc(logic.ownerInitials(l.owner)) +
             '</span><span>' +
-            esc(l.owner) +
+            esc(decodeHtmlEntities(l.owner)) +
             "</span></span></td>" +
             '<td class="mk-leads-td mk-leads-td--tags"><button type="button" class="mk-leads-tags-edit" data-lead-id="' +
             esc(l.id) +
@@ -2167,7 +3218,7 @@
             "</td>" +
             '<td class="mk-leads-td" data-col="notes">' +
             (function () {
-              var n = String(l.notes || "").trim();
+              var n = decodeHtmlEntities(String(l.notes || "").trim());
               if (!n) return '<span class="mk-leads-muted">—</span>';
               var short = n.length > 80 ? n.slice(0, 80) + "…" : n;
               return (
@@ -2313,7 +3364,7 @@
     renderSegments();
     renderFiltersPanel();
     syncFilterControls();
-    renderTable();
+    refreshListBody();
   }
 
   function clearSegmentFilters() {
@@ -2321,6 +3372,7 @@
     state.activeSegment = null;
     state.listMode = "active";
     state.trashCache = null;
+    state.productTab = "all";
     state.page = 1;
     var search = $("mk-leads-search");
     if (search) search.value = "";
@@ -2369,7 +3421,7 @@
         state.filters.search = search.value;
         state.activeSegment = null;
         state.page = 1;
-        renderTable();
+        refreshListBody();
       });
     }
 
@@ -2412,6 +3464,53 @@
       if (!(e.target.closest && e.target.closest("#mk-leads-tag-popover"))) {
         closeTagPopover();
       }
+      if (!(e.target.closest && e.target.closest("#mk-leads-product-popover"))) {
+        closeProductPopover();
+      }
+      var ptab = e.target.closest && e.target.closest("[data-product-tab]");
+      if (ptab) {
+        e.preventDefault();
+        state.listMode = "active";
+        state.trashCache = null;
+        state.productTab = ptab.getAttribute("data-product-tab") || "all";
+        state.page = 1;
+        refreshListBody();
+        return;
+      }
+      var viewBtn = e.target.closest && e.target.closest("[data-leads-view]");
+      if (viewBtn) {
+        e.preventDefault();
+        state.viewMode = viewBtn.getAttribute("data-leads-view") === "kanban" ? "kanban" : "table";
+        refreshListBody();
+        return;
+      }
+      var addBtn = e.target.closest && e.target.closest("[data-product-add]");
+      if (addBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var addId = addBtn.getAttribute("data-product-add");
+        var addLead = getLeads().find(function (l) {
+          return String(l.id) === String(addId) || String(leadCrmId(l)) === String(addId);
+        });
+        if (addLead) openProductAddPopover(addBtn, addLead);
+        return;
+      }
+      var rmBtn = e.target.closest && e.target.closest("[data-product-remove]");
+      if (rmBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!store || !store.productRemove) return;
+        if (!window.confirm("Bỏ nhóm sản phẩm này khỏi lead?")) return;
+        store
+          .productRemove(rmBtn.getAttribute("data-product-remove"))
+          .then(function () {
+            refreshListBody();
+          })
+          .catch(function (err) {
+            window.alert(typeof err === "string" ? err : (err && err.message) || "Không bỏ được nhóm.");
+          });
+        return;
+      }
       var t = e.target;
       if (!t || !t.id) return;
       if (t.id === "mk-leads-reload-list") {
@@ -2453,13 +3552,31 @@
         commitRegionChange(t);
         return;
       }
+      if (t.classList && t.classList.contains("mk-lead-pstage-select")) {
+        e.stopPropagation();
+        var productId = t.getAttribute("data-product-id");
+        var stage = t.value;
+        if (!store || !store.productSetStage || !productId) return;
+        t.disabled = true;
+        store
+          .productSetStage(productId, stage)
+          .then(function () {
+            refreshListBody();
+          })
+          .catch(function (err) {
+            t.disabled = false;
+            window.alert(typeof err === "string" ? err : (err && err.message) || "Không đổi được stage.");
+            refreshListBody();
+          });
+        return;
+      }
       var key = t.getAttribute("data-fkey");
       if (!key) return;
       if (t.type === "checkbox") state.filters[key] = t.checked;
       else state.filters[key] = t.value;
       state.activeSegment = null;
       state.page = 1;
-      renderTable();
+      refreshListBody();
     });
 
     $("mk-leads-segments") &&
@@ -2526,17 +3643,6 @@
         }
       });
 
-    $("mk-leads-save-segment") &&
-      $("mk-leads-save-segment").addEventListener("click", function () {
-        var name = prompt("Tên phân đoạn");
-        if (!name || !store) return;
-        var list = store.getSegments();
-        list.push({ id: "seg_" + Date.now(), name: name, filters: Object.assign({}, state.filters) });
-        store.saveSegments(list).then(function () {
-          renderSegments();
-        });
-      });
-
     document.addEventListener(
       "focusout",
       function (e) {
@@ -2571,7 +3677,7 @@
       if (idx < 0) return;
       leads[idx] = Object.assign({}, leads[idx], detail.patch || {});
       if (store.setLeads) store.setLeads(leads);
-      renderTable();
+      refreshListBody();
     });
 
     $("mk-leads-table") &&
@@ -2726,6 +3832,105 @@
         if (menu) menu.hidden = true;
       }
     });
+
+    var kanbanRoot = $("mk-leads-kanban");
+    if (kanbanRoot) {
+      kanbanRoot.addEventListener("dragstart", function (e) {
+        var card = e.target.closest && e.target.closest(".mk-leads-kanban-card.is-draggable");
+        if (!card) return;
+        e.dataTransfer.setData("text/plain", card.getAttribute("data-product-id") || "");
+        e.dataTransfer.effectAllowed = "move";
+        card.classList.add("is-dragging");
+      });
+      kanbanRoot.addEventListener("dragend", function (e) {
+        var card = e.target.closest && e.target.closest(".mk-leads-kanban-card");
+        if (card) card.classList.remove("is-dragging");
+        var cols = kanbanRoot.querySelectorAll(".mk-leads-kanban-col");
+        for (var i = 0; i < cols.length; i++) cols[i].classList.remove("is-drop");
+      });
+      kanbanRoot.addEventListener("dragover", function (e) {
+        var col = e.target.closest && e.target.closest(".mk-leads-kanban-col");
+        if (!col) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        var cols = kanbanRoot.querySelectorAll(".mk-leads-kanban-col");
+        for (var j = 0; j < cols.length; j++) cols[j].classList.toggle("is-drop", cols[j] === col);
+      });
+      kanbanRoot.addEventListener("drop", function (e) {
+        var col = e.target.closest && e.target.closest(".mk-leads-kanban-col");
+        if (!col) return;
+        e.preventDefault();
+        var productId = e.dataTransfer.getData("text/plain");
+        var stage = col.getAttribute("data-stage");
+        if (!productId || !stage || !store || !store.productSetStage) return;
+        store
+          .productSetStage(productId, stage)
+          .then(function () {
+            refreshListBody();
+          })
+          .catch(function (err) {
+            window.alert(typeof err === "string" ? err : (err && err.message) || "Không kéo được stage.");
+          });
+      });
+    }
+  }
+
+  function closeMergeModal() {
+    var el = document.getElementById("mk-leads-merge-modal");
+    if (el) el.hidden = true;
+  }
+
+  function ensureMergeModal() {
+    var existing = document.getElementById("mk-leads-merge-modal");
+    if (existing) return existing;
+    var root = document.createElement("div");
+    root.id = "mk-leads-merge-modal";
+    root.className = "mk-leads-sheet-modal mk-leads-merge-modal";
+    root.hidden = true;
+    root.innerHTML =
+      '<div class="mk-leads-sheet-modal__backdrop" data-merge-close="1"></div>' +
+      '<div class="mk-leads-sheet-modal__panel mk-leads-merge-modal__panel" role="dialog" aria-modal="true" aria-labelledby="mk-merge-title">' +
+      '  <header class="mk-leads-sheet-modal__head">' +
+      '    <h2 id="mk-merge-title">Gộp lead</h2>' +
+      '    <button type="button" class="mk-leads-sheet-modal__x" data-merge-close="1" aria-label="Đóng">×</button>' +
+      "  </header>" +
+      '  <div class="mk-leads-sheet-modal__body">' +
+      '    <p class="mk-leads-sheet-modal__hint">Chọn lead <strong>giữ lại</strong> — tên và hồ sơ của lead này sẽ được giữ. Lead còn lại vào thùng rác.</p>' +
+      '    <div class="mk-leads-merge-warn" id="mk-merge-warn" hidden></div>' +
+      '    <div class="mk-leads-merge-list" id="mk-merge-list" role="radiogroup" aria-label="Lead giữ lại"></div>' +
+      "  </div>" +
+      '  <footer class="mk-leads-sheet-modal__foot">' +
+      '    <button type="button" class="mk-leads-btn mk-leads-btn--outline" data-merge-close="1">Huỷ</button>' +
+      '    <button type="button" class="mk-leads-btn mk-leads-btn--primary" id="mk-merge-confirm">Gộp lead</button>' +
+      "  </footer>" +
+      "</div>";
+    document.body.appendChild(root);
+    root.addEventListener("click", function (e) {
+      if (e.target && e.target.getAttribute && e.target.getAttribute("data-merge-close") === "1") {
+        closeMergeModal();
+      }
+    });
+    return root;
+  }
+
+  function runMergeLeads(keeper, others) {
+    var chain = Promise.resolve();
+    others.forEach(function (d) {
+      chain = chain.then(function () {
+        return store.mergeLeads(keeper.crmid || keeper.id, d.crmid || d.id);
+      });
+    });
+    return chain
+      .then(function () {
+        clearSelection();
+        return store.refreshLeadsList ? store.refreshLeadsList() : Promise.resolve();
+      })
+      .then(function () {
+        renderAll();
+        if (window.app && app.helper && app.helper.showSuccessNotification) {
+          app.helper.showSuccessNotification({ message: "Đã gộp lead. Lead thừa đã vào thùng rác." });
+        }
+      });
   }
 
   function openMergeDialog(rows) {
@@ -2739,68 +3944,86 @@
       if (k) phones[k] = true;
     });
     var phoneKeys = Object.keys(phones);
-    if (phoneKeys.length > 1) {
-      var ok = window.confirm(
-        "Cảnh báo: các lead đã chọn thuộc " +
+    var modal = ensureMergeModal();
+    var list = document.getElementById("mk-merge-list");
+    var warn = document.getElementById("mk-merge-warn");
+    var confirmBtn = document.getElementById("mk-merge-confirm");
+    if (!list || !confirmBtn) return;
+
+    if (warn) {
+      if (phoneKeys.length > 1) {
+        warn.hidden = false;
+        warn.innerHTML =
+          "Các lead thuộc <strong>" +
           phoneKeys.length +
-          " SĐT khác nhau (" +
+          "</strong> SĐT khác nhau (" +
           phoneKeys.map(maskPhoneKey).join(", ") +
-          ").\n\nChỉ nên gộp lead CÙNG nhóm SĐT (cùng badge Nhóm A/B…).\n\nVẫn gộp?",
-      );
-      if (!ok) return;
+          "). Nên chỉ gộp lead cùng nhóm SĐT.";
+      } else {
+        warn.hidden = true;
+        warn.textContent = "";
+      }
     }
-    var labels = rows
+
+    var groups = buildPhoneDupGroups(getLeads());
+    list.innerHTML = rows
       .map(function (l, i) {
-        var g = phoneDupGroupOf(l, buildPhoneDupGroups(getLeads()));
-        var gLabel = g ? " [Nhóm " + g.letter + "]" : "";
+        var g = phoneDupGroupOf(l, groups);
+        var gLabel = g ? '<span class="mk-leads-merge-badge">Nhóm ' + esc(g.letter) + "</span>" : "";
+        var checked = i === 0 ? " checked" : "";
         return (
+          '<label class="mk-leads-merge-item">' +
+          '<input type="radio" name="mk-merge-keeper" value="' +
           i +
-          1 +
-          ". " +
-          (l.name || "—") +
-          " · " +
-          (l.phone || "") +
+          '"' +
+          checked +
+          " />" +
+          '<span class="mk-leads-merge-item__body">' +
+          '<span class="mk-leads-merge-item__name">' +
+          esc(l.name || "—") +
+          "</span>" +
+          '<span class="mk-leads-merge-item__meta">' +
+          esc(l.phone || "Không có SĐT") +
+          " · id " +
+          esc(String(l.crmid || l.id)) +
+          " " +
           gLabel +
-          " (id " +
-          (l.crmid || l.id) +
-          ")"
+          "</span>" +
+          "</span></label>"
         );
       })
-      .join("\n");
-    var pick = window.prompt(
-      "Gộp lead — nhập số thứ tự lead GIỮ LẠI (tên của lead này sẽ được giữ):\n\n" + labels + "\n\nSố:",
-      "1",
-    );
-    if (pick === null) return;
-    var idx = parseInt(pick, 10) - 1;
-    if (isNaN(idx) || idx < 0 || idx >= rows.length) {
-      window.alert("Số không hợp lệ.");
-      return;
-    }
-    var keeper = rows[idx];
-    var others = rows.filter(function (_, i) {
-      return i !== idx;
-    });
-    var chain = Promise.resolve();
-    others.forEach(function (d) {
-      chain = chain.then(function () {
-        return store.mergeLeads(keeper.crmid || keeper.id, d.crmid || d.id);
+      .join("");
+
+    confirmBtn.disabled = false;
+    confirmBtn.onclick = function () {
+      var picked = list.querySelector('input[name="mk-merge-keeper"]:checked');
+      var idx = picked ? parseInt(picked.value, 10) : 0;
+      if (isNaN(idx) || idx < 0 || idx >= rows.length) {
+        window.alert("Chọn lead giữ lại.");
+        return;
+      }
+      if (phoneKeys.length > 1) {
+        var ok = window.confirm(
+          "Bạn đang gộp lead khác SĐT. Chỉ nên gộp cùng nhóm SĐT.\n\nVẫn tiếp tục?",
+        );
+        if (!ok) return;
+      }
+      var keeper = rows[idx];
+      var others = rows.filter(function (_, i) {
+        return i !== idx;
       });
-    });
-    chain
-      .then(function () {
-        clearSelection();
-        return store.refreshLeadsList ? store.refreshLeadsList() : Promise.resolve();
-      })
-      .then(function () {
-        renderAll();
-        if (window.app && app.helper && app.helper.showSuccessNotification) {
-          app.helper.showSuccessNotification({ message: "Đã gộp lead. Lead thừa đã vào thùng rác." });
-        }
-      })
-      .catch(function (err) {
-        window.alert((err && (err.message || err)) || "Gộp lead thất bại.");
-      });
+      confirmBtn.disabled = true;
+      runMergeLeads(keeper, others)
+        .then(function () {
+          closeMergeModal();
+        })
+        .catch(function (err) {
+          confirmBtn.disabled = false;
+          window.alert((err && (err.message || err)) || "Gộp lead thất bại.");
+        });
+    };
+
+    modal.hidden = false;
   }
 
   function mapFieldRowHtml(key, label) {
@@ -3088,7 +4311,6 @@
   function decorateStaticIcons() {
     var map = {
       "mk-leads-segments-icon": "bookmark",
-      "mk-leads-save-segment-ic": "save",
       "mk-leads-search-ic": "search",
       "mk-leads-filters-ic": "filter",
       "mk-leads-filters-chev": "chevron",

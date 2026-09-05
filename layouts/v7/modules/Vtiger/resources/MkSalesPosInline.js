@@ -129,6 +129,18 @@
 			return;
 		}
 		var name = String($panel.find('.mk-so-inline-detail__customer-name').first().text() || '').trim();
+		if (!name || name === '--' || name === '—') {
+			var recId = String($panel.attr('data-record-id') || $panel.data('recordId') || '');
+			var $row = recId
+				? $('#listview-table tr.listViewEntries[data-id="' + recId + '"]').first()
+				: $();
+			name = String(
+				$row.find('td[data-name="account_id"] .value, td[data-name="account_id"]').first().text() || ''
+			).trim();
+		}
+		if (name === '--' || name === '—') {
+			name = '';
+		}
 		var sub = String($panel.find('.mk-so-inline-detail__order-no').first().text() || '').trim();
 		if (!sub) {
 			sub = String($panel.find('.mk-so-inline-detail__hero-note').first().text() || '').trim();
@@ -162,12 +174,17 @@
 		$panel.find('.mk-so-inline-detail__tabs').attr('hidden', 'hidden');
 		$panel.find('.mk-so-inline-detail__cancel-edit').attr('hidden', 'hidden');
 		fillDrawerIdentity($panel);
-		if (!$panel.children('.mk-so-inline-detail__scroll').length) {
-			var $actions = $panel.children('.mk-so-inline-detail__actions');
-			var $scroll = $('<div class="mk-so-inline-detail__scroll"></div>');
-			$panel.children().not($actions).appendTo($scroll);
+
+		/* Ghim action bar xuống cuối panel: nội dung cuộn riêng, nút luôn ở footer */
+		var $actions = $panel.find('.mk-so-inline-detail__actions').first();
+		var $scroll = $panel.children('.mk-so-inline-detail__scroll');
+		if (!$scroll.length) {
+			$scroll = $('<div class="mk-so-inline-detail__scroll"></div>');
 			$panel.prepend($scroll);
-			if ($actions.length) {
+		}
+		$panel.children().not($scroll).not($actions).appendTo($scroll);
+		if ($actions.length) {
+			if ($actions.parent()[0] !== $panel[0] || $actions.next().length) {
 				$panel.append($actions);
 			}
 		}
@@ -981,6 +998,126 @@
 		$panel.data('mkGetEditableTags', selectedKeys);
 	}
 
+	function initOppAttendance($panel) {
+		if (!$panel || !$panel.length) return;
+		var mod = String($panel.data('module') || moduleName());
+		if (mod !== 'Potentials') return;
+		var $box = $panel.find('[data-mk-opp-attendance="1"]');
+		if (!$box.length || $box.data('mkAttendanceInit')) return;
+		$box.data('mkAttendanceInit', true);
+
+		$box.on('click', '[data-mk-opp-checkin]', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var $btn = $(this);
+			var action = String($btn.attr('data-mk-opp-checkin') || '');
+			var oid = String($btn.attr('data-opp-id') || $panel.data('record-id') || '');
+			if (!action || !oid) return;
+			$btn.prop('disabled', true);
+			$box.find('[data-mk-opp-checkin]').prop('disabled', true);
+
+			var store = window.PotentialsLocalStore;
+			var toastOk = function (msg) {
+				if (app.helper && app.helper.showSuccessNotification) {
+					app.helper.showSuccessNotification({ message: msg });
+				} else if (app.helper && app.helper.showAlertNotification) {
+					app.helper.showAlertNotification({ message: msg });
+				}
+			};
+			var toastErr = function (msg) {
+				if (app.helper && app.helper.showErrorNotification) {
+					app.helper.showErrorNotification({ message: msg });
+				} else if (app.helper && app.helper.showAlertNotification) {
+					app.helper.showAlertNotification({ message: msg });
+				} else {
+					window.alert(msg);
+				}
+			};
+			var done = function (res) {
+				if (res && res.drop) {
+					toastOk('Đã đủ R3 → Ngưng CSKH Offline.');
+				} else if (action === 'da_tham_gia') {
+					toastOk('Đã ghi nhận tham gia lớp.');
+				} else {
+					toastOk('Đã ghi nhận không tham gia.');
+				}
+				var statusLabel = (res && res.status_label) || (res && res.status) || '';
+				var checkedAt = (res && res.checked_in_at) || '';
+				var checkedLabel = '';
+				if (checkedAt) {
+					try {
+						var d = new Date(checkedAt);
+						if (!isNaN(d.getTime())) {
+							checkedLabel =
+								('0' + d.getDate()).slice(-2) +
+								'/' +
+								('0' + (d.getMonth() + 1)).slice(-2) +
+								'/' +
+								d.getFullYear() +
+								' ' +
+								('0' + d.getHours()).slice(-2) +
+								':' +
+								('0' + d.getMinutes()).slice(-2);
+						}
+					} catch (err) {}
+				}
+				var $status = $box.find('.mk-so-inline-detail__attendance-status');
+				if ($status.length && statusLabel) {
+					var meta = '';
+					if (checkedLabel) {
+						meta = '<br/><span class="mk-so-inline-detail__attendance-meta">Lúc: ' +
+							$('<div/>').text(checkedLabel).html() +
+							'</span>';
+					}
+					$status.html('<strong>' + $('<div/>').text(statusLabel).html() + '</strong>' + meta);
+				}
+				$box.find('.mk-so-inline-detail__attendance-actions').remove();
+				if (!$box.find('.mk-so-inline-detail__attendance-hint').length) {
+					$box.append('<p class="mk-so-inline-detail__attendance-hint">Đã ghi nhận · khóa chọn lại</p>');
+				} else {
+					$box.find('.mk-so-inline-detail__attendance-hint').text('Đã ghi nhận · khóa chọn lại');
+				}
+				if (window.PotentialsMkListRefresh) {
+					try {
+						window.PotentialsMkListRefresh();
+					} catch (err2) {}
+				} else if (document.querySelector('.mk-opps-page')) {
+					document.dispatchEvent(new CustomEvent('mk-opps-attendance-updated', { detail: { id: oid } }));
+				}
+			};
+			var fail = function (err) {
+				var msg =
+					(err && err.message) ||
+					(typeof err === 'string' ? err : '') ||
+					'Không ghi nhận được.';
+				toastErr(msg);
+				$box.find('[data-mk-opp-checkin]').prop('disabled', false);
+			};
+
+			if (store && typeof store.offlineCheckin === 'function') {
+				store.offlineCheckin(oid, action).then(done).catch(fail);
+				return;
+			}
+			app.request
+				.post({
+					data: {
+						module: 'Potentials',
+						action: 'ModernApi',
+						mode: 'offline_checkin',
+						record: oid,
+						offline_action: action
+					}
+				})
+				.then(function (err, res) {
+					if (err || !res || res.success === false) {
+						fail((res && res.error) || err || 'API failed');
+						return;
+					}
+					done(res);
+				});
+		});
+	}
+
 	function initPanel($detailRow) {
 		var $panel = $detailRow.find('.mk-so-inline-detail');
 		if (!$panel.length || $panel.data('mkPosInlineInit')) {
@@ -992,6 +1129,7 @@
 		var snapshot = captureSnapshot($panel);
 		setEditMode($panel, true);
 		initLeadTagPicker($panel);
+		initOppAttendance($panel);
 
 		// Boolean toggles (e.g. Cần QC)
 		$panel.on('change', '.mk-so-inline-detail__bool-input', function () {
@@ -1049,6 +1187,8 @@
 						$('<div class="mk-so-inline-detail__order-no"></div>').text(code)
 					);
 				}
+			} else if ($sub.length) {
+				$sub.remove();
 			}
 		}
 
