@@ -602,8 +602,37 @@
     );
   }
 
+  /** Chỉ cho điểm danh khi chưa ghi nhận kết quả lớp. */
+  function canEditAttendance(o) {
+    var st = String((o && o.offline_status) || "");
+    return st === "offline_da_xac_nhan_lich" || st === "offline_hen_lich_lai";
+  }
+
   function isAdminUser() {
     return !!window.MK_OPPS_IS_ADMIN;
+  }
+
+  function notifyOk(msg) {
+    if (window.app && app.helper && app.helper.showSuccessNotification) {
+      app.helper.showSuccessNotification({ message: msg });
+      return;
+    }
+    if (window.app && app.helper && app.helper.showAlertNotification) {
+      app.helper.showAlertNotification({ message: msg });
+      return;
+    }
+  }
+
+  function notifyErr(msg) {
+    if (window.app && app.helper && app.helper.showErrorNotification) {
+      app.helper.showErrorNotification({ message: msg });
+      return;
+    }
+    if (window.app && app.helper && app.helper.showAlertNotification) {
+      app.helper.showAlertNotification({ message: msg });
+      return;
+    }
+    window.alert(msg);
   }
 
   function offlineCheckinCell(o) {
@@ -615,6 +644,7 @@
       ? formatDateTimeFull(o.offline_checked_in_at)
       : "";
     var classDate = o.offline_class_date ? String(o.offline_class_date) : "";
+    var editable = canEditAttendance(o);
     var html =
       '<div class="mk-opps-checkin" data-opp-id="' +
       esc(o.id) +
@@ -630,7 +660,7 @@
         ? '<span class="mk-opps-checkin__at">Lúc: ' + esc(checkedAt) + "</span>"
         : "") +
       "</div>";
-    if (isAdminUser()) {
+    if (isAdminUser() && editable) {
       html +=
         '<div class="mk-opps-checkin__actions">' +
         '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--ok" data-mk-opp-checkin="da_tham_gia" data-opp-id="' +
@@ -640,6 +670,8 @@
         esc(o.id) +
         '">Không tham gia</button>' +
         "</div>";
+    } else if (isAdminUser() && !editable) {
+      html += '<div class="mk-opps-checkin__hint">Đã ghi nhận · khóa chọn lại</div>';
     } else {
       html += '<div class="mk-opps-checkin__hint">Chỉ Admin ghi nhận</div>';
     }
@@ -649,15 +681,20 @@
   function submitOfflineCheckin(action, btn) {
     var oid = btn && btn.getAttribute ? btn.getAttribute("data-opp-id") : "";
     if (!oid || !store || !store.offlineCheckin) return;
-    var label =
-      action === "da_tham_gia" ? "Ghi nhận Đã tham gia?" : "Ghi nhận Không tham gia?";
-    if (!window.confirm(label)) return;
-    btn.disabled = true;
+    var wrap = btn.closest ? btn.closest(".mk-opps-checkin") : null;
+    var buttons = wrap ? wrap.querySelectorAll("[data-mk-opp-checkin]") : [btn];
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].disabled = true;
+    }
     store
       .offlineCheckin(oid, action)
       .then(function (res) {
         if (res && res.drop) {
-          window.alert("Đã đủ R3 → Ngưng CSKH Offline.");
+          notifyOk("Đã đủ R3 → Ngưng CSKH Offline.");
+        } else if (action === "da_tham_gia") {
+          notifyOk("Đã ghi nhận tham gia lớp.");
+        } else {
+          notifyOk("Đã ghi nhận không tham gia.");
         }
         renderAll();
       })
@@ -666,8 +703,10 @@
           (err && err.message) ||
           (typeof err === "string" ? err : "") ||
           "Không ghi nhận được.";
-        window.alert(msg);
-        btn.disabled = false;
+        notifyErr(msg);
+        for (var j = 0; j < buttons.length; j++) {
+          buttons[j].disabled = false;
+        }
       });
   }
 

@@ -1013,18 +1013,33 @@
 			var action = String($btn.attr('data-mk-opp-checkin') || '');
 			var oid = String($btn.attr('data-opp-id') || $panel.data('record-id') || '');
 			if (!action || !oid) return;
-			var label =
-				action === 'da_tham_gia' ? 'Ghi nhận Đã tham gia?' : 'Ghi nhận Không tham gia?';
-			if (!window.confirm(label)) return;
 			$btn.prop('disabled', true);
 			$box.find('[data-mk-opp-checkin]').prop('disabled', true);
 
 			var store = window.PotentialsLocalStore;
+			var toastOk = function (msg) {
+				if (app.helper && app.helper.showSuccessNotification) {
+					app.helper.showSuccessNotification({ message: msg });
+				} else if (app.helper && app.helper.showAlertNotification) {
+					app.helper.showAlertNotification({ message: msg });
+				}
+			};
+			var toastErr = function (msg) {
+				if (app.helper && app.helper.showErrorNotification) {
+					app.helper.showErrorNotification({ message: msg });
+				} else if (app.helper && app.helper.showAlertNotification) {
+					app.helper.showAlertNotification({ message: msg });
+				} else {
+					window.alert(msg);
+				}
+			};
 			var done = function (res) {
 				if (res && res.drop) {
-					app.helper && app.helper.showAlertNotification
-						? app.helper.showAlertNotification({ message: 'Đã đủ R3 → Ngưng CSKH Offline.' })
-						: window.alert('Đã đủ R3 → Ngưng CSKH Offline.');
+					toastOk('Đã đủ R3 → Ngưng CSKH Offline.');
+				} else if (action === 'da_tham_gia') {
+					toastOk('Đã ghi nhận tham gia lớp.');
+				} else {
+					toastOk('Đã ghi nhận không tham gia.');
 				}
 				var statusLabel = (res && res.status_label) || (res && res.status) || '';
 				var checkedAt = (res && res.checked_in_at) || '';
@@ -1056,7 +1071,12 @@
 					}
 					$status.html('<strong>' + $('<div/>').text(statusLabel).html() + '</strong>' + meta);
 				}
-				$box.find('[data-mk-opp-checkin]').prop('disabled', false);
+				$box.find('.mk-so-inline-detail__attendance-actions').remove();
+				if (!$box.find('.mk-so-inline-detail__attendance-hint').length) {
+					$box.append('<p class="mk-so-inline-detail__attendance-hint">Đã ghi nhận · khóa chọn lại</p>');
+				} else {
+					$box.find('.mk-so-inline-detail__attendance-hint').text('Đã ghi nhận · khóa chọn lại');
+				}
 				if (window.PotentialsMkListRefresh) {
 					try {
 						window.PotentialsMkListRefresh();
@@ -1070,7 +1090,7 @@
 					(err && err.message) ||
 					(typeof err === 'string' ? err : '') ||
 					'Không ghi nhận được.';
-				window.alert(msg);
+				toastErr(msg);
 				$box.find('[data-mk-opp-checkin]').prop('disabled', false);
 			};
 

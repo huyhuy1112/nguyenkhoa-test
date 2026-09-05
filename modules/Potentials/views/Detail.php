@@ -165,6 +165,10 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 						Leads_OfflineGd11Service::STATUS_KHONG_THAM_GIA,
 						Leads_OfflineGd11Service::STATUS_DA_THAM_GIA,
 					);
+					$editableStatuses = array(
+						Leads_OfflineGd11Service::STATUS_DA_XN_LICH,
+						Leads_OfflineGd11Service::STATUS_HEN_LICH_LAI,
+					);
 					$attendance['status'] = $status;
 					$attendance['status_label'] = isset($labels[$status]) ? $labels[$status] : $status;
 					$attendance['class_date'] = $classDate;
@@ -173,7 +177,15 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 						? date('d/m/Y H:i', strtotime($checkedRaw)) : '';
 					$attendance['eligible'] = ($status !== '' && in_array($status, $eligibleStatuses, true));
 					$cu = Users_Record_Model::getCurrentUserModel();
-					$attendance['can_edit'] = $attendance['eligible'] && $cu && $cu->isAdminUser();
+					$attendance['can_edit'] = $attendance['eligible']
+						&& in_array($status, $editableStatuses, true)
+						&& $cu && $cu->isAdminUser();
+					// Khóa sau khi đã điểm danh (không lẫn với “chỉ Admin” khi chưa điểm danh).
+					$attendance['locked'] = $attendance['eligible']
+						&& in_array($status, array(
+							Leads_OfflineGd11Service::STATUS_KHONG_THAM_GIA,
+							Leads_OfflineGd11Service::STATUS_DA_THAM_GIA,
+						), true);
 				}
 			}
 		} catch (Exception $e) {

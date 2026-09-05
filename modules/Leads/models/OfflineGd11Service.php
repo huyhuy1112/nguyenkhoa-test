@@ -849,13 +849,19 @@ class Leads_OfflineGd11Service {
 		$eligible = array(
 			self::STATUS_DA_XN_LICH,
 			self::STATUS_HEN_LICH_LAI,
-			self::STATUS_KHONG_THAM_GIA,
-			self::STATUS_DA_THAM_GIA,
 		);
+		if ($cur === self::STATUS_DA_THAM_GIA || $cur === self::STATUS_KHONG_THAM_GIA) {
+			return array(
+				'success' => false,
+				'error' => 'Đã ghi nhận tham gia · không chọn lại.',
+				'offline_status' => $cur,
+				'locked' => true,
+			);
+		}
 		if ($cur === '' || !in_array($cur, $eligible, true)) {
 			return array(
 				'success' => false,
-				'error' => 'Chỉ điểm danh khi đã xác nhận lịch Offline (hoặc đang ở trạng thái tham gia / không tham gia).',
+				'error' => 'Chỉ điểm danh khi đã xác nhận lịch Offline.',
 				'offline_status' => $cur,
 			);
 		}
@@ -865,10 +871,25 @@ class Leads_OfflineGd11Service {
 			return $out;
 		}
 		$sync = self::syncOfflineStatusToPotential($leadId, isset($out['status']) ? $out['status'] : '', $userId);
+		$step4 = null;
+		try {
+			require_once 'modules/Leads/models/OfflineGd11Step4Service.php';
+			$step4Status = ($action === 'da_tham_gia')
+				? self::STATUS_DA_THAM_GIA
+				: self::STATUS_KHONG_THAM_GIA;
+			$step4 = Leads_OfflineGd11Step4Service::onAttendanceRecorded(
+				$leadId,
+				$step4Status,
+				$userId
+			);
+		} catch (Exception $e) {
+			$step4 = array('success' => false, 'error' => $e->getMessage());
+		}
 		$out['potential_id'] = $potentialId;
 		$out['lead_id'] = $leadId;
 		$out['opp_tags'] = isset($sync['tags']) ? $sync['tags'] : array();
 		$out['checked_in_at'] = ($action === 'da_tham_gia') ? date('c') : '';
+		$out['step4'] = $step4;
 		return $out;
 	}
 

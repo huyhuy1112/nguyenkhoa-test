@@ -86,6 +86,8 @@
 						<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-opps-checkin__btn mk-opps-checkin__btn--ok" data-mk-opp-checkin="da_tham_gia" data-opp-id="{$RECORD->getId()|escape}">Đã tham gia</button>
 						<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-opps-checkin__btn mk-opps-checkin__btn--no" data-mk-opp-checkin="khong_tham_gia" data-opp-id="{$RECORD->getId()|escape}">Không tham gia</button>
 					</div>
+				{elseif !empty($ATT.locked)}
+					<p class="mk-so-inline-detail__attendance-hint">Đã ghi nhận · khóa chọn lại</p>
 				{else}
 					<p class="mk-so-inline-detail__attendance-hint">Chỉ Admin ghi nhận tham gia tại lớp.</p>
 				{/if}

@@ -998,6 +998,69 @@ class Home_AdminKpiService {
 			'revenue_chart' => self::getRevenueChart($chartOpts),
 			'performance' => self::getPerformance(),
 			'alerts' => self::getAlerts(),
+			'offline_gd11' => self::getOfflineGd11(),
+		);
+	}
+
+	/**
+	 * GD 1.1 Offline funnel counters (lead profile statuses).
+	 * @return array
+	 */
+	public static function getOfflineGd11() {
+		$db = PearDatabase::getInstance();
+		$empty = array(
+			'total' => 0,
+			'confirmed' => 0,
+			'attended' => 0,
+			'noshow' => 0,
+			'stopped' => 0,
+			'schedule_pending' => 0,
+			'attend_rate' => 0,
+			'stages' => array(),
+		);
+		if (!self::tableExists($db, 'bace_lead_profile')) {
+			return $empty;
+		}
+		$hasCol = $db->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE 'offline_status'", array());
+		if (!$hasCol || $db->num_rows($hasCol) < 1) {
+			return $empty;
+		}
+		$r = $db->pquery(
+			"SELECT
+				SUM(CASE WHEN offline_status IS NOT NULL AND offline_status <> '' THEN 1 ELSE 0 END) AS total,
+				SUM(CASE WHEN offline_status = 'offline_da_xac_nhan_lich' THEN 1 ELSE 0 END) AS confirmed,
+				SUM(CASE WHEN offline_status = 'offline_chua_xac_nhan_lich' OR offline_status = 'offline_hen_lich_lai' THEN 1 ELSE 0 END) AS schedule_pending,
+				SUM(CASE WHEN offline_status = 'offline_da_tham_gia' THEN 1 ELSE 0 END) AS attended,
+				SUM(CASE WHEN offline_status = 'offline_khong_tham_gia' THEN 1 ELSE 0 END) AS noshow,
+				SUM(CASE WHEN offline_status = 'offline_ngung_cskh' THEN 1 ELSE 0 END) AS stopped
+			 FROM bace_lead_profile",
+			array()
+		);
+		$total = $r ? (int) $db->query_result($r, 0, 'total') : 0;
+		$confirmed = $r ? (int) $db->query_result($r, 0, 'confirmed') : 0;
+		$schedulePending = $r ? (int) $db->query_result($r, 0, 'schedule_pending') : 0;
+		$attended = $r ? (int) $db->query_result($r, 0, 'attended') : 0;
+		$noshow = $r ? (int) $db->query_result($r, 0, 'noshow') : 0;
+		$stopped = $r ? (int) $db->query_result($r, 0, 'stopped') : 0;
+		$checked = $attended + $noshow;
+		$attendRate = $checked > 0 ? round(($attended / $checked) * 100, 1) : 0;
+		$stages = array(
+			array('key' => 'total', 'label' => 'Trong luồng Offline', 'count' => $total, 'color' => '#2563eb'),
+			array('key' => 'schedule_pending', 'label' => 'Chưa / hẹn lịch lại', 'count' => $schedulePending, 'color' => '#f59e0b'),
+			array('key' => 'confirmed', 'label' => 'Đã xác nhận lịch', 'count' => $confirmed, 'color' => '#06b6d4'),
+			array('key' => 'attended', 'label' => 'Đã tham gia', 'count' => $attended, 'color' => '#10b981'),
+			array('key' => 'noshow', 'label' => 'Không tham gia', 'count' => $noshow, 'color' => '#f43f5e'),
+			array('key' => 'stopped', 'label' => 'Ngưng CSKH', 'count' => $stopped, 'color' => '#64748b'),
+		);
+		return array(
+			'total' => $total,
+			'confirmed' => $confirmed,
+			'schedule_pending' => $schedulePending,
+			'attended' => $attended,
+			'noshow' => $noshow,
+			'stopped' => $stopped,
+			'attend_rate' => $attendRate,
+			'stages' => $stages,
 		);
 	}
 
