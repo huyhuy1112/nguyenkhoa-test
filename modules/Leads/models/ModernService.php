@@ -12,6 +12,9 @@ class Leads_ModernService {
 
 	const MODULE = 'Leads';
 
+	/** true = getLead (đầy đủ options/plan); false = list (nhẹ). */
+	protected static $composeDetailed = false;
+
 	const MAX_CALLS_PER_DAY = 10;
 
 	protected static $sourceTags = array('facebook', 'tiktok', 'website', 'zalo', 'other', 'other_source');
@@ -160,6 +163,7 @@ class Leads_ModernService {
 		if (!self::isInstalled($adb)) {
 			return array();
 		}
+		self::$composeDetailed = false;
 		self::installSchema($adb);
 		self::ensureModernProfilesForAliveLeads();
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
@@ -238,6 +242,7 @@ class Leads_ModernService {
 		if (!self::isInstalled($adb)) {
 			return array();
 		}
+		self::$composeDetailed = false;
 		self::installSchema($adb);
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
@@ -329,6 +334,7 @@ class Leads_ModernService {
 	}
 
 	public static function getLead($idOrCacheId, $userId = null) {
+		self::$composeDetailed = true;
 		$leadId = self::resolveLeadId($idOrCacheId);
 		if (!$leadId && is_numeric($idOrCacheId) && self::vtigerLeadExists((int)$idOrCacheId)) {
 			$leadId = (int)$idOrCacheId;
@@ -1407,8 +1413,22 @@ class Leads_ModernService {
 	protected static function composeVerifyBlock(array $row, array $tags = array()) {
 		require_once 'modules/Leads/models/SalesVerifyService.php';
 		require_once 'modules/Leads/models/OnlineGd12Service.php';
-		$catalog = Leads_SalesVerifyService::optionsCatalog();
-		$onlineCatalog = Leads_OnlineGd12Service::optionsCatalog();
+		static $catalogCache = null;
+		static $onlineCatalogCache = null;
+		$detailed = self::$composeDetailed;
+		if ($detailed) {
+			if ($catalogCache === null) {
+				$catalogCache = Leads_SalesVerifyService::optionsCatalog();
+			}
+			if ($onlineCatalogCache === null) {
+				$onlineCatalogCache = Leads_OnlineGd12Service::optionsCatalog();
+			}
+			$catalog = $catalogCache;
+			$onlineCatalog = $onlineCatalogCache;
+		} else {
+			$catalog = array();
+			$onlineCatalog = array();
+		}
 		$formC1 = isset($row['form_c1']) ? trim((string) $row['form_c1']) : '';
 		$formC2 = isset($row['form_c2']) ? trim((string) $row['form_c2']) : '';
 		$formC3 = isset($row['form_c3']) ? trim((string) $row['form_c3']) : '';
@@ -1451,33 +1471,35 @@ class Leads_ModernService {
 		if ($potLabel === '') {
 			$potLabel = Leads_SalesVerifyService::potentialLabel($potential);
 		}
-		return array(
+		$c1opts = isset($catalog['c1']) ? $catalog['c1'] : array();
+		$c2opts = isset($catalog['c2']) ? $catalog['c2'] : array();
+		$c3opts = isset($catalog['c3']) ? $catalog['c3'] : array();
+		$block = array(
 			'verify_mode' => $isOnline ? 'online_gd12' : 'sales_b',
 			'form_c1' => $formC1,
 			'form_c2' => $formC2,
 			'form_c3' => $formC3,
-			'form_c1_label' => self::verifyOptionLabel($catalog['c1'], $formC1),
-			'form_c2_label' => self::verifyOptionLabel($catalog['c2'], $formC2),
-			'form_c3_label' => self::verifyOptionLabel($catalog['c3'], $formC3),
+			'form_c1_label' => $detailed ? self::verifyOptionLabel($c1opts, $formC1) : $formC1,
+			'form_c2_label' => $detailed ? self::verifyOptionLabel($c2opts, $formC2) : $formC2,
+			'form_c3_label' => $detailed ? self::verifyOptionLabel($c3opts, $formC3) : $formC3,
 			'verify_c1' => $verifyC1,
 			'verify_c2' => $verifyC2,
 			'verify_c3' => $verifyC3,
 			'verify_c4' => $verifyC4,
 			'verify_c5' => $verifyC5,
-			'verify_c1_label' => self::verifyOptionLabel($catalog['c1'], $verifyC1),
-			'verify_c2_label' => self::verifyOptionLabel($catalog['c2'], $verifyC2),
-			'verify_c3_label' => self::verifyOptionLabel($catalog['c3'], $verifyC3),
+			'verify_c1_label' => $detailed ? self::verifyOptionLabel($c1opts, $verifyC1) : $verifyC1,
+			'verify_c2_label' => $detailed ? self::verifyOptionLabel($c2opts, $verifyC2) : $verifyC2,
+			'verify_c3_label' => $detailed ? self::verifyOptionLabel($c3opts, $verifyC3) : $verifyC3,
 			'online_status' => $onlineStatus,
 			'online_path' => $onlinePath,
 			'online_q1' => $onlineQ1,
 			'online_q2' => $onlineQ2,
 			'online_q3' => $onlineQ3,
 			'online_q4' => $onlineQ4,
-			'online_q1_label' => Leads_OnlineGd12Service::optionLabel('q1', $onlineQ1),
-			'online_q2_label' => Leads_OnlineGd12Service::optionLabel('q2', $onlineQ2),
-			'online_q3_label' => Leads_OnlineGd12Service::optionLabel('q3', $onlineQ3),
-			'online_q4_label' => Leads_OnlineGd12Service::optionLabel('q4', $onlineQ4),
-			'online_verify_options' => $onlineCatalog,
+			'online_q1_label' => $detailed ? Leads_OnlineGd12Service::optionLabel('q1', $onlineQ1) : $onlineQ1,
+			'online_q2_label' => $detailed ? Leads_OnlineGd12Service::optionLabel('q2', $onlineQ2) : $onlineQ2,
+			'online_q3_label' => $detailed ? Leads_OnlineGd12Service::optionLabel('q3', $onlineQ3) : $onlineQ3,
+			'online_q4_label' => $detailed ? Leads_OnlineGd12Service::optionLabel('q4', $onlineQ4) : $onlineQ4,
 			'eligibility_result' => $eligibility,
 			'eligibility_label' => $eligLabel,
 			'potential_level' => $potential,
@@ -1486,13 +1508,17 @@ class Leads_ModernService {
 			'verify_change_reason' => $changeReason,
 			'verified_at' => $verifiedAt,
 			'verified_by' => isset($row['verified_by']) ? (int) $row['verified_by'] : null,
-			'verify_options' => $catalog,
-		) + self::composeOfflineBlock($row);
+		);
+		if ($detailed) {
+			$block['online_verify_options'] = $onlineCatalog;
+			$block['verify_options'] = $catalog;
+		}
+		return $block + self::composeOfflineBlock($row);
 	}
 
 	protected static function composeOfflineBlock(array $row) {
 		require_once 'modules/Leads/models/OfflineGd11Service.php';
-		return Leads_OfflineGd11Service::profileBlock($row);
+		return Leads_OfflineGd11Service::profileBlock($row, self::$composeDetailed);
 	}
 
 	protected static function verifyOptionLabel(array $options, $code) {

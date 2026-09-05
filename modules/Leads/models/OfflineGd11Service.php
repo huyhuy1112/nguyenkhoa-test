@@ -55,6 +55,10 @@ class Leads_OfflineGd11Service {
 	}
 
 	public static function installSchema(PearDatabase $adb = null) {
+		static $done = false;
+		if ($done) {
+			return;
+		}
 		if (!$adb) {
 			$adb = PearDatabase::getInstance();
 		}
@@ -81,6 +85,7 @@ class Leads_OfflineGd11Service {
 				$adb->pquery("ALTER TABLE bace_lead_profile ADD COLUMN {$name} {$def}", array());
 			}
 		}
+		$done = true;
 	}
 
 	/**
@@ -506,7 +511,11 @@ class Leads_OfflineGd11Service {
 		return $out;
 	}
 
-	public static function profileBlock(array $row) {
+	/**
+	 * @param array $row
+	 * @param bool $detailed true = panel/getLead (KB + plan Bước 2); false = list (nhẹ)
+	 */
+	public static function profileBlock(array $row, $detailed = false) {
 		$status = isset($row['offline_status']) ? trim((string) $row['offline_status']) : '';
 		$labels = self::statusLabels();
 		$r1h = isset($row['offline_r1_hen_goi']) ? (int) $row['offline_r1_hen_goi'] : 0;
@@ -516,7 +525,7 @@ class Leads_OfflineGd11Service {
 		if ($r1Sum <= 0 && !empty($row['offline_r1_contact'])) {
 			$r1Sum = (int) $row['offline_r1_contact'];
 		}
-		return array(
+		$out = array(
 			'offline_status' => $status,
 			'offline_status_label' => isset($labels[$status]) ? $labels[$status] : '',
 			'offline_r1_contact' => $r1Sum,
@@ -529,16 +538,24 @@ class Leads_OfflineGd11Service {
 			'offline_preclass_confirm' => !empty($row['offline_preclass_confirm']) ? 1 : 0,
 			'offline_class_date' => (!empty($row['offline_class_date']) && $row['offline_class_date'] !== '0000-00-00')
 				? (string) $row['offline_class_date'] : '',
-			'offline_status_options' => self::statusLabels(),
-			'offline_kb' => self::kbSnippets(),
-		) + self::composeStep2Block($row);
+		);
+		if ($detailed) {
+			$out['offline_status_options'] = $labels;
+			$out['offline_kb'] = self::kbSnippets();
+		}
+		return $out + self::composeStep2Block($row, $detailed);
 	}
 
-	protected static function composeStep2Block(array $row) {
+	protected static function composeStep2Block(array $row, $detailed = false) {
+		$status = isset($row['offline_status']) ? trim((string) $row['offline_status']) : '';
+		// List: chỉ trả field nhẹ nếu đã vào Offline; bỏ plan/config/KB.
+		$needsStep2 = ($status !== '' || !empty($row['offline_class_date']) || !empty($row['offline_step2_entered_at']));
+		if (!$detailed && !$needsStep2) {
+			return array();
+		}
 		try {
 			require_once 'modules/Leads/models/OfflineGd11Step2Service.php';
-			Leads_OfflineGd11Step2Service::installSchema();
-			return Leads_OfflineGd11Step2Service::profileExtras($row);
+			return Leads_OfflineGd11Step2Service::profileExtras($row, $detailed);
 		} catch (Exception $e) {
 			return array();
 		}

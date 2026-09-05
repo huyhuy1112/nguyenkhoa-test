@@ -12,6 +12,10 @@ class Leads_OfflineGd11Step2Service {
 	const TABLE_SETTINGS = 'bace_gd11_step2_settings';
 
 	public static function installSchema(PearDatabase $adb = null) {
+		static $done = false;
+		if ($done) {
+			return;
+		}
 		if (!$adb) {
 			$adb = PearDatabase::getInstance();
 		}
@@ -39,6 +43,7 @@ class Leads_OfflineGd11Step2Service {
 				array()
 			);
 		}
+		$done = true;
 	}
 
 	/**
@@ -102,7 +107,13 @@ class Leads_OfflineGd11Step2Service {
 		);
 	}
 
+	/** @var array|null */
+	protected static $configCache = null;
+
 	public static function getConfig() {
+		if (self::$configCache !== null) {
+			return self::$configCache;
+		}
 		self::installSchema();
 		$adb = PearDatabase::getInstance();
 		$res = $adb->pquery('SELECT config_json FROM ' . self::TABLE_SETTINGS . ' WHERE id = 1', array());
@@ -111,10 +122,12 @@ class Leads_OfflineGd11Step2Service {
 			$raw = (string) $adb->query_result($res, 0, 'config_json');
 			$decoded = json_decode($raw, true);
 			if (is_array($decoded)) {
-				return self::mergeConfig($base, $decoded);
+				self::$configCache = self::mergeConfig($base, $decoded);
+				return self::$configCache;
 			}
 		}
-		return $base;
+		self::$configCache = $base;
+		return self::$configCache;
 	}
 
 	public static function saveConfig(array $patch) {
@@ -134,6 +147,7 @@ class Leads_OfflineGd11Step2Service {
 				array($json, date('Y-m-d H:i:s'))
 			);
 		}
+		self::$configCache = $merged;
 		return $merged;
 	}
 
@@ -218,20 +232,26 @@ class Leads_OfflineGd11Step2Service {
 		);
 	}
 
-	public static function profileExtras(array $row) {
+	/**
+	 * @param bool $detailed true = kèm plan + config (getLead / panel)
+	 */
+	public static function profileExtras(array $row, $detailed = false) {
 		$sent = self::parseSent(isset($row['offline_step2_sent']) ? $row['offline_step2_sent'] : '');
-		return array(
+		$out = array(
 			'offline_class_time' => isset($row['offline_class_time']) && $row['offline_class_time']
 				? (string) $row['offline_class_time'] : '09:00',
 			'offline_class_place' => isset($row['offline_class_place']) ? (string) $row['offline_class_place'] : '',
 			'offline_step2_entered_at' => (!empty($row['offline_step2_entered_at']) && $row['offline_step2_entered_at'] !== '0000-00-00 00:00:00')
 				? (string) $row['offline_step2_entered_at'] : '',
 			'offline_step2_sent' => $sent,
-			'offline_step2_plan' => self::planFromRow($row),
-			'offline_step2_config' => self::getConfig(),
-			'offline_kb_step2' => self::kbSnippetsStep2(),
 			'zalo_user_id' => isset($row['zalo_user_id']) ? (string) $row['zalo_user_id'] : '',
 		);
+		if ($detailed) {
+			$out['offline_step2_plan'] = self::planFromRow($row);
+			$out['offline_step2_config'] = self::getConfig();
+			$out['offline_kb_step2'] = self::kbSnippetsStep2();
+		}
+		return $out;
 	}
 
 	public static function kbSnippetsStep2() {
