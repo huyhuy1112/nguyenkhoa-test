@@ -60,10 +60,10 @@ class Home_MainPage_View extends Vtiger_Index_View {
 					$rows[] = array(
 						'id' => $id,
 						'url' => $rec ? $rec->getDetailViewUrl() : ('index.php?module=Project&view=Detail&record=' . $id),
-						'title' => $row['projectname'] ?: ('#' . $id),
-						'startdate' => $rec ? $rec->getDisplayValue('startdate') : $row['startdate'],
-						'enddate' => $rec ? $rec->getDisplayValue('enddate') : $row['enddate'],
-						'status' => $rec ? $rec->getDisplayValue('projectstatus') : $row['projectstatus'],
+						'title' => $this->decodeMainPageText($row['projectname'] ?: ('#' . $id)),
+						'startdate' => $this->decodeMainPageText($rec ? $rec->getDisplayValue('startdate') : $row['startdate']),
+						'enddate' => $this->decodeMainPageText($rec ? $rec->getDisplayValue('enddate') : $row['enddate']),
+						'status' => $this->decodeMainPageText($rec ? $rec->getDisplayValue('projectstatus') : $row['projectstatus']),
 						'status_raw' => $row['projectstatus'],
 					);
 				}
@@ -79,9 +79,9 @@ class Home_MainPage_View extends Vtiger_Index_View {
 					$rows[] = array(
 						'id' => $id,
 						'url' => $rec ? $rec->getDetailViewUrl() : ('index.php?module=ProjectTask&view=Detail&record=' . $id),
-						'title' => $row['projecttaskname'] ?: ('Task #' . $id),
-						'duedate' => $rec ? ($rec->getDisplayValue('enddate') ?: $rec->getDisplayValue('startdate')) : $row['enddate'],
-						'status' => $rec ? $rec->getDisplayValue('projecttaskprogress') : $row['projecttaskprogress'],
+						'title' => $this->decodeMainPageText($row['projecttaskname'] ?: ('Task #' . $id)),
+						'duedate' => $this->decodeMainPageText($rec ? ($rec->getDisplayValue('enddate') ?: $rec->getDisplayValue('startdate')) : $row['enddate']),
+						'status' => $this->decodeMainPageText($rec ? $rec->getDisplayValue('projecttaskprogress') : $row['projecttaskprogress']),
 						'status_raw' => $row['projecttaskprogress'],
 					);
 				}
@@ -164,19 +164,19 @@ class Home_MainPage_View extends Vtiger_Index_View {
 					$rows[] = array(
 						'id' => $recordId,
 						'url' => $url,
-						'title' => $recordModel->get('projectname') ?: ('#' . $recordId),
-						'startdate' => $recordModel->getDisplayValue('startdate'),
-						'enddate' => $recordModel->getDisplayValue('enddate'),
-						'status' => $recordModel->getDisplayValue('projectstatus'),
+						'title' => $this->decodeMainPageText($recordModel->get('projectname') ?: ('#' . $recordId)),
+						'startdate' => $this->decodeMainPageText($recordModel->getDisplayValue('startdate')),
+						'enddate' => $this->decodeMainPageText($recordModel->getDisplayValue('enddate')),
+						'status' => $this->decodeMainPageText($recordModel->getDisplayValue('projectstatus')),
 						'status_raw' => $recordModel->get('projectstatus'),
 					);
 				} elseif ($moduleName === 'ProjectTask') {
 					$rows[] = array(
 						'id' => $recordId,
 						'url' => $url,
-						'title' => $recordModel->get('projecttaskname') ?: ('Task #' . $recordId),
-						'duedate' => $recordModel->getDisplayValue('enddate') ?: $recordModel->getDisplayValue('startdate'),
-						'status' => $recordModel->getDisplayValue('projecttaskprogress') ?: '-',
+						'title' => $this->decodeMainPageText($recordModel->get('projecttaskname') ?: ('Task #' . $recordId)),
+						'duedate' => $this->decodeMainPageText($recordModel->getDisplayValue('enddate') ?: $recordModel->getDisplayValue('startdate')),
+						'status' => $this->decodeMainPageText($recordModel->getDisplayValue('projecttaskprogress') ?: '-'),
 						'status_raw' => $recordModel->get('projecttaskprogress'),
 					);
 				}
@@ -241,6 +241,22 @@ class Home_MainPage_View extends Vtiger_Index_View {
 	}
 
 	/**
+	 * Decode HTML entities once so Smarty escape:'html' does not double-encode.
+	 */
+	protected function decodeMainPageText($value) {
+		if ($value === null || $value === '') {
+			return '';
+		}
+		$text = (string) $value;
+		if (function_exists('decode_html')) {
+			$text = decode_html($text);
+		} else {
+			$text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
+		}
+		return $text;
+	}
+
+	/**
 	 * Build one agenda item from activity (date + time display for UI giống Today).
 	 */
 	/** Màu mặc định theo loại (Schedule): Task, Call, Meeting, ... */
@@ -254,29 +270,110 @@ class Home_MainPage_View extends Vtiger_Index_View {
 
 	protected function buildAgendaItem(Vtiger_Record_Model $activity) {
 		$id = $activity->getId();
-		$subject = $activity->get('subject');
+		$subject = $this->decodeMainPageText($activity->get('subject'));
 		$type = $activity->get('activitytype') ?: 'Events';
+		$dateKey = '';
+		$hour = null;
 		if ($activity->get('activitytype') === 'Task') {
-			$dateDisplay = $activity->getDisplayValue('due_date');
+			$dateDisplay = $this->decodeMainPageText($activity->getDisplayValue('due_date'));
 			$timeDisplay = '';
 			$dateTime = $dateDisplay;
+			$rawDue = $activity->get('due_date');
+			if ($rawDue) {
+				$dateKey = date('Y-m-d', strtotime($rawDue));
+			}
 		} else {
-			$dateDisplay = $activity->getDisplayValue('date_start');
-			$timeStart = $activity->getDisplayValue('time_start');
-			$timeEnd = $activity->getDisplayValue('time_end');
-			$timeDisplay = trim($timeStart . ($timeEnd ? ' ' . $timeEnd : ''));
+			$dateDisplay = $this->decodeMainPageText($activity->getDisplayValue('date_start'));
+			$timeStart = $this->decodeMainPageText($activity->getDisplayValue('time_start'));
+			$timeEnd = $this->decodeMainPageText($activity->getDisplayValue('time_end'));
+			$timeDisplay = trim($timeStart . ($timeEnd ? ' – ' . $timeEnd : ''));
 			$dateTime = $dateDisplay . ($timeDisplay ? ' ' . $timeDisplay : '');
+			$rawStart = $activity->get('date_start');
+			if ($rawStart) {
+				$dateKey = date('Y-m-d', strtotime($rawStart));
+			}
+			$rawTime = $activity->get('time_start');
+			if ($rawTime) {
+				$ts = strtotime('1970-01-01 ' . $rawTime);
+				if ($ts !== false) {
+					$hour = (int) date('G', $ts);
+				}
+			}
 		}
 		$color = isset(self::$agendaTypeColors[$type]) ? self::$agendaTypeColors[$type] : '#95a5a6';
 		return array(
 			'id' => $id,
 			'url' => $activity->getDetailViewUrl(),
-			'title' => $subject ?: ('#' . $id),
+			'title' => $subject !== '' ? $subject : ('#' . $id),
 			'dateTime' => $dateTime,
 			'dateDisplay' => $dateDisplay,
 			'timeDisplay' => $timeDisplay,
 			'type' => $type,
 			'color' => $color,
+			'dateKey' => $dateKey,
+			'hour' => $hour,
+		);
+	}
+
+	/**
+	 * Week strip (Mon–Sun) + events for Main Page calendar card.
+	 */
+	protected function buildWeekStrip(array $todayItems, array $upcomingItems) {
+		$byDay = array();
+		foreach (array_merge($todayItems, $upcomingItems) as $item) {
+			$key = isset($item['dateKey']) ? $item['dateKey'] : '';
+			if ($key === '') {
+				continue;
+			}
+			if (!isset($byDay[$key])) {
+				$byDay[$key] = array();
+			}
+			$byDay[$key][] = $item;
+		}
+		$labels = array('T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN');
+		$monday = new DateTime('monday this week');
+		$today = date('Y-m-d');
+		$days = array();
+		for ($i = 0; $i < 7; $i++) {
+			$d = clone $monday;
+			if ($i > 0) {
+				$d->modify('+' . $i . ' day');
+			}
+			$key = $d->format('Y-m-d');
+			$days[] = array(
+				'key' => $key,
+				'label' => $labels[$i],
+				'dayNum' => $d->format('j'),
+				'isToday' => ($key === $today),
+				'count' => isset($byDay[$key]) ? count($byDay[$key]) : 0,
+				'events' => isset($byDay[$key]) ? $byDay[$key] : array(),
+			);
+		}
+		return array(
+			'title' => 'Tuần ' . $monday->format('d/m') . ' – ' . (clone $monday)->modify('+6 day')->format('d/m/Y'),
+			'days' => $days,
+		);
+	}
+
+	protected function buildMainPageGreeting(Users_Record_Model $user) {
+		$hour = (int) date('G');
+		if ($hour < 12) {
+			$hello = 'Chào buổi sáng';
+		} elseif ($hour < 18) {
+			$hello = 'Chào buổi chiều';
+		} else {
+			$hello = 'Chào buổi tối';
+		}
+		$first = trim($this->decodeMainPageText($user->get('first_name')));
+		$last = trim($this->decodeMainPageText($user->get('last_name')));
+		$name = trim($first . ' ' . $last);
+		if ($name === '') {
+			$name = $this->decodeMainPageText($user->get('user_name'));
+		}
+		return array(
+			'hello' => $hello,
+			'name' => $name,
+			'subtitle' => 'Tổng quan công việc và lịch làm việc hôm nay trên Nguyên Khoa CRM.',
 		);
 	}
 
@@ -433,10 +530,33 @@ class Home_MainPage_View extends Vtiger_Index_View {
 				$mainPageAccessibleGroups = array();
 			}
 		}
-		$viewer->assign('MAINPAGE_ANNOUNCEMENTS', $mainPageAnnouncements);
 		$viewer->assign('MAINPAGE_ASSIGNABLE_USERS', $mainPageAssignableUsers);
 		$viewer->assign('MAINPAGE_ACCESSIBLE_GROUPS', $mainPageAccessibleGroups);
 		$viewer->assign('MAINPAGE_CURRENT_USER_ID', $currentUser->getId());
+
+		foreach ($mainPageAnnouncements as &$annRow) {
+			if (isset($annRow['title'])) {
+				$annRow['title'] = $this->decodeMainPageText($annRow['title']);
+			}
+			if (isset($annRow['creatorName'])) {
+				$annRow['creatorName'] = $this->decodeMainPageText($annRow['creatorName']);
+			}
+			if (isset($annRow['timeAgo'])) {
+				$annRow['timeAgo'] = $this->decodeMainPageText($annRow['timeAgo']);
+			}
+		}
+		unset($annRow);
+		$viewer->assign('MAINPAGE_ANNOUNCEMENTS', $mainPageAnnouncements);
+
+		$greeting = $this->buildMainPageGreeting($currentUser);
+		$viewer->assign('MAINPAGE_GREETING', $greeting);
+		$viewer->assign('MAINPAGE_WEEK', $this->buildWeekStrip($mainPageAgenda, $mainPageAgendaUpcoming));
+		$viewer->assign('MAINPAGE_KPI', array(
+			'announcements' => count($mainPageAnnouncements),
+			'projects' => count($mainPageProjects),
+			'tasks' => (int) $projectTaskCount,
+			'agenda' => count($mainPageAgenda) + count($mainPageAgendaUpcoming),
+		));
 
 		// My logged time: tính từ lúc đăng nhập (session)
 		$loginTime = isset($_SESSION['user_login_time']) ? (int)$_SESSION['user_login_time'] : 0;

@@ -1,13 +1,14 @@
 {strip}
 <div class="mk-mainpage-figma-root">
-<div class="mk-mainpage-figma-inner mainpage-wrap">
-	<div class="mk-mainpage-hero">
-		<div class="mk-mainpage-hero-brand">
-			<span class="mk-mainpage-hero-kicker">TDB SOLUTION</span>
-			<h1 class="mk-mainpage-hero-title">{vtranslate('LBL_MK_MANAGEMENT_DASHBOARD', 'Home')}</h1>
+<div class="mk-mainpage-figma-inner mainpage-wrap mk-mp-v2">
+	<section class="mk-mp-hero" aria-label="Chào mừng">
+		<div class="mk-mp-hero__brand">
+			<span class="mk-mp-brand">Nguyên Khoa</span>
+			<h1 class="mk-mp-hello">{$MAINPAGE_GREETING.hello|escape:'html'}, {$MAINPAGE_GREETING.name|escape:'html'}!</h1>
+			<p class="mk-mp-hello-sub">{$MAINPAGE_GREETING.subtitle|escape:'html'}</p>
 		</div>
 		{if $MAINPAGE_CAN_SEE_TEAM_STATUS}
-		<form method="get" class="mainpage-global-filter mk-mainpage-hero-filters" id="mainpage-global-filter-form">
+		<form method="get" class="mainpage-global-filter mk-mp-filters" id="mainpage-global-filter-form">
 			<input type="hidden" name="module" value="Home" />
 			<input type="hidden" name="view" value="MainPage" />
 			<input type="hidden" name="app" value="MANAGEMENT" />
@@ -38,33 +39,177 @@
 			</div>
 		</form>
 		{/if}
-	</div>
-	<div class="mk-mainpage-grid">
-		<div class="mainpage-card announcements area-ann">
-			<div class="card-header subtle">
-				<div class="title"><i class="fa fa-bullhorn"></i> {vtranslate('LBL_MK_ANNOUNCEMENTS', 'Home')}</div>
-				<div class="actions">
-					<button type="button" class="btn btn-default btn-xs" id="mainpage-announcement-add" title="{vtranslate('LBL_MK_ADD', 'Home')}"><i class="fa fa-plus"></i> {vtranslate('LBL_MK_ADD', 'Home')}</button>
+	</section>
+
+	<section class="mk-mp-actions" aria-label="Lối tắt nhanh">
+		<button type="button" class="mk-mp-action mk-mp-action--blue" id="mainpage-announcement-add">
+			<span class="mk-mp-action__eyebrow">Thông báo</span>
+			<span class="mk-mp-action__title">Tạo thông báo mới</span>
+			<span class="mk-mp-action__hint">Gửi tới user hoặc nhóm</span>
+		</button>
+		<a href="{$MAINPAGE_LINKS.calendar|escape:'html'}" class="mk-mp-action mk-mp-action--orange">
+			<span class="mk-mp-action__eyebrow">Lịch</span>
+			<span class="mk-mp-action__title">Mở lịch làm việc</span>
+			<span class="mk-mp-action__hint">Xem tuần &amp; sự kiện</span>
+		</a>
+		<a href="{$MAINPAGE_LINKS.projecttask_list|escape:'html'}" class="mk-mp-action mk-mp-action--green">
+			<span class="mk-mp-action__eyebrow">Nhiệm vụ</span>
+			<span class="mk-mp-action__title">Theo dõi task của tôi</span>
+			<span class="mk-mp-action__hint">{if $MAINPAGE_KPI.tasks gt 0}{$MAINPAGE_KPI.tasks} đang mở{else}Chưa có task{/if}</span>
+		</a>
+		<a href="{$MAINPAGE_LINKS.project_list|escape:'html'}" class="mk-mp-action mk-mp-action--teal">
+			<span class="mk-mp-action__eyebrow">Dự án</span>
+			<span class="mk-mp-action__title">Danh sách dự án</span>
+			<span class="mk-mp-action__hint">{if $MAINPAGE_KPI.projects gt 0}{$MAINPAGE_KPI.projects} gần đây{else}Chưa có dự án{/if}</span>
+		</a>
+	</section>
+
+	<section class="mk-mp-insight" aria-label="Tổng quan">
+		<div class="mk-mp-insight__ring">
+			<div class="mk-mp-ring" style="--mk-ring-a:{$MAINPAGE_KPI.announcements|default:0};--mk-ring-b:{$MAINPAGE_KPI.agenda|default:0};--mk-ring-c:{$MAINPAGE_KPI.tasks|default:0};--mk-ring-d:{$MAINPAGE_KPI.projects|default:0}">
+				<div class="mk-mp-ring__center">
+					<span class="mk-mp-ring__num">{$MAINPAGE_KPI.agenda|default:0}</span>
+					<span class="mk-mp-ring__lbl">Lịch tuần</span>
 				</div>
 			</div>
-			<div class="card-body announcements-body ann-list-wrap">
-				{if $MAINPAGE_ANNOUNCEMENTS|@count gt 0}
-					<ul class="announcements-list list-unstyled">
-						{foreach from=$MAINPAGE_ANNOUNCEMENTS item=ann}
-							<li class="announcement-item ann-item-clickable" data-id="{$ann.id}" data-creatorid="{$ann.creatorid}" data-title="{$ann.title|escape:'html'}" data-creatorname="{$ann.creatorName|escape:'html'}" data-timeago="{$ann.timeAgo|escape:'html'}">
-								<span class="ann-item-title">{$ann.title|escape:'html'|default:'(No title)'}</span>
-								<span class="ann-item-time">{$ann.timeAgo|escape:'html'}</span>
-							</li>
+		</div>
+		<div class="mk-mp-insight__stats">
+			<div class="mk-mp-stat mk-mp-stat--orange">
+				<span class="mk-mp-stat__n">{$MAINPAGE_KPI.announcements|default:0}</span>
+				<span class="mk-mp-stat__l">Thông báo</span>
+			</div>
+			<div class="mk-mp-stat mk-mp-stat--green">
+				<span class="mk-mp-stat__n">{$MAINPAGE_KPI.projects|default:0}</span>
+				<span class="mk-mp-stat__l">Dự án</span>
+			</div>
+			<div class="mk-mp-stat mk-mp-stat--teal">
+				<span class="mk-mp-stat__n">{$MAINPAGE_KPI.agenda|default:0}</span>
+				<span class="mk-mp-stat__l">Sự kiện</span>
+			</div>
+			<div class="mk-mp-stat mk-mp-stat--blue">
+				<span class="mk-mp-stat__n">{$MAINPAGE_KPI.tasks|default:0}</span>
+				<span class="mk-mp-stat__l">Nhiệm vụ</span>
+			</div>
+		</div>
+	</section>
+
+	<div class="mk-mainpage-grid mk-mp-grid">
+		<div class="mainpage-card agenda area-agenda mk-agenda-widget mk-mp-events">
+			<div class="card-header subtle mk-agenda-widget__head">
+				<div class="title">Sự kiện sắp tới</div>
+				<div class="tab-group agenda-tabs mk-mp-tabs">
+					<span class="tab active" data-agenda-panel="today">{vtranslate('LBL_MK_AGENDA_TODAY', 'Home')}</span>
+					<span class="tab" data-agenda-panel="upcoming">{vtranslate('LBL_MK_AGENDA_UPCOMING', 'Home')}</span>
+					<span class="tab" data-agenda-panel="ann">{vtranslate('LBL_MK_ANNOUNCEMENTS', 'Home')}</span>
+					<a href="{$MAINPAGE_LINKS.calendar}" class="tab mk-agenda-widget__all" target="_blank" rel="noopener noreferrer">Xem tất cả</a>
+				</div>
+			</div>
+			<div class="card-body mk-agenda-widget__body">
+				{if $MAINPAGE_WEEK.days|@count gt 0}
+				<div class="mk-mp-week" aria-label="{$MAINPAGE_WEEK.title|escape:'html'}">
+					<div class="mk-mp-week__title">{$MAINPAGE_WEEK.title|escape:'html'}</div>
+					<div class="mk-mp-week__days">
+						{foreach from=$MAINPAGE_WEEK.days item=day}
+							<div class="mk-mp-week__day{if $day.isToday} is-today{/if}{if $day.count gt 0} has-events{/if}">
+								<span class="mk-mp-week__dow">{$day.label|escape:'html'}</span>
+								<span class="mk-mp-week__num">{$day.dayNum|escape:'html'}</span>
+								{if $day.count gt 0}<span class="mk-mp-week__dot">{$day.count}</span>{/if}
+							</div>
 						{/foreach}
-					</ul>
+					</div>
+				</div>
+				{/if}
+				<div id="agenda-panel-today" class="agenda-panel">
+					{if $MAINPAGE_AGENDA|@count gt 0}
+						<ul class="agenda-list list-unstyled mk-agenda-widget__list">
+							{foreach from=$MAINPAGE_AGENDA item=a}
+								<li class="agenda-item agenda-item-row mk-agenda-widget__item" {if $a.color}style="border-left-color: {$a.color};"{/if}>
+									<div class="mk-agenda-widget__meta">
+										{if $a.timeDisplay}<span class="agenda-time">{$a.timeDisplay|escape:'html'}</span>{/if}
+										{if $a.type}<span class="label label-default">{$a.type|escape:'html'}</span>{/if}
+									</div>
+									<a href="{$a.url}" class="text-primary agenda-item-title">{$a.title|escape:'html'}</a>
+									{if $a.dateDisplay}<span class="agenda-date text-muted">{$a.dateDisplay|escape:'html'}</span>{/if}
+								</li>
+							{/foreach}
+						</ul>
+					{else}
+						<div class="agenda-empty text-muted small">Chưa có lịch hôm nay.</div>
+					{/if}
+					<a href="{$MAINPAGE_LINKS.calendar}" class="btn btn-default btn-xs mk-agenda-widget__open">Mở lịch đầy đủ</a>
+				</div>
+				<div id="agenda-panel-upcoming" class="agenda-panel hide">
+					{if $MAINPAGE_AGENDA_UPCOMING|@count gt 0}
+						<ul class="agenda-list list-unstyled mk-agenda-widget__list">
+							{foreach from=$MAINPAGE_AGENDA_UPCOMING item=a}
+								<li class="agenda-item agenda-item-row mk-agenda-widget__item" {if $a.color}style="border-left-color: {$a.color};"{/if}>
+									<div class="mk-agenda-widget__meta">
+										{if $a.timeDisplay}<span class="agenda-time">{$a.timeDisplay|escape:'html'}</span>{/if}
+										{if $a.type}<span class="label label-default">{$a.type|escape:'html'}</span>{/if}
+									</div>
+									<a href="{$a.url}" class="text-primary agenda-item-title">{$a.title|escape:'html'}</a>
+									{if $a.dateDisplay}<span class="agenda-date text-muted">{$a.dateDisplay|escape:'html'}</span>{/if}
+								</li>
+							{/foreach}
+						</ul>
+					{else}
+						<div class="agenda-empty text-muted small">Chưa có lịch sắp tới.</div>
+					{/if}
+					<a href="{$MAINPAGE_LINKS.calendar}" class="btn btn-default btn-xs mk-agenda-widget__open" target="_blank" rel="noopener noreferrer">Mở lịch đầy đủ</a>
+				</div>
+				<div id="agenda-panel-ann" class="agenda-panel hide">
+					{if $MAINPAGE_ANNOUNCEMENTS|@count gt 0}
+						<ul class="announcements-list list-unstyled mk-mp-ann-list">
+							{foreach from=$MAINPAGE_ANNOUNCEMENTS item=ann}
+								<li class="announcement-item ann-item-clickable" data-id="{$ann.id}" data-creatorid="{$ann.creatorid}" data-title="{$ann.title|escape:'html'}" data-creatorname="{$ann.creatorName|escape:'html'}" data-timeago="{$ann.timeAgo|escape:'html'}">
+									<span class="ann-item-title">{$ann.title|escape:'html'|default:'(No title)'}</span>
+									<span class="ann-item-time">{$ann.timeAgo|escape:'html'}</span>
+								</li>
+							{/foreach}
+						</ul>
+					{else}
+						<div class="ann-empty text-muted small">Chưa có thông báo.</div>
+					{/if}
+				</div>
+			</div>
+		</div>
+
+		<div class="mainpage-card shortcuts area-shortcuts">
+			<div class="card-header subtle">
+				<div class="title">{vtranslate('LBL_MK_MY_SHORTCUTS', 'Home')}</div>
+			</div>
+			<div class="card-body shortcuts-grid">
+				{if $MAINPAGE_SHORTCUTS|@count gt 0}
+					{foreach from=$MAINPAGE_SHORTCUTS item=sc}
+						{if $sc.type eq 'info'}
+							<span class="shortcut shortcut--info" title="{$sc.label|escape:'html'}">
+								<span class="mk-shortcut-icon" aria-hidden="true">
+									{if $sc.icon eq 'clock'}<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.5" stroke="#0B6E4F" stroke-width="1.5"/><path d="M9 5.5V9L11.2 10.4" stroke="#0B6E4F" stroke-width="1.5" stroke-linecap="round"/></svg>{/if}
+								</span>
+								<span>{$sc.label|escape:'html'}</span>
+								{if $sc.badge}<span class="badge blue">{$sc.badge|escape:'html'}</span>{/if}
+							</span>
+						{else}
+							<a href="{$sc.url|escape:'html'}" class="shortcut">
+								<span class="mk-shortcut-icon" aria-hidden="true">
+									{if $sc.icon eq 'tasks'}<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="14" height="14" rx="3" stroke="#0B6E4F" stroke-width="1.5"/><path d="M6 9.2L8.1 11.3L12.5 6.8" stroke="#0B6E4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+									{elseif $sc.icon eq 'calendar'}<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="3.5" width="13" height="12" rx="2" stroke="#0B6E4F" stroke-width="1.5"/><path d="M2.5 7.5H15.5" stroke="#0B6E4F" stroke-width="1.5"/><path d="M6 2.5V5M12 2.5V5" stroke="#0B6E4F" stroke-width="1.5" stroke-linecap="round"/></svg>
+									{/if}
+								</span>
+								<span>{$sc.label|escape:'html'}</span>
+								{if $sc.badge gt 0}<span class="badge blue">{$sc.badge}</span>{/if}
+							</a>
+						{/if}
+					{/foreach}
 				{else}
-					<div class="ann-empty text-muted small">Chưa có dữ liệu. Thêm thông báo bằng nút Add.</div>
+					<p class="text-muted small" style="margin:0;">{vtranslate('LBL_NO_DATA_AVAILABLE', 'Vtiger')}</p>
 				{/if}
 			</div>
 		</div>
+
 		<div class="mainpage-card projects area-projects">
 			<div class="card-header subtle">
-				<div class="title"><i class="fa fa-folder-open-o"></i> {vtranslate('LBL_MK_MY_PROJECTS', 'Home')}</div>
+				<div class="title">{vtranslate('LBL_MK_MY_PROJECTS', 'Home')}</div>
 				<div class="actions">
 					<a href="{$MAINPAGE_LINKS.project_list}" class="btn btn-default btn-xs">{vtranslate('LBL_MK_VIEW_ALL', 'Home')}</a>
 				</div>
@@ -96,9 +241,10 @@
 				</table>
 			</div>
 		</div>
+
 		<div class="mainpage-card tasks area-tasks">
 			<div class="card-header subtle">
-				<div class="title"><i class="fa fa-list-ul"></i> {vtranslate('LBL_MK_MY_TASKS', 'Home')}</div>
+				<div class="title">{vtranslate('LBL_MK_MY_TASKS', 'Home')}</div>
 				<div class="actions">
 					<a href="{$MAINPAGE_LINKS.projecttask_list}" class="btn btn-default btn-xs">{vtranslate('LBL_MK_VIEW_ALL', 'Home')}</a>
 				</div>
@@ -128,88 +274,7 @@
 				</table>
 			</div>
 		</div>
-		<div class="mainpage-card shortcuts area-shortcuts">
-			<div class="card-header subtle">
-				<div class="title"><i class="fa fa-star-o"></i> {vtranslate('LBL_MK_MY_SHORTCUTS', 'Home')}</div>
-			</div>
-			<div class="card-body shortcuts-grid">
-				{if $MAINPAGE_SHORTCUTS|@count gt 0}
-					{foreach from=$MAINPAGE_SHORTCUTS item=sc}
-						{if $sc.type eq 'info'}
-							<span class="shortcut shortcut--info" title="{$sc.label|escape:'html'}">
-								<span class="mk-shortcut-icon" aria-hidden="true">
-									{if $sc.icon eq 'clock'}<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.5" stroke="#40627E" stroke-width="1.5"/><path d="M9 5.5V9L11.2 10.4" stroke="#40627E" stroke-width="1.5" stroke-linecap="round"/></svg>{/if}
-								</span>
-								<span>{$sc.label|escape:'html'}</span>
-								{if $sc.badge}<span class="badge blue">{$sc.badge|escape:'html'}</span>{/if}
-							</span>
-						{else}
-							<a href="{$sc.url|escape:'html'}" class="shortcut">
-								<span class="mk-shortcut-icon" aria-hidden="true">
-									{if $sc.icon eq 'tasks'}<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="14" height="14" rx="3" stroke="#40627E" stroke-width="1.5"/><path d="M6 9.2L8.1 11.3L12.5 6.8" stroke="#40627E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-									{elseif $sc.icon eq 'calendar'}<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="3.5" width="13" height="12" rx="2" stroke="#40627E" stroke-width="1.5"/><path d="M2.5 7.5H15.5" stroke="#40627E" stroke-width="1.5"/><path d="M6 2.5V5M12 2.5V5" stroke="#40627E" stroke-width="1.5" stroke-linecap="round"/></svg>
-									{/if}
-								</span>
-								<span>{$sc.label|escape:'html'}</span>
-								{if $sc.badge gt 0}<span class="badge blue">{$sc.badge}</span>{/if}
-							</a>
-						{/if}
-					{/foreach}
-				{else}
-					<p class="text-muted small" style="margin:0;">{vtranslate('LBL_NO_DATA_AVAILABLE', 'Vtiger')}</p>
-				{/if}
-			</div>
-		</div>
-		<div class="mainpage-card agenda area-agenda mk-agenda-widget">
-			<div class="card-header subtle mk-agenda-widget__head">
-				<div class="title"><i class="fa fa-calendar"></i> Lịch làm việc</div>
-				<div class="tab-group agenda-tabs">
-					<span class="tab active" data-agenda-panel="today">{vtranslate('LBL_MK_AGENDA_TODAY', 'Home')}</span>
-					<span class="tab" data-agenda-panel="upcoming">{vtranslate('LBL_MK_AGENDA_UPCOMING', 'Home')}</span>
-					<a href="{$MAINPAGE_LINKS.calendar}" class="tab mk-agenda-widget__all" target="_blank" rel="noopener noreferrer">Xem tất cả</a>
-				</div>
-			</div>
-			<div class="card-body mk-agenda-widget__body">
-				<div id="agenda-panel-today" class="agenda-panel">
-					{if $MAINPAGE_AGENDA|@count gt 0}
-						<ul class="agenda-list list-unstyled mk-agenda-widget__list">
-							{foreach from=$MAINPAGE_AGENDA item=a}
-								<li class="agenda-item agenda-item-row mk-agenda-widget__item" {if $a.color}style="border-left-color: {$a.color};"{/if}>
-									<div class="mk-agenda-widget__meta">
-										{if $a.timeDisplay}<span class="agenda-time">{$a.timeDisplay|escape:'html'}</span>{/if}
-										{if $a.type}<span class="label label-default">{$a.type}</span>{/if}
-									</div>
-									<a href="{$a.url}" class="text-primary agenda-item-title">{$a.title|escape:'html'}</a>
-									{if $a.dateDisplay}<span class="agenda-date text-muted">{$a.dateDisplay|escape:'html'}</span>{/if}
-								</li>
-							{/foreach}
-						</ul>
-					{else}
-						<div class="agenda-empty text-muted small">Chưa có lịch hôm nay.</div>
-					{/if}
-					<a href="{$MAINPAGE_LINKS.calendar}" class="btn btn-default btn-xs mk-agenda-widget__open">Mở lịch đầy đủ</a>
-				</div>
-				<div id="agenda-panel-upcoming" class="agenda-panel hide">
-					{if $MAINPAGE_AGENDA_UPCOMING|@count gt 0}
-						<ul class="agenda-list list-unstyled mk-agenda-widget__list">
-							{foreach from=$MAINPAGE_AGENDA_UPCOMING item=a}
-								<li class="agenda-item agenda-item-row mk-agenda-widget__item" {if $a.color}style="border-left-color: {$a.color};"{/if}>
-									<div class="mk-agenda-widget__meta">
-										{if $a.timeDisplay}<span class="agenda-time">{$a.timeDisplay|escape:'html'}</span>{/if}
-										{if $a.type}<span class="label label-default">{$a.type}</span>{/if}
-									</div>
-									<a href="{$a.url}" class="text-primary agenda-item-title">{$a.title|escape:'html'}</a>
-									{if $a.dateDisplay}<span class="agenda-date text-muted">{$a.dateDisplay|escape:'html'}</span>{/if}
-								</li>
-							{/foreach}
-						</ul>
-					{else}
-						<div class="agenda-empty text-muted small">Chưa có lịch sắp tới.</div>
-					{/if}
-					<a href="{$MAINPAGE_LINKS.calendar}" class="btn btn-default btn-xs mk-agenda-widget__open" target="_blank" rel="noopener noreferrer">Mở lịch đầy đủ</a>
-				</div>
-			</div>
-		</div>
+
 		<script type="text/javascript">
 		(function(){
 			var tabs = document.querySelectorAll('.agenda-tabs [data-agenda-panel]');
@@ -458,7 +523,7 @@
 		</div>
 
 	<footer class="mk-mainpage-footer" role="contentinfo">
-		<span>&copy; 2026 TDB Solution. All rights reserved.</span>
+		<span>&copy; 2026 Nguyên Khoa. All rights reserved.</span>
 		<span class="mk-mainpage-footer-links">
 			<a href="javascript:void(0)">Documentation</a>
 			<a href="javascript:void(0)">Privacy Policy</a>
