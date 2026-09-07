@@ -723,8 +723,8 @@
         av = new Date(av || 0).getTime() || 0;
         bv = new Date(bv || 0).getTime() || 0;
       } else if (key === "name") {
-        av = String(a.contact || a.account || a.name || "").toLowerCase();
-        bv = String(b.contact || b.account || b.name || "").toLowerCase();
+        av = String(oppCustomerName(a) || "").toLowerCase();
+        bv = String(oppCustomerName(b) || "").toLowerCase();
       } else {
         av = String(av || "").toLowerCase();
         bv = String(bv || "").toLowerCase();
@@ -928,7 +928,7 @@
         .map(function (o) {
           var cats = categorize(o.tags);
           var crmId = o.crmid != null && o.crmid !== "" ? String(o.crmid) : String(o.id || "");
-          var customerName = String(o.contact || o.account || o.name || "").trim();
+          var customerName = oppCustomerName(o);
           if (!customerName || customerName === ".") customerName = "";
           var checked = state.selected[o.id] ? " checked" : "";
           return (
@@ -1245,10 +1245,20 @@
       "</div>";
   }
 
+  function oppCustomerName(o) {
+    var n = String((o && o.name) || "").trim();
+    if (n && n !== ".") return n;
+    n = String((o && o.contact) || "").trim();
+    if (n && n !== ".") return n;
+    n = String((o && o.account) || "").trim();
+    if (n && n !== ".") return n;
+    return "";
+  }
+
   function exportCsv(rows) {
     var lines = ["Customer,OrderType,Stage,Amount,Owner,Tags"];
     rows.forEach(function (o) {
-      var customerName = String(o.contact || o.account || o.name || "").trim();
+      var customerName = oppCustomerName(o);
       lines.push(
         [
           customerName,

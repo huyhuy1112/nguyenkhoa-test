@@ -81,15 +81,17 @@ class Potentials_ListView_Model extends Vtiger_ListView_Model {
 		for ($i = 0; $i < $rowCount; $i++) {
 			$pid = (int) $db->query_result($result, $i, 'potentialid');
 			$contactName = trim(
-				decode_html((string) $db->query_result($result, $i, 'firstname')) . ' ' .
-				decode_html((string) $db->query_result($result, $i, 'lastname'))
+				decode_html((string) $db->query_result($result, $i, 'lastname')) . ' ' .
+				decode_html((string) $db->query_result($result, $i, 'firstname'))
 			);
+			$contactName = trim(preg_replace('/\s+/', ' ', str_replace('.', '', $contactName)));
 			if ($contactName === '.' || $contactName === '') {
 				$contactName = '';
 			}
 			$accountName = trim(decode_html((string) $db->query_result($result, $i, 'accountname')));
 			$title = trim(decode_html((string) $db->query_result($result, $i, 'potentialname')));
-			$customerName = $contactName !== '' ? $contactName : ($accountName !== '' ? $accountName : $title);
+			// Ưu tiên tên Opp (= tên Lead lúc convert), không để Contact đảo thứ tự.
+			$customerName = $title !== '' ? $title : ($contactName !== '' ? $contactName : $accountName);
 			$mobile = trim((string) $db->query_result($result, $i, 'mobile'));
 			$phone = trim((string) $db->query_result($result, $i, 'phone'));
 			$displayPhone = $mobile !== '' ? $mobile : $phone;

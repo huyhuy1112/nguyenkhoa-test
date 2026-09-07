@@ -4,9 +4,9 @@
 <script type="text/javascript">document.documentElement.classList.add('mk-mainpage-ui-ready');</script>
 <script type="text/javascript">window.__MK_MAINPAGE_UI_BUILD__ = "20260520_2400";</script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Home/resources/MainPageMkView.css')}&mk_v=20260529_ann1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Home/resources/MainPageMkView.css')}&mk_v=20260907_agenda1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Home/resources/MainPageMkView.js')}&mk_v=20260520_2400"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Home/resources/MainPageMkView.js')}&mk_v=20260907_agenda1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-mainpage-ui="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

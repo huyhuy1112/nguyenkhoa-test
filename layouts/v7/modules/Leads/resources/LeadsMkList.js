@@ -1910,10 +1910,11 @@
       '<input type="text" class="mk-leads-verify-select" data-mk-step2="class_place" value="' +
       esc(lead.offline_class_place || "") +
       '" placeholder="Địa chỉ lớp" /></label>' +
-      '<label class="mk-leads-verify-field"><span>Zalo OA user id <em>(để gửi OA)</em></span>' +
+      '<label class="mk-leads-verify-field"><span>Zalo OA user id <em>(không phải SĐT)</em></span>' +
       '<input type="text" class="mk-leads-verify-select" data-mk-step2="zalo_user_id" value="' +
       esc(lead.zalo_user_id || "") +
-      '" placeholder="user_id OA" /></label>' +
+      '" placeholder="user_id từ Zalo OA" /></label>' +
+      '<p class="mk-leads-verify-offline__meta">Nhập tay · hoặc tự khớp nếu có lead OA cùng SĐT · để trống = nhắc qua Calendar</p>' +
       '<div class="mk-leads-verify-offline__actions">' +
       '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="save_class_meta">Lưu giờ/địa điểm</button>' +
       '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="set_zalo_user">Lưu OA id</button>' +

@@ -116,7 +116,11 @@ class Potentials_ModernService {
 	protected static function composeCacheRow(array $row, array $tags, $taggedConfirmAt = '', $lastTouchCalls = null) {
 		$potentialId = (int)$row['potentialid'];
 		$ownerName = self::getOwnerLabel((int)$row['smownerid']);
-		$contactName = trim(decode_html((string)$row['contact_firstname']) . ' ' . decode_html((string)$row['contact_lastname']));
+		// Cùng thứ tự Lead: lastname + firstname (vd. TDB solution), không firstname-first.
+		$contactName = self::composePersonDisplayName(
+			isset($row['contact_firstname']) ? $row['contact_firstname'] : '',
+			isset($row['contact_lastname']) ? $row['contact_lastname'] : ''
+		);
 		$accountName = decode_html((string)$row['accountname']);
 		$modified = !empty($row['modifiedtime']) ? date('c', strtotime($row['modifiedtime'])) : date('c');
 		$created = '';
@@ -724,5 +728,20 @@ class Potentials_ModernService {
 		$recordModel = Vtiger_Record_Model::getInstanceById($potentialId, self::MODULE);
 		$recordModel->delete();
 		return true;
+	}
+
+	/**
+	 * Display name giống Lead list: lastname + firstname (không firstname-first).
+	 */
+	protected static function composePersonDisplayName($firstname, $lastname) {
+		$firstname = trim(decode_html((string) $firstname));
+		$lastname = trim(decode_html((string) $lastname));
+		if ($firstname === '' || $firstname === '.') {
+			return ($lastname === '.' ? '' : $lastname);
+		}
+		if ($lastname === '' || $lastname === '.') {
+			return $firstname;
+		}
+		return trim($lastname . ' ' . $firstname);
 	}
 }

@@ -160,49 +160,53 @@
 				{/if}
 			</div>
 		</div>
-		<div class="mainpage-card agenda area-agenda">
-			<div class="card-header subtle">
-				<div class="title"><i class="fa fa-calendar-check-o"></i> {vtranslate('LBL_MK_AGENDA', 'Home')}</div>
+		<div class="mainpage-card agenda area-agenda mk-agenda-widget">
+			<div class="card-header subtle mk-agenda-widget__head">
+				<div class="title"><i class="fa fa-calendar"></i> Lịch làm việc</div>
 				<div class="tab-group agenda-tabs">
 					<span class="tab active" data-agenda-panel="today">{vtranslate('LBL_MK_AGENDA_TODAY', 'Home')}</span>
 					<span class="tab" data-agenda-panel="upcoming">{vtranslate('LBL_MK_AGENDA_UPCOMING', 'Home')}</span>
-					<a href="{$MAINPAGE_LINKS.calendar}" class="tab" target="_blank" rel="noopener noreferrer" title="{vtranslate('LBL_MK_AGENDA_OVERDUE', 'Home')}">{vtranslate('LBL_MK_AGENDA_OVERDUE', 'Home')}</a>
+					<a href="{$MAINPAGE_LINKS.calendar}" class="tab mk-agenda-widget__all" target="_blank" rel="noopener noreferrer">Xem tất cả</a>
 				</div>
 			</div>
-			<div class="card-body">
+			<div class="card-body mk-agenda-widget__body">
 				<div id="agenda-panel-today" class="agenda-panel">
 					{if $MAINPAGE_AGENDA|@count gt 0}
-						<ul class="agenda-list list-unstyled">
+						<ul class="agenda-list list-unstyled mk-agenda-widget__list">
 							{foreach from=$MAINPAGE_AGENDA item=a}
-								<li class="agenda-item agenda-item-row" {if $a.color}style="border-left: 3px solid {$a.color};"{/if}>
+								<li class="agenda-item agenda-item-row mk-agenda-widget__item" {if $a.color}style="border-left-color: {$a.color};"{/if}>
+									<div class="mk-agenda-widget__meta">
+										{if $a.timeDisplay}<span class="agenda-time">{$a.timeDisplay|escape:'html'}</span>{/if}
+										{if $a.type}<span class="label label-default">{$a.type}</span>{/if}
+									</div>
 									<a href="{$a.url}" class="text-primary agenda-item-title">{$a.title|escape:'html'}</a>
-									<span class="agenda-date text-muted">{$a.dateDisplay|escape:'html'}</span>
-									{if $a.timeDisplay}<span class="agenda-time text-muted">{$a.timeDisplay|escape:'html'}</span>{/if}
-									{if $a.type}<span class="label label-default">{$a.type}</span>{/if}
+									{if $a.dateDisplay}<span class="agenda-date text-muted">{$a.dateDisplay|escape:'html'}</span>{/if}
 								</li>
 							{/foreach}
 						</ul>
 					{else}
-						<div class="agenda-empty text-muted small">Chưa có lịch hôm nay. <a href="{$MAINPAGE_LINKS.calendar}">Mở lịch (Schedule)</a></div>
+						<div class="agenda-empty text-muted small">Chưa có lịch hôm nay.</div>
 					{/if}
-					<a href="{$MAINPAGE_LINKS.calendar}" class="btn btn-default btn-xs">Mở lịch (Schedule)</a>
+					<a href="{$MAINPAGE_LINKS.calendar}" class="btn btn-default btn-xs mk-agenda-widget__open">Mở lịch đầy đủ</a>
 				</div>
 				<div id="agenda-panel-upcoming" class="agenda-panel hide">
 					{if $MAINPAGE_AGENDA_UPCOMING|@count gt 0}
-						<ul class="agenda-list list-unstyled">
+						<ul class="agenda-list list-unstyled mk-agenda-widget__list">
 							{foreach from=$MAINPAGE_AGENDA_UPCOMING item=a}
-								<li class="agenda-item agenda-item-row" {if $a.color}style="border-left: 3px solid {$a.color};"{/if}>
+								<li class="agenda-item agenda-item-row mk-agenda-widget__item" {if $a.color}style="border-left-color: {$a.color};"{/if}>
+									<div class="mk-agenda-widget__meta">
+										{if $a.timeDisplay}<span class="agenda-time">{$a.timeDisplay|escape:'html'}</span>{/if}
+										{if $a.type}<span class="label label-default">{$a.type}</span>{/if}
+									</div>
 									<a href="{$a.url}" class="text-primary agenda-item-title">{$a.title|escape:'html'}</a>
-									<span class="agenda-date text-muted">{$a.dateDisplay|escape:'html'}</span>
-									{if $a.timeDisplay}<span class="agenda-time text-muted">{$a.timeDisplay|escape:'html'}</span>{/if}
-									{if $a.type}<span class="label label-default">{$a.type}</span>{/if}
+									{if $a.dateDisplay}<span class="agenda-date text-muted">{$a.dateDisplay|escape:'html'}</span>{/if}
 								</li>
 							{/foreach}
 						</ul>
 					{else}
-						<div class="agenda-empty text-muted small">Chưa có lịch sắp tới (ngày mai, ngày kia...). <a href="{$MAINPAGE_LINKS.calendar}">Mở lịch (Schedule)</a></div>
+						<div class="agenda-empty text-muted small">Chưa có lịch sắp tới.</div>
 					{/if}
-					<a href="{$MAINPAGE_LINKS.calendar}" class="btn btn-default btn-xs" target="_blank" rel="noopener noreferrer">Mở lịch (Schedule)</a>
+					<a href="{$MAINPAGE_LINKS.calendar}" class="btn btn-default btn-xs mk-agenda-widget__open" target="_blank" rel="noopener noreferrer">Mở lịch đầy đủ</a>
 				</div>
 			</div>
 		</div>
