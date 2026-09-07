@@ -377,39 +377,45 @@
 	<div class="modal fade mk-ann-detail-modal" id="mainpage-announcement-detail-modal" tabindex="-1" role="dialog">
 			<div class="modal-dialog ann-detail-dialog mk-ann-detail-dialog" role="document">
 				<div class="modal-content mk-ann-detail-content">
-					<div class="modal-header mk-ann-detail-header">
-						<div class="mk-ann-detail-author">
-							<span class="ann-avatar ann-avatar-user mk-ann-avatar" id="ann-detail-avatar">H</span>
-							<div class="mk-ann-detail-author-meta">
-								<span class="ann-detail-name" id="ann-detail-name">-</span>
-								<span class="ann-detail-time-badge" id="ann-detail-time">-</span>
-							</div>
-						</div>
-						<button type="button" class="close ann-detail-close mk-ann-close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-					</div>
+					<button type="button" class="close ann-detail-close mk-ann-close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 					<div class="modal-body ann-detail-body mk-ann-detail-body">
 						<div class="mk-ann-detail-layout">
-							<div class="ann-detail-left mk-ann-detail-main">
-								<div class="ann-detail-content">
-									<h5 class="ann-detail-title" id="ann-detail-title"></h5>
+							<section class="ann-detail-left mk-ann-detail-main" aria-label="Nội dung thông báo">
+								<div class="mk-ann-post-head">
+									<div class="mk-ann-detail-author ann-detail-author">
+										<span class="ann-avatar ann-avatar-user mk-ann-avatar" id="ann-detail-avatar">H</span>
+										<div class="mk-ann-detail-author-meta">
+											<span class="ann-detail-name" id="ann-detail-name">-</span>
+											<span class="ann-detail-time-badge" id="ann-detail-time">-</span>
+										</div>
+									</div>
+									<div class="mk-ann-post-actions ann-detail-creator-actions hide">
+										<button type="button" class="btn btn-link mk-ann-menu-btn" id="ann-detail-menu-btn" title="Tùy chọn" aria-haspopup="true" aria-expanded="false">&#8942;</button>
+										<div class="mk-ann-menu hide" id="ann-detail-menu">
+											<button type="button" class="mk-ann-menu-item mk-ann-menu-item--danger" id="ann-detail-delete-btn"><i class="fa fa-trash-o"></i> Xóa thông báo</button>
+										</div>
+									</div>
+								</div>
+								<div class="ann-detail-content mk-ann-post-body">
+									<h2 class="ann-detail-title" id="ann-detail-title"></h2>
 									<div class="ann-detail-desc" id="ann-detail-desc"></div>
 								</div>
-							</div>
-							<div class="ann-detail-right mk-ann-detail-side">
+							</section>
+							<aside class="ann-detail-right mk-ann-detail-side" aria-label="Tương tác">
 								<div class="ann-detail-tabs mk-ann-tabs">
-									<button type="button" class="ann-tab active" data-tab="comments">Bình luận <span class="badge" id="ann-detail-comments-badge">0</span></button>
-									<button type="button" class="ann-tab" data-tab="subscribers">Người nhận <span class="badge" id="ann-detail-subscribers-badge">0</span></button>
+									<button type="button" class="ann-tab active" data-tab="comments">Comments <span class="badge" id="ann-detail-comments-badge">0</span></button>
+									<button type="button" class="ann-tab" data-tab="subscribers">Subscribers <span class="badge" id="ann-detail-subscribers-badge">0</span></button>
 								</div>
 								<div id="ann-detail-panel-comments" class="ann-detail-panel">
-									<ul class="ann-comments-list list-unstyled" id="ann-detail-comments-list"></ul>
-									<div class="ann-add-comment mk-ann-comment-box">
-										<div class="task-comment-toolbar">
-											<button type="button" class="btn btn-default btn-xs ann-detail-comment-upload-btn" title="Đính kèm file"><span class="fa fa-paperclip"></span> Đính kèm</button>
+									<ul class="ann-comments-list list-unstyled mk-ann-comments" id="ann-detail-comments-list"></ul>
+									<div class="ann-add-comment mk-ann-composer">
+										<div class="task-comment-toolbar mk-ann-composer-tools">
+											<button type="button" class="btn btn-default btn-xs ann-detail-comment-upload-btn" title="Đính kèm file"><span class="fa fa-paperclip"></span></button>
 											<input type="file" class="ann-detail-comment-file-input" accept="*" style="display:none">
 											<span class="ann-detail-comment-file-name text-muted small"></span>
 										</div>
-										<textarea class="form-control" id="ann-detail-comment-input" rows="2" placeholder="Viết bình luận..."></textarea>
-										<button type="button" class="btn btn-primary btn-sm" id="ann-detail-comment-add">Gửi</button>
+										<textarea class="form-control" id="ann-detail-comment-input" rows="1" placeholder="Write a comment..."></textarea>
+										<button type="button" class="btn btn-primary btn-sm" id="ann-detail-comment-add">Post</button>
 									</div>
 								</div>
 								<div id="ann-detail-panel-subscribers" class="ann-detail-panel hide">
@@ -432,11 +438,8 @@
 										</select>
 									</div>
 								</div>
-							</div>
+							</aside>
 						</div>
-					</div>
-					<div class="modal-footer ann-detail-footer ann-detail-creator-actions hide mk-ann-detail-footer">
-						<button type="button" class="btn btn-danger" id="ann-detail-delete-btn" title="Xóa thông báo"><i class="fa fa-trash-o"></i> Xóa thông báo</button>
 					</div>
 				</div>
 			</div>
@@ -447,8 +450,8 @@
 				<div class="modal-content ann-add-modal-content mk-ann-add-content">
 					<div class="modal-header ann-add-modal-header mk-ann-add-header">
 						<div>
-							<p class="mk-ann-add-eyebrow">Nguyên Khoa</p>
-							<h4 class="modal-title">Tạo thông báo mới</h4>
+							<p class="mk-ann-add-eyebrow">Share an update</p>
+							<h4 class="modal-title">Tạo thông báo</h4>
 						</div>
 						<button type="button" class="close ann-add-close mk-ann-close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 					</div>
@@ -456,11 +459,11 @@
 						<form id="mainpage-announcement-form" class="ann-add-form mk-ann-add-form">
 							<div class="form-group ann-form-group">
 								<label for="ann-title" class="ann-label">Tiêu đề</label>
-								<input type="text" class="form-control ann-input" id="ann-title" name="title" placeholder="Nhập tiêu đề thông báo" autocomplete="off" />
+								<input type="text" class="form-control ann-input" id="ann-title" name="title" placeholder="Ví dụ: Nhắc cập nhật địa chỉ cá nhân" autocomplete="off" />
 							</div>
 							<div class="form-group ann-form-group mk-ann-editor-group">
 								<label for="ann-description" class="ann-label">Nội dung</label>
-								<textarea class="form-control ann-input ann-textarea" id="ann-description" name="announcement" rows="5" placeholder="Mô tả chi tiết..."></textarea>
+								<textarea class="form-control ann-input ann-textarea" id="ann-description" name="announcement" rows="6" placeholder="Viết nội dung thông báo..."></textarea>
 							</div>
 							<div class="form-group ann-form-group">
 								<label for="ann-subscribers" class="ann-label">Người nhận</label>
@@ -498,7 +501,7 @@
 					</div>
 					<div class="modal-footer ann-add-modal-footer mk-ann-add-footer">
 						<button type="button" class="btn btn-default ann-btn-cancel" data-dismiss="modal">Hủy</button>
-						<button type="button" class="btn btn-primary ann-btn-submit" id="mainpage-announcement-submit"><i class="fa fa-paper-plane-o"></i> Đăng thông báo</button>
+						<button type="button" class="btn btn-primary ann-btn-submit" id="mainpage-announcement-submit">Đăng thông báo</button>
 					</div>
 				</div>
 			</div>
@@ -716,7 +719,8 @@
 	function renderDetailComments(comments) {
 		var list = jQuery('#ann-detail-comments-list');
 		list.empty();
-		(comments || []).forEach(function(c) {
+		var nameColors = ['#db2777', '#ea580c', '#2563eb', '#0B6E4F', '#7c3aed', '#0891b2'];
+		(comments || []).forEach(function(c, idx) {
 			var attHtml = '';
 			(c.attachments || []).forEach(function(a) {
 				var ext = (a.name || '').split('.').pop().toLowerCase();
@@ -730,7 +734,23 @@
 					attHtml += '<div class="ann-comment-attachment"><a href="' + url + '" target="_blank" class="ann-comment-file-link">' + safeName + '</a></div>';
 				}
 			});
-			list.append('<li class="ann-comment-item"><span class="ann-avatar ann-avatar-user ann-avatar-sm">' + (c.userName ? c.userName.charAt(0).toUpperCase() : '?') + '</span> <span class="ann-comment-meta">' + (c.userName || '') + ' ' + (c.timeAgo || '') + '</span><div class="ann-comment-text">' + (c.comment_text || '').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>' + attHtml + '</li>');
+			var uname = decodeHtmlEntities(c.userName || '');
+			var initial = uname ? uname.charAt(0).toUpperCase() : '?';
+			var color = nameColors[idx % nameColors.length];
+			var safeText = (c.comment_text || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+			list.append(
+				'<li class="ann-comment-item mk-ann-comment">' +
+					'<span class="ann-avatar ann-avatar-user ann-avatar-sm mk-ann-comment-avatar" style="background:' + color + '">' + initial + '</span>' +
+					'<div class="mk-ann-comment-body">' +
+						'<div class="mk-ann-comment-line">' +
+							'<span class="mk-ann-comment-name" style="color:' + color + '">' + (uname || 'User') + '</span>' +
+							'<span class="mk-ann-comment-time">' + (c.timeAgo || '') + '</span>' +
+						'</div>' +
+						'<div class="ann-comment-text mk-ann-comment-text">' + safeText + '</div>' +
+						attHtml +
+					'</div>' +
+				'</li>'
+			);
 		});
 		jQuery('#ann-detail-comments-badge').text((comments || []).length);
 	}
@@ -931,6 +951,22 @@
 		});
 		$detailAddSub.val(null).trigger('change');
 		updateDetailSubscribers(userIds, groupIds);
+	});
+
+	jQuery('#ann-detail-menu-btn').on('click', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		var $menu = jQuery('#ann-detail-menu');
+		var open = !$menu.hasClass('hide');
+		$menu.toggleClass('hide', open);
+		jQuery(this).attr('aria-expanded', open ? 'false' : 'true');
+	});
+	jQuery(document).on('click.mkAnnMenu', function() {
+		jQuery('#ann-detail-menu').addClass('hide');
+		jQuery('#ann-detail-menu-btn').attr('aria-expanded', 'false');
+	});
+	jQuery('#ann-detail-menu').on('click', function(e) {
+		e.stopPropagation();
 	});
 
 	jQuery('#ann-detail-delete-btn').on('click', function() {
