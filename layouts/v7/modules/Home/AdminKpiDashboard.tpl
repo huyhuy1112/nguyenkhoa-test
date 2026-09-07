@@ -60,6 +60,20 @@
 			</div>
 		</section>
 
+		{* Online GD 1.2 *}
+		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--online" id="mkAdminKpiOnline">
+			<div class="mk-admin-kpi-panel-head">
+				<h2 class="mk-admin-kpi-panel-title">Online Zalo OA (GD 1.2)</h2>
+				<div class="mk-admin-kpi-pills">
+					<span class="mk-admin-kpi-pill" id="mkAdminKpiOnlineFormRate">Điền form: —</span>
+					<span class="mk-admin-kpi-pill mk-admin-kpi-pill--cyan" id="mkAdminKpiOnlineQualifyRate">Đủ ĐK: —</span>
+				</div>
+			</div>
+			<div class="mk-admin-kpi-offline" id="mkAdminKpiOnlineBody">
+				<div class="mk-admin-kpi-detail-loading">Đang tải…</div>
+			</div>
+		</section>
+
 		<div class="mk-admin-kpi-stages">
 			<section class="mk-admin-kpi-panel" id="mkAdminKpiFunnel">
 				<h2 class="mk-admin-kpi-panel-title">Phễu bán hàng</h2>

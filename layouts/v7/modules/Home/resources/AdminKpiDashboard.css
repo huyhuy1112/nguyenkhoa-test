@@ -710,11 +710,30 @@ tr.is-clickable-row:hover {
 
 
 
-/* Offline GD1.1 + chart polish */
+/* Offline GD1.1 / Online GD1.2 + chart polish */
 .mk-admin-kpi-panel--offline {
 	margin-top: 14px;
 	border-color: #c7d2fe;
 	background: linear-gradient(180deg, #eef2ff 0%, #fff 55%);
+}
+
+.mk-admin-kpi-panel--online {
+	margin-top: 14px;
+	border-color: #a5f3fc;
+	background: linear-gradient(180deg, #ecfeff 0%, #fff 55%);
+}
+
+.mk-admin-kpi-pills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+.mk-admin-kpi-pill--cyan {
+	background: #ecfeff;
+	color: #0e7490;
+	border-color: #a5f3fc;
 }
 
 .mk-admin-kpi-panel-head {

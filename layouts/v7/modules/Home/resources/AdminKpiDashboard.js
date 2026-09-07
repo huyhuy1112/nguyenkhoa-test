@@ -176,12 +176,14 @@
 				renderChart($root, (data && data.revenue_chart) || {});
 				renderPerf($root, (data && data.performance) || {});
 				renderOffline($root, (data && data.offline_gd11) || {});
+				renderOnline($root, (data && data.online_gd12) || {});
 			})
 			.fail(function (msg) {
 				setError($root.find('#mkAdminKpiFunnelBody'), msg);
 				setError($root.find('#mkAdminKpiChartBody'), msg);
 				setError($root.find('#mkAdminKpiPerfBody'), msg);
 				setError($root.find('#mkAdminKpiOfflineBody'), msg);
+				setError($root.find('#mkAdminKpiOnlineBody'), msg);
 			});
 	}
 
@@ -250,6 +252,7 @@
 	var PERF_PIE_COLORS = ['#2563eb', '#10b981', '#7c3aed', '#f59e0b', '#f43f5e', '#06b6d4'];
 	var FUNNEL_COLORS = ['#2563eb', '#06b6d4', '#10b981', '#f59e0b', '#7c3aed', '#f43f5e'];
 	var OFFLINE_COLORS = ['#2563eb', '#f59e0b', '#06b6d4', '#10b981', '#f43f5e', '#64748b'];
+	var ONLINE_COLORS = ['#2563eb', '#f59e0b', '#06b6d4', '#10b981', '#f43f5e', '#64748b', '#8b5cf6', '#a855f7'];
 
 	function polarToCartesian(cx, cy, r, angleDeg) {
 		var rad = ((angleDeg - 90) * Math.PI) / 180;
@@ -467,6 +470,47 @@
 			stats +
 			'</div></div>';
 		$root.find('#mkAdminKpiOfflineBody').html(html);
+	}
+
+	function renderOnline($root, data) {
+		data = data || {};
+		var stages = data.stages || [];
+		$root.find('#mkAdminKpiOnlineFormRate').text(
+			'Điền form: ' + (data.form_rate != null ? data.form_rate + '%' : '—')
+		);
+		$root.find('#mkAdminKpiOnlineQualifyRate').text(
+			'Đủ ĐK: ' + (data.qualify_rate != null ? data.qualify_rate + '%' : '—')
+		);
+		if (!stages.length && !(data.total > 0)) {
+			$root
+				.find('#mkAdminKpiOnlineBody')
+				.html('<div class="mk-admin-kpi-placeholder">Chưa có lead Online GD 1.2</div>');
+			return;
+		}
+		// Donut: exclusive statuses only (avoid double-count form_filled / total / EduBit zeros).
+		var donutKeys = { pending_form: 1, qualified: 1, not_qualified: 1, stopped: 1 };
+		var donutStages = stages.filter(function (s) {
+			return donutKeys[s.key];
+		});
+		var stats = '';
+		stages.forEach(function (s) {
+			stats +=
+				'<div class="mk-admin-kpi-offline-stat">' +
+				'<span>' +
+				safeLabel(s.label) +
+				'</span><strong style="color:' +
+				escapeHtml(s.color || '#0f172a') +
+				'">' +
+				num(s.count) +
+				'</strong></div>';
+		});
+		var html =
+			'<div class="mk-admin-kpi-offline-grid">' +
+			renderDonut(donutStages, ONLINE_COLORS) +
+			'<div class="mk-admin-kpi-offline-stats">' +
+			stats +
+			'</div></div>';
+		$root.find('#mkAdminKpiOnlineBody').html(html);
 	}
 
 	function renderFunnel($root, funnel) {
