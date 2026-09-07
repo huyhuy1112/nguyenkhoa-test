@@ -533,6 +533,22 @@ class Leads_OnlineGd12Service {
 	}
 
 	/**
+	 * Đăng ký cron D0 (nhắc chưa điền form Online) — mỗi giờ (3600s).
+	 * Logic bên trong vẫn cách 3 ngày / tối đa 3 lần.
+	 */
+	public static function registerD0ReminderCron() {
+		require_once 'vtlib/Vtiger/Cron.php';
+		$name = 'OnlineGd12D0Reminders';
+		$handler = 'cron/modules/Leads/OnlineGd12D0Reminders.service';
+		$desc = 'GD 1.2 Online — nhắc D0 chưa điền form (OA KB-02)';
+		$existing = Vtiger_Cron::getInstance($name);
+		if ($existing) {
+			return;
+		}
+		Vtiger_Cron::register($name, $handler, 3600, 'Leads', 1, 0, $desc);
+	}
+
+	/**
 	 * Tag sync without full saveLead name/phone requirement.
 	 */
 	public static function syncStatusTagsOnly($leadId, array $desiredTags) {

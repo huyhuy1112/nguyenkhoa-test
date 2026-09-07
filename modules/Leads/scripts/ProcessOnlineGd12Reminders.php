@@ -1,7 +1,8 @@
 <?php
 /**
  * GD 1.2 D0 reminders: CRM → Zalo OA (KB-02a/b/c).
- * Cron gợi ý (mỗi ngày): php modules/Leads/scripts/ProcessOnlineGd12Reminders.php
+ * Cron gợi ý: mỗi giờ (vtiger) hoặc mỗi ngày (crontab).
+ * Đăng ký vtiger cron: php modules/Leads/scripts/InstallOnlineGd12Cron.php
  */
 $crmRoot = dirname(dirname(dirname(__DIR__)));
 chdir($crmRoot);

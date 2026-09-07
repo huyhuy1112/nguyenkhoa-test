@@ -1,0 +1,79 @@
+# GD 1.2 Online — smoke-test checklist (cron D0 + nền form)
+
+Phạm vi: form OA → chấm 4 câu → tag → nhắc D0.
+Không gồm: EduBit cấp TK, tiến độ học, Offline→Online (Đường 2).
+
+## 0) Chuẩn bị môi trường
+
+- [ ] Code nhánh `T1` / `nguyenkhoa-test` đã deploy
+- [ ] Chạy một lần trên server:
+      `php modules/Leads/scripts/InstallOnlineGd12Cron.php`
+- [ ] `vtigercron.php` đang chạy (cPanel cron / docker)
+- [ ] Settings → Automation → Lịch trình tự động có:
+      - `OnlineGd12D0Reminders` (3600s / 1 giờ)
+- [ ] Zalo OA token / NkApi OK (gửi tin thử được)
+
+### phpMyAdmin (nếu không chạy được Install script)
+
+```sql
+-- Chỉ insert nếu chưa có name OnlineGd12D0Reminders
+INSERT INTO vtiger_cron_task (name, handler_file, frequency, status, sequence, module, description)
+SELECT 'OnlineGd12D0Reminders',
+       'cron/modules/Leads/OnlineGd12D0Reminders.service',
+       3600, 1,
+       (SELECT IFNULL(MAX(sequence),0)+1 FROM vtiger_cron_task t),
+       'Leads',
+       'GD 1.2 Online — nhắc D0 chưa điền form (OA KB-02)'
+FROM DUAL
+WHERE NOT EXISTS (
+  SELECT 1 FROM vtiger_cron_task WHERE name = 'OnlineGd12D0Reminders'
+);
+```
+(Điều chỉnh nếu schema DB khác.)
+
+## 1) Bước 1 — vào OA / stub / mời form
+
+- [ ] User Zalo nhắn / mở OA (chưa form) → CRM có Lead stub Online
+- [ ] Profile: `online_status` = `online_chua_dien_form`, có `zalo_user_id`
+- [ ] Tag: `zalo`, `mien_phi_online`, `online_chua_dien_form`
+- [ ] (Nếu bật) tin KB-01 mời điền form gửi OA
+
+## 2) Bước form — chấm 4 câu
+
+- [ ] Gửi form OA đủ Q1–Q4
+- [ ] Lead cập nhật `online_q1`…`q4`, `eligibility_result`, `potential_level`
+- [ ] Đủ DK → `online_chua_dk_tk` (+ tag tiềm năng nếu có)
+- [ ] Không đủ → `online_khong_du_dk`
+- [ ] Panel Leads list: **Xác minh Online (4 câu)** mở đúng (không nhầm Bộ B)
+
+## 3) Sales re-score (CRM)
+
+- [ ] Đổi đáp án trên panel Online → Save → tag/status đổi đúng
+
+## 4) Cron D0 — nhắc chưa điền form
+
+Chuẩn bị lead test: `online_chua_dien_form`, có `zalo_user_id`,
+`online_entered_at` (hoặc `online_last_remind_at`) **cách ≥ 3 ngày**.
+
+- [ ] Chạy tay:
+      `php modules/Leads/scripts/ProcessOnlineGd12Reminders.php`
+- [ ] Lần 1: gửi KB-02a, `online_reminder_count` = 1
+- [ ] Lần 2 (≥3 ngày sau mốc trước): KB-02b, count = 2
+- [ ] Lần 3: KB-02c, count = 3 → status `online_ngung_cskh`
+- [ ] Lead đã điền form / đủ DK: cron **không** nhắc D0 nữa
+
+## 5) Kiểm tra nhanh DB
+
+```sql
+SELECT leadid, online_status, online_reminder_count, online_entered_at, online_last_remind_at, zalo_user_id
+FROM bace_lead_profile
+WHERE online_status IS NOT NULL
+ORDER BY modified_at DESC
+LIMIT 20;
+```
+
+## Không nằm trong vòng này
+
+- EduBit cấp tài khoản / tiến độ học
+- Offline → Online (Đường 2)
+- Admin KPI funnel Online (bước sau)
