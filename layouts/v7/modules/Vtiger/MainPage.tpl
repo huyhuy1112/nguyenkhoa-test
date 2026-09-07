@@ -370,67 +370,46 @@
 				{/if}
 			</div>
 		</div>
-		<div class="mainpage-card kpi area-kpi">
-			<div class="card-header subtle">
-				<div class="title"><i class="fa fa-bar-chart"></i> KPI</div>
-				<div class="actions kpi-actions">
-					<select class="form-control input-sm kpi-chart-select" id="mainpage-kpi-type" style="max-width:140px;">
-						<option value="bar-ngang">Bar ngang</option>
-						<option value="bar-doc">Bar dọc</option>
-						<option value="tron">Biểu đồ tròn</option>
-						<option value="donut">Donut</option>
-						<option value="duong">Đường</option>
-						<option value="stacked">Bar xếp chồng</option>
-					</select>
-					<select class="form-control input-sm kpi-chart-select" id="mainpage-kpi-select" style="max-width:180px;">
-						<option value="kinhdoanh">Phòng Kinh doanh</option>
-						<option value="kythuat">Phòng Kỹ thuật</option>
-						<option value="nhansu">Phòng Nhân sự</option>
-						<option value="ketoan">Phòng Kế toán</option>
-						<option value="marketing">Phòng Marketing</option>
-					</select>
-				</div>
-			</div>
-			<div class="card-body kpi-body">
-				<div id="kpi-chart-kinhdoanh" class="kpi-chart-panel" data-vals="85,72,91" data-colors="#059669,#10b981,#34d399" data-labels="Doanh thu T1,Chỉ tiêu bán hàng,Khách hàng mới"></div>
-				<div id="kpi-chart-kythuat" class="kpi-chart-panel hide" data-vals="78,95,88" data-colors="#3b82f6,#60a5fa,#93c5fd" data-labels="Hoàn thành sprint,Code review,Bug fix rate"></div>
-				<div id="kpi-chart-nhansu" class="kpi-chart-panel hide" data-vals="68,82,94" data-colors="#8b5cf6,#a78bfa,#c4b5fd" data-labels="Tuyển dụng,Đào tạo nội bộ,Tỷ lệ giữ chân"></div>
-				<div id="kpi-chart-ketoan" class="kpi-chart-panel hide" data-vals="92,100,76" data-colors="#ec4899,#f472b6,#f9a8d4" data-labels="Thu chi cân đối,Báo cáo đúng hạn,Kiểm toán nội bộ"></div>
-				<div id="kpi-chart-marketing" class="kpi-chart-panel hide" data-vals="89,65,80" data-colors="#08A045,#6BBF59,#0B6E4F" data-labels="Lượt tiếp cận,Conversion rate,Brand awareness"></div>
 			</div>
 		</div>
 	</div>
 
-	<div class="modal fade" id="mainpage-announcement-detail-modal" tabindex="-1" role="dialog">
-			<div class="modal-dialog ann-detail-dialog" role="document">
-				<div class="modal-content">
-					<div class="modal-body ann-detail-body">
-						<button type="button" class="close ann-detail-close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-						<div class="row">
-							<div class="col-sm-8 ann-detail-left">
-								<div class="ann-detail-author">
-									<span class="ann-avatar ann-avatar-user" id="ann-detail-avatar">H</span>
-									<span class="ann-detail-name" id="ann-detail-name">-</span>
-									<span class="ann-detail-time-badge" id="ann-detail-time">-</span>
-								</div>
+	<div class="modal fade mk-ann-detail-modal" id="mainpage-announcement-detail-modal" tabindex="-1" role="dialog">
+			<div class="modal-dialog ann-detail-dialog mk-ann-detail-dialog" role="document">
+				<div class="modal-content mk-ann-detail-content">
+					<div class="modal-header mk-ann-detail-header">
+						<div class="mk-ann-detail-author">
+							<span class="ann-avatar ann-avatar-user mk-ann-avatar" id="ann-detail-avatar">H</span>
+							<div class="mk-ann-detail-author-meta">
+								<span class="ann-detail-name" id="ann-detail-name">-</span>
+								<span class="ann-detail-time-badge" id="ann-detail-time">-</span>
+							</div>
+						</div>
+						<button type="button" class="close ann-detail-close mk-ann-close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					</div>
+					<div class="modal-body ann-detail-body mk-ann-detail-body">
+						<div class="mk-ann-detail-layout">
+							<div class="ann-detail-left mk-ann-detail-main">
 								<div class="ann-detail-content">
 									<h5 class="ann-detail-title" id="ann-detail-title"></h5>
 									<div class="ann-detail-desc" id="ann-detail-desc"></div>
 								</div>
 							</div>
-							<div class="col-sm-4 ann-detail-right">
-								<div class="ann-detail-tabs">
-									<button type="button" class="ann-tab active" data-tab="comments">Comments <span class="badge" id="ann-detail-comments-badge">0</span></button>
-									<button type="button" class="ann-tab" data-tab="subscribers">Subscribers <span class="badge" id="ann-detail-subscribers-badge">0</span></button>
+							<div class="ann-detail-right mk-ann-detail-side">
+								<div class="ann-detail-tabs mk-ann-tabs">
+									<button type="button" class="ann-tab active" data-tab="comments">Bình luận <span class="badge" id="ann-detail-comments-badge">0</span></button>
+									<button type="button" class="ann-tab" data-tab="subscribers">Người nhận <span class="badge" id="ann-detail-subscribers-badge">0</span></button>
 								</div>
 								<div id="ann-detail-panel-comments" class="ann-detail-panel">
 									<ul class="ann-comments-list list-unstyled" id="ann-detail-comments-list"></ul>
-									<div class="ann-add-comment">
-										<div class="task-comment-toolbar"><button type="button" class="btn btn-default btn-xs ann-detail-comment-upload-btn" title="Upload from computer"><span class="fa fa-paperclip"></span> Upload</button>
-										<input type="file" class="ann-detail-comment-file-input" accept="*" style="display:none">
-										<span class="ann-detail-comment-file-name text-muted small"></span></div>
-										<textarea class="form-control" id="ann-detail-comment-input" rows="2" placeholder="Write a comment"></textarea>
-										<button type="button" class="btn btn-primary btn-sm" id="ann-detail-comment-add">Add</button>
+									<div class="ann-add-comment mk-ann-comment-box">
+										<div class="task-comment-toolbar">
+											<button type="button" class="btn btn-default btn-xs ann-detail-comment-upload-btn" title="Đính kèm file"><span class="fa fa-paperclip"></span> Đính kèm</button>
+											<input type="file" class="ann-detail-comment-file-input" accept="*" style="display:none">
+											<span class="ann-detail-comment-file-name text-muted small"></span>
+										</div>
+										<textarea class="form-control" id="ann-detail-comment-input" rows="2" placeholder="Viết bình luận..."></textarea>
+										<button type="button" class="btn btn-primary btn-sm" id="ann-detail-comment-add">Gửi</button>
 									</div>
 								</div>
 								<div id="ann-detail-panel-subscribers" class="ann-detail-panel hide">
@@ -456,29 +435,32 @@
 							</div>
 						</div>
 					</div>
-					<div class="modal-footer ann-detail-footer ann-detail-creator-actions hide">
+					<div class="modal-footer ann-detail-footer ann-detail-creator-actions hide mk-ann-detail-footer">
 						<button type="button" class="btn btn-danger" id="ann-detail-delete-btn" title="Xóa thông báo"><i class="fa fa-trash-o"></i> Xóa thông báo</button>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="modal fade ann-add-modal" id="mainpage-announcement-modal" tabindex="-1" role="dialog">
-			<div class="modal-dialog ann-add-modal-dialog" role="document">
-				<div class="modal-content ann-add-modal-content">
-					<div class="modal-header ann-add-modal-header">
-						<h4 class="modal-title"><i class="fa fa-bullhorn"></i> Thêm thông báo</h4>
-						<button type="button" class="close ann-add-close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		<div class="modal fade ann-add-modal mk-ann-add-modal" id="mainpage-announcement-modal" tabindex="-1" role="dialog">
+			<div class="modal-dialog ann-add-modal-dialog mk-ann-add-dialog" role="document">
+				<div class="modal-content ann-add-modal-content mk-ann-add-content">
+					<div class="modal-header ann-add-modal-header mk-ann-add-header">
+						<div>
+							<p class="mk-ann-add-eyebrow">Nguyên Khoa</p>
+							<h4 class="modal-title">Tạo thông báo mới</h4>
+						</div>
+						<button type="button" class="close ann-add-close mk-ann-close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 					</div>
-					<div class="modal-body ann-add-modal-body">
-						<form id="mainpage-announcement-form" class="ann-add-form">
+					<div class="modal-body ann-add-modal-body mk-ann-add-body">
+						<form id="mainpage-announcement-form" class="ann-add-form mk-ann-add-form">
 							<div class="form-group ann-form-group">
 								<label for="ann-title" class="ann-label">Tiêu đề</label>
-								<input type="text" class="form-control ann-input" id="ann-title" name="title" placeholder="Nhập tiêu đề thông báo" />
+								<input type="text" class="form-control ann-input" id="ann-title" name="title" placeholder="Nhập tiêu đề thông báo" autocomplete="off" />
 							</div>
-							<div class="form-group ann-form-group">
+							<div class="form-group ann-form-group mk-ann-editor-group">
 								<label for="ann-description" class="ann-label">Nội dung</label>
-								<textarea class="form-control ckEditorSource ann-input ann-textarea" id="ann-description" name="announcement" rows="5" placeholder="Mô tả chi tiết..."></textarea>
+								<textarea class="form-control ann-input ann-textarea" id="ann-description" name="announcement" rows="5" placeholder="Mô tả chi tiết..."></textarea>
 							</div>
 							<div class="form-group ann-form-group">
 								<label for="ann-subscribers" class="ann-label">Người nhận</label>
@@ -497,7 +479,7 @@
 								</select>
 								<small class="ann-hint">Chọn User hoặc Group. Để trống = gửi cho tất cả.</small>
 							</div>
-							<div class="ann-add-row">
+							<div class="ann-add-row mk-ann-add-row">
 								<div class="form-group ann-form-group ann-form-group-inline">
 									<label for="ann-lasts" class="ann-label">Thời gian hiển thị</label>
 									<select class="form-control ann-input ann-select" id="ann-lasts" name="lasts">
@@ -507,14 +489,14 @@
 										<option value="0">Đến khi xóa</option>
 									</select>
 								</div>
-								<div class="ann-check-group">
+								<div class="ann-check-group mk-ann-checks">
 									<label class="ann-checkbox-label"><input type="checkbox" id="ann-allow-comments" name="allow_comments" class="ann-checkbox" checked /> Cho phép bình luận</label>
 									<label class="ann-checkbox-label"><input type="checkbox" id="ann-pin" name="pin" class="ann-checkbox" /> Ghim lên đầu</label>
 								</div>
 							</div>
 						</form>
 					</div>
-					<div class="modal-footer ann-add-modal-footer">
+					<div class="modal-footer ann-add-modal-footer mk-ann-add-footer">
 						<button type="button" class="btn btn-default ann-btn-cancel" data-dismiss="modal">Hủy</button>
 						<button type="button" class="btn btn-primary ann-btn-submit" id="mainpage-announcement-submit"><i class="fa fa-paper-plane-o"></i> Đăng thông báo</button>
 					</div>
@@ -590,26 +572,53 @@
 	var ckEditorToolbar = [
 		{ name: 'basic', items: [ 'Bold', 'Italic', 'Underline', '-', 'TextColor', 'BGColor', '-', 'Link', 'Unlink', '-', 'NumberedList', 'BulletedList', '-', 'Table', 'Smiley', '-', 'RemoveFormat' ] }
 	];
+	var annCkInitPending = false;
+
+	function destroyAnnouncementCkEditor() {
+		if (typeof CKEDITOR === 'undefined') {
+			return;
+		}
+		var inst = CKEDITOR.instances[annDescCkId];
+		if (inst) {
+			try {
+				inst.updateElement();
+			} catch (e1) { /* ignore */ }
+			try {
+				inst.destroy(true);
+			} catch (e2) {
+				try { CKEDITOR.remove(inst); } catch (e3) { /* ignore */ }
+			}
+		}
+		var $ta = jQuery('#' + annDescCkId);
+		if ($ta.length) {
+			$ta.siblings('.cke').remove();
+			$ta.parent().find('.cke').remove();
+			$ta.show().css('visibility', 'visible');
+		}
+		annCkInitPending = false;
+	}
 
 	function initAnnouncementCkEditor() {
-		if (typeof CKEDITOR === 'undefined' || typeof Vtiger_CkEditor_Js === 'undefined') return;
-		var $ta = jQuery('#' + annDescCkId);
-		if (!$ta.length) return;
-		if (CKEDITOR.instances[annDescCkId]) {
-			CKEDITOR.remove(CKEDITOR.instances[annDescCkId]);
+		if (typeof CKEDITOR === 'undefined' || typeof Vtiger_CkEditor_Js === 'undefined') {
+			return;
 		}
+		if (annCkInitPending) {
+			return;
+		}
+		destroyAnnouncementCkEditor();
+		var $ta = jQuery('#' + annDescCkId);
+		if (!$ta.length) {
+			return;
+		}
+		annCkInitPending = true;
 		var ck = new Vtiger_CkEditor_Js();
 		ck.loadCkEditor($ta, {
 			height: 180,
 			toolbar: ckEditorToolbar
 		});
-	}
-
-	function destroyAnnouncementCkEditor() {
-		if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances[annDescCkId]) {
-			CKEDITOR.instances[annDescCkId].updateElement();
-			CKEDITOR.remove(CKEDITOR.instances[annDescCkId]);
-		}
+		setTimeout(function () {
+			annCkInitPending = false;
+		}, 300);
 	}
 
 	function getAnnouncementContent() {
@@ -619,10 +628,14 @@
 		return descInput ? descInput.value : '';
 	}
 
-	jQuery(modal).on('shown.bs.modal', function() {
-		setTimeout(function() { initAnnouncementCkEditor(); }, 100);
-	}).on('hidden.bs.modal', function() {
+	jQuery(modal).off('shown.bs.modal.mkAnnCk hidden.bs.modal.mkAnnCk');
+	jQuery(modal).on('shown.bs.modal.mkAnnCk', function() {
+		setTimeout(function() { initAnnouncementCkEditor(); }, 80);
+	}).on('hidden.bs.modal.mkAnnCk', function() {
 		destroyAnnouncementCkEditor();
+		if (descInput) {
+			descInput.value = '';
+		}
 	});
 
 	addBtn.addEventListener('click', function() {
@@ -795,10 +808,10 @@
 			currentDetailAnnouncement = a;
 			var comments = res.comments || [];
 			var initial = (a.creatorName && a.creatorName.length) ? a.creatorName.charAt(0).toUpperCase() : '?';
-			jQuery('#ann-detail-avatar').text(initial).attr('class', 'ann-avatar ann-avatar-user');
-			jQuery('#ann-detail-name').text(a.creatorName || '-');
+			jQuery('#ann-detail-avatar').text(initial).attr('class', 'ann-avatar ann-avatar-user mk-ann-avatar');
+			jQuery('#ann-detail-name').text(decodeHtmlEntities(a.creatorName || '-'));
 			jQuery('#ann-detail-time').text(a.timeAgo || '');
-			jQuery('#ann-detail-title').text(a.title || '(No title)');
+			jQuery('#ann-detail-title').text(decodeHtmlEntities(a.title || '(No title)'));
 			jQuery('#ann-detail-desc').html(a.announcement || '');
 			renderDetailComments(comments);
 			var subCount = (a.subscribers && a.subscribers.length) ? a.subscribers.length : 0;
@@ -1009,123 +1022,6 @@
 	}
 	update();
 	setInterval(update, 60000);
-})();
-
-(function() {
-	var selDept = document.getElementById('mainpage-kpi-select');
-	var selType = document.getElementById('mainpage-kpi-type');
-	var panels = document.querySelectorAll('.kpi-chart-panel');
-	if (!selDept || !selType || !panels.length) return;
-
-	var deptNames = { kinhdoanh:'Kinh doanh', kythuat:'Kỹ thuật', nhansu:'Nhân sự', ketoan:'Kế toán', marketing:'Marketing' };
-
-	function parseData(el) {
-		var vals = (el.getAttribute('data-vals') || '').split(',').map(function(v){ return parseInt(v,10) || 0; });
-		var colors = (el.getAttribute('data-colors') || '').split(',');
-		var labels = (el.getAttribute('data-labels') || '').split(',');
-		return { vals: vals, colors: colors, labels: labels };
-	}
-
-	function renderChart(panel, type) {
-		var d = parseData(panel);
-		var vals = d.vals, colors = d.colors, labels = d.labels;
-		var deptId = panel.id.replace('kpi-chart-','');
-		var title = 'KPI Phòng ' + (deptNames[deptId] || deptId);
-		panel.innerHTML = '<div class="kpi-chart-title">' + title + '</div>';
-		panel.className = panel.className.replace(/\bkpi-type-\S+/g,'') + ' kpi-type-' + type;
-
-		if (type === 'bar-ngang') {
-			var wrap = document.createElement('div'); wrap.className = 'kpi-bar-chart';
-			for (var i=0; i<vals.length; i++) {
-				var row = document.createElement('div'); row.className = 'kpi-bar-row';
-				row.innerHTML = '<span class="kpi-bar-label">' + (labels[i]||'') + '</span>' +
-					'<div class="kpi-bar-wrap"><div class="kpi-bar" style="width:' + vals[i] + '%; background:' + (colors[i]||'#6366f1') + ';"></div>' +
-					'<span class="kpi-bar-val">' + vals[i] + '%</span></div>';
-				wrap.appendChild(row);
-			}
-			panel.appendChild(wrap);
-		} else if (type === 'bar-doc') {
-			var wrap = document.createElement('div'); wrap.className = 'kpi-bar-chart kpi-bar-vertical';
-			var maxVal = Math.max.apply(null, vals);
-			for (var i=0; i<vals.length; i++) {
-				var row = document.createElement('div'); row.className = 'kpi-bar-row kpi-bar-row-vertical';
-				var h = maxVal ? (vals[i] / maxVal * 100) : 0;
-				row.innerHTML = '<span class="kpi-bar-label">' + (labels[i]||'') + '</span>' +
-					'<div class="kpi-bar-vertical-wrap"><div class="kpi-bar-vertical" style="height:' + h + '%; background:' + (colors[i]||'#6366f1') + ';"></div>' +
-					'<span class="kpi-bar-val">' + vals[i] + '%</span></div>';
-				wrap.appendChild(row);
-			}
-			panel.appendChild(wrap);
-		} else if (type === 'tron' || type === 'donut') {
-			var total = vals.reduce(function(a,b){ return a+b; }, 0);
-			if (!total) total = 1;
-			var acc = 0;
-			var segs = vals.map(function(v,i){ var start=acc; acc += (v/total)*360; return { start:start, end:acc, c:colors[i]||'#6366f1', l:labels[i], v:vals[i] }; });
-			var conic = segs.map(function(s){ return s.c + ' ' + s.start + 'deg ' + s.end + 'deg'; }).join(', ');
-			var pie = document.createElement('div');
-			pie.className = 'kpi-pie-chart' + (type === 'donut' ? ' kpi-donut' : '');
-			pie.style.background = 'conic-gradient(' + conic + ')';
-			panel.appendChild(pie);
-			var leg = document.createElement('div'); leg.className = 'kpi-pie-legend';
-			segs.forEach(function(s,i){
-				var sp = document.createElement('span'); sp.className = 'kpi-pie-legend-item';
-				sp.innerHTML = '<i style="background:' + s.c + '"></i> ' + (s.l||'') + ' (' + s.v + '%)';
-				leg.appendChild(sp);
-			});
-			panel.appendChild(leg);
-		} else if (type === 'duong') {
-			var wrap = document.createElement('div'); wrap.className = 'kpi-line-chart';
-			var maxVal = Math.max.apply(null, vals);
-			var svg = '<svg viewBox="0 0 300 120" preserveAspectRatio="none"><polyline fill="none" stroke="#6366f1" stroke-width="2" points="';
-			var pts = vals.map(function(v,i){ var x = (i/(vals.length-1||1))*300; var y = 110 - (maxVal ? (v/maxVal)*100 : 0); return x + ',' + y; }).join(' ');
-			svg += pts + '"/></svg>';
-			wrap.innerHTML = svg;
-			panel.appendChild(wrap);
-			var rowWrap = document.createElement('div'); rowWrap.className = 'kpi-line-legend';
-			for (var i=0; i<vals.length; i++) {
-				var sp = document.createElement('span'); sp.className = 'kpi-line-legend-item';
-				sp.innerHTML = '<i style="background:' + (colors[i]||'#6366f1') + '"></i> ' + (labels[i]||'') + ': ' + vals[i] + '%';
-				rowWrap.appendChild(sp);
-			}
-			panel.appendChild(rowWrap);
-		} else if (type === 'stacked') {
-			var total = vals.reduce(function(a,b){ return a+b; }, 0);
-			if (!total) total = 1;
-			var wrap = document.createElement('div'); wrap.className = 'kpi-stacked-chart';
-			var bar = document.createElement('div'); bar.className = 'kpi-stacked-bar';
-			vals.forEach(function(v,i){
-				var seg = document.createElement('div');
-				seg.className = 'kpi-stacked-seg';
-				seg.style.width = (v/total*100) + '%';
-				seg.style.background = colors[i]||'#6366f1';
-				seg.title = (labels[i]||'') + ': ' + v + '%';
-				bar.appendChild(seg);
-			});
-			wrap.appendChild(bar);
-			var leg = document.createElement('div'); leg.className = 'kpi-stacked-legend';
-			vals.forEach(function(v,i){
-				var sp = document.createElement('span'); sp.className = 'kpi-stacked-legend-item';
-				sp.innerHTML = '<i style="background:' + (colors[i]||'#6366f1') + '"></i> ' + (labels[i]||'') + ' ' + v + '%';
-				leg.appendChild(sp);
-			});
-			wrap.appendChild(leg);
-			panel.appendChild(wrap);
-		}
-	}
-
-	function refresh() {
-		var dept = selDept.value;
-		var type = selType.value;
-		panels.forEach(function(p) {
-			var visible = p.id === 'kpi-chart-' + dept;
-			p.classList.toggle('hide', !visible);
-			if (visible) { p.innerHTML = ''; renderChart(p, type); }
-		});
-	}
-
-	selDept.addEventListener('change', refresh);
-	selType.addEventListener('change', refresh);
-	refresh();
 })();
 </script>
 {/strip}
