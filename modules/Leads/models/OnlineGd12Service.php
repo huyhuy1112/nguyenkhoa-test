@@ -12,6 +12,10 @@ class Leads_OnlineGd12Service {
 	const STATUS_KHONG_DU_DK = 'online_khong_du_dk';
 	const STATUS_NGUNG_CSKH = 'online_ngung_cskh';
 
+	/** Đường 1 OA / Đường 2 chuyển từ Offline 1.1 */
+	const PATH_OA = 'oa';
+	const PATH_GD11 = 'gd11';
+
 	const STATUS_TAGS = array(
 		self::STATUS_CHUA_DIEN_FORM,
 		self::STATUS_CHUA_DK_TK,
@@ -91,6 +95,12 @@ class Leads_OnlineGd12Service {
 		if ($leadId <= 0) {
 			return array('success' => false, 'error' => 'Thiếu lead id');
 		}
+		if (self::isScoreLocked($leadId)) {
+			return array(
+				'success' => false,
+				'error' => 'Hồ sơ Đường 2 (từ Offline 1.1) đã khoá chấm tự động — không sửa bộ 4 câu.',
+			);
+		}
 		$q1 = isset($payload['q1']) ? $payload['q1'] : (isset($payload['c1']) ? $payload['c1'] : '');
 		$q2 = isset($payload['q2']) ? $payload['q2'] : (isset($payload['c2']) ? $payload['c2'] : '');
 		$q3 = isset($payload['q3']) ? $payload['q3'] : (isset($payload['c3']) ? $payload['c3'] : '');
@@ -103,6 +113,191 @@ class Leads_OnlineGd12Service {
 		require_once 'modules/Leads/models/ModernService.php';
 		$lead = Leads_ModernService::getLead((string) $leadId, $userId);
 		return array('success' => true, 'result' => $result, 'lead' => $lead);
+	}
+
+	/**
+	 * Đường 2 — khoá chấm lại (online_path = gd11).
+	 */
+	public static function isScoreLocked($leadIdOrPath) {
+		if (is_string($leadIdOrPath) && !ctype_digit((string) $leadIdOrPath)) {
+			return trim((string) $leadIdOrPath) === self::PATH_GD11;
+		}
+		$leadId = (int) $leadIdOrPath;
+		if ($leadId <= 0) {
+			return false;
+		}
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery('SELECT online_path FROM bace_lead_profile WHERE leadid = ?', array($leadId));
+		if (!$res || $adb->num_rows($res) < 1) {
+			return false;
+		}
+		return trim((string) $adb->query_result($res, 0, 'online_path')) === self::PATH_GD11;
+	}
+
+	/**
+	 * C5 (1–4, mức 1 tốt nhất) → Q2 (A–D, A tốt nhất).
+	 */
+	public static function mapVerifyC5ToQ2($c5) {
+		$map = array(1 => 'A', 2 => 'B', 3 => 'C', 4 => 'D');
+		$n = (int) $c5;
+		return isset($map[$n]) ? $map[$n] : '';
+	}
+
+	public static function findChildLeadIdBySource($offlineLeadId) {
+		$offlineLeadId = (int) $offlineLeadId;
+		if ($offlineLeadId <= 0) {
+			return 0;
+		}
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			"SELECT p.leadid FROM bace_lead_profile p
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
+			 WHERE p.online_source_leadid = ? AND p.online_path = ?
+			 ORDER BY p.leadid DESC LIMIT 1",
+			array($offlineLeadId, self::PATH_GD11)
+		);
+		if ($res && $adb->num_rows($res) > 0) {
+			return (int) $adb->query_result($res, 0, 'leadid');
+		}
+		return 0;
+	}
+
+	/**
+	 * Đường 2 — Sale chuyển Offline 1.1 → hồ sơ Online mới.
+	 * Chép đáp án sau xác minh, khoá chấm, tag Chưa ĐK TK; giữ nguyên lead Offline.
+	 */
+	public static function transferFromOffline($offlineLeadId, $userId = null) {
+		$offlineLeadId = (int) $offlineLeadId;
+		if ($offlineLeadId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu lead Offline');
+		}
+		self::installSchema();
+		require_once 'modules/Leads/models/ModernService.php';
+		require_once 'modules/Leads/models/SheetImportService.php';
+
+		$existingChild = self::findChildLeadIdBySource($offlineLeadId);
+		if ($existingChild > 0) {
+			$child = Leads_ModernService::getLead((string) $existingChild, $userId);
+			return array(
+				'success' => true,
+				'already' => true,
+				'online_lead_id' => $existingChild,
+				'lead' => $child,
+				'message' => 'Đã có hồ sơ Online Đường 2 từ lead này.',
+			);
+		}
+
+		$src = Leads_ModernService::getLead((string) $offlineLeadId, $userId);
+		if (!$src || empty($src['id'])) {
+			return array('success' => false, 'error' => 'Không tìm thấy lead Offline');
+		}
+
+		$elig = isset($src['eligibility_result']) ? trim((string) $src['eligibility_result']) : '';
+		$pot = isset($src['potential_level']) ? trim((string) $src['potential_level']) : '';
+		if ($elig !== 'du_dk') {
+			return array('success' => false, 'error' => 'Chỉ chuyển khi đã đủ điều kiện Offline 1.1');
+		}
+		if ($pot === '') {
+			return array('success' => false, 'error' => 'Chưa phân mức độ tiềm năng — không chuyển Đường 2');
+		}
+
+		$c1 = isset($src['verify_c1']) ? strtoupper(trim((string) $src['verify_c1'])) : '';
+		$c2 = isset($src['verify_c2']) ? strtoupper(trim((string) $src['verify_c2'])) : '';
+		$c3 = isset($src['verify_c3']) ? strtoupper(trim((string) $src['verify_c3'])) : '';
+		$c5 = isset($src['verify_c5']) ? (int) $src['verify_c5'] : 0;
+		$q1 = $c1;
+		$q2 = self::mapVerifyC5ToQ2($c5);
+		$q3 = $c3;
+		$q4 = $c2;
+		if ($q1 === '' || $q2 === '' || $q3 === '' || $q4 === '') {
+			return array(
+				'success' => false,
+				'error' => 'Thiếu đáp án sau xác minh (cần C1, C2, C3 và C5) để chép sang Online',
+			);
+		}
+
+		$group = self::customerGroupFromQ1($q1);
+		$seg = self::segmentFromGroup($group['code']);
+		$biz = self::businessModelKey($q4);
+		$phone = isset($src['phone']) ? trim((string) $src['phone']) : '';
+		$name = isset($src['name']) ? trim((string) $src['name']) : '';
+		if ($name === '' || $phone === '') {
+			return array('success' => false, 'error' => 'Lead Offline thiếu tên hoặc SĐT');
+		}
+
+		$tags = array('mien_phi_online', self::STATUS_CHUA_DK_TK);
+		if ($pot === 'sieu_tiem_nang' || $pot === 'tiem_nang') {
+			$tags[] = $pot;
+		}
+		$cust = Leads_SheetImportService::customerTagFromQ1($q1);
+		if ($cust !== '') {
+			$tags[] = $cust;
+		}
+
+		$payload = array(
+			'name' => $name,
+			'phone' => $phone,
+			'email' => isset($src['email']) ? $src['email'] : '',
+			'address' => isset($src['address']) ? $src['address'] : '',
+			'district' => isset($src['district']) ? $src['district'] : '',
+			'companyName' => isset($src['companyName']) ? $src['companyName'] : '-',
+			'tags' => $tags,
+			'business_model' => $biz,
+			'segment' => $seg,
+			'screening_result' => ($pot === 'sieu_tiem_nang' || $pot === 'tiem_nang') ? $pot : '',
+			'skip_potential' => 1,
+			'force_create' => 1,
+			'owner' => isset($src['owner_username']) ? $src['owner_username'] : '',
+		);
+		$created = Leads_ModernService::saveLead($payload, null);
+		$onlineLeadId = 0;
+		if (is_array($created)) {
+			$onlineLeadId = isset($created['crmid']) ? (int) $created['crmid'] : (isset($created['id']) ? (int) $created['id'] : 0);
+		}
+		if ($onlineLeadId <= 0) {
+			return array('success' => false, 'error' => 'Không tạo được lead Online');
+		}
+
+		$adb = PearDatabase::getInstance();
+		$now = date('Y-m-d H:i:s');
+		$adb->pquery(
+			"UPDATE bace_lead_profile SET
+				online_status = ?, online_q1 = ?, online_q2 = ?, online_q3 = ?, online_q4 = ?,
+				eligibility_result = 'du_dk', potential_level = ?, business_model = ?, segment = ?,
+				online_path = ?, online_source_leadid = ?, online_reminder_count = 0,
+				online_entered_at = ?, modified_at = ?
+			 WHERE leadid = ?",
+			array(
+				self::STATUS_CHUA_DK_TK,
+				$q1,
+				$q2,
+				$q3,
+				$q4,
+				$pot,
+				$biz !== '' ? $biz : null,
+				$seg !== '' ? $seg : null,
+				self::PATH_GD11,
+				$offlineLeadId,
+				$now,
+				$now,
+				$onlineLeadId,
+			)
+		);
+		self::syncStatusTagsOnly($onlineLeadId, $tags);
+
+		$fresh = Leads_ModernService::getLead((string) $onlineLeadId, $userId);
+		$srcFresh = Leads_ModernService::getLead((string) $offlineLeadId, $userId);
+		return array(
+			'success' => true,
+			'already' => false,
+			'online_lead_id' => $onlineLeadId,
+			'source_lead_id' => $offlineLeadId,
+			'mapped' => array('q1' => $q1, 'q2' => $q2, 'q3' => $q3, 'q4' => $q4),
+			'lead' => $fresh,
+			'source_lead' => $srcFresh,
+			'message' => 'Đã tạo hồ sơ Online Đường 2 — Chưa đăng ký TK (khoá chấm).',
+		);
 	}
 
 	/**
@@ -127,6 +322,7 @@ class Leads_OnlineGd12Service {
 			'online_entered_at' => "DATETIME DEFAULT NULL",
 			'online_last_remind_at' => "DATETIME DEFAULT NULL",
 			'online_path' => "VARCHAR(16) DEFAULT NULL",
+			'online_source_leadid' => "INT(11) DEFAULT NULL",
 		);
 		foreach ($cols as $name => $def) {
 			$res = $adb->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE ?", array($name));
@@ -319,6 +515,21 @@ class Leads_OnlineGd12Service {
 		self::installSchema();
 		$adb = PearDatabase::getInstance();
 		$now = date('Y-m-d H:i:s');
+
+		// Đường 2: chỉ gắn zalo_user_id khi khách vào OA — không chấm lại / không đổi Q.
+		if (self::isScoreLocked($leadId)) {
+			if ($oaUserId !== '') {
+				$adb->pquery(
+					"UPDATE bace_lead_profile SET
+						zalo_user_id = IF(zalo_user_id IS NULL OR zalo_user_id = '', ?, zalo_user_id),
+						modified_at = ?
+					 WHERE leadid = ?",
+					array((string) $oaUserId, $now, $leadId)
+				);
+			}
+			return;
+		}
+
 		$status = isset($result['status_tag']) ? $result['status_tag'] : self::STATUS_KHONG_DU_DK;
 
 		$elig = isset($result['eligibility_result']) ? $result['eligibility_result'] : '';
@@ -331,7 +542,7 @@ class Leads_OnlineGd12Service {
 				online_status = ?, online_q1 = ?, online_q2 = ?, online_q3 = ?, online_q4 = ?,
 				eligibility_result = ?, potential_level = ?, business_model = ?, segment = ?,
 				zalo_user_id = IF(zalo_user_id IS NULL OR zalo_user_id = '', ?, zalo_user_id),
-				online_path = 'oa',
+				online_path = ?,
 				online_reminder_count = 0,
 				modified_at = ?
 			 WHERE leadid = ?",
@@ -346,6 +557,7 @@ class Leads_OnlineGd12Service {
 				$biz !== '' ? $biz : null,
 				$seg !== '' ? $seg : null,
 				(string) $oaUserId,
+				self::PATH_OA,
 				$now,
 				$leadId,
 			)

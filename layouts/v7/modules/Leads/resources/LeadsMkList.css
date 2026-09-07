@@ -1173,6 +1173,19 @@ body.mk-leads-verify-open {
 	font-weight: 700;
 	color: #9a3412;
 }
+.mk-leads-verify-offline__transfer {
+	margin-top: 12px;
+	padding: 12px;
+	border: 1px solid #a5f3fc;
+	border-radius: 12px;
+	background: #ecfeff;
+}
+.mk-leads-verify-offline__transfer h5 {
+	margin: 0 0 6px;
+	font-size: 12px;
+	font-weight: 700;
+	color: #0e7490;
+}
 .mk-leads-verify-offline__ms-list {
 	margin-top: 10px;
 	font-size: 12px;

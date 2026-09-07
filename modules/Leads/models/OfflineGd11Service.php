@@ -547,6 +547,24 @@ class Leads_OfflineGd11Service {
 			'offline_checked_in_at' => (!empty($row['offline_checked_in_at']) && $row['offline_checked_in_at'] !== '0000-00-00 00:00:00')
 				? date('c', strtotime((string) $row['offline_checked_in_at'])) : '',
 		);
+
+		// Đường 2 — nút chuyển Offline → Online
+		$elig = isset($row['eligibility_result']) ? trim((string) $row['eligibility_result']) : '';
+		$pot = isset($row['potential_level']) ? trim((string) $row['potential_level']) : '';
+		$onlineTransferId = 0;
+		try {
+			require_once 'modules/Leads/models/OnlineGd12Service.php';
+			$srcId = isset($row['leadid']) ? (int) $row['leadid'] : 0;
+			if ($srcId > 0) {
+				$onlineTransferId = Leads_OnlineGd12Service::findChildLeadIdBySource($srcId);
+			}
+		} catch (Exception $e) {
+			$onlineTransferId = 0;
+		}
+		$out['online_transfer_leadid'] = $onlineTransferId;
+		$hasOnlineSelf = isset($row['online_status']) && trim((string) $row['online_status']) !== '';
+		$out['can_transfer_online'] = ($elig === 'du_dk' && $pot !== '' && $onlineTransferId <= 0 && !$hasOnlineSelf) ? 1 : 0;
+
 		if ($detailed) {
 			$out['offline_status_options'] = $labels;
 			$out['offline_kb'] = self::kbSnippets();

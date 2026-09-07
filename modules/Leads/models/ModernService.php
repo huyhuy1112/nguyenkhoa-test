@@ -146,7 +146,7 @@ class Leads_ModernService {
 	protected static function verifyProfileSelectSql() {
 		return ', p.form_c1, p.form_c2, p.form_c3, p.verify_c1, p.verify_c2, p.verify_c3, p.verify_c4, p.verify_c5,
 			p.eligibility_result, p.potential_level, p.verify_score, p.verify_change_reason, p.verified_at, p.verified_by,
-			p.online_status, p.online_q1, p.online_q2, p.online_q3, p.online_q4, p.online_path, p.zalo_user_id,
+			p.online_status, p.online_q1, p.online_q2, p.online_q3, p.online_q4, p.online_path, p.online_source_leadid, p.zalo_user_id,
 			p.offline_status, p.offline_r1_contact, p.offline_r1_hen_goi, p.offline_r1_khong_nghe, p.offline_r1_sai_tt,
 			p.offline_r2_schedule, p.offline_r3_class, p.offline_r4_transfer,
 			p.offline_preclass_confirm, p.offline_class_date, p.offline_class_time, p.offline_class_place,
@@ -335,6 +335,15 @@ class Leads_ModernService {
 
 	public static function getLead($idOrCacheId, $userId = null) {
 		self::$composeDetailed = true;
+		$adb = PearDatabase::getInstance();
+		if (self::isInstalled($adb)) {
+			try {
+				require_once 'modules/Leads/models/OnlineGd12Service.php';
+				Leads_OnlineGd12Service::installSchema($adb);
+			} catch (Exception $e) {
+				// best-effort
+			}
+		}
 		$leadId = self::resolveLeadId($idOrCacheId);
 		if (!$leadId && is_numeric($idOrCacheId) && self::vtigerLeadExists((int)$idOrCacheId)) {
 			$leadId = (int)$idOrCacheId;
@@ -1393,7 +1402,7 @@ class Leads_ModernService {
 		}
 		$onlineStatus = isset($row['online_status']) ? trim((string) $row['online_status']) : '';
 		$onlinePath = isset($row['online_path']) ? trim((string) $row['online_path']) : '';
-		if ($onlineStatus !== '' || $onlinePath === 'oa') {
+		if ($onlineStatus !== '' || $onlinePath === 'oa' || $onlinePath === 'gd11') {
 			return true;
 		}
 		foreach (array('online_q1', 'online_q2', 'online_q3', 'online_q4') as $k) {
@@ -1492,6 +1501,8 @@ class Leads_ModernService {
 			'verify_c3_label' => $detailed ? self::verifyOptionLabel($c3opts, $verifyC3) : $verifyC3,
 			'online_status' => $onlineStatus,
 			'online_path' => $onlinePath,
+			'online_score_locked' => ($onlinePath === 'gd11') ? 1 : 0,
+			'online_source_leadid' => isset($row['online_source_leadid']) ? (int) $row['online_source_leadid'] : 0,
 			'online_q1' => $onlineQ1,
 			'online_q2' => $onlineQ2,
 			'online_q3' => $onlineQ3,
@@ -1726,7 +1737,7 @@ class Leads_ModernService {
 			$sql .= " AND p.leadid != ?";
 			$params[] = (int)$excludeLeadId;
 		}
-		$sql .= " ORDER BY p.last_touch DESC, p.leadid DESC LIMIT 1";
+		$sql .= " ORDER BY (CASE WHEN p.online_status IS NOT NULL AND p.online_status <> '' THEN 0 ELSE 1 END), p.last_touch DESC, p.leadid DESC LIMIT 1";
 		$res = $adb->pquery($sql, $params);
 		if ($res && $adb->num_rows($res) > 0) {
 			return (int)$adb->query_result($res, 0, 'leadid');

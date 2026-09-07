@@ -353,6 +353,20 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 					$response->setResult($saved);
 					break;
 
+				case 'online_gd12_transfer_from_offline':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					$saved = Leads_OnlineGd12Service::transferFromOffline($id, $userId);
+					$response->setResult($saved);
+					break;
+
 				case 'offline_gd11_apply':
 					require_once 'modules/Leads/models/OfflineGd11Service.php';
 					$payload = $this->decodePayload($request);

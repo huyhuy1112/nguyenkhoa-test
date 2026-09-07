@@ -75,5 +75,19 @@ LIMIT 20;
 ## Không nằm trong vòng này
 
 - EduBit cấp tài khoản / tiến độ học
-- Offline → Online (Đường 2)
-- Admin KPI funnel Online (bước sau)
+- Admin KPI funnel Online (đã làm riêng)
+
+## Đường 2 — Offline → Online (đã có)
+
+1. Lead Offline đủ ĐK + đã có mức tiềm năng (sau xác minh Bộ B, có C1/C2/C3/C5).
+2. Mở panel Sales xác minh → khối **Đường 2 — Offline → Online** → **Chuyển sang Online**.
+3. Tạo lead mới: `online_path=gd11`, tag `online_chua_dk_tk`, Q1–Q4 chép từ verify (C5→Q2: 1→A…), khoá chấm.
+4. Lead Offline không đổi; bấm lại hiện **Mở lead Online**.
+5. Không vào D0 (status không phải `online_chua_dien_form`).
+
+```sql
+SELECT leadid, online_path, online_source_leadid, online_status, online_q1, online_q2, online_q3, online_q4, eligibility_result, potential_level
+FROM bace_lead_profile
+WHERE online_path = 'gd11'
+ORDER BY leadid DESC LIMIT 20;
+```
