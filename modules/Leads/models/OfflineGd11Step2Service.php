@@ -553,7 +553,11 @@ class Leads_OfflineGd11Step2Service {
 			$vars = self::templateVars($row);
 		}
 		$text = self::renderKb($kbKey, $vars);
-		$oaUserId = isset($row['zalo_user_id']) ? trim((string) $row['zalo_user_id']) : '';
+		require_once 'modules/Leads/models/OfflineGd11Service.php';
+		$oaUserId = Leads_OfflineGd11Service::ensureZaloUserId($leadId);
+		if ($oaUserId === '') {
+			$oaUserId = isset($row['zalo_user_id']) ? trim((string) $row['zalo_user_id']) : '';
+		}
 		if ($oaUserId === '') {
 			return array('success' => false, 'error' => 'missing_zalo_user_id', 'text' => $text);
 		}

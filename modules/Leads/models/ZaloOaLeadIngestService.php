@@ -69,11 +69,13 @@ class Leads_ZaloOaLeadIngestService {
 			}
 			$merged['is_completed'] = 0;
 			self::saveState($ev['oa_user_id'], $merged);
+			$linked = self::tryLinkOfflineZaloByPhone($merged, $ev['oa_user_id'], $stubId);
 			return array(
 				'success' => true,
 				'entry' => true,
 				'leadid' => $stubId,
 				'oa_user_id' => $ev['oa_user_id'],
+				'offline_zalo_linked' => $linked,
 			);
 		}
 
@@ -94,12 +96,18 @@ class Leads_ZaloOaLeadIngestService {
 			}
 			$merged['is_completed'] = 0;
 			self::saveState($ev['oa_user_id'], $merged);
+			$linked = self::tryLinkOfflineZaloByPhone(
+				$merged,
+				$ev['oa_user_id'],
+				isset($merged['leadid']) ? (int) $merged['leadid'] : null
+			);
 			return array(
 				'success' => true,
 				'pending' => true,
 				'oa_user_id' => $ev['oa_user_id'],
 				'missing' => self::missingFields($merged),
 				'leadid' => isset($merged['leadid']) ? (int) $merged['leadid'] : 0,
+				'offline_zalo_linked' => $linked,
 			);
 		}
 
@@ -121,6 +129,7 @@ class Leads_ZaloOaLeadIngestService {
 		$merged['leadid'] = $newLeadId;
 		$merged['is_completed'] = 1;
 		self::saveState($ev['oa_user_id'], $merged);
+		$linked = self::tryLinkOfflineZaloByPhone($merged, $ev['oa_user_id'], $newLeadId);
 
 		return array(
 			'success' => true,
@@ -128,7 +137,25 @@ class Leads_ZaloOaLeadIngestService {
 			'updated' => !$fromForm && $existingLeadId > 0,
 			'lead' => $lead,
 			'oa_user_id' => $ev['oa_user_id'],
+			'offline_zalo_linked' => $linked,
 		);
+	}
+
+	/**
+	 * Push OA user id sang lead Offline cùng SĐT (Sheet / offline_status).
+	 * @return array{updated:int,lead_ids:int[]}
+	 */
+	protected static function tryLinkOfflineZaloByPhone(array $merged, $oaUserId, $excludeLeadId = null) {
+		$phone = isset($merged['phone']) ? $merged['phone'] : '';
+		if (trim((string) $phone) === '' || trim((string) $oaUserId) === '') {
+			return array('updated' => 0, 'lead_ids' => array());
+		}
+		try {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			return Leads_OfflineGd11Service::linkZaloUserIdByPhone($phone, $oaUserId, $excludeLeadId);
+		} catch (Exception $e) {
+			return array('updated' => 0, 'lead_ids' => array(), 'error' => $e->getMessage());
+		}
 	}
 
 	/**

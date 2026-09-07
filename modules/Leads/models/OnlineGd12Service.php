@@ -358,6 +358,24 @@ class Leads_OnlineGd12Service {
 			$tags[] = 'tiem_nang';
 		}
 		self::syncStatusTagsOnly($leadId, $tags);
+
+		// Đồng bộ OA id sang Offline cùng SĐT (nếu có).
+		if ($oaUserId !== '') {
+			try {
+				$phoneRes = $adb->pquery(
+					'SELECT phone FROM vtiger_leadaddress WHERE leadaddressid = ?',
+					array($leadId)
+				);
+				$phone = ($phoneRes && $adb->num_rows($phoneRes) > 0)
+					? (string) $adb->query_result($phoneRes, 0, 'phone') : '';
+				if ($phone !== '') {
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					Leads_OfflineGd11Service::linkZaloUserIdByPhone($phone, $oaUserId, $leadId);
+				}
+			} catch (Exception $e) {
+				// ignore link failures
+			}
+		}
 	}
 
 	/**

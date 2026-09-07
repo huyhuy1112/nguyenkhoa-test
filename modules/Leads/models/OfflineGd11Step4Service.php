@@ -337,7 +337,11 @@ class Leads_OfflineGd11Step4Service {
 		if (!$row) {
 			return array('success' => false, 'error' => 'lead_not_found');
 		}
-		$oaUserId = isset($row['zalo_user_id']) ? trim((string) $row['zalo_user_id']) : '';
+		require_once 'modules/Leads/models/OfflineGd11Service.php';
+		$oaUserId = Leads_OfflineGd11Service::ensureZaloUserId($leadId);
+		if ($oaUserId === '') {
+			$oaUserId = isset($row['zalo_user_id']) ? trim((string) $row['zalo_user_id']) : '';
+		}
 		if ($oaUserId === '') {
 			return array('success' => false, 'error' => 'missing_zalo_user_id', 'text' => $text);
 		}

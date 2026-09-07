@@ -2,6 +2,7 @@
 /**
  * GD 1.1 Bước 2 — nhắc trước lớp (OA + Calendar).
  * Cron gợi ý (mỗi 15–30 phút): php modules/Leads/scripts/ProcessOfflineGd11Step2Reminders.php
+ * Đăng ký vtiger cron: php modules/Leads/scripts/InstallOfflineGd11Cron.php
  */
 $crmRoot = dirname(dirname(dirname(__DIR__)));
 chdir($crmRoot);

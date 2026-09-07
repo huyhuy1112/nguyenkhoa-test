@@ -806,6 +806,183 @@ class Leads_OfflineGd11Service {
 		return self::isOfflineLead($lead, isset($lead['tags']) ? $lead['tags'] : array());
 	}
 
+	/**
+	 * Chuẩn hoá SĐT VN → 0xxxxxxxxx (rỗng nếu không hợp lệ).
+	 */
+	public static function normalizeVnPhone($raw) {
+		$digits = preg_replace('/\D+/', '', (string) $raw);
+		if ($digits === '') {
+			return '';
+		}
+		if (strpos($digits, '84') === 0 && strlen($digits) >= 11) {
+			$digits = '0' . substr($digits, 2);
+		}
+		if (!preg_match('/^0[35789]\d{8}$/', $digits)) {
+			return '';
+		}
+		return $digits;
+	}
+
+	/**
+	 * Biến thể digits để so khớp cột phone (0… / 84… / không 0).
+	 * @return string[]
+	 */
+	public static function phoneMatchVariants($phone) {
+		$norm = self::normalizeVnPhone($phone);
+		if ($norm === '') {
+			$digits = preg_replace('/\D+/', '', (string) $phone);
+			return $digits !== '' ? array($digits) : array();
+		}
+		$variants = array($norm, '84' . substr($norm, 1), substr($norm, 1));
+		return array_values(array_unique($variants));
+	}
+
+	/**
+	 * Gắn zalo_user_id lên lead Offline cùng SĐT (chỉ khi đang trống).
+	 * Gọi từ OA webhook khi có phone + oa_user_id.
+	 *
+	 * @return array{updated:int,lead_ids:int[]}
+	 */
+	public static function linkZaloUserIdByPhone($phone, $oaUserId, $excludeLeadId = null) {
+		self::installSchema();
+		$oaUserId = trim((string) $oaUserId);
+		$variants = self::phoneMatchVariants($phone);
+		if ($oaUserId === '' || empty($variants)) {
+			return array('updated' => 0, 'lead_ids' => array());
+		}
+		$adb = PearDatabase::getInstance();
+		$ph = implode(',', array_fill(0, count($variants), '?'));
+		$params = $variants;
+		$sql = "SELECT p.leadid, p.zalo_user_id, p.offline_status, p.sheet_source
+			FROM bace_lead_profile p
+			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
+			LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = p.leadid
+			WHERE p.is_modern = 1
+			  AND REPLACE(REPLACE(REPLACE(REPLACE(IFNULL(la.phone,''),' ',''),'-',''),'.',''),'+','') IN ($ph)
+			  AND (p.zalo_user_id IS NULL OR p.zalo_user_id = '')
+			  AND (
+				(p.offline_status IS NOT NULL AND p.offline_status <> '')
+				OR IFNULL(p.sheet_source, 0) = 1
+				OR EXISTS (
+					SELECT 1 FROM vtiger_freetagged_objects fo
+					INNER JOIN vtiger_freetags t ON t.id = fo.tag_id
+					WHERE fo.object_id = p.leadid
+					  AND (LOWER(t.tag) = 'mien_phi_offline' OR LOWER(t.tag) LIKE 'offline_%')
+				)
+			  )";
+		if ($excludeLeadId) {
+			$sql .= ' AND p.leadid != ?';
+			$params[] = (int) $excludeLeadId;
+		}
+		$res = $adb->pquery($sql, $params);
+		$updated = array();
+		$now = date('Y-m-d H:i:s');
+		if ($res) {
+			$n = $adb->num_rows($res);
+			for ($i = 0; $i < $n; $i++) {
+				$leadId = (int) $adb->query_result($res, $i, 'leadid');
+				if ($leadId <= 0) {
+					continue;
+				}
+				$adb->pquery(
+					'UPDATE bace_lead_profile SET zalo_user_id = ?, modified_at = ? WHERE leadid = ?
+					 AND (zalo_user_id IS NULL OR zalo_user_id = \'\')',
+					array($oaUserId, $now, $leadId)
+				);
+				$updated[] = $leadId;
+			}
+		}
+		return array('updated' => count($updated), 'lead_ids' => $updated);
+	}
+
+	/**
+	 * Lazy: nếu lead thiếu OA id, copy từ lead khác cùng SĐT đã có id.
+	 * @return string zalo_user_id (có thể rỗng)
+	 */
+	public static function ensureZaloUserId($leadId) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return '';
+		}
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT p.zalo_user_id, la.phone
+			 FROM bace_lead_profile p
+			 LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = p.leadid
+			 WHERE p.leadid = ? LIMIT 1',
+			array($leadId)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return '';
+		}
+		$cur = trim((string) $adb->query_result($res, 0, 'zalo_user_id'));
+		if ($cur !== '') {
+			return $cur;
+		}
+		$phone = (string) $adb->query_result($res, 0, 'phone');
+		$variants = self::phoneMatchVariants($phone);
+		if (empty($variants)) {
+			return '';
+		}
+		$ph = implode(',', array_fill(0, count($variants), '?'));
+		$params = $variants;
+		$params[] = $leadId;
+		$peer = $adb->pquery(
+			"SELECT p.zalo_user_id
+			 FROM bace_lead_profile p
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
+			 LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = p.leadid
+			 WHERE p.is_modern = 1
+			   AND p.zalo_user_id IS NOT NULL AND p.zalo_user_id <> ''
+			   AND REPLACE(REPLACE(REPLACE(REPLACE(IFNULL(la.phone,''),' ',''),'-',''),'.',''),'+','') IN ($ph)
+			   AND p.leadid != ?
+			 ORDER BY (CASE WHEN p.online_path = 'oa' THEN 0 ELSE 1 END), p.leadid DESC
+			 LIMIT 1",
+			$params
+		);
+		if (!$peer || $adb->num_rows($peer) < 1) {
+			return '';
+		}
+		$uid = trim((string) $adb->query_result($peer, 0, 'zalo_user_id'));
+		if ($uid === '') {
+			return '';
+		}
+		$adb->pquery(
+			'UPDATE bace_lead_profile SET zalo_user_id = ?, modified_at = ? WHERE leadid = ?
+			 AND (zalo_user_id IS NULL OR zalo_user_id = \'\')',
+			array($uid, date('Y-m-d H:i:s'), $leadId)
+		);
+		return $uid;
+	}
+
+	/**
+	 * Đăng ký cron Step2 + Step4 (15 phút) vào vtiger_cron_task.
+	 */
+	public static function registerReminderCrons() {
+		require_once 'vtlib/Vtiger/Cron.php';
+		$jobs = array(
+			array(
+				'name' => 'OfflineGd11Step2Reminders',
+				'handler' => 'cron/modules/Leads/OfflineGd11Step2Reminders.service',
+				'desc' => 'GD 1.1 Bước 2 — nhắc trước lớp (OA/Calendar)',
+			),
+			array(
+				'name' => 'OfflineGd11Step4Reminders',
+				'handler' => 'cron/modules/Leads/OfflineGd11Step4Reminders.service',
+				'desc' => 'GD 1.1 Bước 4 — CSKH sau lớp / no-show',
+			),
+		);
+		foreach ($jobs as $job) {
+			$existing = Vtiger_Cron::getInstance($job['name']);
+			if ($existing) {
+				continue;
+			}
+			// 900s = 15 phút
+			Vtiger_Cron::register($job['name'], $job['handler'], 900, 'Leads', 1, 0, $job['desc']);
+		}
+	}
+
 	public static function setClassDatePublic($leadId, $classDate) {
 		self::setClassDate($leadId, $classDate);
 	}
