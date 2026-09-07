@@ -664,7 +664,7 @@ body[data-module="Home"][data-view="MainPage"] .mk-mp-hero {
 	justify-content: space-between;
 	gap: 16px 24px;
 	flex-wrap: wrap;
-	padding: 8px 2px 0;
+	padding: 0 2px;
 }
 
 body[data-module="Home"][data-view="MainPage"] .mk-mp-brand {
@@ -695,11 +695,52 @@ body[data-module="Home"][data-view="MainPage"] .mk-mp-hello-sub {
 }
 
 body[data-module="Home"][data-view="MainPage"] .mk-mp-filters .mk-mainpage-filter-row {
-	border: none !important;
-	background: rgba(15, 23, 42, 0.88) !important;
+	border: 1px solid #e2e8f0 !important;
+	background: rgba(255, 255, 255, 0.92) !important;
 	border-radius: 16px !important;
-	padding: 12px 14px !important;
-	box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18) !important;
+	padding: 10px 12px !important;
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06) !important;
+	backdrop-filter: blur(8px);
+}
+
+body[data-module="Home"][data-view="MainPage"] .mk-mp-filters .mk-mainpage-filter-field .mainpage-global-filter-label {
+	color: #64748b !important;
+	font-size: 10px !important;
+	letter-spacing: 0.04em !important;
+}
+
+body[data-module="Home"][data-view="MainPage"] .mk-mp-filters .mk-mainpage-filter-field .mainpage-global-filter-select,
+body[data-module="Home"][data-view="MainPage"] .mk-mp-filters .mk-mainpage-filter-field .mainpage-global-filter-date {
+	background: #f8fafc !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 10px !important;
+	color: #0f172a !important;
+	min-height: 34px !important;
+	height: 34px !important;
+	font-size: 12px !important;
+}
+
+body[data-module="Home"][data-view="MainPage"] .mk-mp-filters .mk-mainpage-filter-field .mainpage-global-filter-select:focus,
+body[data-module="Home"][data-view="MainPage"] .mk-mp-filters .mk-mainpage-filter-field .mainpage-global-filter-date:focus {
+	border-color: #0B6E4F !important;
+	box-shadow: 0 0 0 2px rgba(11, 110, 79, 0.15) !important;
+}
+
+body[data-module="Home"][data-view="MainPage"] .mk-mp-filters .mainpage-global-filter-btn {
+	background: #0B6E4F !important;
+	border: 1px solid #0B6E4F !important;
+	border-radius: 10px !important;
+	color: #ffffff !important;
+	min-height: 34px !important;
+	height: 34px !important;
+	font-size: 11px !important;
+	letter-spacing: 0.04em !important;
+}
+
+body[data-module="Home"][data-view="MainPage"] .mk-mp-filters .mainpage-global-filter-btn:hover {
+	background: #095c42 !important;
+	border-color: #095c42 !important;
+	color: #ffffff !important;
 }
 
 body[data-module="Home"][data-view="MainPage"] .mk-mp-actions {
