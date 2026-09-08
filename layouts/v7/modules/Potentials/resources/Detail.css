@@ -220,7 +220,7 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
  * ========================================================================== */
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-breadcrumb {
-	margin: 0 0 10px;
+	margin: 0 0 12px;
 }
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-breadcrumb__list {
@@ -230,34 +230,48 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 4px 8px;
-	font-size: 13px;
+	gap: 2px 6px;
+	font-size: 12px;
 	font-weight: 500;
-	color: #6b6358;
+	letter-spacing: 0.01em;
+	line-height: 1.35;
+	color: #94a3b8;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-breadcrumb__item,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-breadcrumb__sep {
+	display: inline-flex;
+	align-items: center;
+	margin: 0;
+	padding: 0;
+	line-height: 1.35;
 }
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-breadcrumb__item a {
-	color: #504533;
+	color: #64748b;
 	text-decoration: none;
+	line-height: inherit;
 }
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-breadcrumb__item a:hover {
-	color: #08A045;
-	text-decoration: underline;
+	color: #0f766e;
+	text-decoration: none;
 }
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-breadcrumb__item--current .mk-opportunity-detail-breadcrumb__text {
-	color: #8a7d6e;
+	color: #334155 !important;
+	font-weight: 600 !important;
 	max-width: min(520px, 55vw);
-	display: inline-block;
-	vertical-align: bottom;
+	display: inline !important;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	line-height: inherit !important;
+	vertical-align: baseline !important;
 }
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-breadcrumb__sep {
-	color: #d4c4ad;
+	color: #cbd5e1;
 	user-select: none;
 }
 
@@ -303,7 +317,7 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__identity {
 	display: flex;
 	flex-direction: row;
-	align-items: center;
+	align-items: flex-start;
 	gap: 16px;
 	min-width: 0;
 }
@@ -322,6 +336,7 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 	flex-shrink: 0;
 	overflow: hidden;
 	box-shadow: none;
+	margin-top: 2px;
 }
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__icon .mk-opportunity-detail-hero__icon-glyph,
@@ -379,7 +394,7 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 6px 14px;
+	gap: 4px 0;
 	margin-top: 0;
 }
 
@@ -388,7 +403,7 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px 14px;
-	margin-top: 8px;
+	margin-top: 6px;
 }
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__title-row {
@@ -408,8 +423,21 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 	gap: 6px;
 	font-size: 13px;
 	font-weight: 500;
-	color: #5b5b5b;
+	color: #64748b;
 	line-height: 1.35;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__meta-item:not(:first-child)::before {
+	content: "·";
+	display: inline-block;
+	margin: 0 10px 0 8px;
+	color: #cbd5e1;
+	font-weight: 700;
+	line-height: 1;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__meta-item:hover {
+	color: #334155;
 }
 
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__meta-item i {
@@ -495,15 +523,15 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 }
 
 /* Tags inline with meta (Leads style) — no separator strip */
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags,
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags--inline {
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags),
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags)--inline {
 	margin: 0;
 	padding: 0;
 	border: none;
 	border-bottom: none;
 }
 
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tagContainer {
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tagContainer {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -511,8 +539,8 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 	margin: 0;
 }
 
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag-contents,
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags #addTagContainer {
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag-contents,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) #addTagContainer {
 	margin: 0;
 	display: inline-flex;
 	align-items: center;
@@ -520,14 +548,14 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 	gap: 6px;
 }
 
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .detailTagList {
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .detailTagList {
 	display: inline-flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 6px;
 }
 
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .detailTagList {
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .detailTagList {
 	display: inline-flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -535,7 +563,7 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 }
 
 /* Tag chips (make them colorful like Leads) */
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag {
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
@@ -549,7 +577,7 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 	border: 1px solid #e2e8f0;
 }
 
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag .tagLabel {
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag .tagLabel {
 	max-width: none !important;
 	white-space: nowrap !important;
 	overflow: visible !important;
@@ -558,11 +586,11 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 	vertical-align: baseline !important;
 }
 
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .moreTags {
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .moreTags {
 	display: none !important;
 }
 
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag a {
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag a {
 	color: inherit;
 	opacity: 0.65;
 	text-decoration: none;
@@ -570,69 +598,86 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 }
 
 /* Tag palette — MUST match Lead Create/Edit (LeadsMkEdit.css .mk-td-tag-pill[data-tag=...]) */
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="individual"] { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="company"] { background: #ede9fe; border-color: #c4b5fd; color: #6d28d9; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="vang"] { background: #fef9c3; border-color: #facc15; color: #713f12; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="bac"] { background: #f1f5f9; border-color: #94a3b8; color: #334155; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="dong"] { background: #ffedd5; border-color: #fb923c; color: #9a3412; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="facebook"] { background: #dbeafe; border-color: #60a5fa; color: #1d4ed8; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="tiktok"] { background: #fce7f3; border-color: #f9a8d4; color: #9d174d; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="website"] { background: #d1fae5; border-color: #6ee7b7; color: #047857; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="zalo"] { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="mua_lan_dau"] { background: #d1fae5; border-color: #6ee7b7; color: #047857; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="mua_lai"] { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="khong_mua"] { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="ngung_mua"] { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="chua_hoc"],
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="da_hoc"],
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="nguyen_lieu_chuoi"] { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="mien_phi_online"],
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="mien_phi_offline"] { background: #e0e7ff; border-color: #a5b4fc; color: #4338ca; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="pcth"] { background: #f3f4f6; border-color: #d1d5db; color: #374151; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="kv1"],
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="kv2"],
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="kv3"] { background: #ecfdf5; border-color: #6ee7b7; color: #047857; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="van_hanh"],
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="mkt"],
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="lop_khac"] { background: #ede9fe; border-color: #c4b5fd; color: #6d28d9; }
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .tag[data-tag="nhuong_quyen"] { background: #ffe4e6; border-color: #fda4af; color: #be123c; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="individual"] { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="company"] { background: #ede9fe; border-color: #c4b5fd; color: #6d28d9; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="vang"] { background: #fef9c3; border-color: #facc15; color: #713f12; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="bac"] { background: #f1f5f9; border-color: #94a3b8; color: #334155; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="dong"] { background: #ffedd5; border-color: #fb923c; color: #9a3412; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="facebook"] { background: #dbeafe; border-color: #60a5fa; color: #1d4ed8; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="tiktok"] { background: #fce7f3; border-color: #f9a8d4; color: #9d174d; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="website"] { background: #d1fae5; border-color: #6ee7b7; color: #047857; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="zalo"] { background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="mua_lan_dau"] { background: #d1fae5; border-color: #6ee7b7; color: #047857; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="mua_lai"] { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="khong_mua"] { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="ngung_mua"] { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="chua_hoc"],
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="da_hoc"],
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="nguyen_lieu_chuoi"] { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="mien_phi_online"],
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="mien_phi_offline"] { background: #e0e7ff; border-color: #a5b4fc; color: #4338ca; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="pcth"] { background: #f3f4f6; border-color: #d1d5db; color: #374151; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="kv1"],
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="kv2"],
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="kv3"] { background: #ecfdf5; border-color: #6ee7b7; color: #047857; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="van_hanh"],
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="mkt"],
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="lop_khac"] { background: #ede9fe; border-color: #c4b5fd; color: #6d28d9; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="nhuong_quyen"] { background: #ffe4e6; border-color: #fda4af; color: #be123c; }
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag^="offline_"] { background: #ffedd5; border-color: #fdba74; color: #9a3412; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="offline_da_tham_gia"],
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="offline_da_xac_nhan_lich"] { background: #dcfce7; border-color: #86efac; color: #166534; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="offline_ngung_cskh"],
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="offline_khong_tham_gia"] { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="tiem_nang"] { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="sieu_tiem_nang"] { background: #fef3c7; border-color: #fcd34d; color: #b45309; }
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag .activeToggleIcon,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag .editTag {
+	display: none !important;
+}
 
 /* Fallback: if a tag is unknown, keep neutral chip (no random colors). */
 
 /* "+ Thêm thẻ" add tag button: match Leads dashed chip */
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags #addTagContainer > a,
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags #addTagContainer a,
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .mk-opp-add-tag-btn {
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) #addTagContainer > a,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) #addTagContainer a,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .mk-opp-add-tag-btn {
 	display: inline-flex;
 	align-items: center;
-	gap: 6px;
-	padding: 4px 10px;
+	justify-content: center;
+	gap: 0;
+	width: 28px;
+	height: 28px;
+	padding: 0;
 	border-radius: 999px;
 	border: 1px dashed rgba(15, 118, 110, 0.35) !important;
 	background: transparent !important;
 	color: #0f766e !important;
 	font-weight: 650;
 	font-size: 12px;
+	line-height: 1;
 	text-decoration: none;
 }
 
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags #addTagContainer a:hover,
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .mk-opp-add-tag-btn:hover {
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) #addTagContainer a:hover,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .mk-opp-add-tag-btn:hover {
 	background: #eef5f1 !important;
 	border-color: rgba(15, 118, 110, 0.5) !important;
 	color: #0f766e !important;
 }
 
 /* Dark mode: keep vibrant chips */
-html[data-theme="dark"] body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .detailTagList .tag, .mk-opportunity-detail-hero__tags .tagList .tag, .mk-opportunity-detail-hero__tags .multiLevelTagList .tag,
-body[data-theme="dark"][data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .detailTagList .tag, .mk-opportunity-detail-hero__tags .tagList .tag, .mk-opportunity-detail-hero__tags .multiLevelTagList .tag,
-body.theme-dark[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .detailTagList .tag, .mk-opportunity-detail-hero__tags .tagList .tag, .mk-opportunity-detail-hero__tags .multiLevelTagList .tag {
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .detailTagList .tag, :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tagList .tag, :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .multiLevelTagList .tag,
+body[data-theme="dark"][data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .detailTagList .tag, :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tagList .tag, :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .multiLevelTagList .tag,
+body.theme-dark[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .detailTagList .tag, :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tagList .tag, :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .multiLevelTagList .tag {
 	border-color: rgba(148, 163, 184, 0.22) !important;
 }
 
-html[data-theme="dark"] body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .detailTagList .tag, .mk-opportunity-detail-hero__tags .tagList .tag, .mk-opportunity-detail-hero__tags .multiLevelTagList .tag a,
-body[data-theme="dark"][data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .detailTagList .tag, .mk-opportunity-detail-hero__tags .tagList .tag, .mk-opportunity-detail-hero__tags .multiLevelTagList .tag a,
-body.theme-dark[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__tags .detailTagList .tag, .mk-opportunity-detail-hero__tags .tagList .tag, .mk-opportunity-detail-hero__tags .multiLevelTagList .tag a {
+html[data-theme="dark"] body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .detailTagList .tag, :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tagList .tag, :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .multiLevelTagList .tag a,
+body[data-theme="dark"][data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .detailTagList .tag, :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tagList .tag, :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .multiLevelTagList .tag a,
+body.theme-dark[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .detailTagList .tag, :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tagList .tag, :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .multiLevelTagList .tag a {
 	color: rgba(226, 232, 240, 0.6) !important;
 }
 
@@ -3762,13 +3807,17 @@ body[data-module="Potentials"] .mk-opp-tags-modal .tag .tagLabel {
 body[data-module="Potentials"] .mk-opp-add-tag-btn {
 	display: inline-flex;
 	align-items: center;
-	gap: 4px;
-	padding: 4px 10px;
+	justify-content: center;
+	gap: 0;
+	width: 28px;
+	height: 28px;
+	padding: 0;
 	border-radius: 999px;
-	background: #fff !important;
-	border: 1px dashed #a8a29e !important;
-	color: #57534e !important;
-	font-weight: 600;
+	background: transparent !important;
+	border: 1px dashed rgba(15, 118, 110, 0.35) !important;
+	color: #0f766e !important;
+	font-weight: 650;
+	line-height: 1;
 }
 body[data-module="Potentials"] #mk-opp-section-purchases {
 	display: none !important;
@@ -4003,10 +4052,10 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] #mkOppCallC
 	padding: 12px 16px 16px;
 }
 
-/* KPI strip — match Leads detail */
+/* KPI strip — Thẻ / Nguồn / Khu vực */
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kpi {
 	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+	grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
 	gap: 12px;
 	margin: 4px 0 14px;
 }
@@ -4045,17 +4094,75 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportu
 	white-space: nowrap;
 }
 
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kpi__card--value .mk-opportunity-detail-kpi__value {
-	color: #0f766e;
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kpi__card--tags {
+	justify-content: flex-start;
+	min-width: 0;
 }
 
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__meta-ic {
-	display: none !important;
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kpi__tags {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 8px;
+	min-width: 0;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kpi__tags .tagContainer,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kpi__tags .tag-contents,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kpi__tags #addTagContainer,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kpi__tags .detailTagList {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kpi__tags .tag {
+	margin: 0;
+	line-height: 1.25;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kpi__tags .mk-opp-add-tag-btn,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kpi__tags #addTagContainer > a {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0;
+	width: 28px;
+	height: 28px;
+	padding: 0 !important;
+	border-radius: 999px;
+	border: 1px dashed rgba(15, 118, 110, 0.35) !important;
+	background: transparent !important;
+	color: #0f766e !important;
+	font-weight: 650;
+	font-size: 12px;
+	line-height: 1;
+	text-decoration: none;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kpi__tags .mk-opp-add-tag-btn .fa,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kpi__tags #addTagContainer > a .fa {
+	margin: 0;
+	font-size: 12px;
+	line-height: 1;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__meta-ic,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__meta-ic .mk-opportunity-detail-svg {
+	display: inline-flex !important;
+	color: #94a3b8 !important;
+}
+
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__meta-item:hover .mk-opportunity-detail-hero__meta-ic,
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-hero__meta-item:hover .mk-opportunity-detail-hero__meta-ic .mk-opportunity-detail-svg {
+	color: #64748b !important;
 }
 
 @media (max-width: 900px) {
 	body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .mk-opportunity-detail-kpi {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+		grid-template-columns: 1fr;
 	}
 }
 

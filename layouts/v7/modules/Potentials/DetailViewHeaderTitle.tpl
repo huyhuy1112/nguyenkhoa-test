@@ -68,23 +68,23 @@
 				<div class="mk-opportunity-detail-hero__meta-row">
 					<div class="mk-opportunity-detail-hero__meta">
 						{if !empty($MK_OPP_ADDR)}
-							<span class="mk-opportunity-detail-hero__meta-item" title="{vtranslate('LBL_MK_OPP_ADDRESS', 'Potentials')}">
+							<span class="mk-opportunity-detail-hero__meta-item mk-opportunity-detail-hero__meta-item--addr" title="{vtranslate('LBL_MK_OPP_ADDRESS', 'Potentials')}">
+								<span class="mk-opportunity-detail-hero__meta-ic" aria-hidden="true">{include file="partials/OpportunityDetailSvgIcon.tpl"|@vtemplate_path:'Potentials' ICON='LOCATION'}</span>
 								<span class="mk-opportunity-detail-hero__meta-text">{$MK_OPP_ADDR|escape:'html'}</span>
 							</span>
 						{/if}
 						{if !empty($MK_OPP_CLOSE_DATE)}
 							<span class="mk-opportunity-detail-hero__meta-item mk-opportunity-detail-hero__meta-item--date" title="{vtranslate('closingdate', $MODULE)}">
+								<span class="mk-opportunity-detail-hero__meta-ic" aria-hidden="true">{include file="partials/OpportunityDetailSvgIcon.tpl"|@vtemplate_path:'Potentials' ICON='CALENDAR'}</span>
 								<span class="mk-opportunity-detail-hero__meta-text">{$MK_OPP_CLOSE_DATE|escape:'html'}</span>
 							</span>
 						{/if}
 						{if !empty($MK_OPP_OWNER)}
 							<span class="mk-opportunity-detail-hero__meta-item mk-opportunity-detail-hero__meta-item--owner" title="{vtranslate('assigned_user_id', $MODULE)}">
+								<span class="mk-opportunity-detail-hero__meta-ic" aria-hidden="true">{include file="partials/OpportunityDetailSvgIcon.tpl"|@vtemplate_path:'Potentials' ICON='USER'}</span>
 								<span class="mk-opportunity-detail-hero__meta-text">{$MK_OPP_OWNER|escape:'html'}</span>
 							</span>
 						{/if}
-					</div>
-					<div class="mk-opportunity-detail-hero__tags mk-opportunity-detail-hero__tags--inline">
-						{include file="DetailViewTagList.tpl"|vtemplate_path:$MODULE}
 					</div>
 				</div>
 			</div>
