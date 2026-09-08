@@ -38,7 +38,7 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-dash-main.m
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .main-container.mk-qt-detail-page {
 	width: 100%;
-	max-width: 1232px;
+	max-width: none;
 	margin-left: auto !important;
 	margin-right: auto !important;
 	padding-top: 24px !important;
@@ -111,7 +111,7 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] #page > .app-fo
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] {
-	font-family: Inter, system-ui, -apple-system, sans-serif;
+	font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
 	color: #2b2b2b;
 }
 
@@ -404,7 +404,7 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-h
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-hero__title {
-	font-family: "Space Grotesk", Inter, sans-serif !important;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
 	font-size: 28px !important;
 	line-height: 36px !important;
 	font-weight: 600 !important;
@@ -775,7 +775,7 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-r
 	min-height: 48px;
 	height: 48px;
 	overflow-x: auto;
-	overflow-y: visible;
+	overflow-y: hidden;
 	gap: 0;
 	scrollbar-width: thin;
 	-webkit-overflow-scrolling: touch;
@@ -982,31 +982,26 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid--slim {
 	margin: 20px 0 0;
 	display: grid;
-	grid-template-columns: minmax(0, 1.55fr) minmax(260px, 0.85fr);
-	grid-template-areas:
-		"key activities"
-		"documents documents";
-	gap: 16px;
-	align-items: start;
+	grid-template-columns: minmax(260px, 0.95fr) minmax(360px, 1.35fr) minmax(260px, 0.95fr);
+	grid-template-areas: none;
+	gap: 14px;
+	align-items: stretch;
 	width: 100%;
+	max-width: none;
 	min-width: 0;
 	box-sizing: border-box;
 }
 
-body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid__key {
-	grid-area: key;
-}
-
-body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid__activities {
-	grid-area: activities;
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid__key,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid__activities,
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid__documents {
+	grid-area: auto;
+	width: 100%;
+	max-width: none;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid__overview {
 	display: none !important;
-}
-
-body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid__documents {
-	grid-area: documents;
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid__comments {
@@ -1022,10 +1017,7 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-c
 	body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid,
 	body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-summary-grid--slim {
 		grid-template-columns: 1fr;
-		grid-template-areas:
-			"key"
-			"activities"
-			"documents";
+		grid-template-areas: none;
 	}
 }
 
@@ -1137,7 +1129,7 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-c
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-card__title {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 12px;
 	font-weight: 700;
 	margin: 0;
@@ -1364,7 +1356,7 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-c
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-related-activities .widget_header h4,
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-related-activities .widget_header h4.display-inline-block,
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-related-activities .widget_header h4.mk-qt-detail-activities__title {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 12px;
 	font-weight: 700;
 	line-height: 1.2;
@@ -1593,7 +1585,7 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-d
 	padding: 10px 12px;
 	min-height: 56px;
 	max-height: none;
-	overflow-y: visible;
+	overflow-y: hidden;
 	border: 1px dashed #d8cfc3;
 	border-radius: 10px;
 	margin: 0;
@@ -1840,7 +1832,7 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-d
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-details-row #detailView .block > div:first-child h4 {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 12px;
 	font-weight: 700;
 	margin: 0 0 12px;
@@ -2648,7 +2640,7 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-d
 	border: none !important;
 	border-bottom: 1px solid #eef1f4 !important;
 	padding: 12px 14px !important;
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 11px !important;
 	font-weight: 700 !important;
 	letter-spacing: 0.06em;
@@ -3179,7 +3171,7 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-d
 	margin: 0 0 10px;
 	width: 100%;
 	text-align: center;
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 20px;
 	font-weight: 700;
 	color: #2b2b2b;

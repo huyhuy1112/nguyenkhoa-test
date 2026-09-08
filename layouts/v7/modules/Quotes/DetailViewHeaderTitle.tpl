@@ -19,19 +19,19 @@
 	{* getDisplayValue reference trả về HTML <a> — strip thành plain text cho hero *}
 	{assign var=ACC_FIELD value=$MODULE_MODEL->getField('account_id')}
 	{if $ACC_FIELD && $ACC_FIELD->getPermissions()}
-		{assign var=MK_QT_ACCOUNT value=$RECORD->getDisplayValue('account_id')|strip_tags|trim}
+		{assign var=MK_QT_ACCOUNT value=$RECORD->getDisplayValue('account_id')|strip_tags|decode_html|trim}
 	{/if}
 	{assign var=CON_FIELD value=$MODULE_MODEL->getField('contact_id')}
 	{if $CON_FIELD && $CON_FIELD->getPermissions()}
-		{assign var=MK_QT_CONTACT value=$RECORD->getDisplayValue('contact_id')|strip_tags|trim}
+		{assign var=MK_QT_CONTACT value=$RECORD->getDisplayValue('contact_id')|strip_tags|decode_html|trim}
 	{/if}
 	{assign var=POT_FIELD value=$MODULE_MODEL->getField('potential_id')}
 	{if $POT_FIELD && $POT_FIELD->getPermissions()}
-		{assign var=MK_QT_POTENTIAL value=$RECORD->getDisplayValue('potential_id')|strip_tags|trim}
+		{assign var=MK_QT_POTENTIAL value=$RECORD->getDisplayValue('potential_id')|strip_tags|decode_html|trim}
 	{/if}
 	{assign var=TOT_FIELD value=$MODULE_MODEL->getField('hdnGrandTotal')}
 	{if $TOT_FIELD && $TOT_FIELD->getPermissions()}
-		{assign var=MK_QT_TOTAL value=$RECORD->getDisplayValue('hdnGrandTotal')|strip_tags|trim}
+		{assign var=MK_QT_TOTAL value=$RECORD->getDisplayValue('hdnGrandTotal')|strip_tags|decode_html|trim}
 	{/if}
 	<div class="mk-qt-detail-hero__left">
 		<div class="mk-qt-detail-hero__identity clearfix">
@@ -61,14 +61,16 @@
 						{if $NAME_FIELD ne 'subject'}
 							{assign var=FIELD_MODEL value=$MODULE_MODEL->getField($NAME_FIELD)}
 							{if $FIELD_MODEL && $FIELD_MODEL->getPermissions()}
-								{assign var=MK_HERO_TITLE value=decode_html(trim($RECORD->get($NAME_FIELD)))|strip_tags|trim}
+								{assign var=MK_HERO_TITLE value=$RECORD->get($NAME_FIELD)|decode_html|strip_tags|trim}
 							{/if}
 						{/if}
 					{/foreach}
 				{/if}
 				{if $MK_HERO_TITLE eq '' || $MK_HERO_TITLE eq '--'}
-					{assign var=MK_HERO_TITLE value=$RECORD->getDisplayValue('quote_no')|strip_tags|trim}
+					{assign var=MK_HERO_TITLE value=$RECORD->getDisplayValue('quote_no')|strip_tags|decode_html|trim}
 				{/if}
+				{assign var=MK_HERO_TITLE value=$MK_HERO_TITLE|decode_html|trim}
+				{assign var=MK_QT_STAGE_LABEL value=$MK_QT_STAGE_LABEL|decode_html|trim}
 				<h1 class="mk-qt-detail-hero__title">
 					<span class="recordLabel" title="{$MK_HERO_TITLE|escape:'html'}">
 						<span class="account_id">{$MK_HERO_TITLE|escape:'html'}</span>
@@ -79,7 +81,7 @@
 						<span class="mk-qt-detail-hero__converted-badge" title="Báo giá đã chuyển thành đơn hàng">Đã chuyển đơn hàng</span>
 					{/if}
 					{if $MK_QT_STAGE_LABEL ne ''}
-						<span class="mk-qt-detail-hero__quote-stage" title="{vtranslate('quotestage', $MODULE)}">{$MK_QT_STAGE_LABEL}</span>
+						<span class="mk-qt-detail-hero__quote-stage" title="{vtranslate('quotestage', $MODULE)}">{$MK_QT_STAGE_LABEL|escape:'html'}</span>
 					{/if}
 					{if $MK_QT_CONTACT ne '' && $MK_QT_CONTACT ne $MK_HERO_TITLE}
 						<span class="mk-qt-detail-hero__meta-item mk-qt-detail-hero__meta-item--contact" title="{vtranslate('contact_id', $MODULE)}">

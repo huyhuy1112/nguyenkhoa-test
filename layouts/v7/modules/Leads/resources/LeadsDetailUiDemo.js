@@ -652,6 +652,97 @@
 			.replace(/^-|-$/g, '');
 	}
 
+	/** Display-only workflow stages for Detail stage bar (UI). */
+	var DETAIL_STAGE_STEPS = [
+		{ key: 'new', labels: ['new', 'moi', 'new purchase', 'mới', 'new-purchase'], label: 'Mới' },
+		{ key: 'consulting', labels: ['dang tu van', 'đang tư vấn', 'consulting', 'qualification', 'prospecting'], label: 'Đang tư vấn' },
+		{ key: 'quoted', labels: ['da bao gia', 'đã báo giá', 'quoted', 'proposal', 'value proposition'], label: 'Đã báo giá' },
+		{ key: 'closing', labels: ['da hen lop', 'đã hẹn lớp', 'negotiation', 'closing', 'da chot', 'đã chốt', 'closed won'], label: 'Đã chốt' },
+		{ key: 'lost', labels: ['khong mua', 'không mua', 'closed lost', 'lost'], label: 'Không mua' },
+	];
+
+	function resolveStageIndex(lead) {
+		var raw = String((lead && (lead.leadstatus || lead.stage)) || '')
+			.toLowerCase()
+			.replace(/đ/g, 'd')
+			.replace(/[^a-z0-9]+/g, ' ')
+			.replace(/\s+/g, ' ')
+			.trim();
+		var i;
+		var j;
+		for (i = 0; i < DETAIL_STAGE_STEPS.length; i++) {
+			var labels = DETAIL_STAGE_STEPS[i].labels;
+			for (j = 0; j < labels.length; j++) {
+				var needle = String(labels[j])
+					.toLowerCase()
+					.replace(/đ/g, 'd')
+					.replace(/[^a-z0-9]+/g, ' ')
+					.replace(/\s+/g, ' ')
+					.trim();
+				if (raw && needle && (raw === needle || raw.indexOf(needle) !== -1 || needle.indexOf(raw) !== -1)) {
+					return i;
+				}
+			}
+		}
+		return 0;
+	}
+
+	function renderStageBar(lead) {
+		var host = byId('mk-ld-ui-stagebar');
+		if (!host) return;
+		var active = resolveStageIndex(lead);
+		var html = '<ol class="mk-lead-stagebar__list">';
+		DETAIL_STAGE_STEPS.forEach(function (step, idx) {
+			var cls = 'mk-lead-stagebar__step';
+			if (idx < active) cls += ' is-done';
+			if (idx === active) cls += ' is-active';
+			html +=
+				'<li class="' +
+				cls +
+				'" data-stage="' +
+				esc(step.key) +
+				'"><span class="mk-lead-stagebar__dot" aria-hidden="true"></span><span class="mk-lead-stagebar__label">' +
+				esc(step.label) +
+				'</span></li>';
+		});
+		html += '</ol>';
+		host.innerHTML = html;
+	}
+
+	function renderKpiStrip(lead) {
+		var host = byId('mk-ld-ui-kpi');
+		if (!host) return;
+		var area =
+			lead.district ||
+			(lead.area && String(lead.area).split(',')[0]) ||
+			'—';
+		var score =
+			lead.verify_score != null && lead.verify_score !== ''
+				? String(lead.verify_score)
+				: lead.potential_label
+					? String(lead.potential_label)
+					: '—';
+		var cards = [
+			{ label: 'Điểm / tiềm năng', value: score, tone: 'score' },
+			{ label: 'Giá trị', value: formatVnd(lead.value) || '—', tone: 'value' },
+			{ label: 'Nguồn', value: lead.leadsource || '—', tone: 'source' },
+			{ label: 'Khu vực', value: area, tone: 'area' },
+		];
+		host.innerHTML = cards
+			.map(function (c) {
+				return (
+					'<div class="mk-lead-kpi__card mk-lead-kpi__card--' +
+					esc(c.tone) +
+					'"><span class="mk-lead-kpi__label">' +
+					esc(c.label) +
+					'</span><strong class="mk-lead-kpi__value">' +
+					esc(c.value) +
+					'</strong></div>'
+				);
+			})
+			.join('');
+	}
+
 	function cloneLeadData(lead) {
 		return {
 			id: lead.id,
@@ -1520,17 +1611,21 @@
 		if (!host) return;
 		var html = '';
 		if (lead.phone) {
-			html += '<span class="mk-lead-detail-hero__meta-item"><span class="mk-lead-detail-hero__meta-text">' + esc(lead.phone) + '</span></span>';
-		}
-		if (lead.closeDate) {
-			html += '<span class="mk-lead-detail-hero__meta-item mk-lead-detail-hero__meta-item--date"><span class="mk-lead-detail-hero__meta-text">' + esc(lead.closeDate) + '</span></span>';
-		}
-		if (lead.leadstatus) {
 			html +=
-				'<span class="mk-lead-detail-hero__stage mk-lead-stage-pill mk-lead-stage-pill--' +
-				stageKey(lead.leadstatus) +
-				'"><span class="mk-lead-stage-pill__dot" aria-hidden="true"></span><span class="mk-lead-stage-pill__text">' +
-				esc(lead.leadstatus) +
+				'<span class="mk-lead-detail-hero__meta-item"><span class="mk-lead-detail-hero__meta-text">' +
+				esc(lead.phone) +
+				'</span></span>';
+		}
+		if (lead.email) {
+			html +=
+				'<span class="mk-lead-detail-hero__meta-item"><span class="mk-lead-detail-hero__meta-text">' +
+				esc(lead.email) +
+				'</span></span>';
+		}
+		if (lead.owner) {
+			html +=
+				'<span class="mk-lead-detail-hero__meta-item mk-lead-detail-hero__meta-item--owner"><span class="mk-lead-detail-hero__meta-text">' +
+				esc(lead.owner) +
 				'</span></span>';
 		}
 		host.innerHTML = html;
@@ -2754,6 +2849,7 @@
 			}
 		}
 		renderHeroMeta(lead);
+		renderKpiStrip(lead);
 		renderKeyFields(lead);
 		renderVerifyPanel(lead);
 		renderDetailFields(lead);
@@ -2771,7 +2867,7 @@
 
 	function markReady() {
 		document.body.classList.remove('mk-lead-detail-ui-loading');
-		document.body.classList.add('mk-lead-detail-ui-ready', 'mk-lead-detail-sales');
+		document.body.classList.add('mk-lead-detail-ui-ready', 'mk-lead-detail-sales', 'mk-ld-v4-ready');
 	}
 
 	function boot() {

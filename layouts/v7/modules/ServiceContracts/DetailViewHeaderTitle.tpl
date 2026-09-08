@@ -8,17 +8,17 @@
 	{assign var=MK_REL_FNAME value='sc_related_to'}
 	{assign var=STATUS_FIELD value=$MODULE_MODEL->getField('contract_status')}
 	{if $STATUS_FIELD && $STATUS_FIELD->getPermissions()}
-		{assign var=MK_SC_STATUS value=$RECORD->getDisplayValue('contract_status')|trim}
+		{assign var=MK_SC_STATUS value=$RECORD->getDisplayValue('contract_status')|strip_tags|decode_html|trim}
 	{/if}
 	{assign var=REL_FIELD value=$MODULE_MODEL->getField('sc_related_to')}
 	{if !$REL_FIELD}{assign var=REL_FIELD value=$MODULE_MODEL->getField('related_to')}{/if}
 	{if $REL_FIELD && $REL_FIELD->getPermissions()}
 		{assign var=MK_REL_FNAME value=$REL_FIELD->getName()}
-		{assign var=MK_SC_RELATED value=$RECORD->getDisplayValue($MK_REL_FNAME)|trim}
+		{assign var=MK_SC_RELATED value=$RECORD->getDisplayValue($MK_REL_FNAME)|strip_tags|decode_html|trim}
 	{/if}
 	{assign var=NO_FIELD value=$MODULE_MODEL->getField('contract_no')}
 	{if $NO_FIELD && $NO_FIELD->getPermissions()}
-		{assign var=MK_SC_CONTRACT_NO value=$RECORD->getDisplayValue('contract_no')|trim}
+		{assign var=MK_SC_CONTRACT_NO value=$RECORD->getDisplayValue('contract_no')|strip_tags|decode_html|trim}
 	{/if}
 	{assign var=START_FIELD value=$MODULE_MODEL->getField('start_date')}
 	{assign var=END_FIELD value=$MODULE_MODEL->getField('end_date')}
@@ -52,13 +52,14 @@
 				{/if}
 			</div>
 			<div class="mk-sc-detail-hero__text recordBasicInfo">
+				{assign var=MK_SC_TITLE value=$RECORD->getName()|decode_html|trim}
 				<div class="info-row mk-sc-detail-hero__name-row">
 					<h1 class="mk-sc-detail-hero__title">
-						<span class="recordLabel pushDown" title="{$RECORD->getName()|escape:'html'}">
+						<span class="recordLabel pushDown" title="{$MK_SC_TITLE|escape:'html'}">
 							{foreach item=NAME_FIELD from=$MODULE_MODEL->getNameFields()}
 								{assign var=FIELD_MODEL value=$MODULE_MODEL->getField($NAME_FIELD)}
 								{if $FIELD_MODEL->getPermissions()}
-									<span class="{$NAME_FIELD}">{decode_html(trim($RECORD->get($NAME_FIELD)))}</span>
+									<span class="{$NAME_FIELD}">{$RECORD->get($NAME_FIELD)|decode_html|trim|escape:'html'}</span>
 								{/if}
 							{/foreach}
 						</span>
@@ -66,24 +67,24 @@
 				</div>
 				<div class="mk-sc-detail-hero__meta info-row">
 					{if $MK_SC_STATUS ne ''}
-						<span class="mk-sc-stage-pill" title="{vtranslate('contract_status', $MODULE)}">{$MK_SC_STATUS}</span>
+						<span class="mk-sc-stage-pill" title="{vtranslate('contract_status', $MODULE)}">{$MK_SC_STATUS|escape:'html'}</span>
 					{/if}
 					{if $MK_SC_RELATED ne ''}
 						<span class="mk-sc-detail-hero__meta-item mk-sc-detail-hero__meta-item--org" title="{vtranslate($MK_REL_FNAME, $MODULE)}">
 							<i class="fa fa-building-o" aria-hidden="true"></i>
-							<span class="mk-sc-detail-hero__meta-text">{$MK_SC_RELATED}</span>
+							<span class="mk-sc-detail-hero__meta-text">{$MK_SC_RELATED|escape:'html'}</span>
 						</span>
 					{/if}
 					{if $MK_SC_CONTRACT_NO ne ''}
 						<span class="mk-sc-detail-hero__meta-item mk-sc-detail-hero__meta-item--no" title="{vtranslate('contract_no', $MODULE)}">
 							<i class="fa fa-hashtag" aria-hidden="true"></i>
-							<span class="mk-sc-detail-hero__meta-text">{$MK_SC_CONTRACT_NO}</span>
+							<span class="mk-sc-detail-hero__meta-text">{$MK_SC_CONTRACT_NO|escape:'html'}</span>
 						</span>
 					{/if}
 					{if $MK_SC_DATE_RANGE ne ''}
 						<span class="mk-sc-detail-hero__meta-item mk-sc-detail-hero__meta-item--date" title="{vtranslate('start_date', $MODULE)}">
 							<i class="fa fa-calendar" aria-hidden="true"></i>
-							<span class="mk-sc-detail-hero__meta-text">{$MK_SC_DATE_RANGE}</span>
+							<span class="mk-sc-detail-hero__meta-text">{$MK_SC_DATE_RANGE|escape:'html'}</span>
 						</span>
 					{/if}
 				</div>

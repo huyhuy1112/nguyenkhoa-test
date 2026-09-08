@@ -1,7 +1,7 @@
 {*<!--
 /*********************************************************************************
-** Potentials Detail Header Title: Sales hero (icon + name + org + amount + stage),
-** falls back to stock Vtiger record-header for other apps.
+** Potentials Detail Header Title: Sales hero matching Leads v4
+** (avatar + name + plain meta + inline tags).
 ********************************************************************************/
 -->*}
 {strip}
@@ -39,58 +39,53 @@
 		</div>
 	</div>
 {elseif (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
-	{assign var=MK_OPP_RELATED_TO   value=$RECORD->getDisplayValue('related_to')}
-	{assign var=MK_OPP_AMOUNT       value=$RECORD->getDisplayValue('amount')}
-	{assign var=MK_OPP_STAGE_RAW    value=$RECORD->get('sales_stage')}
-	{assign var=MK_OPP_STAGE_LABEL  value=$RECORD->getDisplayValue('sales_stage')}
-	{assign var=MK_OPP_CLOSE_DATE   value=$RECORD->getDisplayValue('closingdate')}
+	{assign var=MK_OPP_RELATED_TO   value=$RECORD->getDisplayValue('related_to')|strip_tags|decode_html|trim}
+	{assign var=MK_OPP_CLOSE_DATE   value=$RECORD->getDisplayValue('closingdate')|strip_tags|decode_html|trim}
+	{assign var=MK_OPP_OWNER        value=$RECORD->getDisplayValue('assigned_user_id')|strip_tags|decode_html|trim}
+	{assign var=MK_OPP_TITLE value=$RECORD->getName()|decode_html|trim}
+	{assign var=MK_OPP_ADDR value=$MK_OPP_FULL_ADDRESS|default:''|strip_tags|decode_html|trim}
 	<div class="mk-opportunity-detail-hero__left">
 		<div class="mk-opportunity-detail-hero__identity clearfix">
 			<div class="mk-opportunity-detail-hero__icon recordImage bg{$MODULE|lower} app-{(isset($SELECTED_MENU_CATEGORY)) ? $SELECTED_MENU_CATEGORY : ''}">
 				<span class="mk-opportunity-detail-hero__icon-glyph" aria-hidden="true">{include file="partials/OpportunityDetailSvgIcon.tpl"|@vtemplate_path:'Potentials' ICON='OPPORTUNITY'}</span>
 			</div>
 			<div class="mk-opportunity-detail-hero__text recordBasicInfo">
-				<div class="info-row mk-opportunity-detail-hero__name-row">
+				<div class="info-row mk-opportunity-detail-hero__name-row mk-opportunity-detail-hero__title-row">
 					<h1 class="mk-opportunity-detail-hero__title">
-						<span class="recordLabel pushDown" title="{$RECORD->getName()}">
+						<span class="recordLabel pushDown" title="{$MK_OPP_TITLE|escape:'html'}">
 							{foreach item=NAME_FIELD from=$MODULE_MODEL->getNameFields()}
 								{assign var=FIELD_MODEL value=$MODULE_MODEL->getField($NAME_FIELD)}
 								{if $FIELD_MODEL->getPermissions()}
-									<span class="{$NAME_FIELD}">{decode_html($RECORD->get($NAME_FIELD))}</span>&nbsp;
+									<span class="{$NAME_FIELD}">{$RECORD->get($NAME_FIELD)|decode_html|trim|escape:'html'}</span>&nbsp;
 								{/if}
 							{/foreach}
 						</span>
 					</h1>
+					{if !empty($MK_OPP_RELATED_TO)}
+						<p class="mk-opportunity-detail-hero__subtitle" title="{vtranslate('related_to', $MODULE)}">{$MK_OPP_RELATED_TO|escape:'html'}</p>
+					{/if}
 				</div>
-				{if !empty($MK_OPP_RELATED_TO)}
-					<p class="mk-opportunity-detail-hero__subtitle" title="{vtranslate('related_to', $MODULE)}">{$MK_OPP_RELATED_TO}</p>
-				{/if}
-				{if !empty($MK_OPP_FULL_ADDRESS)}
-					<p class="mk-opportunity-detail-hero__address" title="{vtranslate('LBL_MK_OPP_ADDRESS', 'Potentials')}">
-						<span class="mk-opportunity-detail-hero__address-ic" aria-hidden="true">📍</span>
-						<span>{$MK_OPP_FULL_ADDRESS|escape}</span>
-					</p>
-				{/if}
-				<div class="mk-opportunity-detail-hero__meta">
-					{if !empty($MK_OPP_AMOUNT)}
-						<span class="mk-opportunity-detail-hero__meta-item mk-opportunity-detail-hero__meta-item--amount" title="{vtranslate('amount', $MODULE)}">
-							<span class="mk-opportunity-detail-hero__meta-ic" aria-hidden="true">{include file="partials/OpportunityDetailSvgIcon.tpl"|@vtemplate_path:'Potentials' ICON='AMOUNT'}</span>
-							<span class="mk-opportunity-detail-hero__meta-text">{$MK_OPP_AMOUNT}</span>
-						</span>
-					{/if}
-					{if !empty($MK_OPP_CLOSE_DATE)}
-						<span class="mk-opportunity-detail-hero__meta-item mk-opportunity-detail-hero__meta-item--date" title="{vtranslate('closingdate', $MODULE)}">
-							<span class="mk-opportunity-detail-hero__meta-ic" aria-hidden="true">{include file="partials/OpportunityDetailSvgIcon.tpl"|@vtemplate_path:'Potentials' ICON='CALENDAR'}</span>
-							<span class="mk-opportunity-detail-hero__meta-text">{$MK_OPP_CLOSE_DATE}</span>
-						</span>
-					{/if}
-					{if !empty($MK_OPP_STAGE_LABEL)}
-						{assign var=MK_OPP_STAGE_KEY value=$MK_OPP_STAGE_RAW|lower|regex_replace:"/[^a-z0-9]+/":"-"}
-						<span class="mk-opportunity-detail-hero__stage mk-opportunity-stage-pill mk-opportunity-stage-pill--{$MK_OPP_STAGE_KEY}" data-stage="{$MK_OPP_STAGE_RAW}">
-							<span class="mk-opportunity-stage-pill__dot" aria-hidden="true"></span>
-							<span class="mk-opportunity-stage-pill__text">{$MK_OPP_STAGE_LABEL}</span>
-						</span>
-					{/if}
+				<div class="mk-opportunity-detail-hero__meta-row">
+					<div class="mk-opportunity-detail-hero__meta">
+						{if !empty($MK_OPP_ADDR)}
+							<span class="mk-opportunity-detail-hero__meta-item" title="{vtranslate('LBL_MK_OPP_ADDRESS', 'Potentials')}">
+								<span class="mk-opportunity-detail-hero__meta-text">{$MK_OPP_ADDR|escape:'html'}</span>
+							</span>
+						{/if}
+						{if !empty($MK_OPP_CLOSE_DATE)}
+							<span class="mk-opportunity-detail-hero__meta-item mk-opportunity-detail-hero__meta-item--date" title="{vtranslate('closingdate', $MODULE)}">
+								<span class="mk-opportunity-detail-hero__meta-text">{$MK_OPP_CLOSE_DATE|escape:'html'}</span>
+							</span>
+						{/if}
+						{if !empty($MK_OPP_OWNER)}
+							<span class="mk-opportunity-detail-hero__meta-item mk-opportunity-detail-hero__meta-item--owner" title="{vtranslate('assigned_user_id', $MODULE)}">
+								<span class="mk-opportunity-detail-hero__meta-text">{$MK_OPP_OWNER|escape:'html'}</span>
+							</span>
+						{/if}
+					</div>
+					<div class="mk-opportunity-detail-hero__tags mk-opportunity-detail-hero__tags--inline">
+						{include file="DetailViewTagList.tpl"|vtemplate_path:$MODULE}
+					</div>
 				</div>
 			</div>
 		</div>

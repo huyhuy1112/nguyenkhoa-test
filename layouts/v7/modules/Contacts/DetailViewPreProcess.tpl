@@ -7,10 +7,11 @@
 {include file="modules/Vtiger/Header.tpl"}
 {include file="partials/MkSalesUiMeta.tpl"|vtemplate_path:'Vtiger'}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesDetailInlineEdit.css')}&mk_v=20260611_mk_inline_v3" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsDetail.css')}&mk_v=20260723_tags_cred1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesRelatedList.css')}&mk_v=20260721_rel_toggle1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsDetail.css')}&mk_v=20260908_detail_v4k" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkCrmDetailV4.css')}?mk_v=20260908_detail_v4k" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesRelatedList.css')}&mk_v=20260908_detail_v4k" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesRelatedList.js')}&mk_v=20260721_rel_toggle1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesRelatedList.js')}&mk_v=20260908_detail_v4k"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsDetailTags.js')}&mk_v=20260717_cccd_tags1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsDetail.js')}&mk_v=20260723_tags_cred1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Contacts/resources/ContactDetailCommerce.js')}&mk_v=20260713_contact_tags2"></script>
@@ -46,10 +47,11 @@
 {strip}
 {include file="partials/ContactModernUiInit.tpl"|vtemplate_path:$MODULE}
 {include file="modules/Vtiger/Header.tpl"}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsDetail.css')}&mk_v=20260723_tags_cred1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesRelatedList.css')}&mk_v=20260721_rel_toggle1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsDetail.css')}&mk_v=20260908_detail_v4k" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkCrmDetailV4.css')}?mk_v=20260908_detail_v4k" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesRelatedList.css')}&mk_v=20260908_detail_v4k" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesRelatedList.js')}&mk_v=20260721_rel_toggle1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesRelatedList.js')}&mk_v=20260908_detail_v4k"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsDetailTags.js')}&mk_v=20260717_cccd_tags1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsDetail.js')}&mk_v=20260723_tags_cred1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Contacts/resources/ContactDetailCommerce.js')}&mk_v=20260713_contact_tags2"></script>

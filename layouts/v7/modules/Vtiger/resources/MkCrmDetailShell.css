@@ -1,0 +1,310 @@
+/**
+ * MkCrmDetailShell — shared modern Detail UI for CRM modules
+ * (Leads / Potentials / Accounts / Contacts / Quotes / SalesOrder …).
+ * Scope: body[data-view="Detail"] #mk-dash-split-root
+ * UI-only skin. Does not change markup, handlers, or business logic.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+body[data-view="Detail"] #mk-dash-split-root {
+	--mk-detail-ink: #10231c;
+	--mk-detail-muted: #5b7268;
+	--mk-detail-line: rgba(15, 118, 110, 0.14);
+	--mk-detail-panel: #ffffff;
+	--mk-detail-soft: #f4faf7;
+	--mk-detail-accent: #0f766e;
+	--mk-detail-accent-2: #115e59;
+	--mk-detail-radius: 18px;
+	--mk-detail-shadow: 0 1px 2px rgba(16, 35, 28, 0.04), 0 12px 28px rgba(16, 35, 28, 0.05);
+	--mk-detail-shadow-hover: 0 8px 20px rgba(16, 35, 28, 0.08);
+	font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+	color: var(--mk-detail-ink);
+}
+
+/* Page atmosphere */
+body[data-view="Detail"] #mk-dash-split-root .mk-dash-main {
+	background:
+		radial-gradient(1100px 420px at 6% -8%, rgba(15, 118, 110, 0.12), transparent 55%),
+		radial-gradient(800px 360px at 96% 0%, rgba(212, 160, 23, 0.08), transparent 50%),
+		linear-gradient(180deg, #eef5f1 0%, #f7faf8 48%, #f3f6f4 100%) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .detailViewContainer,
+body[data-view="Detail"] #mk-dash-split-root .detailview-content {
+	font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+}
+
+/* Breadcrumb */
+body[data-view="Detail"] #mk-dash-split-root [class*="breadcrumb"],
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-detail-breadcrumb,
+body[data-view="Detail"] #mk-dash-split-root .mk-opportunity-detail-breadcrumb,
+body[data-view="Detail"] #mk-dash-split-root .mk-acc-detail-breadcrumb,
+body[data-view="Detail"] #mk-dash-split-root .mk-contact-detail-breadcrumb,
+body[data-view="Detail"] #mk-dash-split-root .mk-qt-detail-breadcrumb,
+body[data-view="Detail"] #mk-dash-split-root .mk-so-detail-breadcrumb {
+	color: var(--mk-detail-muted);
+	font-size: 12px;
+	letter-spacing: 0.02em;
+}
+
+/* Hero / header */
+body[data-view="Detail"] #mk-dash-split-root .detailview-header-block {
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	margin-bottom: 14px !important;
+	padding: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .detailview-header,
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-detail-hero,
+body[data-view="Detail"] #mk-dash-split-root .mk-opportunity-detail-hero,
+body[data-view="Detail"] #mk-dash-split-root .mk-acc-detail-hero,
+body[data-view="Detail"] #mk-dash-split-root .mk-contact-detail-hero,
+body[data-view="Detail"] #mk-dash-split-root .mk-qt-detail-hero,
+body[data-view="Detail"] #mk-dash-split-root .mk-so-detail-hero {
+	background: rgba(255, 255, 255, 0.88) !important;
+	backdrop-filter: blur(10px);
+	border: 1px solid var(--mk-detail-line) !important;
+	border-radius: var(--mk-detail-radius) !important;
+	box-shadow: var(--mk-detail-shadow) !important;
+	padding: 18px 20px 16px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .recordImage,
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-detail-hero__icon,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__icon"] {
+	width: 56px !important;
+	height: 56px !important;
+	border-radius: 16px !important;
+	background: linear-gradient(145deg, rgba(15, 118, 110, 0.16), rgba(15, 118, 110, 0.05)) !important;
+	color: var(--mk-detail-accent) !important;
+	border: 1px solid rgba(15, 118, 110, 0.16) !important;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65) !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .recordBasicInfo h1,
+body[data-view="Detail"] #mk-dash-split-root .recordBasicInfo h4,
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-detail-hero__title,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__title"] {
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
+	font-size: 28px !important;
+	font-weight: 650 !important;
+	letter-spacing: -0.03em !important;
+	color: var(--mk-detail-ink) !important;
+	line-height: 1.15 !important;
+	margin: 0 !important;
+}
+
+/* Action buttons */
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer .btn,
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-detail-btn,
+body[data-view="Detail"] #mk-dash-split-root .mk-so-detail-btn,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-btn"] {
+	min-height: 38px;
+	border-radius: 999px !important;
+	font-weight: 650 !important;
+	font-size: 13px !important;
+	padding: 0 14px !important;
+	transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer .btn-default,
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-detail-btn--ghost,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-btn--ghost"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-btn--outline"] {
+	background: #fff !important;
+	border: 1px solid var(--mk-detail-line) !important;
+	color: var(--mk-detail-ink) !important;
+	box-shadow: 0 1px 2px rgba(16, 35, 28, 0.04) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer .btn-default:hover,
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-detail-btn--ghost:hover,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-btn--ghost"]:hover {
+	border-color: rgba(15, 118, 110, 0.35) !important;
+	transform: translateY(-1px);
+}
+
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer .btn-success,
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer .btn-primary,
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-detail-btn--primary,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-btn--primary"] {
+	background: linear-gradient(135deg, var(--mk-detail-accent) 0%, var(--mk-detail-accent-2) 100%) !important;
+	border-color: transparent !important;
+	color: #fff !important;
+	box-shadow: 0 6px 16px rgba(15, 118, 110, 0.28) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer .btn-success:hover,
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer .btn-primary:hover,
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-detail-btn--primary:hover,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-btn--primary"]:hover {
+	background: linear-gradient(135deg, #14b8a6 0%, var(--mk-detail-accent) 100%) !important;
+	transform: translateY(-1px);
+}
+
+/* Tags */
+body[data-view="Detail"] #mk-dash-split-root .tag,
+body[data-view="Detail"] #mk-dash-split-root .tagContainer .tag,
+body[data-view="Detail"] #mk-dash-split-root .mk-tag {
+	border-radius: 999px !important;
+	font-weight: 650 !important;
+	font-size: 12px !important;
+	border: 1px solid rgba(15, 118, 110, 0.14) !important;
+	box-shadow: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root #addTagTrigger,
+body[data-view="Detail"] #mk-dash-split-root .addTagTrigger,
+body[data-view="Detail"] #mk-dash-split-root [id*="addTag"] {
+	border-radius: 999px !important;
+	border: 1px dashed rgba(15, 118, 110, 0.35) !important;
+	color: var(--mk-detail-accent) !important;
+	background: rgba(15, 118, 110, 0.04) !important;
+}
+
+/* Tabs */
+body[data-view="Detail"] #mk-dash-split-root .related-tabs.row {
+	margin: 0 0 16px !important;
+	padding: 0 !important;
+	background: transparent !important;
+	border: none !important;
+	border-bottom: 1px solid var(--mk-detail-line) !important;
+	box-shadow: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .related-tabs .nav.nav-tabs > li > a {
+	border: none !important;
+	border-radius: 10px 10px 0 0 !important;
+	color: var(--mk-detail-muted) !important;
+	font-weight: 650 !important;
+	font-size: 13px !important;
+	padding: 12px 14px !important;
+	background: transparent !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .related-tabs .nav.nav-tabs > li.active > a,
+body[data-view="Detail"] #mk-dash-split-root .related-tabs .nav.nav-tabs > li > a:hover {
+	color: var(--mk-detail-accent) !important;
+	background: rgba(15, 118, 110, 0.06) !important;
+	box-shadow: inset 0 -2px 0 var(--mk-detail-accent) !important;
+}
+
+/* Summary / detail cards */
+body[data-view="Detail"] #mk-dash-split-root .summaryWidgetContainer,
+body[data-view="Detail"] #mk-dash-split-root .summaryView,
+body[data-view="Detail"] #mk-dash-split-root .blockData,
+body[data-view="Detail"] #mk-dash-split-root .detailview-table,
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-detail-card,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card"],
+body[data-view="Detail"] #mk-dash-split-root .relatedContents,
+body[data-view="Detail"] #mk-dash-split-root .related-list-container {
+	background: var(--mk-detail-panel) !important;
+	border: 1px solid var(--mk-detail-line) !important;
+	border-radius: var(--mk-detail-radius) !important;
+	box-shadow: var(--mk-detail-shadow) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .summaryWidgetContainer {
+	overflow: hidden;
+	transition: transform 0.18s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .summaryWidgetContainer:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--mk-detail-shadow-hover) !important;
+	border-color: rgba(15, 118, 110, 0.28) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .widget_header,
+body[data-view="Detail"] #mk-dash-split-root .blockHeader,
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-detail-card__head,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card__head"] {
+	background: transparent !important;
+	border: none !important;
+	border-bottom: 1px solid rgba(15, 118, 110, 0.08) !important;
+	padding: 14px 18px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .widget_header h4,
+body[data-view="Detail"] #mk-dash-split-root .blockHeader,
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-detail-card__title,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card__title"] {
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
+	font-size: 12px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.08em !important;
+	text-transform: uppercase !important;
+	color: var(--mk-detail-muted) !important;
+}
+
+/* Green accent bar before section titles (Leads pattern) */
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-detail-card__title::before,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card__title"]::before {
+	background: var(--mk-detail-accent) !important;
+}
+
+/* Fields */
+body[data-view="Detail"] #mk-dash-split-root .fieldLabel,
+body[data-view="Detail"] #mk-dash-split-root .summaryViewEntries .fieldLabel,
+body[data-view="Detail"] #mk-dash-split-root .muted {
+	color: var(--mk-detail-muted) !important;
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.06em !important;
+	text-transform: uppercase !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .fieldValue,
+body[data-view="Detail"] #mk-dash-split-root .summaryViewEntries .fieldValue,
+body[data-view="Detail"] #mk-dash-split-root .value {
+	color: var(--mk-detail-ink) !important;
+	font-size: 14px !important;
+	font-weight: 600 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .fieldValue a,
+body[data-view="Detail"] #mk-dash-split-root .summaryViewEntries .fieldValue a {
+	color: var(--mk-detail-accent) !important;
+	font-weight: 650 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .summaryViewEntries,
+body[data-view="Detail"] #mk-dash-split-root .detailview-table tr {
+	border-color: rgba(15, 118, 110, 0.08) !important;
+}
+
+/* Empty states */
+body[data-view="Detail"] #mk-dash-split-root .noRecordsMsg,
+body[data-view="Detail"] #mk-dash-split-root .emptyRecordsDiv,
+body[data-view="Detail"] #mk-dash-split-root .summaryViewEntries .textAlignCenter {
+	color: var(--mk-detail-muted) !important;
+}
+
+/* Soft enter animation */
+body[data-view="Detail"] #mk-dash-split-root .detailview-header-block,
+body[data-view="Detail"] #mk-dash-split-root .related-tabs,
+body[data-view="Detail"] #mk-dash-split-root .details {
+	animation: mkCrmDetailIn 0.42s ease both;
+}
+
+@keyframes mkCrmDetailIn {
+	from { opacity: 0; transform: translateY(8px); }
+	to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	body[data-view="Detail"] #mk-dash-split-root .detailview-header-block,
+	body[data-view="Detail"] #mk-dash-split-root .related-tabs,
+	body[data-view="Detail"] #mk-dash-split-root .details,
+	body[data-view="Detail"] #mk-dash-split-root .summaryWidgetContainer {
+		animation: none !important;
+		transition: none !important;
+		transform: none !important;
+	}
+}

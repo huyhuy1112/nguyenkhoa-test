@@ -17,7 +17,8 @@
 	{/foreach}
 
 {if !empty($MK_ACCOUNTS_MODERN_UI) || (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY eq 'SALES' || $SELECTED_MENU_CATEGORY eq 'MARKETING')) || (isset($smarty.get.app) && ($smarty.get.app eq 'SALES' || $smarty.get.app eq 'MARKETING'))}
-	<div class="mk-acc-detail-summary-grid">
+	<div class="mk-acc-detail-summary-grid mk-crm-v4-3col">
+		<div class="mk-crm-v4-stack mk-crm-v4-stack--left">
 		<section class="mk-acc-detail-card mk-acc-detail-card--key mk-acc-detail-grid__key" aria-labelledby="mk-acc-detail-keyfields-title">
 			<div class="mk-acc-detail-card__head">
 				<h2 id="mk-acc-detail-keyfields-title" class="mk-acc-detail-card__title">
@@ -31,7 +32,9 @@
 				</div>
 			</div>
 		</section>
+		</div>
 
+		<div class="mk-crm-v4-stack mk-crm-v4-stack--center">
 		<section class="mk-acc-detail-card mk-acc-detail-card--activities mk-acc-detail-grid__activities" aria-labelledby="mk-acc-detail-activities-title">
 			<div class="mk-acc-detail-card__head mk-acc-detail-card__head--activities">
 				<h2 id="mk-acc-detail-activities-title" class="mk-acc-detail-card__title">
@@ -43,10 +46,9 @@
 				{$RELATED_ACTIVITIES}
 			</div>
 		</section>
+		</div>
 
-		<div class="mk-acc-detail-bottom-grid">
-		{* Đã gỡ "Tổng quan sức khỏe" theo BA *}
-
+		<div class="mk-crm-v4-stack mk-crm-v4-stack--right">
 		{if $DOCUMENT_WIDGET_MODEL}
 		<section class="mk-acc-detail-card mk-acc-detail-card--documents mk-acc-detail-grid__documents" aria-labelledby="mk-acc-detail-documents-title">
 			<div class="summaryWidgetContainer mk-acc-detail-widget-host">

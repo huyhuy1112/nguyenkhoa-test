@@ -1,0 +1,1162 @@
+/**
+ * MkCrmDetailV4 — shared Detail skin matching Leads Detail v4.
+ * Modules: Potentials, Contacts, Accounts, Quotes, SalesOrder, ServiceContracts
+ * Scope: body[data-view="Detail"] #mk-dash-split-root
+ * Load AFTER module Detail CSS.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+body[data-view="Detail"] #mk-dash-split-root {
+	--mk-v4-ink: #10231c;
+	--mk-v4-muted: #5b7268;
+	--mk-v4-line: rgba(15, 118, 110, 0.14);
+	--mk-v4-soft: #eef5f1;
+	--mk-v4-panel: #ffffff;
+	--mk-v4-accent: #0f766e;
+	--mk-v4-accent-2: #115e59;
+	--mk-v4-accent-soft: rgba(15, 118, 110, 0.1);
+	--mk-v4-radius: 16px;
+	--mk-v4-shadow: 0 1px 2px rgba(16, 35, 28, 0.04), 0 10px 24px rgba(16, 35, 28, 0.05);
+	font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif !important;
+	color: var(--mk-v4-ink);
+}
+
+body[data-view="Detail"] #mk-dash-split-root,
+body[data-view="Detail"] #mk-dash-split-root .mk-dash-main,
+body[data-view="Detail"] #mk-dash-split-root .detailViewContainer,
+body[data-view="Detail"] #mk-dash-split-root .detailview-content,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card"]:not([class*="detail-card__"]),
+body[data-view="Detail"] #mk-dash-split-root .summaryView,
+body[data-view="Detail"] #mk-dash-split-root .btn {
+	font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif !important;
+}
+
+/* ---- Full width + page wash ---- */
+body[data-view="Detail"] #mk-dash-split-root .mk-dash-main {
+	background:
+		radial-gradient(1000px 380px at 8% -10%, rgba(15, 118, 110, 0.1), transparent 55%),
+		linear-gradient(180deg, #eef5f1 0%, #f6faf8 45%, #f3f6f4 100%) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .main-container[class*="-detail-page"],
+body[data-view="Detail"] #mk-dash-split-root .main-container.main-container-Potentials,
+body[data-view="Detail"] #mk-dash-split-root .main-container.main-container-Accounts,
+body[data-view="Detail"] #mk-dash-split-root .main-container.main-container-Contacts,
+body[data-view="Detail"] #mk-dash-split-root .main-container.main-container-Quotes,
+body[data-view="Detail"] #mk-dash-split-root .main-container.main-container-SalesOrder,
+body[data-view="Detail"] #mk-dash-split-root .main-container.main-container-ServiceContracts,
+body[data-view="Detail"] #mk-dash-split-root .main-container.main-container-Leads {
+	max-width: none !important;
+	width: 100% !important;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
+	padding-left: 24px !important;
+	padding-right: 24px !important;
+	padding-top: 16px !important;
+	padding-bottom: 32px !important;
+	box-sizing: border-box;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .detailViewContainer,
+body[data-view="Detail"] #mk-dash-split-root .detailview-content,
+body[data-view="Detail"] #mk-dash-split-root .resizable-summary-view,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-summary-col"],
+body[data-view="Detail"] #mk-dash-split-root .col-lg-12.resizable-summary-view {
+	max-width: none !important;
+	width: 100% !important;
+	float: none !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+/* ---- Breadcrumb ---- */
+body[data-view="Detail"] #mk-dash-split-root [class*="breadcrumb"],
+body[data-view="Detail"] #mk-dash-split-root [class*="-crumb"] {
+	display: flex !important;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	font-size: 12px !important;
+	color: var(--mk-v4-muted) !important;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	margin: 0 0 8px !important;
+	padding: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="breadcrumb"] a,
+body[data-view="Detail"] #mk-dash-split-root [class*="-crumb"] a {
+	color: var(--mk-v4-muted) !important;
+	font-weight: 600 !important;
+	text-decoration: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="breadcrumb"] a:hover,
+body[data-view="Detail"] #mk-dash-split-root [class*="-crumb"] a:hover {
+	color: var(--mk-v4-accent) !important;
+}
+
+/* ---- Flat hero (Leads v4 flat) ---- */
+body[data-view="Detail"] #mk-dash-split-root .detailview-header-block,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero-strip"] {
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	padding: 4px 0 10px !important;
+	margin: 0 0 8px !important;
+	max-width: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .detailview-header,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero"]:not([class*="hero__"]):not([class*="hero-"]) {
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	border-radius: 0 !important;
+	padding: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__row"] {
+	display: flex !important;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px 20px;
+	margin: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .recordImage,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__icon"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__avatar"] {
+	width: 48px !important;
+	height: 48px !important;
+	min-width: 48px !important;
+	border-radius: 14px !important;
+	background: #0f766e !important;
+	border: none !important;
+	box-shadow: none !important;
+	color: #fff !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__icon"] svg,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__icon-glyph"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__avatar"] svg,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__avatar-ic"] {
+	color: #fff !important;
+	fill: currentColor;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .recordBasicInfo h1,
+body[data-view="Detail"] #mk-dash-split-root .recordBasicInfo h4,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__title"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__name"] {
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
+	font-size: 1.65rem !important;
+	font-weight: 700 !important;
+	letter-spacing: -0.03em !important;
+	color: var(--mk-v4-ink) !important;
+	line-height: 1.15 !important;
+	margin: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__subtitle"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__company"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__meta"] {
+	color: var(--mk-v4-muted) !important;
+	font-weight: 600 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer {
+	display: flex !important;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 8px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer .btn,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-btn"]:not([class*="detail-btn__"]),
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions"] .btn {
+	min-height: 40px !important;
+	border-radius: 10px !important;
+	font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif !important;
+	font-weight: 650 !important;
+	font-size: 12px !important;
+	padding: 0 12px !important;
+	box-shadow: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer .btn-default:not([class*="--icon"]):not([class*="--cta"]),
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-btn--ghost"]:not([class*="--icon"]) {
+	background: rgba(255, 255, 255, 0.85) !important;
+	border: 1px solid var(--mk-v4-line) !important;
+	color: var(--mk-v4-ink) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer .btn-success,
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer .btn-primary,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-btn--primary"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-cta"] {
+	background: linear-gradient(135deg, var(--mk-v4-accent) 0%, var(--mk-v4-accent-2) 100%) !important;
+	border-color: transparent !important;
+	color: #fff !important;
+	box-shadow: 0 6px 14px rgba(15, 118, 110, 0.24) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__tags"],
+body[data-view="Detail"] #mk-dash-split-root .tagsContainer {
+	border: none !important;
+	background: transparent !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .tagList .tag,
+body[data-view="Detail"] #mk-dash-split-root [class*="tag-chip"] {
+	border-radius: 999px !important;
+	border: 1px solid var(--mk-v4-line) !important;
+	font-weight: 650 !important;
+	font-size: 12px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="stage-pill"],
+body[data-view="Detail"] #mk-dash-split-root [class*="quote-stage"] {
+	border-radius: 999px !important;
+	background: var(--mk-v4-accent-soft) !important;
+	border: 1px solid var(--mk-v4-line) !important;
+	color: var(--mk-v4-accent-2) !important;
+	font-weight: 700 !important;
+	font-size: 12px !important;
+}
+
+/* ---- Tabs ---- */
+body[data-view="Detail"] #mk-dash-split-root .related-tabs,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-related-tabs"] {
+	background: transparent !important;
+	border: none !important;
+	border-bottom: 1px solid var(--mk-v4-line) !important;
+	box-shadow: none !important;
+	margin: 0 0 14px !important;
+	max-width: none !important;
+	padding: 0 !important;
+	overflow-x: auto !important;
+	overflow-y: hidden !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .related-tabs .navbar-collapse,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-related-tabs"] .navbar-collapse,
+body[data-view="Detail"] #mk-dash-split-root .related-tabs .nav.nav-tabs,
+body[data-view="Detail"] #mk-dash-split-root [class*="primary-tabs"] {
+	overflow-x: auto !important;
+	overflow-y: hidden !important;
+	flex-wrap: nowrap !important;
+	align-items: center !important;
+	min-height: 48px !important;
+	height: 48px !important;
+	max-height: 48px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .related-tabs .nav.nav-tabs > li > a {
+	border: none !important;
+	border-radius: 10px 10px 0 0 !important;
+	color: var(--mk-v4-muted) !important;
+	font-weight: 650 !important;
+	font-size: 13px !important;
+	background: transparent !important;
+	padding: 12px 14px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .related-tabs .nav.nav-tabs > li.active > a,
+body[data-view="Detail"] #mk-dash-split-root .related-tabs .nav.nav-tabs > li > a:hover {
+	color: var(--mk-v4-accent) !important;
+	background: var(--mk-v4-accent-soft) !important;
+	box-shadow: inset 0 -2px 0 var(--mk-v4-accent) !important;
+}
+
+/* ---- 3-column summary ---- */
+body[data-view="Detail"] #mk-dash-split-root .mk-crm-v4-3col,
+body[data-view="Detail"] #mk-dash-split-root .mk-opportunity-detail-summary-grid.mk-crm-v4-3col,
+body[data-view="Detail"] #mk-dash-split-root .mk-contact-detail-summary-grid.mk-crm-v4-3col,
+body[data-view="Detail"] #mk-dash-split-root .mk-acc-detail-summary-grid.mk-crm-v4-3col,
+body[data-view="Detail"] #mk-dash-split-root .mk-qt-summary-grid.mk-crm-v4-3col,
+body[data-view="Detail"] #mk-dash-split-root .mk-qt-summary-grid--slim.mk-crm-v4-3col,
+body[data-view="Detail"] #mk-dash-split-root .mk-so-summary-grid.mk-crm-v4-3col,
+body[data-view="Detail"] #mk-dash-split-root .mk-sc-summary-grid.mk-crm-v4-3col,
+body[data-view="Detail"] #mk-dash-split-root .mk-sc-detail-summary-grid.mk-crm-v4-3col {
+	display: grid !important;
+	grid-template-columns: minmax(260px, 0.95fr) minmax(360px, 1.35fr) minmax(260px, 0.95fr) !important;
+	grid-template-areas: none !important;
+	gap: 14px !important;
+	align-items: stretch !important;
+	width: 100% !important;
+	max-width: none !important;
+	min-width: 0 !important;
+	margin-top: 8px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-crm-v4-stack {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 14px !important;
+	min-width: 0 !important;
+	min-height: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-crm-v4-3col > .mk-crm-v4-stack > [class*="detail-card"]:not([class*="detail-card__"]),
+body[data-view="Detail"] #mk-dash-split-root .mk-crm-v4-3col > .mk-crm-v4-stack > [class*="detail-card"]:not([class*="detail-card__"])[class*="grid__"],
+body[data-view="Detail"] #mk-dash-split-root .mk-crm-v4-3col [class*="grid__"] {
+	grid-area: auto !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-crm-v4-stack--center > [class*="detail-card"]:not([class*="detail-card__"]):first-child {
+	flex: 1 1 auto;
+	min-height: 360px;
+}
+
+/* Panels — only outer cards (no nested summaryView / widget chrome) */
+body[data-view="Detail"] #mk-dash-split-root .mk-crm-v4-3col > .mk-crm-v4-stack > [class*="detail-card"]:not([class*="detail-card__"]),
+body[data-view="Detail"] #mk-dash-split-root .mk-contact-class-panel,
+body[data-view="Detail"] #mk-dash-split-root .mk-sc-mk-detail__card {
+	background: var(--mk-v4-panel) !important;
+	border: 1px solid var(--mk-v4-line) !important;
+	border-radius: var(--mk-v4-radius) !important;
+	box-shadow: var(--mk-v4-shadow) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-crm-v4-3col [class*="detail-card"] .summaryWidgetContainer,
+body[data-view="Detail"] #mk-dash-split-root .mk-crm-v4-3col [class*="detail-card"] .summaryView,
+body[data-view="Detail"] #mk-dash-split-root .mk-crm-v4-3col [class*="detail-widget-host"],
+body[data-view="Detail"] #mk-dash-split-root .mk-crm-v4-3col .mk-opportunity-detail-related-activities .summaryWidgetContainer {
+	background: transparent !important;
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card__head"],
+body[data-view="Detail"] #mk-dash-split-root .mk-sc-mk-detail__head {
+	border-bottom: 1px solid rgba(15, 118, 110, 0.08) !important;
+	padding: 14px 16px 10px !important;
+	background: transparent !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card__title"],
+body[data-view="Detail"] #mk-dash-split-root .widget_header h4,
+body[data-view="Detail"] #mk-dash-split-root .mk-contact-class-panel__title,
+body[data-view="Detail"] #mk-dash-split-root .mk-sc-mk-detail__head h2 {
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
+	font-size: 12px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.06em !important;
+	text-transform: uppercase !important;
+	color: var(--mk-v4-muted) !important;
+	margin: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .fieldLabel,
+body[data-view="Detail"] #mk-dash-split-root .muted {
+	color: var(--mk-v4-muted) !important;
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.05em !important;
+	text-transform: uppercase !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .fieldValue,
+body[data-view="Detail"] #mk-dash-split-root .value {
+	color: var(--mk-v4-ink) !important;
+	font-size: 14px !important;
+	font-weight: 600 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .fieldValue a {
+	color: var(--mk-v4-accent) !important;
+}
+
+/* ServiceContracts franchise host */
+body[data-view="Detail"] #mk-dash-split-root .mk-sc-mk-detail {
+	margin: 0 0 14px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-sc-mk-detail__card {
+	padding: 0 !important;
+	overflow: hidden;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-sc-mk-detail__grid,
+body[data-view="Detail"] #mk-dash-split-root .mk-sc-mk-detail__interactions {
+	padding: 12px 16px 16px !important;
+}
+
+/* Accounts franchise contract blocks */
+body[data-view="Detail"] #mk-dash-split-root .mk-acc-fr-block,
+body[data-view="Detail"] #mk-dash-split-root .mk-acc-fr-detail .block.mk-acc-fr-block {
+	background: var(--mk-v4-panel) !important;
+	border: 1px solid var(--mk-v4-line) !important;
+	border-radius: var(--mk-v4-radius) !important;
+	box-shadow: var(--mk-v4-shadow) !important;
+	overflow: hidden;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-acc-fr-block__title {
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
+	font-size: 12px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.06em !important;
+	text-transform: uppercase !important;
+	color: var(--mk-v4-muted) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-acc-fr-field {
+	border-color: var(--mk-v4-line) !important;
+	border-radius: 12px !important;
+	background: #fff !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-acc-fr-field:hover {
+	border-color: rgba(15, 118, 110, 0.35) !important;
+	background: var(--mk-v4-soft) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-acc-fr-field__label {
+	color: var(--mk-v4-muted) !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.04em !important;
+	text-transform: uppercase !important;
+	font-size: 11px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-acc-fr-field__value {
+	color: var(--mk-v4-ink) !important;
+	font-weight: 600 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-acc-fr-field__value a {
+	color: var(--mk-v4-accent) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-contact-summary-wrap {
+	display: block !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-contact-class-reg-strip--summary,
+body[data-view="Detail"] #mk-dash-split-root .mk-acc-detail-bottom-grid {
+	display: contents !important;
+}
+
+@media (max-width: 1200px) {
+	body[data-view="Detail"] #mk-dash-split-root .mk-crm-v4-3col,
+	body[data-view="Detail"] #mk-dash-split-root .mk-opportunity-detail-summary-grid.mk-crm-v4-3col,
+	body[data-view="Detail"] #mk-dash-split-root .mk-contact-detail-summary-grid.mk-crm-v4-3col,
+	body[data-view="Detail"] #mk-dash-split-root .mk-acc-detail-summary-grid.mk-crm-v4-3col,
+	body[data-view="Detail"] #mk-dash-split-root .mk-qt-summary-grid.mk-crm-v4-3col,
+	body[data-view="Detail"] #mk-dash-split-root .mk-so-summary-grid.mk-crm-v4-3col,
+	body[data-view="Detail"] #mk-dash-split-root .mk-sc-summary-grid.mk-crm-v4-3col {
+		grid-template-columns: minmax(240px, 1fr) minmax(280px, 1.2fr) !important;
+	}
+
+	body[data-view="Detail"] #mk-dash-split-root .mk-crm-v4-stack--right {
+		grid-column: 1 / -1;
+		display: grid !important;
+		grid-template-columns: 1fr 1fr;
+		gap: 14px;
+	}
+}
+
+@media (max-width: 900px) {
+	body[data-view="Detail"] #mk-dash-split-root .mk-crm-v4-3col,
+	body[data-view="Detail"] #mk-dash-split-root .mk-opportunity-detail-summary-grid.mk-crm-v4-3col,
+	body[data-view="Detail"] #mk-dash-split-root .mk-contact-detail-summary-grid.mk-crm-v4-3col,
+	body[data-view="Detail"] #mk-dash-split-root .mk-acc-detail-summary-grid.mk-crm-v4-3col,
+	body[data-view="Detail"] #mk-dash-split-root .mk-qt-summary-grid.mk-crm-v4-3col,
+	body[data-view="Detail"] #mk-dash-split-root .mk-so-summary-grid.mk-crm-v4-3col,
+	body[data-view="Detail"] #mk-dash-split-root .mk-sc-summary-grid.mk-crm-v4-3col {
+		grid-template-columns: 1fr !important;
+	}
+
+	body[data-view="Detail"] #mk-dash-split-root .mk-crm-v4-stack--right {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ==========================================================================
+ * POLISH — icon/text alignment, buttons, cards, KV, timeline (all modules)
+ * ========================================================================== */
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__identity"] {
+	display: flex !important;
+	align-items: center !important;
+	gap: 14px !important;
+	min-width: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__text"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__content"] {
+	min-width: 0 !important;
+	flex: 1 1 auto !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__icon"] svg,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__icon-glyph"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__icon"] strong {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	line-height: 1 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__meta"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__meta-row"] {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	gap: 8px 12px !important;
+	margin-top: 8px !important;
+	line-height: 1.35 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__meta-item"],
+body[data-view="Detail"] #mk-dash-split-root [class*="stage-pill"],
+body[data-view="Detail"] #mk-dash-split-root [class*="quote-stage"],
+body[data-view="Detail"] #mk-dash-split-root .mk-sc-stage-pill {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 6px !important;
+	line-height: 1.35 !important;
+	vertical-align: middle !important;
+	white-space: nowrap !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__meta-ic"],
+body[data-view="Detail"] #mk-dash-split-root [class*="meta-svg"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__meta-item"] > i,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__meta-item"] > svg,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__meta-item"] [class*="meta-svg"] svg {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 14px !important;
+	height: 14px !important;
+	min-width: 14px !important;
+	flex-shrink: 0 !important;
+	line-height: 1 !important;
+	vertical-align: middle !important;
+	color: var(--mk-v4-accent) !important;
+	opacity: 0.9;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__meta-text"] {
+	line-height: 1.35 !important;
+	display: inline-block !important;
+	vertical-align: middle !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__subtitle"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__address"] {
+	display: flex !important;
+	align-items: center !important;
+	gap: 6px !important;
+	margin: 6px 0 0 !important;
+	line-height: 1.4 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__tags"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__tags--inline"] {
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	border-top: none !important;
+	border-bottom: none !important;
+	background: transparent !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__meta-row"] {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	gap: 8px 14px !important;
+	margin-top: 8px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__tags"] .tagContainer,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__tags"] .detailTagList,
+body[data-view="Detail"] #mk-dash-split-root .tagsContainer {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	gap: 8px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-hero__tags"] .tag,
+body[data-view="Detail"] #mk-dash-split-root .tagList .tag {
+	display: inline-flex !important;
+	align-items: center !important;
+	line-height: 1.3 !important;
+	padding: 4px 10px !important;
+}
+
+/* Action toolbar — uniform height */
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions__toolbar"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions__group"],
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	justify-content: flex-end !important;
+	gap: 6px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer .btn,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-btn"]:not([class*="detail-btn__"]),
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions"] .btn {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 6px !important;
+	min-height: 40px !important;
+	height: auto !important;
+	max-height: none !important;
+	padding: 8px 14px !important;
+	line-height: 1.2 !important;
+	vertical-align: middle !important;
+	border-radius: 10px !important;
+	font-size: 12px !important;
+	font-weight: 650 !important;
+	box-shadow: none !important;
+	background-image: none !important;
+	text-shadow: none !important;
+	white-space: nowrap !important;
+}
+
+/* Hero iconbtn (Leads-like): one box, icon above label */
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions"] [class*="detail-btn--icon"],
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer [class*="detail-btn--icon"] {
+	flex-direction: column !important;
+	gap: 2px !important;
+	min-width: 52px !important;
+	min-height: 44px !important;
+	padding: 6px 8px !important;
+	font-size: 10px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions"] [class*="detail-btn--cta"],
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer [class*="detail-btn--cta"] {
+	flex-direction: row !important;
+	gap: 8px !important;
+	min-width: 0 !important;
+	min-height: 44px !important;
+	padding: 0 14px !important;
+	font-size: 13px !important;
+	font-weight: 700 !important;
+	background: linear-gradient(135deg, var(--mk-v4-accent) 0%, var(--mk-v4-accent-2) 100%) !important;
+	border: none !important;
+	color: #fff !important;
+	box-shadow: 0 6px 14px rgba(15, 118, 110, 0.24) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions"] [class*="detail-btn__ic"],
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer [class*="detail-btn__ic"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions"] [class*="detail-btn__txt"],
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer [class*="detail-btn__txt"] {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	line-height: 1 !important;
+	min-height: 0 !important;
+	height: auto !important;
+	border-radius: 0 !important;
+	min-width: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions"] [class*="detail-btn--icon"] [class*="detail-btn__txt"] {
+	display: block !important;
+	max-width: 72px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 10px !important;
+	line-height: 1.2 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions"] [class*="detail-btn--cta"] [class*="detail-btn__txt"] {
+	display: inline !important;
+	max-width: none !important;
+	font-size: 13px !important;
+	font-weight: 700 !important;
+	color: inherit !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-btn--ghost"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-btn"]:not([class*="detail-btn__"]):not([class*="--primary"]):not([class*="--cta"]):not([class*="--icon"]):not(.btn-success):not(.btn-primary):not(#mkOppCallCustomerBtn) {
+	background: rgba(255, 255, 255, 0.92) !important;
+	border: 1px solid var(--mk-v4-line) !important;
+	color: var(--mk-v4-ink) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-btn--primary"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-btn"]:not([class*="detail-btn__"]).btn-success,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-btn--cta"] {
+	background: linear-gradient(135deg, var(--mk-v4-accent) 0%, var(--mk-v4-accent-2) 100%) !important;
+	border: none !important;
+	color: #fff !important;
+	font-weight: 700 !important;
+	box-shadow: 0 4px 12px rgba(15, 118, 110, 0.22) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root #starToggle {
+	min-width: 52px !important;
+	padding: 6px 8px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-btn"]:not([class*="detail-btn__"]) .fa,
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer .btn .fa,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-btn"]:not([class*="detail-btn__"]) svg {
+	line-height: 1 !important;
+	vertical-align: middle !important;
+	flex-shrink: 0 !important;
+}
+
+/* Card headers */
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card__head"],
+body[data-view="Detail"] #mk-dash-split-root [class*="interaction-log__head"],
+body[data-view="Detail"] #mk-dash-split-root .mk-crm-v4-3col .widget_header {
+	display: flex !important;
+	align-items: center !important;
+	flex-wrap: wrap !important;
+	gap: 8px 10px !important;
+	min-height: 44px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card__title"],
+body[data-view="Detail"] #mk-dash-split-root [class*="interaction-log__head"] [class*="card__title"] {
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	line-height: 1.2 !important;
+	margin: 0 !important;
+	flex: 0 1 auto !important;
+	min-width: 0 !important;
+	width: auto !important;
+	max-width: none !important;
+	padding: 0 !important;
+	background: transparent !important;
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card__title"]::before {
+	content: "" !important;
+	display: inline-block !important;
+	width: 3px !important;
+	height: 14px !important;
+	border-radius: 999px !important;
+	background: var(--mk-v4-accent) !important;
+	flex-shrink: 0 !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card__actions"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card__head"] > .pull-right,
+body[data-view="Detail"] #mk-dash-split-root [class*="interaction-log__head"] .pull-right {
+	margin-left: auto !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 6px !important;
+	float: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card__head"] .pull-left,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card__head"] .pull-right,
+body[data-view="Detail"] #mk-dash-split-root .widget_header .pull-left,
+body[data-view="Detail"] #mk-dash-split-root .widget_header .pull-right {
+	float: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card__head"] .toggleButton {
+	display: inline-flex !important;
+	align-items: center !important;
+	line-height: 1 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="heading-svg"],
+body[data-view="Detail"] #mk-dash-split-root [class*="card__title-ic"],
+body[data-view="Detail"] #mk-dash-split-root [class*="title-ic"],
+body[data-view="Detail"] #mk-dash-split-root [class*="interaction-log__ic"] {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	line-height: 1 !important;
+	flex-shrink: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="heading-svg"] svg,
+body[data-view="Detail"] #mk-dash-split-root [class*="card__title-ic"] svg {
+	display: block !important;
+}
+
+/* Key fields — label above value, even grid */
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-summaryView"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-kv-wrap"] {
+	padding: 4px 16px 16px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-kv-wrap"] .summary-table {
+	display: block !important;
+	width: 100% !important;
+	border: none !important;
+	margin: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-kv-wrap"] .summary-table tbody {
+	display: grid !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+	gap: 12px 16px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-kv-wrap"] .summary-table tr.summaryViewEntries {
+	display: grid !important;
+	grid-template-columns: 1fr !important;
+	row-gap: 4px !important;
+	padding: 0 0 12px !important;
+	margin: 0 !important;
+	border: none !important;
+	border-bottom: 1px solid rgba(15, 118, 110, 0.06) !important;
+	min-width: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-kv-wrap"] .summary-table tr.summaryViewEntries:last-child {
+	border-bottom: none !important;
+	padding-bottom: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-kv-wrap"] .summary-table td {
+	display: block !important;
+	padding: 0 !important;
+	border: none !important;
+	width: 100% !important;
+	vertical-align: top !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-kv-wrap"] .summary-table td.fieldLabel,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-kv-wrap"] .summary-table td.fieldLabel label {
+	margin: 0 !important;
+	padding: 0 !important;
+	line-height: 1.3 !important;
+	display: block !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-kv-wrap"] .summary-table td.fieldValue,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-kv-wrap"] .summary-table td.fieldValue .value {
+	line-height: 1.4 !important;
+	word-break: break-word !important;
+}
+
+/* Address / key meta — no nested box, plain text row */
+body[data-view="Detail"] #mk-dash-split-root [class*="key-address"] {
+	display: flex !important;
+	align-items: flex-start !important;
+	gap: 8px !important;
+	margin: 8px 16px 12px !important;
+	padding: 8px 0 0 !important;
+	background: transparent !important;
+	border: none !important;
+	border-radius: 0 !important;
+	border-top: 1px solid rgba(15, 118, 110, 0.08) !important;
+	box-shadow: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="key-address__ic"],
+body[data-view="Detail"] #mk-dash-split-root [class*="key-address__body"] {
+	line-height: 1.4 !important;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	padding: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="key-address__ic"] {
+	flex-shrink: 0 !important;
+	margin-top: 2px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="key-address__label"],
+body[data-view="Detail"] #mk-dash-split-root [class*="key-address__text"] {
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="key-address__label"] {
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.05em !important;
+	text-transform: uppercase !important;
+	color: var(--mk-v4-muted) !important;
+	margin-bottom: 2px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="key-address__text"] {
+	font-size: 14px !important;
+	font-weight: 600 !important;
+	color: var(--mk-v4-ink) !important;
+}
+
+/* Interaction log timeline */
+body[data-view="Detail"] #mk-dash-split-root [class*="interaction-log__hint"] {
+	margin: 0 16px 12px !important;
+	line-height: 1.45 !important;
+	color: var(--mk-v4-muted) !important;
+	font-size: 12px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="interaction-log__body"] {
+	padding: 0 16px 16px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-opp-ilog {
+	border-left-color: rgba(15, 118, 110, 0.2) !important;
+	margin-left: 4px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-opp-ilog__item {
+	padding: 0 0 14px 18px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-opp-ilog__dot {
+	top: 5px !important;
+	left: -5px !important;
+	width: 9px !important;
+	height: 9px !important;
+	border: 2px solid #fff !important;
+	box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.15) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-opp-ilog__item--call .mk-opp-ilog__dot {
+	background: var(--mk-v4-accent) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-opp-ilog__meta {
+	display: flex !important;
+	align-items: center !important;
+	flex-wrap: wrap !important;
+	gap: 6px 8px !important;
+	line-height: 1.35 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .mk-opp-ilog__title {
+	line-height: 1.45 !important;
+	margin: 2px 0 0 !important;
+	font-weight: 600 !important;
+}
+
+/* Widget / empty states — text only, no dashed box */
+body[data-view="Detail"] #mk-dash-split-root [class*="widget_contents"] .noContent,
+body[data-view="Detail"] #mk-dash-split-root [class*="interaction-log__empty"],
+body[data-view="Detail"] #mk-dash-split-root .emptyRecordsDiv,
+body[data-view="Detail"] #mk-dash-split-root [class*="documents__body"],
+body[data-view="Detail"] #mk-dash-split-root [class*="widget_contents"]:empty {
+	color: var(--mk-v4-muted) !important;
+	font-size: 13px !important;
+	line-height: 1.45 !important;
+	text-align: center !important;
+	padding: 12px 4px !important;
+	background: transparent !important;
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="widget_contents"] .noContent::before,
+body[data-view="Detail"] #mk-dash-split-root .emptyRecordsDiv::before {
+	display: none !important;
+	content: none !important;
+}
+
+/* Soften hero iconbtns: white chip like Leads flat */
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions"] [class*="detail-btn--icon"],
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer [class*="detail-btn--icon"] {
+	background: rgba(255, 255, 255, 0.92) !important;
+	border: 1px solid var(--mk-v4-line) !important;
+	box-shadow: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions"] [class*="detail-btn--icon"]:hover,
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer [class*="detail-btn--icon"]:hover {
+	background: var(--mk-v4-soft) !important;
+	border-color: rgba(15, 118, 110, 0.28) !important;
+}
+
+/* Contact / list rows inside cards — flatten nested frames */
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card"]:not([class*="detail-card__"]) .listViewEntries,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card"]:not([class*="detail-card__"]) .relatedRecords,
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card"]:not([class*="detail-card__"]) [class*="contact-row"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card"]:not([class*="detail-card__"]) .record-header {
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root .related-tabs .numberCircle {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	min-width: 18px !important;
+	height: 18px !important;
+	line-height: 1 !important;
+	font-size: 10px !important;
+	vertical-align: middle !important;
+	margin-left: 4px !important;
+	padding: 0 4px !important;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="stage-pill__dot"] {
+	flex-shrink: 0 !important;
+	align-self: center !important;
+}
+
+/* Final: title = green bar + text only (ref hình 2); hero icon/text no nested chips (ref hình 4) */
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-card__title"],
+body[data-view="Detail"] #mk-dash-split-root .widget_header h4,
+body[data-view="Detail"] #mk-dash-split-root .widget_header .mk-opportunity-detail-card__title,
+body[data-view="Detail"] #mk-dash-split-root .widget_header .mk-lead-detail-card__title {
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	flex: 0 1 auto !important;
+	width: auto !important;
+	max-width: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	background: transparent !important;
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions"] [class*="detail-btn--icon"],
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer [class*="detail-btn--icon"] {
+	background: rgba(255, 255, 255, 0.92) !important;
+	border: 1px solid var(--mk-v4-line) !important;
+	box-shadow: none !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions"] [class*="detail-btn__ic"],
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions"] [class*="detail-btn__txt"],
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer [class*="detail-btn__ic"],
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer [class*="detail-btn__txt"] {
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	border-radius: 0 !important;
+	padding: 0 !important;
+	min-height: 0 !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions"] [class*="detail-btn--cta"],
+body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer [class*="detail-btn--cta"] {
+	background: linear-gradient(135deg, var(--mk-v4-accent) 0%, var(--mk-v4-accent-2) 100%) !important;
+	border: none !important;
+	color: #fff !important;
+	box-shadow: 0 6px 14px rgba(15, 118, 110, 0.24) !important;
+}
+
+/* Shared KPI strip (Opp / Leads-like) */
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-kpi"],
+body[data-view="Detail"] #mk-dash-split-root .mk-ld-v4-kpi,
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-kpi {
+	display: grid !important;
+	grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+	gap: 12px !important;
+	margin: 4px 0 14px !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-kpi__card"],
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-kpi__card {
+	min-height: 84px !important;
+	box-sizing: border-box !important;
+	display: flex !important;
+	flex-direction: column !important;
+	justify-content: center !important;
+	gap: 6px !important;
+	padding: 14px 16px !important;
+	background: var(--mk-v4-panel) !important;
+	border: 1px solid var(--mk-v4-line) !important;
+	border-radius: 14px !important;
+	box-shadow: var(--mk-v4-shadow) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-kpi__label"],
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-kpi__label {
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.06em !important;
+	text-transform: uppercase !important;
+	color: var(--mk-v4-muted) !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-kpi__value"],
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-kpi__value {
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
+	font-size: 1.15rem !important;
+	font-weight: 700 !important;
+	letter-spacing: -0.02em !important;
+	color: var(--mk-v4-ink) !important;
+	line-height: 1.2 !important;
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+	white-space: nowrap !important;
+}
+
+body[data-view="Detail"] #mk-dash-split-root [class*="detail-kpi__card--value"] [class*="detail-kpi__value"],
+body[data-view="Detail"] #mk-dash-split-root .mk-lead-kpi__card--value .mk-lead-kpi__value {
+	color: var(--mk-v4-accent) !important;
+}
+
+@media (max-width: 900px) {
+	body[data-view="Detail"] #mk-dash-split-root [class*="detail-kpi"],
+	body[data-view="Detail"] #mk-dash-split-root .mk-ld-v4-kpi,
+	body[data-view="Detail"] #mk-dash-split-root .mk-lead-kpi {
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+	}
+}
+
+@media (max-width: 640px) {
+	body[data-view="Detail"] #mk-dash-split-root [class*="detail-kv-wrap"] .summary-table tbody {
+		grid-template-columns: 1fr !important;
+	}
+
+	body[data-view="Detail"] #mk-dash-split-root [class*="detail-actions"],
+	body[data-view="Detail"] #mk-dash-split-root .detailViewButtoncontainer {
+		justify-content: flex-start !important;
+		width: 100% !important;
+	}
+
+	body[data-view="Detail"] #mk-dash-split-root [class*="detail-kpi"],
+	body[data-view="Detail"] #mk-dash-split-root .mk-ld-v4-kpi,
+	body[data-view="Detail"] #mk-dash-split-root .mk-lead-kpi {
+		grid-template-columns: 1fr !important;
+	}
+}
