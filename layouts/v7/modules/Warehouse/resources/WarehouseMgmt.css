@@ -345,10 +345,10 @@ body[data-module="Warehouse"][data-view="WhTransfer"][data-app="INVENTORY"] .mai
 	padding: 0 16px;
 	min-height: 42px;
 	border-radius: 999px;
-	background: linear-gradient(135deg, #3b82f6 0%, #6366f1 52%, #8b5cf6 100%);
-	border: 1px solid rgba(255, 255, 255, 0.22);
+	background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+	border: 1px solid rgba(255, 255, 255, 0.18);
 	color: #ffffff;
-	box-shadow: 0 4px 14px rgba(59, 130, 246, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+	box-shadow: 0 6px 16px rgba(15, 118, 110, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.22);
 	font-weight: 600;
 	letter-spacing: 0.01em;
 	text-decoration: none;
@@ -361,7 +361,7 @@ body[data-module="Warehouse"][data-view="WhTransfer"][data-app="INVENTORY"] .mai
 	content: '';
 	position: absolute;
 	inset: 0;
-	background: radial-gradient(circle at 30% 0%, rgba(255, 255, 255, 0.35) 0%, transparent 55%);
+	background: radial-gradient(circle at 30% 0%, rgba(255, 255, 255, 0.28) 0%, transparent 55%);
 	opacity: 0;
 	transition: opacity 0.22s ease;
 	pointer-events: none;
@@ -383,13 +383,13 @@ body[data-module="Warehouse"][data-view="WhTransfer"][data-app="INVENTORY"] .mai
 
 .mk-wh-mgmt-btn--enter:hover,
 .mk-wh-mgmt-btn--enter:focus {
-	background: linear-gradient(135deg, #60a5fa 0%, #818cf8 50%, #a78bfa 100%);
-	border-color: rgba(255, 255, 255, 0.35);
+	background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%);
+	border-color: rgba(255, 255, 255, 0.28);
 	color: #ffffff;
 	text-decoration: none;
 	transform: translateY(-2px);
-	box-shadow: 0 8px 22px rgba(99, 102, 241, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-	filter: saturate(1.08);
+	box-shadow: 0 10px 22px rgba(15, 118, 110, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+	filter: none;
 }
 
 .mk-wh-mgmt-btn--enter:hover::after,
@@ -404,24 +404,25 @@ body[data-module="Warehouse"][data-view="WhTransfer"][data-app="INVENTORY"] .mai
 }
 
 .mk-wh-mgmt-btn--enter:active {
-	background: linear-gradient(135deg, #1d4ed8 0%, #4338ca 55%, #6d28d9 100%);
+	background: linear-gradient(135deg, #115e59 0%, #0f766e 100%);
 	border-color: rgba(255, 255, 255, 0.18);
-	color: #e0e7ff;
+	color: #ecfdf5;
 	transform: translateY(0) scale(0.97);
-	box-shadow: 0 2px 8px rgba(67, 56, 202, 0.45), inset 0 2px 8px rgba(30, 27, 75, 0.22);
-	filter: saturate(1.12);
+	box-shadow: 0 2px 8px rgba(15, 118, 110, 0.4), inset 0 2px 8px rgba(17, 94, 89, 0.25);
+	filter: none;
 }
 
 .mk-wh-mgmt-btn--enter:active .mk-wh-mgmt-btn__chev {
-	color: #dbeafe;
+	color: #ccfbf1;
 	transform: translateX(5px);
 }
 
 /* Card action row */
 body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-wh-mgmt-card__actions .mk-wh-mgmt-btn--enter {
-	background: linear-gradient(135deg, #3b82f6 0%, #6366f1 52%, #8b5cf6 100%) !important;
-	border-color: rgba(255, 255, 255, 0.22) !important;
+	background: linear-gradient(135deg, #0f766e 0%, #115e59 100%) !important;
+	border-color: rgba(255, 255, 255, 0.18) !important;
 	color: #ffffff !important;
+	box-shadow: 0 6px 16px rgba(15, 118, 110, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
 }
 
 body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-wh-mgmt-card__actions .mk-wh-mgmt-btn--enter .mk-wh-mgmt-btn__chev {
@@ -430,13 +431,14 @@ body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-wh-m
 
 body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-wh-mgmt-card__actions .mk-wh-mgmt-btn--enter:hover,
 body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-wh-mgmt-card__actions .mk-wh-mgmt-btn--enter:focus {
-	background: linear-gradient(135deg, #60a5fa 0%, #818cf8 50%, #a78bfa 100%) !important;
+	background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%) !important;
 	color: #ffffff !important;
+	box-shadow: 0 10px 22px rgba(15, 118, 110, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
 }
 
 body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-wh-mgmt-card__actions .mk-wh-mgmt-btn--enter:active {
-	background: linear-gradient(135deg, #1d4ed8 0%, #4338ca 55%, #6d28d9 100%) !important;
-	color: #e0e7ff !important;
+	background: linear-gradient(135deg, #115e59 0%, #0f766e 100%) !important;
+	color: #ecfdf5 !important;
 }
 
 body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-wh-mgmt-card__actions .mk-wh-mgmt-btn--icon.mk-wh-mgmt-btn--outline {
@@ -1407,24 +1409,24 @@ body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-wh-m
 }
 
 body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-wh-mgmt-btn--enter {
-	background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
-	border: 1px solid rgba(255, 255, 255, 0.18);
-	box-shadow: 0 6px 16px rgba(15, 118, 110, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.22);
-	filter: none;
+	background: linear-gradient(135deg, #0f766e 0%, #115e59 100%) !important;
+	border: 1px solid rgba(255, 255, 255, 0.18) !important;
+	box-shadow: 0 6px 16px rgba(15, 118, 110, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+	filter: none !important;
 }
 
 body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-wh-mgmt-btn--enter:hover,
 body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-wh-mgmt-btn--enter:focus {
-	background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%);
-	box-shadow: 0 10px 22px rgba(15, 118, 110, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.28);
-	filter: none;
-	color: #fff;
+	background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%) !important;
+	box-shadow: 0 10px 22px rgba(15, 118, 110, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+	filter: none !important;
+	color: #fff !important;
 }
 
 body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-wh-mgmt-btn--enter:active {
-	background: linear-gradient(135deg, #115e59 0%, #0f766e 100%);
-	color: #ecfdf5;
-	filter: none;
+	background: linear-gradient(135deg, #115e59 0%, #0f766e 100%) !important;
+	color: #ecfdf5 !important;
+	filter: none !important;
 }
 
 body[data-module="Warehouse"][data-view="WhList"][data-app="INVENTORY"] .mk-wh-list-panel {
