@@ -75,7 +75,6 @@
     filtersOpen: false,
     listMode: "active", // active | trash
     trashCache: null,
-    viewMode: "table", // table | kanban
     productTab: "all", // all | unclassified | online | offline | nvl | franchise
   };
 
@@ -405,124 +404,9 @@
       .join("");
   }
 
-  function applyViewMode() {
-    var tableWrap = $("mk-leads-table-wrap");
-    var kanban = $("mk-leads-kanban");
-    var isKanban = state.viewMode === "kanban";
-    if (tableWrap) tableWrap.hidden = isKanban;
-    if (kanban) kanban.hidden = !isKanban;
-    var toggle = $("mk-leads-view-toggle");
-    var tableBtn = $("mk-leads-view-table");
-    var kanbanBtn = $("mk-leads-view-kanban");
-    if (toggle) toggle.setAttribute("data-mode", isKanban ? "kanban" : "table");
-    if (tableBtn) {
-      tableBtn.classList.toggle("is-active", !isKanban);
-      tableBtn.setAttribute("aria-selected", !isKanban ? "true" : "false");
-    }
-    if (kanbanBtn) {
-      kanbanBtn.classList.toggle("is-active", isKanban);
-      kanbanBtn.setAttribute("aria-selected", isKanban ? "true" : "false");
-    }
-  }
-
   function refreshListBody() {
     renderSegments();
-    applyViewMode();
-    if (state.viewMode === "kanban") {
-      renderKanban();
-    } else {
-      renderTable();
-    }
-  }
-
-  function renderKanban() {
-    var root = $("mk-leads-kanban");
-    if (!root) return;
-    var tab = state.productTab;
-    if (tab === "all" || tab === "unclassified") {
-      root.innerHTML =
-        '<div class="mk-leads-kanban-empty">Chọn tab Online / Offline / NVL / Nhượng quyền để kéo stage trên Kanban. Lead chưa gắn nhóm không nằm trong cột nào.</div>';
-      return;
-    }
-    var group = productGroups().find(function (g) {
-      return g.code === tab;
-    });
-    if (!group) {
-      root.innerHTML = "";
-      return;
-    }
-    var rows = filterLeads(getLeads());
-    var byStage = {};
-    (group.stages || []).forEach(function (st) {
-      byStage[st.code] = [];
-    });
-    rows.forEach(function (l) {
-      var prod = leadProducts(l).find(function (p) {
-        return p.group === tab;
-      });
-      if (!prod) return;
-      if (!byStage[prod.stage]) byStage[prod.stage] = [];
-      byStage[prod.stage].push({ lead: l, product: prod });
-    });
-    root.innerHTML =
-      '<div class="mk-leads-kanban__cols">' +
-      (group.stages || [])
-        .map(function (st) {
-          var cards = byStage[st.code] || [];
-          return (
-            '<section class="mk-leads-kanban-col mk-leads-kanban-col--' +
-            esc(st.code) +
-            '" data-stage="' +
-            esc(st.code) +
-            '">' +
-            '<header class="mk-leads-kanban-col__head"><span>' +
-            esc(st.label) +
-            '</span><span class="mk-leads-kanban-col__n">' +
-            cards.length +
-            "</span></header>" +
-            '<div class="mk-leads-kanban-col__body">' +
-            cards
-              .map(function (item) {
-                var l = item.lead;
-                var p = item.product;
-                var days = daysInStageLabel(p);
-                var can = canEditPipeline(l);
-                return (
-                  '<article class="mk-leads-kanban-card' +
-                  (can ? " is-draggable" : "") +
-                  '" data-product-id="' +
-                  esc(p.id) +
-                  '" data-lead-id="' +
-                  esc(l.id) +
-                  '"' +
-                  (can ? ' draggable="true"' : "") +
-                  ">" +
-                  '<a class="mk-leads-kanban-card__name" href="' +
-                  detailUrl(l.id) +
-                  '">' +
-                  esc(decodeHtmlEntities(l.name)) +
-                  "</a>" +
-                  (l.phone
-                    ? '<div class="mk-leads-kanban-card__phone">' +
-                      esc(decodeHtmlEntities(l.phone)) +
-                      "</div>"
-                    : "") +
-                  (p.product_name
-                    ? '<div class="mk-leads-kanban-card__sub">' +
-                      esc(decodeHtmlEntities(p.product_name)) +
-                      "</div>"
-                    : "") +
-                  (days ? '<div class="mk-leads-kanban-card__days">' + esc(days) + "</div>" : "") +
-                  (!can ? '<div class="mk-leads-kanban-card__ro">Chỉ xem</div>' : "") +
-                  "</article>"
-                );
-              })
-              .join("") +
-            "</div></section>"
-          );
-        })
-        .join("") +
-      "</div>";
+    renderTable();
   }
 
   function tagMeta(t) {
@@ -3616,13 +3500,6 @@
         refreshListBody();
         return;
       }
-      var viewBtn = e.target.closest && e.target.closest("[data-leads-view]");
-      if (viewBtn) {
-        e.preventDefault();
-        state.viewMode = viewBtn.getAttribute("data-leads-view") === "kanban" ? "kanban" : "table";
-        refreshListBody();
-        return;
-      }
       var addBtn = e.target.closest && e.target.closest("[data-product-add]");
       if (addBtn) {
         e.preventDefault();
@@ -3971,47 +3848,6 @@
         if (menu) menu.hidden = true;
       }
     });
-
-    var kanbanRoot = $("mk-leads-kanban");
-    if (kanbanRoot) {
-      kanbanRoot.addEventListener("dragstart", function (e) {
-        var card = e.target.closest && e.target.closest(".mk-leads-kanban-card.is-draggable");
-        if (!card) return;
-        e.dataTransfer.setData("text/plain", card.getAttribute("data-product-id") || "");
-        e.dataTransfer.effectAllowed = "move";
-        card.classList.add("is-dragging");
-      });
-      kanbanRoot.addEventListener("dragend", function (e) {
-        var card = e.target.closest && e.target.closest(".mk-leads-kanban-card");
-        if (card) card.classList.remove("is-dragging");
-        var cols = kanbanRoot.querySelectorAll(".mk-leads-kanban-col");
-        for (var i = 0; i < cols.length; i++) cols[i].classList.remove("is-drop");
-      });
-      kanbanRoot.addEventListener("dragover", function (e) {
-        var col = e.target.closest && e.target.closest(".mk-leads-kanban-col");
-        if (!col) return;
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        var cols = kanbanRoot.querySelectorAll(".mk-leads-kanban-col");
-        for (var j = 0; j < cols.length; j++) cols[j].classList.toggle("is-drop", cols[j] === col);
-      });
-      kanbanRoot.addEventListener("drop", function (e) {
-        var col = e.target.closest && e.target.closest(".mk-leads-kanban-col");
-        if (!col) return;
-        e.preventDefault();
-        var productId = e.dataTransfer.getData("text/plain");
-        var stage = col.getAttribute("data-stage");
-        if (!productId || !stage || !store || !store.productSetStage) return;
-        store
-          .productSetStage(productId, stage)
-          .then(function () {
-            refreshListBody();
-          })
-          .catch(function (err) {
-            window.alert(typeof err === "string" ? err : (err && err.message) || "Không kéo được stage.");
-          });
-      });
-    }
   }
 
   function closeMergeModal() {
