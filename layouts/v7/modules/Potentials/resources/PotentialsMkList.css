@@ -163,6 +163,39 @@
 	color: #64748b;
 }
 
+.mk-opps-checkin__meta {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	margin: 4px 0 2px;
+}
+
+.mk-opps-checkin__meta-item {
+	display: block;
+	font-size: 11px;
+	line-height: 1.35;
+	color: #475569;
+	font-weight: 500;
+}
+
+.mk-opps-checkin__meta-k {
+	color: #94a3b8;
+	font-weight: 600;
+	margin-right: 2px;
+}
+
+.mk-opps-checkin__meta-item.is-yes {
+	color: #047857;
+}
+
+.mk-opps-checkin__meta-item.is-no {
+	color: #b45309;
+}
+
+.mk-opps-checkin__meta-item.is-muted {
+	color: #94a3b8;
+}
+
 .mk-opps-checkin__actions {
 	display: flex;
 	flex-wrap: wrap;
@@ -217,6 +250,8 @@
 	border-radius: 6px;
 	font-size: 12px;
 }
+
+.mk-opps-checkin__hint {
 	font-size: 11px;
 	color: #94a3b8;
 }

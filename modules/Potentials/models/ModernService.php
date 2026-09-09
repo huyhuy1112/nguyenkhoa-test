@@ -74,7 +74,8 @@ class Potentials_ModernService {
 				lp.business_model AS lead_business_model,
 				lp.offline_status, lp.offline_r1_contact, lp.offline_r1_hen_goi, lp.offline_r1_khong_nghe, lp.offline_r1_sai_tt,
 				lp.offline_r2_schedule, lp.offline_r3_class, lp.offline_r4_transfer,
-				lp.offline_preclass_confirm, lp.offline_class_date, lp.offline_checked_in_at
+				lp.offline_preclass_confirm, lp.offline_class_date, lp.offline_checked_in_at,
+				lp.offline_class_time, lp.offline_class_place, lp.zalo_user_id
 			FROM vtiger_potential p
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid AND ce.deleted = 0
 			LEFT JOIN vtiger_account acc ON acc.accountid = p.related_to

@@ -635,6 +635,58 @@
     window.alert(msg);
   }
 
+  function offlineClassMetaHtml(o) {
+    var classDate = o.offline_class_date ? String(o.offline_class_date) : "";
+    var classTime = o.offline_class_time ? String(o.offline_class_time) : "";
+    var classPlace = o.offline_class_place ? String(o.offline_class_place).trim() : "";
+    var zaloId = o.zalo_user_id ? String(o.zalo_user_id).trim() : "";
+    var willCome = Number(o.offline_preclass_confirm) === 1;
+    var parts = [];
+    if (classDate || classTime) {
+      parts.push(
+        '<span class="mk-opps-checkin__meta-item">' +
+          '<span class="mk-opps-checkin__meta-k">Lớp</span> ' +
+          esc([classDate, classTime].filter(Boolean).join(" · ")) +
+          "</span>"
+      );
+    }
+    if (classPlace) {
+      parts.push(
+        '<span class="mk-opps-checkin__meta-item" title="' +
+          esc(classPlace) +
+          '">' +
+          '<span class="mk-opps-checkin__meta-k">Địa điểm</span> ' +
+          esc(classPlace.length > 42 ? classPlace.slice(0, 42) + "…" : classPlace) +
+          "</span>"
+      );
+    }
+    parts.push(
+      '<span class="mk-opps-checkin__meta-item' +
+        (willCome ? " is-yes" : " is-no") +
+        '">' +
+        '<span class="mk-opps-checkin__meta-k">Sẽ đến</span> ' +
+        (willCome ? "Đã XN" : "Chưa XN") +
+        "</span>"
+    );
+    if (zaloId) {
+      var zaloShort = zaloId.length > 14 ? zaloId.slice(0, 10) + "…" : zaloId;
+      parts.push(
+        '<span class="mk-opps-checkin__meta-item" title="' +
+          esc(zaloId) +
+          '">' +
+          '<span class="mk-opps-checkin__meta-k">OA id</span> ' +
+          esc(zaloShort) +
+          "</span>"
+      );
+    } else {
+      parts.push(
+        '<span class="mk-opps-checkin__meta-item is-muted">' +
+          '<span class="mk-opps-checkin__meta-k">OA id</span> —</span>'
+      );
+    }
+    return '<div class="mk-opps-checkin__meta">' + parts.join("") + "</div>";
+  }
+
   function offlineCheckinCell(o) {
     if (!canOfflineCheckin(o)) {
       return '<span class="mk-leads-muted">—</span>';
@@ -653,11 +705,9 @@
       '<span class="mk-opps-checkin__label">' +
       esc(label || "Offline") +
       "</span>" +
-      (classDate
-        ? '<span class="mk-opps-checkin__date">Lớp: ' + esc(classDate) + "</span>"
-        : "") +
+      offlineClassMetaHtml(o) +
       (checkedAt
-        ? '<span class="mk-opps-checkin__at">Lúc: ' + esc(checkedAt) + "</span>"
+        ? '<span class="mk-opps-checkin__at">Điểm danh: ' + esc(checkedAt) + "</span>"
         : "") +
       "</div>";
     if (isAdminUser() && editable) {
