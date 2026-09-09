@@ -113,11 +113,15 @@
 	overflow: hidden;
 }
 
-.mk-opps-page .mk-leads-td--touch {
+.mk-opps-page .mk-leads-td--touch,
+.mk-opps-page.mk-leads-page--lovable .mk-leads-td--touch,
+.mk-leads-page--lovable.mk-opps-page .mk-leads-td--touch {
 	padding-left: 20px !important;
 	position: relative;
 	z-index: 1;
 	min-width: 240px;
+	vertical-align: top !important;
+	background: #fff;
 }
 
 .mk-opps-page .mk-leads-td--checkin {

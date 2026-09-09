@@ -16,7 +16,7 @@
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.css')}&mk_v=20260711_segments_ui2" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkListLovable.css')}&mk_v=20260820_bizmodel1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkTagPalette.css')}&mk_v=20260725_cred_tags1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsMkList.css')}&mk_v=20260909_oppmeta1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Potentials/resources/PotentialsMkList.css')}&mk_v=20260909_oppmeta2" />
 <style type="text/css">
 html.mk-opps-ui-ready body[data-module="Potentials"][data-view="List"] .main-container .content-area,
 html.mk-opps-ui-ready body[data-module="Potentials"][data-view="List"] #listViewContent,
