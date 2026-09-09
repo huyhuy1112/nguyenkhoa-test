@@ -329,12 +329,7 @@ class Leads_OfflineGd11Step2Service {
 			} catch (Exception $e) {
 				// ignore
 			}
-			$bump = Leads_OfflineGd11Service::bumpCounter($leadId, 'r3');
-			if (!empty($bump['stopped'])) {
-				Leads_OfflineGd11Service::applyStatus($leadId, Leads_OfflineGd11Service::STATUS_NGUNG_CSKH, $userId);
-				Leads_OfflineGd11Service::setNextActionHint($leadId, Leads_OfflineGd11Service::STATUS_NGUNG_CSKH);
-				return self::okLead($leadId, $userId, array('drop' => 'R3', 'status' => Leads_OfflineGd11Service::STATUS_NGUNG_CSKH));
-			}
+			// Không +R3 khi chốt lịch mới — R3 chỉ tăng khi Không tham gia.
 			Leads_OfflineGd11Service::applyStatus($leadId, Leads_OfflineGd11Service::STATUS_DA_XN_LICH, $userId);
 			$step2 = self::onScheduleConfirmed($leadId, $payload, $userId);
 			Leads_OfflineGd11Service::setNextActionHint($leadId, Leads_OfflineGd11Service::STATUS_DA_XN_LICH, $classDate);
@@ -352,7 +347,6 @@ class Leads_OfflineGd11Step2Service {
 			return self::okLead($leadId, $userId, array(
 				'step2' => $step2,
 				'calendar' => $cal,
-				'r3' => $bump['count'],
 				'status' => Leads_OfflineGd11Service::STATUS_DA_XN_LICH,
 			));
 		}
