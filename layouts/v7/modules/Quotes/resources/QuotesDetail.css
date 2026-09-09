@@ -93,11 +93,30 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-qt-detail-i
 	}
 }
 
-/* Shell/footer — sticky bottom via #page flex (DashBoard.css STICKY APP FOOTER) */
+/* Shell/footer — Leads-aligned: offset shell + sticky #page footer under content column */
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] {
+	--mk-dash-sidebar-w: 256px;
+	--mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root {
+	position: relative;
+	display: block;
+	min-height: 0;
+}
+
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-app-shell {
-	min-height: 0 !important;
+	margin-left: var(--mk-dash-sidebar-w, 256px);
+	width: calc(100% - var(--mk-dash-sidebar-w, 256px));
+	max-width: calc(100% - var(--mk-dash-sidebar-w, 256px));
+	min-width: 0;
+	min-height: 0;
+	box-sizing: border-box;
 	display: flex !important;
 	flex-direction: column !important;
+	overflow-x: hidden;
+	background: #f7f9fb;
+	padding-top: var(--mk-dash-topbar-h, 64px);
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-dash-main.mk-qt-detail-main {
@@ -105,9 +124,19 @@ body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-dash-main.m
 	min-height: 0;
 }
 
-body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] #page > .app-footer.mk-app-footer {
-	margin-top: auto !important;
-	flex-shrink: 0;
+body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] #page {
+	min-height: 100vh !important;
+	display: flex;
+	flex-direction: column;
+	overflow: visible !important;
+}
+
+@media (max-width: 991px) {
+	body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] .mk-app-shell {
+		margin-left: 0 !important;
+		width: 100% !important;
+		max-width: 100% !important;
+	}
 }
 
 body[data-module="Quotes"][data-view="Detail"][data-app="SALES"] {

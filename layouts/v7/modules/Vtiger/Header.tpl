@@ -65,7 +65,7 @@
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernNotifications.css')}?mk_v=20260827_notif_mix1" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernQuickCreate.css')}" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernProfileDropdown.css')}" media="screen" />
-		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}&mk_v=20260803_invoice_shell1" media="screen" />
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}&mk_v=20260909_nofooter1" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkDetailNoComments.css')}?mk_v=20260804_nocomment1" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkCrmResponsive.css')}?mk_v=20260730_kpi_fit1" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkQuickPreview.css')}&mk_v=20260625_quick_preview_v5" media="screen" />
@@ -78,7 +78,7 @@
 		{/if}
 		{* cv = cache-bust: dùng filemtime hoặc thời điểm hiện tại để menu/custom CSS luôn mới sau chuyển trang hoặc refresh *}
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/resources/custom.css')}&amp;cv={$CUSTOM_CSS_VERSION|default:$smarty.now}" media="screen" />
-		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/resources/nguyenkhoa-brand.css')}?nk_v=20260805_loader_nk2" media="screen" />
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/resources/nguyenkhoa-brand.css')}?nk_v=20260909_nofooter1" media="screen" />
 		{include file="partials/MkThemeStylesLast.tpl"|vtemplate_path:'Vtiger'}
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkReferencePopup.css')}?mk_v=20260805_popup_hx1" media="screen" />
 		<style type="text/css" id="mk-ref-popup-critical">

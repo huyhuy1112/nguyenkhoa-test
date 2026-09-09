@@ -20,10 +20,6 @@ body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-app-shell {
 	overflow-x: hidden;
 }
 
-body[data-module="Leads"][data-view="Detail"][data-app="SALES"] #page > .app-footer {
-	margin-top: auto;
-}
-
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-dash-main,
 body[data-module="Leads"][data-view="Detail"][data-app="SALES"] .mk-lead-detail-main {
 	width: 100%;

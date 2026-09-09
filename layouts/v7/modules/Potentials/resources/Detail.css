@@ -122,10 +122,6 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] #page {
 	flex-direction: column;
 }
 
-body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .app-footer {
-	margin-top: auto !important;
-}
-
 @media (max-width: 1199px) {
 	body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] .main-container.mk-opportunity-detail-page {
 		padding-left: 32px !important;

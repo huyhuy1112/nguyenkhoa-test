@@ -5,6 +5,36 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500&family=Space+Grotesk:wght@500&display=swap');
 
+/* ---- App shell (Leads-aligned): offset past fixed sidebar; footer sits under content column ---- */
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] {
+	--mk-dash-sidebar-w: 256px;
+	--mk-dash-topbar-h: 64px;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] #mk-dash-split-root.mk-dash-split-root {
+	position: relative;
+	display: block;
+	min-height: 0;
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-app-shell {
+	margin-left: var(--mk-dash-sidebar-w);
+	width: calc(100% - var(--mk-dash-sidebar-w));
+	max-width: calc(100% - var(--mk-dash-sidebar-w));
+	min-height: 0;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	background: #f7f9fb;
+	padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] #page,
+body[data-module="Quotes"][data-view="List"][data-app="SALES"] #page.container-fluid {
+	padding-top: 0 !important;
+	overflow: visible !important;
+}
+
 /* ---- Main shell: Figma 24px padding under topbar ---- */
 body[data-module="Quotes"][data-view="List"][data-app="SALES"] .mk-dash-main.mk-qt-list-main {
 	padding: 24px !important;
