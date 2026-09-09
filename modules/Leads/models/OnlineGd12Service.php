@@ -453,17 +453,18 @@ class Leads_OnlineGd12Service {
 		if ($f === '') {
 			return '';
 		}
-		if (strpos($f, 'duoi 50') !== false) {
-			return 'A';
+		// D trước A: tránh "duoi 500" khớp nhầm "duoi 50".
+		if (strpos($f, '300') !== false && strpos($f, '500') !== false) {
+			return 'D';
 		}
-		if (strpos($f, '50') !== false && strpos($f, '100') !== false) {
+		if (preg_match('/\b50\b/', $f) && preg_match('/\b100\b/', $f)) {
 			return 'B';
 		}
 		if (strpos($f, '100') !== false && strpos($f, '300') !== false) {
 			return 'C';
 		}
-		if (strpos($f, '300') !== false && strpos($f, '500') !== false) {
-			return 'D';
+		if (preg_match('/\bduoi 50\b/', $f)) {
+			return 'A';
 		}
 		if (strpos($f, '500') !== false) {
 			return 'E';

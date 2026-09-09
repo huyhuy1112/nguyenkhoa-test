@@ -418,6 +418,14 @@ class Leads_OfflineGd11Service {
 		$classDate = isset($payload['class_date']) ? trim((string) $payload['class_date']) : '';
 		$calendarMeta = null;
 
+		$adbPrev = PearDatabase::getInstance();
+		$prevRes = $adbPrev->pquery(
+			'SELECT offline_status FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		$prevStatus = ($prevRes && $adbPrev->num_rows($prevRes) > 0)
+			? trim((string) $adbPrev->query_result($prevRes, 0, 'offline_status')) : '';
+
 		if (in_array($status, self::R1_TAGS, true)) {
 			$bump = self::bumpR1ForTag($leadId, $status);
 			if (!empty($bump['tag_exhausted']) && empty($bump['stopped'])) {
@@ -474,6 +482,21 @@ class Leads_OfflineGd11Service {
 		} elseif ($status === self::STATUS_KHONG_THAM_GIA) {
 			self::setCheckedInAt($leadId, null);
 		}
+
+		// Không đến / đã điểm danh xong → xếp lịch lại: xóa Step 4 + mở lại điểm danh.
+		if (
+			($status === self::STATUS_HEN_LICH_LAI || $status === self::STATUS_DA_XN_LICH)
+			&& in_array($prevStatus, array(self::STATUS_KHONG_THAM_GIA, self::STATUS_DA_THAM_GIA), true)
+		) {
+			try {
+				require_once 'modules/Leads/models/OfflineGd11Step4Service.php';
+				Leads_OfflineGd11Step4Service::clearForReschedule($leadId);
+			} catch (Exception $e) {
+				// ignore
+			}
+			self::syncOfflineStatusToPotential($leadId, $status, $userId);
+		}
+
 		self::setNextActionHint($leadId, $status, $classDate);
 
 		$taskStatuses = array(
@@ -1085,6 +1108,76 @@ class Leads_OfflineGd11Service {
 		$out['opp_tags'] = isset($sync['tags']) ? $sync['tags'] : array();
 		$out['checked_in_at'] = ($action === 'da_tham_gia') ? date('c') : '';
 		$out['step4'] = $step4;
+		return $out;
+	}
+
+	/**
+	 * Opp list — sau Không tham gia: Hẹn lịch lại / Chốt lịch mới.
+	 * @param string $action hen_lich_lai|chot_lich_moi
+	 */
+	public static function rescheduleFromPotential($potentialId, $action, array $payload = array(), $userId = null) {
+		global $current_user;
+		$potentialId = (int) $potentialId;
+		$action = strtolower(trim((string) $action));
+		if ($potentialId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu opportunity id');
+		}
+		if (!in_array($action, array('hen_lich_lai', 'chot_lich_moi'), true)) {
+			return array('success' => false, 'error' => 'Action xếp lịch lại không hợp lệ');
+		}
+		if ($userId === null && !empty($current_user->id)) {
+			$userId = (int) $current_user->id;
+		}
+
+		require_once 'modules/Leads/models/ConvertService.php';
+		$leadId = (int) Leads_ConvertService::getLinkedLeadIdByPotential($potentialId);
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'Opp chưa gắn Lead Offline');
+		}
+
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT offline_status FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		$cur = ($res && $adb->num_rows($res) > 0)
+			? trim((string) $adb->query_result($res, 0, 'offline_status')) : '';
+		$allowedFrom = array(
+			self::STATUS_KHONG_THAM_GIA,
+			self::STATUS_HEN_LICH_LAI,
+			self::STATUS_DA_XN_LICH,
+		);
+		if ($cur === '' || !in_array($cur, $allowedFrom, true)) {
+			return array(
+				'success' => false,
+				'error' => 'Chỉ xếp lịch lại khi Không tham gia / Đã XN lịch / Hẹn lịch lại.',
+				'offline_status' => $cur,
+			);
+		}
+
+		require_once 'modules/Leads/models/OfflineGd11Step2Service.php';
+		$out = Leads_OfflineGd11Step2Service::applyAction($leadId, $action, $payload, $userId);
+		if (empty($out['success'])) {
+			return $out;
+		}
+		$status = isset($out['status']) ? $out['status'] : '';
+		if ($status === '' && isset($out['lead']['offline_status'])) {
+			$status = $out['lead']['offline_status'];
+		}
+		if ($status === '') {
+			$res2 = $adb->pquery(
+				'SELECT offline_status FROM bace_lead_profile WHERE leadid = ?',
+				array($leadId)
+			);
+			$status = ($res2 && $adb->num_rows($res2) > 0)
+				? trim((string) $adb->query_result($res2, 0, 'offline_status')) : '';
+		}
+		$sync = self::syncOfflineStatusToPotential($leadId, $status, $userId);
+		$out['potential_id'] = $potentialId;
+		$out['lead_id'] = $leadId;
+		$out['opp_tags'] = isset($sync['tags']) ? $sync['tags'] : array();
+		$out['checked_in_at'] = '';
 		return $out;
 	}
 

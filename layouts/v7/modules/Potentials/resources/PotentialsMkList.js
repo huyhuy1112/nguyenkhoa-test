@@ -670,12 +670,68 @@
         esc(o.id) +
         '">Không tham gia</button>' +
         "</div>";
+    } else if (isAdminUser() && String((o && o.offline_status) || "") === "offline_khong_tham_gia") {
+      html +=
+        '<div class="mk-opps-checkin__reschedule">' +
+        '<input type="date" class="mk-opps-checkin__date-input" data-mk-opp-reschedule-date="' +
+        esc(o.id) +
+        '" value="' +
+        esc(classDate) +
+        '" title="Ngày học mới" />' +
+        '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--ok" data-mk-opp-reschedule="chot_lich_moi" data-opp-id="' +
+        esc(o.id) +
+        '">Chốt lịch mới</button>' +
+        '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--no" data-mk-opp-reschedule="hen_lich_lai" data-opp-id="' +
+        esc(o.id) +
+        '">Hẹn lịch lại</button>' +
+        "</div>" +
+        '<div class="mk-opps-checkin__hint">Không đến — chọn ngày rồi chốt lịch mới</div>';
     } else if (isAdminUser() && !editable) {
       html += '<div class="mk-opps-checkin__hint">Đã ghi nhận · khóa chọn lại</div>';
     } else {
       html += '<div class="mk-opps-checkin__hint">Chỉ Admin ghi nhận</div>';
     }
     return html + "</div>";
+  }
+
+  function submitOfflineReschedule(action, btn) {
+    var oid = btn && btn.getAttribute ? btn.getAttribute("data-opp-id") : "";
+    if (!oid || !store || !store.offlineReschedule) return;
+    var wrap = btn.closest ? btn.closest(".mk-opps-checkin") : null;
+    var dateEl = wrap
+      ? wrap.querySelector('[data-mk-opp-reschedule-date="' + oid + '"]')
+      : null;
+    var classDate = dateEl ? String(dateEl.value || "").trim() : "";
+    if (action === "chot_lich_moi" && !classDate) {
+      notifyErr("Chọn ngày học mới trước khi chốt.");
+      return;
+    }
+    var buttons = wrap ? wrap.querySelectorAll("[data-mk-opp-reschedule]") : [btn];
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].disabled = true;
+    }
+    store
+      .offlineReschedule(oid, action, { class_date: classDate })
+      .then(function (res) {
+        if (res && res.drop) {
+          notifyOk("Đã đủ R3 → Ngưng CSKH Offline.");
+        } else if (action === "chot_lich_moi") {
+          notifyOk("Đã chốt lịch mới — mở lại điểm danh khi đến lớp.");
+        } else {
+          notifyOk("Đã ghi nhận hẹn lịch lại.");
+        }
+        renderAll();
+      })
+      .catch(function (err) {
+        var msg =
+          (err && err.message) ||
+          (typeof err === "string" ? err : "") ||
+          "Không xếp lịch lại được.";
+        notifyErr(msg);
+        for (var j = 0; j < buttons.length; j++) {
+          buttons[j].disabled = false;
+        }
+      });
   }
 
   function submitOfflineCheckin(action, btn) {
@@ -1438,6 +1494,17 @@
         e.preventDefault();
         e.stopPropagation();
         submitOfflineCheckin(checkinBtn.getAttribute("data-mk-opp-checkin"), checkinBtn);
+        return;
+      }
+      var rescheduleBtn =
+        e.target.closest && e.target.closest("[data-mk-opp-reschedule][data-opp-id]");
+      if (rescheduleBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        submitOfflineReschedule(
+          rescheduleBtn.getAttribute("data-mk-opp-reschedule"),
+          rescheduleBtn
+        );
         return;
       }
       if (!e.target.closest || !e.target.closest("#mk-opps-tag-popover")) {

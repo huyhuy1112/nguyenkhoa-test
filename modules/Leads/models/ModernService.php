@@ -700,12 +700,28 @@ class Leads_ModernService {
 		$tags = self::applyCustomerStatusTag($tags, isset($profile['segment']) ? $profile['segment'] : '');
 		// Enforce screening tags (no potential tags when Không đạt)
 		$tags = self::applyScreeningTags($tags, $screening);
+		if (!empty($payload['sheet_source'])) {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			$tags = Leads_OfflineGd11Service::ensureProgramTag($tags);
+		}
 		self::syncTags($leadId, $tags, $userId);
 		try {
 			require_once 'modules/Leads/models/LeadProductsService.php';
 			Leads_LeadProductsService::syncFromTags($leadId, $tags, $userId, true);
+			if (!empty($payload['sheet_source'])) {
+				// Sheet Offline 1.1 — luôn có chip sản phẩm Offline (kể cả khi syncFromTags lỗi quyền).
+				Leads_LeadProductsService::ensureGroup($leadId, 'offline', $userId);
+			}
 		} catch (Exception $e) {
 			error_log('[lead_products] sync after save: ' . $e->getMessage());
+			if (!empty($payload['sheet_source'])) {
+				try {
+					require_once 'modules/Leads/models/LeadProductsService.php';
+					Leads_LeadProductsService::ensureGroup($leadId, 'offline', $userId);
+				} catch (Exception $e2) {
+					error_log('[lead_products] sheet offline ensure: ' . $e2->getMessage());
+				}
+			}
 		}
 
 		if (!$isNew) {

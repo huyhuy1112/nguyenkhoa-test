@@ -347,7 +347,12 @@ class Leads_LeadProductsService {
 				try {
 					self::upsertProduct($leadId, $group, '', $userId);
 				} catch (Exception $e) {
-					error_log('[lead_products] tag sync upsert: ' . $e->getMessage());
+					// Sheet/cron / thiếu quyền: vẫn tạo nhóm (không xóa).
+					try {
+						self::ensureGroup($leadId, $group, $userId);
+					} catch (Exception $e2) {
+						error_log('[lead_products] tag sync upsert: ' . $e->getMessage() . ' / ' . $e2->getMessage());
+					}
 				}
 			}
 		}
@@ -363,6 +368,51 @@ class Leads_LeadProductsService {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Tạo nhóm sản phẩm nếu chưa có — bỏ qua check quyền (import Sheet / backfill).
+	 */
+	public static function ensureGroup($leadId, $groupCode, $userId = null) {
+		global $current_user;
+		self::installSchema();
+		$leadId = (int) $leadId;
+		$groupCode = self::normalizeGroup($groupCode);
+		if ($leadId <= 0 || $groupCode === '') {
+			return null;
+		}
+		$adb = PearDatabase::getInstance();
+		$exists = $adb->pquery(
+			"SELECT id FROM " . self::TABLE . " WHERE leadid = ? AND group_code = ?",
+			array($leadId, $groupCode)
+		);
+		if ($exists && $adb->num_rows($exists) > 0) {
+			return self::getById((int) $adb->query_result($exists, 0, 'id'));
+		}
+		$now = date('Y-m-d H:i:s');
+		$uid = $userId !== null ? (int) $userId : ((is_object($current_user) && isset($current_user->id)) ? (int) $current_user->id : 0);
+		$adb->pquery(
+			"INSERT INTO " . self::TABLE . "
+				(leadid, group_code, product_name, stage_code, entered_stage_at, created_at, modified_at, created_by)
+				VALUES (?,?,?,?,?,?,?,?)",
+			array($leadId, $groupCode, null, 'moi', $now, $now, $now, $uid)
+		);
+		$id = (int) $adb->getLastInsertID();
+		self::logStage($id, $leadId, null, 'moi', $uid, $now);
+		self::refreshLeadPipelineClosed($leadId);
+		return self::getById($id);
+	}
+
+	/**
+	 * Google Sheet → luôn có sản phẩm Offline.
+	 */
+	public static function ensureSheetOfflineProduct($leadId, $userId = null) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return false;
+		}
+		self::ensureGroup($leadId, 'offline', $userId);
+		return true;
 	}
 
 	protected static function assertCanEditLead($leadId, $userId = null) {

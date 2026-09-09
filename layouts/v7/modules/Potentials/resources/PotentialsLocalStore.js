@@ -202,5 +202,36 @@
         return res;
       });
     },
+    /**
+     * Sau không tham gia — Hẹn lịch lại / Chốt lịch mới.
+     */
+    offlineReschedule: function (id, action, extra) {
+      var oid = String(id || "");
+      var payload = Object.assign({ action: action || "" }, extra || {});
+      return apiRequest("offline_reschedule", {
+        record: oid,
+        offline_action: action || "",
+        payload: JSON.stringify(payload),
+      }).then(function (res) {
+        if (res && res.opportunity) {
+          root.PotentialsLocalStore.patchOpportunity(oid, res.opportunity);
+        } else {
+          var patch = {};
+          if (res && res.status) {
+            patch.offline_status = res.status;
+            patch.offline_status_label = res.status_label || "";
+          }
+          if (res && Array.isArray(res.tags)) {
+            patch.tags = res.tags;
+          }
+          if (res && res.class_date !== undefined) {
+            patch.offline_class_date = res.class_date || "";
+          }
+          patch.offline_checked_in_at = "";
+          root.PotentialsLocalStore.patchOpportunity(oid, patch);
+        }
+        return res;
+      });
+    },
   };
 })(window);

@@ -308,6 +308,12 @@ class Leads_OfflineGd11Step2Service {
 			$r = Leads_OfflineGd11Service::applyAction($leadId, 'hen_lich_lai', $payload, $userId);
 			if (!empty($r['success'])) {
 				self::sendKbToLead($leadId, 'kb11', $userId);
+				try {
+					require_once 'modules/Leads/models/OfflineGd11Step4Service.php';
+					Leads_OfflineGd11Step4Service::clearForReschedule($leadId);
+				} catch (Exception $e) {
+					// ignore
+				}
 			}
 			return $r;
 		}
@@ -316,6 +322,12 @@ class Leads_OfflineGd11Step2Service {
 			$classDate = isset($payload['class_date']) ? trim((string) $payload['class_date']) : '';
 			if ($classDate === '') {
 				return array('success' => false, 'error' => 'Thiếu ngày học mới');
+			}
+			try {
+				require_once 'modules/Leads/models/OfflineGd11Step4Service.php';
+				Leads_OfflineGd11Step4Service::clearForReschedule($leadId);
+			} catch (Exception $e) {
+				// ignore
 			}
 			$bump = Leads_OfflineGd11Service::bumpCounter($leadId, 'r3');
 			if (!empty($bump['stopped'])) {
@@ -332,7 +344,17 @@ class Leads_OfflineGd11Step2Service {
 				$payload,
 				$userId
 			);
-			return self::okLead($leadId, $userId, array('step2' => $step2, 'calendar' => $cal, 'r3' => $bump['count']));
+			Leads_OfflineGd11Service::syncOfflineStatusToPotential(
+				$leadId,
+				Leads_OfflineGd11Service::STATUS_DA_XN_LICH,
+				$userId
+			);
+			return self::okLead($leadId, $userId, array(
+				'step2' => $step2,
+				'calendar' => $cal,
+				'r3' => $bump['count'],
+				'status' => Leads_OfflineGd11Service::STATUS_DA_XN_LICH,
+			));
 		}
 
 		if ($action === 'tu_choi_tham_gia') {

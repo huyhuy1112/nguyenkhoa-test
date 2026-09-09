@@ -197,6 +197,30 @@ class Leads_OfflineGd11Step4Service {
 		);
 	}
 
+	/**
+	 * No-show / đã điểm danh xong muốn xếp lịch lớp mới — xóa plan Step 4.
+	 */
+	public static function clearForReschedule($leadId) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return false;
+		}
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$now = date('Y-m-d H:i:s');
+		$adb->pquery(
+			'UPDATE bace_lead_profile
+			 SET offline_step4_entered_at = NULL,
+			     offline_step4_path = NULL,
+			     offline_step4_sent = ?,
+			     offline_checked_in_at = NULL,
+			     modified_at = ?
+			 WHERE leadid = ?',
+			array('', $now, $leadId)
+		);
+		return true;
+	}
+
 	public static function processReminders($limit = 100) {
 		self::installSchema();
 		$adb = PearDatabase::getInstance();

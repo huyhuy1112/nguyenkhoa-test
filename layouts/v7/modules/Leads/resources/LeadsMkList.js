@@ -1940,9 +1940,10 @@
     );
   }
 
-  function offlineStep2Html(lead) {
+	function offlineStep2Html(lead) {
     var st = lead.offline_status || "";
-    if (st !== "offline_da_xac_nhan_lich" && st !== "offline_hen_lich_lai") {
+    var isNoshow = st === "offline_khong_tham_gia";
+    if (st !== "offline_da_xac_nhan_lich" && st !== "offline_hen_lich_lai" && !isNoshow) {
       return "";
     }
     var confirmed = Number(lead.offline_preclass_confirm) === 1;
@@ -1964,9 +1965,15 @@
         esc(k) +
         '">Gửi</button></div>';
     }
+    var noshowBanner = isNoshow
+      ? '<p class="mk-leads-verify-offline__meta" style="color:#b91c1c"><strong>Không đến lớp</strong> — chọn <em>Ngày học</em> phía trên rồi bấm <strong>Chốt lịch mới</strong> (hoặc Hẹn lịch lại).</p>'
+      : "";
     return (
       '<div class="mk-leads-verify-offline__step2" data-mk-step2-box="1">' +
-      "<h5>Bước 2 — Trước lớp</h5>" +
+      "<h5>Bước 2 — " +
+      (isNoshow ? "Xếp lịch lại sau khi không đến" : "Trước lớp") +
+      "</h5>" +
+      noshowBanner +
       '<p class="mk-leads-verify-offline__meta">Xác nhận tham gia: <strong>' +
       (confirmed ? "Đã xác nhận" : "Chưa xác nhận") +
       "</strong></p>" +
@@ -1984,19 +1991,26 @@
       '" placeholder="user_id từ Zalo OA" /></label>' +
       '<p class="mk-leads-verify-offline__meta">Nhập tay · hoặc tự khớp nếu có lead OA cùng SĐT · để trống = nhắc qua Calendar</p>' +
       '<div class="mk-leads-verify-offline__actions">' +
-      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="save_class_meta">Lưu giờ/địa điểm</button>' +
-      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="set_zalo_user">Lưu OA id</button>' +
-      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="preclass_confirm">' +
-      (confirmed ? "Đã XN tham gia ✓" : "Đánh dấu sẽ đến") +
-      "</button>" +
-      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="preclass_unconfirm">Chưa XN tham gia</button>' +
+      (isNoshow
+        ? ""
+        : '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="save_class_meta">Lưu giờ/địa điểm</button>' +
+          '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="set_zalo_user">Lưu OA id</button>' +
+          '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="preclass_confirm">' +
+          (confirmed ? "Đã XN tham gia ✓" : "Đánh dấu sẽ đến") +
+          "</button>" +
+          '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="preclass_unconfirm">Chưa XN tham gia</button>') +
       '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="hen_lich_lai">Hẹn lịch lại</button>' +
-      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="chot_lich_moi">Chốt lịch mới</button>' +
-      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="tu_choi_tham_gia">Từ chối / Ngưng</button>' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--primary" data-mk-step2-action="chot_lich_moi">Chốt lịch mới</button>' +
+      (isNoshow
+        ? ""
+        : '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="tu_choi_tham_gia">Từ chối / Ngưng</button>') +
       "</div>" +
-      '<div class="mk-leads-verify-offline__ms-list"><strong>Mốc nhắc (T1–T6)</strong>' +
-      planRows +
-      "</div></div>"
+      (isNoshow
+        ? ""
+        : '<div class="mk-leads-verify-offline__ms-list"><strong>Mốc nhắc (T1–T6)</strong>' +
+          planRows +
+          "</div>") +
+      "</div>"
     );
   }
 
