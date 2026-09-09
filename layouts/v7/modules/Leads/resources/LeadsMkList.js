@@ -2723,9 +2723,45 @@
       .join("");
   }
 
+  function countPhoneDupLeads() {
+    var leads = store ? store.getLeads() : [];
+    var n = 0;
+    for (var i = 0; i < leads.length; i++) {
+      if (leads[i] && leads[i].phone_dup) n++;
+    }
+    return n;
+  }
+
+  function trashCountLabel() {
+    if (state.trashCache == null) return "";
+    return ' <span class="mk-leads-ptab__n">' + state.trashCache.length + "</span>";
+  }
+
+  function ensureTrashCountLoaded() {
+    if (state.trashCache != null || state._trashCountLoading) return;
+    if (!store || typeof store.listTrash !== "function") {
+      state.trashCache = [];
+      return;
+    }
+    state._trashCountLoading = true;
+    store
+      .listTrash()
+      .then(function (rows) {
+        state.trashCache = rows || [];
+        state._trashCountLoading = false;
+        renderSegments();
+      })
+      .catch(function () {
+        state.trashCache = [];
+        state._trashCountLoading = false;
+        renderSegments();
+      });
+  }
+
   function renderSegments() {
     var host = $("mk-leads-segments");
     if (!host) return;
+    ensureTrashCountLoaded();
     var saved = store ? store.getSegments() : [];
     var allOn =
       !state.activeSegment && state.listMode !== "trash" && state.productTab === "all"
@@ -2742,11 +2778,17 @@
     html +=
       '<button type="button" class="mk-leads-segment-btn mk-leads-segment-btn--trash' +
       trashOn +
-      '" data-segment="__trash__">Thùng rác</button>';
+      '" data-segment="__trash__">Thùng rác' +
+      trashCountLabel() +
+      "</button>";
     html += PRESET_SEGMENTS.map(function (s) {
       var on = state.activeSegment === s.id ? " is-active" : "";
       var extra =
         s.id === "phone_dup" ? " mk-leads-segment-btn--phone-dup" : "";
+      var countHtml =
+        s.id === "phone_dup"
+          ? ' <span class="mk-leads-ptab__n">' + countPhoneDupLeads() + "</span>"
+          : "";
       return (
         '<button type="button" class="mk-leads-segment-btn' +
         extra +
@@ -2755,6 +2797,7 @@
         esc(s.id) +
         '">' +
         esc(s.name) +
+        countHtml +
         "</button>"
       );
     }).join("");

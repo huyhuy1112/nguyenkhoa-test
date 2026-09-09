@@ -61,9 +61,7 @@
   /** Phân nhóm theo tag/BA của Cơ hội — UI giống Leads (segment-btn) */
   function getPresetSegments() {
     return [
-      { id: "quote", name: pick("Báo giá", "Quotes"), filters: { sales_stage: "Prospecting" } },
       { id: "prospecting", name: pick("Tiềm năng", "Prospecting"), filters: { sales_stage: "Prospecting" } },
-      { id: "internal", name: pick("Nội bộ", "Internal"), filters: { order_category: "Internal" } },
       { id: "confirmed", name: pick("Xác nhận tham gia", "Confirmed"), filters: { confirm: "xac_nhan_tham_gia" } },
       { id: "first_buy", name: pick("Mua lần đầu", "First purchase"), filters: { material: "mua_lan_dau" } },
       { id: "franchise", name: pick("Nhượng quyền", "Franchise"), filters: { franchise: "nhuong_quyen" } },
@@ -140,7 +138,7 @@
 
   function stageLabel(stage) {
     var map = {
-      Prospecting: "Báo giá",
+      Prospecting: "Tiềm năng",
       Qualification: "Chất lượng",
       "Needs Analysis": "Phân tích nhu cầu",
       "Proposal/Price Quote": "Đề nghị/Báo giá",
@@ -843,7 +841,7 @@
 
   function computeKpis(rows) {
     var total = rows.length;
-    var internal = rows.filter(function (o) { return o.order_category === "Internal"; }).length;
+    var prospecting = rows.filter(function (o) { return o.sales_stage === "Prospecting"; }).length;
     var withTags = rows.filter(function (o) { return (o.tags || []).length > 0; }).length;
     var franchise = rows.filter(function (o) { return categorize(o.tags).franchise; }).length;
     var confirmed = rows.filter(function (o) {
@@ -857,7 +855,7 @@
     }).length;
     return [
       { key: "total", label: t("JS_MK_KPI_TOTAL_OPP", "Tổng cơ hội"), value: total, icon: "users", tone: "blue" },
-      { key: "internal", label: pick("Nội bộ", "Internal"), value: internal, icon: "check", tone: "emerald" },
+      { key: "prospecting", label: pick("Tiềm năng", "Prospecting"), value: prospecting, icon: "check", tone: "emerald" },
       { key: "confirmed", label: pick("Xác nhận tham gia", "Confirmed"), value: confirmed, icon: "bookmark", tone: "cyan" },
       { key: "tagged", label: t("JS_MK_KPI_TAGGED", "Có tag"), value: withTags, icon: "crown", tone: "amber" },
       { key: "franchise", label: t("JS_MK_KPI_FRANCHISE", "Nhượng quyền"), value: franchise, icon: "repeat", tone: "rose" },
@@ -890,19 +888,34 @@
       .join("");
   }
 
+  function countSegmentRows(seg, rows) {
+    if (!seg || !seg.filters) return rows.length;
+    var prev = Object.assign({}, state.filters);
+    Object.keys(seg.filters).forEach(function (k) {
+      state.filters[k] = seg.filters[k];
+    });
+    var n = filterOpps(rows).length;
+    state.filters = prev;
+    return n;
+  }
+
   function renderSegments() {
     var host = $("mk-opps-segments");
     if (!host) return;
+    var rows = getOpps();
     var allOn = !state.activeSegment ? " is-active" : "";
     var html =
       '<button type="button" class="mk-leads-segment-btn' +
       allOn +
       '" data-seg="__all__">' +
       esc(t("JS_MK_FILTER_ALL", "Tất cả")) +
-      "</button>";
+      ' <span class="mk-leads-ptab__n">' +
+      rows.length +
+      "</span></button>";
     html += getPresetSegments()
       .map(function (seg) {
         var active = state.activeSegment === seg.id ? " is-active" : "";
+        var n = countSegmentRows(seg, rows);
         return (
           '<button type="button" class="mk-leads-segment-btn' +
           active +
@@ -910,7 +923,9 @@
           esc(seg.id) +
           '">' +
           esc(seg.name) +
-          "</button>"
+          ' <span class="mk-leads-ptab__n">' +
+          n +
+          "</span></button>"
         );
       })
       .join("");

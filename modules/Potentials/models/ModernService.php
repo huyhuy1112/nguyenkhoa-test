@@ -32,6 +32,7 @@ class Potentials_ModernService {
 		self::ensureProfileColumn($adb, 'contact_customer_id', 'INT UNSIGNED DEFAULT NULL');
 		self::ensureProfileColumn($adb, 'last_touch', 'DATETIME NULL');
 		self::ensureProfileColumn($adb, 'business_model', 'VARCHAR(80) DEFAULT NULL');
+		self::ensureProfileColumn($adb, 'phone', 'VARCHAR(32) DEFAULT NULL');
 	}
 
 	protected static function ensureProfileColumn(PearDatabase $adb, $column, $definition) {
@@ -572,6 +573,50 @@ class Potentials_ModernService {
 		return array(
 			'success' => true,
 			'business_model' => $businessModel,
+		);
+	}
+
+	/**
+	 * Save phone on Opp profile (and Contact when linked).
+	 * @return array{success:bool,phone:string}
+	 */
+	public static function saveProfilePhone($potentialId, $phone) {
+		$potentialId = (int) $potentialId;
+		if ($potentialId <= 0) {
+			throw new Exception('Opportunity not found.');
+		}
+		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $potentialId)
+			&& !Users_Privileges_Model::isPermitted(self::MODULE, 'DetailView', $potentialId)) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$digits = preg_replace('/\D+/', '', (string) $phone);
+		$digits = substr((string) $digits, 0, 15);
+		self::ensureProfileSchema();
+		$adb = PearDatabase::getInstance();
+		$now = date('Y-m-d H:i:s');
+		$exists = $adb->pquery('SELECT potentialid FROM bace_potential_profile WHERE potentialid = ?', array($potentialId));
+		if ($exists && $adb->num_rows($exists) > 0) {
+			$adb->pquery(
+				'UPDATE bace_potential_profile SET phone = ?, modified_at = ? WHERE potentialid = ?',
+				array($digits !== '' ? $digits : null, $now, $potentialId)
+			);
+		} else {
+			$adb->pquery(
+				'INSERT INTO bace_potential_profile (potentialid, phone, modified_at) VALUES (?,?,?)',
+				array($potentialId, $digits !== '' ? $digits : null, $now)
+			);
+		}
+		// Best-effort sync to linked Contact when present.
+		if ($digits !== '') {
+			try {
+				self::saveInlinePhone($potentialId, $digits);
+			} catch (Exception $e) {
+				// Opp may not have contact yet — profile phone is enough.
+			}
+		}
+		return array(
+			'success' => true,
+			'phone' => $digits,
 		);
 	}
 

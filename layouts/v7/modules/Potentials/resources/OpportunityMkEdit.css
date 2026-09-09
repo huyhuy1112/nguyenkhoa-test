@@ -1661,6 +1661,26 @@ body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost .fieldBlockConta
 	display: none !important;
 }
 
+/* Personal strip: Khu vực / SĐT / Địa chỉ in main Opp block */
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost tr.mk-opp-personal-fields td.fieldLabel {
+	width: 16%;
+	vertical-align: middle;
+	padding-top: 12px;
+	padding-bottom: 12px;
+	font-weight: 600;
+	color: #334155;
+}
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost tr.mk-opp-personal-fields td.fieldValue {
+	vertical-align: middle;
+	padding-top: 12px;
+	padding-bottom: 12px;
+}
+body[data-module="Potentials"][data-view="Edit"] #mkOppFormHost .mk-opp-personal-input {
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
 /* Merged opportunity + list extras inside one card */
 body[data-module="Potentials"][data-view="Edit"] .mk-opp-block--merged {
 	position: relative;
