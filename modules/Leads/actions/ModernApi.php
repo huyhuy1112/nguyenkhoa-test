@@ -34,6 +34,7 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 			'sheet_settings_save', 'sheet_poll_now', 'merge_leads', 'restore_lead', 'purge_lead', 'soft_delete',
 			'sales_verify_save', 'online_verify_save', 'offline_gd11_apply', 'offline_gd11_step2',
 			'offline_gd11_step2_remind',
+			'online_gd12_transfer_from_offline', 'online_gd12_transfer_from_online',
 			'product_upsert', 'product_remove', 'product_set_stage',
 		), true)) {
 			$request->validateWriteAccess();
@@ -364,6 +365,20 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 						$id = $payload['id'];
 					}
 					$saved = Leads_OnlineGd12Service::transferFromOffline($id, $userId);
+					$response->setResult($saved);
+					break;
+
+				case 'online_gd12_transfer_from_online':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					$saved = Leads_OnlineGd12Service::transferFromOnline($id, $userId);
 					$response->setResult($saved);
 					break;
 

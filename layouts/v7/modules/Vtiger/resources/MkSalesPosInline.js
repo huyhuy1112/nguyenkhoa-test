@@ -1118,6 +1118,109 @@
 		});
 	}
 
+	function initOppUnreachable($panel) {
+		if (!$panel || !$panel.length) return;
+		var mod = String($panel.data('module') || moduleName());
+		if (mod !== 'Potentials') return;
+		var $host = $panel.find('[data-role="last-touch"]');
+		if (!$host.length || $host.data('mkUnreachableInit')) return;
+		$host.data('mkUnreachableInit', true);
+
+		$host.on('click', '[data-mk-opp-unreachable]', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var $btn = $(this);
+			if ($btn.prop('disabled') || $btn.hasClass('is-locked')) return;
+			var oid = String($btn.attr('data-record-id') || $panel.data('record-id') || '');
+			if (!oid) return;
+			$btn.prop('disabled', true);
+
+			var toastOk = function (msg) {
+				if (app.helper && app.helper.showSuccessNotification) {
+					app.helper.showSuccessNotification({ message: msg });
+				} else if (app.helper && app.helper.showAlertNotification) {
+					app.helper.showAlertNotification({ message: msg });
+				}
+			};
+			var toastErr = function (msg) {
+				if (app.helper && app.helper.showErrorNotification) {
+					app.helper.showErrorNotification({ message: msg });
+				} else if (app.helper && app.helper.showAlertNotification) {
+					app.helper.showAlertNotification({ message: msg });
+				} else {
+					window.alert(msg);
+				}
+			};
+
+			var applyMissUi = function (res) {
+				var miss = Math.min(3, Number(res && res.post_noshow_miss) || 0);
+				var can = !!(res && res.can_unreachable);
+				$host.attr('data-lt-miss', String(miss));
+				if (can) $host.attr('data-lt-can-unreachable', '1');
+				else $host.removeAttr('data-lt-can-unreachable');
+				var $badge = $host.find('[data-role="lt-miss-badge"]');
+				if ($badge.length) $badge.text(miss + '/3');
+				$btn.attr('data-lt-miss', String(miss));
+				if (can) {
+					$btn.prop('disabled', false).removeClass('is-locked').removeAttr('aria-disabled');
+				} else {
+					$btn.prop('disabled', true).addClass('is-locked').attr('aria-disabled', 'true');
+				}
+				var lt = res && (res.lastTouchCalls || res.lastTouch);
+				if (lt && window.__mkOppLastTouch && window.__mkOppLastTouch.applyToPanel) {
+					window.__mkOppLastTouch.applyToPanel($panel[0], lt);
+				}
+				var statusLabel = (res && res.status_label) || '';
+				var $attStatus = $panel.find('.mk-so-inline-detail__attendance-status');
+				if ($attStatus.length && statusLabel) {
+					var $strong = $attStatus.find('strong');
+					if ($strong.length) $strong.text(statusLabel);
+					else $attStatus.prepend('<strong></strong>').find('strong').text(statusLabel);
+				}
+			};
+
+			var done = function (res) {
+				applyMissUi(res || {});
+				toastOk((res && res.message) || 'Đã ghi Không gọi được');
+				if (window.PotentialsMkListRefresh) {
+					try {
+						window.PotentialsMkListRefresh();
+					} catch (err2) {}
+				} else if (document.querySelector('.mk-opps-page')) {
+					document.dispatchEvent(
+						new CustomEvent('mk-opps-attendance-updated', { detail: { id: oid } })
+					);
+				}
+			};
+			var fail = function (err) {
+				var msg =
+					(err && err.message) ||
+					(typeof err === 'string' ? err : '') ||
+					'Không ghi được.';
+				toastErr(msg);
+				$btn.prop('disabled', false);
+			};
+
+			app.request
+				.post({
+					data: {
+						module: 'Potentials',
+						action: 'ModernApi',
+						mode: 'offline_unreachable',
+						record: oid,
+						id: oid
+					}
+				})
+				.then(function (err, res) {
+					if (err || !res || res.success === false) {
+						fail((res && (res.error || res.message)) || err || 'API failed');
+						return;
+					}
+					done(res);
+				});
+		});
+	}
+
 	function initPanel($detailRow) {
 		var $panel = $detailRow.find('.mk-so-inline-detail');
 		if (!$panel.length || $panel.data('mkPosInlineInit')) {
@@ -1130,6 +1233,7 @@
 		setEditMode($panel, true);
 		initLeadTagPicker($panel);
 		initOppAttendance($panel);
+		initOppUnreachable($panel);
 
 		// Boolean toggles (e.g. Cần QC)
 		$panel.on('change', '.mk-so-inline-detail__bool-input', function () {

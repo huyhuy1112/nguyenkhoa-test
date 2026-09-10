@@ -626,6 +626,7 @@ body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opp
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="offline_da_xac_nhan_lich"] { background: #dcfce7; border-color: #86efac; color: #166534; }
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="offline_ngung_cskh"],
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="offline_khong_tham_gia"] { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="offline_ngung_cskh_tam"] { background: #ffedd5; border-color: #fdba74; color: #9a3412; }
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="tiem_nang"] { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
 body[data-module="Potentials"][data-view="Detail"][data-app="SALES"] :is(.mk-opportunity-detail-hero__tags, .mk-opportunity-detail-kpi__tags) .tag[data-tag="sieu_tiem_nang"] { background: #fef3c7; border-color: #fcd34d; color: #b45309; }
 

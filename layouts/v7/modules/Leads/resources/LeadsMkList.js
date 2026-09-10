@@ -58,12 +58,22 @@
     owner: ANY,
     area: ANY,
     segment: ANY,
+    offlineStatus: ANY,
     touchRange: "any",
     staleOnly: false,
     hasNextAction: false,
     hasOpenTicket: false,
     phoneDupOnly: false,
   };
+
+  var OFFLINE_STATUS_FILTERS = [
+    { key: "offline_hen_goi_lai", label: "Hẹn gọi lại" },
+    { key: "offline_khong_nghe_may", label: "Không nghe máy" },
+    { key: "offline_sai_thong_tin", label: "Sai thông tin" },
+    { key: "offline_hen_lich_lai", label: "Hẹn lịch lại" },
+    { key: "offline_chuyen_chuong_trinh", label: "Chuyển CT" },
+    { key: "offline_ngung_cskh", label: "Ngưng CSKH" },
+  ];
 
   var state = {
     filters: Object.assign({}, EMPTY),
@@ -1448,12 +1458,6 @@
       }
     });
     wrap.addEventListener("click", function (e) {
-      var kbBtn = e.target && e.target.closest ? e.target.closest("[data-mk-offline-kb-copy]") : null;
-      if (kbBtn) {
-        e.preventDefault();
-        copyOfflineKb(kbBtn.getAttribute("data-mk-kb-text") || "", kbBtn);
-        return;
-      }
       var step2Btn = e.target && e.target.closest ? e.target.closest("[data-mk-step2-action]") : null;
       if (step2Btn) {
         e.preventDefault();
@@ -1468,6 +1472,12 @@
       if (offlineBtn) {
         e.preventDefault();
         submitOfflineGd11Action(offlineBtn.getAttribute("data-mk-offline-action"), offlineBtn);
+        return;
+      }
+      var transferOffBtn = e.target && e.target.closest ? e.target.closest("[data-mk-transfer-offline]") : null;
+      if (transferOffBtn) {
+        e.preventDefault();
+        submitTransferOnlineToOffline(transferOffBtn);
         return;
       }
       var transferBtn = e.target && e.target.closest ? e.target.closest("[data-mk-transfer-online]") : null;
@@ -1645,9 +1655,28 @@
       esc(lead.online_q4_label || (locked ? "Chép từ Offline" : "Chưa có từ Form OA")) +
       "</small></div></div></section>" +
       editSection +
+      onlineTransferOfflineHtml(lead) +
       listVerifyStatusHtml(lead) +
       '<p class="mk-leads-verify-err" data-mk-verify-err hidden></p>' +
       '<p class="mk-leads-verify-ok" data-mk-verify-ok hidden></p>';
+  }
+
+  function onlineTransferOfflineHtml(lead) {
+    var can = Number(lead.can_transfer_offline) === 1 ||
+      (lead.eligibility_result === "du_dk" && !!(lead.potential_level || "").trim());
+    if (!can) {
+      return (
+        '<div class="mk-leads-verify-offline__transfer mk-leads-verify-offline__transfer--rev">' +
+        "<h5>Đường 2 — Online → Offline</h5>" +
+        '<p class="mk-leads-verify-offline__meta">Cần đủ điều kiện + đã phân mức tiềm năng mới chuyển được.</p></div>'
+      );
+    }
+    return (
+      '<div class="mk-leads-verify-offline__transfer mk-leads-verify-offline__transfer--rev">' +
+      "<h5>Đường 2 — Online → Offline</h5>" +
+      '<p class="mk-leads-verify-offline__meta">Tạo hồ sơ Offline mới (Q1→C1, Q2→C5, Q3→C3, Q4→C2). Lead Online cũ sẽ xoá (thùng rác).</p>' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--primary" data-mk-transfer-offline="1">Chuyển sang Offline</button></div>'
+    );
   }
 
   function fillListVerifyBodySheet(lead) {
@@ -1753,42 +1782,117 @@
   }
 
   function offlineStep1ActionsHtml(lead) {
-    var st = lead.offline_status_label || lead.offline_status || "—";
-    var r1h = lead.offline_r1_hen_goi || 0;
-    var r1k = lead.offline_r1_khong_nghe || 0;
-    var r1s = lead.offline_r1_sai_tt || 0;
-    var counters =
-      "R1 Hẹn " +
-      r1h +
-      "/3 · Không nghe " +
-      r1k +
-      "/3 · Sai TT " +
-      r1s +
-      "/3 · R2 lịch " +
-      (lead.offline_r2_schedule || 0) +
-      "/3 · R3 lớp " +
-      (lead.offline_r3_class || 0) +
-      "/3 · R4 CT " +
-      (lead.offline_r4_transfer || 0) +
-      "/3";
+    var cur = lead.offline_status || "";
+    var curLabel = lead.offline_status_label || "";
+    var actions = [
+      {
+        action: "hen_goi_lai",
+        status: "offline_hen_goi_lai",
+        label: "Hẹn gọi lại",
+        count: lead.offline_r1_hen_goi || 0,
+        max: 3,
+      },
+      {
+        action: "khong_nghe_may",
+        status: "offline_khong_nghe_may",
+        label: "Không nghe máy",
+        count: lead.offline_r1_khong_nghe || 0,
+        max: 3,
+      },
+      {
+        action: "sai_thong_tin",
+        status: "offline_sai_thong_tin",
+        label: "Sai thông tin",
+        count: lead.offline_r1_sai_tt || 0,
+        max: 3,
+      },
+      {
+        action: "hen_lich_lai",
+        status: "offline_hen_lich_lai",
+        label: "Hẹn lịch lại",
+        count: lead.offline_r2_schedule || 0,
+        max: 3,
+      },
+      {
+        action: "chuyen_chuong_trinh",
+        status: "offline_chuyen_chuong_trinh",
+        label: "Chuyển CT",
+        count: lead.offline_r4_transfer || 0,
+        max: 3,
+      },
+      {
+        action: "ngung_cskh",
+        status: "offline_ngung_cskh",
+        label: "Ngưng CSKH",
+        count: null,
+        max: null,
+      },
+    ];
+    var tagsHtml = actions
+      .map(function (it) {
+        var on = cur === it.status ? " is-active" : "";
+        return (
+          '<button type="button" class="mk-leads-offline-stag' +
+          on +
+          '" data-mk-offline-action="' +
+          esc(it.action) +
+          '" title="' +
+          esc(it.label) +
+          '">' +
+          esc(it.label) +
+          "</button>"
+        );
+      })
+      .join("");
+    var detailRows = actions
+      .filter(function (it) {
+        return it.max != null;
+      })
+      .map(function (it) {
+        var n = Number(it.count) || 0;
+        var max = Number(it.max) || 3;
+        var pct = Math.min(100, Math.round((n / max) * 100));
+        return (
+          '<div class="mk-leads-offline-count__row' +
+          (cur === it.status ? " is-current" : "") +
+          '"><span class="mk-leads-offline-count__lab">' +
+          esc(it.label) +
+          '</span><span class="mk-leads-offline-count__bar"><i style="width:' +
+          pct +
+          '%"></i></span><strong class="mk-leads-offline-count__n">' +
+          n +
+          "/" +
+          max +
+          "</strong></div>"
+        );
+      })
+      .join("");
+    // R3 lớp (điểm danh) vẫn hiện trong panel chi tiết
+    var r3 = Number(lead.offline_r3_class) || 0;
+    detailRows +=
+      '<div class="mk-leads-offline-count__row"><span class="mk-leads-offline-count__lab">R3 lớp</span>' +
+      '<span class="mk-leads-offline-count__bar"><i style="width:' +
+      Math.min(100, Math.round((r3 / 3) * 100)) +
+      '%"></i></span><strong class="mk-leads-offline-count__n">' +
+      r3 +
+      "/3</strong></div>";
     return (
       '<div class="mk-leads-verify-offline" data-mk-offline-box="1">' +
-      '<h4>Offline 1.1 — trạng thái &amp; điểm rơi</h4>' +
-      '<p class="mk-leads-verify-offline__meta"><strong>' +
-      esc(st) +
-      "</strong><br/><span>" +
-      esc(counters) +
-      "</span></p>" +
-      '<div class="mk-leads-verify-offline__actions">' +
-      offlineActionBtn("hen_goi_lai", "Hẹn gọi lại") +
-      offlineActionBtn("khong_nghe_may", "Không nghe máy") +
-      offlineActionBtn("sai_thong_tin", "Sai thông tin") +
-      offlineActionBtn("hen_lich_lai", "Hẹn lịch lại") +
-      offlineActionBtn("chuyen_chuong_trinh", "Chuyển CT") +
-      offlineActionBtn("ngung_cskh", "Ngưng CSKH") +
+      "<h4>Offline 1.1 — trạng thái &amp; điểm rơi</h4>" +
+      (curLabel
+        ? '<p class="mk-leads-verify-offline__meta">Đang gắn: <strong class="mk-leads-offline-current">' +
+          esc(curLabel) +
+          "</strong></p>"
+        : "") +
+      '<div class="mk-leads-offline-stags" role="group" aria-label="Trạng thái Offline">' +
+      tagsHtml +
       "</div>" +
+      '<details class="mk-leads-offline-count" open>' +
+      "<summary>Chi tiết số lần (trong panel)</summary>" +
+      '<div class="mk-leads-offline-count__body">' +
+      detailRows +
+      "</div></details>" +
       offlineTransferOnlineHtml(lead) +
-      offlineKbHtml(lead) +
       offlineStep2Html(lead) +
       "</div>"
     );
@@ -1819,7 +1923,7 @@
     return (
       '<div class="mk-leads-verify-offline__transfer">' +
       "<h5>Đường 2 — Offline → Online</h5>" +
-      '<p class="mk-leads-verify-offline__meta">Tạo hồ sơ Online mới: chép đáp án sau xác minh (C1→Q1, C5→Q2, C3→Q3, C2→Q4), khoá chấm, tag Chưa ĐK TK. Lead Offline giữ nguyên.</p>' +
+      '<p class="mk-leads-verify-offline__meta">Tạo hồ sơ Online mới (C1→Q1, C5→Q2, C3→Q3, C2→Q4), khoá chấm, tag Chưa ĐK TK. Lead Offline cũ sẽ xoá (thùng rác).</p>' +
       '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--primary" data-mk-transfer-online="1">Chuyển sang Online</button></div>'
     );
   }
@@ -1896,110 +2000,6 @@
           "</div>") +
       "</div>"
     );
-  }
-
-  function offlineKbHtml(lead) {
-    var items = (lead && lead.offline_kb) || [];
-    if (!items.length) {
-      items = [
-        {
-          id: "mo_dau",
-          title: "Mở đầu gọi",
-          text:
-            "Em chào anh/chị, em [Tên] bên [Thương hiệu]. Anh/chị vừa đăng ký lớp miễn phí Offline, em gọi xác nhận thông tin và hỗ trợ xếp lịch ạ.",
-        },
-        {
-          id: "xac_minh_b",
-          title: "Xác minh Bộ B",
-          text:
-            "Em xin phép hỏi nhanh vài câu để xếp đúng nhóm: mục tiêu học, thời gian có thể đến lớp, và khu vực thuận tiện nhất của anh/chị ạ.",
-        },
-        {
-          id: "hen_goi_lai",
-          title: "Hẹn gọi lại",
-          text:
-            "Dạ em hiểu anh/chị đang bận. Em xin phép gọi lại vào [giờ/ngày] được không ạ? Em sẽ nhắc lịch ngắn gọn thôi.",
-        },
-        {
-          id: "chot_lich",
-          title: "Chốt lịch Offline",
-          text:
-            "Em xếp anh/chị lớp Offline ngày [ngày] lúc [giờ] tại [địa điểm]. Anh/chị xác nhận giúp em để giữ chỗ nhé.",
-        },
-      ];
-    }
-    var rows = items
-      .map(function (it) {
-        return (
-          '<div class="mk-leads-verify-offline__kb-row">' +
-          '<div class="mk-leads-verify-offline__kb-meta"><strong>' +
-          esc(it.title || it.id || "Mẫu") +
-          "</strong></div>" +
-          '<p class="mk-leads-verify-offline__kb-text">' +
-          esc(it.text || "") +
-          "</p>" +
-          '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-offline-kb-copy="1" data-mk-kb-text="' +
-          esc(it.text || "") +
-          '">Copy</button></div>'
-        );
-      })
-      .join("");
-    return (
-      '<div class="mk-leads-verify-offline__kb">' +
-      "<h5>KB 1.1 — mẫu thoại</h5>" +
-      rows +
-      "</div>"
-    );
-  }
-
-  function offlineActionBtn(action, label) {
-    return (
-      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-offline-action="' +
-      esc(action) +
-      '">' +
-      esc(label) +
-      "</button>"
-    );
-  }
-
-  function copyOfflineKb(text, btn) {
-    text = String(text || "");
-    if (!text) return;
-    var done = function () {
-      setListVerifyMsg("", "Đã copy mẫu thoại.");
-      if (btn) {
-        var old = btn.textContent;
-        btn.textContent = "Đã copy";
-        window.setTimeout(function () {
-          btn.textContent = old || "Copy";
-        }, 1200);
-      }
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(done).catch(function () {
-        fallbackCopy(text);
-        done();
-      });
-      return;
-    }
-    fallbackCopy(text);
-    done();
-  }
-
-  function fallbackCopy(text) {
-    try {
-      var ta = document.createElement("textarea");
-      ta.value = text;
-      ta.setAttribute("readonly", "1");
-      ta.style.position = "fixed";
-      ta.style.left = "-9999px";
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      document.body.removeChild(ta);
-    } catch (e) {
-      /* ignore */
-    }
   }
 
   function fillListVerifyBody(lead) {
@@ -2212,7 +2212,7 @@
       setListVerifyMsg("API không sẵn sàng.", "");
       return;
     }
-    if (!window.confirm("Tạo hồ sơ Online mới từ lead Offline này? Lead Offline giữ nguyên.")) {
+    if (!window.confirm("Chuyển sang Online và xoá lead Offline cũ (thùng rác)?")) {
       return;
     }
     if (btn) btn.disabled = true;
@@ -2237,22 +2237,84 @@
           );
           return;
         }
-        var src = res.source_lead || lead;
-        if (store && typeof store.importLead === "function") {
-          if (src) store.importLead(src);
-          if (res.lead) store.importLead(res.lead);
+        if (store && typeof store.setLeads === "function" && typeof store.getLeads === "function") {
+          var dropId = String(id);
+          store.setLeads(
+            store.getLeads().filter(function (l) {
+              return String(l.id) !== dropId && String(l.crmid || "") !== dropId;
+            })
+          );
         }
-        if (src) {
-          src.online_transfer_leadid = res.online_lead_id || src.online_transfer_leadid;
-          src.can_transfer_online = 0;
-          panel._mkLead = src;
-          fillListVerifyBody(src);
+        if (store && typeof store.importLead === "function" && res.lead) {
+          store.importLead(res.lead);
         }
+        closeListVerifyPanel();
         var ok =
           (res.message || "Đã chuyển Đường 2") +
           (res.online_lead_id ? " · Online #" + res.online_lead_id : "");
-        setListVerifyMsg("", ok);
-        renderTable();
+        if (typeof app !== "undefined" && app.helper && app.helper.showSuccessNotification) {
+          app.helper.showSuccessNotification({ message: ok });
+        }
+        refreshListBody();
+      });
+  }
+
+  function submitTransferOnlineToOffline(btn) {
+    var panel = document.getElementById("mk-leads-verify-panel");
+    var lead = panel && panel._mkLead;
+    var id = (lead && (lead.crmid || lead.id)) || "";
+    if (!id) {
+      setListVerifyMsg("Thiếu lead Online.", "");
+      return;
+    }
+    if (typeof app === "undefined" || !app.request) {
+      setListVerifyMsg("API không sẵn sàng.", "");
+      return;
+    }
+    if (!window.confirm("Chuyển sang Offline và xoá lead Online cũ (thùng rác)?")) {
+      return;
+    }
+    if (btn) btn.disabled = true;
+    setListVerifyMsg("", "");
+    app.request
+      .post({
+        data: {
+          module: "Leads",
+          action: "ModernApi",
+          mode: "online_gd12_transfer_from_online",
+          id: id,
+          record: id,
+          payload: JSON.stringify({ id: id }),
+        },
+      })
+      .then(function (err, res) {
+        if (btn) btn.disabled = false;
+        if (err || !res || !res.success) {
+          setListVerifyMsg(
+            (err && (err.message || err)) || (res && res.error) || "Chuyển Online → Offline thất bại.",
+            ""
+          );
+          return;
+        }
+        if (store && typeof store.setLeads === "function" && typeof store.getLeads === "function") {
+          var dropId = String(id);
+          store.setLeads(
+            store.getLeads().filter(function (l) {
+              return String(l.id) !== dropId && String(l.crmid || "") !== dropId;
+            })
+          );
+        }
+        if (store && typeof store.importLead === "function" && res.lead) {
+          store.importLead(res.lead);
+        }
+        closeListVerifyPanel();
+        var ok =
+          (res.message || "Đã chuyển Offline") +
+          (res.offline_lead_id ? " · Offline #" + res.offline_lead_id : "");
+        if (typeof app !== "undefined" && app.helper && app.helper.showSuccessNotification) {
+          app.helper.showSuccessNotification({ message: ok });
+        }
+        refreshListBody();
       });
   }
 
@@ -2557,6 +2619,17 @@
       if (f.owner !== ANY && l.owner !== f.owner) return false;
       if (f.area !== ANY && (l.area || "") !== f.area) return false;
       if (f.segment !== ANY && (l.segment || "") !== f.segment) return false;
+      if (f.offlineStatus && f.offlineStatus !== ANY) {
+        var ost = (l.offline_status || "").trim();
+        var tags = l.tags || [];
+        var hit =
+          ost === f.offlineStatus ||
+          tags.indexOf(f.offlineStatus) >= 0 ||
+          tags.some(function (tg) {
+            return String(tg).toLowerCase() === f.offlineStatus;
+          });
+        if (!hit) return false;
+      }
       if (!inTouchWindow(l.last_touch, f.touchRange)) return false;
       if (f.staleOnly && !d.stale) return false;
       if (f.hasNextAction && !(logic.deriveNextAction ? logic.deriveNextAction(l) : l.next_action || "").trim())
@@ -2667,6 +2740,7 @@
     if (f.owner !== ANY) n++;
     if (f.area !== ANY) n++;
     if (f.segment !== ANY) n++;
+    if (f.offlineStatus && f.offlineStatus !== ANY) n++;
     if (f.touchRange !== "any") n++;
     if (f.staleOnly) n++;
     if (f.hasNextAction) n++;
@@ -2802,6 +2876,27 @@
       );
     }).join("");
     html += productTabItemsHtml(getLeads());
+    if (state.productTab === "offline" && state.listMode !== "trash") {
+      html += '<span class="mk-leads-offline-filters" role="group" aria-label="Lọc trạng thái Offline">';
+      var fos = (state.filters && state.filters.offlineStatus) || ANY;
+      html +=
+        '<button type="button" class="mk-leads-offline-filter' +
+        (fos === ANY ? " is-active" : "") +
+        '" data-offline-status="' +
+        ANY +
+        '">Tất cả Offline</button>';
+      OFFLINE_STATUS_FILTERS.forEach(function (it) {
+        html +=
+          '<button type="button" class="mk-leads-offline-filter' +
+          (fos === it.key ? " is-active" : "") +
+          '" data-offline-status="' +
+          esc(it.key) +
+          '">' +
+          esc(it.label) +
+          "</button>";
+      });
+      html += "</span>";
+    }
     html += saved
       .map(function (s) {
         var on = state.activeSegment === s.id ? " is-active" : "";
@@ -2861,6 +2956,14 @@
       '<div class="mk-leads-filters-grid">' +
       fieldSelect(t("JS_MK_FILTER_SOURCE", "Nguồn"), "source", f.source, SOURCE_TAGS.map(function (tg) { return [tg, tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_PROGRAM", "Chương trình"), "program", f.program, PROGRAM_TAGS.map(function (tg) { return [tg, tagMeta(tg).label]; })) +
+      fieldSelect(
+        "Trạng thái Offline",
+        "offlineStatus",
+        f.offlineStatus || ANY,
+        OFFLINE_STATUS_FILTERS.map(function (it) {
+          return [it.key, it.label];
+        })
+      ) +
       fieldSelect(t("JS_MK_FILTER_PURCHASE", "Trạng thái mua"), "purchase", f.purchase, PURCHASE_TAGS.map(function (tg) { return [tg, tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_OWNER", "Phụ trách"), "owner", f.owner, owners.map(function (o) { return [o, o]; })) +
       fieldSelect(t("JS_MK_FILTER_AREA", "Khu vực"), "area", f.area, areas.map(function (a) { return [a, a]; })) +
@@ -3539,6 +3642,17 @@
         state.listMode = "active";
         state.trashCache = null;
         state.productTab = ptab.getAttribute("data-product-tab") || "all";
+        if (state.productTab !== "offline" && state.filters) {
+          state.filters.offlineStatus = ANY;
+        }
+        state.page = 1;
+        refreshListBody();
+        return;
+      }
+      var offStatusBtn = e.target.closest && e.target.closest("[data-offline-status]");
+      if (offStatusBtn) {
+        e.preventDefault();
+        state.filters.offlineStatus = offStatusBtn.getAttribute("data-offline-status") || ANY;
         state.page = 1;
         refreshListBody();
         return;

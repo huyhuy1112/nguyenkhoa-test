@@ -17,6 +17,7 @@ class Leads_OfflineGd11Service {
 	const STATUS_KHONG_THAM_GIA = 'offline_khong_tham_gia';
 	const STATUS_DA_THAM_GIA = 'offline_da_tham_gia';
 	const STATUS_NGUNG_CSKH = 'offline_ngung_cskh';
+	const STATUS_NGUNG_CSKH_TAM = 'offline_ngung_cskh_tam';
 
 	const STATUS_TAGS = array(
 		self::STATUS_HEN_GOI_LAI,
@@ -29,6 +30,7 @@ class Leads_OfflineGd11Service {
 		self::STATUS_KHONG_THAM_GIA,
 		self::STATUS_DA_THAM_GIA,
 		self::STATUS_NGUNG_CSKH,
+		self::STATUS_NGUNG_CSKH_TAM,
 	);
 
 	const R1_TAGS = array(
@@ -41,16 +43,17 @@ class Leads_OfflineGd11Service {
 
 	public static function statusLabels() {
 		return array(
-			self::STATUS_HEN_GOI_LAI => 'Offline — Hẹn gọi lại',
-			self::STATUS_KHONG_NGHE_MAY => 'Offline — Không nghe máy',
-			self::STATUS_SAI_THONG_TIN => 'Offline — Sai thông tin liên hệ',
-			self::STATUS_CHUYEN_CT => 'Offline — Chuyển chương trình khác',
-			self::STATUS_CHUA_XN_LICH => 'Offline — Chưa xác nhận lịch học',
-			self::STATUS_DA_XN_LICH => 'Offline — Đã xác nhận lịch học',
-			self::STATUS_HEN_LICH_LAI => 'Offline — Hẹn lịch học lại',
-			self::STATUS_KHONG_THAM_GIA => 'Offline — Không tham gia lớp học free',
-			self::STATUS_DA_THAM_GIA => 'Offline — Đã tham gia lớp học free',
-			self::STATUS_NGUNG_CSKH => 'Offline — Ngưng chăm sóc',
+			self::STATUS_HEN_GOI_LAI => 'Hẹn gọi lại',
+			self::STATUS_KHONG_NGHE_MAY => 'Không nghe máy',
+			self::STATUS_SAI_THONG_TIN => 'Sai thông tin',
+			self::STATUS_CHUYEN_CT => 'Chuyển CT',
+			self::STATUS_CHUA_XN_LICH => 'Chưa xác nhận lịch',
+			self::STATUS_DA_XN_LICH => 'Đã xác nhận lịch',
+			self::STATUS_HEN_LICH_LAI => 'Hẹn lịch lại',
+			self::STATUS_KHONG_THAM_GIA => 'Không tham gia',
+			self::STATUS_DA_THAM_GIA => 'Đã tham gia',
+			self::STATUS_NGUNG_CSKH => 'Ngưng CSKH',
+			self::STATUS_NGUNG_CSKH_TAM => 'Dừng CSKH tạm thời',
 		);
 	}
 
@@ -79,6 +82,7 @@ class Leads_OfflineGd11Service {
 			'offline_preclass_confirm' => "TINYINT(1) NOT NULL DEFAULT 0",
 			'offline_class_date' => "DATE DEFAULT NULL",
 			'offline_checked_in_at' => "DATETIME NULL",
+			'offline_post_noshow_miss' => "TINYINT(1) NOT NULL DEFAULT 0",
 		);
 		foreach ($cols as $name => $def) {
 			$res = $adb->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE ?", array($name));
@@ -253,6 +257,37 @@ class Leads_OfflineGd11Service {
 		if ($leadId <= 0 || !self::leadIsOffline($leadId)) {
 			return null;
 		}
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery('SELECT offline_status FROM bace_lead_profile WHERE leadid = ?', array($leadId));
+		$cur = ($res && $adb->num_rows($res) > 0)
+			? trim((string) $adb->query_result($res, 0, 'offline_status')) : '';
+
+		// Đã XN lịch / Hẹn lại / Không tham gia: gọi không bắt máy 3 lần → Dừng CSKH tạm.
+		$postNoshowStates = array(
+			self::STATUS_KHONG_THAM_GIA,
+			self::STATUS_HEN_LICH_LAI,
+			self::STATUS_DA_XN_LICH,
+		);
+		if (in_array($cur, $postNoshowStates, true)) {
+			return self::onPostNoshowCallMissed($leadId, $userId);
+		}
+
+		// Điểm danh / ngưng: không đụng R1 từ Opp Last Touch.
+		$skipR1 = array(
+			self::STATUS_DA_THAM_GIA,
+			self::STATUS_NGUNG_CSKH,
+			self::STATUS_NGUNG_CSKH_TAM,
+			self::STATUS_CHUYEN_CT,
+		);
+		if (in_array($cur, $skipR1, true)) {
+			return array(
+				'status' => $cur,
+				'skipped_r1' => true,
+				'drop' => '',
+			);
+		}
+
 		$bump = self::bumpR1ForTag($leadId, self::STATUS_KHONG_NGHE_MAY);
 		if (!empty($bump['stopped'])) {
 			self::applyStatus($leadId, self::STATUS_NGUNG_CSKH, $userId);
@@ -265,7 +300,6 @@ class Leads_OfflineGd11Service {
 			);
 		}
 		if (!empty($bump['tag_exhausted'])) {
-			// Tag Không nghe đã hết 3 — giữ trạng thái, Sales chọn Hẹn gọi / Sai TT khác.
 			self::setNextActionHint($leadId, self::STATUS_KHONG_NGHE_MAY);
 			return array(
 				'status' => self::STATUS_KHONG_NGHE_MAY,
@@ -286,8 +320,163 @@ class Leads_OfflineGd11Service {
 	}
 
 	/**
-	 * Last Touch — Nghe máy trên Offline: không convert Opp tại đây (Opp sau đủ ĐK Bộ B).
+	 * Trạng thái được đếm “Không gọi được” (3 lần → Dừng CSKH tạm).
 	 */
+	public static function unreachableCallStatuses() {
+		return array(
+			self::STATUS_KHONG_THAM_GIA,
+			self::STATUS_HEN_LICH_LAI,
+			self::STATUS_DA_XN_LICH,
+		);
+	}
+
+	/**
+	 * Sau XN lịch / no-show: mỗi lần Không gọi được +1; đủ 3 → Dừng CSKH tạm thời và reset R3.
+	 */
+	public static function onPostNoshowCallMissed($leadId, $userId = null) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu lead');
+		}
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT offline_post_noshow_miss AS m, offline_status AS st FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		$curMiss = ($res && $adb->num_rows($res) > 0) ? (int) $adb->query_result($res, 0, 'm') : 0;
+		$curStatus = ($res && $adb->num_rows($res) > 0)
+			? trim((string) $adb->query_result($res, 0, 'st')) : '';
+		if ($curStatus === '' || !in_array($curStatus, self::unreachableCallStatuses(), true)) {
+			return array(
+				'success' => false,
+				'error' => 'Chỉ đếm “Không gọi được” khi Đã XN lịch / Hẹn lịch lại / Không tham gia.',
+				'status' => $curStatus,
+				'post_noshow_miss' => $curMiss,
+			);
+		}
+		$next = min(self::COUNTER_MAX, $curMiss + 1);
+		$adb->pquery(
+			'UPDATE bace_lead_profile SET offline_post_noshow_miss = ?, modified_at = ? WHERE leadid = ?',
+			array($next, date('Y-m-d H:i:s'), $leadId)
+		);
+		if ($next >= self::COUNTER_MAX) {
+			self::resetAttendanceCycleCounters($leadId);
+			self::applyStatus($leadId, self::STATUS_NGUNG_CSKH_TAM, $userId);
+			self::setNextActionHint($leadId, self::STATUS_NGUNG_CSKH_TAM);
+			self::syncOfflineStatusToPotential($leadId, self::STATUS_NGUNG_CSKH_TAM, $userId);
+			return array(
+				'success' => true,
+				'status' => self::STATUS_NGUNG_CSKH_TAM,
+				'status_label' => 'Dừng CSKH tạm thời',
+				'post_noshow_miss' => $next,
+				'drop' => 'POST_NOSHOW_MISS',
+				'cycle_reset' => true,
+				'can_unreachable' => false,
+				'message' => 'Không gọi được 3 lần → Dừng CSKH tạm thời. Được đặt lịch lại 3 lần.',
+			);
+		}
+		self::setNextActionHint($leadId, $curStatus !== '' ? $curStatus : self::STATUS_KHONG_THAM_GIA);
+		$labels = self::statusLabels();
+		return array(
+			'success' => true,
+			'status' => $curStatus,
+			'status_label' => isset($labels[$curStatus]) ? $labels[$curStatus] : $curStatus,
+			'post_noshow_miss' => $next,
+			'drop' => '',
+			'can_unreachable' => true,
+			'message' => 'Không gọi được · ' . $next . '/3',
+		);
+	}
+
+	/**
+	 * Opp drawer — nút “Không gọi được”: đếm miss (+ ghi Last Touch nếu còn slot).
+	 */
+	public static function markUnreachableFromPotential($potentialId, $userId = null) {
+		global $current_user;
+		$potentialId = (int) $potentialId;
+		if ($potentialId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu opportunity id');
+		}
+		if ($userId === null && !empty($current_user->id)) {
+			$userId = (int) $current_user->id;
+		}
+		require_once 'modules/Leads/models/ConvertService.php';
+		$leadId = (int) Leads_ConvertService::getLinkedLeadIdByPotential($potentialId);
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'Opp chưa gắn Lead Offline');
+		}
+		if (!self::leadIsOffline($leadId)) {
+			return array('success' => false, 'error' => 'Lead không phải Offline');
+		}
+
+		$offline = self::onPostNoshowCallMissed($leadId, $userId);
+		if (empty($offline['success'])) {
+			return $offline;
+		}
+
+		$lastTouch = null;
+		try {
+			require_once 'modules/Potentials/models/LastTouchCallService.php';
+			$summary = Potentials_LastTouchCallService::getSummary($potentialId);
+			if (!empty($summary['can_add'])) {
+				// Ghi log hiển thị; skip hook offline (đã đếm ở trên).
+				$lastTouch = Potentials_LastTouchCallService::logCall(
+					$potentialId,
+					'Không gọi được',
+					'',
+					$userId,
+					array('skip_offline' => true)
+				);
+			} else {
+				$lastTouch = $summary;
+			}
+		} catch (Exception $e) {
+			$lastTouch = null;
+		}
+
+		$listRow = null;
+		try {
+			require_once 'modules/Potentials/models/ModernService.php';
+			$list = Potentials_ModernService::listPotentials($userId);
+			foreach ($list as $row) {
+				if ((int) $row['crmid'] === $potentialId || (string) $row['id'] === (string) $potentialId) {
+					$listRow = $row;
+					break;
+				}
+			}
+		} catch (Exception $e) {
+			$listRow = null;
+		}
+
+		return array(
+			'success' => true,
+			'status' => isset($offline['status']) ? $offline['status'] : '',
+			'status_label' => isset($offline['status_label']) ? $offline['status_label'] : '',
+			'post_noshow_miss' => isset($offline['post_noshow_miss']) ? (int) $offline['post_noshow_miss'] : 0,
+			'drop' => isset($offline['drop']) ? $offline['drop'] : '',
+			'cycle_reset' => !empty($offline['cycle_reset']),
+			'can_unreachable' => !empty($offline['can_unreachable']),
+			'message' => isset($offline['message']) ? $offline['message'] : 'Đã ghi Không gọi được',
+			'lastTouchCalls' => $lastTouch,
+			'opportunity' => $listRow,
+		);
+	}
+
+	/** Reset R3 + đếm gọi miss sau no-show (chu kỳ mới). */
+	public static function resetAttendanceCycleCounters($leadId) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return;
+		}
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$adb->pquery(
+			'UPDATE bace_lead_profile SET offline_r3_class = 0, offline_post_noshow_miss = 0, modified_at = ? WHERE leadid = ?',
+			array(date('Y-m-d H:i:s'), $leadId)
+		);
+	}
+
 	public static function onLastTouchAnswered($leadId, $userId = null) {
 		$leadId = (int) $leadId;
 		if ($leadId <= 0 || !self::leadIsOffline($leadId)) {
@@ -337,15 +526,6 @@ class Leads_OfflineGd11Service {
 				$classDate = isset($result['class_date']) ? trim((string) $result['class_date']) : '';
 				if ($classDate !== '') {
 					self::setClassDate($leadId, $classDate);
-				}
-				$res = PearDatabase::getInstance()->pquery(
-					'SELECT offline_r3_class AS c FROM bace_lead_profile WHERE leadid = ?',
-					array($leadId)
-				);
-				$adb = PearDatabase::getInstance();
-				$cur = ($res && $adb->num_rows($res) > 0) ? (int) $adb->query_result($res, 0, 'c') : 0;
-				if ($cur < 1) {
-					self::bumpCounter($leadId, 'r3');
 				}
 				self::setNextActionHint($leadId, self::STATUS_DA_XN_LICH, $classDate);
 				$out['status'] = self::STATUS_DA_XN_LICH;
@@ -450,15 +630,7 @@ class Leads_OfflineGd11Service {
 				$drop = 'R2';
 			}
 		} elseif ($status === self::STATUS_DA_XN_LICH) {
-			$adb = PearDatabase::getInstance();
-			$res = $adb->pquery(
-				'SELECT offline_r3_class AS c FROM bace_lead_profile WHERE leadid = ?',
-				array($leadId)
-			);
-			$cur = ($res && $adb->num_rows($res) > 0) ? (int) $adb->query_result($res, 0, 'c') : 0;
-			if ($cur < 1) {
-				self::bumpCounter($leadId, 'r3');
-			}
+			// R3 chỉ đếm Không tham gia (no-show), không + khi chốt/xác nhận lịch.
 		} elseif ($status === self::STATUS_KHONG_THAM_GIA) {
 			$bump = self::bumpCounter($leadId, 'r3');
 			if (!empty($bump['stopped'])) {
@@ -486,8 +658,13 @@ class Leads_OfflineGd11Service {
 		// Không đến / đã điểm danh xong → xếp lịch lại: xóa Step 4 + mở lại điểm danh.
 		if (
 			($status === self::STATUS_HEN_LICH_LAI || $status === self::STATUS_DA_XN_LICH)
-			&& in_array($prevStatus, array(self::STATUS_KHONG_THAM_GIA, self::STATUS_DA_THAM_GIA), true)
+			&& in_array($prevStatus, array(self::STATUS_KHONG_THAM_GIA, self::STATUS_DA_THAM_GIA, self::STATUS_NGUNG_CSKH_TAM), true)
 		) {
+			$adbClear = PearDatabase::getInstance();
+			$adbClear->pquery(
+				'UPDATE bace_lead_profile SET offline_post_noshow_miss = 0, modified_at = ? WHERE leadid = ?',
+				array(date('Y-m-d H:i:s'), $leadId)
+			);
 			try {
 				require_once 'modules/Leads/models/OfflineGd11Step4Service.php';
 				Leads_OfflineGd11Step4Service::clearForReschedule($leadId);
@@ -564,6 +741,7 @@ class Leads_OfflineGd11Service {
 			'offline_r2_schedule' => isset($row['offline_r2_schedule']) ? (int) $row['offline_r2_schedule'] : 0,
 			'offline_r3_class' => isset($row['offline_r3_class']) ? (int) $row['offline_r3_class'] : 0,
 			'offline_r4_transfer' => isset($row['offline_r4_transfer']) ? (int) $row['offline_r4_transfer'] : 0,
+			'offline_post_noshow_miss' => isset($row['offline_post_noshow_miss']) ? (int) $row['offline_post_noshow_miss'] : 0,
 			'offline_preclass_confirm' => !empty($row['offline_preclass_confirm']) ? 1 : 0,
 			'offline_class_date' => (!empty($row['offline_class_date']) && $row['offline_class_date'] !== '0000-00-00')
 				? (string) $row['offline_class_date'] : '',
@@ -590,14 +768,13 @@ class Leads_OfflineGd11Service {
 
 		if ($detailed) {
 			$out['offline_status_options'] = $labels;
-			$out['offline_kb'] = self::kbSnippets();
 		}
 		return $out + self::composeStep2Block($row, $detailed);
 	}
 
 	protected static function composeStep2Block(array $row, $detailed = false) {
 		$status = isset($row['offline_status']) ? trim((string) $row['offline_status']) : '';
-		// List: chỉ trả field nhẹ nếu đã vào Offline; bỏ plan/config/KB.
+		// List: chỉ trả field nhẹ nếu đã vào Offline; bỏ plan/config.
 		$needsStep2 = ($status !== '' || !empty($row['offline_class_date']) || !empty($row['offline_step2_entered_at']));
 		if (!$detailed && !$needsStep2) {
 			return array();
@@ -608,54 +785,6 @@ class Leads_OfflineGd11Service {
 		} catch (Exception $e) {
 			return array();
 		}
-	}
-
-	/**
-	 * KB 1.1 — mẫu copy ngắn cho Sales (Bước 1).
-	 */
-	public static function kbSnippets() {
-		return array(
-			array(
-				'id' => 'mo_dau',
-				'title' => 'Mở đầu gọi',
-				'text' => "Em chào anh/chị, em [Tên] bên [Thương hiệu]. Anh/chị vừa đăng ký lớp miễn phí Offline, em gọi xác nhận thông tin và hỗ trợ xếp lịch ạ.",
-			),
-			array(
-				'id' => 'xac_minh_b',
-				'title' => 'Xác minh Bộ B',
-				'text' => "Em xin phép hỏi nhanh vài câu để xếp đúng nhóm: mục tiêu học, thời gian có thể đến lớp, và khu vực thuận tiện nhất của anh/chị ạ.",
-			),
-			array(
-				'id' => 'hen_goi_lai',
-				'title' => 'Hẹn gọi lại',
-				'text' => "Dạ em hiểu anh/chị đang bận. Em xin phép gọi lại vào [giờ/ngày] được không ạ? Em sẽ nhắc lịch ngắn gọn thôi.",
-			),
-			array(
-				'id' => 'khong_nghe',
-				'title' => 'Không nghe máy (ghi chú)',
-				'text' => "Gọi lần [n] — không nghe máy. Đã để lại tin nhắn/Zalo (nếu có). Hẹn follow theo SLA R1.",
-			),
-			array(
-				'id' => 'sai_tt',
-				'title' => 'Sai thông tin',
-				'text' => "Số/thông tin trên form không khớp. Em đã ghi chú sai thông tin — cần xác minh lại nguồn hoặc chuyển xử lý theo quy trình.",
-			),
-			array(
-				'id' => 'chot_lich',
-				'title' => 'Chốt lịch Offline',
-				'text' => "Em xếp anh/chị lớp Offline ngày [ngày] lúc [giờ] tại [địa điểm]. Anh/chị xác nhận giúp em để giữ chỗ nhé.",
-			),
-			array(
-				'id' => 'chua_xn_lich',
-				'title' => 'Chưa xác nhận lịch',
-				'text' => "Anh/chị đủ điều kiện lớp Offline rồi ạ. Em gửi lại khung giờ gần nhất — anh/chị chọn giúp em 1 slot để em giữ chỗ.",
-			),
-			array(
-				'id' => 'chuyen_ct',
-				'title' => 'Chuyển chương trình',
-				'text' => "Hiện lớp Offline chưa phù hợp nhu cầu anh/chị. Em đề xuất chuyển sang chương trình phù hợp hơn và nhờ team hỗ trợ tiếp ạ.",
-			),
-		);
 	}
 
 	public static function nextActionForStatus($status, $classDate = '') {
@@ -672,6 +801,7 @@ class Leads_OfflineGd11Service {
 			self::STATUS_KHONG_THAM_GIA => 'Ghi nhận không tham gia — follow nếu cần',
 			self::STATUS_DA_THAM_GIA => 'CSKH sau lớp Offline',
 			self::STATUS_NGUNG_CSKH => 'Ngưng CSKH Offline (đã đủ R)',
+			self::STATUS_NGUNG_CSKH_TAM => 'Dừng CSKH tạm thời — được đặt lịch lại (3 lần)',
 		);
 		return isset($map[$status]) ? $map[$status] : '';
 	}
@@ -1147,6 +1277,7 @@ class Leads_OfflineGd11Service {
 			self::STATUS_KHONG_THAM_GIA,
 			self::STATUS_HEN_LICH_LAI,
 			self::STATUS_DA_XN_LICH,
+			self::STATUS_NGUNG_CSKH_TAM,
 		);
 		if ($cur === '' || !in_array($cur, $allowedFrom, true)) {
 			return array(

@@ -331,6 +331,11 @@ class Leads_OfflineGd11Step2Service {
 			}
 			// Không +R3 khi chốt lịch mới — R3 chỉ tăng khi Không tham gia.
 			Leads_OfflineGd11Service::applyStatus($leadId, Leads_OfflineGd11Service::STATUS_DA_XN_LICH, $userId);
+			$adbMiss = PearDatabase::getInstance();
+			$adbMiss->pquery(
+				'UPDATE bace_lead_profile SET offline_post_noshow_miss = 0, modified_at = ? WHERE leadid = ?',
+				array(date('Y-m-d H:i:s'), $leadId)
+			);
 			$step2 = self::onScheduleConfirmed($leadId, $payload, $userId);
 			Leads_OfflineGd11Service::setNextActionHint($leadId, Leads_OfflineGd11Service::STATUS_DA_XN_LICH, $classDate);
 			$cal = Leads_OfflineGd11Service::createFollowUpTask(

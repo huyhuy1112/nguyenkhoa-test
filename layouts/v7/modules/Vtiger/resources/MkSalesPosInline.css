@@ -813,6 +813,58 @@ body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__last-touch .mk-so
 	border-radius: 8px;
 }
 
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__last-touch-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 6px;
+	flex: 0 1 auto;
+	min-width: 0;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__unreachable-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	height: 28px;
+	padding: 0 9px;
+	font-size: 11px;
+	font-weight: 600;
+	border-radius: 8px;
+	white-space: nowrap;
+	color: #9a3412;
+	border-color: #fdba74;
+	background: #fff7ed;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__unreachable-btn:hover:not(:disabled):not(.is-locked) {
+	background: #ffedd5;
+	border-color: #fb923c;
+	color: #7c2d12;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__unreachable-btn.is-locked,
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__unreachable-btn:disabled {
+	opacity: 0.72;
+	cursor: not-allowed;
+	background: #f8fafc;
+	border-color: #e2e8f0;
+	color: #64748b;
+}
+
+body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__unreachable-count {
+	display: inline-flex;
+	align-items: center;
+	height: 18px;
+	padding: 0 6px;
+	border-radius: 999px;
+	font-size: 10px;
+	font-weight: 700;
+	background: rgba(154, 52, 18, 0.12);
+	color: inherit;
+}
+
 body[data-view="List"][data-app="SALES"] .mk-so-inline-detail__tags-list {
 	gap: 8px;
 }
@@ -2461,6 +2513,22 @@ body[data-view="List"][data-app="SALES"] .bootbox.mk-quote-convert-modal .modal-
 	height: 32px !important;
 	min-width: 0 !important;
 	padding: 0 12px !important;
+	border-radius: 8px !important;
+	font-size: 12px !important;
+}
+
+#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__last-touch-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 6px;
+}
+
+#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__unreachable-btn {
+	height: 32px !important;
+	min-width: 0 !important;
+	padding: 0 10px !important;
 	border-radius: 8px !important;
 	font-size: 12px !important;
 }

@@ -596,7 +596,9 @@
       st === "offline_da_xac_nhan_lich" ||
       st === "offline_hen_lich_lai" ||
       st === "offline_khong_tham_gia" ||
-      st === "offline_da_tham_gia"
+      st === "offline_da_tham_gia" ||
+      st === "offline_ngung_cskh_tam" ||
+      st === "offline_ngung_cskh"
     );
   }
 
@@ -604,6 +606,35 @@
   function canEditAttendance(o) {
     var st = String((o && o.offline_status) || "");
     return st === "offline_da_xac_nhan_lich" || st === "offline_hen_lich_lai";
+  }
+
+  function canRescheduleAttendance(o) {
+    var st = String((o && o.offline_status) || "");
+    return st === "offline_khong_tham_gia" || st === "offline_ngung_cskh_tam";
+  }
+
+  function offlineNoshowCountersHtml(o) {
+    var r3 = Number(o.offline_r3_class) || 0;
+    var miss = Number(o.offline_post_noshow_miss) || 0;
+    var st = String(o.offline_status || "");
+    var bits = [];
+    if (st === "offline_khong_tham_gia" || st === "offline_ngung_cskh" || r3 > 0) {
+      bits.push("No-show " + Math.min(r3, 3) + "/3");
+    }
+    if (
+      miss > 0 ||
+      st === "offline_khong_tham_gia" ||
+      st === "offline_da_xac_nhan_lich" ||
+      st === "offline_hen_lich_lai"
+    ) {
+      bits.push("Không gọi được " + Math.min(miss, 3) + "/3");
+    }
+    if (!bits.length) return "";
+    return (
+      '<div class="mk-opps-checkin__counters" title="Không tham gia tối đa 3 lần; Không gọi được 3 lần (sau XN lịch) → dừng tạm (đặt lịch lại 3 lần)">' +
+      esc(bits.join(" · ")) +
+      "</div>"
+    );
   }
 
   function isAdminUser() {
@@ -689,12 +720,14 @@
     if (!canOfflineCheckin(o)) {
       return '<span class="mk-leads-muted">—</span>';
     }
+    var st = String((o && o.offline_status) || "");
     var label = String(o.offline_status_label || o.offline_status || "").trim();
     var checkedAt = o.offline_checked_in_at
       ? formatDateTimeFull(o.offline_checked_in_at)
       : "";
     var classDate = o.offline_class_date ? String(o.offline_class_date) : "";
     var editable = canEditAttendance(o);
+    var reschedulable = canRescheduleAttendance(o);
     var html =
       '<div class="mk-opps-checkin" data-opp-id="' +
       esc(o.id) +
@@ -703,12 +736,15 @@
       '<span class="mk-opps-checkin__label">' +
       esc(label || "Offline") +
       "</span>" +
+      offlineNoshowCountersHtml(o) +
       offlineClassMetaHtml(o) +
       (checkedAt
         ? '<span class="mk-opps-checkin__at">Điểm danh: ' + esc(checkedAt) + "</span>"
         : "") +
       "</div>";
-    if (isAdminUser() && editable) {
+    if (st === "offline_ngung_cskh") {
+      html += '<div class="mk-opps-checkin__hint">Đã ngưng CSKH (đủ 3 lần không tham gia)</div>';
+    } else if (isAdminUser() && editable) {
       html +=
         '<div class="mk-opps-checkin__actions">' +
         '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--ok" data-mk-opp-checkin="da_tham_gia" data-opp-id="' +
@@ -718,7 +754,11 @@
         esc(o.id) +
         '">Không tham gia</button>' +
         "</div>";
-    } else if (isAdminUser() && String((o && o.offline_status) || "") === "offline_khong_tham_gia") {
+    } else if (isAdminUser() && reschedulable) {
+      var hint =
+        st === "offline_ngung_cskh_tam"
+          ? "Dừng tạm — chọn ngày rồi chốt lịch mới (được 3 lần no-show mới)"
+          : "Không đến — chọn ngày rồi chốt lịch mới";
       html +=
         '<div class="mk-opps-checkin__reschedule">' +
         '<input type="date" class="mk-opps-checkin__date-input" data-mk-opp-reschedule-date="' +
@@ -733,7 +773,9 @@
         esc(o.id) +
         '">Hẹn lịch lại</button>' +
         "</div>" +
-        '<div class="mk-opps-checkin__hint">Không đến — chọn ngày rồi chốt lịch mới</div>';
+        '<div class="mk-opps-checkin__hint">' +
+        esc(hint) +
+        "</div>";
     } else if (isAdminUser() && !editable) {
       html += '<div class="mk-opps-checkin__hint">Đã ghi nhận · khóa chọn lại</div>';
     } else {
@@ -794,11 +836,14 @@
       .offlineCheckin(oid, action)
       .then(function (res) {
         if (res && res.drop) {
-          notifyOk("Đã đủ R3 → Ngưng CSKH Offline.");
+          notifyOk("Đã đủ 3 lần không tham gia → Ngưng CSKH Offline.");
         } else if (action === "da_tham_gia") {
           notifyOk("Đã ghi nhận tham gia lớp.");
         } else {
-          notifyOk("Đã ghi nhận không tham gia.");
+          var r3 = res && res.lead ? Number(res.lead.offline_r3_class) || 0 : 0;
+          notifyOk(
+            "Đã ghi nhận không tham gia" + (r3 ? " · No-show " + r3 + "/3" : "") + "."
+          );
         }
         renderAll();
       })
@@ -1715,10 +1760,21 @@
             if (lt.logged && lt.logged.called_at) {
               row.last_touch = lt.logged.called_at;
             }
+            var off = (lt && lt.offline) || (res && res.offline) || null;
+            if (off) {
+              if (off.status) row.offline_status = off.status;
+              if (off.status_label) row.offline_status_label = off.status_label;
+              if (typeof off.post_noshow_miss === "number") {
+                row.offline_post_noshow_miss = off.post_noshow_miss;
+              }
+            }
             if (store && store.patchOpportunity) {
               store.patchOpportunity(row.id, {
                 lastTouchCalls: lt,
                 last_touch: row.last_touch,
+                offline_status: row.offline_status,
+                offline_status_label: row.offline_status_label,
+                offline_post_noshow_miss: row.offline_post_noshow_miss,
               });
             }
           }
@@ -1733,6 +1789,9 @@
           if (touchTd && row) {
             touchTd.innerHTML = window.MkLastTouchCall.lastTouchCallLogHtml(row, esc);
           } else {
+            renderTable();
+          }
+          if ((lt && lt.offline) || (res && res.offline)) {
             renderTable();
           }
         },

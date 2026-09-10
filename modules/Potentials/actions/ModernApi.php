@@ -22,7 +22,7 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_inline_business_model', 'save_tags', 'delete', 'last_touch_call_log', 'offline_checkin', 'offline_reschedule'), true)) {
+		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_inline_business_model', 'save_tags', 'delete', 'last_touch_call_log', 'offline_checkin', 'offline_reschedule', 'offline_unreachable'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -238,6 +238,18 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 						'tags' => isset($reschedule['opp_tags']) ? $reschedule['opp_tags'] : array(),
 						'opportunity' => $opp,
 					));
+					break;
+				case 'offline_unreachable':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$unreachable = Leads_OfflineGd11Service::markUnreachableFromPotential($recordId, $userId);
+					if (empty($unreachable['success'])) {
+						throw new Exception(isset($unreachable['error']) ? $unreachable['error'] : 'Không ghi được “Không gọi được”');
+					}
+					$response->setResult($unreachable);
 					break;
 				default:
 					throw new Exception('Unsupported mode.');

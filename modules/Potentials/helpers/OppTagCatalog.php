@@ -27,6 +27,7 @@ class Potentials_OppTagCatalog {
 		'offline_hen_goi_lai', 'offline_khong_nghe_may', 'offline_sai_thong_tin',
 		'offline_chuyen_chuong_trinh', 'offline_chua_xac_nhan_lich', 'offline_da_xac_nhan_lich',
 		'offline_hen_lich_lai', 'offline_khong_tham_gia', 'offline_da_tham_gia', 'offline_ngung_cskh',
+		'offline_ngung_cskh_tam',
 		// Hạng khách (tier)
 		'vang', 'bac', 'dong',
 	);

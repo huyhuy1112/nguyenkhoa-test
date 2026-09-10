@@ -143,6 +143,13 @@ class Leads_OnlineGd12Service {
 		return isset($map[$n]) ? $map[$n] : '';
 	}
 
+	/** Q2 (A–D) → C5 (1–4). */
+	public static function mapQ2ToVerifyC5($q2) {
+		$map = array('A' => 1, 'B' => 2, 'C' => 3, 'D' => 4);
+		$key = strtoupper(trim((string) $q2));
+		return isset($map[$key]) ? $map[$key] : 0;
+	}
+
 	public static function findChildLeadIdBySource($offlineLeadId) {
 		$offlineLeadId = (int) $offlineLeadId;
 		if ($offlineLeadId <= 0) {
@@ -165,7 +172,7 @@ class Leads_OnlineGd12Service {
 
 	/**
 	 * Đường 2 — Sale chuyển Offline 1.1 → hồ sơ Online mới.
-	 * Chép đáp án sau xác minh, khoá chấm, tag Chưa ĐK TK; giữ nguyên lead Offline.
+	 * Chép đáp án sau xác minh, khoá chấm, tag Chưa ĐK TK; soft-delete lead Offline cũ.
 	 */
 	public static function transferFromOffline($offlineLeadId, $userId = null) {
 		$offlineLeadId = (int) $offlineLeadId;
@@ -179,12 +186,18 @@ class Leads_OnlineGd12Service {
 		$existingChild = self::findChildLeadIdBySource($offlineLeadId);
 		if ($existingChild > 0) {
 			$child = Leads_ModernService::getLead((string) $existingChild, $userId);
+			try {
+				Leads_ModernService::deleteLead((string) $offlineLeadId, false);
+			} catch (Exception $e) {
+				// best-effort
+			}
 			return array(
 				'success' => true,
 				'already' => true,
 				'online_lead_id' => $existingChild,
+				'source_deleted' => true,
 				'lead' => $child,
-				'message' => 'Đã có hồ sơ Online Đường 2 từ lead này.',
+				'message' => 'Đã có hồ sơ Online Đường 2 — lead Offline cũ đã xoá (thùng rác).',
 			);
 		}
 
@@ -286,17 +299,164 @@ class Leads_OnlineGd12Service {
 		);
 		self::syncStatusTagsOnly($onlineLeadId, $tags);
 
+		$deleted = false;
+		try {
+			$deleted = (bool) Leads_ModernService::deleteLead((string) $offlineLeadId, false);
+		} catch (Exception $e) {
+			$deleted = false;
+		}
+
 		$fresh = Leads_ModernService::getLead((string) $onlineLeadId, $userId);
-		$srcFresh = Leads_ModernService::getLead((string) $offlineLeadId, $userId);
 		return array(
 			'success' => true,
 			'already' => false,
 			'online_lead_id' => $onlineLeadId,
 			'source_lead_id' => $offlineLeadId,
+			'source_deleted' => $deleted,
 			'mapped' => array('q1' => $q1, 'q2' => $q2, 'q3' => $q3, 'q4' => $q4),
 			'lead' => $fresh,
-			'source_lead' => $srcFresh,
-			'message' => 'Đã tạo hồ sơ Online Đường 2 — Chưa đăng ký TK (khoá chấm).',
+			'source_lead' => null,
+			'message' => $deleted
+				? 'Đã chuyển Đường 2 → Online (Chưa ĐK TK) và xoá lead Offline cũ.'
+				: 'Đã tạo hồ sơ Online Đường 2 — không xoá được Offline (kiểm tra quyền).',
+		);
+	}
+
+	/**
+	 * Đường 2 ngược — Online đủ ĐK → Offline mới; soft-delete Online cũ.
+	 * Map: Q1→C1, Q2→C5, Q3→C3, Q4→C2.
+	 */
+	public static function transferFromOnline($onlineLeadId, $userId = null) {
+		$onlineLeadId = (int) $onlineLeadId;
+		if ($onlineLeadId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu lead Online');
+		}
+		self::installSchema();
+		require_once 'modules/Leads/models/ModernService.php';
+		require_once 'modules/Leads/models/SheetImportService.php';
+		require_once 'modules/Leads/models/OfflineGd11Service.php';
+		require_once 'modules/Leads/models/SalesVerifyService.php';
+
+		$src = Leads_ModernService::getLead((string) $onlineLeadId, $userId);
+		if (!$src || empty($src['id'])) {
+			return array('success' => false, 'error' => 'Không tìm thấy lead Online');
+		}
+
+		$elig = isset($src['eligibility_result']) ? trim((string) $src['eligibility_result']) : '';
+		$pot = isset($src['potential_level']) ? trim((string) $src['potential_level']) : '';
+		if ($elig !== 'du_dk') {
+			return array('success' => false, 'error' => 'Chỉ chuyển khi Online đã đủ điều kiện');
+		}
+		if ($pot === '') {
+			return array('success' => false, 'error' => 'Chưa phân mức độ tiềm năng — không chuyển Offline');
+		}
+
+		$q1 = isset($src['online_q1']) ? strtoupper(trim((string) $src['online_q1'])) : '';
+		$q2 = isset($src['online_q2']) ? strtoupper(trim((string) $src['online_q2'])) : '';
+		$q3 = isset($src['online_q3']) ? strtoupper(trim((string) $src['online_q3'])) : '';
+		$q4 = isset($src['online_q4']) ? strtoupper(trim((string) $src['online_q4'])) : '';
+		$c1 = $q1;
+		$c2 = $q4;
+		$c3 = $q3;
+		$c5 = self::mapQ2ToVerifyC5($q2);
+		if ($c1 === '' || $c2 === '' || $c3 === '' || $c5 < 1) {
+			return array(
+				'success' => false,
+				'error' => 'Thiếu đáp án Online (cần Q1–Q4) để chép sang Offline',
+			);
+		}
+
+		$phone = isset($src['phone']) ? trim((string) $src['phone']) : '';
+		$name = isset($src['name']) ? trim((string) $src['name']) : '';
+		if ($name === '' || $phone === '') {
+			return array('success' => false, 'error' => 'Lead Online thiếu tên hoặc SĐT');
+		}
+
+		$seg = isset($src['segment']) ? trim((string) $src['segment']) : '';
+		$biz = isset($src['business_model']) ? trim((string) $src['business_model']) : self::businessModelKey($q4);
+		$tags = array('mien_phi_offline');
+		if ($pot === 'sieu_tiem_nang' || $pot === 'tiem_nang') {
+			$tags[] = $pot;
+		}
+		$cust = Leads_SheetImportService::customerTagFromQ1($c1);
+		if ($cust !== '') {
+			$tags[] = $cust;
+		}
+
+		$payload = array(
+			'name' => $name,
+			'phone' => $phone,
+			'email' => isset($src['email']) ? $src['email'] : '',
+			'address' => isset($src['address']) ? $src['address'] : '',
+			'district' => isset($src['district']) ? $src['district'] : '',
+			'companyName' => isset($src['companyName']) ? $src['companyName'] : '-',
+			'tags' => $tags,
+			'business_model' => $biz,
+			'segment' => $seg,
+			'screening_result' => ($pot === 'sieu_tiem_nang' || $pot === 'tiem_nang') ? $pot : '',
+			'skip_potential' => 1,
+			'force_create' => 1,
+			'owner' => isset($src['owner_username']) ? $src['owner_username'] : '',
+		);
+		$created = Leads_ModernService::saveLead($payload, null);
+		$offlineLeadId = 0;
+		if (is_array($created)) {
+			$offlineLeadId = isset($created['crmid']) ? (int) $created['crmid'] : (isset($created['id']) ? (int) $created['id'] : 0);
+		}
+		if ($offlineLeadId <= 0) {
+			return array('success' => false, 'error' => 'Không tạo được lead Offline');
+		}
+
+		Leads_SalesVerifyService::installSchema();
+		Leads_OfflineGd11Service::installSchema();
+		$adb = PearDatabase::getInstance();
+		$now = date('Y-m-d H:i:s');
+		$adb->pquery(
+			"UPDATE bace_lead_profile SET
+				form_c1 = ?, form_c2 = ?, form_c3 = ?,
+				verify_c1 = ?, verify_c2 = ?, verify_c3 = ?, verify_c5 = ?,
+				eligibility_result = 'du_dk', potential_level = ?, business_model = ?, segment = ?,
+				online_status = NULL, online_path = NULL, online_source_leadid = ?,
+				online_q1 = NULL, online_q2 = NULL, online_q3 = NULL, online_q4 = NULL,
+				modified_at = ?
+			 WHERE leadid = ?",
+			array(
+				$c1,
+				$c2,
+				$c3,
+				$c1,
+				$c2,
+				$c3,
+				$c5,
+				$pot,
+				$biz !== '' ? $biz : null,
+				$seg !== '' ? $seg : null,
+				$onlineLeadId,
+				$now,
+				$offlineLeadId,
+			)
+		);
+		// tags mien_phi_offline đã gắn lúc saveLead
+
+		$deleted = false;
+		try {
+			$deleted = (bool) Leads_ModernService::deleteLead((string) $onlineLeadId, false);
+		} catch (Exception $e) {
+			$deleted = false;
+		}
+
+		$fresh = Leads_ModernService::getLead((string) $offlineLeadId, $userId);
+		return array(
+			'success' => true,
+			'already' => false,
+			'offline_lead_id' => $offlineLeadId,
+			'source_lead_id' => $onlineLeadId,
+			'source_deleted' => $deleted,
+			'mapped' => array('c1' => $c1, 'c2' => $c2, 'c3' => $c3, 'c5' => $c5),
+			'lead' => $fresh,
+			'message' => $deleted
+				? 'Đã chuyển Đường 2 → Offline và xoá lead Online cũ.'
+				: 'Đã tạo hồ sơ Offline — không xoá được Online (kiểm tra quyền).',
 		);
 	}
 

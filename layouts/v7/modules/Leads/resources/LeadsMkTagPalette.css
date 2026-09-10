@@ -708,3 +708,12 @@
     border-color: #fca5a5;
     color: #991b1b;
 }
+.mk-tag[data-tag="offline_ngung_cskh_tam"],
+.mk-td-tag-pill[data-tag="offline_ngung_cskh_tam"],
+.tag[data-tag="offline_ngung_cskh_tam"],
+.mk-lead-detail-tag-chip[data-tag="offline_ngung_cskh_tam"],
+.mk-tag--offline-status-temp {
+    background: #ffedd5;
+    border-color: #fdba74;
+    color: #9a3412;
+}

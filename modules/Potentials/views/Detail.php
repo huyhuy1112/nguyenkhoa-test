@@ -130,6 +130,9 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 		$attendance = array(
 			'eligible' => false,
 			'can_edit' => false,
+			'can_unreachable' => false,
+			'can_reschedule' => false,
+			'post_noshow_miss' => 0,
 			'status' => '',
 			'status_label' => '',
 			'class_date' => '',
@@ -144,7 +147,7 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 			if ($leadId > 0) {
 				$adb = PearDatabase::getInstance();
 				$ores = $adb->pquery(
-					'SELECT offline_status, offline_class_date, offline_checked_in_at
+					'SELECT offline_status, offline_class_date, offline_checked_in_at, offline_post_noshow_miss
 					 FROM bace_lead_profile WHERE leadid = ?',
 					array($leadId)
 				);
@@ -158,12 +161,14 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 					if ($checkedRaw === '0000-00-00 00:00:00') {
 						$checkedRaw = '';
 					}
+					$miss = (int) $adb->query_result($ores, 0, 'offline_post_noshow_miss');
 					$labels = Leads_OfflineGd11Service::statusLabels();
 					$eligibleStatuses = array(
 						Leads_OfflineGd11Service::STATUS_DA_XN_LICH,
 						Leads_OfflineGd11Service::STATUS_HEN_LICH_LAI,
 						Leads_OfflineGd11Service::STATUS_KHONG_THAM_GIA,
 						Leads_OfflineGd11Service::STATUS_DA_THAM_GIA,
+						Leads_OfflineGd11Service::STATUS_NGUNG_CSKH_TAM,
 					);
 					$editableStatuses = array(
 						Leads_OfflineGd11Service::STATUS_DA_XN_LICH,
@@ -175,7 +180,14 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 					$attendance['checked_in_at'] = $checkedRaw !== '' ? date('c', strtotime($checkedRaw)) : '';
 					$attendance['checked_in_at_label'] = $checkedRaw !== ''
 						? date('d/m/Y H:i', strtotime($checkedRaw)) : '';
+					$attendance['post_noshow_miss'] = $miss;
 					$attendance['eligible'] = ($status !== '' && in_array($status, $eligibleStatuses, true));
+					$attendance['can_unreachable'] = ($status !== ''
+						&& in_array($status, Leads_OfflineGd11Service::unreachableCallStatuses(), true));
+					$attendance['can_reschedule'] = in_array($status, array(
+						Leads_OfflineGd11Service::STATUS_KHONG_THAM_GIA,
+						Leads_OfflineGd11Service::STATUS_NGUNG_CSKH_TAM,
+					), true);
 					$cu = Users_Record_Model::getCurrentUserModel();
 					$attendance['can_edit'] = $attendance['eligible']
 						&& in_array($status, $editableStatuses, true)
@@ -185,6 +197,7 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 						&& in_array($status, array(
 							Leads_OfflineGd11Service::STATUS_KHONG_THAM_GIA,
 							Leads_OfflineGd11Service::STATUS_DA_THAM_GIA,
+							Leads_OfflineGd11Service::STATUS_NGUNG_CSKH_TAM,
 						), true);
 				}
 			}

@@ -1518,6 +1518,7 @@ class Leads_ModernService {
 			'online_status' => $onlineStatus,
 			'online_path' => $onlinePath,
 			'online_score_locked' => ($onlinePath === 'gd11') ? 1 : 0,
+			'can_transfer_offline' => ($isOnline && $eligibility === 'du_dk' && $potential !== '') ? 1 : 0,
 			'online_source_leadid' => isset($row['online_source_leadid']) ? (int) $row['online_source_leadid'] : 0,
 			'online_q1' => $onlineQ1,
 			'online_q2' => $onlineQ2,
