@@ -301,7 +301,16 @@
 		<header class="mk-wh-proto-modal__head">
 			<div class="mk-wh-proto-modal__head-main">
 				<span class="mk-wh-proto-modal__eyebrow">KHO</span>
-				<h3 class="mk-wh-proto-modal__title" id="mkWhReturnModalTitle">Tạo phiếu thu hồi / trả hàng</h3>
+				<div class="mk-wh-return-title-row">
+					<h3 class="mk-wh-proto-modal__title" id="mkWhReturnModalTitle">Tạo phiếu thu hồi / trả hàng</h3>
+					<div class="mk-wh-proto-field mk-wh-return-doctype">
+						<label for="mkWhReturnDocType">Loại phiếu</label>
+						<select id="mkWhReturnDocType" form="mkWhReturnForm">
+							<option value="return">Trả hàng</option>
+							<option value="recall">Thu hồi</option>
+						</select>
+					</div>
+				</div>
 				<p class="mk-wh-proto-modal__sub">Gộp nhiều phiếu xuất của kho này. Chỉ nhập lại những dòng đã chọn số lượng — không bắt buộc trả hết.</p>
 			</div>
 			<button type="button" class="mk-wh-proto-modal__close" data-mk-return-close="1" aria-label="Đóng">
@@ -312,11 +321,8 @@
 			<div class="mk-wh-return-workspace">
 				<aside class="mk-wh-return-pane mk-wh-return-pane--issues">
 					<div class="mk-wh-proto-field">
-						<label for="mkWhReturnDocType">Loại phiếu</label>
-						<select id="mkWhReturnDocType">
-							<option value="return">Trả hàng</option>
-							<option value="recall">Thu hồi</option>
-						</select>
+						<label for="mkWhReturnParty">Người / chỗ thu hồi</label>
+						<input type="text" id="mkWhReturnParty" placeholder="Tự điền theo khách trên phiếu xuất đã chọn" autocomplete="off" maxlength="255" />
 					</div>
 					<div class="mk-wh-proto-field">
 						<label for="mkWhReturnSourceQ">Phiếu xuất kho</label>
@@ -360,7 +366,7 @@
 							<span class="mk-wh-proto-lines__ttl">Sản phẩm cần trả</span>
 							<button type="button" class="mk-wh-proto-mini-btn" id="mkWhReturnTakeAll" hidden>Lấy hết</button>
 						</div>
-						<p class="mk-wh-return-hint" id="mkWhReturnLinesHint">Chọn phiếu xuất bên trái, rồi nhập số lượng từng dòng. Dòng để 0 sẽ không trả.</p>
+						<p class="mk-wh-return-hint" id="mkWhReturnLinesHint">Chọn phiếu xuất bên trái, rồi nhập số lượng từng dòng. Bấm × nếu không thu hồi sản phẩm đó.</p>
 						<div class="mk-wh-proto-table-wrap mk-wh-proto-lines__tableWrap">
 							<table class="mk-wh-proto-table mk-wh-proto-lines__table mk-wh-return-lines">
 								<thead>

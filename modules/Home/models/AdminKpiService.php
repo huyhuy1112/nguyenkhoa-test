@@ -998,6 +998,148 @@ class Home_AdminKpiService {
 			'revenue_chart' => self::getRevenueChart($chartOpts),
 			'performance' => self::getPerformance(),
 			'alerts' => self::getAlerts(),
+			'offline_gd11' => self::getOfflineGd11(),
+			'online_gd12' => self::getOnlineGd12(),
+		);
+	}
+
+	/**
+	 * GD 1.1 Offline funnel counters (lead profile statuses).
+	 * @return array
+	 */
+	public static function getOfflineGd11() {
+		$db = PearDatabase::getInstance();
+		$empty = array(
+			'total' => 0,
+			'confirmed' => 0,
+			'attended' => 0,
+			'noshow' => 0,
+			'stopped' => 0,
+			'schedule_pending' => 0,
+			'attend_rate' => 0,
+			'stages' => array(),
+		);
+		if (!self::tableExists($db, 'bace_lead_profile')) {
+			return $empty;
+		}
+		$hasCol = $db->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE 'offline_status'", array());
+		if (!$hasCol || $db->num_rows($hasCol) < 1) {
+			return $empty;
+		}
+		$r = $db->pquery(
+			"SELECT
+				SUM(CASE WHEN offline_status IS NOT NULL AND offline_status <> '' THEN 1 ELSE 0 END) AS total,
+				SUM(CASE WHEN offline_status = 'offline_da_xac_nhan_lich' THEN 1 ELSE 0 END) AS confirmed,
+				SUM(CASE WHEN offline_status = 'offline_chua_xac_nhan_lich' OR offline_status = 'offline_hen_lich_lai' THEN 1 ELSE 0 END) AS schedule_pending,
+				SUM(CASE WHEN offline_status = 'offline_da_tham_gia' THEN 1 ELSE 0 END) AS attended,
+				SUM(CASE WHEN offline_status = 'offline_khong_tham_gia' THEN 1 ELSE 0 END) AS noshow,
+				SUM(CASE WHEN offline_status = 'offline_ngung_cskh' THEN 1 ELSE 0 END) AS stopped
+			 FROM bace_lead_profile",
+			array()
+		);
+		$total = $r ? (int) $db->query_result($r, 0, 'total') : 0;
+		$confirmed = $r ? (int) $db->query_result($r, 0, 'confirmed') : 0;
+		$schedulePending = $r ? (int) $db->query_result($r, 0, 'schedule_pending') : 0;
+		$attended = $r ? (int) $db->query_result($r, 0, 'attended') : 0;
+		$noshow = $r ? (int) $db->query_result($r, 0, 'noshow') : 0;
+		$stopped = $r ? (int) $db->query_result($r, 0, 'stopped') : 0;
+		$checked = $attended + $noshow;
+		$attendRate = $checked > 0 ? round(($attended / $checked) * 100, 1) : 0;
+		$stages = array(
+			array('key' => 'total', 'label' => 'Trong luồng Offline', 'count' => $total, 'color' => '#2563eb'),
+			array('key' => 'schedule_pending', 'label' => 'Chưa / hẹn lịch lại', 'count' => $schedulePending, 'color' => '#f59e0b'),
+			array('key' => 'confirmed', 'label' => 'Đã xác nhận lịch', 'count' => $confirmed, 'color' => '#06b6d4'),
+			array('key' => 'attended', 'label' => 'Đã tham gia', 'count' => $attended, 'color' => '#10b981'),
+			array('key' => 'noshow', 'label' => 'Không tham gia', 'count' => $noshow, 'color' => '#f43f5e'),
+			array('key' => 'stopped', 'label' => 'Ngưng CSKH', 'count' => $stopped, 'color' => '#64748b'),
+		);
+		return array(
+			'total' => $total,
+			'confirmed' => $confirmed,
+			'schedule_pending' => $schedulePending,
+			'attended' => $attended,
+			'noshow' => $noshow,
+			'stopped' => $stopped,
+			'attend_rate' => $attendRate,
+			'stages' => $stages,
+		);
+	}
+
+	/**
+	 * GD 1.2 Online funnel counters (lead profile online_status).
+	 * KPI 1–2 đo được ngay; KPI kích hoạt / 80% chờ EduBit (trả 0).
+	 * @return array
+	 */
+	public static function getOnlineGd12() {
+		$db = PearDatabase::getInstance();
+		$empty = array(
+			'total' => 0,
+			'pending_form' => 0,
+			'form_filled' => 0,
+			'qualified' => 0,
+			'not_qualified' => 0,
+			'stopped' => 0,
+			'activated' => 0,
+			'reached_80' => 0,
+			'form_rate' => 0,
+			'qualify_rate' => 0,
+			'activate_rate' => 0,
+			'reach_80_rate' => 0,
+			'stages' => array(),
+		);
+		if (!self::tableExists($db, 'bace_lead_profile')) {
+			return $empty;
+		}
+		$hasCol = $db->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE 'online_status'", array());
+		if (!$hasCol || $db->num_rows($hasCol) < 1) {
+			return $empty;
+		}
+		$r = $db->pquery(
+			"SELECT
+				SUM(CASE WHEN online_status IS NOT NULL AND online_status <> '' THEN 1 ELSE 0 END) AS total,
+				SUM(CASE WHEN online_status = 'online_chua_dien_form' THEN 1 ELSE 0 END) AS pending_form,
+				SUM(CASE WHEN online_status = 'online_chua_dk_tk' THEN 1 ELSE 0 END) AS qualified,
+				SUM(CASE WHEN online_status = 'online_khong_du_dk' THEN 1 ELSE 0 END) AS not_qualified,
+				SUM(CASE WHEN online_status = 'online_ngung_cskh' THEN 1 ELSE 0 END) AS stopped
+			 FROM bace_lead_profile",
+			array()
+		);
+		$total = $r ? (int) $db->query_result($r, 0, 'total') : 0;
+		$pendingForm = $r ? (int) $db->query_result($r, 0, 'pending_form') : 0;
+		$qualified = $r ? (int) $db->query_result($r, 0, 'qualified') : 0;
+		$notQualified = $r ? (int) $db->query_result($r, 0, 'not_qualified') : 0;
+		$stopped = $r ? (int) $db->query_result($r, 0, 'stopped') : 0;
+		$formFilled = $qualified + $notQualified;
+		$formRate = $total > 0 ? round(($formFilled / $total) * 100, 1) : 0;
+		$qualifyRate = $formFilled > 0 ? round(($qualified / $formFilled) * 100, 1) : 0;
+		$activated = 0;
+		$reached80 = 0;
+		$activateRate = 0;
+		$reach80Rate = 0;
+		$stages = array(
+			array('key' => 'total', 'label' => 'Vào Zalo OA', 'count' => $total, 'color' => '#2563eb'),
+			array('key' => 'pending_form', 'label' => 'Chưa điền form', 'count' => $pendingForm, 'color' => '#f59e0b'),
+			array('key' => 'form_filled', 'label' => 'Đã điền form', 'count' => $formFilled, 'color' => '#06b6d4'),
+			array('key' => 'qualified', 'label' => 'Đủ ĐK (chờ TK)', 'count' => $qualified, 'color' => '#10b981'),
+			array('key' => 'not_qualified', 'label' => 'Không đủ ĐK', 'count' => $notQualified, 'color' => '#f43f5e'),
+			array('key' => 'stopped', 'label' => 'Ngưng CSKH', 'count' => $stopped, 'color' => '#64748b'),
+			array('key' => 'activated', 'label' => 'Đã kích hoạt (EduBit)', 'count' => $activated, 'color' => '#8b5cf6'),
+			array('key' => 'reached_80', 'label' => 'Đạt 80% (EduBit)', 'count' => $reached80, 'color' => '#a855f7'),
+		);
+		return array(
+			'total' => $total,
+			'pending_form' => $pendingForm,
+			'form_filled' => $formFilled,
+			'qualified' => $qualified,
+			'not_qualified' => $notQualified,
+			'stopped' => $stopped,
+			'activated' => $activated,
+			'reached_80' => $reached80,
+			'form_rate' => $formRate,
+			'qualify_rate' => $qualifyRate,
+			'activate_rate' => $activateRate,
+			'reach_80_rate' => $reach80Rate,
+			'stages' => $stages,
 		);
 	}
 

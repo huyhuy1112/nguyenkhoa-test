@@ -42,7 +42,7 @@ window.__mkSalesPosInlineConfig = {
 	errorText: 'Không tải được chi tiết khách chuyển nhượng.'
 };
 </script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260820_sheet1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260821_affdel1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-sc-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
 	<div class="mk-app-shell">

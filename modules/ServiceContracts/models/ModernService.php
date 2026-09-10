@@ -288,7 +288,7 @@ class ServiceContracts_ModernService {
 	}
 
 	/**
-	 * Toggle whether AFF code is shown / usable for referral. Does not delete the code.
+	 * Toggle AFF: ON = tạo/hiện mã; OFF = xóa mã khỏi DB (mint lại khi bật).
 	 */
 	public static function setAffiliateVisible($contractId, $visible) {
 		$contractId = (int) $contractId;
@@ -303,14 +303,22 @@ class ServiceContracts_ModernService {
 		self::ensureProfileRow($contractId);
 		$flag = $visible ? 1 : 0;
 		$now = date('Y-m-d H:i:s');
-		$code = self::getAffiliateCode($contractId);
-		if ($flag === 1 && $code === '') {
+		$code = '';
+
+		if ($flag === 1) {
 			$code = self::generateAffiliateCode($contractId);
+			$adb->pquery(
+				'UPDATE bace_sc_profile SET affiliate_visible = 1, modified_at = ? WHERE servicecontractsid = ?',
+				array($now, $contractId)
+			);
+		} else {
+			$adb->pquery(
+				'UPDATE bace_sc_profile SET affiliate_code = NULL, affiliate_visible = 0, modified_at = ? WHERE servicecontractsid = ?',
+				array($now, $contractId)
+			);
+			$code = '';
 		}
-		$adb->pquery(
-			'UPDATE bace_sc_profile SET affiliate_visible = ?, modified_at = ? WHERE servicecontractsid = ?',
-			array($flag, $now, $contractId)
-		);
+
 		$contract = self::getFranchise($contractId);
 		return array(
 			'success' => true,

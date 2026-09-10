@@ -305,7 +305,7 @@
     { id: "class", labelVi: "Tag lớp học", labelEn: "Class", tags: CLASS_TAGS },
     { id: "material", labelVi: "Tag nguyên liệu", labelEn: "Material", tags: MATERIAL_TAGS },
     { id: "franchise", labelVi: "Tag nhượng quyền", labelEn: "Franchise", tags: FRANCHISE_TAGS },
-    { id: "confirm", labelVi: "Xác nhận tham gia", labelEn: "Confirm", tags: CONFIRM_TAGS },
+    // confirm group removed — dùng cột/panel Tham gia (điểm danh)
     { id: "tier", labelVi: "Hạng khách", labelEn: "Tier", tags: TIER_TAGS },
   ];
 

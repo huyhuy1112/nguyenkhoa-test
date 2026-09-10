@@ -55,7 +55,7 @@
   function paintAll(root) {
     var scope = root && root.querySelector ? root : document;
     var tags = scope.querySelectorAll(
-      ".mk-lead-detail-hero__tags .tag, .mk-lead-detail-hero__tags .mk-lead-detail-tag-chip, .mk-opportunity-detail-hero__tags .tag, .mk-contact-detail-hero__tags .tag, .tagContainer .detailTagList .tag, .mk-opp-tags-modal .tag, .mk-contact-tags-modal .tag, .myModal .mk-opp-tags-modal .tag, .myModal .mk-contact-tags-modal .tag, .modal .mk-opp-tags-modal .tag, .modal .mk-contact-tags-modal .tag, #mk-ld-ui-tag-list .tag, #mk-ld-ui-tag-list .mk-lead-detail-tag-chip"
+      ".mk-lead-detail-hero__tags .tag, .mk-lead-detail-hero__tags .mk-lead-detail-tag-chip, .mk-opportunity-detail-hero__tags .tag, .mk-opportunity-detail-kpi__tags .tag, .mk-contact-detail-hero__tags .tag, .tagContainer .detailTagList .tag, .mk-opp-tags-modal .tag, .mk-contact-tags-modal .tag, .myModal .mk-opp-tags-modal .tag, .myModal .mk-contact-tags-modal .tag, .modal .mk-opp-tags-modal .tag, .modal .mk-contact-tags-modal .tag, #mk-ld-ui-tag-list .tag, #mk-ld-ui-tag-list .mk-lead-detail-tag-chip"
     );
     for (var i = 0; i < tags.length; i++) {
       paintTag(tags[i]);
@@ -65,7 +65,7 @@
   function schedulePaint() {
     paintAll(document);
     if ($) {
-      $(".mk-lead-detail-hero__tags .tag, .mk-opportunity-detail-hero__tags .tag, .mk-contact-detail-hero__tags .tag").each(function () {
+      $(".mk-lead-detail-hero__tags .tag, .mk-opportunity-detail-hero__tags .tag, .mk-opportunity-detail-kpi__tags .tag, .mk-contact-detail-hero__tags .tag").each(function () {
         paintTag(this);
       });
     }

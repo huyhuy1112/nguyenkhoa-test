@@ -611,6 +611,8 @@ class Leads_SheetImportService {
 		if ($cust !== '') {
 			$tags[] = $cust;
 		}
+		require_once 'modules/Leads/models/OfflineGd11Service.php';
+		$tags = Leads_OfflineGd11Service::ensureProgramTag($tags);
 
 		return array(
 			'name' => $name !== '' ? $name : ('KH ' . $phone),
@@ -699,20 +701,28 @@ class Leads_SheetImportService {
 		if ($f === '') {
 			return '';
 		}
-		if (strpos($f, 'duoi 50') !== false || preg_match('/\b< ?50\b/', $f) || $f === 'a') {
-			return 'A';
-		}
-		if (strpos($f, '500') !== false && (strpos($f, 'tro len') !== false || strpos($f, 'tro len') !== false || strpos($f, 'tu 500') !== false)) {
-			return 'E';
-		}
-		if (strpos($f, '300') !== false && strpos($f, '500') !== false) {
+		// D trước A: "duoi 500" không được khớp nhầm thành "duoi 50".
+		if (
+			(strpos($f, '300') !== false && strpos($f, '500') !== false)
+			|| (preg_match('/\b300\b/', $f) && preg_match('/\b500\b/', $f))
+		) {
 			return 'D';
+		}
+		if (strpos($f, '500') !== false && (strpos($f, 'tro len') !== false || strpos($f, 'tu 500') !== false || strpos($f, 'tren 500') !== false)) {
+			return 'E';
 		}
 		if (strpos($f, '100') !== false && strpos($f, '300') !== false) {
 			return 'C';
 		}
-		if ((strpos($f, '50') !== false && strpos($f, '100') !== false) || strpos($f, '50 100') !== false) {
+		if (
+			(preg_match('/\b50\b/', $f) && preg_match('/\b100\b/', $f))
+			|| strpos($f, '50 100') !== false
+		) {
 			return 'B';
+		}
+		// Word-boundary: "duoi 50" ≠ substring của "duoi 500".
+		if (preg_match('/\bduoi 50\b/', $f) || preg_match('/\b< ?50\b/', $f) || $f === 'a') {
+			return 'A';
 		}
 		if (strpos($f, 'tu 500') !== false || strpos($f, 'tren 500') !== false) {
 			return 'E';

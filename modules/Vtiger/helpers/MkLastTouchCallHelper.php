@@ -9,6 +9,7 @@ class Vtiger_MkLastTouchCallHelper {
 	const GAP_HOURS = 5;
 	const RESULT_ANSWERED = 'Nghe máy';
 	const RESULT_MISSED = 'Không nghe máy';
+	const RESULT_UNREACHABLE = 'Không gọi được';
 	const TZ = 'Asia/Ho_Chi_Minh';
 
 	/**
@@ -46,7 +47,7 @@ class Vtiger_MkLastTouchCallHelper {
 	}
 
 	public static function allowedResults() {
-		return array(self::RESULT_MISSED, self::RESULT_ANSWERED);
+		return array(self::RESULT_MISSED, self::RESULT_ANSWERED, self::RESULT_UNREACHABLE);
 	}
 
 	public static function emptySummary($stopHint = '') {
@@ -253,7 +254,7 @@ class Vtiger_MkLastTouchCallHelper {
 		}
 		$result = trim((string) $result);
 		if (!in_array($result, self::allowedResults(), true)) {
-			throw new Exception('Kết quả cuộc gọi phải là "Nghe máy" hoặc "Không nghe máy".');
+			throw new Exception('Kết quả cuộc gọi phải là "Nghe máy", "Không nghe máy" hoặc "Không gọi được".');
 		}
 		$note = trim((string) $note);
 		if ($userId === null || (int) $userId <= 0) {

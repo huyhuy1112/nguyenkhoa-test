@@ -6,9 +6,10 @@
 {include file="modules/Vtiger/Header.tpl"}
 {include file="partials/MkSalesUiMeta.tpl"|vtemplate_path:'Vtiger'}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesDetailInlineEdit.css')}&mk_v=20260611_mk_inline_v3" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesDetail.css')}?mk_v=20260806_ps_detail_v4" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesInventoryTheme.css')}?mk_v=20260806_ps_detail_v4" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesRelatedList.css')}&mk_v=20260806_ps_detail_v4" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkCrmDetailShell.css')}?mk_v=20260908_detail_ui1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesDetail.css')}?mk_v=20260908_detail_ui1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesInventoryTheme.css')}?mk_v=20260908_detail_ui1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesRelatedList.css')}&mk_v=20260908_detail_ui1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesRelatedList.js')}&mk_v=20260806_ps_detail_v4"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/ProductsServices/resources/ProductsServicesDetail.js')}?mk_v=20260806_ps_detail_v4"></script>

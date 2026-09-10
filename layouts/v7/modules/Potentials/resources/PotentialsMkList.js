@@ -7,7 +7,7 @@
   var ref = window.PotentialsLovableRef;
   var store = window.PotentialsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 16;
+  var COL_COUNT = 15;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -61,9 +61,7 @@
   /** Phân nhóm theo tag/BA của Cơ hội — UI giống Leads (segment-btn) */
   function getPresetSegments() {
     return [
-      { id: "quote", name: pick("Báo giá", "Quotes"), filters: { sales_stage: "Prospecting" } },
       { id: "prospecting", name: pick("Tiềm năng", "Prospecting"), filters: { sales_stage: "Prospecting" } },
-      { id: "internal", name: pick("Nội bộ", "Internal"), filters: { order_category: "Internal" } },
       { id: "confirmed", name: pick("Xác nhận tham gia", "Confirmed"), filters: { confirm: "xac_nhan_tham_gia" } },
       { id: "first_buy", name: pick("Mua lần đầu", "First purchase"), filters: { material: "mua_lan_dau" } },
       { id: "franchise", name: pick("Nhượng quyền", "Franchise"), filters: { franchise: "nhuong_quyen" } },
@@ -140,7 +138,7 @@
 
   function stageLabel(stage) {
     var map = {
-      Prospecting: "Báo giá",
+      Prospecting: "Tiềm năng",
       Qualification: "Chất lượng",
       "Needs Analysis": "Phân tích nhu cầu",
       "Proposal/Price Quote": "Đề nghị/Báo giá",
@@ -592,6 +590,275 @@
     );
   }
 
+  function canOfflineCheckin(o) {
+    var st = String((o && o.offline_status) || "");
+    return (
+      st === "offline_da_xac_nhan_lich" ||
+      st === "offline_hen_lich_lai" ||
+      st === "offline_khong_tham_gia" ||
+      st === "offline_da_tham_gia" ||
+      st === "offline_ngung_cskh_tam" ||
+      st === "offline_ngung_cskh"
+    );
+  }
+
+  /** Chỉ cho điểm danh khi chưa ghi nhận kết quả lớp. */
+  function canEditAttendance(o) {
+    var st = String((o && o.offline_status) || "");
+    return st === "offline_da_xac_nhan_lich" || st === "offline_hen_lich_lai";
+  }
+
+  function canRescheduleAttendance(o) {
+    var st = String((o && o.offline_status) || "");
+    return st === "offline_khong_tham_gia" || st === "offline_ngung_cskh_tam";
+  }
+
+  function offlineNoshowCountersHtml(o) {
+    var r3 = Number(o.offline_r3_class) || 0;
+    var miss = Number(o.offline_post_noshow_miss) || 0;
+    var st = String(o.offline_status || "");
+    var bits = [];
+    if (st === "offline_khong_tham_gia" || st === "offline_ngung_cskh" || r3 > 0) {
+      bits.push("No-show " + Math.min(r3, 3) + "/3");
+    }
+    if (
+      miss > 0 ||
+      st === "offline_khong_tham_gia" ||
+      st === "offline_da_xac_nhan_lich" ||
+      st === "offline_hen_lich_lai"
+    ) {
+      bits.push("Không gọi được " + Math.min(miss, 3) + "/3");
+    }
+    if (!bits.length) return "";
+    return (
+      '<div class="mk-opps-checkin__counters" title="Không tham gia tối đa 3 lần; Không gọi được 3 lần (sau XN lịch) → dừng tạm (đặt lịch lại 3 lần)">' +
+      esc(bits.join(" · ")) +
+      "</div>"
+    );
+  }
+
+  function isAdminUser() {
+    return !!window.MK_OPPS_IS_ADMIN;
+  }
+
+  function notifyOk(msg) {
+    if (window.app && app.helper && app.helper.showSuccessNotification) {
+      app.helper.showSuccessNotification({ message: msg });
+      return;
+    }
+    if (window.app && app.helper && app.helper.showAlertNotification) {
+      app.helper.showAlertNotification({ message: msg });
+      return;
+    }
+  }
+
+  function notifyErr(msg) {
+    if (window.app && app.helper && app.helper.showErrorNotification) {
+      app.helper.showErrorNotification({ message: msg });
+      return;
+    }
+    if (window.app && app.helper && app.helper.showAlertNotification) {
+      app.helper.showAlertNotification({ message: msg });
+      return;
+    }
+    window.alert(msg);
+  }
+
+  function offlineClassMetaHtml(o) {
+    var classDate = o.offline_class_date ? String(o.offline_class_date) : "";
+    var classTime = o.offline_class_time ? String(o.offline_class_time) : "";
+    var classPlace = o.offline_class_place ? String(o.offline_class_place).trim() : "";
+    var zaloId = o.zalo_user_id ? String(o.zalo_user_id).trim() : "";
+    var willCome = Number(o.offline_preclass_confirm) === 1;
+    var parts = [];
+    if (classDate || classTime) {
+      parts.push(
+        '<span class="mk-opps-checkin__meta-item">' +
+          '<span class="mk-opps-checkin__meta-k">Lớp</span> ' +
+          esc([classDate, classTime].filter(Boolean).join(" · ")) +
+          "</span>"
+      );
+    }
+    if (classPlace) {
+      parts.push(
+        '<span class="mk-opps-checkin__meta-item" title="' +
+          esc(classPlace) +
+          '">' +
+          '<span class="mk-opps-checkin__meta-k">Địa điểm</span> ' +
+          esc(classPlace.length > 42 ? classPlace.slice(0, 42) + "…" : classPlace) +
+          "</span>"
+      );
+    }
+    parts.push(
+      '<span class="mk-opps-checkin__meta-item' +
+        (willCome ? " is-yes" : " is-no") +
+        '">' +
+        '<span class="mk-opps-checkin__meta-k">Sẽ đến</span> ' +
+        (willCome ? "Đã XN" : "Chưa XN") +
+        "</span>"
+    );
+    if (zaloId) {
+      var zaloShort = zaloId.length > 14 ? zaloId.slice(0, 10) + "…" : zaloId;
+      parts.push(
+        '<span class="mk-opps-checkin__meta-item" title="' +
+          esc(zaloId) +
+          '">' +
+          '<span class="mk-opps-checkin__meta-k">OA id</span> ' +
+          esc(zaloShort) +
+          "</span>"
+      );
+    } else {
+      parts.push(
+        '<span class="mk-opps-checkin__meta-item is-muted">' +
+          '<span class="mk-opps-checkin__meta-k">OA id</span> —</span>'
+      );
+    }
+    return '<div class="mk-opps-checkin__meta">' + parts.join("") + "</div>";
+  }
+
+  function offlineCheckinCell(o) {
+    if (!canOfflineCheckin(o)) {
+      return '<span class="mk-leads-muted">—</span>';
+    }
+    var st = String((o && o.offline_status) || "");
+    var label = String(o.offline_status_label || o.offline_status || "").trim();
+    var checkedAt = o.offline_checked_in_at
+      ? formatDateTimeFull(o.offline_checked_in_at)
+      : "";
+    var classDate = o.offline_class_date ? String(o.offline_class_date) : "";
+    var editable = canEditAttendance(o);
+    var reschedulable = canRescheduleAttendance(o);
+    var html =
+      '<div class="mk-opps-checkin" data-opp-id="' +
+      esc(o.id) +
+      '">' +
+      '<div class="mk-opps-checkin__status">' +
+      '<span class="mk-opps-checkin__label">' +
+      esc(label || "Offline") +
+      "</span>" +
+      offlineNoshowCountersHtml(o) +
+      offlineClassMetaHtml(o) +
+      (checkedAt
+        ? '<span class="mk-opps-checkin__at">Điểm danh: ' + esc(checkedAt) + "</span>"
+        : "") +
+      "</div>";
+    if (st === "offline_ngung_cskh") {
+      html += '<div class="mk-opps-checkin__hint">Đã ngưng CSKH (đủ 3 lần không tham gia)</div>';
+    } else if (isAdminUser() && editable) {
+      html +=
+        '<div class="mk-opps-checkin__actions">' +
+        '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--ok" data-mk-opp-checkin="da_tham_gia" data-opp-id="' +
+        esc(o.id) +
+        '">Đã tham gia</button>' +
+        '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--no" data-mk-opp-checkin="khong_tham_gia" data-opp-id="' +
+        esc(o.id) +
+        '">Không tham gia</button>' +
+        "</div>";
+    } else if (isAdminUser() && reschedulable) {
+      var hint =
+        st === "offline_ngung_cskh_tam"
+          ? "Dừng tạm — chọn ngày rồi chốt lịch mới (được 3 lần no-show mới)"
+          : "Không đến — chọn ngày rồi chốt lịch mới";
+      html +=
+        '<div class="mk-opps-checkin__reschedule">' +
+        '<input type="date" class="mk-opps-checkin__date-input" data-mk-opp-reschedule-date="' +
+        esc(o.id) +
+        '" value="' +
+        esc(classDate) +
+        '" title="Ngày học mới" />' +
+        '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--ok" data-mk-opp-reschedule="chot_lich_moi" data-opp-id="' +
+        esc(o.id) +
+        '">Chốt lịch mới</button>' +
+        '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--no" data-mk-opp-reschedule="hen_lich_lai" data-opp-id="' +
+        esc(o.id) +
+        '">Hẹn lịch lại</button>' +
+        "</div>" +
+        '<div class="mk-opps-checkin__hint">' +
+        esc(hint) +
+        "</div>";
+    } else if (isAdminUser() && !editable) {
+      html += '<div class="mk-opps-checkin__hint">Đã ghi nhận · khóa chọn lại</div>';
+    } else {
+      html += '<div class="mk-opps-checkin__hint">Chỉ Admin ghi nhận</div>';
+    }
+    return html + "</div>";
+  }
+
+  function submitOfflineReschedule(action, btn) {
+    var oid = btn && btn.getAttribute ? btn.getAttribute("data-opp-id") : "";
+    if (!oid || !store || !store.offlineReschedule) return;
+    var wrap = btn.closest ? btn.closest(".mk-opps-checkin") : null;
+    var dateEl = wrap
+      ? wrap.querySelector('[data-mk-opp-reschedule-date="' + oid + '"]')
+      : null;
+    var classDate = dateEl ? String(dateEl.value || "").trim() : "";
+    if (action === "chot_lich_moi" && !classDate) {
+      notifyErr("Chọn ngày học mới trước khi chốt.");
+      return;
+    }
+    var buttons = wrap ? wrap.querySelectorAll("[data-mk-opp-reschedule]") : [btn];
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].disabled = true;
+    }
+    store
+      .offlineReschedule(oid, action, { class_date: classDate })
+      .then(function (res) {
+        if (res && res.drop) {
+          notifyOk("Đã đủ R3 → Ngưng CSKH Offline.");
+        } else if (action === "chot_lich_moi") {
+          notifyOk("Đã chốt lịch mới — mở lại điểm danh khi đến lớp.");
+        } else {
+          notifyOk("Đã ghi nhận hẹn lịch lại.");
+        }
+        renderAll();
+      })
+      .catch(function (err) {
+        var msg =
+          (err && err.message) ||
+          (typeof err === "string" ? err : "") ||
+          "Không xếp lịch lại được.";
+        notifyErr(msg);
+        for (var j = 0; j < buttons.length; j++) {
+          buttons[j].disabled = false;
+        }
+      });
+  }
+
+  function submitOfflineCheckin(action, btn) {
+    var oid = btn && btn.getAttribute ? btn.getAttribute("data-opp-id") : "";
+    if (!oid || !store || !store.offlineCheckin) return;
+    var wrap = btn.closest ? btn.closest(".mk-opps-checkin") : null;
+    var buttons = wrap ? wrap.querySelectorAll("[data-mk-opp-checkin]") : [btn];
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].disabled = true;
+    }
+    store
+      .offlineCheckin(oid, action)
+      .then(function (res) {
+        if (res && res.drop) {
+          notifyOk("Đã đủ 3 lần không tham gia → Ngưng CSKH Offline.");
+        } else if (action === "da_tham_gia") {
+          notifyOk("Đã ghi nhận tham gia lớp.");
+        } else {
+          var r3 = res && res.lead ? Number(res.lead.offline_r3_class) || 0 : 0;
+          notifyOk(
+            "Đã ghi nhận không tham gia" + (r3 ? " · No-show " + r3 + "/3" : "") + "."
+          );
+        }
+        renderAll();
+      })
+      .catch(function (err) {
+        var msg =
+          (err && err.message) ||
+          (typeof err === "string" ? err : "") ||
+          "Không ghi nhận được.";
+        notifyErr(msg);
+        for (var j = 0; j < buttons.length; j++) {
+          buttons[j].disabled = false;
+        }
+      });
+  }
+
   function sortOpps(rows) {
     var key = state.sortKey;
     var dir = state.sortDir === "asc" ? 1 : -1;
@@ -605,8 +872,8 @@
         av = new Date(av || 0).getTime() || 0;
         bv = new Date(bv || 0).getTime() || 0;
       } else if (key === "name") {
-        av = String(a.contact || a.account || a.name || "").toLowerCase();
-        bv = String(b.contact || b.account || b.name || "").toLowerCase();
+        av = String(oppCustomerName(a) || "").toLowerCase();
+        bv = String(oppCustomerName(b) || "").toLowerCase();
       } else {
         av = String(av || "").toLowerCase();
         bv = String(bv || "").toLowerCase();
@@ -619,7 +886,7 @@
 
   function computeKpis(rows) {
     var total = rows.length;
-    var internal = rows.filter(function (o) { return o.order_category === "Internal"; }).length;
+    var prospecting = rows.filter(function (o) { return o.sales_stage === "Prospecting"; }).length;
     var withTags = rows.filter(function (o) { return (o.tags || []).length > 0; }).length;
     var franchise = rows.filter(function (o) { return categorize(o.tags).franchise; }).length;
     var confirmed = rows.filter(function (o) {
@@ -633,7 +900,7 @@
     }).length;
     return [
       { key: "total", label: t("JS_MK_KPI_TOTAL_OPP", "Tổng cơ hội"), value: total, icon: "users", tone: "blue" },
-      { key: "internal", label: pick("Nội bộ", "Internal"), value: internal, icon: "check", tone: "emerald" },
+      { key: "prospecting", label: pick("Tiềm năng", "Prospecting"), value: prospecting, icon: "check", tone: "emerald" },
       { key: "confirmed", label: pick("Xác nhận tham gia", "Confirmed"), value: confirmed, icon: "bookmark", tone: "cyan" },
       { key: "tagged", label: t("JS_MK_KPI_TAGGED", "Có tag"), value: withTags, icon: "crown", tone: "amber" },
       { key: "franchise", label: t("JS_MK_KPI_FRANCHISE", "Nhượng quyền"), value: franchise, icon: "repeat", tone: "rose" },
@@ -666,19 +933,34 @@
       .join("");
   }
 
+  function countSegmentRows(seg, rows) {
+    if (!seg || !seg.filters) return rows.length;
+    var prev = Object.assign({}, state.filters);
+    Object.keys(seg.filters).forEach(function (k) {
+      state.filters[k] = seg.filters[k];
+    });
+    var n = filterOpps(rows).length;
+    state.filters = prev;
+    return n;
+  }
+
   function renderSegments() {
     var host = $("mk-opps-segments");
     if (!host) return;
+    var rows = getOpps();
     var allOn = !state.activeSegment ? " is-active" : "";
     var html =
       '<button type="button" class="mk-leads-segment-btn' +
       allOn +
       '" data-seg="__all__">' +
       esc(t("JS_MK_FILTER_ALL", "Tất cả")) +
-      "</button>";
+      ' <span class="mk-leads-ptab__n">' +
+      rows.length +
+      "</span></button>";
     html += getPresetSegments()
       .map(function (seg) {
         var active = state.activeSegment === seg.id ? " is-active" : "";
+        var n = countSegmentRows(seg, rows);
         return (
           '<button type="button" class="mk-leads-segment-btn' +
           active +
@@ -686,7 +968,9 @@
           esc(seg.id) +
           '">' +
           esc(seg.name) +
-          "</button>"
+          ' <span class="mk-leads-ptab__n">' +
+          n +
+          "</span></button>"
         );
       })
       .join("");
@@ -810,7 +1094,7 @@
         .map(function (o) {
           var cats = categorize(o.tags);
           var crmId = o.crmid != null && o.crmid !== "" ? String(o.crmid) : String(o.id || "");
-          var customerName = String(o.contact || o.account || o.name || "").trim();
+          var customerName = oppCustomerName(o);
           if (!customerName || customerName === ".") customerName = "";
           var checked = state.selected[o.id] ? " checked" : "";
           return (
@@ -849,16 +1133,17 @@
             '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner">' +
             '<span class="mk-owner-avatar" style="background:' + ownerColor(o.owner) + '">' + esc(ownerInitials(o.owner)) + "</span>" +
             "<span>" + esc(o.owner || "—") + "</span></span></td>" +
-            '<td class="mk-leads-td" data-col="tags"><button type="button" class="mk-leads-tags-edit" data-opp-id="' +
+            '<td class="mk-leads-td mk-leads-td--tags" data-col="tags"><button type="button" class="mk-leads-tags-edit" data-opp-id="' +
             esc(o.id) +
             '" title="Sửa thẻ">' +
             stackedTagsHtml(cats) +
             "</button></td>" +
-            '<td class="mk-leads-td" data-col="confirm">' + tagBadgeHtml(cats.confirm) + "</td>" +
-            '<td class="mk-leads-td" data-col="confirmed_at">' +
-            (o.confirmed_at
-              ? esc(formatDateTimeFull(o.confirmed_at))
-              : '<span class="mk-leads-muted">—</span>') +
+            '<td class="mk-leads-td mk-leads-td--touch" data-col="last_touch">' +
+            (window.MkLastTouchCall && window.MkLastTouchCall.lastTouchCallLogHtml
+              ? window.MkLastTouchCall.lastTouchCallLogHtml(o, esc)
+              : window.LeadsLeadsLogic && window.LeadsLeadsLogic.lastTouchCallLogHtml
+                ? window.LeadsLeadsLogic.lastTouchCallLogHtml(o, esc)
+                : '<span class="mk-leads-muted">Chưa có cuộc gọi</span>') +
             "</td>" +
             '<td class="mk-leads-td mk-leads-td--next">' +
             (function () {
@@ -882,12 +1167,8 @@
               return html + "</div>";
             })() +
             "</td>" +
-            '<td class="mk-leads-td mk-leads-td--touch" data-col="last_touch">' +
-            (window.MkLastTouchCall && window.MkLastTouchCall.lastTouchCallLogHtml
-              ? window.MkLastTouchCall.lastTouchCallLogHtml(o, esc)
-              : window.LeadsLeadsLogic && window.LeadsLeadsLogic.lastTouchCallLogHtml
-                ? window.LeadsLeadsLogic.lastTouchCallLogHtml(o, esc)
-                : '<span class="mk-leads-muted">Chưa có cuộc gọi</span>') +
+            '<td class="mk-leads-td mk-leads-td--checkin" data-col="attendance">' +
+            offlineCheckinCell(o) +
             "</td>" +
             '<td class="mk-leads-td" data-col="notes">' + notesCell(o.notes) + "</td></tr>"
           );
@@ -1130,10 +1411,20 @@
       "</div>";
   }
 
+  function oppCustomerName(o) {
+    var n = String((o && o.name) || "").trim();
+    if (n && n !== ".") return n;
+    n = String((o && o.contact) || "").trim();
+    if (n && n !== ".") return n;
+    n = String((o && o.account) || "").trim();
+    if (n && n !== ".") return n;
+    return "";
+  }
+
   function exportCsv(rows) {
     var lines = ["Customer,OrderType,Stage,Amount,Owner,Tags"];
     rows.forEach(function (o) {
-      var customerName = String(o.contact || o.account || o.name || "").trim();
+      var customerName = oppCustomerName(o);
       lines.push(
         [
           customerName,
@@ -1307,6 +1598,25 @@
         if (opp) openTagPopover(tagsBtn, opp);
         return;
       }
+      var checkinBtn =
+        e.target.closest && e.target.closest("[data-mk-opp-checkin][data-opp-id]");
+      if (checkinBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        submitOfflineCheckin(checkinBtn.getAttribute("data-mk-opp-checkin"), checkinBtn);
+        return;
+      }
+      var rescheduleBtn =
+        e.target.closest && e.target.closest("[data-mk-opp-reschedule][data-opp-id]");
+      if (rescheduleBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        submitOfflineReschedule(
+          rescheduleBtn.getAttribute("data-mk-opp-reschedule"),
+          rescheduleBtn
+        );
+        return;
+      }
       if (!e.target.closest || !e.target.closest("#mk-opps-tag-popover")) {
         closeTagPopover();
       }
@@ -1367,6 +1677,16 @@
       if (summary) {
         summary.textContent =
           rows.length + " / " + all.length + " " + t("JS_MK_OPPS_COUNT_LABEL", "cơ hội");
+      }
+    });
+
+    document.addEventListener("mk-opps-attendance-updated", function () {
+      if (store && store.refresh) {
+        store.refresh().then(function () {
+          renderAll();
+        });
+      } else {
+        renderAll();
       }
     });
 
@@ -1440,10 +1760,21 @@
             if (lt.logged && lt.logged.called_at) {
               row.last_touch = lt.logged.called_at;
             }
+            var off = (lt && lt.offline) || (res && res.offline) || null;
+            if (off) {
+              if (off.status) row.offline_status = off.status;
+              if (off.status_label) row.offline_status_label = off.status_label;
+              if (typeof off.post_noshow_miss === "number") {
+                row.offline_post_noshow_miss = off.post_noshow_miss;
+              }
+            }
             if (store && store.patchOpportunity) {
               store.patchOpportunity(row.id, {
                 lastTouchCalls: lt,
                 last_touch: row.last_touch,
+                offline_status: row.offline_status,
+                offline_status_label: row.offline_status_label,
+                offline_post_noshow_miss: row.offline_post_noshow_miss,
               });
             }
           }
@@ -1458,6 +1789,9 @@
           if (touchTd && row) {
             touchTd.innerHTML = window.MkLastTouchCall.lastTouchCallLogHtml(row, esc);
           } else {
+            renderTable();
+          }
+          if ((lt && lt.offline) || (res && res.offline)) {
             renderTable();
           }
         },
@@ -1475,4 +1809,15 @@
   } else {
     init();
   }
+
+  window.PotentialsMkListRefresh = function () {
+    if (!document.querySelector(".mk-opps-page")) return;
+    if (store && store.refresh) {
+      return store.refresh().then(function () {
+        renderAll();
+      });
+    }
+    renderAll();
+    return Promise.resolve();
+  };
 })();

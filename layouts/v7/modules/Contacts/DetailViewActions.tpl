@@ -20,6 +20,7 @@
 			{/if}
 			{foreach item=DETAIL_VIEW_BASIC_LINK from=$DETAILVIEW_LINKS['DETAILVIEWBASIC']}
 				{assign var=MK_BASIC_LBL value=$DETAIL_VIEW_BASIC_LINK->getLabel()}
+				{if $MK_BASIC_LBL neq 'LBL_PRINT_FRANCHISE_CONTRACT' && $MK_BASIC_LBL neq 'LBL_PREVIEW_FRANCHISE_CONTRACT' && $MK_BASIC_LBL neq 'LBL_EXPORT_FRANCHISE_CONTRACT_WORD'}
 				{assign var=MK_BASIC_ICON value='EDIT'}
 				{if $MK_BASIC_LBL eq 'LBL_SEND_EMAIL'}{assign var=MK_BASIC_ICON value='EMAIL'}{/if}
 				<button type="button" class="btn btn-default mk-contact-detail-btn {if $MK_BASIC_LBL eq 'LBL_SEND_EMAIL'}mk-contact-detail-btn--primary{else}mk-contact-detail-btn--ghost{/if}" id="{$MODULE_NAME}_detailView_basicAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($MK_BASIC_LBL)}"
@@ -36,6 +37,7 @@
 					{/if}
 					<span class="mk-contact-detail-btn__txt">{vtranslate($MK_BASIC_LBL, $MODULE_NAME)}</span>
 				</button>
+				{/if}
 			{/foreach}
 			{if !empty($DETAILVIEW_LINKS['DETAILVIEW']) && ($DETAILVIEW_LINKS['DETAILVIEW']|@count gt 0)}
 				<button type="button" class="btn btn-default mk-contact-detail-btn mk-contact-detail-btn--ghost dropdown-toggle" data-toggle="dropdown" href="javascript:void(0);">
@@ -45,14 +47,15 @@
 				</button>
 				<ul class="dropdown-menu dropdown-menu-right">
 					{foreach item=DETAIL_VIEW_LINK from=$DETAILVIEW_LINKS['DETAILVIEW']}
-						{if $DETAIL_VIEW_LINK->getLabel() eq ""}
+						{assign var=MK_MORE_LBL value=$DETAIL_VIEW_LINK->getLabel()}
+						{if $MK_MORE_LBL eq ""}
 							<li class="divider"></li>
-						{else}
-							<li id="{$MODULE_NAME}_detailView_moreAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($DETAIL_VIEW_LINK->getLabel())}">
+						{elseif $MK_MORE_LBL neq 'LBL_PRINT_FRANCHISE_CONTRACT' && $MK_MORE_LBL neq 'LBL_PREVIEW_FRANCHISE_CONTRACT' && $MK_MORE_LBL neq 'LBL_EXPORT_FRANCHISE_CONTRACT_WORD' && $MK_MORE_LBL neq 'LBL_SHOW_ACCOUNT_HIERARCHY'}
+							<li id="{$MODULE_NAME}_detailView_moreAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($MK_MORE_LBL)}">
 								{if $DETAIL_VIEW_LINK->getUrl()|strstr:"javascript"}
-									<a href="{$DETAIL_VIEW_LINK->getUrl()}">{vtranslate($DETAIL_VIEW_LINK->getLabel(), $MODULE_NAME)}</a>
+									<a href="{$DETAIL_VIEW_LINK->getUrl()}">{vtranslate($MK_MORE_LBL, $MODULE_NAME)}</a>
 								{else}
-									<a href="{$DETAIL_VIEW_LINK->getUrl()}&app={$SELECTED_MENU_CATEGORY}">{vtranslate($DETAIL_VIEW_LINK->getLabel(), $MODULE_NAME)}</a>
+									<a href="{$DETAIL_VIEW_LINK->getUrl()}&app={$SELECTED_MENU_CATEGORY}">{vtranslate($MK_MORE_LBL, $MODULE_NAME)}</a>
 								{/if}
 							</li>
 						{/if}

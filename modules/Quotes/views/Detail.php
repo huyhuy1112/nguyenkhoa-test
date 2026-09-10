@@ -336,7 +336,7 @@ class Quotes_Detail_View extends Inventory_Detail_View {
 
 	protected function resolveInlineCustomerName(Vtiger_Record_Model $recordModel) {
 		require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
-		$name = Vtiger_MkSalesCustomerName_Helper::resolveDisplayName($recordModel);
+		$name = Vtiger_MkSalesCustomerName_Helper::resolveListStyleName($recordModel);
 		return $name !== '' ? $name : '—';
 	}
 

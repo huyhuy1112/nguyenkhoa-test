@@ -111,31 +111,21 @@ class SalesOrder_SaleInvoicePdf_Helper {
 		}
 
 		$lineSum = 0.0;
+		$lineDiscountSum = 0.0;
 		foreach ($lines as $line) {
 			$lineSum += (float) $line['total'];
+			$lineDiscountSum += (float) ($line['discount'] ?? 0);
 		}
 		if ($lineSum > 0) {
 			$subTotal = $lineSum;
-			if ($taxAmount <= 0 && $grandTotal > ($subTotal - $discountAmount)) {
-				$derived = $grandTotal - ($subTotal - $discountAmount);
-				if ($derived <= ($subTotal * 0.5)) {
-					$taxAmount = $derived;
-				}
-			}
-			if ($taxAmount <= 0) {
-				$taxAmount = round(($subTotal - $discountAmount) * $vatPercent / 100);
-			}
-			if ($taxAmount > ($subTotal * 0.5)) {
-				$taxAmount = round(($subTotal - $discountAmount) * $vatPercent / 100);
-			}
-			$grandTotal = $subTotal - $discountAmount + $taxAmount;
-		} elseif ($grandTotal <= 0) {
-			$grandTotal = $subTotal - $discountAmount + $taxAmount;
+		}
+		if ($discountAmount <= 0 && $lineDiscountSum > 0) {
+			$discountAmount = $lineDiscountSum;
 		}
 
 		$payable = $subTotal - $discountAmount;
 		if ($payable < 0) {
-			$payable = $grandTotal;
+			$payable = 0.0;
 		}
 
 		$amountWords = '';
@@ -178,21 +168,39 @@ class SalesOrder_SaleInvoicePdf_Helper {
 			'layouts/v7/resources/Images/nguyenkhoa-logo.png',
 			'layouts/v7/skins/images/nguyenkhoa-logo.png',
 		);
-		foreach ($relCandidates as $rel) {
-			if (is_readable($rel)) {
-				return $rel;
+		$rel = '';
+		foreach ($relCandidates as $candidate) {
+			if (is_readable($candidate)) {
+				$rel = $candidate;
+				break;
 			}
 		}
-		$logoPath = (string) $logoPath;
-		if ($logoPath !== '' && is_readable($logoPath)) {
-			$cwd = rtrim((string) getcwd(), "/\\") . DIRECTORY_SEPARATOR;
-			$norm = str_replace('\\', '/', $logoPath);
-			$cwdNorm = str_replace('\\', '/', $cwd);
-			if (strpos($norm, $cwdNorm) === 0) {
-				return ltrim(substr($norm, strlen($cwdNorm)), '/');
+		if ($rel === '') {
+			$logoPath = (string) $logoPath;
+			if ($logoPath !== '' && is_readable($logoPath)) {
+				$cwd = rtrim((string) getcwd(), "/\\") . DIRECTORY_SEPARATOR;
+				$norm = str_replace('\\', '/', $logoPath);
+				$cwdNorm = str_replace('\\', '/', $cwd);
+				if (strpos($norm, $cwdNorm) === 0) {
+					$rel = ltrim(substr($norm, strlen($cwdNorm)), '/');
+				}
 			}
 		}
-		return '';
+		if ($rel === '') {
+			return '';
+		}
+		return self::absoluteSiteUrl($rel);
+	}
+
+	protected static function absoluteSiteUrl($relPath) {
+		global $site_URL;
+		$base = rtrim((string) $site_URL, '/');
+		if ($base === '') {
+			$https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+			$host = isset($_SERVER['HTTP_HOST']) ? (string) $_SERVER['HTTP_HOST'] : 'localhost';
+			$base = ($https ? 'https' : 'http') . '://' . $host;
+		}
+		return $base . '/' . ltrim(str_replace('\\', '/', (string) $relPath), '/');
 	}
 
 	/**
@@ -235,19 +243,24 @@ class SalesOrder_SaleInvoicePdf_Helper {
 			$logo = '<img class="mk-ph-logo" src="' . $h($data['logo_url']) . '" alt="NK" />';
 		}
 
+		$baseHref = self::absoluteSiteUrl('');
 		$autoScript = '';
 		if ($autoPrint) {
-			$autoScript = '<script>window.addEventListener("load",function(){setTimeout(function(){try{window.focus();window.print();}catch(e){}},180);});</script>';
+			$autoScript = '<script>window.addEventListener("load",function(){setTimeout(function(){try{document.title=" ";window.focus();window.print();}catch(e){}},180);});</script>';
 		}
 
 		return '<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8" />'
 			. '<meta name="viewport" content="width=device-width, initial-scale=1" />'
+			. '<base href="' . $h(rtrim($baseHref, '/') . '/') . '" />'
 			. '<title> </title>'
 			. '<style>
-@page{size:A4;margin:12mm}
+@page{size:A4;margin:0}
+@page :left{margin:0}
+@page :right{margin:0}
 *{box-sizing:border-box}
-body{margin:0;padding:16px;font:13px/1.45 "Times New Roman",Times,serif;color:#111;background:#fff}
-.sheet{max-width:900px;margin:0 auto;display:flex;flex-direction:column;min-height:740px}
+html,body{margin:0;padding:0;background:#fff}
+body{padding:8mm;font:12.5px/1.4 "Times New Roman",Times,serif;color:#111}
+.sheet{max-width:900px;margin:0 auto;display:flex;flex-direction:column;min-height:calc(297mm - 56mm);box-sizing:border-box}
 .head{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px}
 .mk-ph-logo{width:170px;height:auto;object-fit:contain;flex:0 0 auto}
 .head-main{flex:1;min-width:0}
@@ -257,9 +270,9 @@ body{margin:0;padding:16px;font:13px/1.45 "Times New Roman",Times,serif;color:#1
 .title{text-align:center;margin:14px 0 4px;font-size:22px;font-weight:800;letter-spacing:.02em}
 .docno{text-align:center;font-size:14px;font-weight:400;margin:0 0 14px}
 .info{display:grid;grid-template-columns:1fr 1fr;column-gap:24px;row-gap:4px;margin-bottom:12px;align-items:start}
+.info-col{display:flex;flex-direction:column;gap:4px;min-width:0}
 .info-row{margin:0;display:grid;grid-template-columns:88px 1fr;align-items:start;min-height:1.45em}
 .info-row b{display:inline;min-width:0;font-weight:700}
-.info-row--notes{grid-column:1 / -1;text-align:left}
 table{width:100%;border-collapse:collapse;margin:8px 0 2px}
 th,td{border:1px solid #222;padding:6px 8px;vertical-align:top}
 th{background:#f3f3f3;font-size:12px;font-weight:700}
@@ -272,16 +285,24 @@ td.r,th.r{text-align:right}
 .totals-row .t-label{grid-column:1 / 5;font-weight:700;text-align:left}
 .totals-row .t-value{grid-column:5;font-weight:400;text-align:right}
 .totals-row .t-value.is-bold{font-weight:700}
-.words{font-style:italic;font-weight:700;margin:10px 0 10px}
-.signs{display:flex;gap:8px;margin:18px 0 0;align-items:flex-start}
+.words{font-style:italic;font-weight:700;margin:8px 0 8px}
+.signs{display:flex;gap:8px;margin:8px 0 0;align-items:flex-start;flex:0 0 auto;page-break-after:avoid;break-after:avoid}
 .sign{flex:1;text-align:center}
-.sign .date-above{margin:0 0 6px;font-weight:400;font-size:13px;line-height:1.3;min-height:1.3em}
-.sign b{display:block;margin-bottom:4px;font-weight:700}
-.sign span{font-size:11px;font-style:italic;color:#444}
-.note-list{margin:0;padding-left:18px}
-.note-phone{color:#c44a1c;margin-top:8px}
-.mk-note{margin-top:150px}
-@media print{body{padding:0}.no-print{display:none!important}}
+.sign .date-above{margin:0 0 4px;font-weight:400;font-size:12px;line-height:1.3;min-height:1.3em}
+.sign b{display:block;margin-bottom:2px;font-weight:700}
+.sign span{font-size:10px;font-style:italic;color:#444}
+.note-list{margin:0;padding-left:16px;font-size:10.5px;line-height:1.3}
+.note-list li{margin:0 0 3px;page-break-inside:avoid;break-inside:avoid}
+.mk-note{margin-top:auto;padding-top:6px;flex:0 0 auto;page-break-inside:avoid;break-inside:avoid;-webkit-column-break-inside:avoid}
+.mk-note .note-title{font-weight:700;margin:0 0 3px;font-size:11px;page-break-after:avoid;break-after:avoid}
+@media print{
+html,body{margin:0!important;padding:8mm!important;height:auto!important}
+.sheet{min-height:calc(297mm - 56mm)!important;height:auto!important}
+.mk-note{margin-top:auto!important;padding-top:6px!important;page-break-inside:avoid!important;break-inside:avoid!important;page-break-before:avoid!important}
+.mk-note .note-list,.mk-note .note-list li{page-break-inside:avoid!important;break-inside:avoid!important}
+.signs{page-break-after:avoid!important}
+.no-print{display:none!important}
+}
 </style></head><body><div class="sheet">'
 			. '<div class="head">' . $logo
 			. '<div class="head-main"><p class="company">' . $h($data['company_name']) . '</p>'
@@ -290,14 +311,15 @@ td.r,th.r{text-align:right}
 			. '<h1 class="title">' . $h($data['doc_title']) . '</h1>'
 			. '<p class="docno">' . $h($data['doc_no_label'] . $data['doc_no']) . '</p>'
 			. '<div class="info">'
+			. '<div class="info-col">'
 			. '<p class="info-row"><b>Khách Hàng:</b> <span>' . $h($data['customer']) . '</span></p>'
+			. '<p class="info-row"><b>SĐT:</b> <span>' . $h($data['sales_phone'] !== '' ? $data['sales_phone'] : '—') . '</span></p>'
+			. '<p class="info-row"><b>Địa chỉ:</b> <span>' . $h($data['customer_address'] !== '' ? $data['customer_address'] : '—') . '</span></p>'
+			. '</div><div class="info-col">'
 			. '<p class="info-row"><b>Chi nhánh:</b> <span>' . $h($data['branch']) . '</span></p>'
-			. '<p class="info-row"><b>SĐT:</b> <span>' . $h($data['customer_phone']) . '</span></p>'
 			. '<p class="info-row"><b>NVBH:</b> <span>' . $h($data['sales_name']) . '</span></p>'
-			. '<p class="info-row"><b>Địa chỉ:</b> <span>' . $h($data['customer_address']) . '</span></p>'
-			. '<p class="info-row"><b>SĐT:</b> <span>' . $h($data['sales_phone']) . '</span></p>'
-			. '<p class="info-row info-row--notes"><b>Ghi chú:</b> <span>' . $h($data['notes'] !== '' ? $data['notes'] : '—') . '</span></p>'
-			. '</div>'
+			. '<p class="info-row"><b>Ghi chú:</b> <span>' . $h($data['notes'] !== '' ? $data['notes'] : '—') . '</span></p>'
+			. '</div></div>'
 			. '<table><thead><tr>'
 			. '<th class="c" style="width:7%">STT</th><th style="width:44%">Tên Hàng</th>'
 			. '<th class="c" style="width:8%">SL</th><th class="r" style="width:14%">Đơn Giá</th>'
@@ -319,7 +341,7 @@ td.r,th.r{text-align:right}
 			. '<div class="mk-note"><p class="note-title">Lưu ý:</p><ul class="note-list">'
 			. '<li>Khi nhận hàng: Nếu có sai lệch về số lượng kiện hàng thực tế so với PGH / phiếu giao nhận của dịch vụ vận chuyển, hãy liên hệ ngay với NVKD để được giải quyết (chúng tôi chỉ giải quyết khiếu nại về giao nhận kiện hàng trong ngày Quý khách nhận được hàng).</li>'
 			. '<li>Về đơn hàng: Chúng tôi chỉ giải quyết khiếu nại trong vòng 3 ngày kể từ ngày Quý khách nhận được hàng (Bao gồm tất cả các trường hợp về số lượng sản phẩm, tình trạng hàng hóa như: vỡ hỏng, móp méo, lỗi). Quý khách hãy cung cấp hình ảnh, video hàng hóa thực nhận cho NVKD để khiếu nại.</li>'
-			. '</ul><p class="note-phone">Mọi ý kiến đóng góp của Quý khách về chất lượng sản phẩm, dịch vụ xin vui lòng liên hệ SĐT 0964.468.929.</p></div>'
+			. '</ul></div>'
 			. '</div>' . $autoScript . '</body></html>';
 	}
 
@@ -358,6 +380,7 @@ td.r,th.r{text-align:right}
 		$customerPhone = (string) ($ctx['phone'] ?? '');
 		$customerAddress = (string) ($ctx['address'] ?? '');
 		$notes = isset($ctx['notes']) ? trim((string) $ctx['notes']) : Quotes_QuoteExcelExport_Helper::resolveExportNotesPublic($focus, $ctx['terms_html'] ?? '');
+		$salesPhone = !empty($ctx['sales_phone']) ? trim((string) $ctx['sales_phone']) : '';
 
 		$lines = self::buildLines($focus, $moduleName, $ctx);
 		$subTotal = (float) ($ctx['sub_total'] ?? 0);
@@ -438,9 +461,8 @@ td.r,th.r{text-align:right}
 
 		$pdf->SetFont(self::FONT, '', 10);
 		self::writeLabelValue($pdf, $pageW, 'Khách hàng:', $customer !== '' ? $customer : '—');
-		self::writeLabelValue($pdf, $pageW, 'SĐT:', $customerPhone !== '' ? $customerPhone : '—');
+		self::writeLabelValue($pdf, $pageW, 'SĐT:', $salesPhone !== '' ? $salesPhone : '—');
 		self::writeLabelValue($pdf, $pageW, 'Địa chỉ:', $customerAddress !== '' ? $customerAddress : '—');
-		self::writeLabelValue($pdf, $pageW, 'Ghi chú:', $notes !== '' ? $notes : '—');
 		$pdf->Ln(3);
 
 		$colItem = $pageW * 0.62;
@@ -620,16 +642,16 @@ td.r,th.r{text-align:right}
 		// —— Customer / staff two columns ——
 		$colW = $pageW / 2;
 		$infoStartY = $pdf->GetY();
+		/* Trái: KH / SĐT / Địa chỉ — Phải: Chi nhánh / NVBH / Ghi chú (không dòng trắng) */
 		$leftLines = array(
 			array('Khách Hàng:', $customer !== '' ? $customer : '—'),
-			array('SĐT:', $customerPhone !== '' ? $customerPhone : '—'),
+			array('SĐT:', $salesPhone !== '' ? $salesPhone : '—'),
 			array('Địa chỉ:', $customerAddress !== '' ? $customerAddress : '—'),
-			array('Ghi chú:', $notes !== '' ? $notes : ''),
 		);
 		$rightLines = array(
 			array('Chi nhánh:', $branch),
 			array('NVBH:', $salesName),
-			array('SĐT:', $salesPhone !== '' ? $salesPhone : '—'),
+			array('Ghi chú:', $notes !== '' ? $notes : '—'),
 		);
 
 		$leftY = $infoStartY;
@@ -775,23 +797,43 @@ td.r,th.r{text-align:right}
 			$pdf->SetFont(self::FONT, 'I', 8);
 			$pdf->Cell($sigW, 4, self::utf('(Ký và ghi rõ họ tên)'), 0, 0, 'C');
 		}
-		$pdf->SetY($sigY + 110);
+		$pdf->SetY($sigY + 16);
 
-		// —— Footer notes ——
-		$pdf->SetFont(self::FONT, 'U', 10);
-		$pdf->Cell($pageW, 5, self::utf('Lưu ý:'), 0, 1, 'L');
-		$pdf->SetFont(self::FONT, '', 9);
-		$pdf->MultiCell($pageW, 4.5, self::utf('- Khi nhận hàng: Nếu có sai lệch về số lượng kiện hàng thực tế so với PGH / phiếu giao nhận của dịch vụ vận chuyển, hãy liên hệ ngay với NVKD để được giải quyết (chúng tôi chỉ giải quyết khiếu nại về giao nhận kiện hàng trong ngày Quý khách nhận được hàng).'), 0, 'L', false, 1);
-		$pdf->MultiCell($pageW, 4.5, self::utf('- Về đơn hàng: Chúng tôi chỉ giải quyết khiếu nại trong vòng 3 ngày kể từ ngày Quý khách nhận được hàng (Bao gồm tất cả các trường hợp về số lượng sản phẩm, tình trạng hàng hóa như: vỡ hỏng, móp méo, lỗi). Quý khách hãy cung cấp hình ảnh, video hàng hóa thực nhận cho NVKD để khiếu nại.'), 0, 'L', false, 1);
-		$pdf->Ln(1);
-		$pdf->SetTextColor(self::ACCENT[0], self::ACCENT[1], self::ACCENT[2]);
-		$pdf->MultiCell($pageW, 4.5, self::utf('Mọi ý kiến đóng góp của Quý khách về chất lượng sản phẩm, dịch vụ xin vui lòng liên hệ SĐT 0964.468.929.'), 0, 'L', false, 1);
-		$pdf->SetTextColor(0, 0, 0);
+		/* Lưu ý: neo gần cuối tờ nhưng chừa đủ chỗ cho cả 2 bullet — không AddPage */
+		$note1 = '- Khi nhận hàng: Nếu có sai lệch về số lượng kiện hàng thực tế so với PGH / phiếu giao nhận của dịch vụ vận chuyển, hãy liên hệ ngay với NVKD để được giải quyết (chúng tôi chỉ giải quyết khiếu nại về giao nhận kiện hàng trong ngày Quý khách nhận được hàng).';
+		$note2 = '- Về đơn hàng: Chúng tôi chỉ giải quyết khiếu nại trong vòng 3 ngày kể từ ngày Quý khách nhận được hàng (Bao gồm tất cả các trường hợp về số lượng sản phẩm, tình trạng hàng hóa như: vỡ hỏng, móp méo, lỗi). Quý khách hãy cung cấp hình ảnh, video hàng hóa thực nhận cho NVKD để khiếu nại.';
+		$noteLineH = 3.6;
+		$noteTitleH = 4.2;
+		$margins = $pdf->getMargins();
+		$pageH = $pdf->getPageHeight();
+		$noteBlockH = $noteTitleH
+			+ self::estimateWrappedHeight($pdf, $pageW, $note1, $noteLineH)
+			+ self::estimateWrappedHeight($pdf, $pageW, $note2, $noteLineH)
+			+ 3;
+		/* Chừa lề đáy + buffer để 2 bullet không tràn trang */
+		$bottomY = $pageH - $margins['bottom'] - $noteBlockH - 14;
+		$curY = $pdf->GetY();
+		if ($curY < $bottomY) {
+			$pdf->SetY($bottomY);
+		} elseif ($curY + $noteBlockH > $pageH - $margins['bottom'] - 4) {
+			$pullUp = ($curY + $noteBlockH) - ($pageH - $margins['bottom'] - 4) + 2;
+			$pdf->SetY(max($margins['top'] + 4, $curY - $pullUp));
+		}
+
+		$pdf->SetFont(self::FONT, 'B', 9);
+		$pdf->Cell($pageW, $noteTitleH, self::utf('Lưu ý:'), 0, 1, 'L');
+		$pdf->SetFont(self::FONT, '', 8);
+		$pdf->MultiCell($pageW, $noteLineH, self::utf($note1), 0, 'L', false, 1);
+		$pdf->MultiCell($pageW, $noteLineH, self::utf($note2), 0, 'L', false, 1);
 
 		return $pdf;
 	}
 
 	protected static function writeInlineLabelValue(Vtiger_PDF_TCPDF $pdf, $width, $label, $value) {
+		if ((string) $label === '' && (string) $value === '') {
+			$pdf->Cell(max(20, (float) $width), 5, '', 0, 1, 'L');
+			return;
+		}
 		$labelW = 24;
 		$pdf->SetFont(self::FONT, 'B', 9);
 		$pdf->Cell($labelW, 5, self::utf($label), 0, 0, 'L');
@@ -970,12 +1012,15 @@ td.r,th.r{text-align:right}
 			if ($listPrice <= 0 && $totalAfterDiscount > 0) {
 				$listPrice = ($totalAfterDiscount + $discount) / $quantity;
 			}
-			$total = ($quantity * $listPrice) - $discount;
+			$total = $quantity * $listPrice;
 			if ($total <= 0 && $productTotal > 0) {
-				$total = $productTotal - $discount;
+				$total = $productTotal;
 			}
 			if ($total <= 0 && $totalAfterDiscount > 0) {
-				$total = $totalAfterDiscount;
+				$total = $totalAfterDiscount + $discount;
+			}
+			if ($listPrice <= 0 && $quantity > 0 && $total > 0) {
+				$listPrice = $total / $quantity;
 			}
 
 			$lineComment = '';
@@ -989,6 +1034,7 @@ td.r,th.r{text-align:right}
 				'qty' => $quantity,
 				'price' => $listPrice,
 				'total' => $total,
+				'discount' => $discount,
 				'note' => trim((string) $lineComment),
 			);
 		}
@@ -1002,6 +1048,7 @@ td.r,th.r{text-align:right}
 					'qty' => (float) ($line['qty'] ?? 1),
 					'price' => (float) ($line['price'] ?? 0),
 					'total' => (float) ($line['total'] ?? 0),
+					'discount' => (float) ($line['discount'] ?? 0),
 					'note' => (string) ($line['note'] ?? $line['comment'] ?? ''),
 				);
 			}

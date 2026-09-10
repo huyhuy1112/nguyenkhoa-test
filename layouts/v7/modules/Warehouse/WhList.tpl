@@ -1,11 +1,12 @@
-{* Danh sách kho — multi-warehouse (database) *}
+{* Danh sách kho — multi-warehouse (database) — UI v2 *}
 {strip}
 <div class="mk-gi-page">
-	<section class="mk-wh-mgmt">
-		<header class="mk-wh-proto-head">
+	<section class="mk-wh-mgmt mk-wh-list-v2">
+		<header class="mk-wh-proto-head mk-wh-list-v2__head">
 			<div class="mk-wh-proto-title">
+				<p class="mk-wh-list-v2__eyebrow">Kho · Inventory</p>
 				<h1 class="mk-wh-proto-title__h1">Danh sách kho</h1>
-				<p class="mk-wh-proto-title__sub">Quản lý nhiều kho — tồn kho, hạn dùng và dự kiến hết hàng theo từng kho.</p>
+				<p class="mk-wh-proto-title__sub">Theo dõi tồn, hạn dùng và cảnh báo hết hàng trên mọi kho — mở kho để nhập / xuất / QC.</p>
 			</div>
 			<div class="mk-wh-mgmt-toolbar">
 				<a class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline" href="index.php?module=Warehouse&amp;view=WhDashboard&amp;app=INVENTORY">Bảng điều khiển kho</a>
@@ -17,11 +18,29 @@
 			</div>
 		</header>
 
+		<div class="mk-wh-list-kpi" id="mkWhListKpi" aria-label="Tổng quan kho"></div>
+
+		<div class="mk-wh-list-tools">
+			<label class="mk-wh-list-search">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+				<input type="search" id="mkWhListSearch" placeholder="Tìm mã, tên kho, địa chỉ, quản lý…" autocomplete="off" />
+			</label>
+			<div class="mk-wh-list-filters" id="mkWhListFilters" role="group" aria-label="Lọc trạng thái">
+				<button type="button" class="mk-wh-list-filter is-active" data-mk-wh-filter="all">Tất cả</button>
+				<button type="button" class="mk-wh-list-filter" data-mk-wh-filter="active">Hoạt động</button>
+				<button type="button" class="mk-wh-list-filter" data-mk-wh-filter="inactive">Tạm dừng</button>
+				<button type="button" class="mk-wh-list-filter" data-mk-wh-filter="archived">Lưu trữ</button>
+			</div>
+		</div>
+
 		<div class="mk-wh-mgmt-cards" id="mkWhMgmtCardGrid" aria-label="Danh sách kho dạng thẻ"></div>
 
-		<div class="mk-wh-mgmt-panel" aria-label="Bảng kho">
+		<div class="mk-wh-mgmt-panel mk-wh-list-panel" aria-label="Bảng kho">
 			<div class="mk-wh-mgmt-panel__head">
-				<h2 class="mk-wh-mgmt-panel__title">Bảng tổng hợp</h2>
+				<div>
+					<h2 class="mk-wh-mgmt-panel__title">Bảng tổng hợp</h2>
+					<p class="mk-wh-list-panel__hint" id="mkWhListTableHint">Đang tải…</p>
+				</div>
 			</div>
 			<div class="mk-wh-mgmt-table-wrap">
 				<table class="mk-wh-mgmt-table" role="table">

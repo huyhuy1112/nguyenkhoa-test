@@ -12,7 +12,7 @@ class Quotes_QuoteExcelExport_Helper {
 	const COL_LAST = 'H';
 
 	// Nguyên Khoa defaults (used when org profile still has TDB placeholders)
-	const NK_COMPANY_NAME = 'nguyenlieuphachemt';
+	const NK_COMPANY_NAME = 'nguyenlieugiasi.vn';
 	const NK_ADDRESS = '6/24 Đường số 3, Cư Xá Lữ Gia, Phú Thọ, Hồ Chí Minh';
 	const NK_PHONE = '0973969498';
 
@@ -657,12 +657,12 @@ class Quotes_QuoteExcelExport_Helper {
 			if ($listPrice <= 0 && $totalAfterDiscount > 0) {
 				$listPrice = ($totalAfterDiscount + $discount) / $quantity;
 			}
-			$total = ($quantity * $listPrice) - $discount;
+			$total = $quantity * $listPrice;
 			if ($total <= 0 && $productTotal > 0) {
-				$total = $productTotal - $discount;
+				$total = $productTotal;
 			}
 			if ($total <= 0 && $totalAfterDiscount > 0) {
-				$total = $totalAfterDiscount;
+				$total = $totalAfterDiscount + $discount;
 			}
 
 			$label = $productName;

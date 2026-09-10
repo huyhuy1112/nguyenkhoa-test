@@ -6,7 +6,7 @@
 			<h2>Chi tiết khách chuyển nhượng</h2>
 			<div class="mk-sc-mk-detail__aff-slot">
 				<span class="mk-sc-mk-detail__aff" id="mkScMkAff" hidden></span>
-				<label class="mk-sc-aff-toggle" title="Tắt chỉ ẩn mã, không xóa">
+				<label class="mk-sc-aff-toggle" title="Tắt: xóa mã khỏi hệ thống. Bật: tạo lại mã giới thiệu.">
 					<input type="checkbox" id="mkScMkAffVisible" />
 					<span class="mk-sc-aff-toggle__ui" aria-hidden="true"></span>
 					<span class="mk-sc-aff-toggle__label">Cho phép giới thiệu</span>

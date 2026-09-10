@@ -12,7 +12,21 @@ class Vtiger_MkSalesCustomerName_Helper {
 	 * @return string Plain-text contact name
 	 */
 	public static function resolveDisplayName(Vtiger_Record_Model $recordModel) {
-		return self::resolveContactDisplayName($recordModel);
+		return self::resolveListStyleName($recordModel);
+	}
+
+	/**
+	 * Same name as the SALES list customer column: contact, then Account / subject.
+	 *
+	 * @param Vtiger_Record_Model $recordModel
+	 * @return string
+	 */
+	public static function resolveListStyleName(Vtiger_Record_Model $recordModel) {
+		$name = self::resolveContactDisplayName($recordModel);
+		if ($name === '') {
+			$name = self::resolveAlternateCustomerName($recordModel);
+		}
+		return $name;
 	}
 
 	/**
@@ -281,6 +295,17 @@ class Vtiger_MkSalesCustomerName_Helper {
 			'potential_id' => $potentialId,
 			'account_id' => $accountId,
 		);
+	}
+
+	/**
+	 * Public wrapper for modules that need raw reference ids (SO→Quote duplicate).
+	 *
+	 * @param Vtiger_Record_Model $recordModel
+	 * @param array $keys
+	 * @return int
+	 */
+	public static function extractRawIdPublic(Vtiger_Record_Model $recordModel, array $keys) {
+		return self::extractRawId($recordModel, $keys);
 	}
 
 	/**

@@ -23,17 +23,6 @@
 		<div class="mk-so-pos-layout" id="mk-qt-pos-layout">
 			<div class="mk-so-pos-main">
 				{include file="partials/QuotesPosListHeader.tpl"|vtemplate_path:$MODULE}
-				<nav class="mk-qt-scope-tabs" role="tablist" aria-label="Lọc báo giá">
-					<button type="button" class="mk-qt-scope-tab{if $MK_QUOTE_SCOPE eq 'all'} is-active{/if}" role="tab" aria-selected="{if $MK_QUOTE_SCOPE eq 'all'}true{else}false{/if}" data-mk-quote-scope="all" id="mk-qt-scope-all">
-						<span class="mk-qt-scope-tab__label">Tất cả</span>
-					</button>
-					<button type="button" class="mk-qt-scope-tab{if $MK_QUOTE_SCOPE eq 'franchise'} is-active{/if}" role="tab" aria-selected="{if $MK_QUOTE_SCOPE eq 'franchise'}true{else}false{/if}" data-mk-quote-scope="franchise" id="mk-qt-scope-franchise">
-						<span class="mk-qt-scope-tab__label">Nhượng quyền</span>
-					</button>
-					<button type="button" class="mk-qt-scope-tab{if $MK_QUOTE_SCOPE eq 'retail'} is-active{/if}" role="tab" aria-selected="{if $MK_QUOTE_SCOPE eq 'retail'}true{else}false{/if}" data-mk-quote-scope="retail" id="mk-qt-scope-retail">
-						<span class="mk-qt-scope-tab__label">Bán lẻ</span>
-					</button>
-				</nav>
 				<input type="hidden" id="mk-quote-scope" name="mk_quote_scope" value="{$MK_QUOTE_SCOPE|escape}" />
 				<div class="mk-so-table-card mk-qt-table-card">
 					{capture name=mk_qt_sales_lv}{include file="partials/ListViewContentsPos.tpl"|vtemplate_path:$MODULE}{/capture}

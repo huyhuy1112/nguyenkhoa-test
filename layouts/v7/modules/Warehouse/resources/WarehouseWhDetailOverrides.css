@@ -1739,6 +1739,49 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh
 	flex: 0 0 auto;
 }
 
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-return-title-row {
+	display: flex;
+	align-items: flex-end;
+	flex-wrap: wrap;
+	gap: 12px 16px;
+	margin: 4px 0 0;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-return-title-row .mk-wh-proto-modal__title {
+	margin: 0;
+	flex: 1 1 auto;
+	min-width: 200px;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-return-doctype {
+	margin: 0;
+	flex: 0 0 auto;
+	min-width: 160px;
+	max-width: 200px;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-return-doctype label {
+	display: block;
+	margin: 0 0 4px;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #64748b;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-return-doctype select {
+	width: 100%;
+	min-height: 36px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	padding: 0 12px;
+	background: #fff;
+	color: #0f172a;
+	font-size: 13px;
+	font-weight: 600;
+}
+
 body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-modal__dialog--return .mk-wh-proto-modal__body {
 	display: flex !important;
 	flex-direction: column !important;
@@ -2010,10 +2053,40 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh
 body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-return-col-issue { width: 110px; }
 body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-return-col-max { width: 88px; }
 body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-return-col-qty { width: 100px; }
-body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-return-col-act { width: 88px; }
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-return-col-act { width: 128px; }
 
 body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-return-lines th,
 body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-return-lines td {
 	padding: 10px 8px !important;
 	vertical-align: middle;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-return-col-act {
+	white-space: nowrap;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-return-col-act .mk-wh-proto-mini-btn {
+	margin-right: 4px;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-return-remove {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 1px solid #fecaca;
+	border-radius: 8px;
+	background: #fff;
+	color: #b91c1c;
+	font-size: 18px;
+	line-height: 1;
+	cursor: pointer;
+	vertical-align: middle;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-return-remove:hover {
+	background: #fef2f2;
+	border-color: #f87171;
 }

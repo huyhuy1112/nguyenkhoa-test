@@ -322,8 +322,21 @@ class Leads_SalesVerifyService {
 		);
 		Leads_ModernService::saveLead($savePayload, $leadId);
 
+		$offlineMeta = null;
+		try {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			$scheduleOutcome = isset($payload['schedule_outcome']) ? $payload['schedule_outcome'] : '';
+			$result['schedule_outcome'] = $scheduleOutcome;
+			if (!empty($payload['class_date'])) {
+				$result['class_date'] = $payload['class_date'];
+			}
+			$offlineMeta = Leads_OfflineGd11Service::onSalesVerified($leadId, $result, $userId);
+		} catch (Exception $e) {
+			$offlineMeta = array('error' => $e->getMessage());
+		}
+
 		$fresh = Leads_ModernService::getLead((string) $leadId, $userId);
-		return array(
+		$out = array(
 			'success' => true,
 			'result' => $result,
 			'form_c1' => $formC1,
@@ -331,6 +344,16 @@ class Leads_SalesVerifyService {
 			'form_c3' => $formC3,
 			'lead' => $fresh,
 		);
+		if (is_array($offlineMeta)) {
+			$out['offline'] = $offlineMeta;
+			if (!empty($offlineMeta['convert'])) {
+				$out['convert'] = $offlineMeta['convert'];
+			}
+			if (!empty($offlineMeta['calendar'])) {
+				$out['calendar'] = $offlineMeta['calendar'];
+			}
+		}
+		return $out;
 	}
 
 	public static function applyPotentialTags(array $tags, $potentialLevel, $eligibility) {
@@ -409,6 +432,20 @@ class Leads_SalesVerifyService {
 				array('code' => 'D', 'label' => 'Từ 300 đến dưới 500 triệu'),
 				array('code' => 'E', 'label' => 'Từ 500 triệu trở lên'),
 			),
+			'c4' => array(
+				array('code' => '1', 'label' => 'Mức 1 — Rất cao'),
+				array('code' => '2', 'label' => 'Mức 2 — Cao'),
+				array('code' => '3', 'label' => 'Mức 3 — Trung bình'),
+				array('code' => '4', 'label' => 'Mức 4 — Thấp'),
+			),
+			'c5' => array(
+				array('code' => '1', 'label' => 'Mức 1 — Rất cao'),
+				array('code' => '2', 'label' => 'Mức 2 — Cao'),
+				array('code' => '3', 'label' => 'Mức 3 — Trung bình'),
+				array('code' => '4', 'label' => 'Mức 4 — Thấp'),
+			),
+			'c4_label' => 'Câu 4 — Đánh giá mức độ quyết tâm / nhu cầu (1–4)',
+			'c5_label' => 'Câu 5 — Đánh giá mức độ phù hợp / khả năng triển khai (1–4)',
 			'c4_levels' => array(1, 2, 3, 4),
 			'c5_levels' => array(1, 2, 3, 4),
 		);

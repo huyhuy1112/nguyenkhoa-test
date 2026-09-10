@@ -65,11 +65,11 @@ $languageStrings = array(
 	'LBL_ACC_DETAIL_HEALTH_PROJECT' => 'Project compliance',
 	'LBL_ACC_DETAIL_HEALTH_ASSET' => 'Asset utilization',
 	'LBL_TB_FRANCHISE_CONTRACT' => 'Franchise contract',
-	'LBL_PREVIEW_FRANCHISE_CONTRACT' => 'Preview',
-	'LBL_PREVIEW_FRANCHISE_CONTRACT_HINT' => 'CRM preview (PDF from filled Word). Accurate print: download Word and open Microsoft Word.',
-	'LBL_PRINT_FRANCHISE_CONTRACT' => 'Download / print Word',
+	'LBL_PREVIEW_FRANCHISE_CONTRACT' => 'Preview contract',
+	'LBL_PREVIEW_FRANCHISE_CONTRACT_HINT' => 'CRM preview (PDF from filled Word). For accurate print use Print franchise contract.',
+	'LBL_PRINT_FRANCHISE_CONTRACT' => 'Print franchise contract',
 	'LBL_PRINT_FRANCHISE_CONTRACT_HINT' => 'Download the Word file — open in Microsoft Word to print with full formatting',
-	'LBL_EXPORT_FRANCHISE_CONTRACT_WORD' => 'Download Word',
+	'LBL_EXPORT_FRANCHISE_CONTRACT_WORD' => 'Download Word contract',
 );
 
 $jsLanguageStrings = array(
