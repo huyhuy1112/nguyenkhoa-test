@@ -38,6 +38,8 @@
     mien_phi_online: { vi: "Miễn phí Online", en: "Free Online", cat: "program", cls: "mk-tag--free-online" },
     online_chua_dien_form: { vi: "Online — Chưa điền form", en: "Online — Form pending", cat: "online", cls: "mk-tag--online-status" },
     online_chua_dk_tk: { vi: "Online — Chưa đăng ký TK", en: "Online — Account pending", cat: "online", cls: "mk-tag--online-status" },
+    online_dang_hoc: { vi: "Online — Đang học", en: "Online — Studying", cat: "online", cls: "mk-tag--online-status" },
+    online_dat_80: { vi: "Online — Đạt 80%", en: "Online — 80% done", cat: "online", cls: "mk-tag--online-status" },
     online_khong_du_dk: { vi: "Online — Không đủ điều kiện", en: "Online — Ineligible", cat: "online", cls: "mk-tag--online-status" },
     online_ngung_cskh: { vi: "Online — Ngưng chăm sóc", en: "Online — Stop care", cat: "online", cls: "mk-tag--online-status" },
     offline_hen_goi_lai: { vi: "Hẹn gọi lại", en: "Call back", cat: "offline", cls: "mk-tag--offline-status" },
@@ -217,6 +219,8 @@
       tags: [
         "online_chua_dien_form",
         "online_chua_dk_tk",
+        "online_dang_hoc",
+        "online_dat_80",
         "online_khong_du_dk",
         "online_ngung_cskh",
       ],

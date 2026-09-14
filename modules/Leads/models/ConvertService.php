@@ -267,6 +267,182 @@ class Leads_ConvertService {
 		);
 	}
 
+	/**
+	 * GD 1.2 Online: Lead → Contact only (không tạo Opp).
+	 * Idempotent nếu đã có contact_id trên profile.
+	 */
+	public static function convertLeadToContactOnly($leadId, array $options = array()) {
+		global $current_user;
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			throw new Exception('Invalid lead id.');
+		}
+
+		$existing = self::getLinkedContactId($leadId, true);
+		if ($existing) {
+			$adb = PearDatabase::getInstance();
+			$adb->pquery('UPDATE vtiger_leaddetails SET converted = 1 WHERE leadid = ?', array($leadId));
+			self::syncLeadProfileExtrasToContact($leadId, (int) $existing);
+			return array(
+				'success' => true,
+				'contactId' => $existing,
+				'already' => true,
+				'redirect' => 'index.php?module=Contacts&view=List&app=SALES',
+			);
+		}
+
+		if (!Users_Privileges_Model::isPermitted('Contacts', 'CreateView')) {
+			throw new Exception('Không có quyền tạo Khách hàng.');
+		}
+
+		$lead = Vtiger_Record_Model::getInstanceById($leadId, self::MODULE);
+		$assignId = isset($options['assigned_user_id']) ? (int) $options['assigned_user_id'] : 0;
+		if ($assignId <= 0) {
+			$assignId = (int) $lead->get('assigned_user_id');
+		}
+		if ($assignId <= 0 && !empty($current_user->id)) {
+			$assignId = (int) $current_user->id;
+		}
+
+		$firstname = self::decodeLeadField(trim((string) $lead->get('firstname')));
+		$lastname = self::decodeLeadField(trim((string) $lead->get('lastname')));
+		if ($lastname === '' && $firstname === '') {
+			$lastname = 'Khách hàng #' . $leadId;
+		} elseif ($lastname === '') {
+			$lastname = $firstname;
+			$firstname = '';
+		}
+
+		$contact = Vtiger_Record_Model::getCleanInstance('Contacts');
+		$contact->set('mode', '');
+		$contact->set('lastname', $lastname);
+		if ($firstname !== '' && $firstname !== '.') {
+			$contact->set('firstname', $firstname);
+		}
+		$contact->set('assigned_user_id', $assignId);
+
+		$email = self::decodeLeadField(trim((string) $lead->get('email')));
+		if ($email !== '') {
+			$contact->set('email', $email);
+		}
+		$phone = self::decodeLeadField(trim((string) $lead->get('phone')));
+		if ($phone !== '') {
+			$contact->set('phone', $phone);
+		}
+		$mobile = self::decodeLeadField(trim((string) $lead->get('mobile')));
+		if ($mobile !== '') {
+			$contact->set('mobile', $mobile);
+		}
+
+		$addr = self::resolveLeadAddressFields($leadId, $lead);
+		if ($addr['street'] !== '') {
+			$contact->set('mailingstreet', $addr['street']);
+		}
+		if ($addr['city'] !== '') {
+			$contact->set('mailingcity', $addr['city']);
+		}
+
+		$contact->save();
+		$contactId = (int) $contact->getId();
+		if ($contactId <= 0) {
+			throw new Exception('Không tạo được Contact.');
+		}
+
+		self::relateRecords($leadId, self::MODULE, $contactId, 'Contacts');
+		self::storeContactId($leadId, $contactId);
+		self::syncLeadSegmentTagToContact($leadId, $contactId, $assignId > 0 ? $assignId : (int) $current_user->id);
+		self::transferLeadTags($leadId, array('Contacts' => $contactId), $assignId > 0 ? $assignId : (int) $current_user->id);
+		self::syncLeadProfileExtrasToContact($leadId, $contactId, $addr);
+
+		$adb = PearDatabase::getInstance();
+		$adb->pquery('UPDATE vtiger_leaddetails SET converted = 1 WHERE leadid = ?', array($leadId));
+
+		return array(
+			'success' => true,
+			'contactId' => $contactId,
+			'redirect' => 'index.php?module=Contacts&view=List&app=SALES',
+		);
+	}
+
+	/**
+	 * Địa chỉ Lead: profile.address_line → leadaddress.lane; quận/huyện → mailingcity.
+	 * @return array{street:string,city:string,business_model:string}
+	 */
+	public static function resolveLeadAddressFields($leadId, $lead = null) {
+		$leadId = (int) $leadId;
+		$out = array('street' => '', 'city' => '', 'business_model' => '');
+		$adb = PearDatabase::getInstance();
+		try {
+			$pr = $adb->pquery(
+				'SELECT address_line, district, business_model FROM bace_lead_profile WHERE leadid = ?',
+				array($leadId)
+			);
+			if ($pr && $adb->num_rows($pr) > 0) {
+				$out['street'] = self::decodeLeadField(trim((string) $adb->query_result($pr, 0, 'address_line')));
+				$out['city'] = self::decodeLeadField(trim((string) $adb->query_result($pr, 0, 'district')));
+				$out['business_model'] = trim((string) $adb->query_result($pr, 0, 'business_model'));
+			}
+		} catch (Exception $e) {
+			// schema cũ
+		}
+		if ($out['street'] === '') {
+			$lane = '';
+			if ($lead && method_exists($lead, 'get')) {
+				$lane = self::decodeLeadField(trim((string) $lead->get('lane')));
+			}
+			if ($lane === '') {
+				$lr = $adb->pquery('SELECT lane FROM vtiger_leadaddress WHERE leadaddressid = ?', array($leadId));
+				if ($lr && $adb->num_rows($lr) > 0) {
+					$lane = self::decodeLeadField(trim((string) $adb->query_result($lr, 0, 'lane')));
+				}
+			}
+			$out['street'] = $lane;
+		}
+		return $out;
+	}
+
+	/**
+	 * Backfill địa chỉ / mô hình KD lên Contact (kể cả khi Contact đã tồn tại).
+	 */
+	public static function syncLeadProfileExtrasToContact($leadId, $contactId, array $addr = null) {
+		$leadId = (int) $leadId;
+		$contactId = (int) $contactId;
+		if ($leadId <= 0 || $contactId <= 0) {
+			return;
+		}
+		if ($addr === null) {
+			$addr = self::resolveLeadAddressFields($leadId);
+		}
+		try {
+			$contact = Vtiger_Record_Model::getInstanceById($contactId, 'Contacts');
+			$dirty = false;
+			$curStreet = self::decodeLeadField(trim((string) $contact->get('mailingstreet')));
+			if (($curStreet === '' || $curStreet === '-' || $curStreet === '--') && $addr['street'] !== '') {
+				$contact->set('mailingstreet', $addr['street']);
+				$dirty = true;
+			}
+			$curCity = self::decodeLeadField(trim((string) $contact->get('mailingcity')));
+			if (($curCity === '' || $curCity === '-' || $curCity === '--') && $addr['city'] !== '') {
+				$contact->set('mailingcity', $addr['city']);
+				$dirty = true;
+			}
+			if ($dirty) {
+				$contact->set('mode', 'edit');
+				$contact->save();
+			}
+		} catch (Exception $e) {
+			// ignore address sync failure
+		}
+		if (!empty($addr['business_model'])) {
+			try {
+				require_once 'modules/Contacts/models/ModernService.php';
+				Contacts_ModernService::upsertBusinessModel($contactId, $addr['business_model']);
+			} catch (Exception $e) {
+				// ignore
+			}
+		}
+	}
+
 	protected static function decodeLeadField($value) {
 		if ($value === null || $value === '') {
 			return '';

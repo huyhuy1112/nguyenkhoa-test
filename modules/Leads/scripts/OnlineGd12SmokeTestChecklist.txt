@@ -72,10 +72,17 @@ ORDER BY modified_at DESC
 LIMIT 20;
 ```
 
-## Không nằm trong vòng này
+## Không nằm trong vòng smoke cũ (đã bổ sung code)
 
-- EduBit cấp tài khoản / tiến độ học
+- EduBit cấp tài khoản / tiến độ học → Settings Integrations + panel Online (chọn course_id tay)
 - Admin KPI funnel Online (đã làm riêng)
+
+## EduBit (manual)
+
+1. Settings → Tích hợp / Integration Hub → Edubit: Base URL + API Token, bật kết nối, Test.
+2. Catalog JSON có 4 khóa (không auto-pick).
+3. Lead Online đủ ĐK → panel → chọn khóa + email → **Cấp TK + kích hoạt khóa**.
+4. **Đồng bộ tiến độ** → cập nhật %; ≥80 → `online_dat_80`.
 
 ## Đường 2 — Offline → Online (đã có)
 

@@ -119,3 +119,27 @@ html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-ap
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
+
+/* GD 1.2 — timeline % khóa Edubit (cột Đã cấp bằng) */
+.mk-contacts-edubit-progress {
+	min-width: 110px;
+	max-width: 160px;
+}
+.mk-contacts-edubit-progress__bar {
+	height: 8px;
+	border-radius: 999px;
+	background: #e2e8f0;
+	overflow: hidden;
+}
+.mk-contacts-edubit-progress__bar > span {
+	display: block;
+	height: 100%;
+	border-radius: 999px;
+	background: linear-gradient(90deg, #0d9488, #059669);
+}
+.mk-contacts-edubit-progress__label {
+	margin-top: 4px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #0f766e;
+}

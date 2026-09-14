@@ -359,3 +359,20 @@
 		grid-template-columns: 1fr;
 	}
 }
+
+/* GD 1.2 Online — cấp TK Edubit trên Opp */
+.mk-opps-edubit {
+	min-width: 200px;
+	max-width: 280px;
+}
+.mk-opps-edubit .mk-opps-edubit__email,
+.mk-opps-edubit .mk-opps-edubit__course {
+	width: 100%;
+	margin: 4px 0;
+	font-size: 12px;
+	padding: 4px 8px;
+	height: auto;
+}
+.mk-opps-edubit .mk-opps-checkin__actions {
+	margin-top: 4px;
+}

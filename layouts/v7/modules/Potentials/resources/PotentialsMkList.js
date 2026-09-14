@@ -8,6 +8,7 @@
   var store = window.PotentialsLocalStore;
   var icons = window.LeadsMkIcons;
   var COL_COUNT = 15;
+  var edubitCoursesCache = null;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -611,6 +612,177 @@
   function canRescheduleAttendance(o) {
     var st = String((o && o.offline_status) || "");
     return st === "offline_khong_tham_gia" || st === "offline_ngung_cskh_tam";
+  }
+
+  function ensureEdubitCourses(cb) {
+    if (edubitCoursesCache) {
+      if (cb) cb(edubitCoursesCache);
+      return;
+    }
+    if (!(window.app && app.request && app.request.post)) {
+      edubitCoursesCache = [];
+      if (cb) cb(edubitCoursesCache);
+      return;
+    }
+    app.request
+      .post({
+        data: { module: "Potentials", action: "ModernApi", mode: "online_edubit_courses" },
+      })
+      .then(function (err, res) {
+        edubitCoursesCache =
+          !err && res && Array.isArray(res.courses) ? res.courses : [];
+        if (cb) cb(edubitCoursesCache);
+      });
+  }
+
+  function onlineEdubitOppCell(o) {
+    var oid = esc(String(o.crmid || o.id || ""));
+    var email = String(o.edubit_email || o.email || "").trim();
+    var courses = edubitCoursesCache || [];
+    if (!edubitCoursesCache) {
+      ensureEdubitCourses(function () {
+        renderTable();
+      });
+    }
+    var opts =
+      '<option value="">— chọn khóa —</option>' +
+      courses
+        .map(function (c) {
+          var id = String((c && (c.id || c.course_id)) || "");
+          var label = String((c && (c.label || c.name)) || id);
+          var sel =
+            o.edubit_course_id && String(o.edubit_course_id) === id ? " selected" : "";
+          return (
+            '<option value="' + esc(id) + '"' + sel + ">" + esc(label) + "</option>"
+          );
+        })
+        .join("");
+    if (o.edubit_user_id) {
+      var pct =
+        o.edubit_progress_pct != null && o.edubit_progress_pct !== ""
+          ? String(o.edubit_progress_pct) + "%"
+          : "—";
+      return (
+        '<div class="mk-opps-edubit" data-opp-id="' +
+        oid +
+        '">' +
+        '<div class="mk-opps-checkin__status"><span class="mk-opps-checkin__label">Đã cấp TK Edubit</span></div>' +
+        '<div class="mk-opps-checkin__hint">user=' +
+        esc(String(o.edubit_user_id)) +
+        " · " +
+        esc(pct) +
+        "</div></div>"
+      );
+    }
+    return (
+      '<div class="mk-opps-edubit" data-opp-id="' +
+      oid +
+      '">' +
+      '<div class="mk-opps-checkin__status"><span class="mk-opps-checkin__label">Edubit — Cấp TK</span></div>' +
+      (o.edubit_last_error
+        ? '<div class="mk-opps-checkin__hint" style="color:#b91c1c">' +
+          esc(String(o.edubit_last_error)) +
+          "</div>"
+        : "") +
+      '<input type="email" class="inputElement mk-opps-edubit__email" data-mk-opp-edubit="email" data-opp-id="' +
+      oid +
+      '" value="' +
+      esc(email) +
+      '" placeholder="email học viên" />' +
+      '<select class="inputElement mk-opps-edubit__course" data-mk-opp-edubit="course_id" data-opp-id="' +
+      oid +
+      '">' +
+      opts +
+      "</select>" +
+      '<div class="mk-opps-checkin__actions">' +
+      '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--ok" data-mk-opp-edubit-action="provision" data-opp-id="' +
+      oid +
+      '">Cấp tài khoản</button>' +
+      "</div>" +
+      '<div class="mk-opps-checkin__hint">Email có sẵn thì chỉ bấm Cấp TK · xong sẽ xuống Khách hàng</div>' +
+      "</div>"
+    );
+  }
+
+  function submitOppEdubitProvision(btn) {
+    var oid = btn && btn.getAttribute("data-opp-id");
+    if (!oid || !(window.app && app.request && app.request.post)) return;
+    var wrap = btn.closest ? btn.closest(".mk-opps-edubit") : null;
+    var emailEl = wrap
+      ? wrap.querySelector('[data-mk-opp-edubit="email"]')
+      : null;
+    var courseEl = wrap
+      ? wrap.querySelector('[data-mk-opp-edubit="course_id"]')
+      : null;
+    var email = emailEl ? String(emailEl.value || "").trim() : "";
+    var courseId = courseEl ? String(courseEl.value || "").trim() : "";
+    if (!courseId) {
+      if (window.app && app.helper && app.helper.showErrorNotification) {
+        app.helper.showErrorNotification({ message: "Phải chọn khóa học — không có mặc định." });
+      }
+      return;
+    }
+    if (!email) {
+      if (window.app && app.helper && app.helper.showErrorNotification) {
+        app.helper.showErrorNotification({ message: "Nhập email học viên trước khi cấp TK." });
+      }
+      return;
+    }
+    var opp = getOpps().find(function (o) {
+      return String(o.crmid || o.id) === String(oid);
+    });
+    btn.disabled = true;
+    if (window.app && app.helper && app.helper.showProgress) {
+      app.helper.showProgress();
+    }
+    app.request
+      .post({
+        data: {
+          module: "Potentials",
+          action: "ModernApi",
+          mode: "online_edubit_provision",
+          record: oid,
+          id: oid,
+          payload: JSON.stringify({
+            course_id: courseId,
+            email: email,
+            name: (opp && (opp.contact || opp.name)) || "",
+            phone: (opp && opp.phone) || "",
+          }),
+        },
+      })
+      .then(function (err, res) {
+        btn.disabled = false;
+        if (window.app && app.helper && app.helper.hideProgress) {
+          app.helper.hideProgress();
+        }
+        if (err || !res || res.success === false) {
+          var msg =
+            (res && (res.error || res.message)) ||
+            (err && (err.message || err)) ||
+            "Cấp TK Edubit thất bại.";
+          if (window.app && app.helper && app.helper.showErrorNotification) {
+            app.helper.showErrorNotification({ message: String(msg) });
+          }
+          return;
+        }
+        var okMsg =
+          (res && res.message) ||
+          "Đã cấp TK Edubit và chuyển xuống Khách hàng.";
+        if (window.app && app.helper && app.helper.showSuccessNotification) {
+          app.helper.showSuccessNotification({ message: okMsg });
+        }
+        if (store && store.removeFromList) {
+          store.removeFromList(String(oid));
+          var alt = opp && opp.id ? String(opp.id) : "";
+          if (alt && alt !== String(oid)) store.removeFromList(alt);
+        }
+        delete state.selected[String(oid)];
+        renderAll();
+        if (res.list_url || (res.customer && res.customer.list_url)) {
+          // stay on Opp list; user sees toast + row removed
+        }
+      });
   }
 
   function offlineNoshowCountersHtml(o) {
@@ -1604,6 +1776,14 @@
         e.preventDefault();
         e.stopPropagation();
         submitOfflineCheckin(checkinBtn.getAttribute("data-mk-opp-checkin"), checkinBtn);
+        return;
+      }
+      var edubitBtn =
+        e.target.closest && e.target.closest("[data-mk-opp-edubit-action][data-opp-id]");
+      if (edubitBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        submitOppEdubitProvision(edubitBtn);
         return;
       }
       var rescheduleBtn =

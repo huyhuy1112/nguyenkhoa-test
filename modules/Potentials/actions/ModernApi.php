@@ -22,7 +22,7 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_inline_business_model', 'save_tags', 'delete', 'last_touch_call_log', 'offline_checkin', 'offline_reschedule', 'offline_unreachable'), true)) {
+		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_inline_business_model', 'save_tags', 'delete', 'last_touch_call_log', 'offline_checkin', 'offline_reschedule', 'offline_unreachable', 'online_edubit_provision'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -250,6 +250,38 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 						throw new Exception(isset($unreachable['error']) ? $unreachable['error'] : 'Không ghi được “Không gọi được”');
 					}
 					$response->setResult($unreachable);
+					break;
+				case 'online_edubit_courses':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$response->setResult(array(
+						'success' => true,
+						'courses' => Leads_OnlineGd12Service::edubitCoursesCatalog(),
+					));
+					break;
+				case 'online_edubit_provision':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$payload = array();
+					$raw = $request->getRaw('payload');
+					if (is_array($raw)) {
+						$payload = $raw;
+					} elseif (is_string($raw) && $raw !== '') {
+						$decoded = json_decode($raw, true);
+						if (is_array($decoded)) {
+							$payload = $decoded;
+						}
+					}
+					if (empty($payload['course_id']) && $request->get('course_id') !== '') {
+						$payload['course_id'] = $request->get('course_id');
+					}
+					if (empty($payload['email']) && $request->get('email') !== '') {
+						$payload['email'] = $request->get('email');
+					}
+					$saved = Leads_OnlineGd12Service::provisionEdubitForPotential($recordId, $payload, $userId);
+					$response->setResult($saved);
 					break;
 				default:
 					throw new Exception('Unsupported mode.');

@@ -147,6 +147,7 @@ class Leads_ModernService {
 		return ', p.form_c1, p.form_c2, p.form_c3, p.verify_c1, p.verify_c2, p.verify_c3, p.verify_c4, p.verify_c5,
 			p.eligibility_result, p.potential_level, p.verify_score, p.verify_change_reason, p.verified_at, p.verified_by,
 			p.online_status, p.online_q1, p.online_q2, p.online_q3, p.online_q4, p.online_path, p.online_source_leadid, p.zalo_user_id,
+			p.edubit_user_id, p.edubit_course_id, p.edubit_email, p.edubit_activated_at, p.edubit_progress_pct, p.edubit_last_error,
 			p.offline_status, p.offline_r1_contact, p.offline_r1_hen_goi, p.offline_r1_khong_nghe, p.offline_r1_sai_tt,
 			p.offline_r2_schedule, p.offline_r3_class, p.offline_r4_transfer,
 			p.offline_preclass_confirm, p.offline_class_date, p.offline_class_time, p.offline_class_place,
@@ -177,6 +178,7 @@ class Leads_ModernService {
 			LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = p.leadid
 			WHERE p.is_modern = 1
 			  AND (p.potential_id IS NULL OR p.potential_id = 0)
+			  AND IFNULL(ld.converted, 0) = 0
 			ORDER BY p.last_touch DESC, p.leadid DESC";
 		$res = $adb->pquery($sql, array());
 		$rows = array();
@@ -705,6 +707,7 @@ class Leads_ModernService {
 			$tags = Leads_OfflineGd11Service::ensureProgramTag($tags);
 		}
 		self::syncTags($leadId, $tags, $userId);
+		self::seedCrmStudyPathAfterSave($leadId, $tags, $isNew);
 		try {
 			require_once 'modules/Leads/models/LeadProductsService.php';
 			Leads_LeadProductsService::syncFromTags($leadId, $tags, $userId, true);
@@ -765,6 +768,58 @@ class Leads_ModernService {
 		}
 		/* Bộ A sơ lược: không gắn tag Tiềm năng / Siêu — chỉ sau Bộ B. */
 		return array_values(array_unique($out));
+	}
+
+	/**
+	 * CRM create: chọn Online/Offline → seed status để hiện panel xác minh GD 1.1 / 1.2.
+	 */
+	protected static function seedCrmStudyPathAfterSave($leadId, array $tags, $isNew) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0 || !$isNew) {
+			return;
+		}
+		$hasOnline = false;
+		$hasOffline = false;
+		foreach ($tags as $tag) {
+			$t = strtolower(trim((string) $tag));
+			if ($t === 'mien_phi_online' || strpos($t, 'online_') === 0) {
+				$hasOnline = true;
+			}
+			if ($t === 'mien_phi_offline' || strpos($t, 'offline_') === 0) {
+				$hasOffline = true;
+			}
+		}
+		if (!$hasOnline && !$hasOffline) {
+			return;
+		}
+		$adb = PearDatabase::getInstance();
+		$now = date('Y-m-d H:i:s');
+		if ($hasOnline) {
+			try {
+				require_once 'modules/Leads/models/OnlineGd12Service.php';
+				require_once 'modules/Leads/models/LeadProductsService.php';
+				Leads_OnlineGd12Service::installSchema($adb);
+				$adb->pquery(
+					"UPDATE bace_lead_profile SET
+						online_status = IF(online_status IS NULL OR online_status = '', ?, online_status),
+						online_path = IF(online_path IS NULL OR online_path = '', 'crm', online_path),
+						modified_at = ?
+					 WHERE leadid = ?",
+					array(Leads_OnlineGd12Service::STATUS_CHUA_DK_TK, $now, $leadId)
+				);
+				Leads_LeadProductsService::ensureGroup($leadId, 'online', null);
+			} catch (Exception $e) {
+				error_log('[crm_study_path] online seed: ' . $e->getMessage());
+			}
+		}
+		if ($hasOffline && !$hasOnline) {
+			try {
+				require_once 'modules/Leads/models/LeadProductsService.php';
+				Leads_LeadProductsService::ensureGroup($leadId, 'offline', null);
+			} catch (Exception $e) {
+				error_log('[crm_study_path] offline seed: ' . $e->getMessage());
+			}
+		}
 	}
 
 	/**
@@ -1389,7 +1444,8 @@ class Leads_ModernService {
 	}
 
 	/**
-	 * Sheet → Sales Bộ B (3 câu). Zalo OA Online → GD1.2 (4 câu). CRM-created → không.
+	 * Sheet → Sales Bộ B (3 câu). Zalo OA / CRM Online → GD1.2 (4 câu).
+	 * CRM Offline (mien_phi_offline) → cần xác minh GD 1.1.
 	 */
 	protected static function computeNeedsSalesVerify(array $row, array $tags, array $verify) {
 		if (!empty($row['sheet_source'])) {
@@ -1402,7 +1458,8 @@ class Leads_ModernService {
 			return true;
 		}
 		foreach ($tags as $tag) {
-			if (strtolower(trim((string) $tag)) === 'zalo') {
+			$t = strtolower(trim((string) $tag));
+			if ($t === 'zalo' || $t === 'mien_phi_offline' || strpos($t, 'offline_') === 0) {
 				return true;
 			}
 		}
@@ -1536,10 +1593,25 @@ class Leads_ModernService {
 			'verify_change_reason' => $changeReason,
 			'verified_at' => $verifiedAt,
 			'verified_by' => isset($row['verified_by']) ? (int) $row['verified_by'] : null,
+			'edubit_user_id' => isset($row['edubit_user_id']) ? (string) $row['edubit_user_id'] : '',
+			'edubit_course_id' => isset($row['edubit_course_id']) ? (string) $row['edubit_course_id'] : '',
+			'edubit_email' => isset($row['edubit_email']) ? (string) $row['edubit_email'] : '',
+			'edubit_activated_at' => (!empty($row['edubit_activated_at']) && $row['edubit_activated_at'] !== '0000-00-00 00:00:00')
+				? date('c', strtotime($row['edubit_activated_at'])) : '',
+			'edubit_progress_pct' => isset($row['edubit_progress_pct']) && $row['edubit_progress_pct'] !== null && $row['edubit_progress_pct'] !== ''
+				? (int) $row['edubit_progress_pct'] : null,
+			'edubit_last_error' => isset($row['edubit_last_error']) ? (string) $row['edubit_last_error'] : '',
+			'can_edubit_provision' => (
+				$isOnline
+				&& ($eligibility === 'du_dk' || $onlineStatus === Leads_OnlineGd12Service::STATUS_CHUA_DK_TK
+					|| $onlineStatus === Leads_OnlineGd12Service::STATUS_DANG_HOC
+					|| $onlineStatus === Leads_OnlineGd12Service::STATUS_DAT_80)
+			) ? 1 : 0,
 		);
 		if ($detailed) {
 			$block['online_verify_options'] = $onlineCatalog;
 			$block['verify_options'] = $catalog;
+			$block['edubit_courses'] = Leads_OnlineGd12Service::edubitCoursesCatalog();
 		}
 		return $block + self::composeOfflineBlock($row);
 	}

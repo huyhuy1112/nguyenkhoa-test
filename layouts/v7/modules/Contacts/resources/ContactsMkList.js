@@ -513,6 +513,32 @@
       });
   }
 
+  function edubitProgressTimelineHtml(contact) {
+    var pct =
+      contact && contact.edubit_progress_pct != null && contact.edubit_progress_pct !== ""
+        ? Math.max(0, Math.min(100, Number(contact.edubit_progress_pct) || 0))
+        : null;
+    if (pct === null && !(contact && (contact.edubit_user_id || contact.edubit_course_id))) {
+      return null;
+    }
+    if (pct === null) pct = 0;
+    return (
+      '<div class="mk-contacts-edubit-progress" title="Tiến độ khóa Edubit">' +
+      '<div class="mk-contacts-edubit-progress__bar"><span style="width:' +
+      pct +
+      '%"></span></div>' +
+      '<div class="mk-contacts-edubit-progress__label">' +
+      pct +
+      "%</div></div>"
+    );
+  }
+
+  function bangCellHtml(contact) {
+    var timeline = edubitProgressTimelineHtml(contact);
+    if (timeline) return timeline;
+    return credentialSelectHtml(contact, "bang");
+  }
+
   function isCredentialIssued(value, kind) {
     var v = String(value || "").trim();
     if (!v) return false;
@@ -524,7 +550,7 @@
     var field = kind === "tk" ? "da_cap_tai_khoan" : "da_cap_bang";
     var options =
       kind === "tk"
-        ? ["Chưa cấp tài khoản", "Đã cấp tài khoản"]
+        ? ["Chưa cấp tài khoản", "Đã cấp"]
         : ["Chưa cấp", "Đã cấp"];
     var cur = String((contact && contact[field]) || "").trim() || options[0];
     if (options.indexOf(cur) < 0) {
@@ -714,7 +740,7 @@
             '" title="Sửa thẻ">' +
             stackedContactTags(c) +
             "</button></td>" +
-            '<td class="mk-leads-td">' + credentialSelectHtml(c, "bang") + "</td>" +
+            '<td class="mk-leads-td">' + bangCellHtml(c) + "</td>" +
             '<td class="mk-leads-td">' + credentialSelectHtml(c, "tk") + "</td>" +
             '<td class="mk-leads-td">' + dateCell(c.thoigian_dangky) + "</td>" +
             '<td class="mk-leads-td">' + dateCell(c.thoigian_pcth) + "</td>" +

@@ -13,6 +13,7 @@ require_once 'modules/Vtiger/helpers/NkApi/MisaAdapter.php';
 require_once 'modules/Vtiger/helpers/NkApi/GoogleSheetAdapter.php';
 require_once 'modules/Vtiger/helpers/NkApi/EcommerceAdapter.php';
 require_once 'modules/Vtiger/helpers/NkApi/ZaloOaAdapter.php';
+require_once 'modules/Vtiger/helpers/NkApi/EdubitAdapter.php';
 require_once 'modules/Vtiger/helpers/NkApi/GenericAdapter.php';
 
 class NkApiConnection
@@ -249,6 +250,7 @@ class NkApiConnection
 			'google_sheet' => 'NkApi_GoogleSheet_Adapter',
 			'ecommerce' => 'NkApi_Ecommerce_Adapter',
 			'zalo_oa' => 'NkApi_ZaloOa_Adapter',
+			'edubit' => 'NkApi_Edubit_Adapter',
 		);
 		if (!isset($map[$code]) || !class_exists($map[$code])) {
 			$generic = self::genericAdapterMeta($code);
@@ -543,8 +545,8 @@ class NkApiConnection
 				'label' => 'Edubit',
 				'subtitle' => 'Edubit LMS API',
 				'icon' => 'edubit',
-				'use_adapter' => false,
-				'admin_hint' => 'Đồng bộ học viên và khóa học từ Edubit LMS.',
+				'use_adapter' => true,
+				'admin_hint' => 'Token API + Base URL. Catalog khóa học để Sales chọn tay — không có course_id mặc định.',
 			),
 			'misa' => array(
 				'label' => 'MISA',

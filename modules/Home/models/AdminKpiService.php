@@ -1094,13 +1094,25 @@ class Home_AdminKpiService {
 		if (!$hasCol || $db->num_rows($hasCol) < 1) {
 			return $empty;
 		}
+		$hasEdubitCol = $db->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE 'edubit_activated_at'", array());
+		$edubitOn = ($hasEdubitCol && $db->num_rows($hasEdubitCol) > 0);
+		$activatedExpr = $edubitOn
+			? "SUM(CASE WHEN online_status IN ('online_dang_hoc','online_dat_80')
+					OR (edubit_activated_at IS NOT NULL AND edubit_activated_at <> '' AND edubit_activated_at <> '0000-00-00 00:00:00')
+					THEN 1 ELSE 0 END) AS activated,
+				SUM(CASE WHEN online_status = 'online_dat_80'
+					OR (edubit_progress_pct IS NOT NULL AND edubit_progress_pct >= 80)
+					THEN 1 ELSE 0 END) AS reached_80"
+			: "SUM(CASE WHEN online_status IN ('online_dang_hoc','online_dat_80') THEN 1 ELSE 0 END) AS activated,
+				SUM(CASE WHEN online_status = 'online_dat_80' THEN 1 ELSE 0 END) AS reached_80";
 		$r = $db->pquery(
 			"SELECT
 				SUM(CASE WHEN online_status IS NOT NULL AND online_status <> '' THEN 1 ELSE 0 END) AS total,
 				SUM(CASE WHEN online_status = 'online_chua_dien_form' THEN 1 ELSE 0 END) AS pending_form,
 				SUM(CASE WHEN online_status = 'online_chua_dk_tk' THEN 1 ELSE 0 END) AS qualified,
 				SUM(CASE WHEN online_status = 'online_khong_du_dk' THEN 1 ELSE 0 END) AS not_qualified,
-				SUM(CASE WHEN online_status = 'online_ngung_cskh' THEN 1 ELSE 0 END) AS stopped
+				SUM(CASE WHEN online_status = 'online_ngung_cskh' THEN 1 ELSE 0 END) AS stopped,
+				{$activatedExpr}
 			 FROM bace_lead_profile",
 			array()
 		);
@@ -1109,13 +1121,15 @@ class Home_AdminKpiService {
 		$qualified = $r ? (int) $db->query_result($r, 0, 'qualified') : 0;
 		$notQualified = $r ? (int) $db->query_result($r, 0, 'not_qualified') : 0;
 		$stopped = $r ? (int) $db->query_result($r, 0, 'stopped') : 0;
-		$formFilled = $qualified + $notQualified;
+		$activated = $r ? (int) $db->query_result($r, 0, 'activated') : 0;
+		$reached80 = $r ? (int) $db->query_result($r, 0, 'reached_80') : 0;
+		$formFilled = $qualified + $notQualified + $activated;
 		$formRate = $total > 0 ? round(($formFilled / $total) * 100, 1) : 0;
-		$qualifyRate = $formFilled > 0 ? round(($qualified / $formFilled) * 100, 1) : 0;
-		$activated = 0;
-		$reached80 = 0;
-		$activateRate = 0;
-		$reach80Rate = 0;
+		$qualifyRate = $formFilled > 0 ? round((($qualified + $activated) / $formFilled) * 100, 1) : 0;
+		$activateRate = ($qualified + $activated) > 0
+			? round(($activated / ($qualified + $activated)) * 100, 1)
+			: 0;
+		$reach80Rate = $activated > 0 ? round(($reached80 / $activated) * 100, 1) : 0;
 		$stages = array(
 			array('key' => 'total', 'label' => 'Vào Zalo OA', 'count' => $total, 'color' => '#2563eb'),
 			array('key' => 'pending_form', 'label' => 'Chưa điền form', 'count' => $pendingForm, 'color' => '#f59e0b'),

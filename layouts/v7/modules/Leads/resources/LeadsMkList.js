@@ -1474,6 +1474,12 @@
         submitOfflineGd11Action(offlineBtn.getAttribute("data-mk-offline-action"), offlineBtn);
         return;
       }
+      var edubitBtn = e.target && e.target.closest ? e.target.closest("[data-mk-edubit-action]") : null;
+      if (edubitBtn) {
+        e.preventDefault();
+        submitEdubitAction(edubitBtn.getAttribute("data-mk-edubit-action"), edubitBtn);
+        return;
+      }
       var transferOffBtn = e.target && e.target.closest ? e.target.closest("[data-mk-transfer-offline]") : null;
       if (transferOffBtn) {
         e.preventDefault();
@@ -1655,10 +1661,72 @@
       esc(lead.online_q4_label || (locked ? "Chép từ Offline" : "Chưa có từ Form OA")) +
       "</small></div></div></section>" +
       editSection +
+      onlineEdubitHtml(lead) +
       onlineTransferOfflineHtml(lead) +
       listVerifyStatusHtml(lead) +
       '<p class="mk-leads-verify-err" data-mk-verify-err hidden></p>' +
       '<p class="mk-leads-verify-ok" data-mk-verify-ok hidden></p>';
+  }
+
+  function onlineEdubitHtml(lead) {
+    var can =
+      Number(lead.can_edubit_provision) === 1 ||
+      lead.eligibility_result === "du_dk" ||
+      lead.online_status === "online_chua_dk_tk" ||
+      lead.online_status === "online_dang_hoc" ||
+      lead.online_status === "online_dat_80" ||
+      !!(lead.edubit_user_id || lead.edubit_course_id);
+    if (!can) {
+      return (
+        '<div class="mk-leads-verify-offline__transfer">' +
+        "<h5>Edubit — Cấp tài khoản</h5>" +
+        '<p class="mk-leads-verify-offline__meta">Chỉ hiện khi đủ điều kiện Online (chờ TK / đang học).</p></div>'
+      );
+    }
+    var courses = Array.isArray(lead.edubit_courses) ? lead.edubit_courses : [];
+    var opts =
+      '<option value="">— Chọn khóa học (bắt buộc) —</option>' +
+      courses
+        .map(function (c) {
+          var id = String((c && (c.id || c.course_id)) || "");
+          var label = String((c && (c.label || c.name)) || id);
+          var sel = lead.edubit_course_id && String(lead.edubit_course_id) === id ? " selected" : "";
+          return '<option value="' + esc(id) + '"' + sel + ">" + esc(label) + " (" + esc(id) + ")</option>";
+        })
+        .join("");
+    var progress =
+      lead.edubit_progress_pct != null && lead.edubit_progress_pct !== ""
+        ? String(lead.edubit_progress_pct) + "%"
+        : "—";
+    var activated = lead.edubit_user_id
+      ? '<p class="mk-leads-verify-offline__meta">Đã cấp · user_id=' +
+        esc(String(lead.edubit_user_id)) +
+        (lead.edubit_course_id ? " · course=" + esc(String(lead.edubit_course_id)) : "") +
+        " · tiến độ " +
+        esc(progress) +
+        "</p>"
+      : '<p class="mk-leads-verify-offline__meta">Chưa cấp TK. Chọn khóa rồi bấm Cấp TK — xong sẽ <strong>thẳng xuống Khách hàng</strong> (không qua Opp).</p>';
+    var err = lead.edubit_last_error
+      ? '<p class="mk-leads-verify-err" style="display:block">' + esc(String(lead.edubit_last_error)) + "</p>"
+      : "";
+    return (
+      '<div class="mk-leads-verify-offline__transfer" data-mk-edubit="1">' +
+      "<h5>Edubit — Cấp tài khoản / tiến độ</h5>" +
+      activated +
+      err +
+      '<label class="mk-leads-verify-field"><span>Email học viên</span>' +
+      '<input type="email" class="inputElement" data-mk-edubit="email" value="' +
+      esc(lead.edubit_email || lead.email || "") +
+      '" placeholder="bắt buộc" /></label>' +
+      '<label class="mk-leads-verify-field"><span>Khóa học</span>' +
+      '<select class="inputElement" data-mk-edubit="course_id">' +
+      opts +
+      "</select></label>" +
+      '<div class="mk-leads-verify-offline__actions">' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--primary" data-mk-edubit-action="provision">Cấp TK + kích hoạt khóa</button>' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-edubit-action="sync">Đồng bộ tiến độ</button>' +
+      "</div></div>"
+    );
   }
 
   function onlineTransferOfflineHtml(lead) {
@@ -2134,6 +2202,131 @@
       });
   }
 
+  function formatEdubitErr(err, res) {
+    var pick = function (v) {
+      if (v == null || v === "") return "";
+      if (typeof v === "string" || typeof v === "number") return String(v);
+      if (Array.isArray(v)) {
+        return v
+          .map(function (x) {
+            return typeof x === "string" ? x : JSON.stringify(x);
+          })
+          .filter(Boolean)
+          .join("; ");
+      }
+      if (typeof v === "object") {
+        if (v.message) return pick(v.message);
+        try {
+          return JSON.stringify(v);
+        } catch (e) {
+          return "";
+        }
+      }
+      return String(v);
+    };
+    var msg =
+      pick(err && err.message) ||
+      pick(err) ||
+      pick(res && res.error) ||
+      pick(res && res.message) ||
+      "Edubit thất bại.";
+    if (String(msg).trim() === "Array") {
+      msg = "Edubit trả lỗi (chi tiết dạng mảng) — kiểm tra SĐT/email/token/Base URL.";
+    }
+    return msg;
+  }
+
+  function submitEdubitAction(action, btn) {
+    var panel = document.getElementById("mk-leads-verify-panel");
+    var lead = panel && panel._mkLead;
+    var id = (lead && (lead.crmid || lead.id)) || "";
+    if (!action || !id) {
+      setListVerifyMsg("Thiếu lead / action Edubit.", "");
+      return;
+    }
+    if (typeof app === "undefined" || !app.request) {
+      setListVerifyMsg("API không sẵn sàng.", "");
+      return;
+    }
+    var courseEl = panel.querySelector('[data-mk-edubit="course_id"]');
+    var emailEl = panel.querySelector('[data-mk-edubit="email"]');
+    var courseId = courseEl ? String(courseEl.value || "").trim() : "";
+    var email = emailEl ? String(emailEl.value || "").trim() : "";
+    var mode =
+      action === "sync" ? "online_edubit_sync_progress" : "online_edubit_provision";
+    if (mode === "online_edubit_provision" && !courseId) {
+      setListVerifyMsg("Phải chọn khóa học — không có course_id mặc định.", "");
+      return;
+    }
+    if (mode === "online_edubit_provision" && !email) {
+      setListVerifyMsg("Nhập email học viên trước khi cấp TK.", "");
+      return;
+    }
+    if (btn) btn.disabled = true;
+    setListVerifyMsg("", "");
+    var payload = {
+      course_id: courseId,
+      email: email,
+      name: (lead && lead.name) || "",
+      phone: (lead && lead.phone) || "",
+    };
+    app.request
+      .post({
+        data: {
+          module: "Leads",
+          action: "ModernApi",
+          mode: mode,
+          id: id,
+          record: id,
+          payload: JSON.stringify(payload),
+        },
+      })
+      .then(function (err, res) {
+        if (btn) btn.disabled = false;
+        if (err || !res || res.success === false) {
+          var msg = formatEdubitErr(err, res);
+          setListVerifyMsg(msg, "");
+          return;
+        }
+        var okMsg =
+          (res && res.message) || "Đã cấp TK Edubit.";
+        if (res.customer && res.customer.success) {
+          okMsg = okMsg.indexOf("Khách hàng") >= 0
+            ? okMsg
+            : okMsg + " Đã chuyển xuống Khách hàng.";
+        } else if (res.customer_error) {
+          okMsg += " (Chưa xuống KH: " + res.customer_error + ")";
+        }
+        setListVerifyMsg("", okMsg);
+        if (window.app && app.helper && app.helper.showSuccessNotification) {
+          app.helper.showSuccessNotification({ message: okMsg });
+        }
+        if (res.contact_id || (res.customer && res.customer.success)) {
+          closeListVerifyPanel();
+          window.location.href =
+            res.list_url ||
+            (res.customer && res.customer.list_url) ||
+            "index.php?module=Contacts&view=List&app=SALES";
+          return;
+        }
+        var fresh = res.lead || lead;
+        if (fresh && res.edubit_user_id) fresh.edubit_user_id = res.edubit_user_id;
+        if (fresh && res.edubit_course_id) fresh.edubit_course_id = res.edubit_course_id;
+        if (fresh && res.edubit_email) fresh.edubit_email = res.edubit_email;
+        if (fresh && typeof res.progress_pct !== "undefined") {
+          fresh.edubit_progress_pct = res.progress_pct;
+        }
+        if (fresh && res.status) fresh.online_status = res.status;
+        if (res.courses && fresh) fresh.edubit_courses = res.courses;
+        if (store && typeof store.importLead === "function" && fresh) {
+          store.importLead(fresh);
+        }
+        panel._mkLead = fresh;
+        fillListVerifyBody(fresh);
+        renderTable();
+      });
+  }
+
   function submitOfflineStep2Action(action, milestone, btn) {
     var panel = document.getElementById("mk-leads-verify-panel");
     var lead = panel && panel._mkLead;
@@ -2439,8 +2632,12 @@
       panel._mkLead = fresh;
       fillListVerifyBody(fresh);
       var okMsg = "Đã lưu kết quả xác minh.";
-      if (res.convert && res.convert.converted) {
-        okMsg = "Đã lưu & chuyển sang Cơ hội (đủ ĐK Offline).";
+      if (online && res.next === "edubit_provision") {
+        okMsg = "Đủ ĐK Online — chọn khóa và cấp TK Edubit (thẳng Khách hàng, không qua Opp).";
+      } else if (res.convert && res.convert.converted) {
+        okMsg = online
+          ? "Đã lưu & chuyển sang Cơ hội (đủ ĐK Online)."
+          : "Đã lưu & chuyển sang Cơ hội (đủ ĐK Offline).";
       } else if (res.convert && res.convert.skipped) {
         okMsg = "Đã lưu xác minh (Opp đã tồn tại).";
       } else if (res.convert && res.convert.reason && res.convert.reason !== "ok" && !res.convert.skipped) {
@@ -2459,7 +2656,9 @@
       if (window.app && app.helper && app.helper.showSuccessNotification) {
         app.helper.showSuccessNotification({
           message: online
-            ? "Đã lưu xác minh Online (4 câu)."
+            ? res.next === "edubit_provision"
+              ? "Đã lưu xác minh Online — tiếp tục cấp TK Edubit trên Lead."
+              : "Đã lưu xác minh Online (4 câu)."
             : res.convert && res.convert.converted
               ? "Đã lưu Bộ B & tạo Cơ hội."
               : "Đã lưu xác minh Bộ B.",

@@ -21,12 +21,15 @@ class Contacts_ModernService {
 		$adb = PearDatabase::getInstance();
 		self::ensureEventTimeColumns($adb);
 		self::ensureBusinessModelSchema($adb);
+		self::ensureCredentialFields();
+		self::ensureEdubitProgressColumns($adb);
 		$sql = "SELECT cd.contactid, cd.firstname, cd.lastname, cd.title, cd.email, cd.phone, cd.mobile,
 				cd.accountid, ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description,
 				acc.accountname,
 				ca.mailingstreet, ca.mailingcity, ca.mailingstate, ca.mailingcountry,
 				cf.thoigian_dangky, cf.thoigian_pcth, cf.thoigian_mqbb,
 				cf.da_cap_bang, cf.da_cap_tai_khoan,
+				cf.edubit_progress_pct, cf.edubit_course_id, cf.edubit_email, cf.edubit_user_id,
 				cp.business_model AS contact_business_model
 			FROM vtiger_contactdetails cd
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid AND ce.deleted = 0
@@ -243,7 +246,7 @@ class Contacts_ModernService {
 			),
 			'da_cap_tai_khoan' => array(
 				'label' => 'Đã cấp tài khoản',
-				'values' => array('Chưa cấp tài khoản', 'Đã cấp tài khoản'),
+				'values' => array('Chưa cấp tài khoản', 'Đã cấp', 'Đã cấp tài khoản'),
 				'default' => 'Chưa cấp tài khoản',
 			),
 		);
@@ -347,6 +350,12 @@ class Contacts_ModernService {
 				return $plain;
 			}
 		}
+		// GD 1.2: "Đã cấp tài khoản" legacy → "Đã cấp"
+		if (in_array('Đã cấp', $allowed, true)
+			&& preg_match('/đã\s*cấp/iu', $value)
+			&& !preg_match('/chưa/iu', $value)) {
+			return 'Đã cấp';
+		}
 		return $default;
 	}
 
@@ -358,7 +367,7 @@ class Contacts_ModernService {
 			'da_cap_bang' => 'Chưa cấp',
 			'da_cap_tai_khoan' => 'Chưa cấp tài khoản',
 			'bang_options' => array('Chưa cấp', 'Đã cấp'),
-			'tk_options' => array('Chưa cấp tài khoản', 'Đã cấp tài khoản'),
+			'tk_options' => array('Chưa cấp tài khoản', 'Đã cấp'),
 		);
 		$contactId = (int)$contactId;
 		if ($contactId <= 0) {
@@ -394,9 +403,12 @@ class Contacts_ModernService {
 		}
 		self::ensureCredentialFields();
 		$allowedBang = array('Chưa cấp', 'Đã cấp');
-		$allowedTk = array('Chưa cấp tài khoản', 'Đã cấp tài khoản');
+		$allowedTk = array('Chưa cấp tài khoản', 'Đã cấp', 'Đã cấp tài khoản');
 		$daCapBang = self::normalizeCredentialPick($daCapBang, $allowedBang, 'Chưa cấp');
 		$daCapTaiKhoan = self::normalizeCredentialPick($daCapTaiKhoan, $allowedTk, 'Chưa cấp tài khoản');
+		if ($daCapTaiKhoan === 'Đã cấp tài khoản') {
+			$daCapTaiKhoan = 'Đã cấp';
+		}
 
 		try {
 			$recordModel = Vtiger_Record_Model::getInstanceById($contactId, self::MODULE);
@@ -422,6 +434,114 @@ class Contacts_ModernService {
 			}
 		}
 		return self::getCredentialState($contactId);
+	}
+
+	/**
+	 * Cột tiến độ Edubit trên Contact (timeline % ở list KH).
+	 */
+	public static function ensureEdubitProgressColumns($adb = null) {
+		static $done = false;
+		if ($done) {
+			return;
+		}
+		if ($adb === null) {
+			$adb = PearDatabase::getInstance();
+		}
+		$cols = array(
+			'edubit_progress_pct' => 'TINYINT(3) NULL',
+			'edubit_course_id' => 'VARCHAR(32) NULL',
+			'edubit_email' => 'VARCHAR(128) NULL',
+			'edubit_user_id' => 'VARCHAR(64) NULL',
+		);
+		foreach ($cols as $name => $def) {
+			$check = $adb->pquery("SHOW COLUMNS FROM vtiger_contactscf LIKE ?", array($name));
+			if (!$check || $adb->num_rows($check) === 0) {
+				$adb->pquery("ALTER TABLE vtiger_contactscf ADD COLUMN `{$name}` {$def}", array());
+			}
+		}
+		$done = true;
+	}
+
+	public static function saveEdubitProgressOnContact($contactId, $pct, $courseId = '', $email = '', $userIdEd = '') {
+		$contactId = (int) $contactId;
+		if ($contactId <= 0) {
+			return;
+		}
+		self::ensureEdubitProgressColumns();
+		$adb = PearDatabase::getInstance();
+		$pctVal = $pct === null || $pct === '' ? null : max(0, min(100, (int) $pct));
+		$exists = $adb->pquery('SELECT contactid FROM vtiger_contactscf WHERE contactid = ?', array($contactId));
+		if (!$exists || $adb->num_rows($exists) < 1) {
+			$adb->pquery('INSERT INTO vtiger_contactscf (contactid) VALUES (?)', array($contactId));
+		}
+		$adb->pquery(
+			'UPDATE vtiger_contactscf SET
+				edubit_progress_pct = ?,
+				edubit_course_id = ?,
+				edubit_email = ?,
+				edubit_user_id = ?
+			 WHERE contactid = ?',
+			array(
+				$pctVal,
+				$courseId !== '' ? (string) $courseId : null,
+				$email !== '' ? (string) $email : null,
+				$userIdEd !== '' ? (string) $userIdEd : null,
+				$contactId,
+			)
+		);
+	}
+
+	/** Edubit course IDs → ghi Thời gian tham gia PCTH (MQBB để sau). */
+	const EDUBIT_PCTH_COURSE_IDS = array('29218', '28108');
+
+	/**
+	 * Sau Cấp TK: Thời gian đăng ký = lúc bấm tạo TK.
+	 * Nếu khóa PCTH (29218 / 28108) → Thời gian tham gia PCTH = cùng mốc.
+	 * @param string $at Optional Y-m-d H:i:s (vd. createdtime khi backfill)
+	 */
+	public static function markEdubitProvisionTimes($contactId, $courseId = '', $at = null) {
+		$contactId = (int) $contactId;
+		if ($contactId <= 0) {
+			return;
+		}
+		self::ensureEventTimeColumns();
+		$adb = PearDatabase::getInstance();
+		$now = trim((string) $at);
+		if ($now === '' || strtotime($now) === false) {
+			$now = date('Y-m-d H:i:s');
+		} else {
+			$now = date('Y-m-d H:i:s', strtotime($now));
+		}
+		$exists = $adb->pquery(
+			'SELECT contactid, thoigian_dangky, thoigian_pcth FROM vtiger_contactscf WHERE contactid = ?',
+			array($contactId)
+		);
+		if (!$exists || $adb->num_rows($exists) < 1) {
+			$adb->pquery('INSERT INTO vtiger_contactscf (contactid) VALUES (?)', array($contactId));
+			$curDangky = '';
+			$curPcth = '';
+		} else {
+			$curDangky = trim((string) $adb->query_result($exists, 0, 'thoigian_dangky'));
+			$curPcth = trim((string) $adb->query_result($exists, 0, 'thoigian_pcth'));
+		}
+
+		// Thời gian đăng ký = lần cấp TK đầu (không ghi đè nếu đã có).
+		if ($curDangky === '' || $curDangky === '0000-00-00 00:00:00') {
+			$adb->pquery(
+				'UPDATE vtiger_contactscf SET thoigian_dangky = ? WHERE contactid = ?',
+				array($now, $contactId)
+			);
+		}
+
+		$cid = preg_replace('/\D+/', '', (string) $courseId);
+		if ($cid !== '' && in_array($cid, self::EDUBIT_PCTH_COURSE_IDS, true)) {
+			if ($curPcth === '' || $curPcth === '0000-00-00 00:00:00') {
+				$adb->pquery(
+					'UPDATE vtiger_contactscf SET thoigian_pcth = ? WHERE contactid = ?',
+					array($now, $contactId)
+				);
+			}
+		}
 	}
 
 	/**
@@ -667,9 +787,15 @@ class Contacts_ModernService {
 			),
 			'da_cap_tai_khoan' => self::normalizeCredentialPick(
 				self::decodeCredentialText(isset($row['da_cap_tai_khoan']) ? $row['da_cap_tai_khoan'] : ''),
-				array('Chưa cấp tài khoản', 'Đã cấp tài khoản'),
+				array('Chưa cấp tài khoản', 'Đã cấp', 'Đã cấp tài khoản'),
 				'Chưa cấp tài khoản'
 			),
+			'edubit_progress_pct' => isset($row['edubit_progress_pct']) && $row['edubit_progress_pct'] !== null && $row['edubit_progress_pct'] !== ''
+				? (int) $row['edubit_progress_pct']
+				: null,
+			'edubit_course_id' => isset($row['edubit_course_id']) ? trim((string) $row['edubit_course_id']) : '',
+			'edubit_email' => isset($row['edubit_email']) ? trim((string) $row['edubit_email']) : '',
+			'edubit_user_id' => isset($row['edubit_user_id']) ? trim((string) $row['edubit_user_id']) : '',
 			'notes' => decode_html(trim((string)(isset($row['description']) ? $row['description'] : ''))),
 		);
 	}

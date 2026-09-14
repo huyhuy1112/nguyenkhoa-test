@@ -11,6 +11,10 @@ class Leads_OnlineGd12Service {
 	const STATUS_CHUA_DK_TK = 'online_chua_dk_tk';
 	const STATUS_KHONG_DU_DK = 'online_khong_du_dk';
 	const STATUS_NGUNG_CSKH = 'online_ngung_cskh';
+	/** Đã cấp / kích hoạt khóa trên Edubit */
+	const STATUS_DANG_HOC = 'online_dang_hoc';
+	/** Đạt ≥80% tiến độ Edubit */
+	const STATUS_DAT_80 = 'online_dat_80';
 
 	/** Đường 1 OA / Đường 2 chuyển từ Offline 1.1 */
 	const PATH_OA = 'oa';
@@ -21,6 +25,8 @@ class Leads_OnlineGd12Service {
 		self::STATUS_CHUA_DK_TK,
 		self::STATUS_KHONG_DU_DK,
 		self::STATUS_NGUNG_CSKH,
+		self::STATUS_DANG_HOC,
+		self::STATUS_DAT_80,
 	);
 
 	/**
@@ -112,7 +118,14 @@ class Leads_OnlineGd12Service {
 		self::applyToLead($leadId, $result, '');
 		require_once 'modules/Leads/models/ModernService.php';
 		$lead = Leads_ModernService::getLead((string) $leadId, $userId);
-		return array('success' => true, 'result' => $result, 'lead' => $lead);
+
+		// GD 1.2: đủ ĐK → ở Lead để cấp TK Edubit; cấp xong mới xuống KH (không qua Opp).
+		$out = array('success' => true, 'result' => $result, 'lead' => $lead);
+		if (isset($result['eligibility_result']) && $result['eligibility_result'] === 'du_dk') {
+			$out['next'] = 'edubit_provision';
+			$out['message'] = 'Đủ điều kiện — chọn khóa và cấp TK Edubit trên Lead (không qua Opp).';
+		}
+		return $out;
 	}
 
 	/**
@@ -483,6 +496,13 @@ class Leads_OnlineGd12Service {
 			'online_last_remind_at' => "DATETIME DEFAULT NULL",
 			'online_path' => "VARCHAR(16) DEFAULT NULL",
 			'online_source_leadid' => "INT(11) DEFAULT NULL",
+			'edubit_user_id' => "VARCHAR(64) DEFAULT NULL",
+			'edubit_course_id' => "VARCHAR(32) DEFAULT NULL",
+			'edubit_email' => "VARCHAR(128) DEFAULT NULL",
+			'edubit_activated_at' => "DATETIME DEFAULT NULL",
+			'edubit_progress_pct' => "TINYINT(3) DEFAULT NULL",
+			'edubit_progress_at' => "DATETIME DEFAULT NULL",
+			'edubit_last_error' => "VARCHAR(255) DEFAULT NULL",
 		);
 		foreach ($cols as $name => $def) {
 			$res = $adb->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE ?", array($name));
@@ -919,6 +939,491 @@ class Leads_OnlineGd12Service {
 			return;
 		}
 		Vtiger_Cron::register($name, $handler, 3600, 'Leads', 1, 0, $desc);
+	}
+
+	/**
+	 * Catalog khóa Edubit cho UI (không có course_id mặc định).
+	 */
+	public static function edubitCoursesCatalog() {
+		try {
+			require_once 'modules/Vtiger/helpers/NkApiConnection.php';
+			$adapter = NkApiConnection::adapter('edubit');
+			return $adapter->listCoursesForUi();
+		} catch (Exception $e) {
+			require_once 'modules/Vtiger/helpers/NkApi/EdubitAdapter.php';
+			return NkApi_Edubit_Adapter::suggestedCourses();
+		}
+	}
+
+	/**
+	 * Cấp TK Edubit + kích hoạt khóa. Bắt buộc course_id (Sales chọn).
+	 * @param int $leadId
+	 * @param array $payload course_id (required), email?, name?, phone?, password?
+	 */
+	public static function provisionEdubitForLead($leadId, array $payload = array(), $userId = null) {
+		global $current_user;
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu lead id');
+		}
+		if ($userId === null && !empty($current_user->id)) {
+			$userId = (int) $current_user->id;
+		}
+		$courseId = isset($payload['course_id']) ? trim((string) $payload['course_id']) : '';
+		if ($courseId === '') {
+			return array('success' => false, 'error' => 'Phải chọn khóa học (course_id). Không có mặc định.');
+		}
+
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$lead = self::loadLeadContactFields($leadId);
+		if (empty($lead)) {
+			return array('success' => false, 'error' => 'Không tìm thấy Lead');
+		}
+
+		$name = isset($payload['name']) ? trim((string) $payload['name']) : $lead['name'];
+		$phone = isset($payload['phone']) ? trim((string) $payload['phone']) : $lead['phone'];
+		$email = '';
+		if (!empty($payload['email'])) {
+			$email = trim((string) $payload['email']);
+		}
+		if ($email === '' && !empty($lead['email'])) {
+			$email = trim((string) $lead['email']);
+		}
+		$password = isset($payload['password']) ? (string) $payload['password'] : '';
+
+		if ($name === '') {
+			return array('success' => false, 'error' => 'Thiếu họ tên học viên');
+		}
+		if ($phone === '') {
+			return array('success' => false, 'error' => 'Thiếu số điện thoại');
+		}
+		if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+			return array('success' => false, 'error' => 'Cần email hợp lệ để cấp TK Edubit (điền trên form cấp TK).');
+		}
+
+		require_once 'modules/Vtiger/helpers/NkApiConnection.php';
+		/** @var NkApi_Edubit_Adapter $adapter */
+		$adapter = NkApiConnection::adapter('edubit');
+
+		try {
+			$created = $adapter->createUser(array(
+				'name' => $name,
+				'phone' => $phone,
+				'email' => $email,
+				'password' => $password,
+			));
+			$activated = $adapter->activateCourse(array(
+				'name' => $name,
+				'phone' => $phone,
+				'email' => $email,
+				'password' => $password,
+				'course_id' => $courseId,
+			));
+		} catch (Exception $e) {
+			$adb->pquery(
+				'UPDATE bace_lead_profile SET edubit_last_error = ?, modified_at = ? WHERE leadid = ?',
+				array(mb_substr($e->getMessage(), 0, 250), date('Y-m-d H:i:s'), $leadId)
+			);
+			return array('success' => false, 'error' => $e->getMessage());
+		}
+
+		$userIdEd = isset($created['user_id']) ? (string) $created['user_id'] : '';
+		$now = date('Y-m-d H:i:s');
+		$adb->pquery(
+			'UPDATE bace_lead_profile SET
+				online_status = ?,
+				edubit_user_id = ?,
+				edubit_course_id = ?,
+				edubit_email = ?,
+				edubit_activated_at = ?,
+				edubit_progress_pct = COALESCE(edubit_progress_pct, 0),
+				edubit_last_error = NULL,
+				modified_at = ?
+			 WHERE leadid = ?',
+			array(self::STATUS_DANG_HOC, $userIdEd, $courseId, $email, $now, $now, $leadId)
+		);
+		self::syncStatusTagsOnly($leadId, array('zalo', 'mien_phi_online', self::STATUS_DANG_HOC));
+
+		$genPass = isset($created['password']) ? (string) $created['password'] : '';
+		$out = array(
+			'success' => true,
+			'status' => self::STATUS_DANG_HOC,
+			'status_label' => 'Online — Đang học',
+			'edubit_user_id' => $userIdEd,
+			'edubit_course_id' => $courseId,
+			'edubit_email' => $email,
+			'generated_password' => $genPass,
+			'create_status' => isset($created['status']) ? $created['status'] : '',
+			'activate_status' => isset($activated['status']) ? $activated['status'] : '',
+			'message' => $genPass !== ''
+				? ('Đã cấp TK Edubit. Mật khẩu tạm: ' . $genPass)
+				: 'Đã cấp TK / kích hoạt khóa Edubit.',
+			'courses' => self::edubitCoursesCatalog(),
+		);
+
+		// GD 1.2: cấp TK xong → thẳng Khách hàng (bỏ Opp).
+		$customer = self::promoteLeadToCustomerAfterEdubit($leadId, $out, $userId);
+		$out['customer'] = $customer;
+		if (!empty($customer['success'])) {
+			$out['message'] = (isset($out['message']) ? $out['message'] . ' ' : '')
+				. 'Đã chuyển xuống Khách hàng.';
+			$out['contact_id'] = isset($customer['contact_id']) ? $customer['contact_id'] : 0;
+			$out['list_url'] = 'index.php?module=Contacts&view=List&app=SALES';
+		} else {
+			$out['customer_error'] = isset($customer['error']) ? $customer['error'] : 'Chuyển KH thất bại';
+		}
+		return $out;
+	}
+
+	/**
+	 * Sau cấp TK trên Lead: tạo/gắn Contact, set Đã cấp, copy tiến độ — không tạo Opp.
+	 */
+	public static function promoteLeadToCustomerAfterEdubit($leadId, array $edubitMeta = array(), $userId = null) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu lead id');
+		}
+		try {
+			require_once 'modules/Leads/models/ConvertService.php';
+			$converted = Leads_ConvertService::convertLeadToContactOnly($leadId, array(
+				'assigned_user_id' => $userId,
+			));
+			$contactId = isset($converted['contactId']) ? (int) $converted['contactId'] : 0;
+			if ($contactId <= 0) {
+				return array('success' => false, 'error' => 'Không tạo được Khách hàng từ Lead.');
+			}
+
+			$pct = 0;
+			$courseId = isset($edubitMeta['edubit_course_id']) ? trim((string) $edubitMeta['edubit_course_id']) : '';
+			$emailEd = isset($edubitMeta['edubit_email']) ? trim((string) $edubitMeta['edubit_email']) : '';
+			$userEd = isset($edubitMeta['edubit_user_id']) ? trim((string) $edubitMeta['edubit_user_id']) : '';
+			$adb = PearDatabase::getInstance();
+			$pr = $adb->pquery(
+				'SELECT edubit_progress_pct, edubit_course_id, edubit_email, edubit_user_id
+				 FROM bace_lead_profile WHERE leadid = ?',
+				array($leadId)
+			);
+			if ($pr && $adb->num_rows($pr) > 0) {
+				$pct = (int) $adb->query_result($pr, 0, 'edubit_progress_pct');
+				if ($courseId === '') {
+					$courseId = trim((string) $adb->query_result($pr, 0, 'edubit_course_id'));
+				}
+				if ($emailEd === '') {
+					$emailEd = trim((string) $adb->query_result($pr, 0, 'edubit_email'));
+				}
+				if ($userEd === '') {
+					$userEd = trim((string) $adb->query_result($pr, 0, 'edubit_user_id'));
+				}
+			}
+
+			require_once 'modules/Contacts/models/ModernService.php';
+			Contacts_ModernService::ensureCredentialFields();
+			Contacts_ModernService::ensureEdubitProgressColumns();
+			Contacts_ModernService::saveCredentialFields($contactId, 'Chưa cấp', 'Đã cấp');
+			Contacts_ModernService::saveEdubitProgressOnContact($contactId, $pct, $courseId, $emailEd, $userEd);
+			Contacts_ModernService::markEdubitProvisionTimes($contactId, $courseId);
+			Leads_ConvertService::syncLeadProfileExtrasToContact($leadId, $contactId);
+
+			return array(
+				'success' => true,
+				'contact_id' => $contactId,
+				'list_url' => 'index.php?module=Contacts&view=List&app=SALES',
+			);
+		} catch (Exception $e) {
+			return array('success' => false, 'error' => $e->getMessage());
+		}
+	}
+
+	/**
+	 * Cấp TK Edubit từ Opp (map → lead), rồi auto chuyển xuống Khách hàng.
+	 * @deprecated GD 1.2 không còn qua Opp — giữ để tương thích cũ.
+	 */
+	public static function provisionEdubitForPotential($potentialId, array $payload = array(), $userId = null) {
+		$potentialId = (int) $potentialId;
+		if ($potentialId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu Opportunity id');
+		}
+		require_once 'modules/Leads/models/ConvertService.php';
+		$leadId = (int) Leads_ConvertService::getLinkedLeadIdByPotential($potentialId);
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'Opp chưa gắn Lead Online — không cấp được TK Edubit.');
+		}
+
+		// Prefill name/phone/email từ Contact Opp nếu payload thiếu.
+		if (empty($payload['email']) || empty($payload['name']) || empty($payload['phone'])) {
+			try {
+				$opp = Vtiger_Record_Model::getInstanceById($potentialId, 'Potentials');
+				$contactId = (int) $opp->get('contact_id');
+				if ($contactId > 0) {
+					$contact = Vtiger_Record_Model::getInstanceById($contactId, 'Contacts');
+					if (empty($payload['email'])) {
+						$em = trim((string) $contact->get('email'));
+						if ($em !== '') {
+							$payload['email'] = $em;
+						}
+					}
+					if (empty($payload['phone'])) {
+						$ph = trim((string) $contact->get('phone'));
+						if ($ph === '') {
+							$ph = trim((string) $contact->get('mobile'));
+						}
+						if ($ph !== '') {
+							$payload['phone'] = $ph;
+						}
+					}
+					if (empty($payload['name'])) {
+						$fn = trim((string) $contact->get('firstname'));
+						$ln = trim((string) $contact->get('lastname'));
+						$nm = trim($fn . ' ' . $ln);
+						if ($nm !== '') {
+							$payload['name'] = $nm;
+						}
+					}
+				}
+			} catch (Exception $e) {
+				// best-effort
+			}
+		}
+
+		$provisioned = self::provisionEdubitForLead($leadId, $payload, $userId);
+		if (empty($provisioned['success'])) {
+			return $provisioned;
+		}
+		// Nếu Opp còn tồn tại (lead cũ), đánh dấu đã xuống KH để ẩn khỏi list Opp.
+		try {
+			require_once 'modules/Potentials/models/ModernService.php';
+			$cid = isset($provisioned['contact_id']) ? (int) $provisioned['contact_id'] : 0;
+			if ($cid > 0) {
+				Potentials_ModernService::markConvertedToCustomer($potentialId, $cid);
+			}
+		} catch (Exception $e) {
+			// ignore
+		}
+		return $provisioned;
+	}
+
+	/**
+	 * Sau cấp TK (legacy Opp path): đánh dấu Opp → Customer.
+	 */
+	public static function promotePotentialToCustomerAfterEdubit($potentialId, $leadId, array $edubitMeta = array(), $userId = null) {
+		$potentialId = (int) $potentialId;
+		$leadId = (int) $leadId;
+		if ($potentialId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu Opp id');
+		}
+		try {
+			$opp = Vtiger_Record_Model::getInstanceById($potentialId, 'Potentials');
+			$contactId = (int) $opp->get('contact_id');
+			if ($contactId <= 0) {
+				$adb = PearDatabase::getInstance();
+				$res = $adb->pquery(
+					'SELECT contactid FROM vtiger_contpotentialrel WHERE potentialid=? ORDER BY contactid DESC LIMIT 1',
+					array($potentialId)
+				);
+				if ($res && $adb->num_rows($res) > 0) {
+					$contactId = (int) $adb->query_result($res, 0, 'contactid');
+				}
+			}
+			if ($contactId <= 0) {
+				return array('success' => false, 'error' => 'Opp chưa có Contact — convert Lead trước.');
+			}
+
+			require_once 'modules/Potentials/models/ModernService.php';
+			Potentials_ModernService::markConvertedToCustomer($potentialId, $contactId);
+
+			$pct = 0;
+			$courseId = isset($edubitMeta['edubit_course_id']) ? trim((string) $edubitMeta['edubit_course_id']) : '';
+			$emailEd = isset($edubitMeta['edubit_email']) ? trim((string) $edubitMeta['edubit_email']) : '';
+			$userEd = isset($edubitMeta['edubit_user_id']) ? trim((string) $edubitMeta['edubit_user_id']) : '';
+			if ($leadId > 0) {
+				$adb = PearDatabase::getInstance();
+				$pr = $adb->pquery(
+					'SELECT edubit_progress_pct, edubit_course_id, edubit_email, edubit_user_id
+					 FROM bace_lead_profile WHERE leadid = ?',
+					array($leadId)
+				);
+				if ($pr && $adb->num_rows($pr) > 0) {
+					$pct = (int) $adb->query_result($pr, 0, 'edubit_progress_pct');
+					if ($courseId === '') {
+						$courseId = trim((string) $adb->query_result($pr, 0, 'edubit_course_id'));
+					}
+					if ($emailEd === '') {
+						$emailEd = trim((string) $adb->query_result($pr, 0, 'edubit_email'));
+					}
+					if ($userEd === '') {
+						$userEd = trim((string) $adb->query_result($pr, 0, 'edubit_user_id'));
+					}
+				}
+			}
+
+			require_once 'modules/Contacts/models/ModernService.php';
+			Contacts_ModernService::ensureCredentialFields();
+			Contacts_ModernService::ensureEdubitProgressColumns();
+			Contacts_ModernService::saveCredentialFields($contactId, 'Chưa cấp', 'Đã cấp');
+			Contacts_ModernService::saveEdubitProgressOnContact($contactId, $pct, $courseId, $emailEd, $userEd);
+			Contacts_ModernService::markEdubitProvisionTimes($contactId, $courseId);
+
+			try {
+				require_once 'modules/Leads/models/ConvertService.php';
+				Leads_ConvertService::syncContactTagsFromPotentials($contactId);
+			} catch (Exception $e) {
+				// ignore
+			}
+
+			return array(
+				'success' => true,
+				'contact_id' => $contactId,
+				'potential_id' => $potentialId,
+				'list_url' => 'index.php?module=Contacts&view=List&app=SALES',
+			);
+		} catch (Exception $e) {
+			return array('success' => false, 'error' => $e->getMessage());
+		}
+	}
+
+	/**
+	 * Đồng bộ tiến độ học Edubit cho lead đã gắn course_id + email.
+	 */
+	public static function syncEdubitProgressForLead($leadId, $userId = null) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu lead id');
+		}
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT edubit_email, edubit_course_id, edubit_progress_pct, online_status
+			 FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return array('success' => false, 'error' => 'Chưa có hồ sơ Online');
+		}
+		$email = trim((string) $adb->query_result($res, 0, 'edubit_email'));
+		$courseId = trim((string) $adb->query_result($res, 0, 'edubit_course_id'));
+		if ($email === '' || $courseId === '') {
+			return array('success' => false, 'error' => 'Lead chưa gắn email / course_id Edubit. Cấp TK trước.');
+		}
+
+		require_once 'modules/Vtiger/helpers/NkApiConnection.php';
+		$adapter = NkApiConnection::adapter('edubit');
+		try {
+			$prog = $adapter->getProcessLearnStudent($email, $courseId, 2);
+		} catch (Exception $e) {
+			$adb->pquery(
+				'UPDATE bace_lead_profile SET edubit_last_error = ?, modified_at = ? WHERE leadid = ?',
+				array(mb_substr($e->getMessage(), 0, 250), date('Y-m-d H:i:s'), $leadId)
+			);
+			return array('success' => false, 'error' => $e->getMessage());
+		}
+
+		$pct = isset($prog['progress_pct']) && $prog['progress_pct'] !== null
+			? (int) $prog['progress_pct']
+			: null;
+		$now = date('Y-m-d H:i:s');
+		$status = self::STATUS_DANG_HOC;
+		if ($pct !== null && $pct >= 80) {
+			$status = self::STATUS_DAT_80;
+		}
+		$adb->pquery(
+			'UPDATE bace_lead_profile SET
+				edubit_progress_pct = ?,
+				edubit_progress_at = ?,
+				online_status = ?,
+				edubit_last_error = NULL,
+				modified_at = ?
+			 WHERE leadid = ?',
+			array($pct, $now, $status, $now, $leadId)
+		);
+		self::syncStatusTagsOnly($leadId, array('zalo', 'mien_phi_online', $status));
+
+		// Đồng bộ % lên Contact nếu đã xuống KH.
+		try {
+			require_once 'modules/Leads/models/ConvertService.php';
+			require_once 'modules/Contacts/models/ModernService.php';
+			$contactId = (int) Leads_ConvertService::getLinkedContactId($leadId, true);
+			if ($contactId <= 0) {
+				$potentialId = (int) Leads_ConvertService::getLinkedPotentialId($leadId);
+				if ($potentialId > 0) {
+					$opp = Vtiger_Record_Model::getInstanceById($potentialId, 'Potentials');
+					$contactId = (int) $opp->get('contact_id');
+					if ($contactId <= 0) {
+						$adb2 = PearDatabase::getInstance();
+						$pr = $adb2->pquery(
+							'SELECT contact_customer_id FROM bace_potential_profile WHERE potentialid = ?',
+							array($potentialId)
+						);
+						if ($pr && $adb2->num_rows($pr) > 0) {
+							$contactId = (int) $adb2->query_result($pr, 0, 'contact_customer_id');
+						}
+					}
+				}
+			}
+			if ($contactId > 0) {
+				$userEd = '';
+				$ur = $adb->pquery('SELECT edubit_user_id FROM bace_lead_profile WHERE leadid = ?', array($leadId));
+				if ($ur && $adb->num_rows($ur) > 0) {
+					$userEd = trim((string) $adb->query_result($ur, 0, 'edubit_user_id'));
+				}
+				Contacts_ModernService::saveEdubitProgressOnContact(
+					$contactId,
+					$pct === null ? 0 : $pct,
+					$courseId,
+					$email,
+					$userEd
+				);
+				$createdAt = '';
+				$cr = $adb->pquery(
+					'SELECT createdtime FROM vtiger_crmentity WHERE crmid = ? AND deleted = 0',
+					array($contactId)
+				);
+				if ($cr && $adb->num_rows($cr) > 0) {
+					$createdAt = trim((string) $adb->query_result($cr, 0, 'createdtime'));
+				}
+				Contacts_ModernService::markEdubitProvisionTimes($contactId, $courseId, $createdAt);
+				Leads_ConvertService::syncLeadProfileExtrasToContact($leadId, $contactId);
+			}
+		} catch (Exception $e) {
+			// best-effort
+		}
+
+		return array(
+			'success' => true,
+			'status' => $status,
+			'status_label' => $status === self::STATUS_DAT_80 ? 'Online — Đạt 80%' : 'Online — Đang học',
+			'progress_pct' => $pct,
+			'edubit_course_id' => $courseId,
+			'edubit_email' => $email,
+			'message' => $pct !== null ? ('Tiến độ: ' . $pct . '%') : 'Đã sync tiến độ (chưa parse được %).',
+			'raw_data' => isset($prog['data']) ? $prog['data'] : null,
+		);
+	}
+
+	protected static function loadLeadContactFields($leadId) {
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			"SELECT ld.firstname, ld.lastname, ld.email, la.phone
+			 FROM vtiger_leaddetails ld
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ld.leadid AND ce.deleted = 0
+			 LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = ld.leadid
+			 WHERE ld.leadid = ?",
+			array((int) $leadId)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return null;
+		}
+		$fn = trim((string) $adb->query_result($res, 0, 'firstname'));
+		$ln = trim((string) $adb->query_result($res, 0, 'lastname'));
+		$name = trim($fn . ' ' . $ln);
+		if ($name === '') {
+			$name = $ln !== '' ? $ln : $fn;
+		}
+		return array(
+			'name' => $name,
+			'email' => trim((string) $adb->query_result($res, 0, 'email')),
+			'phone' => trim((string) $adb->query_result($res, 0, 'phone')),
+		);
 	}
 
 	/**

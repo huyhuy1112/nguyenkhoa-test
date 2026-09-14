@@ -138,7 +138,7 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 					'da_cap_bang' => 'Chưa cấp',
 					'da_cap_tai_khoan' => 'Chưa cấp tài khoản',
 					'bang_options' => array('Chưa cấp', 'Đã cấp'),
-					'tk_options' => array('Chưa cấp tài khoản', 'Đã cấp tài khoản'),
+					'tk_options' => array('Chưa cấp tài khoản', 'Đã cấp'),
 				));
 				$viewer->assign('MK_CONTACT_CCCD', '');
 			}
