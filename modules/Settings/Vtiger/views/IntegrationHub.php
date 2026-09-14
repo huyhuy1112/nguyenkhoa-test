@@ -43,11 +43,10 @@ class Settings_Vtiger_IntegrationHub_View extends Settings_Vtiger_Index_View
 	{
 		$headerScriptInstances = parent::getHeaderScripts($request);
 		$jsFileNames = array(
-			'~layouts/v7/modules/Settings/Vtiger/resources/IntegrationHub.mock.js',
 			'~layouts/v7/modules/Settings/Vtiger/resources/IntegrationHub.js',
 		);
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
-		self::appendAssetCacheVer($jsScriptInstances, 'src', '20260817_hub8');
+		self::appendAssetCacheVer($jsScriptInstances, 'src', '20260914_hub_toggle1');
 		return array_merge($headerScriptInstances, $jsScriptInstances);
 	}
 
@@ -58,7 +57,7 @@ class Settings_Vtiger_IntegrationHub_View extends Settings_Vtiger_Index_View
 			'~layouts/v7/modules/Settings/Vtiger/resources/IntegrationHub.css',
 		);
 		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
-		self::appendAssetCacheVer($cssInstances, 'href', '20260817_hub8');
+		self::appendAssetCacheVer($cssInstances, 'href', '20260914_hub_toggle1');
 		return array_merge($headerCssInstances, $cssInstances);
 	}
 }

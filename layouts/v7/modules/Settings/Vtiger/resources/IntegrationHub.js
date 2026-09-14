@@ -534,6 +534,14 @@ Vtiger.Class('Settings_Vtiger_IntegrationHub_Js', {}, {
 					return;
 				}
 				var payload = res && res.result ? res.result : res;
+				if (!payload || payload.success === false) {
+					deferred.reject(
+						(payload && (payload.error || payload.message)) ||
+							(res && (res.error || res.message)) ||
+							'Không lưu được trạng thái.'
+					);
+					return;
+				}
 				deferred.resolve(payload);
 			});
 		} else {
@@ -545,10 +553,18 @@ Vtiger.Class('Settings_Vtiger_IntegrationHub_Js', {}, {
 			})
 				.done(function (res) {
 					var payload = res && res.result ? res.result : res;
+					if (!payload || payload.success === false) {
+						deferred.reject(
+							(payload && (payload.error || payload.message)) ||
+								(res && (res.error || res.message)) ||
+								'Không lưu được trạng thái.'
+						);
+						return;
+					}
 					deferred.resolve(payload);
 				})
 				.fail(function () {
-					deferred.reject();
+					deferred.reject('Không lưu được trạng thái.');
 				});
 		}
 		return deferred.promise();
@@ -675,7 +691,7 @@ Vtiger.Class('Settings_Vtiger_IntegrationHub_Js', {}, {
 			self.saveConnectionEnabled(conn.code, nextEnabled)
 				.done(function (result) {
 					$toggle.prop('disabled', false);
-					if (!result || !result.success) {
+					if (!result || result.success === false) {
 						$toggle.prop('checked', prevEnabled);
 						self.notify('Không lưu được trạng thái.', true);
 						return;
@@ -702,10 +718,14 @@ Vtiger.Class('Settings_Vtiger_IntegrationHub_Js', {}, {
 						false
 					);
 				})
-				.fail(function () {
+				.fail(function (err) {
 					$toggle.prop('disabled', false);
 					$toggle.prop('checked', prevEnabled);
-					self.notify('Lỗi kết nối server.', true);
+					var msg =
+						(err && (err.message || err.error)) ||
+						(typeof err === 'string' ? err : '') ||
+						'Không lưu được trạng thái.';
+					self.notify(String(msg), true);
 				});
 		});
 

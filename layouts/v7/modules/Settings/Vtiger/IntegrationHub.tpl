@@ -100,7 +100,7 @@
 								<span class="nk-hub-badge nk-hub-badge--inactive" data-role="detail-badge">—</span>
 							</div>
 						</div>
-						<label class="nk-hub-toggle" title="Bật/tắt kết nối (demo UI)">
+						<label class="nk-hub-toggle" title="Bật/tắt kết nối">
 							<input type="checkbox" data-role="detail-enabled" />
 							<span class="nk-hub-toggle__track"><span class="nk-hub-toggle__thumb"></span></span>
 						</label>
