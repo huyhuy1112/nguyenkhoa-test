@@ -17,7 +17,7 @@ body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"][data-app="I
 
 html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table thead tr.listViewContentHeader,
 body.mk-ps-list-v2[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table thead tr.listViewContentHeader {
-	background: linear-gradient(180deg, #f7faf8 0%, #eef5f0 100%) !important;
+	background: linear-gradient(180deg, #313231 0%, #eef5f0 100%) !important;
 }
 
 html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"] #listViewContent #listview-table thead tr.listViewContentHeader th,

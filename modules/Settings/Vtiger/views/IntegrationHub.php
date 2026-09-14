@@ -5,13 +5,19 @@
 
 require_once 'modules/Vtiger/helpers/NkApiConnection.php';
 
-class Settings_Vtiger_IntegrationHub_View extends Settings_Vtiger_Index_View {
+class Settings_Vtiger_IntegrationHub_View extends Settings_Vtiger_Index_View
+{
 
-	public function process(Vtiger_Request $request) {
+	public function process(Vtiger_Request $request)
+	{
 		NkApiConnection::ensureInstalled();
 		$qualifiedName = $request->getModule(false);
+		$crmModules = array();
+		$moduleModel = Vtiger_Module_Model::getInstance('Leads');
 		$viewer = $this->getViewer($request);
+
 		$viewer->assign('HUB_SUMMARY', NkApiConnection::hubSummary());
+		$viewer->assign('HUB_ACTIVITY', NkApiConnection::recentActivity(8));
 		$connections = NkApiConnection::catalogForHub();
 		$viewer->assign('HUB_CONNECTIONS', $connections);
 		$viewer->assign('HUB_DEFAULT_CONNECTION', !empty($connections[0]) ? $connections[0] : array());
@@ -20,17 +26,21 @@ class Settings_Vtiger_IntegrationHub_View extends Settings_Vtiger_Index_View {
 			json_encode($connections, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP)
 		);
 		$viewer->assign('HUB_ACTIVITY', NkApiConnection::recentActivity(8));
+		$viewer->assign('HUB_CRM_MODULES', json_encode($crmModules));
+		$viewer->assign('HUB_PIPELINE', NkApiConnection::pipelineData());
 		$viewer->assign('LEGACY_INTEGRATIONS_URL', NkApiConnection::MENU_LINK);
 		$viewer->assign('QUALIFIED_MODULE', $qualifiedName);
 		$viewer->assign('CURRENT_USER_MODEL', Users_Record_Model::getCurrentUserModel());
 		$viewer->view('IntegrationHub.tpl', $qualifiedName);
 	}
 
-	function getPageTitle(Vtiger_Request $request) {
+	function getPageTitle(Vtiger_Request $request)
+	{
 		return vtranslate('LBL_NK_INTEGRATION_HUB', $request->getModule(false));
 	}
 
-	function getHeaderScripts(Vtiger_Request $request) {
+	function getHeaderScripts(Vtiger_Request $request)
+	{
 		$headerScriptInstances = parent::getHeaderScripts($request);
 		$jsFileNames = array(
 			'~layouts/v7/modules/Settings/Vtiger/resources/IntegrationHub.mock.js',
@@ -41,7 +51,8 @@ class Settings_Vtiger_IntegrationHub_View extends Settings_Vtiger_Index_View {
 		return array_merge($headerScriptInstances, $jsScriptInstances);
 	}
 
-	public function getHeaderCss(Vtiger_Request $request) {
+	public function getHeaderCss(Vtiger_Request $request)
+	{
 		$headerCssInstances = parent::getHeaderCss($request);
 		$cssFileNames = array(
 			'~layouts/v7/modules/Settings/Vtiger/resources/IntegrationHub.css',

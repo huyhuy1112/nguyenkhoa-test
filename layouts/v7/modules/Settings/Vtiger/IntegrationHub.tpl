@@ -207,5 +207,8 @@
 	</div>
 
 	<script type="application/json" id="nk-hub-connections-json">{$HUB_CONNECTIONS_JSON nofilter}</script>
+	<script type="application/json" id="nk-hub-activity-json">{$HUB_ACTIVITY|json_encode nofilter}</script>
+	<script type="application/json" id="nk-hub-pipeline-json">{$HUB_PIPELINE|json_encode nofilter}</script>
+	<script type="application/json" id="nk-hub-crm-json">{$HUB_CRM_MODULES nofilter}</script>
 </div>
 {/strip}

@@ -28,9 +28,30 @@
 
       // Poll for new unread notifications every 3 seconds
       this.intervalId = setInterval(function () {
-        // Always render combined list; badge is driven by unreadCount
+        // Skip if tab is hidden to save resources
+        if (document.hidden) {
+          return;
+        }
         ModernNotifications.loadAllNotifications();
-      }, 3000);
+      }, 60000);
+
+      // Pause polling when tab hidden, resume when visible
+      jQuery(document).on("visibilitychange", function () {
+        if (document.hidden) {
+          if (ModernNotifications.intervalId) {
+            clearInterval(ModernNotifications.intervalId);
+            ModernNotifications.intervalId = null;
+          }
+        } else {
+          if (!ModernNotifications.intervalId) {
+            ModernNotifications.loadAllNotifications();
+            ModernNotifications.intervalId = setInterval(function () {
+              if (document.hidden) return;
+              ModernNotifications.loadAllNotifications();
+            }, 60000);
+          }
+        }
+      });
 
       // Hide legacy tabs UI (single list only)
       jQuery("#modern-notifications-tab-unread, #modern-notifications-tab-read")
