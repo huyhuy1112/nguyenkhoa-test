@@ -254,7 +254,7 @@ class NkApi_Edubit_Adapter extends NkApi_Adapter {
 	/**
 	 * @param string $email
 	 * @param string $courseId
-	 * @param int $version 1|2
+	 * @param int $version 1|2 — mặc định thử 2 rồi fallback 1 nếu chưa parse được %
 	 */
 	public function getProcessLearnStudent($email, $courseId, $version = 2) {
 		$email = trim((string) $email);
@@ -262,24 +262,65 @@ class NkApi_Edubit_Adapter extends NkApi_Adapter {
 		if ($email === '' || $courseId === '') {
 			throw new Exception('getProcessLearnStudent cần email và course_id.');
 		}
-		$res = $this->apiGet('getProcessLearnStudent', array(
-			'email' => $email,
-			'course_id' => $courseId,
-			'version' => (string) ((int) $version > 0 ? (int) $version : 2),
-		));
-		$status = isset($res['status']) ? strtoupper((string) $res['status']) : '';
-		if ($status !== 'OK') {
-			throw new Exception(self::formatApiError($res, 'Edubit progress'));
+		$prefer = (int) $version > 0 ? (int) $version : 2;
+		$order = ($prefer === 1) ? array(1, 2) : array(2, 1);
+		$lastRes = null;
+		$lastPct = null;
+		$usedVersion = $prefer;
+		foreach ($order as $ver) {
+			$res = $this->apiGet('getProcessLearnStudent', array(
+				'email' => $email,
+				'course_id' => $courseId,
+				'version' => (string) $ver,
+			));
+			$lastRes = $res;
+			$status = isset($res['status']) ? strtoupper((string) $res['status']) : '';
+			if ($status !== 'OK') {
+				throw new Exception(self::formatApiError($res, 'Edubit progress'));
+			}
+			$totalHint = $this->courseTotalLessonsHint($courseId);
+			$pct = self::extractProgressPercent(isset($res['data']) ? $res['data'] : null, $totalHint);
+			if ($pct === null) {
+				$pct = self::extractProgressPercent($res, $totalHint);
+			}
+			$lastPct = $pct;
+			$usedVersion = $ver;
+			if ($pct !== null) {
+				break;
+			}
 		}
-		$pct = self::extractProgressPercent(isset($res['data']) ? $res['data'] : null);
 		return array(
 			'success' => true,
-			'status' => $status,
-			'message' => self::formatApiMessage(isset($res['message']) ? $res['message'] : ''),
-			'progress_pct' => $pct,
-			'data' => isset($res['data']) ? $res['data'] : null,
-			'raw' => $res,
+			'status' => isset($lastRes['status']) ? strtoupper((string) $lastRes['status']) : 'OK',
+			'message' => self::formatApiMessage(isset($lastRes['message']) ? $lastRes['message'] : ''),
+			'progress_pct' => $lastPct,
+			'version_used' => $usedVersion,
+			'data' => isset($lastRes['data']) ? $lastRes['data'] : null,
+			'raw' => $lastRes,
 		);
+	}
+
+	/**
+	 * total_lessons gợi ý từ catalog cấu hình (để tính % khi API chỉ trả bài đã xong).
+	 * @param string $courseId
+	 * @return int|null
+	 */
+	protected function courseTotalLessonsHint($courseId) {
+		$courseId = trim((string) $courseId);
+		if ($courseId === '') {
+			return null;
+		}
+		foreach ($this->listCoursesForUi() as $c) {
+			if (!is_array($c) || !isset($c['id']) || (string) $c['id'] !== $courseId) {
+				continue;
+			}
+			foreach (array('total_lessons', 'lesson_total', 'total') as $k) {
+				if (isset($c[$k]) && is_numeric($c[$k]) && (int) $c[$k] > 0) {
+					return (int) $c[$k];
+				}
+			}
+		}
+		return null;
 	}
 
 	public function listCoursesForUi() {
@@ -301,7 +342,14 @@ class NkApi_Edubit_Adapter extends NkApi_Adapter {
 				continue;
 			}
 			$label = isset($item['label']) ? trim((string) $item['label']) : (isset($item['name']) ? trim((string) $item['name']) : $id);
-			$list[] = array('id' => $id, 'label' => $label !== '' ? $label : $id);
+			$row = array('id' => $id, 'label' => $label !== '' ? $label : $id);
+			foreach (array('total_lessons', 'lesson_total', 'total') as $tk) {
+				if (isset($item[$tk]) && is_numeric($item[$tk]) && (int) $item[$tk] > 0) {
+					$row['total_lessons'] = (int) $item[$tk];
+					break;
+				}
+			}
+			$list[] = $row;
 		}
 		return !empty($list) ? $list : self::suggestedCourses();
 	}
@@ -383,47 +431,285 @@ class NkApi_Edubit_Adapter extends NkApi_Adapter {
 
 	/**
 	 * Best-effort % từ payload Edubit (cấu trúc data thay đổi theo version).
+	 * Docs: v1 = bài cuối; v2 = danh sách bài đã hoàn thành (thường không có flag completed).
+	 *
 	 * @param mixed $data
+	 * @param int|null $totalLessonsHint tổng bài khóa (khi API chỉ trả bài đã xong)
 	 * @return int|null 0–100
 	 */
-	public static function extractProgressPercent($data) {
-		if ($data === null) {
-			return null;
+	public static function extractProgressPercent($data, $totalLessonsHint = null) {
+		$hint = ($totalLessonsHint !== null && (int) $totalLessonsHint > 0) ? (int) $totalLessonsHint : null;
+		if (is_string($data)) {
+			$trim = trim($data);
+			if ($trim !== '' && ($trim[0] === '{' || $trim[0] === '[')) {
+				$decoded = json_decode($trim, true);
+				if (is_array($decoded)) {
+					$data = $decoded;
+				}
+			}
 		}
-		if (is_numeric($data)) {
-			return max(0, min(100, (int) round((float) $data)));
+		$direct = self::coercePercentValue($data);
+		if ($direct !== null) {
+			return $direct;
 		}
 		if (!is_array($data)) {
 			return null;
 		}
-		foreach (array('progress', 'percent', 'percentage', 'process', 'completion', 'complete_percent', 'progress_percent') as $k) {
+
+		// Ưu tiên field % tường minh (kể cả nested nông).
+		$pctKeys = array(
+			'progress_percent', 'progressPercent', 'complete_percent', 'completePercent',
+			'percent', 'percentage', 'progress', 'process', 'completion', 'tiendo', 'tien_do',
+			'phan_tram', 'phantram', 'process_percent', 'processPercent', 'learning_progress',
+			'percent_complete', 'pct', 'ratio',
+		);
+		foreach ($pctKeys as $k) {
+			if (!array_key_exists($k, $data)) {
+				continue;
+			}
+			$v = self::coercePercentValue($data[$k]);
+			if ($v !== null) {
+				return $v;
+			}
+			// "12/40" hoặc "12 / 40 bài"
+			$ratio = self::parseDoneTotalRatio($data[$k]);
+			if ($ratio !== null) {
+				return $ratio;
+			}
+		}
+
+		// Cặp completed/total
+		$doneKeys = array(
+			'completed_lessons', 'complete_lessons', 'completedLessons', 'lesson_completed',
+			'count_completed', 'so_bai_hoan_thanh', 'completed', 'finish_lesson', 'finish_lessons',
+			'complete_lesson', 'learned_lessons',
+		);
+		$totalKeys = array(
+			'total_lessons', 'totalLessons', 'lesson_total', 'count_lesson', 'count_lessons',
+			'total_lesson', 'so_bai', 'tong_bai', 'total', 'lessons_total',
+		);
+		$done = null;
+		$total = null;
+		foreach ($doneKeys as $k) {
 			if (isset($data[$k]) && is_numeric($data[$k])) {
-				$v = (float) $data[$k];
-				if ($v <= 1 && $v >= 0) {
-					$v = $v * 100;
-				}
-				return max(0, min(100, (int) round($v)));
+				$done = (int) $data[$k];
+				break;
 			}
 		}
-		// version 2: list bài đã hoàn thành / tổng
-		if (isset($data['lessons']) && is_array($data['lessons'])) {
-			$total = count($data['lessons']);
-			$done = 0;
-			foreach ($data['lessons'] as $lesson) {
-				if (!is_array($lesson)) {
-					continue;
-				}
-				if (!empty($lesson['completed']) || !empty($lesson['is_completed']) || (isset($lesson['status']) && $lesson['status'] === 'completed')) {
-					$done++;
-				}
-			}
-			if ($total > 0) {
-				return (int) round(($done / $total) * 100);
+		foreach ($totalKeys as $k) {
+			if (isset($data[$k]) && is_numeric($data[$k]) && (int) $data[$k] > 0) {
+				$total = (int) $data[$k];
+				break;
 			}
 		}
-		if (isset($data['completed_lessons']) && isset($data['total_lessons']) && (int) $data['total_lessons'] > 0) {
-			return (int) round(((int) $data['completed_lessons'] / (int) $data['total_lessons']) * 100);
+		if ($done !== null && $total !== null && $total > 0) {
+			return max(0, min(100, (int) round(($done / $total) * 100)));
 		}
+		if ($done !== null && $hint !== null) {
+			return max(0, min(100, (int) round(($done / $hint) * 100)));
+		}
+
+		// List bài: key lessons / list / items / data; hoặc chính data là list (v2).
+		$lists = array();
+		foreach (array('lessons', 'lesson', 'list', 'items', 'processes', 'process_list', 'process', 'data', 'result') as $lk) {
+			if (isset($data[$lk]) && is_array($data[$lk]) && self::isListArray($data[$lk])) {
+				$lists[] = $data[$lk];
+			}
+		}
+		if (self::isListArray($data)) {
+			$lists[] = $data;
+		}
+		foreach ($lists as $list) {
+			$fromList = self::percentFromLessonList($list, $hint, $total);
+			if ($fromList !== null) {
+				return $fromList;
+			}
+		}
+
+		// Deep scan 1 tầng object con (tránh đệ quy vô hạn).
+		foreach ($data as $child) {
+			if (!is_array($child) || self::isListArray($child)) {
+				continue;
+			}
+			$nested = self::extractProgressPercent($child, $hint);
+			if ($nested !== null) {
+				return $nested;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * @param mixed $value
+	 * @return int|null
+	 */
+	protected static function coercePercentValue($value) {
+		if ($value === null || $value === '' || is_bool($value) || is_array($value)) {
+			return null;
+		}
+		if (is_numeric($value)) {
+			$v = (float) $value;
+			// 0–1 thường là tỉ lệ; >1 và ≤100 là %
+			if ($v >= 0 && $v <= 1) {
+				$v = $v * 100;
+			}
+			if ($v < 0 || $v > 100) {
+				return null;
+			}
+			return (int) round($v);
+		}
+		if (!is_string($value)) {
+			return null;
+		}
+		$s = trim($value);
+		if ($s === '') {
+			return null;
+		}
+		if (preg_match('/^\s*(\d+(?:[.,]\d+)?)\s*%\s*$/', $s, $m)) {
+			return max(0, min(100, (int) round((float) str_replace(',', '.', $m[1]))));
+		}
+		if (preg_match('/^\s*(\d+(?:[.,]\d+)?)\s*$/', $s, $m)) {
+			return self::coercePercentValue((float) str_replace(',', '.', $m[1]));
+		}
+		return null;
+	}
+
+	/**
+	 * @param mixed $value
+	 * @return int|null
+	 */
+	protected static function parseDoneTotalRatio($value) {
+		if (!is_string($value) && !is_numeric($value)) {
+			return null;
+		}
+		$s = trim((string) $value);
+		if (!preg_match('/(\d+)\s*\/\s*(\d+)/', $s, $m)) {
+			return null;
+		}
+		$done = (int) $m[1];
+		$total = (int) $m[2];
+		if ($total <= 0) {
+			return null;
+		}
+		return max(0, min(100, (int) round(($done / $total) * 100)));
+	}
+
+	/**
+	 * @param array $arr
+	 * @return bool
+	 */
+	protected static function isListArray(array $arr) {
+		if ($arr === array()) {
+			return true;
+		}
+		if (function_exists('array_is_list')) {
+			return array_is_list($arr);
+		}
+		$i = 0;
+		foreach ($arr as $k => $_) {
+			if ($k !== $i) {
+				return false;
+			}
+			$i++;
+		}
+		return true;
+	}
+
+	/**
+	 * @param array $list
+	 * @param int|null $hint
+	 * @param int|null $totalFromParent
+	 * @return int|null
+	 */
+	protected static function percentFromLessonList(array $list, $hint = null, $totalFromParent = null) {
+		if (empty($list)) {
+			return 0;
+		}
+		$hasCompletionFlag = false;
+		$done = 0;
+		$pctSum = 0;
+		$pctCount = 0;
+		$maxOrder = 0;
+		$orderTotal = null;
+		foreach ($list as $lesson) {
+			if (!is_array($lesson)) {
+				// list id thuần → coi như bài đã hoàn thành (đúng docs v2)
+				$done++;
+				continue;
+			}
+			$lp = null;
+			foreach (array('progress_percent', 'progressPercent', 'percent', 'percentage', 'progress', 'process') as $k) {
+				if (array_key_exists($k, $lesson)) {
+					$lp = self::coercePercentValue($lesson[$k]);
+					if ($lp !== null) {
+						break;
+					}
+				}
+			}
+			if ($lp !== null) {
+				$pctSum += $lp;
+				$pctCount++;
+			}
+			foreach (array('total_lessons', 'totalLessons', 'lesson_total', 'total', 'tong_bai') as $tk) {
+				if (isset($lesson[$tk]) && is_numeric($lesson[$tk]) && (int) $lesson[$tk] > 0) {
+					$orderTotal = (int) $lesson[$tk];
+					break;
+				}
+			}
+			foreach (array('order', 'stt', 'index', 'position', 'sort', 'lesson_index', 'number', 'no') as $ok) {
+				if (isset($lesson[$ok]) && is_numeric($lesson[$ok])) {
+					$maxOrder = max($maxOrder, (int) $lesson[$ok]);
+				}
+			}
+			$completed = null;
+			if (array_key_exists('completed', $lesson) || array_key_exists('is_completed', $lesson)
+				|| array_key_exists('isCompleted', $lesson) || array_key_exists('finish', $lesson)
+				|| array_key_exists('status', $lesson) || array_key_exists('state', $lesson)) {
+				$hasCompletionFlag = true;
+				$st = isset($lesson['status']) ? strtolower(trim((string) $lesson['status'])) : '';
+				$state = isset($lesson['state']) ? strtolower(trim((string) $lesson['state'])) : '';
+				$completed = !empty($lesson['completed']) || !empty($lesson['is_completed']) || !empty($lesson['isCompleted'])
+					|| !empty($lesson['finish'])
+					|| in_array($st, array('completed', 'complete', 'done', 'finished', '1', 'true'), true)
+					|| in_array($state, array('completed', 'complete', 'done', 'finished'), true)
+					|| ($lp !== null && $lp >= 100);
+			}
+			if ($completed === true) {
+				$done++;
+			} elseif ($completed === null) {
+				// Không có flag: theo docs v2, phần tử trong list = đã hoàn thành
+				$done++;
+			}
+		}
+
+		$total = $totalFromParent !== null && $totalFromParent > 0 ? (int) $totalFromParent : null;
+		if ($total === null && $orderTotal !== null && $orderTotal > 0) {
+			$total = $orderTotal;
+		}
+		if ($total === null && $hint !== null && $hint > 0) {
+			$total = (int) $hint;
+		}
+
+		if ($hasCompletionFlag) {
+			// List đủ bài (có/không hoàn thành)
+			$n = count($list);
+			if ($n > 0) {
+				return max(0, min(100, (int) round(($done / $n) * 100)));
+			}
+		}
+
+		// List chỉ bài đã xong — cần tổng khóa
+		if ($total !== null && $total > 0) {
+			$numer = $maxOrder > 0 ? $maxOrder : $done;
+			return max(0, min(100, (int) round(($numer / $total) * 100)));
+		}
+
+		// Có % từng bài → trung bình
+		if ($pctCount > 0) {
+			return max(0, min(100, (int) round($pctSum / $pctCount)));
+		}
+
+		// Không đủ dữ liệu để suy ra % (tránh trả 0 giả)
 		return null;
 	}
 

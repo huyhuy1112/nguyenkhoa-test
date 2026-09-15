@@ -1688,15 +1688,25 @@ class Leads_OnlineGd12Service {
 			$prevStatus = trim((string) $adb->query_result($prSt, 0, 'online_status'));
 		}
 		$status = self::resolveLearningStatus($pct, $expiresAt);
+		$parseNote = null;
+		if ($pct === null) {
+			$rawSnap = isset($prog['data']) ? $prog['data'] : (isset($prog['raw']) ? $prog['raw'] : null);
+			$json = is_array($rawSnap) || is_object($rawSnap)
+				? json_encode($rawSnap, JSON_UNESCAPED_UNICODE)
+				: (string) $rawSnap;
+			$parseNote = 'Edubit OK nhưng chưa parse được % (v'
+				. (isset($prog['version_used']) ? (int) $prog['version_used'] : 2)
+				. '). raw: ' . mb_substr((string) $json, 0, 180);
+		}
 		$adb->pquery(
 			'UPDATE bace_lead_profile SET
 				edubit_progress_pct = ?,
 				edubit_progress_at = ?,
 				online_status = ?,
-				edubit_last_error = NULL,
+				edubit_last_error = ?,
 				modified_at = ?
 			 WHERE leadid = ?',
-			array($pct, $now, $status, $now, $leadId)
+			array($pct, $now, $status, $parseNote, $now, $leadId)
 		);
 		self::syncStatusTagsOnly($leadId, array('zalo', 'mien_phi_online', $status));
 		// Event KBs for progress milestones
@@ -1847,12 +1857,16 @@ class Leads_OnlineGd12Service {
 		}
 		$pct = isset($prog['progress_pct']) && $prog['progress_pct'] !== null
 			? (int) $prog['progress_pct']
-			: 0;
-		$status = self::resolveLearningStatus($pct, $expiresAt);
-		Contacts_ModernService::saveEdubitProgressOnContact($contactId, $pct, $courseId, $email, $userEd);
+			: null;
+		$status = self::resolveLearningStatus($pct !== null ? $pct : 0, $expiresAt);
+		$writePct = $pct !== null ? $pct : 0;
+		Contacts_ModernService::saveEdubitProgressOnContact($contactId, $writePct, $courseId, $email, $userEd);
 		Contacts_ModernService::saveEdubitAccessWindowOnContact(
 			$contactId, $activatedAt, $expiresAt, $renewCount, '', $status
 		);
+		$msg = $pct !== null
+			? ('Tiến độ: ' . $pct . '%')
+			: 'Edubit OK nhưng chưa parse được % — kiểm tra cấu trúc data / total_lessons khóa học.';
 		return array(
 			'success' => true,
 			'contact_id' => $contactId,
@@ -1863,7 +1877,9 @@ class Leads_OnlineGd12Service {
 				? date('c', strtotime($expiresAt)) : '',
 			'edubit_renew_count' => $renewCount,
 			'edubit_renew_remaining' => max(0, self::RENEW_MAX - $renewCount),
-			'message' => 'Tiến độ: ' . $pct . '%',
+			'version_used' => isset($prog['version_used']) ? (int) $prog['version_used'] : null,
+			'raw_data' => isset($prog['data']) ? $prog['data'] : null,
+			'message' => $msg,
 		);
 	}
 
@@ -1888,6 +1904,8 @@ class Leads_OnlineGd12Service {
 		);
 		$ok = 0;
 		$fail = 0;
+		$parsed = 0;
+		$maxPct = 0;
 		$items = array();
 		$rows = ($res && $adb->num_rows($res) > 0) ? $adb->num_rows($res) : 0;
 		for ($i = 0; $i < $rows; $i++) {
@@ -1895,11 +1913,22 @@ class Leads_OnlineGd12Service {
 			$one = self::syncEdubitProgressForContact($cid, $userId);
 			if (!empty($one['success'])) {
 				$ok++;
-				$items[] = array(
+				$pctOne = array_key_exists('progress_pct', $one) && $one['progress_pct'] !== null
+					? (int) $one['progress_pct'] : null;
+				if ($pctOne !== null) {
+					$parsed++;
+					$maxPct = max($maxPct, $pctOne);
+				}
+				$entry = array(
 					'contact_id' => $cid,
-					'progress_pct' => isset($one['progress_pct']) ? $one['progress_pct'] : null,
+					'progress_pct' => $pctOne,
 					'status' => isset($one['status']) ? $one['status'] : '',
+					'message' => isset($one['message']) ? $one['message'] : '',
 				);
+				if ($pctOne === null && isset($one['raw_data']) && count($items) < 3) {
+					$entry['raw_data'] = $one['raw_data'];
+				}
+				$items[] = $entry;
 			} else {
 				$fail++;
 				$items[] = array(
@@ -1908,14 +1937,20 @@ class Leads_OnlineGd12Service {
 				);
 			}
 		}
+		$msg = 'Đã đồng bộ ' . $ok . '/' . $rows . ' khách hàng'
+			. ($fail > 0 ? (' (lỗi ' . $fail . ')') : '')
+			. ($parsed > 0 ? ('; · có %: ' . $parsed . ' · max ' . $maxPct . '%') : '')
+			. ($ok > 0 && $parsed === 0 ? ' · Edubit OK nhưng chưa parse được % (xem raw_data trong response)' : '')
+			. '.';
 		return array(
 			'success' => true,
 			'scanned' => $rows,
 			'ok' => $ok,
 			'fail' => $fail,
+			'parsed' => $parsed,
+			'max_progress_pct' => $maxPct,
 			'items' => $items,
-			'message' => 'Đã đồng bộ ' . $ok . '/' . $rows . ' khách hàng'
-				. ($fail > 0 ? (' (lỗi ' . $fail . ')') : '') . '.',
+			'message' => $msg,
 		);
 	}
 
