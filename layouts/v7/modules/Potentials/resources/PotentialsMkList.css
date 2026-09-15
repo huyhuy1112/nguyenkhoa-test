@@ -494,6 +494,18 @@
 	font-size: 12px;
 	color: #64748b;
 }
+.mk-opps-oa-qr__howto-title {
+	margin: 0 0 6px;
+	font-size: 13px;
+	font-weight: 700;
+	color: #0f172a;
+}
+.mk-opps-oa-qr__link-hint {
+	margin: 0;
+	font-size: 12px;
+	color: #64748b;
+	text-align: center;
+}
 .mk-opps-oa-qr__actions {
 	display: flex;
 	flex-wrap: wrap;

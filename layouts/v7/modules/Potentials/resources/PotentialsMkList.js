@@ -1076,14 +1076,14 @@
       ? '<p class="mk-opps-oa-qr__ok">Đã gắn OA id: <code>' +
         esc(String(data.zalo_user_id)) +
         "</code></p>"
-      : '<p class="mk-opps-oa-qr__wait">Chưa gắn OA id — nhờ khách quét QR rồi nhập đúng SĐT đăng ký' +
+      : '<p class="mk-opps-oa-qr__wait">Chưa gắn OA id — nhờ khách quét <strong>QR form</strong> rồi điền đúng SĐT đăng ký' +
         (phone ? " (<strong>" + esc(phone) + "</strong>)" : "") +
         ".</p>";
     var qrBlock = qrImg
       ? '<img class="mk-opps-oa-qr__img" src="' +
         esc(qrImg) +
-        '" alt="QR Zalo OA" width="240" height="240" />'
-      : '<p class="mk-opps-oa-qr__warn">Chưa có link OA. Vào Settings → Tích hợp → Zalo OA: điền OA ID hoặc Link follow OA.</p>';
+        '" alt="QR form Zalo OA" width="240" height="240" />'
+      : '<p class="mk-opps-oa-qr__warn">Chưa có ảnh QR form. Kiểm tra file offline-oa-form-qr.png trên server.</p>';
     var tipsHtml = tips.length
       ? '<ul class="mk-opps-oa-qr__tips">' +
         tips
@@ -1094,9 +1094,9 @@
         "</ul>"
       : "";
     host.innerHTML =
-      '<div class="mk-opps-oa-qr__dialog" role="dialog" aria-modal="true" aria-label="QR Zalo OA">' +
+      '<div class="mk-opps-oa-qr__dialog" role="dialog" aria-modal="true" aria-label="QR form Zalo OA">' +
       '<header class="mk-opps-oa-qr__head">' +
-      "<h3>Bước 3 — Đưa khách vào Zalo OA</h3>" +
+      "<h3>Bước 3 — Quét QR form điền thông tin</h3>" +
       '<button type="button" class="mk-opps-oa-qr__close" data-mk-oa-qr-close aria-label="Đóng">×</button>' +
       "</header>" +
       '<div class="mk-opps-oa-qr__body">' +
@@ -1105,13 +1105,12 @@
       (follow
         ? '<a class="mk-opps-oa-qr__link" href="' +
           esc(follow) +
-          '" target="_blank" rel="noopener">' +
-          esc(follow) +
-          "</a>"
-        : "") +
+          '" target="_blank" rel="noopener">Mở link form / OA</a>'
+        : '<p class="mk-opps-oa-qr__link-hint">Quét QR bên trái để mở form điền thông tin</p>') +
       "</div>" +
       '<div class="mk-opps-oa-qr__right">' +
       statusHtml +
+      '<p class="mk-opps-oa-qr__howto-title">Cách dùng 3 nút</p>' +
       tipsHtml +
       (note ? '<p class="mk-opps-oa-qr__note">Ghi chú: ' + esc(note) + "</p>" : "") +
       '<div class="mk-opps-oa-qr__actions">' +

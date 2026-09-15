@@ -1294,10 +1294,9 @@ class Leads_OfflineGd11Service {
 			'oa_id' => '',
 			'oa_name' => '',
 			'instructions' => array(
-				'Sales 2 đưa QR / link OA cho khách quét (standee tại quầy).',
-				'Khách vào Zalo OA → nhập đúng SĐT đã đăng ký (không gõ số Zalo khác).',
-				'CRM tự gắn OA id khi webhook khớp SĐT. Bấm «Làm mới» để kiểm tra.',
-				'Không dùng Zalo: ghi chú bên dưới, vẫn cho vào lớp.',
+				'«Làm mới trạng thái»: kiểm tra lại xem khách đã quét QR / điền form chưa — nếu CRM đã khớp SĐT thì hiện OA id.',
+				'«Không dùng Zalo»: ghi chú khách không có Zalo, vẫn cho vào lớp; liên hệ sau qua SĐT đăng ký.',
+				'«Không chịu quét»: ghi chú khách từ chối quét QR form tại quầy (để Sales phụ trách xử lý tiếp).',
 			),
 		);
 		if ($leadId <= 0) {
@@ -1330,11 +1329,41 @@ class Leads_OfflineGd11Service {
 		$out['follow_url'] = $follow['url'];
 		$out['oa_id'] = $follow['oa_id'];
 		$out['oa_name'] = $follow['oa_name'];
-		if ($out['follow_url'] !== '') {
+		// Ưu tiên QR form tĩnh (mở form điền thông tin), không generate từ follow OA.
+		$out['qr_image_url'] = self::offlineOaFormQrImageUrl();
+		if ($out['qr_image_url'] === '' && $out['follow_url'] !== '') {
 			$out['qr_image_url'] = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data='
 				. rawurlencode($out['follow_url']);
 		}
 		return $out;
+	}
+
+	/**
+	 * QR form Offline tại quầy (asset trong layouts).
+	 * @return string
+	 */
+	public static function offlineOaFormQrImageUrl() {
+		global $site_URL;
+		$rel = 'layouts/v7/modules/Potentials/resources/offline-oa-form-qr.png';
+		$abs = $rel;
+		if (defined('ROOT_DIRECTORY')) {
+			$abs = rtrim(ROOT_DIRECTORY, '/\\') . '/' . $rel;
+		} elseif (!empty($_SERVER['DOCUMENT_ROOT'])) {
+			$candidate = rtrim($_SERVER['DOCUMENT_ROOT'], '/\\') . '/' . $rel;
+			if (is_file($candidate)) {
+				$abs = $candidate;
+			}
+		}
+		if (!is_file($abs) && is_file($rel)) {
+			$abs = $rel;
+		}
+		if (!is_file($abs)) {
+			return '';
+		}
+		$ver = (string) @filemtime($abs);
+		$base = !empty($site_URL) ? rtrim((string) $site_URL, '/') : '';
+		$path = '/' . ltrim($rel, '/') . ($ver !== '' ? ('?v=' . $ver) : '');
+		return $base !== '' ? ($base . $path) : $path;
 	}
 
 	/**
