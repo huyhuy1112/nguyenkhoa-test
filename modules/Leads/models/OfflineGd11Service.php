@@ -150,11 +150,26 @@ class Leads_OfflineGd11Service {
 		self::installSchema();
 		$adb = PearDatabase::getInstance();
 		$now = date('Y-m-d H:i:s');
+		$prev = '';
+		$pr = $adb->pquery('SELECT offline_status FROM bace_lead_profile WHERE leadid = ?', array($leadId));
+		if ($pr && $adb->num_rows($pr) > 0) {
+			$prev = strtolower(trim((string) $adb->query_result($pr, 0, 'offline_status')));
+		}
 		$adb->pquery(
 			"UPDATE bace_lead_profile SET offline_status = ?, modified_at = ? WHERE leadid = ?",
 			array($statusTag, $now, $leadId)
 		);
 		self::syncStatusTags($leadId, $statusTag, $userId);
+		try {
+			require_once 'modules/Leads/models/ModernService.php';
+			if ($statusTag === self::STATUS_NGUNG_CSKH) {
+				Leads_ModernService::stampNgungCskhAt($leadId, $now);
+			} elseif ($prev === self::STATUS_NGUNG_CSKH && $statusTag !== self::STATUS_NGUNG_CSKH) {
+				Leads_ModernService::clearNgungCskhAt($leadId);
+			}
+		} catch (Exception $e) {
+			// best-effort
+		}
 		return true;
 	}
 
@@ -1143,14 +1158,20 @@ class Leads_OfflineGd11Service {
 				'handler' => 'cron/modules/Leads/OfflineGd11Step4Reminders.service',
 				'desc' => 'GD 1.1 Bước 4 — CSKH sau lớp / no-show',
 			),
+			array(
+				'name' => 'LeadRetentionLifecycle',
+				'handler' => 'cron/modules/Leads/LeadRetentionLifecycle.service',
+				'desc' => 'Leads — Ngưng CSKH 30 ngày → thùng rác; thùng rác 30 ngày → xóa vĩnh viễn',
+				'freq' => 86400,
+			),
 		);
 		foreach ($jobs as $job) {
 			$existing = Vtiger_Cron::getInstance($job['name']);
 			if ($existing) {
 				continue;
 			}
-			// 900s = 15 phút
-			Vtiger_Cron::register($job['name'], $job['handler'], 900, 'Leads', 1, 0, $job['desc']);
+			$freq = isset($job['freq']) ? (int) $job['freq'] : 900;
+			Vtiger_Cron::register($job['name'], $job['handler'], $freq, 'Leads', 1, 0, $job['desc']);
 		}
 	}
 

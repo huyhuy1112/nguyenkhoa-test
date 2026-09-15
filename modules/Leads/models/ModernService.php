@@ -128,6 +128,7 @@ class Leads_ModernService {
 		} catch (Exception $e) {
 			// best-effort
 		}
+		self::ensureRetentionColumns($adb);
 		try {
 			require_once 'modules/Leads/models/OfflineGd11Service.php';
 			Leads_OfflineGd11Service::installSchema($adb);
@@ -924,6 +925,7 @@ class Leads_ModernService {
 				array(date('Y-m-d H:i:s'), $leadId, self::MODULE)
 			);
 		}
+		self::markSoftDeletedAt($leadId);
 		return true;
 	}
 
@@ -950,6 +952,7 @@ class Leads_ModernService {
 			);
 		}
 		self::ensureModernProfile($leadId);
+		self::clearSoftDeletedAt($leadId);
 		return true;
 	}
 
@@ -2419,5 +2422,228 @@ class Leads_ModernService {
 			return date('Y-m-d H:i:s');
 		}
 		return date('Y-m-d H:i:s', $ts);
+	}
+
+	/** Ngưng CSKH: 30 ngày → thùng rác; thùng rác 30 ngày → xóa vĩnh viễn. */
+	const RETENTION_DAYS_NGUNG_CSKH = 30;
+	const RETENTION_DAYS_TRASH = 30;
+
+	public static function ensureRetentionColumns($adb = null) {
+		static $done = false;
+		if ($done) {
+			return;
+		}
+		if ($adb === null) {
+			$adb = PearDatabase::getInstance();
+		}
+		$cols = array(
+			'ngung_cskh_at' => 'DATETIME NULL',
+			'soft_deleted_at' => 'DATETIME NULL',
+		);
+		foreach ($cols as $name => $def) {
+			$check = $adb->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE ?", array($name));
+			if (!$check || $adb->num_rows($check) === 0) {
+				$adb->pquery("ALTER TABLE bace_lead_profile ADD COLUMN `{$name}` {$def}", array());
+			}
+		}
+		$done = true;
+	}
+
+	/**
+	 * Ghi mốc lúc vào Ngưng CSKH (không ghi đè nếu đã có — giữ countdown).
+	 */
+	public static function stampNgungCskhAt($leadId, $at = null) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return;
+		}
+		self::ensureRetentionColumns();
+		$adb = PearDatabase::getInstance();
+		$now = trim((string) $at);
+		if ($now === '' || strtotime($now) === false) {
+			$now = date('Y-m-d H:i:s');
+		} else {
+			$now = date('Y-m-d H:i:s', strtotime($now));
+		}
+		$res = $adb->pquery(
+			'SELECT ngung_cskh_at FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			$adb->pquery(
+				'INSERT INTO bace_lead_profile (leadid, is_modern, ngung_cskh_at, created_at, modified_at)
+				 VALUES (?,1,?,?,?)',
+				array($leadId, $now, $now, $now)
+			);
+			return;
+		}
+		$cur = trim((string) $adb->query_result($res, 0, 'ngung_cskh_at'));
+		if ($cur === '' || $cur === '0000-00-00 00:00:00') {
+			$adb->pquery(
+				'UPDATE bace_lead_profile SET ngung_cskh_at = ?, modified_at = ? WHERE leadid = ?',
+				array($now, date('Y-m-d H:i:s'), $leadId)
+			);
+		}
+	}
+
+	public static function clearNgungCskhAt($leadId) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return;
+		}
+		self::ensureRetentionColumns();
+		$adb = PearDatabase::getInstance();
+		$adb->pquery(
+			'UPDATE bace_lead_profile SET ngung_cskh_at = NULL WHERE leadid = ?',
+			array($leadId)
+		);
+	}
+
+	public static function markSoftDeletedAt($leadId) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return;
+		}
+		self::ensureRetentionColumns();
+		$adb = PearDatabase::getInstance();
+		$now = date('Y-m-d H:i:s');
+		$exists = $adb->pquery('SELECT leadid FROM bace_lead_profile WHERE leadid = ?', array($leadId));
+		if ($exists && $adb->num_rows($exists) > 0) {
+			$adb->pquery(
+				'UPDATE bace_lead_profile SET soft_deleted_at = COALESCE(soft_deleted_at, ?), modified_at = ? WHERE leadid = ?',
+				array($now, $now, $leadId)
+			);
+		}
+	}
+
+	public static function clearSoftDeletedAt($leadId) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return;
+		}
+		self::ensureRetentionColumns();
+		$adb = PearDatabase::getInstance();
+		$adb->pquery(
+			'UPDATE bace_lead_profile SET soft_deleted_at = NULL WHERE leadid = ?',
+			array($leadId)
+		);
+	}
+
+	/**
+	 * Cron hàng ngày:
+	 * 1) Ngưng CSKH ≥ 30 ngày → soft-delete (thùng rác)
+	 * 2) Trong thùng rác ≥ 30 ngày → purge vĩnh viễn
+	 * @return array{trashed:int,purged:int,backfilled:int}
+	 */
+	public static function processRetentionLifecycle($limit = 200) {
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		self::ensureRetentionColumns($adb);
+		$limit = max(1, min(500, (int) $limit));
+		$out = array('trashed' => 0, 'purged' => 0, 'backfilled' => 0);
+
+		$ngungOffline = 'offline_ngung_cskh';
+		$ngungOnline = 'online_ngung_cskh';
+
+		// Backfill mốc cho lead đang Ngưng CSKH nhưng chưa stamp.
+		$bf = $adb->pquery(
+			"UPDATE bace_lead_profile p
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0 AND ce.setype = 'Leads'
+			 SET p.ngung_cskh_at = COALESCE(
+			 	NULLIF(p.ngung_cskh_at, '0000-00-00 00:00:00'),
+			 	NULLIF(p.modified_at, '0000-00-00 00:00:00'),
+			 	ce.modifiedtime,
+			 	NOW()
+			 )
+			 WHERE p.is_modern = 1
+			   AND (p.ngung_cskh_at IS NULL OR p.ngung_cskh_at = '' OR p.ngung_cskh_at = '0000-00-00 00:00:00')
+			   AND (
+			   	p.offline_status = ?
+			   	OR p.online_status = ?
+			   )",
+			array($ngungOffline, $ngungOnline)
+		);
+		if ($bf) {
+			$out['backfilled'] = (int) $adb->getAffectedRowCount($bf);
+		}
+
+		$cutoffNgung = date('Y-m-d H:i:s', time() - self::RETENTION_DAYS_NGUNG_CSKH * 86400);
+		$res = $adb->pquery(
+			"SELECT p.leadid
+			 FROM bace_lead_profile p
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0 AND ce.setype = 'Leads'
+			 WHERE p.is_modern = 1
+			   AND p.ngung_cskh_at IS NOT NULL
+			   AND p.ngung_cskh_at <> ''
+			   AND p.ngung_cskh_at <> '0000-00-00 00:00:00'
+			   AND p.ngung_cskh_at <= ?
+			   AND (
+			   	p.offline_status = ?
+			   	OR p.online_status = ?
+			   )
+			 ORDER BY p.ngung_cskh_at ASC
+			 LIMIT {$limit}",
+			array($cutoffNgung, $ngungOffline, $ngungOnline)
+		);
+		if ($res) {
+			for ($i = 0; $i < $adb->num_rows($res); $i++) {
+				$leadId = (int) $adb->query_result($res, $i, 'leadid');
+				if ($leadId > 0 && self::softDeleteLead($leadId)) {
+					$out['trashed']++;
+				}
+			}
+		}
+
+		// Backfill soft_deleted_at từ modifiedtime CRM nếu thiếu.
+		$adb->pquery(
+			"UPDATE bace_lead_profile p
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 1 AND ce.setype = 'Leads'
+			 SET p.soft_deleted_at = COALESCE(
+			 	NULLIF(p.soft_deleted_at, '0000-00-00 00:00:00'),
+			 	ce.modifiedtime,
+			 	NOW()
+			 )
+			 WHERE p.is_modern = 1
+			   AND (p.soft_deleted_at IS NULL OR p.soft_deleted_at = '' OR p.soft_deleted_at = '0000-00-00 00:00:00')",
+			array()
+		);
+
+		$cutoffTrash = date('Y-m-d H:i:s', time() - self::RETENTION_DAYS_TRASH * 86400);
+		$res2 = $adb->pquery(
+			"SELECT p.leadid
+			 FROM bace_lead_profile p
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 1 AND ce.setype = 'Leads'
+			 WHERE p.is_modern = 1
+			   AND p.soft_deleted_at IS NOT NULL
+			   AND p.soft_deleted_at <> ''
+			   AND p.soft_deleted_at <> '0000-00-00 00:00:00'
+			   AND p.soft_deleted_at <= ?
+			 ORDER BY p.soft_deleted_at ASC
+			 LIMIT {$limit}",
+			array($cutoffTrash)
+		);
+		if ($res2) {
+			for ($i = 0; $i < $adb->num_rows($res2); $i++) {
+				$leadId = (int) $adb->query_result($res2, $i, 'leadid');
+				if ($leadId > 0 && self::purgeLead($leadId)) {
+					$out['purged']++;
+				}
+			}
+		}
+
+		return $out;
+	}
+
+	public static function registerRetentionCron() {
+		require_once 'vtlib/Vtiger/Cron.php';
+		$name = 'LeadRetentionLifecycle';
+		$handler = 'cron/modules/Leads/LeadRetentionLifecycle.service';
+		$desc = 'Leads — Ngưng CSKH 30 ngày → thùng rác; thùng rác 30 ngày → xóa vĩnh viễn';
+		$existing = Vtiger_Cron::getInstance($name);
+		if ($existing) {
+			return;
+		}
+		// 86400s = mỗi ngày
+		Vtiger_Cron::register($name, $handler, 86400, 'Leads', 1, 0, $desc);
 	}
 }

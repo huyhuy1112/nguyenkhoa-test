@@ -3402,23 +3402,11 @@
     if (!tbody) return;
 
     if (!pageRows.length) {
-      var emptyMsg =
-        all.length === 0
-          ? t(
-              "JS_MK_NO_LEADS_LOADED",
-              "Chưa có lead để hiển thị. Bấm Tải lại danh sách (hoặc F5). Nhiều lead cũ đã bị xóa mềm — không phải do bộ lọc.",
-            )
-          : t("JS_MK_NO_LEADS_MATCH", "Không có lead phù hợp bộ lọc.");
-      var extraBtn = "";
-      if (all.length === 0) {
-        extraBtn =
-          '<div style="margin-top:12px"><button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-leads-reload-list">Tải lại danh sách</button></div>';
-      } else if (activeFilterCount() > 0) {
-        extraBtn =
-          '<div style="margin-top:12px"><button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-leads-clear-filters-empty">Xóa bộ lọc</button></div>';
-      }
+      var emptyMsg = t("JS_MK_NO_LEADS_DISPLAY", "Không có leads để hiển thị");
       tbody.innerHTML =
-        '<tr><td colspan="16" class="mk-leads-empty">' + esc(emptyMsg) + extraBtn + "</td></tr>";
+        '<tr><td colspan="16" class="mk-leads-empty"><div class="mk-leads-empty__inner">' +
+        esc(emptyMsg) +
+        "</div></td></tr>";
     } else {
       tbody.innerHTML = pageRows
         .map(function (l) {

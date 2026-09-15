@@ -919,6 +919,12 @@ class Leads_OnlineGd12Service {
 					array(self::STATUS_NGUNG_CSKH, date('Y-m-d H:i:s'), $leadId)
 				);
 				self::syncStatusTagsOnly($leadId, array('zalo', 'mien_phi_online', self::STATUS_NGUNG_CSKH));
+				try {
+					require_once 'modules/Leads/models/ModernService.php';
+					Leads_ModernService::stampNgungCskhAt($leadId);
+				} catch (Exception $e) {
+					// best-effort
+				}
 				$stopped++;
 			}
 		}

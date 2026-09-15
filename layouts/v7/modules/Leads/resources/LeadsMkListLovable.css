@@ -1061,7 +1061,31 @@ body.theme-dark .mk-leads-page--lovable .mk-leads-search {
     flex-shrink: 0;
 }
 .mk-leads-tag-more { font-size: 10px; color: #94a3b8; margin-left: 2px; }
-.mk-leads-empty { text-align: center; padding: 48px 16px !important; color: #64748b; }
+.mk-leads-empty {
+	padding: 0 !important;
+	border-bottom: none !important;
+	background: transparent !important;
+	vertical-align: middle !important;
+}
+.mk-leads-empty__inner {
+	position: sticky;
+	left: 50%;
+	transform: translateX(-50%);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: max-content;
+	max-width: min(420px, 86vw);
+	min-height: 140px;
+	padding: 40px 20px;
+	text-align: center;
+	color: #64748b;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1.5;
+	letter-spacing: 0.01em;
+}
 
 .mk-leads-tags-edit {
     display: block;

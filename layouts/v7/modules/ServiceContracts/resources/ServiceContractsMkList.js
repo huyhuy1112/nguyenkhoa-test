@@ -1127,9 +1127,9 @@
       tbody.innerHTML =
         '<tr><td colspan="' +
         COL_COUNT +
-        '" class="mk-leads-empty">' +
-        esc(t("JS_MK_NO_SC_MATCH", "Không có khách chuyển nhượng phù hợp bộ lọc.")) +
-        "</td></tr>";
+        '" class="mk-leads-empty"><div class="mk-leads-empty__inner">' +
+        esc(t("JS_MK_NO_SC_DISPLAY", "Không có khách chuyển nhượng để hiển thị")) +
+        "</div></td></tr>";
     } else {
       tbody.innerHTML = pageRows
         .map(function (c) {
