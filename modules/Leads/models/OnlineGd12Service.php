@@ -581,6 +581,7 @@ class Leads_OnlineGd12Service {
 			'edubit_progress_pct' => "TINYINT(3) DEFAULT NULL",
 			'edubit_progress_at' => "DATETIME DEFAULT NULL",
 			'edubit_last_error' => "VARCHAR(255) DEFAULT NULL",
+			'online_care_sent' => "VARCHAR(128) DEFAULT ''",
 		);
 		foreach ($cols as $name => $def) {
 			$res = $adb->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE ?", array($name));
@@ -830,6 +831,13 @@ class Leads_OnlineGd12Service {
 		}
 		self::syncStatusTagsOnly($leadId, $tags);
 
+		// KB-04 / KB-05 theo sự kiện đổi tag (OA hoặc Calendar fallback).
+		if ($status === self::STATUS_CHUA_DK_TK) {
+			self::sendCareToLead($leadId, 'kb04');
+		} elseif ($status === self::STATUS_KHONG_DU_DK) {
+			self::sendCareToLead($leadId, 'kb05');
+		}
+
 		// Đồng bộ OA id sang Offline cùng SĐT (nếu có).
 		if ($oaUserId !== '') {
 			try {
@@ -916,6 +924,21 @@ class Leads_OnlineGd12Service {
 			'kb02a' => "Anh/chị ơi, form đăng ký lớp online miễn phí vẫn còn mở. Điền giúp em để nhận hướng dẫn học sớm nhất nhé.",
 			'kb02b' => "Nhắc anh/chị: còn thiếu form đăng ký lớp online miễn phí nên chưa cấp được tài khoản học. Anh/chị dành 1 phút điền form giúp em nhé.",
 			'kb02c' => "Đây là lần nhắc cuối về form lớp online miễn phí. Nếu anh/chị vẫn quan tâm, hãy gửi form trong hôm nay để em hỗ trợ tiếp.",
+			'kb04' => "Chúc mừng anh/chị đủ điều kiện học lớp Online miễn phí.\nEm gửi hướng dẫn kích hoạt tài khoản học. Anh/chị kích hoạt sớm để bắt đầu học (thời hạn truy cập 10 ngày kể từ lúc kích hoạt).",
+			'kb05' => "Cảm ơn anh/chị đã quan tâm lớp Online miễn phí.\nHiện hồ sơ chưa đủ điều kiện suất học này. Em gửi bảng so sánh sản phẩm phù hợp hơn — anh/chị chọn giúp em hướng đi tiếp theo nhé.",
+			'kb06a' => "Anh/chị ơi, tài khoản học Online vẫn chưa kích hoạt. Em nhắc anh/chị kích hoạt sớm để không mất suất học nhé.",
+			'kb06b' => "Nhắc anh/chị lần 2: còn thiếu bước kích hoạt tài khoản lớp Online miễn phí. Anh/chị làm giúp em để bắt đầu học ngay.",
+			'kb06c' => "Đây là lần nhắc cuối về kích hoạt tài khoản Online. Nếu anh/chị vẫn muốn học, hãy kích hoạt trong hôm nay giúp em.",
+			'kb07' => "Chúc mừng anh/chị đã kích hoạt thành công!\nThời hạn truy cập là 10 ngày kể từ hôm nay. Em chúc anh/chị học vui và áp dụng tốt vào quán.",
+			'kb09' => "Tuyệt vời — anh/chị đã học vượt nửa khóa rồi!\nEm khuyến khích anh/chị giữ nhịp và hoàn thành phần còn lại trong thời hạn đang có.",
+			'kb10' => "Hôm nay là ngày cuối của thời hạn truy cập khóa Online.\nAnh/chị tranh thủ hoàn thành bài còn lại. Nếu cần gia hạn, hãy báo em khi hết hạn nhé (gia hạn có giới hạn).",
+			'kb11' => "Chúc mừng anh/chị đã đạt từ 80% khóa Online!\nĐây là mốc bàn giao tốt — em sẽ hỗ trợ anh/chị bước tiếp theo (học tiếp / sản phẩm phù hợp). Anh/chị cứ nhắn em nếu cần.",
+			'kb16a' => "Tài khoản học Online của anh/chị đã hết hạn và chưa đạt ngưỡng hoàn thành.\nAnh/chị cho em biết lý do nhé — nếu còn muốn học, em có thể xin gia hạn giúp (tối đa 3 lần).",
+			'kb16b' => "Em nhắc lại: khóa Online đã hết hạn. Nếu anh/chị còn muốn học tiếp, hãy phản hồi để em hỗ trợ gia hạn.",
+			'kb16c' => "Lần nhắc cuối về khóa Online đã hết hạn. Nếu không phản hồi, em sẽ tạm ngưng chăm sóc hồ sơ này.",
+			'kb20a' => "Anh/chị ơi, em gửi lại bảng so sánh sản phẩm. Anh/chị chọn giúp em hướng phù hợp để em hỗ trợ tiếp.",
+			'kb20b' => "Nhắc anh/chị lần 2: còn chưa chọn sản phẩm thay thế sau khi không đủ điều kiện lớp Online miễn phí.",
+			'kb20c' => "Lần nhắc cuối — nếu anh/chị không chọn sản phẩm khác, em sẽ tạm ngưng chăm sóc hồ sơ này.",
 		);
 	}
 
@@ -1007,6 +1030,238 @@ class Leads_OnlineGd12Service {
 			}
 		}
 		return array('sent' => $sent, 'stopped' => $stopped);
+	}
+
+	/**
+	 * Gửi tin chăm sóc Online → OA; thiếu OA id thì Calendar fallback.
+	 */
+	public static function sendCareToLead($leadId, $templateKey, $userId = null, $force = false) {
+		$leadId = (int) $leadId;
+		$templateKey = trim((string) $templateKey);
+		if ($leadId <= 0 || $templateKey === '') {
+			return array('success' => false, 'error' => 'missing_params');
+		}
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		if (!$force && self::hasCareSent($leadId, $templateKey)) {
+			return array('success' => true, 'skipped' => true, 'reason' => 'already_sent', 'kb' => $templateKey);
+		}
+		$res = $adb->pquery(
+			'SELECT zalo_user_id FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		$uid = ($res && $adb->num_rows($res) > 0)
+			? trim((string) $adb->query_result($res, 0, 'zalo_user_id')) : '';
+		$r = array('success' => false, 'kb' => $templateKey);
+		if ($uid !== '') {
+			$r = self::sendTemplate($uid, $templateKey);
+			$r['kb'] = $templateKey;
+			$r['channel'] = 'oa';
+		}
+		if (empty($r['success'])) {
+			try {
+				require_once 'modules/Leads/models/OfflineGd11Service.php';
+				$cal = Leads_OfflineGd11Service::createFollowUpTask(
+					$leadId,
+					Leads_OfflineGd11Service::STATUS_HEN_GOI_LAI,
+					array('due_at' => date('Y-m-d H:i:s', time() + 3600)),
+					$userId
+				);
+				$r['calendar_fallback'] = $cal;
+				$r['success'] = !empty($cal['success']);
+				$r['channel'] = 'calendar';
+				$r['note'] = ($uid === '')
+					? 'Thiếu zalo_user_id — Calendar fallback'
+					: 'OA lỗi — Calendar fallback';
+			} catch (Exception $e) {
+				$r['calendar_error'] = $e->getMessage();
+			}
+		}
+		if (!empty($r['success']) || !empty($r['skipped'])) {
+			self::markCareSent($leadId, $templateKey);
+		}
+		return $r;
+	}
+
+	public static function hasCareSent($leadId, $key) {
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery('SELECT online_care_sent FROM bace_lead_profile WHERE leadid = ?', array((int) $leadId));
+		if (!$res || $adb->num_rows($res) < 1) {
+			return false;
+		}
+		$raw = trim((string) $adb->query_result($res, 0, 'online_care_sent'));
+		if ($raw === '') {
+			return false;
+		}
+		$parts = preg_split('/\s*,\s*/', $raw);
+		return in_array((string) $key, $parts, true);
+	}
+
+	public static function markCareSent($leadId, $key) {
+		$leadId = (int) $leadId;
+		$key = trim((string) $key);
+		if ($leadId <= 0 || $key === '') {
+			return;
+		}
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery('SELECT online_care_sent FROM bace_lead_profile WHERE leadid = ?', array($leadId));
+		$raw = ($res && $adb->num_rows($res) > 0)
+			? trim((string) $adb->query_result($res, 0, 'online_care_sent')) : '';
+		$parts = $raw !== '' ? preg_split('/\s*,\s*/', $raw) : array();
+		if (!in_array($key, $parts, true)) {
+			$parts[] = $key;
+		}
+		$adb->pquery(
+			'UPDATE bace_lead_profile SET online_care_sent = ?, modified_at = ? WHERE leadid = ?',
+			array(implode(',', $parts), date('Y-m-d H:i:s'), $leadId)
+		);
+	}
+
+	protected static function stopToNgungCskh($leadId) {
+		$leadId = (int) $leadId;
+		$adb = PearDatabase::getInstance();
+		$adb->pquery(
+			'UPDATE bace_lead_profile SET online_status = ?, modified_at = ? WHERE leadid = ?',
+			array(self::STATUS_NGUNG_CSKH, date('Y-m-d H:i:s'), $leadId)
+		);
+		self::syncStatusTagsOnly($leadId, array('zalo', 'mien_phi_online', self::STATUS_NGUNG_CSKH));
+		try {
+			require_once 'modules/Leads/models/ModernService.php';
+			Leads_ModernService::stampNgungCskhAt($leadId);
+		} catch (Exception $e) {
+			// best-effort
+		}
+	}
+
+	/**
+	 * D1 — Chưa đăng ký/kích hoạt TK: cách 3 ngày, tối đa 3 (KB-06a/b/c).
+	 */
+	public static function processD1Reminders($limit = 50) {
+		return self::processStatusReminders(array(
+			'status' => self::STATUS_CHUA_DK_TK,
+			'keys' => array('kb06a', 'kb06b', 'kb06c'),
+			'interval_days' => 3,
+			'limit' => $limit,
+			'extra_where' => "(p.edubit_user_id IS NULL OR p.edubit_user_id = '')",
+			'anchor_prefer_entered' => false,
+		));
+	}
+
+	/**
+	 * D2 — Hết hạn chưa đạt ngưỡng: cách 3 ngày, tối đa 3 (KB-16a/b/c).
+	 * Lần 1 thường đã bắn ngay khi vào tag Hết hạn.
+	 */
+	public static function processD2Reminders($limit = 50) {
+		return self::processStatusReminders(array(
+			'status' => self::STATUS_HET_HAN,
+			'keys' => array('kb16a', 'kb16b', 'kb16c'),
+			'interval_days' => 3,
+			'limit' => $limit,
+		));
+	}
+
+	/**
+	 * D3 — Không đủ ĐK, chưa chọn SP khác: mỗi tuần, tối đa 3 (KB-20a/b/c).
+	 */
+	public static function processD3Reminders($limit = 50) {
+		return self::processStatusReminders(array(
+			'status' => self::STATUS_KHONG_DU_DK,
+			'keys' => array('kb20a', 'kb20b', 'kb20c'),
+			'interval_days' => 7,
+			'limit' => $limit,
+		));
+	}
+
+	/**
+	 * @param array $opt status, keys[3], interval_days, limit, extra_where?
+	 */
+	protected static function processStatusReminders(array $opt) {
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$status = $opt['status'];
+		$keys = $opt['keys'];
+		$interval = max(1, (int) $opt['interval_days']) * 86400;
+		$limit = max(1, min(200, (int) $opt['limit']));
+		$extra = isset($opt['extra_where']) ? (' AND ' . $opt['extra_where']) : '';
+		$sql = "SELECT p.leadid, p.zalo_user_id, p.online_reminder_count, p.online_entered_at, p.online_last_remind_at, p.modified_at
+			FROM bace_lead_profile p
+			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
+			WHERE p.online_status = ?
+			  AND IFNULL(p.online_reminder_count, 0) < 3
+			  {$extra}
+			ORDER BY IFNULL(p.online_last_remind_at, p.modified_at) ASC
+			LIMIT {$limit}";
+		$res = $adb->pquery($sql, array($status));
+		$sent = 0;
+		$stopped = 0;
+		if (!$res) {
+			return array('sent' => 0, 'stopped' => 0);
+		}
+		$now = time();
+		for ($i = 0; $i < $adb->num_rows($res); $i++) {
+			$leadId = (int) $adb->query_result($res, $i, 'leadid');
+			$count = (int) $adb->query_result($res, $i, 'online_reminder_count');
+			$last = (string) $adb->query_result($res, $i, 'online_last_remind_at');
+			$entered = (string) $adb->query_result($res, $i, 'online_entered_at');
+			$modified = (string) $adb->query_result($res, $i, 'modified_at');
+			$anchorRaw = ($last && $last !== '0000-00-00 00:00:00')
+				? $last
+				: (($modified && $modified !== '0000-00-00 00:00:00') ? $modified : $entered);
+			$anchor = $anchorRaw ? strtotime($anchorRaw) : false;
+			if (!$anchor) {
+				continue;
+			}
+			// count=0: chờ đủ interval kể từ lúc vào tag; count>0: kể từ lần nhắc trước.
+			if (($now - $anchor) < $interval) {
+				continue;
+			}
+			$key = isset($keys[$count]) ? $keys[$count] : $keys[count($keys) - 1];
+			$r = self::sendCareToLead($leadId, $key, null, true);
+			$newCount = $count + 1;
+			$adb->pquery(
+				'UPDATE bace_lead_profile SET online_reminder_count = ?, online_last_remind_at = ?, modified_at = ? WHERE leadid = ?',
+				array($newCount, date('Y-m-d H:i:s'), date('Y-m-d H:i:s'), $leadId)
+			);
+			if (!empty($r['success'])) {
+				$sent++;
+			}
+			if ($newCount >= 3) {
+				self::stopToNgungCskh($leadId);
+				$stopped++;
+			}
+		}
+		return array('sent' => $sent, 'stopped' => $stopped);
+	}
+
+	/**
+	 * Một lần chạy: D0 + D1 + D2 + D3 + đồng hồ hạn.
+	 */
+	public static function processCareReminders($limit = 50) {
+		$d0 = self::processD0Reminders($limit);
+		$d1 = self::processD1Reminders($limit);
+		$d2 = self::processD2Reminders($limit);
+		$d3 = self::processD3Reminders($limit);
+		$win = self::processAccessWindowTags(300);
+		return array(
+			'd0' => $d0,
+			'd1' => $d1,
+			'd2' => $d2,
+			'd3' => $d3,
+			'access_window' => $win,
+		);
+	}
+
+	public static function registerCareReminderCron() {
+		require_once 'vtlib/Vtiger/Cron.php';
+		$name = 'OnlineGd12CareReminders';
+		$handler = 'cron/modules/Leads/OnlineGd12CareReminders.service';
+		$desc = 'GD 1.2 Online — D0/D1/D2/D3 + hạn 10 ngày';
+		$existing = Vtiger_Cron::getInstance($name);
+		if ($existing) {
+			return;
+		}
+		Vtiger_Cron::register($name, $handler, 3600, 'Leads', 1, 0, $desc);
 	}
 
 	/**
@@ -1131,6 +1386,7 @@ class Leads_OnlineGd12Service {
 			array(self::STATUS_DANG_HOC, $userIdEd, $courseId, $email, $now, $expiresAt, $now, $leadId)
 		);
 		self::syncStatusTagsOnly($leadId, array('zalo', 'mien_phi_online', self::STATUS_DANG_HOC));
+		self::sendCareToLead($leadId, 'kb07');
 
 		$genPass = isset($created['password']) ? (string) $created['password'] : '';
 		$out = array(
@@ -1426,6 +1682,11 @@ class Leads_OnlineGd12Service {
 			? (int) $prog['progress_pct']
 			: null;
 		$now = date('Y-m-d H:i:s');
+		$prevStatus = '';
+		$prSt = $adb->pquery('SELECT online_status FROM bace_lead_profile WHERE leadid = ?', array($leadId));
+		if ($prSt && $adb->num_rows($prSt) > 0) {
+			$prevStatus = trim((string) $adb->query_result($prSt, 0, 'online_status'));
+		}
 		$status = self::resolveLearningStatus($pct, $expiresAt);
 		$adb->pquery(
 			'UPDATE bace_lead_profile SET
@@ -1438,6 +1699,30 @@ class Leads_OnlineGd12Service {
 			array($pct, $now, $status, $now, $leadId)
 		);
 		self::syncStatusTagsOnly($leadId, array('zalo', 'mien_phi_online', $status));
+		// Event KBs for progress milestones
+		if ($status === self::STATUS_DAT_50 || ($pct !== null && (int) $pct >= 50 && (int) $pct < 80)) {
+			self::sendCareToLead($leadId, 'kb09');
+		}
+		if ($status === self::STATUS_DAT_80 || ($pct !== null && (int) $pct >= 80)) {
+			self::sendCareToLead($leadId, 'kb11');
+		}
+		if ($status === self::STATUS_SAP_HET_HAN && $prevStatus !== self::STATUS_SAP_HET_HAN) {
+			self::sendCareToLead($leadId, 'kb10');
+		}
+		if ($status === self::STATUS_HET_HAN && $prevStatus !== self::STATUS_HET_HAN) {
+			// D2 lần 1 ngay khi hết hạn
+			$adb->pquery(
+				'UPDATE bace_lead_profile SET online_reminder_count = 0, online_last_remind_at = NULL, modified_at = ? WHERE leadid = ?',
+				array($now, $leadId)
+			);
+			$r16 = self::sendCareToLead($leadId, 'kb16a', null, true);
+			if (!empty($r16['success'])) {
+				$adb->pquery(
+					'UPDATE bace_lead_profile SET online_reminder_count = 1, online_last_remind_at = ?, modified_at = ? WHERE leadid = ?',
+					array($now, $now, $leadId)
+				);
+			}
+		}
 
 		try {
 			require_once 'modules/Leads/models/ConvertService.php';
@@ -1697,11 +1982,28 @@ class Leads_OnlineGd12Service {
 			if ($next === $cur) {
 				continue;
 			}
+			$nowWin = date('Y-m-d H:i:s');
 			$adb->pquery(
 				'UPDATE bace_lead_profile SET online_status = ?, modified_at = ? WHERE leadid = ?',
-				array($next, date('Y-m-d H:i:s'), $leadId)
+				array($next, $nowWin, $leadId)
 			);
 			self::syncStatusTagsOnly($leadId, array('zalo', 'mien_phi_online', $next));
+			if ($next === self::STATUS_SAP_HET_HAN) {
+				self::sendCareToLead($leadId, 'kb10');
+			}
+			if ($next === self::STATUS_HET_HAN && $cur !== self::STATUS_HET_HAN) {
+				$adb->pquery(
+					'UPDATE bace_lead_profile SET online_reminder_count = 0, online_last_remind_at = NULL, modified_at = ? WHERE leadid = ?',
+					array($nowWin, $leadId)
+				);
+				$r16 = self::sendCareToLead($leadId, 'kb16a', null, true);
+				if (!empty($r16['success'])) {
+					$adb->pquery(
+						'UPDATE bace_lead_profile SET online_reminder_count = 1, online_last_remind_at = ?, modified_at = ? WHERE leadid = ?',
+						array($nowWin, $nowWin, $leadId)
+					);
+				}
+			}
 			try {
 				require_once 'modules/Leads/models/ConvertService.php';
 				$contactId = (int) Leads_ConvertService::getLinkedContactId($leadId, true);
