@@ -275,7 +275,7 @@
       { key: "tagged", label: t("JS_MK_KPI_TAGGED", "Có tag"), value: withTags, icon: "crown", tone: "violet" },
       { key: "cap_tk", label: t("JS_MK_KPI_CAP_TK", "Đã cấp tài khoản"), value: withCapTk, icon: "check", tone: "emerald" },
       { key: "phone", label: t("JS_MK_KPI_PHONE", "Có SĐT"), value: withPhone, icon: "clock", tone: "cyan" },
-      { key: "cap_bang", label: t("JS_MK_KPI_CAP_BANG", "Đã cấp bằng"), value: withCapBang, icon: "repeat", tone: "amber" },
+      { key: "cap_bang", label: t("JS_MK_KPI_CAP_BANG", "Tiến trình"), value: withCapBang, icon: "repeat", tone: "amber" },
       { key: "gold", label: t("JS_MK_KPI_GOLD", "Hạng Vàng"), value: gold, icon: "crown", tone: "rose" },
       { key: "franchise", label: t("JS_MK_KPI_FRANCHISE", "Nhượng quyền"), value: franchise, icon: "trend", tone: "indigo" },
     ];
@@ -1202,9 +1202,52 @@
 
     if ($("mk-contacts-import-ic")) $("mk-contacts-import-ic").innerHTML = ic("import");
     if ($("mk-contacts-create-ic")) $("mk-contacts-create-ic").innerHTML = ic("plus");
+    if ($("mk-contacts-edubit-sync-ic")) $("mk-contacts-edubit-sync-ic").innerHTML = ic("repeat");
     if ($("mk-contacts-search-ic")) $("mk-contacts-search-ic").innerHTML = ic("search");
     if ($("mk-contacts-segments-icon")) $("mk-contacts-segments-icon").innerHTML = ic("filter");
     if ($("mk-contacts-filters-ic")) $("mk-contacts-filters-ic").innerHTML = ic("filter");
+
+    var syncBtn = $("mk-contacts-edubit-sync-btn");
+    if (syncBtn) {
+      syncBtn.addEventListener("click", function () {
+        if (!store || typeof store.syncEdubitAll !== "function") {
+          window.alert("API đồng bộ chưa sẵn sàng.");
+          return;
+        }
+        if (
+          !window.confirm(
+            "Đồng bộ tiến độ Edubit cho tất cả khách hàng đã cấp TK?\nCó thể mất vài giây nếu nhiều hồ sơ."
+          )
+        ) {
+          return;
+        }
+        syncBtn.disabled = true;
+        var txt = syncBtn.querySelector(".mk-leads-btn__txt");
+        var oldTxt = txt ? txt.textContent : "";
+        if (txt) txt.textContent = "Đang đồng bộ…";
+        store
+          .syncEdubitAll(150)
+          .then(function (res) {
+            var msg = (res && res.message) || "Đã đồng bộ tiến độ.";
+            if (window.app && app.helper && app.helper.showSuccessNotification) {
+              app.helper.showSuccessNotification({ message: msg });
+            } else {
+              window.alert(msg);
+            }
+            return store.refresh();
+          })
+          .then(function () {
+            renderAll();
+          })
+          .catch(function (err) {
+            window.alert((err && err.message) || "Không đồng bộ được tiến độ.");
+          })
+          .then(function () {
+            syncBtn.disabled = false;
+            if (txt) txt.textContent = oldTxt || "Đồng bộ tiến độ";
+          });
+      });
+    }
   }
 
   function init() {

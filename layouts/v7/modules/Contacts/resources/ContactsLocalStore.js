@@ -162,5 +162,15 @@
         return res;
       });
     },
+    syncEdubitAll: function (limit) {
+      var data = {};
+      if (limit) data.limit = limit;
+      return apiRequest("edubit_sync_all", data).then(function (res) {
+        if (!res || res.success === false) {
+          throw new Error((res && res.error) || "Đồng bộ thất bại");
+        }
+        return res;
+      });
+    },
   };
 })(window);

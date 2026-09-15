@@ -1792,6 +1792,134 @@ class Leads_OnlineGd12Service {
 	}
 
 	/**
+	 * Đồng bộ tiến độ Edubit theo Contact (Lead đã convert / ẩn).
+	 * Ưu tiên lead liên kết; không có lead thì sync thẳng từ contactscf.
+	 */
+	public static function syncEdubitProgressForContact($contactId, $userId = null) {
+		$contactId = (int) $contactId;
+		if ($contactId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu contact id');
+		}
+		require_once 'modules/Leads/models/ConvertService.php';
+		$leadId = (int) Leads_ConvertService::getLinkedLeadIdByContact($contactId);
+		if ($leadId > 0) {
+			$out = self::syncEdubitProgressForLead($leadId, $userId);
+			$out['lead_id'] = $leadId;
+			$out['contact_id'] = $contactId;
+			return $out;
+		}
+
+		require_once 'modules/Contacts/models/ModernService.php';
+		Contacts_ModernService::ensureEdubitProgressColumns();
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT edubit_email, edubit_course_id, edubit_user_id, edubit_activated_at,
+				edubit_expires_at, edubit_renew_count, edubit_progress_pct, online_status
+			 FROM vtiger_contactscf WHERE contactid = ?',
+			array($contactId)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return array('success' => false, 'error' => 'Contact chưa có dữ liệu Edubit');
+		}
+		$email = trim((string) $adb->query_result($res, 0, 'edubit_email'));
+		$courseId = trim((string) $adb->query_result($res, 0, 'edubit_course_id'));
+		$userEd = trim((string) $adb->query_result($res, 0, 'edubit_user_id'));
+		$activatedAt = trim((string) $adb->query_result($res, 0, 'edubit_activated_at'));
+		$expiresAt = trim((string) $adb->query_result($res, 0, 'edubit_expires_at'));
+		$renewCount = (int) $adb->query_result($res, 0, 'edubit_renew_count');
+		if ($email === '' || $courseId === '') {
+			return array('success' => false, 'error' => 'Contact chưa gắn email / course_id Edubit');
+		}
+		if (($expiresAt === '' || $expiresAt === '0000-00-00 00:00:00')
+			&& $activatedAt !== '' && $activatedAt !== '0000-00-00 00:00:00') {
+			$expiresAt = self::computeExpiresAt($activatedAt);
+			Contacts_ModernService::saveEdubitAccessWindowOnContact(
+				$contactId, $activatedAt, $expiresAt, $renewCount, '', ''
+			);
+		}
+
+		require_once 'modules/Vtiger/helpers/NkApiConnection.php';
+		$adapter = NkApiConnection::adapter('edubit');
+		try {
+			$prog = $adapter->getProcessLearnStudent($email, $courseId, 2);
+		} catch (Exception $e) {
+			return array('success' => false, 'error' => $e->getMessage(), 'contact_id' => $contactId);
+		}
+		$pct = isset($prog['progress_pct']) && $prog['progress_pct'] !== null
+			? (int) $prog['progress_pct']
+			: 0;
+		$status = self::resolveLearningStatus($pct, $expiresAt);
+		Contacts_ModernService::saveEdubitProgressOnContact($contactId, $pct, $courseId, $email, $userEd);
+		Contacts_ModernService::saveEdubitAccessWindowOnContact(
+			$contactId, $activatedAt, $expiresAt, $renewCount, '', $status
+		);
+		return array(
+			'success' => true,
+			'contact_id' => $contactId,
+			'progress_pct' => $pct,
+			'status' => $status,
+			'status_label' => self::statusLabel($status),
+			'edubit_expires_at' => ($expiresAt !== '' && $expiresAt !== '0000-00-00 00:00:00')
+				? date('c', strtotime($expiresAt)) : '',
+			'edubit_renew_count' => $renewCount,
+			'edubit_renew_remaining' => max(0, self::RENEW_MAX - $renewCount),
+			'message' => 'Tiến độ: ' . $pct . '%',
+		);
+	}
+
+	/**
+	 * Đồng bộ tiến độ tất cả Contact đã cấp TK Edubit.
+	 * @param int $limit trần số hồ sơ / lần
+	 */
+	public static function syncEdubitProgressForAllContacts($limit = 150, $userId = null) {
+		require_once 'modules/Contacts/models/ModernService.php';
+		Contacts_ModernService::ensureEdubitProgressColumns();
+		$adb = PearDatabase::getInstance();
+		$limit = max(1, min(300, (int) $limit));
+		$res = $adb->pquery(
+			"SELECT cf.contactid
+			 FROM vtiger_contactscf cf
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = cf.contactid AND ce.deleted = 0
+			 WHERE cf.edubit_email IS NOT NULL AND cf.edubit_email <> ''
+			   AND cf.edubit_course_id IS NOT NULL AND cf.edubit_course_id <> ''
+			 ORDER BY cf.contactid ASC
+			 LIMIT {$limit}",
+			array()
+		);
+		$ok = 0;
+		$fail = 0;
+		$items = array();
+		$rows = ($res && $adb->num_rows($res) > 0) ? $adb->num_rows($res) : 0;
+		for ($i = 0; $i < $rows; $i++) {
+			$cid = (int) $adb->query_result($res, $i, 'contactid');
+			$one = self::syncEdubitProgressForContact($cid, $userId);
+			if (!empty($one['success'])) {
+				$ok++;
+				$items[] = array(
+					'contact_id' => $cid,
+					'progress_pct' => isset($one['progress_pct']) ? $one['progress_pct'] : null,
+					'status' => isset($one['status']) ? $one['status'] : '',
+				);
+			} else {
+				$fail++;
+				$items[] = array(
+					'contact_id' => $cid,
+					'error' => isset($one['error']) ? $one['error'] : 'fail',
+				);
+			}
+		}
+		return array(
+			'success' => true,
+			'scanned' => $rows,
+			'ok' => $ok,
+			'fail' => $fail,
+			'items' => $items,
+			'message' => 'Đã đồng bộ ' . $ok . '/' . $rows . ' khách hàng'
+				. ($fail > 0 ? (' (lỗi ' . $fail . ')') : '') . '.',
+		);
+	}
+
+	/**
 	 * Sales gia hạn truy cập (+10 ngày), tối đa 3 lần — không đặt lại bộ đếm.
 	 * Không tự động: chỉ khi Sales bấm (khách xin).
 	 */

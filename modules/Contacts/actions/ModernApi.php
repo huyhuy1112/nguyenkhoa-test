@@ -22,7 +22,7 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields', 'last_touch_call_log', 'edubit_renew'), true)) {
+		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields', 'last_touch_call_log', 'edubit_renew', 'edubit_sync_progress', 'edubit_sync_all'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -195,6 +195,24 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 						$payload['reason'] = $request->get('reason');
 					}
 					$saved = Leads_OnlineGd12Service::renewEdubitAccessForContact($recordId, $payload, $userId);
+					$response->setResult($saved);
+					break;
+				case 'edubit_sync_progress':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$saved = Leads_OnlineGd12Service::syncEdubitProgressForContact($recordId, $userId);
+					$response->setResult($saved);
+					break;
+				case 'edubit_sync_all':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$limit = (int) $request->get('limit');
+					if ($limit <= 0) {
+						$limit = 150;
+					}
+					$saved = Leads_OnlineGd12Service::syncEdubitProgressForAllContacts($limit, $userId);
 					$response->setResult($saved);
 					break;
 				default:
