@@ -22,7 +22,7 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields', 'last_touch_call_log'), true)) {
+		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields', 'last_touch_call_log', 'edubit_renew'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -174,6 +174,28 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 						'lastTouchCalls' => $logged,
 						'logged' => isset($logged['logged']) ? $logged['logged'] : null,
 					));
+					break;
+				case 'edubit_renew':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$payloadRaw = $request->get('payload');
+					$payload = array();
+					if (is_string($payloadRaw) && $payloadRaw !== '') {
+						$decoded = json_decode($payloadRaw, true);
+						if (is_array($decoded)) {
+							$payload = $decoded;
+						}
+					} elseif (is_array($payloadRaw)) {
+						$payload = $payloadRaw;
+					}
+					if ($request->get('reason') !== null && $request->get('reason') !== '') {
+						$payload['reason'] = $request->get('reason');
+					}
+					$saved = Leads_OnlineGd12Service::renewEdubitAccessForContact($recordId, $payload, $userId);
+					$response->setResult($saved);
 					break;
 				default:
 					throw new Exception('Unsupported mode.');

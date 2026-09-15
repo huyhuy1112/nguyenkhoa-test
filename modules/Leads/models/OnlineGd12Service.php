@@ -13,8 +13,19 @@ class Leads_OnlineGd12Service {
 	const STATUS_NGUNG_CSKH = 'online_ngung_cskh';
 	/** Đã cấp / kích hoạt khóa trên Edubit */
 	const STATUS_DANG_HOC = 'online_dang_hoc';
+	/** Đạt ≥50% tiến độ Edubit (chưa tới 80%) */
+	const STATUS_DAT_50 = 'online_dat_50';
+	/** Ngày cuối của thời hạn truy cập */
+	const STATUS_SAP_HET_HAN = 'online_sap_het_han';
+	/** Hết hạn truy cập mà chưa đạt 80% */
+	const STATUS_HET_HAN = 'online_het_han';
 	/** Đạt ≥80% tiến độ Edubit */
 	const STATUS_DAT_80 = 'online_dat_80';
+
+	/** Thời hạn truy cập lần đầu / mỗi lần gia hạn (ngày) */
+	const ACCESS_DAYS = 10;
+	/** Trần số lần gia hạn — không bao giờ đặt lại */
+	const RENEW_MAX = 3;
 
 	/** Đường 1 OA / Đường 2 chuyển từ Offline 1.1 */
 	const PATH_OA = 'oa';
@@ -26,8 +37,72 @@ class Leads_OnlineGd12Service {
 		self::STATUS_KHONG_DU_DK,
 		self::STATUS_NGUNG_CSKH,
 		self::STATUS_DANG_HOC,
+		self::STATUS_DAT_50,
+		self::STATUS_SAP_HET_HAN,
+		self::STATUS_HET_HAN,
 		self::STATUS_DAT_80,
 	);
+
+	public static function statusLabels() {
+		return array(
+			self::STATUS_CHUA_DIEN_FORM => 'Online — Chưa điền form',
+			self::STATUS_CHUA_DK_TK => 'Online — Chưa đăng ký TK',
+			self::STATUS_KHONG_DU_DK => 'Online — Không đủ ĐK',
+			self::STATUS_NGUNG_CSKH => 'Online — Ngưng CSKH',
+			self::STATUS_DANG_HOC => 'Online — Đang học',
+			self::STATUS_DAT_50 => 'Online — Đạt 50%',
+			self::STATUS_SAP_HET_HAN => 'Online — Sắp hết hạn',
+			self::STATUS_HET_HAN => 'Online — Hết hạn',
+			self::STATUS_DAT_80 => 'Online — Đạt 80%',
+		);
+	}
+
+	public static function statusLabel($code) {
+		$labels = self::statusLabels();
+		$code = trim((string) $code);
+		return isset($labels[$code]) ? $labels[$code] : $code;
+	}
+
+	/**
+	 * Ngày hết hạn = mốc kích hoạt/gia hạn + 10 ngày.
+	 * @param string $from Y-m-d H:i:s|timestamp
+	 * @return string Y-m-d H:i:s
+	 */
+	public static function computeExpiresAt($from = null) {
+		$ts = $from ? strtotime((string) $from) : time();
+		if ($ts === false) {
+			$ts = time();
+		}
+		return date('Y-m-d H:i:s', strtotime('+' . (int) self::ACCESS_DAYS . ' days', $ts));
+	}
+
+	/**
+	 * Tag học tập theo tiến độ + đồng hồ hạn (doc GD12).
+	 * ≥80% thắng mọi tag thời hạn. Ngày cuối = Sắp hết hạn. Quá ngày = Hết hạn.
+	 * @param int|null $pct
+	 * @param string $expiresAt
+	 * @return string
+	 */
+	public static function resolveLearningStatus($pct, $expiresAt) {
+		if ($pct !== null && $pct !== '' && (int) $pct >= 80) {
+			return self::STATUS_DAT_80;
+		}
+		$expTs = $expiresAt ? strtotime((string) $expiresAt) : false;
+		if ($expTs !== false) {
+			$today = date('Y-m-d');
+			$expDay = date('Y-m-d', $expTs);
+			if ($today > $expDay) {
+				return self::STATUS_HET_HAN;
+			}
+			if ($today === $expDay) {
+				return self::STATUS_SAP_HET_HAN;
+			}
+		}
+		if ($pct !== null && $pct !== '' && (int) $pct >= 50) {
+			return self::STATUS_DAT_50;
+		}
+		return self::STATUS_DANG_HOC;
+	}
 
 	/**
 	 * Catalog Q1–Q4 for CRM verify panel (Online OA).
@@ -500,6 +575,9 @@ class Leads_OnlineGd12Service {
 			'edubit_course_id' => "VARCHAR(32) DEFAULT NULL",
 			'edubit_email' => "VARCHAR(128) DEFAULT NULL",
 			'edubit_activated_at' => "DATETIME DEFAULT NULL",
+			'edubit_expires_at' => "DATETIME DEFAULT NULL",
+			'edubit_renew_count' => "TINYINT(1) NOT NULL DEFAULT 0",
+			'edubit_expiry_reason' => "VARCHAR(64) DEFAULT NULL",
 			'edubit_progress_pct' => "TINYINT(3) DEFAULT NULL",
 			'edubit_progress_at' => "DATETIME DEFAULT NULL",
 			'edubit_last_error' => "VARCHAR(255) DEFAULT NULL",
@@ -1036,6 +1114,7 @@ class Leads_OnlineGd12Service {
 
 		$userIdEd = isset($created['user_id']) ? (string) $created['user_id'] : '';
 		$now = date('Y-m-d H:i:s');
+		$expiresAt = self::computeExpiresAt($now);
 		$adb->pquery(
 			'UPDATE bace_lead_profile SET
 				online_status = ?,
@@ -1043,11 +1122,13 @@ class Leads_OnlineGd12Service {
 				edubit_course_id = ?,
 				edubit_email = ?,
 				edubit_activated_at = ?,
+				edubit_expires_at = ?,
+				edubit_renew_count = 0,
 				edubit_progress_pct = COALESCE(edubit_progress_pct, 0),
 				edubit_last_error = NULL,
 				modified_at = ?
 			 WHERE leadid = ?',
-			array(self::STATUS_DANG_HOC, $userIdEd, $courseId, $email, $now, $now, $leadId)
+			array(self::STATUS_DANG_HOC, $userIdEd, $courseId, $email, $now, $expiresAt, $now, $leadId)
 		);
 		self::syncStatusTagsOnly($leadId, array('zalo', 'mien_phi_online', self::STATUS_DANG_HOC));
 
@@ -1055,16 +1136,20 @@ class Leads_OnlineGd12Service {
 		$out = array(
 			'success' => true,
 			'status' => self::STATUS_DANG_HOC,
-			'status_label' => 'Online — Đang học',
+			'status_label' => self::statusLabel(self::STATUS_DANG_HOC),
 			'edubit_user_id' => $userIdEd,
 			'edubit_course_id' => $courseId,
 			'edubit_email' => $email,
+			'edubit_activated_at' => date('c', strtotime($now)),
+			'edubit_expires_at' => date('c', strtotime($expiresAt)),
+			'edubit_renew_count' => 0,
+			'edubit_renew_remaining' => self::RENEW_MAX,
 			'generated_password' => $genPass,
 			'create_status' => isset($created['status']) ? $created['status'] : '',
 			'activate_status' => isset($activated['status']) ? $activated['status'] : '',
 			'message' => $genPass !== ''
-				? ('Đã cấp TK Edubit. Mật khẩu tạm: ' . $genPass)
-				: 'Đã cấp TK / kích hoạt khóa Edubit.',
+				? ('Đã cấp TK Edubit. Mật khẩu tạm: ' . $genPass . '. Hạn truy cập đến ' . date('d/m/Y', strtotime($expiresAt)) . '.')
+				: ('Đã cấp TK / kích hoạt khóa Edubit. Hạn truy cập đến ' . date('d/m/Y', strtotime($expiresAt)) . '.'),
 			'courses' => self::edubitCoursesCatalog(),
 		);
 
@@ -1129,6 +1214,7 @@ class Leads_OnlineGd12Service {
 			Contacts_ModernService::saveCredentialFields($contactId, 'Chưa cấp', 'Đã cấp');
 			Contacts_ModernService::saveEdubitProgressOnContact($contactId, $pct, $courseId, $emailEd, $userEd);
 			Contacts_ModernService::markEdubitProvisionTimes($contactId, $courseId);
+			self::syncAccessWindowToContact($leadId, $contactId);
 			Leads_ConvertService::syncLeadProfileExtrasToContact($leadId, $contactId);
 
 			return array(
@@ -1299,7 +1385,8 @@ class Leads_OnlineGd12Service {
 		self::installSchema();
 		$adb = PearDatabase::getInstance();
 		$res = $adb->pquery(
-			'SELECT edubit_email, edubit_course_id, edubit_progress_pct, online_status
+			'SELECT edubit_email, edubit_course_id, edubit_progress_pct, online_status,
+				edubit_activated_at, edubit_expires_at, edubit_renew_count
 			 FROM bace_lead_profile WHERE leadid = ?',
 			array($leadId)
 		);
@@ -1308,8 +1395,19 @@ class Leads_OnlineGd12Service {
 		}
 		$email = trim((string) $adb->query_result($res, 0, 'edubit_email'));
 		$courseId = trim((string) $adb->query_result($res, 0, 'edubit_course_id'));
+		$activatedAt = trim((string) $adb->query_result($res, 0, 'edubit_activated_at'));
+		$expiresAt = trim((string) $adb->query_result($res, 0, 'edubit_expires_at'));
+		$renewCount = (int) $adb->query_result($res, 0, 'edubit_renew_count');
 		if ($email === '' || $courseId === '') {
 			return array('success' => false, 'error' => 'Lead chưa gắn email / course_id Edubit. Cấp TK trước.');
+		}
+		if (($expiresAt === '' || $expiresAt === '0000-00-00 00:00:00')
+			&& $activatedAt !== '' && $activatedAt !== '0000-00-00 00:00:00') {
+			$expiresAt = self::computeExpiresAt($activatedAt);
+			$adb->pquery(
+				'UPDATE bace_lead_profile SET edubit_expires_at = ?, modified_at = ? WHERE leadid = ?',
+				array($expiresAt, date('Y-m-d H:i:s'), $leadId)
+			);
 		}
 
 		require_once 'modules/Vtiger/helpers/NkApiConnection.php';
@@ -1328,10 +1426,7 @@ class Leads_OnlineGd12Service {
 			? (int) $prog['progress_pct']
 			: null;
 		$now = date('Y-m-d H:i:s');
-		$status = self::STATUS_DANG_HOC;
-		if ($pct !== null && $pct >= 80) {
-			$status = self::STATUS_DAT_80;
-		}
+		$status = self::resolveLearningStatus($pct, $expiresAt);
 		$adb->pquery(
 			'UPDATE bace_lead_profile SET
 				edubit_progress_pct = ?,
@@ -1344,7 +1439,6 @@ class Leads_OnlineGd12Service {
 		);
 		self::syncStatusTagsOnly($leadId, array('zalo', 'mien_phi_online', $status));
 
-		// Đồng bộ % lên Contact nếu đã xuống KH.
 		try {
 			require_once 'modules/Leads/models/ConvertService.php';
 			require_once 'modules/Contacts/models/ModernService.php';
@@ -1379,6 +1473,7 @@ class Leads_OnlineGd12Service {
 					$email,
 					$userEd
 				);
+				self::syncAccessWindowToContact($leadId, $contactId);
 				$createdAt = '';
 				$cr = $adb->pquery(
 					'SELECT createdtime FROM vtiger_crmentity WHERE crmid = ? AND deleted = 0',
@@ -1397,13 +1492,240 @@ class Leads_OnlineGd12Service {
 		return array(
 			'success' => true,
 			'status' => $status,
-			'status_label' => $status === self::STATUS_DAT_80 ? 'Online — Đạt 80%' : 'Online — Đang học',
+			'status_label' => self::statusLabel($status),
 			'progress_pct' => $pct,
 			'edubit_course_id' => $courseId,
 			'edubit_email' => $email,
+			'edubit_expires_at' => ($expiresAt !== '' && $expiresAt !== '0000-00-00 00:00:00')
+				? date('c', strtotime($expiresAt)) : '',
+			'edubit_renew_count' => $renewCount,
+			'edubit_renew_remaining' => max(0, self::RENEW_MAX - $renewCount),
+			'can_edubit_renew' => ($renewCount < self::RENEW_MAX && $status !== self::STATUS_DAT_80) ? 1 : 0,
 			'message' => $pct !== null ? ('Tiến độ: ' . $pct . '%') : 'Đã sync tiến độ (chưa parse được %).',
 			'raw_data' => isset($prog['data']) ? $prog['data'] : null,
 		);
+	}
+
+	/**
+	 * Sales gia hạn truy cập (+10 ngày), tối đa 3 lần — không đặt lại bộ đếm.
+	 * Không tự động: chỉ khi Sales bấm (khách xin).
+	 */
+	public static function renewEdubitAccessForLead($leadId, array $payload = array(), $userId = null) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu lead id');
+		}
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT edubit_user_id, edubit_course_id, edubit_email, edubit_activated_at,
+				edubit_expires_at, edubit_renew_count, edubit_progress_pct, online_status
+			 FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return array('success' => false, 'error' => 'Chưa có hồ sơ Online');
+		}
+		$userEd = trim((string) $adb->query_result($res, 0, 'edubit_user_id'));
+		$courseId = trim((string) $adb->query_result($res, 0, 'edubit_course_id'));
+		$email = trim((string) $adb->query_result($res, 0, 'edubit_email'));
+		$activatedAt = trim((string) $adb->query_result($res, 0, 'edubit_activated_at'));
+		$renewCount = (int) $adb->query_result($res, 0, 'edubit_renew_count');
+		$pctRaw = $adb->query_result($res, 0, 'edubit_progress_pct');
+		$pct = ($pctRaw === null || $pctRaw === '') ? null : (int) $pctRaw;
+		if ($userEd === '' && $courseId === '' && $email === '') {
+			return array('success' => false, 'error' => 'Chưa cấp TK Edubit — không gia hạn được.');
+		}
+		if ($pct !== null && $pct >= 80) {
+			return array('success' => false, 'error' => 'Đã đạt ≥80% — không cần gia hạn.');
+		}
+		if ($renewCount >= self::RENEW_MAX) {
+			return array(
+				'success' => false,
+				'error' => 'Đã hết ' . self::RENEW_MAX . ' lần gia hạn — không mở lại được.',
+				'edubit_renew_count' => $renewCount,
+				'edubit_renew_remaining' => 0,
+			);
+		}
+		if ($activatedAt === '' || $activatedAt === '0000-00-00 00:00:00') {
+			$activatedAt = date('Y-m-d H:i:s');
+		}
+		$reason = isset($payload['reason']) ? trim((string) $payload['reason']) : '';
+		if ($reason === '' && isset($payload['edubit_expiry_reason'])) {
+			$reason = trim((string) $payload['edubit_expiry_reason']);
+		}
+		$now = date('Y-m-d H:i:s');
+		$newExpires = self::computeExpiresAt($now);
+		$newCount = $renewCount + 1;
+		$status = self::resolveLearningStatus($pct, $newExpires);
+		$adb->pquery(
+			'UPDATE bace_lead_profile SET
+				edubit_expires_at = ?,
+				edubit_renew_count = ?,
+				edubit_expiry_reason = ?,
+				edubit_activated_at = COALESCE(NULLIF(edubit_activated_at, \'0000-00-00 00:00:00\'), ?),
+				online_status = ?,
+				edubit_last_error = NULL,
+				modified_at = ?
+			 WHERE leadid = ?',
+			array(
+				$newExpires,
+				$newCount,
+				$reason !== '' ? mb_substr($reason, 0, 64) : null,
+				$activatedAt,
+				$status,
+				$now,
+				$leadId,
+			)
+		);
+		self::syncStatusTagsOnly($leadId, array('zalo', 'mien_phi_online', $status));
+
+		$contactId = 0;
+		try {
+			require_once 'modules/Leads/models/ConvertService.php';
+			$contactId = (int) Leads_ConvertService::getLinkedContactId($leadId, true);
+			if ($contactId > 0) {
+				self::syncAccessWindowToContact($leadId, $contactId);
+			}
+		} catch (Exception $e) {
+			// best-effort
+		}
+
+		$remaining = max(0, self::RENEW_MAX - $newCount);
+		return array(
+			'success' => true,
+			'status' => $status,
+			'status_label' => self::statusLabel($status),
+			'edubit_expires_at' => date('c', strtotime($newExpires)),
+			'edubit_renew_count' => $newCount,
+			'edubit_renew_remaining' => $remaining,
+			'can_edubit_renew' => $remaining > 0 ? 1 : 0,
+			'edubit_expiry_reason' => $reason,
+			'contact_id' => $contactId,
+			'message' => 'Đã gia hạn lần ' . $newCount . '/' . self::RENEW_MAX
+				. '. Hạn mới đến ' . date('d/m/Y', strtotime($newExpires))
+				. ($remaining > 0 ? (' — còn ' . $remaining . ' lần.') : ' — đây là lần cuối.'),
+		);
+	}
+
+	public static function renewEdubitAccessForContact($contactId, array $payload = array(), $userId = null) {
+		$contactId = (int) $contactId;
+		if ($contactId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu contact id');
+		}
+		require_once 'modules/Leads/models/ConvertService.php';
+		$leadId = (int) Leads_ConvertService::getLinkedLeadIdByContact($contactId);
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'Contact chưa gắn Lead Online — không gia hạn được.');
+		}
+		$out = self::renewEdubitAccessForLead($leadId, $payload, $userId);
+		$out['lead_id'] = $leadId;
+		$out['contact_id'] = $contactId;
+		return $out;
+	}
+
+	/**
+	 * Mirror hạn / số lần gia hạn / online_status lên Contact list.
+	 */
+	public static function syncAccessWindowToContact($leadId, $contactId) {
+		$leadId = (int) $leadId;
+		$contactId = (int) $contactId;
+		if ($leadId <= 0 || $contactId <= 0) {
+			return;
+		}
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT edubit_activated_at, edubit_expires_at, edubit_renew_count, edubit_expiry_reason, online_status
+			 FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return;
+		}
+		require_once 'modules/Contacts/models/ModernService.php';
+		Contacts_ModernService::saveEdubitAccessWindowOnContact(
+			$contactId,
+			trim((string) $adb->query_result($res, 0, 'edubit_activated_at')),
+			trim((string) $adb->query_result($res, 0, 'edubit_expires_at')),
+			(int) $adb->query_result($res, 0, 'edubit_renew_count'),
+			trim((string) $adb->query_result($res, 0, 'edubit_expiry_reason')),
+			trim((string) $adb->query_result($res, 0, 'online_status'))
+		);
+	}
+
+	/**
+	 * Cron: cập nhật tag Sắp hết hạn / Hết hạn theo đồng hồ (không gọi Edubit API).
+	 */
+	public static function processAccessWindowTags($limit = 200) {
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$limit = max(1, min(500, (int) $limit));
+		$res = $adb->pquery(
+			"SELECT leadid, edubit_progress_pct, edubit_activated_at, edubit_expires_at, online_status
+			 FROM bace_lead_profile
+			 WHERE edubit_activated_at IS NOT NULL
+			   AND edubit_activated_at <> '0000-00-00 00:00:00'
+			   AND online_status IN (?, ?, ?, ?, ?)
+			 ORDER BY leadid ASC
+			 LIMIT {$limit}",
+			array(
+				self::STATUS_DANG_HOC,
+				self::STATUS_DAT_50,
+				self::STATUS_SAP_HET_HAN,
+				self::STATUS_HET_HAN,
+				self::STATUS_DAT_80,
+			)
+		);
+		$updated = 0;
+		$rows = ($res && $adb->num_rows($res) > 0) ? $adb->num_rows($res) : 0;
+		for ($i = 0; $i < $rows; $i++) {
+			$leadId = (int) $adb->query_result($res, $i, 'leadid');
+			$pctRaw = $adb->query_result($res, $i, 'edubit_progress_pct');
+			$pct = ($pctRaw === null || $pctRaw === '') ? null : (int) $pctRaw;
+			$activatedAt = trim((string) $adb->query_result($res, $i, 'edubit_activated_at'));
+			$expiresAt = trim((string) $adb->query_result($res, $i, 'edubit_expires_at'));
+			$cur = trim((string) $adb->query_result($res, $i, 'online_status'));
+			if (($expiresAt === '' || $expiresAt === '0000-00-00 00:00:00') && $activatedAt !== '') {
+				$expiresAt = self::computeExpiresAt($activatedAt);
+				$adb->pquery(
+					'UPDATE bace_lead_profile SET edubit_expires_at = ?, modified_at = ? WHERE leadid = ?',
+					array($expiresAt, date('Y-m-d H:i:s'), $leadId)
+				);
+			}
+			$next = self::resolveLearningStatus($pct, $expiresAt);
+			if ($next === $cur) {
+				continue;
+			}
+			$adb->pquery(
+				'UPDATE bace_lead_profile SET online_status = ?, modified_at = ? WHERE leadid = ?',
+				array($next, date('Y-m-d H:i:s'), $leadId)
+			);
+			self::syncStatusTagsOnly($leadId, array('zalo', 'mien_phi_online', $next));
+			try {
+				require_once 'modules/Leads/models/ConvertService.php';
+				$contactId = (int) Leads_ConvertService::getLinkedContactId($leadId, true);
+				if ($contactId > 0) {
+					self::syncAccessWindowToContact($leadId, $contactId);
+				}
+			} catch (Exception $e) {
+				// best-effort
+			}
+			$updated++;
+		}
+		return array('scanned' => $rows, 'updated' => $updated);
+	}
+
+	public static function registerAccessWindowCron() {
+		require_once 'vtlib/Vtiger/Cron.php';
+		$name = 'OnlineGd12AccessWindow';
+		$handler = 'cron/modules/Leads/OnlineGd12AccessWindow.service';
+		$desc = 'GD 1.2 Online — cập nhật Sắp hết hạn / Hết hạn (10 ngày)';
+		$existing = Vtiger_Cron::getInstance($name);
+		if ($existing) {
+			return;
+		}
+		Vtiger_Cron::register($name, $handler, 3600, 'Leads', 1, 0, $desc);
 	}
 
 	protected static function loadLeadContactFields($leadId) {

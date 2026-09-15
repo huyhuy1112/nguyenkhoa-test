@@ -35,7 +35,7 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 			'sales_verify_save', 'online_verify_save', 'offline_gd11_apply', 'offline_gd11_step2',
 			'offline_gd11_step2_remind',
 			'online_gd12_transfer_from_offline', 'online_gd12_transfer_from_online',
-			'online_edubit_provision', 'online_edubit_sync_progress',
+			'online_edubit_provision', 'online_edubit_sync_progress', 'online_edubit_renew',
 			'product_upsert', 'product_remove', 'product_set_stage',
 		), true)) {
 			$request->validateWriteAccess();
@@ -420,6 +420,24 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 						$id = $payload['id'];
 					}
 					$saved = Leads_OnlineGd12Service::syncEdubitProgressForLead($id, $userId);
+					if (!empty($saved['success'])) {
+						$lead = Leads_ModernService::getLead($id, $userId);
+						$saved['lead'] = $lead;
+					}
+					$response->setResult($saved);
+					break;
+
+				case 'online_edubit_renew':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					$saved = Leads_OnlineGd12Service::renewEdubitAccessForLead($id, $payload, $userId);
 					if (!empty($saved['success'])) {
 						$lead = Leads_ModernService::getLead($id, $userId);
 						$saved['lead'] = $lead;

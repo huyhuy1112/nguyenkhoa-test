@@ -148,7 +148,8 @@ class Leads_ModernService {
 		return ', p.form_c1, p.form_c2, p.form_c3, p.verify_c1, p.verify_c2, p.verify_c3, p.verify_c4, p.verify_c5,
 			p.eligibility_result, p.potential_level, p.verify_score, p.verify_change_reason, p.verified_at, p.verified_by,
 			p.online_status, p.online_q1, p.online_q2, p.online_q3, p.online_q4, p.online_path, p.online_source_leadid, p.zalo_user_id,
-			p.edubit_user_id, p.edubit_course_id, p.edubit_email, p.edubit_activated_at, p.edubit_progress_pct, p.edubit_last_error,
+			p.edubit_user_id, p.edubit_course_id, p.edubit_email, p.edubit_activated_at, p.edubit_expires_at,
+			p.edubit_renew_count, p.edubit_expiry_reason, p.edubit_progress_pct, p.edubit_last_error,
 			p.offline_status, p.offline_r1_contact, p.offline_r1_hen_goi, p.offline_r1_khong_nghe, p.offline_r1_sai_tt,
 			p.offline_r2_schedule, p.offline_r3_class, p.offline_r4_transfer,
 			p.offline_preclass_confirm, p.offline_class_date, p.offline_class_time, p.offline_class_place,
@@ -1602,15 +1603,32 @@ class Leads_ModernService {
 			'edubit_email' => isset($row['edubit_email']) ? (string) $row['edubit_email'] : '',
 			'edubit_activated_at' => (!empty($row['edubit_activated_at']) && $row['edubit_activated_at'] !== '0000-00-00 00:00:00')
 				? date('c', strtotime($row['edubit_activated_at'])) : '',
+			'edubit_expires_at' => (!empty($row['edubit_expires_at']) && $row['edubit_expires_at'] !== '0000-00-00 00:00:00')
+				? date('c', strtotime($row['edubit_expires_at'])) : '',
+			'edubit_renew_count' => isset($row['edubit_renew_count']) ? (int) $row['edubit_renew_count'] : 0,
+			'edubit_renew_remaining' => max(
+				0,
+				Leads_OnlineGd12Service::RENEW_MAX - (isset($row['edubit_renew_count']) ? (int) $row['edubit_renew_count'] : 0)
+			),
+			'edubit_expiry_reason' => isset($row['edubit_expiry_reason']) ? trim((string) $row['edubit_expiry_reason']) : '',
 			'edubit_progress_pct' => isset($row['edubit_progress_pct']) && $row['edubit_progress_pct'] !== null && $row['edubit_progress_pct'] !== ''
 				? (int) $row['edubit_progress_pct'] : null,
 			'edubit_last_error' => isset($row['edubit_last_error']) ? (string) $row['edubit_last_error'] : '',
+			'online_status_label' => $onlineStatus !== '' ? Leads_OnlineGd12Service::statusLabel($onlineStatus) : '',
 			'can_edubit_provision' => (
 				$isOnline
 				&& ($eligibility === 'du_dk' || $onlineStatus === Leads_OnlineGd12Service::STATUS_CHUA_DK_TK
 					|| $onlineStatus === Leads_OnlineGd12Service::STATUS_DANG_HOC
+					|| $onlineStatus === Leads_OnlineGd12Service::STATUS_DAT_50
+					|| $onlineStatus === Leads_OnlineGd12Service::STATUS_SAP_HET_HAN
+					|| $onlineStatus === Leads_OnlineGd12Service::STATUS_HET_HAN
 					|| $onlineStatus === Leads_OnlineGd12Service::STATUS_DAT_80)
 			) ? 1 : 0,
+			'can_edubit_renew' => (
+				!empty($row['edubit_user_id']) || !empty($row['edubit_course_id'])
+			) && (isset($row['edubit_renew_count']) ? (int) $row['edubit_renew_count'] : 0) < Leads_OnlineGd12Service::RENEW_MAX
+				&& $onlineStatus !== Leads_OnlineGd12Service::STATUS_DAT_80
+				? 1 : 0,
 		);
 		if ($detailed) {
 			$block['online_verify_options'] = $onlineCatalog;

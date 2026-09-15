@@ -143,3 +143,29 @@ html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-ap
 	font-weight: 600;
 	color: #0f766e;
 }
+.mk-contacts-edubit-progress__meta {
+	margin-top: 2px;
+	font-size: 11px;
+	color: #64748b;
+	line-height: 1.3;
+}
+.mk-contacts-edubit-renew {
+	margin-top: 4px;
+	padding: 2px 8px;
+	font-size: 11px;
+	font-weight: 600;
+	border: 1px solid #0d9488;
+	border-radius: 6px;
+	background: #ecfdf5;
+	color: #0f766e;
+	cursor: pointer;
+}
+.mk-contacts-edubit-renew:hover {
+	background: #d1fae5;
+}
+.mk-contacts-edubit-renew-muted {
+	display: inline-block;
+	margin-top: 4px;
+	font-size: 11px;
+	color: #94a3b8;
+}

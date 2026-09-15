@@ -30,6 +30,7 @@ class Contacts_ModernService {
 				cf.thoigian_dangky, cf.thoigian_pcth, cf.thoigian_mqbb,
 				cf.da_cap_bang, cf.da_cap_tai_khoan,
 				cf.edubit_progress_pct, cf.edubit_course_id, cf.edubit_email, cf.edubit_user_id,
+				cf.edubit_activated_at, cf.edubit_expires_at, cf.edubit_renew_count, cf.edubit_expiry_reason, cf.online_status,
 				cp.business_model AS contact_business_model
 			FROM vtiger_contactdetails cd
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid AND ce.deleted = 0
@@ -452,6 +453,11 @@ class Contacts_ModernService {
 			'edubit_course_id' => 'VARCHAR(32) NULL',
 			'edubit_email' => 'VARCHAR(128) NULL',
 			'edubit_user_id' => 'VARCHAR(64) NULL',
+			'edubit_activated_at' => 'DATETIME NULL',
+			'edubit_expires_at' => 'DATETIME NULL',
+			'edubit_renew_count' => 'TINYINT(1) NOT NULL DEFAULT 0',
+			'edubit_expiry_reason' => 'VARCHAR(64) NULL',
+			'online_status' => 'VARCHAR(48) NULL',
 		);
 		foreach ($cols as $name => $def) {
 			$check = $adb->pquery("SHOW COLUMNS FROM vtiger_contactscf LIKE ?", array($name));
@@ -486,6 +492,58 @@ class Contacts_ModernService {
 				$courseId !== '' ? (string) $courseId : null,
 				$email !== '' ? (string) $email : null,
 				$userIdEd !== '' ? (string) $userIdEd : null,
+				$contactId,
+			)
+		);
+	}
+
+	/**
+	 * Mirror hạn truy cập / gia hạn từ Lead Online lên Contact.
+	 */
+	public static function saveEdubitAccessWindowOnContact(
+		$contactId,
+		$activatedAt,
+		$expiresAt,
+		$renewCount = 0,
+		$expiryReason = '',
+		$onlineStatus = ''
+	) {
+		$contactId = (int) $contactId;
+		if ($contactId <= 0) {
+			return;
+		}
+		self::ensureEdubitProgressColumns();
+		$adb = PearDatabase::getInstance();
+		$exists = $adb->pquery('SELECT contactid FROM vtiger_contactscf WHERE contactid = ?', array($contactId));
+		if (!$exists || $adb->num_rows($exists) < 1) {
+			$adb->pquery('INSERT INTO vtiger_contactscf (contactid) VALUES (?)', array($contactId));
+		}
+		$act = trim((string) $activatedAt);
+		$exp = trim((string) $expiresAt);
+		if ($act === '' || $act === '0000-00-00 00:00:00' || strtotime($act) === false) {
+			$act = null;
+		} else {
+			$act = date('Y-m-d H:i:s', strtotime($act));
+		}
+		if ($exp === '' || $exp === '0000-00-00 00:00:00' || strtotime($exp) === false) {
+			$exp = null;
+		} else {
+			$exp = date('Y-m-d H:i:s', strtotime($exp));
+		}
+		$adb->pquery(
+			'UPDATE vtiger_contactscf SET
+				edubit_activated_at = ?,
+				edubit_expires_at = ?,
+				edubit_renew_count = ?,
+				edubit_expiry_reason = ?,
+				online_status = ?
+			 WHERE contactid = ?',
+			array(
+				$act,
+				$exp,
+				max(0, min(3, (int) $renewCount)),
+				$expiryReason !== '' ? mb_substr((string) $expiryReason, 0, 64) : null,
+				$onlineStatus !== '' ? (string) $onlineStatus : null,
 				$contactId,
 			)
 		);
@@ -796,6 +854,17 @@ class Contacts_ModernService {
 			'edubit_course_id' => isset($row['edubit_course_id']) ? trim((string) $row['edubit_course_id']) : '',
 			'edubit_email' => isset($row['edubit_email']) ? trim((string) $row['edubit_email']) : '',
 			'edubit_user_id' => isset($row['edubit_user_id']) ? trim((string) $row['edubit_user_id']) : '',
+			'edubit_activated_at' => self::toIsoDateTime(isset($row['edubit_activated_at']) ? $row['edubit_activated_at'] : ''),
+			'edubit_expires_at' => self::toIsoDateTime(isset($row['edubit_expires_at']) ? $row['edubit_expires_at'] : ''),
+			'edubit_renew_count' => isset($row['edubit_renew_count']) ? (int) $row['edubit_renew_count'] : 0,
+			'edubit_renew_remaining' => max(0, 3 - (isset($row['edubit_renew_count']) ? (int) $row['edubit_renew_count'] : 0)),
+			'edubit_expiry_reason' => isset($row['edubit_expiry_reason']) ? trim((string) $row['edubit_expiry_reason']) : '',
+			'online_status' => isset($row['online_status']) ? trim((string) $row['online_status']) : '',
+			'can_edubit_renew' => (
+				(!empty($row['edubit_user_id']) || !empty($row['edubit_course_id']))
+				&& (isset($row['edubit_renew_count']) ? (int) $row['edubit_renew_count'] : 0) < 3
+				&& (isset($row['online_status']) ? trim((string) $row['online_status']) : '') !== 'online_dat_80'
+			) ? 1 : 0,
 			'notes' => decode_html(trim((string)(isset($row['description']) ? $row['description'] : ''))),
 		);
 	}

@@ -1674,6 +1674,9 @@
       lead.eligibility_result === "du_dk" ||
       lead.online_status === "online_chua_dk_tk" ||
       lead.online_status === "online_dang_hoc" ||
+      lead.online_status === "online_dat_50" ||
+      lead.online_status === "online_sap_het_han" ||
+      lead.online_status === "online_het_han" ||
       lead.online_status === "online_dat_80" ||
       !!(lead.edubit_user_id || lead.edubit_course_id);
     if (!can) {
@@ -1698,21 +1701,56 @@
       lead.edubit_progress_pct != null && lead.edubit_progress_pct !== ""
         ? String(lead.edubit_progress_pct) + "%"
         : "—";
-    var activated = lead.edubit_user_id
+    function fmtDay(iso) {
+      if (!iso) return "—";
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return "—";
+      var dd = String(d.getDate()).padStart(2, "0");
+      var mm = String(d.getMonth() + 1).padStart(2, "0");
+      return dd + "/" + mm + "/" + d.getFullYear();
+    }
+    var renewCount = Number(lead.edubit_renew_count) || 0;
+    var renewLeft =
+      lead.edubit_renew_remaining != null
+        ? Number(lead.edubit_renew_remaining)
+        : Math.max(0, 3 - renewCount);
+    var canRenew = Number(lead.can_edubit_renew) === 1 && renewLeft > 0;
+    var windowMeta = lead.edubit_user_id
       ? '<p class="mk-leads-verify-offline__meta">Đã cấp · user_id=' +
         esc(String(lead.edubit_user_id)) +
         (lead.edubit_course_id ? " · course=" + esc(String(lead.edubit_course_id)) : "") +
         " · tiến độ " +
         esc(progress) +
+        "<br/>Kích hoạt: <strong>" +
+        esc(fmtDay(lead.edubit_activated_at)) +
+        "</strong> · Hết hạn: <strong>" +
+        esc(fmtDay(lead.edubit_expires_at)) +
+        "</strong> · Gia hạn: <strong>" +
+        renewCount +
+        "/3</strong> (còn " +
+        renewLeft +
+        ")" +
+        (lead.online_status_label
+          ? " · " + esc(String(lead.online_status_label))
+          : "") +
         "</p>"
-      : '<p class="mk-leads-verify-offline__meta">Chưa cấp TK. Chọn khóa rồi bấm Cấp TK — xong sẽ <strong>thẳng xuống Khách hàng</strong> (không qua Opp).</p>';
+      : '<p class="mk-leads-verify-offline__meta">Chưa cấp TK. Chọn khóa rồi bấm Cấp TK — xong sẽ <strong>thẳng xuống Khách hàng</strong> (không qua Opp). Hạn truy cập = 10 ngày kể từ kích hoạt.</p>';
     var err = lead.edubit_last_error
       ? '<p class="mk-leads-verify-err" style="display:block">' + esc(String(lead.edubit_last_error)) + "</p>"
       : "";
+    var renewBtn = lead.edubit_user_id
+      ? '<button type="button" class="mk-leads-verify-panel__btn' +
+        (canRenew ? "" : " is-disabled") +
+        '" data-mk-edubit-action="renew"' +
+        (canRenew ? "" : " disabled") +
+        ">Gia hạn +10 ngày" +
+        (canRenew ? " (còn " + renewLeft + ")" : " (hết lượt)") +
+        "</button>"
+      : "";
     return (
       '<div class="mk-leads-verify-offline__transfer" data-mk-edubit="1">' +
-      "<h5>Edubit — Cấp tài khoản / tiến độ</h5>" +
-      activated +
+      "<h5>Edubit — Cấp tài khoản / tiến độ / hạn</h5>" +
+      windowMeta +
       err +
       '<label class="mk-leads-verify-field"><span>Email học viên</span>' +
       '<input type="email" class="inputElement" data-mk-edubit="email" value="' +
@@ -1725,6 +1763,7 @@
       '<div class="mk-leads-verify-offline__actions">' +
       '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--primary" data-mk-edubit-action="provision">Cấp TK + kích hoạt khóa</button>' +
       '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-edubit-action="sync">Đồng bộ tiến độ</button>' +
+      renewBtn +
       "</div></div>"
     );
   }
@@ -2253,7 +2292,11 @@
     var courseId = courseEl ? String(courseEl.value || "").trim() : "";
     var email = emailEl ? String(emailEl.value || "").trim() : "";
     var mode =
-      action === "sync" ? "online_edubit_sync_progress" : "online_edubit_provision";
+      action === "sync"
+        ? "online_edubit_sync_progress"
+        : action === "renew"
+          ? "online_edubit_renew"
+          : "online_edubit_provision";
     if (mode === "online_edubit_provision" && !courseId) {
       setListVerifyMsg("Phải chọn khóa học — không có course_id mặc định.", "");
       return;
@@ -2261,6 +2304,15 @@
     if (mode === "online_edubit_provision" && !email) {
       setListVerifyMsg("Nhập email học viên trước khi cấp TK.", "");
       return;
+    }
+    if (mode === "online_edubit_renew") {
+      if (
+        !window.confirm(
+          "Gia hạn thêm 10 ngày truy cập?\nSố lần gia hạn tối đa 3 và không đặt lại."
+        )
+      ) {
+        return;
+      }
     }
     if (btn) btn.disabled = true;
     setListVerifyMsg("", "");
@@ -2289,7 +2341,12 @@
           return;
         }
         var okMsg =
-          (res && res.message) || "Đã cấp TK Edubit.";
+          (res && res.message) ||
+          (mode === "online_edubit_renew"
+            ? "Đã gia hạn."
+            : mode === "online_edubit_sync_progress"
+              ? "Đã đồng bộ tiến độ."
+              : "Đã cấp TK Edubit.");
         if (res.customer && res.customer.success) {
           okMsg = okMsg.indexOf("Khách hàng") >= 0
             ? okMsg
@@ -2301,7 +2358,10 @@
         if (window.app && app.helper && app.helper.showSuccessNotification) {
           app.helper.showSuccessNotification({ message: okMsg });
         }
-        if (res.contact_id || (res.customer && res.customer.success)) {
+        if (
+          mode === "online_edubit_provision" &&
+          (res.contact_id || (res.customer && res.customer.success))
+        ) {
           closeListVerifyPanel();
           window.location.href =
             res.list_url ||
@@ -2316,7 +2376,18 @@
         if (fresh && typeof res.progress_pct !== "undefined") {
           fresh.edubit_progress_pct = res.progress_pct;
         }
+        if (fresh && res.edubit_expires_at) fresh.edubit_expires_at = res.edubit_expires_at;
+        if (fresh && typeof res.edubit_renew_count !== "undefined") {
+          fresh.edubit_renew_count = res.edubit_renew_count;
+        }
+        if (fresh && typeof res.edubit_renew_remaining !== "undefined") {
+          fresh.edubit_renew_remaining = res.edubit_renew_remaining;
+        }
+        if (fresh && typeof res.can_edubit_renew !== "undefined") {
+          fresh.can_edubit_renew = res.can_edubit_renew;
+        }
         if (fresh && res.status) fresh.online_status = res.status;
+        if (fresh && res.status_label) fresh.online_status_label = res.status_label;
         if (res.courses && fresh) fresh.edubit_courses = res.courses;
         if (store && typeof store.importLead === "function" && fresh) {
           store.importLead(fresh);

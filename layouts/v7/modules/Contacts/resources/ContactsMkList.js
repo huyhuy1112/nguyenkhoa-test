@@ -522,14 +522,46 @@
       return null;
     }
     if (pct === null) pct = 0;
+    function fmtDay(iso) {
+      if (!iso) return "";
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return "";
+      var dd = String(d.getDate()).padStart(2, "0");
+      var mm = String(d.getMonth() + 1).padStart(2, "0");
+      return dd + "/" + mm;
+    }
+    var renewCount = Number(contact.edubit_renew_count) || 0;
+    var renewLeft =
+      contact.edubit_renew_remaining != null
+        ? Number(contact.edubit_renew_remaining)
+        : Math.max(0, 3 - renewCount);
+    var canRenew = Number(contact.can_edubit_renew) === 1 && renewLeft > 0;
+    var exp = fmtDay(contact.edubit_expires_at);
+    var metaBits = [];
+    if (exp) metaBits.push("Hết hạn " + exp);
+    metaBits.push("GH " + renewCount + "/3");
+    var renewBtn = canRenew
+      ? '<button type="button" class="mk-contacts-edubit-renew" data-mk-edubit-renew="' +
+        esc(contact.id) +
+        '" title="Gia hạn +10 ngày (tối đa 3 lần)">Gia hạn</button>'
+      : contact.edubit_expires_at
+        ? '<span class="mk-contacts-edubit-renew-muted">' +
+          (renewLeft > 0 ? "Còn " + renewLeft + " GH" : "Hết lượt GH") +
+          "</span>"
+        : "";
     return (
-      '<div class="mk-contacts-edubit-progress" title="Tiến độ khóa Edubit">' +
+      '<div class="mk-contacts-edubit-progress" title="Tiến độ khóa Edubit · hạn 10 ngày · gia hạn tối đa 3">' +
       '<div class="mk-contacts-edubit-progress__bar"><span style="width:' +
       pct +
       '%"></span></div>' +
       '<div class="mk-contacts-edubit-progress__label">' +
       pct +
-      "%</div></div>"
+      "%</div>" +
+      (metaBits.length
+        ? '<div class="mk-contacts-edubit-progress__meta">' + esc(metaBits.join(" · ")) + "</div>"
+        : "") +
+      renewBtn +
+      "</div>"
     );
   }
 
@@ -1032,6 +1064,37 @@
     });
 
     document.addEventListener("click", function (e) {
+      var renewBtn =
+        e.target && e.target.closest ? e.target.closest("[data-mk-edubit-renew]") : null;
+      if (renewBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var rid = renewBtn.getAttribute("data-mk-edubit-renew");
+        if (
+          !rid ||
+          !window.confirm(
+            "Gia hạn thêm 10 ngày truy cập Edubit?\nTối đa 3 lần, không đặt lại bộ đếm."
+          )
+        ) {
+          return;
+        }
+        renewBtn.disabled = true;
+        store
+          .renewEdubitAccess(rid)
+          .then(function (res) {
+            if (window.app && app.helper && app.helper.showSuccessNotification) {
+              app.helper.showSuccessNotification({
+                message: (res && res.message) || "Đã gia hạn.",
+              });
+            }
+            renderTable();
+          })
+          .catch(function (err) {
+            window.alert((err && err.message) || "Không gia hạn được.");
+            renderTable();
+          });
+        return;
+      }
       var editBtn = e.target.closest && e.target.closest(".mk-leads-inline-edit[data-contact-id]");
       if (editBtn) {
         e.preventDefault();
