@@ -39,7 +39,7 @@ class NkApi_ZaloOa_Adapter extends NkApi_Adapter {
 	}
 
 	public function extraFields() {
-		return array('app_id', 'oa_id', 'secret_key', 'refresh_token', 'access_token');
+		return array('app_id', 'oa_id', 'secret_key', 'refresh_token', 'access_token', 'follow_url');
 	}
 
 	public function getConfigForAdmin() {
@@ -54,6 +54,10 @@ class NkApi_ZaloOa_Adapter extends NkApi_Adapter {
 		$hasAccess = !empty($creds['access_token']);
 		$expiresAt = isset($creds['expires_at']) ? (string) $creds['expires_at'] : '';
 		$oaName = isset($extra['oa_name']) ? (string) $extra['oa_name'] : '';
+		$followUrl = isset($extra['follow_url']) ? (string) $extra['follow_url'] : '';
+		if ($followUrl === '' && !empty($creds['follow_url'])) {
+			$followUrl = (string) $creds['follow_url'];
+		}
 
 		$status = isset($row['status']) ? (string) $row['status'] : 'not_configured';
 		if (empty($row['enabled']) && $status === 'ok') {
@@ -82,6 +86,7 @@ class NkApi_ZaloOa_Adapter extends NkApi_Adapter {
 				'app_id' => $appId,
 				'oa_id' => $oaId,
 				'oa_name' => $oaName,
+				'follow_url' => $followUrl,
 				'secret_configured' => $hasSecret,
 				'refresh_token_configured' => $hasRefresh,
 				'access_token_configured' => $hasAccess,
@@ -112,6 +117,9 @@ class NkApi_ZaloOa_Adapter extends NkApi_Adapter {
 		}
 		if (array_key_exists('access_token', $payload) && trim((string) $payload['access_token']) !== '') {
 			$creds['access_token'] = trim((string) $payload['access_token']);
+		}
+		if (array_key_exists('follow_url', $payload)) {
+			$extra['follow_url'] = trim((string) $payload['follow_url']);
 		}
 
 		$enabled = !empty($payload['enabled']);

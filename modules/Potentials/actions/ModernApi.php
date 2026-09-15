@@ -22,7 +22,7 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_inline_business_model', 'save_tags', 'delete', 'last_touch_call_log', 'offline_checkin', 'offline_reschedule', 'offline_unreachable', 'online_edubit_provision'), true)) {
+		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_inline_business_model', 'save_tags', 'delete', 'last_touch_call_log', 'offline_checkin', 'offline_reschedule', 'offline_unreachable', 'online_edubit_provision', 'offline_oa_note'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -175,7 +175,46 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 						'checked_in_at' => isset($checkin['checked_in_at']) ? $checkin['checked_in_at'] : '',
 						'tags' => isset($checkin['opp_tags']) ? $checkin['opp_tags'] : array(),
 						'opportunity' => $opp,
+						'oa_qr' => isset($checkin['oa_qr']) ? $checkin['oa_qr'] : null,
+						'lead_id' => isset($checkin['lead_id']) ? (int) $checkin['lead_id'] : 0,
 					));
+					break;
+				case 'offline_oa_qr':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$qr = Leads_OfflineGd11Service::getOaQrFromPotential($recordId);
+					if (empty($qr['success'])) {
+						throw new Exception(isset($qr['error']) ? $qr['error'] : 'Không lấy được QR OA');
+					}
+					$response->setResult($qr);
+					break;
+				case 'offline_oa_note':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$noteKind = $request->get('note_kind');
+					if ($noteKind === null || $noteKind === '') {
+						$noteKind = $request->get('kind');
+					}
+					$customNote = $request->get('note');
+					if ($customNote === null) {
+						$customNote = $request->get('custom_note');
+					}
+					$saved = Leads_OfflineGd11Service::saveOaScanNoteFromPotential(
+						$recordId,
+						$noteKind,
+						$customNote,
+						$userId
+					);
+					if (empty($saved['success'])) {
+						throw new Exception(isset($saved['error']) ? $saved['error'] : 'Không lưu ghi chú OA');
+					}
+					$response->setResult($saved);
 					break;
 				case 'offline_reschedule':
 					require_once 'modules/Leads/models/OfflineGd11Service.php';

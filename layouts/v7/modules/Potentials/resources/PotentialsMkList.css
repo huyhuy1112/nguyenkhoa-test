@@ -376,3 +376,126 @@
 .mk-opps-edubit .mk-opps-checkin__actions {
 	margin-top: 4px;
 }
+
+.mk-opps-checkin__btn--oa {
+	border-color: #0068ff;
+	color: #0068ff;
+	background: #eff6ff;
+}
+.mk-opps-checkin__btn--oa:hover {
+	background: #dbeafe;
+}
+.mk-opps-oa-qr {
+	position: fixed;
+	inset: 0;
+	z-index: 12050;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 16px;
+	background: rgba(15, 23, 42, 0.45);
+	box-sizing: border-box;
+}
+.mk-opps-oa-qr__dialog {
+	width: min(720px, 100%);
+	max-height: min(90vh, 640px);
+	overflow: auto;
+	background: #fff;
+	border-radius: 16px;
+	box-shadow: 0 24px 48px rgba(15, 23, 42, 0.28);
+}
+.mk-opps-oa-qr__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 14px 16px;
+	border-bottom: 1px solid #e2e8f0;
+}
+.mk-opps-oa-qr__head h3 {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 700;
+	color: #0f172a;
+}
+.mk-opps-oa-qr__close {
+	appearance: none;
+	border: 0;
+	background: transparent;
+	font-size: 22px;
+	line-height: 1;
+	cursor: pointer;
+	color: #64748b;
+}
+.mk-opps-oa-qr__body {
+	display: grid;
+	grid-template-columns: 260px minmax(0, 1fr);
+	gap: 16px;
+	padding: 16px;
+}
+@media (max-width: 640px) {
+	.mk-opps-oa-qr__body {
+		grid-template-columns: 1fr;
+	}
+}
+.mk-opps-oa-qr__left {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 10px;
+}
+.mk-opps-oa-qr__img {
+	width: 240px;
+	height: 240px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	background: #fff;
+}
+.mk-opps-oa-qr__link {
+	font-size: 12px;
+	word-break: break-all;
+	text-align: center;
+	color: #0068ff;
+}
+.mk-opps-oa-qr__ok {
+	margin: 0 0 8px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	background: #ecfdf5;
+	color: #065f46;
+	font-size: 13px;
+}
+.mk-opps-oa-qr__wait {
+	margin: 0 0 8px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	background: #fff7ed;
+	color: #9a3412;
+	font-size: 13px;
+}
+.mk-opps-oa-qr__warn {
+	margin: 0;
+	padding: 12px;
+	border-radius: 10px;
+	background: #fef2f2;
+	color: #991b1b;
+	font-size: 13px;
+	text-align: center;
+}
+.mk-opps-oa-qr__tips {
+	margin: 0 0 12px;
+	padding-left: 18px;
+	color: #475569;
+	font-size: 13px;
+	line-height: 1.45;
+}
+.mk-opps-oa-qr__note {
+	margin: 0 0 12px;
+	font-size: 12px;
+	color: #64748b;
+}
+.mk-opps-oa-qr__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}

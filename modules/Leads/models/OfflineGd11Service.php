@@ -83,6 +83,8 @@ class Leads_OfflineGd11Service {
 			'offline_class_date' => "DATE DEFAULT NULL",
 			'offline_checked_in_at' => "DATETIME NULL",
 			'offline_post_noshow_miss' => "TINYINT(1) NOT NULL DEFAULT 0",
+			'offline_oa_scanned_at' => "DATETIME NULL",
+			'offline_oa_scan_note' => "VARCHAR(255) DEFAULT NULL",
 		);
 		foreach ($cols as $name => $def) {
 			$res = $adb->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE ?", array($name));
@@ -762,6 +764,11 @@ class Leads_OfflineGd11Service {
 				? (string) $row['offline_class_date'] : '',
 			'offline_checked_in_at' => (!empty($row['offline_checked_in_at']) && $row['offline_checked_in_at'] !== '0000-00-00 00:00:00')
 				? date('c', strtotime((string) $row['offline_checked_in_at'])) : '',
+			'zalo_user_id' => isset($row['zalo_user_id']) ? trim((string) $row['zalo_user_id']) : '',
+			'offline_oa_scanned_at' => (!empty($row['offline_oa_scanned_at']) && $row['offline_oa_scanned_at'] !== '0000-00-00 00:00:00')
+				? date('c', strtotime((string) $row['offline_oa_scanned_at'])) : '',
+			'offline_oa_scan_note' => isset($row['offline_oa_scan_note'])
+				? trim((string) $row['offline_oa_scan_note']) : '',
 		);
 
 		// Đường 2 — nút chuyển Offline → Online
@@ -1071,9 +1078,13 @@ class Leads_OfflineGd11Service {
 					continue;
 				}
 				$adb->pquery(
-					'UPDATE bace_lead_profile SET zalo_user_id = ?, modified_at = ? WHERE leadid = ?
+					'UPDATE bace_lead_profile SET
+						zalo_user_id = ?,
+						offline_oa_scanned_at = COALESCE(NULLIF(offline_oa_scanned_at, \'0000-00-00 00:00:00\'), ?),
+						modified_at = ?
+					 WHERE leadid = ?
 					 AND (zalo_user_id IS NULL OR zalo_user_id = \'\')',
-					array($oaUserId, $now, $leadId)
+					array($oaUserId, $now, $now, $leadId)
 				);
 				$updated[] = $leadId;
 			}
@@ -1259,7 +1270,185 @@ class Leads_OfflineGd11Service {
 		$out['opp_tags'] = isset($sync['tags']) ? $sync['tags'] : array();
 		$out['checked_in_at'] = ($action === 'da_tham_gia') ? date('c') : '';
 		$out['step4'] = $step4;
+		if ($action === 'da_tham_gia') {
+			$out['oa_qr'] = self::getOaQrForLead($leadId);
+		}
 		return $out;
+	}
+
+	/**
+	 * Link / QR Zalo OA cho quầy check-in (Bước 3).
+	 * @return array
+	 */
+	public static function getOaQrForLead($leadId) {
+		$leadId = (int) $leadId;
+		$out = array(
+			'lead_id' => $leadId,
+			'phone' => '',
+			'zalo_user_id' => '',
+			'scanned' => false,
+			'scanned_at' => '',
+			'note' => '',
+			'follow_url' => '',
+			'qr_image_url' => '',
+			'oa_id' => '',
+			'oa_name' => '',
+			'instructions' => array(
+				'Sales 2 đưa QR / link OA cho khách quét (standee tại quầy).',
+				'Khách vào Zalo OA → nhập đúng SĐT đã đăng ký (không gõ số Zalo khác).',
+				'CRM tự gắn OA id khi webhook khớp SĐT. Bấm «Làm mới» để kiểm tra.',
+				'Không dùng Zalo: ghi chú bên dưới, vẫn cho vào lớp.',
+			),
+		);
+		if ($leadId <= 0) {
+			return $out;
+		}
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT p.zalo_user_id, p.offline_oa_scanned_at, p.offline_oa_scan_note, la.phone
+			 FROM bace_lead_profile p
+			 LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = p.leadid
+			 WHERE p.leadid = ? LIMIT 1',
+			array($leadId)
+		);
+		if ($res && $adb->num_rows($res) > 0) {
+			$uid = trim((string) $adb->query_result($res, 0, 'zalo_user_id'));
+			$out['zalo_user_id'] = $uid;
+			$out['scanned'] = ($uid !== '');
+			$scannedAt = trim((string) $adb->query_result($res, 0, 'offline_oa_scanned_at'));
+			if ($scannedAt !== '' && $scannedAt !== '0000-00-00 00:00:00') {
+				$out['scanned_at'] = date('c', strtotime($scannedAt));
+			} elseif ($uid !== '') {
+				$out['scanned_at'] = date('c');
+			}
+			$out['note'] = trim((string) $adb->query_result($res, 0, 'offline_oa_scan_note'));
+			$out['phone'] = trim((string) $adb->query_result($res, 0, 'phone'));
+		}
+
+		$follow = self::resolveOaFollowUrl();
+		$out['follow_url'] = $follow['url'];
+		$out['oa_id'] = $follow['oa_id'];
+		$out['oa_name'] = $follow['oa_name'];
+		if ($out['follow_url'] !== '') {
+			$out['qr_image_url'] = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data='
+				. rawurlencode($out['follow_url']);
+		}
+		return $out;
+	}
+
+	/**
+	 * @return array{url:string,oa_id:string,oa_name:string}
+	 */
+	public static function resolveOaFollowUrl() {
+		$out = array('url' => '', 'oa_id' => '', 'oa_name' => '');
+		try {
+			require_once 'modules/Vtiger/helpers/NkApiConnection.php';
+			$row = NkApiConnection::getRow('zalo_oa');
+			$creds = isset($row['credentials']) && is_array($row['credentials']) ? $row['credentials'] : array();
+			$extra = isset($row['extra']) && is_array($row['extra']) ? $row['extra'] : array();
+			$oaId = isset($creds['oa_id']) ? trim((string) $creds['oa_id']) : '';
+			if ($oaId === '' && isset($extra['oa_id'])) {
+				$oaId = trim((string) $extra['oa_id']);
+			}
+			$out['oa_id'] = $oaId;
+			$out['oa_name'] = isset($extra['oa_name']) ? trim((string) $extra['oa_name']) : '';
+			$custom = '';
+			if (!empty($extra['follow_url'])) {
+				$custom = trim((string) $extra['follow_url']);
+			} elseif (!empty($creds['follow_url'])) {
+				$custom = trim((string) $creds['follow_url']);
+			}
+			if ($custom !== '') {
+				$out['url'] = $custom;
+			} elseif ($oaId !== '') {
+				$out['url'] = 'https://zalo.me/' . rawurlencode($oaId);
+			}
+		} catch (Exception $e) {
+			// ignore
+		}
+		return $out;
+	}
+
+	/**
+	 * Opp list — lấy / làm mới trạng thái QR OA sau check-in.
+	 */
+	public static function getOaQrFromPotential($potentialId) {
+		$potentialId = (int) $potentialId;
+		if ($potentialId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu opportunity id');
+		}
+		require_once 'modules/Leads/models/ConvertService.php';
+		$leadId = (int) Leads_ConvertService::getLinkedLeadIdByPotential($potentialId);
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'Opp chưa gắn Lead Offline');
+		}
+		// Thử sync OA id từ lead Online cùng SĐT (nếu khách vừa quét).
+		self::ensureZaloUserId($leadId);
+		$qr = self::getOaQrForLead($leadId);
+		$qr['success'] = true;
+		$qr['potential_id'] = $potentialId;
+		return $qr;
+	}
+
+	/**
+	 * Ghi chú quầy: không dùng Zalo / không chịu quét / ghi chú khác.
+	 * @param string $noteKind no_zalo|refused|custom
+	 */
+	public static function saveOaScanNoteFromPotential($potentialId, $noteKind, $customNote = '', $userId = null) {
+		global $current_user;
+		$potentialId = (int) $potentialId;
+		$noteKind = strtolower(trim((string) $noteKind));
+		if ($potentialId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu opportunity id');
+		}
+		if ($userId === null && !empty($current_user->id)) {
+			$userId = (int) $current_user->id;
+		}
+		require_once 'modules/Leads/models/ConvertService.php';
+		$leadId = (int) Leads_ConvertService::getLinkedLeadIdByPotential($potentialId);
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'Opp chưa gắn Lead Offline');
+		}
+		self::installSchema();
+		$note = '';
+		if ($noteKind === 'no_zalo') {
+			$note = 'khách không dùng Zalo, liên hệ qua số điện thoại';
+		} elseif ($noteKind === 'refused') {
+			$note = 'khách có Zalo nhưng không chịu quét QR OA tại quầy';
+		} else {
+			$note = trim(decode_html((string) $customNote));
+			if ($note === '') {
+				return array('success' => false, 'error' => 'Thiếu ghi chú');
+			}
+			if (function_exists('mb_substr')) {
+				$note = mb_substr($note, 0, 250);
+			} else {
+				$note = substr($note, 0, 250);
+			}
+		}
+		$adb = PearDatabase::getInstance();
+		$now = date('Y-m-d H:i:s');
+		$adb->pquery(
+			'UPDATE bace_lead_profile SET offline_oa_scan_note = ?, modified_at = ? WHERE leadid = ?',
+			array($note, $now, $leadId)
+		);
+		// Append CRM description best-effort
+		try {
+			$lead = Vtiger_Record_Model::getInstanceById($leadId, 'Leads');
+			$desc = trim(decode_html((string) $lead->get('description')));
+			$line = '[Bước 3 OA] ' . $note . ' (' . $now . ')';
+			$lead->set('mode', 'edit');
+			$lead->set('description', $desc === '' ? $line : ($desc . "\n" . $line));
+			$lead->save();
+		} catch (Exception $e) {
+			// ignore
+		}
+		$qr = self::getOaQrForLead($leadId);
+		$qr['success'] = true;
+		$qr['potential_id'] = $potentialId;
+		$qr['saved_note'] = $note;
+		return $qr;
 	}
 
 	/**

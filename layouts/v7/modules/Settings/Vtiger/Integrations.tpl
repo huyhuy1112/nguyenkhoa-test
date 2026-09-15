@@ -114,6 +114,11 @@
 							{else}
 								<p class="nk-integ-zalo-expiry" data-role="zalo-expiry" hidden></p>
 							{/if}
+							<label class="nk-integ-field nk-integ-field--wide">
+								<span>Link follow OA / QR (quầy Offline)</span>
+								<input type="text" name="follow_url" value="{if isset($CONN.extra.follow_url)}{$CONN.extra.follow_url|escape:'html'}{/if}" placeholder="https://zalo.me/.... hoặc link chia sẻ OA" autocomplete="off" />
+								<em class="nk-integ-field__hint">Dùng cho QR tại Bước 3 check-in Offline. Để trống thì CRM dùng https://zalo.me/&lt;OA_ID&gt;.</em>
+							</label>
 							<label class="nk-integ-field nk-integ-field--wide nk-integ-zalo-callback">
 								<span>{vtranslate('LBL_NK_INTEG_ZALO_CALLBACK', $QUALIFIED_MODULE)}</span>
 								<input type="text" readonly value="{$CONN.extra.callback_url|escape:'html'}" onclick="this.select();" title="{vtranslate('LBL_NK_INTEG_ZALO_CALLBACK_HINT', $QUALIFIED_MODULE)}" />

@@ -202,6 +202,18 @@
         return res;
       });
     },
+    /** Bước 3 — lấy / làm mới QR OA + trạng thái zalo_user_id */
+    offlineOaQr: function (id) {
+      return apiRequest("offline_oa_qr", { record: String(id || "") });
+    },
+    /** Bước 3 — ghi chú không dùng Zalo / không quét */
+    offlineOaNote: function (id, noteKind, customNote) {
+      return apiRequest("offline_oa_note", {
+        record: String(id || ""),
+        note_kind: noteKind || "custom",
+        note: customNote || "",
+      });
+    },
     /**
      * Sau không tham gia — Hẹn lịch lại / Chốt lịch mới.
      */

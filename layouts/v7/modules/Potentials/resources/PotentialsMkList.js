@@ -950,6 +950,23 @@
         "</div>";
     } else if (isAdminUser() && !editable) {
       html += '<div class="mk-opps-checkin__hint">Đã ghi nhận · khóa chọn lại</div>';
+      if (st === "offline_da_tham_gia") {
+        var oaOk = !!(o.zalo_user_id && String(o.zalo_user_id).trim());
+        html +=
+          '<div class="mk-opps-checkin__actions">' +
+          '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--oa" data-mk-opp-oa-qr="' +
+          esc(o.id) +
+          '">' +
+          (oaOk ? "Xem QR OA · đã gắn" : "QR OA tại quầy") +
+          "</button>" +
+          "</div>";
+        if (o.offline_oa_scan_note) {
+          html +=
+            '<div class="mk-opps-checkin__hint">' +
+            esc(String(o.offline_oa_scan_note)) +
+            "</div>";
+        }
+      }
     } else {
       html += '<div class="mk-opps-checkin__hint">Chỉ Admin ghi nhận</div>';
     }
@@ -1010,7 +1027,12 @@
         if (res && res.drop) {
           notifyOk("Đã đủ 3 lần không tham gia → Ngưng CSKH Offline.");
         } else if (action === "da_tham_gia") {
-          notifyOk("Đã ghi nhận tham gia lớp.");
+          notifyOk("Đã ghi nhận tham gia lớp — mở QR OA cho khách quét.");
+          if (res && res.oa_qr) {
+            openOaQrModal(oid, res.oa_qr);
+          } else {
+            openOaQrModal(oid, null);
+          }
         } else {
           var r3 = res && res.lead ? Number(res.lead.offline_r3_class) || 0 : 0;
           notifyOk(
@@ -1028,6 +1050,145 @@
         for (var j = 0; j < buttons.length; j++) {
           buttons[j].disabled = false;
         }
+      });
+  }
+
+  var oaQrPollTimer = null;
+
+  function closeOaQrModal() {
+    if (oaQrPollTimer) {
+      clearInterval(oaQrPollTimer);
+      oaQrPollTimer = null;
+    }
+    var m = document.getElementById("mk-opps-oa-qr-modal");
+    if (m) m.remove();
+  }
+
+  function paintOaQrModal(host, oid, data) {
+    if (!host || !data) return;
+    var scanned = !!data.scanned || !!(data.zalo_user_id && String(data.zalo_user_id).trim());
+    var follow = data.follow_url ? String(data.follow_url) : "";
+    var qrImg = data.qr_image_url ? String(data.qr_image_url) : "";
+    var phone = data.phone ? String(data.phone) : "";
+    var note = data.note ? String(data.note) : "";
+    var tips = Array.isArray(data.instructions) ? data.instructions : [];
+    var statusHtml = scanned
+      ? '<p class="mk-opps-oa-qr__ok">Đã gắn OA id: <code>' +
+        esc(String(data.zalo_user_id)) +
+        "</code></p>"
+      : '<p class="mk-opps-oa-qr__wait">Chưa gắn OA id — nhờ khách quét QR rồi nhập đúng SĐT đăng ký' +
+        (phone ? " (<strong>" + esc(phone) + "</strong>)" : "") +
+        ".</p>";
+    var qrBlock = qrImg
+      ? '<img class="mk-opps-oa-qr__img" src="' +
+        esc(qrImg) +
+        '" alt="QR Zalo OA" width="240" height="240" />'
+      : '<p class="mk-opps-oa-qr__warn">Chưa có link OA. Vào Settings → Tích hợp → Zalo OA: điền OA ID hoặc Link follow OA.</p>';
+    var tipsHtml = tips.length
+      ? '<ul class="mk-opps-oa-qr__tips">' +
+        tips
+          .map(function (t) {
+            return "<li>" + esc(String(t)) + "</li>";
+          })
+          .join("") +
+        "</ul>"
+      : "";
+    host.innerHTML =
+      '<div class="mk-opps-oa-qr__dialog" role="dialog" aria-modal="true" aria-label="QR Zalo OA">' +
+      '<header class="mk-opps-oa-qr__head">' +
+      "<h3>Bước 3 — Đưa khách vào Zalo OA</h3>" +
+      '<button type="button" class="mk-opps-oa-qr__close" data-mk-oa-qr-close aria-label="Đóng">×</button>' +
+      "</header>" +
+      '<div class="mk-opps-oa-qr__body">' +
+      '<div class="mk-opps-oa-qr__left">' +
+      qrBlock +
+      (follow
+        ? '<a class="mk-opps-oa-qr__link" href="' +
+          esc(follow) +
+          '" target="_blank" rel="noopener">' +
+          esc(follow) +
+          "</a>"
+        : "") +
+      "</div>" +
+      '<div class="mk-opps-oa-qr__right">' +
+      statusHtml +
+      tipsHtml +
+      (note ? '<p class="mk-opps-oa-qr__note">Ghi chú: ' + esc(note) + "</p>" : "") +
+      '<div class="mk-opps-oa-qr__actions">' +
+      '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--ok" data-mk-oa-qr-refresh="' +
+      esc(oid) +
+      '">Làm mới trạng thái</button>' +
+      '<button type="button" class="mk-opps-checkin__btn" data-mk-oa-qr-note="no_zalo" data-opp-id="' +
+      esc(oid) +
+      '">Không dùng Zalo</button>' +
+      '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--no" data-mk-oa-qr-note="refused" data-opp-id="' +
+      esc(oid) +
+      '">Không chịu quét</button>' +
+      "</div>" +
+      "</div>" +
+      "</div>" +
+      "</div>";
+  }
+
+  function openOaQrModal(oid, seed) {
+    closeOaQrModal();
+    var backdrop = document.createElement("div");
+    backdrop.id = "mk-opps-oa-qr-modal";
+    backdrop.className = "mk-opps-oa-qr";
+    document.body.appendChild(backdrop);
+    paintOaQrModal(backdrop, oid, seed || { scanned: false, instructions: [] });
+    if (!seed || !seed.follow_url) {
+      refreshOaQrModal(oid);
+    }
+    if (oaQrPollTimer) clearInterval(oaQrPollTimer);
+    oaQrPollTimer = setInterval(function () {
+      refreshOaQrModal(oid, true);
+    }, 8000);
+  }
+
+  function refreshOaQrModal(oid, quiet) {
+    if (!store || !store.offlineOaQr) return;
+    store
+      .offlineOaQr(oid)
+      .then(function (res) {
+        var host = document.getElementById("mk-opps-oa-qr-modal");
+        if (!host) return;
+        paintOaQrModal(host, oid, res || {});
+        if (res && res.scanned && !quiet) {
+          notifyOk("Đã gắn OA id cho khách.");
+        }
+        if (res && res.zalo_user_id) {
+          rootPatchOaOnOpp(oid, res);
+        }
+      })
+      .catch(function (err) {
+        if (quiet) return;
+        notifyErr((err && err.message) || "Không làm mới được QR OA.");
+      });
+  }
+
+  function rootPatchOaOnOpp(oid, res) {
+    if (!store || !store.patchOpportunity) return;
+    store.patchOpportunity(String(oid), {
+      zalo_user_id: res.zalo_user_id || "",
+      offline_oa_scanned_at: res.scanned_at || "",
+      offline_oa_scan_note: res.note || "",
+    });
+  }
+
+  function saveOaQrNote(oid, kind) {
+    if (!store || !store.offlineOaNote) return;
+    store
+      .offlineOaNote(oid, kind, "")
+      .then(function (res) {
+        notifyOk(kind === "no_zalo" ? "Đã ghi: khách không dùng Zalo." : "Đã ghi: không chịu quét.");
+        var host = document.getElementById("mk-opps-oa-qr-modal");
+        if (host) paintOaQrModal(host, oid, res || {});
+        rootPatchOaOnOpp(oid, res || {});
+        renderAll();
+      })
+      .catch(function (err) {
+        notifyErr((err && err.message) || "Không lưu ghi chú.");
       });
   }
 
@@ -1776,6 +1937,33 @@
         e.preventDefault();
         e.stopPropagation();
         submitOfflineCheckin(checkinBtn.getAttribute("data-mk-opp-checkin"), checkinBtn);
+        return;
+      }
+      var oaOpen = e.target.closest && e.target.closest("[data-mk-opp-oa-qr]");
+      if (oaOpen) {
+        e.preventDefault();
+        e.stopPropagation();
+        openOaQrModal(oaOpen.getAttribute("data-mk-opp-oa-qr"), null);
+        return;
+      }
+      if (e.target.closest && e.target.closest("[data-mk-oa-qr-close]")) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeOaQrModal();
+        return;
+      }
+      var oaRefresh = e.target.closest && e.target.closest("[data-mk-oa-qr-refresh]");
+      if (oaRefresh) {
+        e.preventDefault();
+        e.stopPropagation();
+        refreshOaQrModal(oaRefresh.getAttribute("data-mk-oa-qr-refresh"), false);
+        return;
+      }
+      var oaNote = e.target.closest && e.target.closest("[data-mk-oa-qr-note][data-opp-id]");
+      if (oaNote) {
+        e.preventDefault();
+        e.stopPropagation();
+        saveOaQrNote(oaNote.getAttribute("data-opp-id"), oaNote.getAttribute("data-mk-oa-qr-note"));
         return;
       }
       var edubitBtn =

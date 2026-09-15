@@ -84,6 +84,7 @@ class Potentials_ModernService {
 				lp.offline_post_noshow_miss,
 				lp.offline_preclass_confirm, lp.offline_class_date, lp.offline_checked_in_at,
 				lp.offline_class_time, lp.offline_class_place, lp.zalo_user_id,
+				lp.offline_oa_scanned_at, lp.offline_oa_scan_note,
 				lp.online_status, lp.eligibility_result,
 				lp.edubit_user_id, lp.edubit_course_id, lp.edubit_email, lp.edubit_progress_pct, lp.edubit_last_error,
 				ld.email AS lead_email, ld.firstname AS lead_firstname, ld.lastname AS lead_lastname,
