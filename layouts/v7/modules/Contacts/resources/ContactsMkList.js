@@ -17,6 +17,87 @@
     return fallback || key;
   }
 
+  function notifyUser(type, message) {
+    var helper =
+      window.app && window.app.helper
+        ? window.app.helper
+        : typeof app !== "undefined" && app.helper
+          ? app.helper
+          : null;
+    var method =
+      type === "success"
+        ? "showSuccessNotification"
+        : type === "warning"
+          ? "showAlertNotification"
+          : "showErrorNotification";
+    if (helper && typeof helper[method] === "function") {
+      helper[method]({ message: String(message || "") });
+      return;
+    }
+    window.alert(String(message || ""));
+  }
+
+  function confirmAction(options) {
+    options = options || {};
+    var title = options.title || "Xác nhận thao tác";
+    var question = options.question || "Bạn có chắc chắn muốn tiếp tục?";
+    var hint = options.hint || "";
+    var tone = options.tone === "danger" ? "danger" : "primary";
+    var icon = tone === "danger" ? "fa-trash-o" : options.icon || "fa-question-circle";
+    var html =
+      '<div class="mk-ui-confirm">' +
+      '<span class="mk-ui-confirm__icon mk-ui-confirm__icon--' +
+      tone +
+      '" aria-hidden="true"><i class="fa ' +
+      icon +
+      '"></i></span>' +
+      '<div class="mk-ui-confirm__copy">' +
+      '<div class="mk-ui-confirm__question">' +
+      esc(question) +
+      "</div>" +
+      (hint ? '<div class="mk-ui-confirm__hint">' + esc(hint) + "</div>" : "") +
+      "</div></div>";
+    var helper =
+      window.app && window.app.helper
+        ? window.app.helper
+        : typeof app !== "undefined" && app.helper
+          ? app.helper
+          : null;
+
+    if (helper && typeof helper.showConfirmationBox === "function") {
+      return new Promise(function (resolve) {
+        helper
+          .showConfirmationBox({
+            title: title,
+            message: html,
+            htmlSupportEnable: true,
+            buttons: {
+              cancel: {
+                label: "Hủy",
+                className: "btn mk-ui-confirm__btn mk-ui-confirm__btn--cancel",
+              },
+              confirm: {
+                label: options.confirmLabel || "Xác nhận",
+                className:
+                  "btn mk-ui-confirm__btn mk-ui-confirm__btn--" +
+                  (tone === "danger" ? "danger" : "primary"),
+              },
+            },
+          })
+          .then(
+            function () {
+              resolve(true);
+            },
+            function () {
+              resolve(false);
+            }
+          );
+      });
+    }
+
+    return Promise.resolve(window.confirm(question + (hint ? "\n" + hint : "")));
+  }
+
   function pick(vi, en) {
     return ref && ref.pickLabel ? ref.pickLabel(vi, en) : vi;
   }
@@ -69,7 +150,7 @@
         renderTable();
       })
       .catch(function () {
-        window.alert("Không lưu được mô hình kinh doanh.");
+        notifyUser("error", "Không lưu được mô hình kinh doanh.");
         renderTable();
       });
   }
@@ -490,7 +571,7 @@
     if (field === "phone") {
       val = val.replace(/\s+/g, "");
       if (val && !/^\d{10}$/.test(val)) {
-        window.alert("Số điện thoại phải đủ 10 số.");
+        notifyUser("warning", "Số điện thoại phải đủ 10 số.");
         renderTable();
         return;
       }
@@ -508,7 +589,7 @@
         renderTable();
       })
       .catch(function (err) {
-        window.alert((err && err.message) || "Không lưu được.");
+        notifyUser("error", (err && err.message) || "Không lưu được.");
         renderTable();
       });
   }
@@ -712,7 +793,7 @@
             renderAll();
           })
           .catch(function () {
-            window.alert("Không lưu được thẻ.");
+            notifyUser("error", "Không lưu được thẻ.");
             if (saveBtn) saveBtn.disabled = false;
           });
       }
@@ -1030,7 +1111,7 @@
             renderAll();
           })
           .catch(function () {
-            window.alert("Không lưu được trạng thái cấp bằng / tài khoản.");
+            notifyUser("error", "Không lưu được trạng thái cấp bằng / tài khoản.");
             renderTable();
           });
         return;
@@ -1070,29 +1151,27 @@
         e.preventDefault();
         e.stopPropagation();
         var rid = renewBtn.getAttribute("data-mk-edubit-renew");
-        if (
-          !rid ||
-          !window.confirm(
-            "Gia hạn thêm 10 ngày truy cập Edubit?\nTối đa 3 lần, không đặt lại bộ đếm."
-          )
-        ) {
-          return;
-        }
-        renewBtn.disabled = true;
-        store
-          .renewEdubitAccess(rid)
-          .then(function (res) {
-            if (window.app && app.helper && app.helper.showSuccessNotification) {
-              app.helper.showSuccessNotification({
-                message: (res && res.message) || "Đã gia hạn.",
-              });
-            }
-            renderTable();
-          })
-          .catch(function (err) {
-            window.alert((err && err.message) || "Không gia hạn được.");
-            renderTable();
-          });
+        if (!rid) return;
+        confirmAction({
+          title: "Xác nhận gia hạn Edubit",
+          question: "Gia hạn thêm 10 ngày truy cập Edubit?",
+          hint: "Mỗi khách hàng được gia hạn tối đa 3 lần và không đặt lại bộ đếm.",
+          icon: "fa-clock-o",
+          confirmLabel: "Gia hạn",
+        }).then(function (confirmed) {
+          if (!confirmed) return;
+          renewBtn.disabled = true;
+          store
+            .renewEdubitAccess(rid)
+            .then(function (res) {
+              notifyUser("success", (res && res.message) || "Đã gia hạn.");
+              renderTable();
+            })
+            .catch(function (err) {
+              notifyUser("error", (err && err.message) || "Không gia hạn được.");
+              renderTable();
+            });
+        });
         return;
       }
       var editBtn = e.target.closest && e.target.closest(".mk-leads-inline-edit[data-contact-id]");
@@ -1132,16 +1211,29 @@
         return;
       }
       if (action === "delete") {
-        if (!window.confirm("Xóa " + rows.length + " khách hàng đã chọn?")) return;
-        if (!store || !store.remove) return;
-        Promise.all(
-          rows.map(function (c) {
-            return store.remove(c.id);
-          })
-        ).then(function () {
-          clearSelection();
-          renderAll();
+        confirmAction({
+          title: "Xác nhận xóa khách hàng",
+          question: "Xóa " + rows.length + " khách hàng đã chọn?",
+          hint: "Dữ liệu đã xóa có thể ảnh hưởng đến các bản ghi liên quan.",
+          tone: "danger",
+          confirmLabel: "Xóa khách hàng",
+        }).then(function (confirmed) {
+          if (!confirmed || !store || !store.remove) return;
+          Promise.all(
+            rows.map(function (c) {
+              return store.remove(c.id);
+            })
+          )
+            .then(function () {
+              clearSelection();
+              renderAll();
+              notifyUser("success", "Đã xóa " + rows.length + " khách hàng.");
+            })
+            .catch(function (err) {
+              notifyUser("error", (err && err.message) || "Không xóa được khách hàng.");
+            });
         });
+        return;
       }
     });
 
@@ -1211,42 +1303,39 @@
     if (syncBtn) {
       syncBtn.addEventListener("click", function () {
         if (!store || typeof store.syncEdubitAll !== "function") {
-          window.alert("API đồng bộ chưa sẵn sàng.");
+          notifyUser("error", "API đồng bộ chưa sẵn sàng.");
           return;
         }
-        if (
-          !window.confirm(
-            "Đồng bộ tiến độ Edubit cho tất cả khách hàng đã cấp TK?\nCó thể mất vài giây nếu nhiều hồ sơ."
-          )
-        ) {
-          return;
-        }
-        syncBtn.disabled = true;
-        var txt = syncBtn.querySelector(".mk-leads-btn__txt");
-        var oldTxt = txt ? txt.textContent : "";
-        if (txt) txt.textContent = "Đang đồng bộ…";
-        store
-          .syncEdubitAll(150)
-          .then(function (res) {
-            var msg = (res && res.message) || "Đã đồng bộ tiến độ.";
-            if (window.app && app.helper && app.helper.showSuccessNotification) {
-              app.helper.showSuccessNotification({ message: msg });
-            } else {
-              window.alert(msg);
-            }
-            return store.refresh();
-          })
-          .then(function () {
-            renderAll();
-          })
-          .catch(function (err) {
-            window.alert((err && err.message) || "Không đồng bộ được tiến độ.");
-          })
-          .then(function () {
-            syncBtn.disabled = false;
-            if (txt) txt.textContent = oldTxt || "Đồng bộ tiến độ";
+        confirmAction({
+          title: "Xác nhận đồng bộ Edubit",
+          question: "Đồng bộ tiến độ cho tất cả khách hàng đã cấp tài khoản?",
+          hint: "Hệ thống sẽ lấy tiến độ mới nhất từ Edubit. Thao tác có thể mất vài giây.",
+          icon: "fa-refresh",
+          confirmLabel: "Đồng bộ",
+        }).then(function (confirmed) {
+          if (!confirmed) return;
+          syncBtn.disabled = true;
+          var txt = syncBtn.querySelector(".mk-leads-btn__txt");
+          var oldTxt = txt ? txt.textContent : "";
+          if (txt) txt.textContent = "Đang đồng bộ…";
+          store
+            .syncEdubitAll(150)
+            .then(function (res) {
+              notifyUser("success", (res && res.message) || "Đã đồng bộ tiến độ.");
+              return store.refresh();
+            })
+            .then(function () {
+              renderAll();
+            })
+            .catch(function (err) {
+              notifyUser("error", (err && err.message) || "Không đồng bộ được tiến độ.");
+            })
+            .then(function () {
+              syncBtn.disabled = false;
+              if (txt) txt.textContent = oldTxt || "Đồng bộ tiến độ";
+            });
           });
-      });
+        });
     }
   }
 
