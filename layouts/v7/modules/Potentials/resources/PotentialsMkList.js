@@ -1096,7 +1096,7 @@
     host.innerHTML =
       '<div class="mk-opps-oa-qr__dialog" role="dialog" aria-modal="true" aria-label="QR form Zalo OA">' +
       '<header class="mk-opps-oa-qr__head">' +
-      "<h3>Bước 3 — Quét QR form điền thông tin</h3>" +
+      "<h3>Quét QR form điền thông tin</h3>" +
       '<button type="button" class="mk-opps-oa-qr__close" data-mk-oa-qr-close aria-label="Đóng">×</button>' +
       "</header>" +
       '<div class="mk-opps-oa-qr__body">' +
