@@ -484,6 +484,35 @@ class NkApi_Edubit_Adapter extends NkApi_Adapter {
 			return null;
 		}
 
+		// Payload thật Edubit v2:
+		// data: [{ time_join, lessons: [...], complete: 81, time_end }]
+		// `complete` ở đây là % khóa học, không phải boolean.
+		if (array_key_exists('complete', $data) && is_numeric($data['complete'])) {
+			$complete = (float) $data['complete'];
+			if ($complete >= 0 && $complete <= 100) {
+				return (int) round($complete);
+			}
+		}
+
+		// `data` có thể là list các lượt tham gia khóa học. Không được lấy số
+		// phần tử của list bọc ngoài chia tổng bài (1/32 = 3%). Đi sâu vào
+		// từng row để lấy complete hoặc lessons; nếu nhiều lượt, lấy % cao nhất.
+		if ($completedListOnly && self::isListArray($data)) {
+			$wrappedCandidates = array();
+			foreach ($data as $row) {
+				if (!is_array($row)) {
+					continue;
+				}
+				$nestedPct = self::extractProgressPercent($row, $hint, true);
+				if ($nestedPct !== null) {
+					$wrappedCandidates[] = (int) $nestedPct;
+				}
+			}
+			if (!empty($wrappedCandidates)) {
+				return max($wrappedCandidates);
+			}
+		}
+
 		// V2: ưu tiên tuyệt đối danh sách bài đã hoàn thành trước mọi field mơ hồ.
 		$lists = self::lessonListsFromPayload($data);
 		if ($completedListOnly) {
