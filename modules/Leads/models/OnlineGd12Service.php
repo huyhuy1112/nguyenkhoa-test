@@ -1797,6 +1797,7 @@ class Leads_OnlineGd12Service {
 			'edubit_renew_remaining' => max(0, self::RENEW_MAX - $renewCount),
 			'can_edubit_renew' => ($renewCount < self::RENEW_MAX && $status !== self::STATUS_DAT_80) ? 1 : 0,
 			'message' => $pct !== null ? ('Tiến độ: ' . $pct . '%') : 'Đã sync tiến độ (chưa parse được %).',
+			'version_used' => isset($prog['version_used']) ? (int) $prog['version_used'] : null,
 			'raw_data' => isset($prog['data']) ? $prog['data'] : null,
 		);
 	}
@@ -1924,8 +1925,10 @@ class Leads_OnlineGd12Service {
 					'progress_pct' => $pctOne,
 					'status' => isset($one['status']) ? $one['status'] : '',
 					'message' => isset($one['message']) ? $one['message'] : '',
+					'version_used' => isset($one['version_used']) ? $one['version_used'] : null,
 				);
-				if ($pctOne === null && isset($one['raw_data']) && count($items) < 3) {
+				// Giữ mẫu raw của tối đa 3 hồ sơ đầu để chẩn đoán thay đổi payload Edubit.
+				if (isset($one['raw_data']) && count($items) < 3) {
 					$entry['raw_data'] = $one['raw_data'];
 				}
 				$items[] = $entry;

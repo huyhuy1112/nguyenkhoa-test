@@ -284,9 +284,16 @@ class NkApi_Edubit_Adapter extends NkApi_Adapter {
 				throw new Exception(self::formatApiError($res, 'Edubit progress'));
 			}
 			$totalHint = $this->courseTotalLessonsHint($courseId);
-			$pct = self::extractProgressPercent(isset($res['data']) ? $res['data'] : null, $totalHint);
+			// Theo docs Edubit, version=2 chỉ trả danh sách bài đã hoàn thành.
+			// Không diễn giải status/process bên trong từng bài như %.
+			$completedListOnly = ($ver === 2);
+			$pct = self::extractProgressPercent(
+				isset($res['data']) ? $res['data'] : null,
+				$totalHint,
+				$completedListOnly
+			);
 			if ($pct === null) {
-				$pct = self::extractProgressPercent($res, $totalHint);
+				$pct = self::extractProgressPercent($res, $totalHint, $completedListOnly);
 			}
 			$lastPct = $pct;
 			$usedVersion = $ver;
@@ -444,9 +451,10 @@ class NkApi_Edubit_Adapter extends NkApi_Adapter {
 	 *
 	 * @param mixed $data
 	 * @param int|null $totalLessonsHint tổng bài khóa (khi API chỉ trả bài đã xong)
+	 * @param bool $completedListOnly true với API v2: mọi phần tử trong list là bài đã xong
 	 * @return int|null 0–100
 	 */
-	public static function extractProgressPercent($data, $totalLessonsHint = null) {
+	public static function extractProgressPercent($data, $totalLessonsHint = null, $completedListOnly = false) {
 		$hint = ($totalLessonsHint !== null && (int) $totalLessonsHint > 0) ? (int) $totalLessonsHint : null;
 		if (is_string($data)) {
 			$trim = trim($data);
@@ -457,12 +465,34 @@ class NkApi_Edubit_Adapter extends NkApi_Adapter {
 				}
 			}
 		}
-		$direct = self::coercePercentValue($data);
-		if ($direct !== null) {
-			return $direct;
-		}
 		if (!is_array($data)) {
+			// Bare scalar của API có thể là id/thứ tự bài (vd. 3), không phải %.
+			$ratio = self::parseDoneTotalRatio($data);
+			if ($ratio !== null) {
+				return $ratio;
+			}
+			$raw = trim((string) $data);
+			if (strpos($raw, '%') !== false) {
+				return self::coercePercentValue($raw);
+			}
+			if (is_numeric($data)) {
+				$num = (float) $data;
+				if ($num >= 0 && $num <= 1) {
+					return self::coercePercentValue($num);
+				}
+			}
 			return null;
+		}
+
+		// V2: ưu tiên tuyệt đối danh sách bài đã hoàn thành trước mọi field mơ hồ.
+		$lists = self::lessonListsFromPayload($data);
+		if ($completedListOnly) {
+			foreach ($lists as $list) {
+				$fromList = self::percentFromLessonList($list, $hint, null, true);
+				if ($fromList !== null) {
+					return $fromList;
+				}
+			}
 		}
 
 		// Chỉ ưu tiên field có tên thể hiện rõ là %. `process` / `progress`
@@ -519,16 +549,7 @@ class NkApi_Edubit_Adapter extends NkApi_Adapter {
 			return max(0, min(100, (int) round(($done / $hint) * 100)));
 		}
 
-		// List bài: key lessons / list / items / data; hoặc chính data là list (v2).
-		$lists = array();
-		foreach (array('lessons', 'lesson', 'list', 'items', 'processes', 'process_list', 'process', 'data', 'result') as $lk) {
-			if (isset($data[$lk]) && is_array($data[$lk]) && self::isListArray($data[$lk])) {
-				$lists[] = $data[$lk];
-			}
-		}
-		if (self::isListArray($data)) {
-			$lists[] = $data;
-		}
+		// List bài: key lessons / list / items / data; hoặc chính data là list.
 		foreach ($lists as $list) {
 			$fromList = self::percentFromLessonList($list, $hint, $total);
 			if ($fromList !== null) {
@@ -569,7 +590,7 @@ class NkApi_Edubit_Adapter extends NkApi_Adapter {
 			if (!is_array($child) || self::isListArray($child)) {
 				continue;
 			}
-			$nested = self::extractProgressPercent($child, $hint);
+			$nested = self::extractProgressPercent($child, $hint, $completedListOnly);
 			if ($nested !== null) {
 				return $nested;
 			}
@@ -654,14 +675,46 @@ class NkApi_Edubit_Adapter extends NkApi_Adapter {
 	}
 
 	/**
+	 * @param array $data
+	 * @return array<int,array>
+	 */
+	protected static function lessonListsFromPayload(array $data) {
+		$lists = array();
+		foreach (array('lessons', 'lesson', 'list', 'items', 'processes', 'process_list', 'process', 'data', 'result') as $lk) {
+			if (isset($data[$lk]) && is_array($data[$lk]) && self::isListArray($data[$lk])) {
+				$lists[] = $data[$lk];
+			}
+		}
+		if (self::isListArray($data)) {
+			$lists[] = $data;
+		}
+		return $lists;
+	}
+
+	/**
 	 * @param array $list
 	 * @param int|null $hint
 	 * @param int|null $totalFromParent
+	 * @param bool $completedListOnly
 	 * @return int|null
 	 */
-	protected static function percentFromLessonList(array $list, $hint = null, $totalFromParent = null) {
+	protected static function percentFromLessonList(
+		array $list,
+		$hint = null,
+		$totalFromParent = null,
+		$completedListOnly = false
+	) {
 		if (empty($list)) {
 			return 0;
+		}
+		if ($completedListOnly) {
+			$total = $totalFromParent !== null && (int) $totalFromParent > 0
+				? (int) $totalFromParent
+				: (($hint !== null && (int) $hint > 0) ? (int) $hint : null);
+			if ($total === null) {
+				return null;
+			}
+			return max(0, min(100, (int) round((count($list) / $total) * 100)));
 		}
 		$hasCompletionFlag = false;
 		$done = 0;
