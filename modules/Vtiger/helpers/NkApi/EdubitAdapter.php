@@ -465,10 +465,11 @@ class NkApi_Edubit_Adapter extends NkApi_Adapter {
 			return null;
 		}
 
-		// Ưu tiên field % tường minh (kể cả nested nông).
+		// Chỉ ưu tiên field có tên thể hiện rõ là %. `process` / `progress`
+		// của Edubit có thể là thứ tự bài hiện tại (vd. process=3), không phải 3%.
 		$pctKeys = array(
 			'progress_percent', 'progressPercent', 'complete_percent', 'completePercent',
-			'percent', 'percentage', 'progress', 'process', 'completion', 'tiendo', 'tien_do',
+			'percent', 'percentage', 'tiendo', 'tien_do',
 			'phan_tram', 'phantram', 'process_percent', 'processPercent', 'learning_progress',
 			'percent_complete', 'pct', 'ratio',
 		);
@@ -532,6 +533,34 @@ class NkApi_Edubit_Adapter extends NkApi_Adapter {
 			$fromList = self::percentFromLessonList($list, $hint, $total);
 			if ($fromList !== null) {
 				return $fromList;
+			}
+		}
+
+		// Field mơ hồ chỉ dùng sau khi không thể tính từ số bài hoàn thành.
+		// `process=3` là vị trí bài, nên chỉ nhận:
+		// - chuỗi có dấu %;
+		// - tỷ lệ done/total;
+		// - số thập phân 0..1.
+		foreach (array('progress', 'process', 'completion') as $k) {
+			if (!array_key_exists($k, $data) || is_array($data[$k])) {
+				continue;
+			}
+			$ratio = self::parseDoneTotalRatio($data[$k]);
+			if ($ratio !== null) {
+				return $ratio;
+			}
+			$raw = trim((string) $data[$k]);
+			if (strpos($raw, '%') !== false) {
+				$v = self::coercePercentValue($raw);
+				if ($v !== null) {
+					return $v;
+				}
+			}
+			if (is_numeric($data[$k])) {
+				$num = (float) $data[$k];
+				if ($num >= 0 && $num <= 1) {
+					return self::coercePercentValue($num);
+				}
 			}
 		}
 
