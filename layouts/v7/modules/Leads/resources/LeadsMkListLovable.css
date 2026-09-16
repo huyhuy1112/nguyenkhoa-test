@@ -1762,8 +1762,6 @@ html[data-theme="dark"] body .mk-leads-page--lovable .mk-pill--support { backgro
 	vertical-align: middle;
 	overflow: visible;
 	padding-left: 20px !important;
-	position: relative;
-	z-index: 1;
 }
 .mk-leads-page--lovable .mk-leads-td--touch {
 	background-clip: padding-box;
