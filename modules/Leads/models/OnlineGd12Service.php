@@ -981,9 +981,9 @@ class Leads_OnlineGd12Service {
 	/** Ba nhãn tiến trình trên Zalo OA; chỉ giữ mốc cao nhất đã đạt. */
 	public static function zaloProgressTagLabels() {
 		return array(
-			self::STATUS_DAT_50 => '50%',
-			self::STATUS_DAT_80 => '80%',
-			self::STATUS_HOAN_THANH => '100%',
+			self::STATUS_DAT_50 => '50',
+			self::STATUS_DAT_80 => '80',
+			self::STATUS_HOAN_THANH => '100',
 		);
 	}
 
