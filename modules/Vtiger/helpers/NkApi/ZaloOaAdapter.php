@@ -543,9 +543,74 @@ class NkApi_ZaloOa_Adapter extends NkApi_Adapter {
 		}
 	}
 
-	protected function httpPostJson($url, array $body) {
+	/**
+	 * Gắn nhãn cho follower Zalo OA. Nếu nhãn chưa tồn tại, Zalo tự tạo.
+	 * Yêu cầu app có quyền quản lý thông tin OA.
+	 */
+	public function addFollowerTag($oaUserId, $tagName, $userId = 0) {
+		return $this->updateFollowerTag($oaUserId, $tagName, false, $userId);
+	}
+
+	/**
+	 * Gỡ nhãn khỏi follower Zalo OA.
+	 */
+	public function removeFollowerTag($oaUserId, $tagName, $userId = 0) {
+		return $this->updateFollowerTag($oaUserId, $tagName, true, $userId);
+	}
+
+	protected function updateFollowerTag($oaUserId, $tagName, $remove = false, $userId = 0) {
+		$oaUserId = trim((string) $oaUserId);
+		$tagName = trim((string) $tagName);
+		if ($oaUserId === '' || $tagName === '') {
+			return array('success' => false, 'error' => 'missing_user_or_tag');
+		}
+		try {
+			$token = $this->getValidAccessToken($userId);
+			if ($token === '') {
+				return array('success' => false, 'error' => 'missing_access_token');
+			}
+			$path = $remove ? '/oa/tag/rmfollowerfromtag' : '/oa/tag/tagfollower';
+			$resp = $this->httpPostJson(
+				self::API_BASE . $path,
+				array('user_id' => $oaUserId, 'tag_name' => $tagName),
+				array('access_token: ' . $token)
+			);
+			$error = isset($resp['error']) ? (int) $resp['error'] : -1;
+			$action = $remove ? 'remove' : 'add';
+			if ($error === 0) {
+				$this->logActivity(
+					'tag',
+					'success',
+					'Zalo OA — ' . ($remove ? 'gỡ nhãn' : 'gắn nhãn'),
+					$tagName,
+					array('oa_user_id' => $oaUserId, 'action' => $action)
+				);
+				return array('success' => true, 'raw' => $resp);
+			}
+			$msg = !empty($resp['message']) ? (string) $resp['message'] : ('Zalo error ' . $error);
+			$this->logActivity(
+				'tag',
+				'error',
+				'Zalo OA — lỗi ' . ($remove ? 'gỡ nhãn' : 'gắn nhãn'),
+				$msg,
+				array('oa_user_id' => $oaUserId, 'tag_name' => $tagName, 'action' => $action)
+			);
+			return array('success' => false, 'error' => $msg, 'raw' => $resp);
+		} catch (Exception $e) {
+			$this->logActivity(
+				'tag',
+				'error',
+				'Zalo OA — lỗi đồng bộ nhãn',
+				$e->getMessage(),
+				array('oa_user_id' => $oaUserId, 'tag_name' => $tagName)
+			);
+			return array('success' => false, 'error' => $e->getMessage());
+		}
+	}
+
+	protected function httpPostJson($url, array $body, array $extraHeaders = array()) {
 		$payload = json_encode($body, JSON_UNESCAPED_UNICODE);
-		$headers = array('Content-Type: application/json');
+		$headers = array_merge(array('Content-Type: application/json'), $extraHeaders);
 		if (function_exists('curl_init')) {
 			$ch = curl_init($url);
 			curl_setopt($ch, CURLOPT_POST, true);

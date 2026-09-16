@@ -21,6 +21,8 @@ class Leads_OnlineGd12Service {
 	const STATUS_HET_HAN = 'online_het_han';
 	/** Đạt ≥80% tiến độ Edubit */
 	const STATUS_DAT_80 = 'online_dat_80';
+	/** Đạt 100% tiến độ Edubit */
+	const STATUS_HOAN_THANH = 'online_hoan_thanh';
 
 	/** Thời hạn truy cập lần đầu / mỗi lần gia hạn (ngày) */
 	const ACCESS_DAYS = 10;
@@ -41,6 +43,7 @@ class Leads_OnlineGd12Service {
 		self::STATUS_SAP_HET_HAN,
 		self::STATUS_HET_HAN,
 		self::STATUS_DAT_80,
+		self::STATUS_HOAN_THANH,
 	);
 
 	public static function statusLabels() {
@@ -53,7 +56,8 @@ class Leads_OnlineGd12Service {
 			self::STATUS_DAT_50 => 'Online — Đạt 50%',
 			self::STATUS_SAP_HET_HAN => 'Online — Sắp hết hạn',
 			self::STATUS_HET_HAN => 'Online — Hết hạn',
-			self::STATUS_DAT_80 => 'Online — Đạt 80%',
+			self::STATUS_DAT_80 => 'Online — Đạt ngưỡng 80%',
+			self::STATUS_HOAN_THANH => 'Online — Hoàn thành',
 		);
 	}
 
@@ -78,12 +82,15 @@ class Leads_OnlineGd12Service {
 
 	/**
 	 * Tag học tập theo tiến độ + đồng hồ hạn (doc GD12).
-	 * ≥80% thắng mọi tag thời hạn. Ngày cuối = Sắp hết hạn. Quá ngày = Hết hạn.
+	 * 100% = Hoàn thành; ≥80% = bàn giao. Hai mốc này thắng mọi tag thời hạn.
 	 * @param int|null $pct
 	 * @param string $expiresAt
 	 * @return string
 	 */
 	public static function resolveLearningStatus($pct, $expiresAt) {
+		if ($pct !== null && $pct !== '' && (int) $pct >= 100) {
+			return self::STATUS_HOAN_THANH;
+		}
 		if ($pct !== null && $pct !== '' && (int) $pct >= 80) {
 			return self::STATUS_DAT_80;
 		}
@@ -581,6 +588,9 @@ class Leads_OnlineGd12Service {
 			'edubit_progress_pct' => "TINYINT(3) DEFAULT NULL",
 			'edubit_progress_at' => "DATETIME DEFAULT NULL",
 			'edubit_last_error' => "VARCHAR(255) DEFAULT NULL",
+			'zalo_progress_tag' => "VARCHAR(48) DEFAULT NULL",
+			'zalo_progress_tag_at' => "DATETIME DEFAULT NULL",
+			'zalo_progress_tag_error' => "VARCHAR(255) DEFAULT NULL",
 			'online_care_sent' => "VARCHAR(128) DEFAULT ''",
 		);
 		foreach ($cols as $name => $def) {
@@ -964,6 +974,108 @@ class Leads_OnlineGd12Service {
 		} catch (Exception $e) {
 			return array('success' => false, 'error' => $e->getMessage());
 		} catch (Throwable $e) {
+			return array('success' => false, 'error' => $e->getMessage());
+		}
+	}
+
+	/** Ba nhãn tiến trình trên Zalo OA; chỉ giữ mốc cao nhất đã đạt. */
+	public static function zaloProgressTagLabels() {
+		return array(
+			self::STATUS_DAT_50 => 'Online — Đạt 50%',
+			self::STATUS_DAT_80 => 'Online — Đạt ngưỡng 80%',
+			self::STATUS_HOAN_THANH => 'Online — Hoàn thành',
+		);
+	}
+
+	/**
+	 * Đồng bộ tag tiến trình CRM → Zalo OA, không gửi tin nhắn.
+	 * Idempotent bằng zalo_progress_tag; lỗi OA không làm hỏng sync Edubit/CRM.
+	 */
+	public static function syncProgressTagToZalo($leadId, $status, $userId = null) {
+		$leadId = (int) $leadId;
+		$status = trim((string) $status);
+		$labels = self::zaloProgressTagLabels();
+		if ($leadId <= 0 || !isset($labels[$status])) {
+			return array('success' => true, 'skipped' => true, 'reason' => 'not_progress_milestone');
+		}
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT zalo_user_id, zalo_progress_tag
+			 FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return array('success' => false, 'error' => 'missing_online_profile');
+		}
+		$oaUserId = trim((string) $adb->query_result($res, 0, 'zalo_user_id'));
+		$lastStatus = trim((string) $adb->query_result($res, 0, 'zalo_progress_tag'));
+		if ($lastStatus === $status) {
+			return array('success' => true, 'skipped' => true, 'reason' => 'already_synced');
+		}
+		$now = date('Y-m-d H:i:s');
+		if ($oaUserId === '') {
+			$error = 'Thiếu zalo_user_id — chưa thể gắn nhãn tiến trình OA';
+			$adb->pquery(
+				'UPDATE bace_lead_profile
+				 SET zalo_progress_tag_error = ?, modified_at = ? WHERE leadid = ?',
+				array($error, $now, $leadId)
+			);
+			return array('success' => false, 'error' => 'missing_zalo_user_id');
+		}
+
+		try {
+			require_once 'modules/Vtiger/helpers/NkApiConnection.php';
+			$adapter = NkApiConnection::adapter('zalo_oa');
+			$actorId = $userId !== null ? (int) $userId : 0;
+			$add = $adapter->addFollowerTag($oaUserId, $labels[$status], $actorId);
+			if (empty($add['success'])) {
+				$error = isset($add['error']) ? (string) $add['error'] : 'add_tag_failed';
+				$adb->pquery(
+					'UPDATE bace_lead_profile
+					 SET zalo_progress_tag_error = ?, modified_at = ? WHERE leadid = ?',
+					array(mb_substr($error, 0, 250), $now, $leadId)
+				);
+				return array('success' => false, 'error' => $error);
+			}
+
+			// Chỉ gỡ mốc cũ do CRM từng gắn; không đụng nhãn OA khác của khách.
+			$removeError = '';
+			if ($lastStatus !== '' && $lastStatus !== $status && isset($labels[$lastStatus])) {
+				$remove = $adapter->removeFollowerTag($oaUserId, $labels[$lastStatus], $actorId);
+				if (empty($remove['success'])) {
+					$removeError = isset($remove['error'])
+						? (string) $remove['error'] : 'remove_previous_tag_failed';
+				}
+			}
+			if ($removeError !== '') {
+				$adb->pquery(
+					'UPDATE bace_lead_profile
+					 SET zalo_progress_tag_error = ?, modified_at = ? WHERE leadid = ?',
+					array(mb_substr($removeError, 0, 250), $now, $leadId)
+				);
+				return array('success' => false, 'error' => $removeError, 'tag_added' => true);
+			}
+			$adb->pquery(
+				'UPDATE bace_lead_profile SET
+					zalo_progress_tag = ?,
+					zalo_progress_tag_at = ?,
+					zalo_progress_tag_error = NULL,
+					modified_at = ?
+				 WHERE leadid = ?',
+				array($status, $now, $now, $leadId)
+			);
+			return array(
+				'success' => true,
+				'tag' => $labels[$status],
+				'removed_tag' => isset($labels[$lastStatus]) ? $labels[$lastStatus] : '',
+			);
+		} catch (Exception $e) {
+			$adb->pquery(
+				'UPDATE bace_lead_profile
+				 SET zalo_progress_tag_error = ?, modified_at = ? WHERE leadid = ?',
+				array(mb_substr($e->getMessage(), 0, 250), $now, $leadId)
+			);
 			return array('success' => false, 'error' => $e->getMessage());
 		}
 	}
@@ -1651,6 +1763,9 @@ class Leads_OnlineGd12Service {
 		}
 		$email = trim((string) $adb->query_result($res, 0, 'edubit_email'));
 		$courseId = trim((string) $adb->query_result($res, 0, 'edubit_course_id'));
+		$previousPctRaw = $adb->query_result($res, 0, 'edubit_progress_pct');
+		$previousPct = ($previousPctRaw === null || $previousPctRaw === '')
+			? null : (int) $previousPctRaw;
 		$activatedAt = trim((string) $adb->query_result($res, 0, 'edubit_activated_at'));
 		$expiresAt = trim((string) $adb->query_result($res, 0, 'edubit_expires_at'));
 		$renewCount = (int) $adb->query_result($res, 0, 'edubit_renew_count');
@@ -1681,6 +1796,10 @@ class Leads_OnlineGd12Service {
 		$pct = isset($prog['progress_pct']) && $prog['progress_pct'] !== null
 			? (int) $prog['progress_pct']
 			: null;
+		// Quy trình GD1.2 chỉ ghi nhận mốc cao nhất; tiến độ/tag không được tụt.
+		if ($previousPct !== null && ($pct === null || $previousPct > $pct)) {
+			$pct = $previousPct;
+		}
 		$now = date('Y-m-d H:i:s');
 		$prevStatus = '';
 		$prSt = $adb->pquery('SELECT online_status FROM bace_lead_profile WHERE leadid = ?', array($leadId));
@@ -1709,13 +1828,8 @@ class Leads_OnlineGd12Service {
 			array($pct, $now, $status, $parseNote, $now, $leadId)
 		);
 		self::syncStatusTagsOnly($leadId, array('zalo', 'mien_phi_online', $status));
-		// Event KBs for progress milestones
-		if ($status === self::STATUS_DAT_50 || ($pct !== null && (int) $pct >= 50 && (int) $pct < 80)) {
-			self::sendCareToLead($leadId, 'kb09');
-		}
-		if ($status === self::STATUS_DAT_80 || ($pct !== null && (int) $pct >= 80)) {
-			self::sendCareToLead($leadId, 'kb11');
-		}
+		// Mốc 50/80/100 chỉ đồng bộ nhãn Zalo OA; khách hàng tự vận hành tin nhắn.
+		$zaloProgressTag = self::syncProgressTagToZalo($leadId, $status, $userId);
 		if ($status === self::STATUS_SAP_HET_HAN && $prevStatus !== self::STATUS_SAP_HET_HAN) {
 			self::sendCareToLead($leadId, 'kb10');
 		}
@@ -1795,10 +1909,15 @@ class Leads_OnlineGd12Service {
 				? date('c', strtotime($expiresAt)) : '',
 			'edubit_renew_count' => $renewCount,
 			'edubit_renew_remaining' => max(0, self::RENEW_MAX - $renewCount),
-			'can_edubit_renew' => ($renewCount < self::RENEW_MAX && $status !== self::STATUS_DAT_80) ? 1 : 0,
+			'can_edubit_renew' => (
+				$renewCount < self::RENEW_MAX
+				&& $status !== self::STATUS_DAT_80
+				&& $status !== self::STATUS_HOAN_THANH
+			) ? 1 : 0,
 			'message' => $pct !== null ? ('Tiến độ: ' . $pct . '%') : 'Đã sync tiến độ (chưa parse được %).',
 			'version_used' => isset($prog['version_used']) ? (int) $prog['version_used'] : null,
 			'raw_data' => isset($prog['data']) ? $prog['data'] : null,
+			'zalo_progress_tag' => $zaloProgressTag,
 		);
 	}
 
@@ -1838,6 +1957,9 @@ class Leads_OnlineGd12Service {
 		$activatedAt = trim((string) $adb->query_result($res, 0, 'edubit_activated_at'));
 		$expiresAt = trim((string) $adb->query_result($res, 0, 'edubit_expires_at'));
 		$renewCount = (int) $adb->query_result($res, 0, 'edubit_renew_count');
+		$previousPctRaw = $adb->query_result($res, 0, 'edubit_progress_pct');
+		$previousPct = ($previousPctRaw === null || $previousPctRaw === '')
+			? null : (int) $previousPctRaw;
 		$currentStatus = trim((string) $adb->query_result($res, 0, 'online_status'));
 		if ($email === '' || $courseId === '') {
 			return array('success' => false, 'error' => 'Contact chưa gắn email / course_id Edubit');
@@ -1860,6 +1982,9 @@ class Leads_OnlineGd12Service {
 		$pct = isset($prog['progress_pct']) && $prog['progress_pct'] !== null
 			? (int) $prog['progress_pct']
 			: null;
+		if ($previousPct !== null && ($pct === null || $previousPct > $pct)) {
+			$pct = $previousPct;
+		}
 		$status = $pct !== null ? self::resolveLearningStatus($pct, $expiresAt) : $currentStatus;
 		Contacts_ModernService::saveEdubitProgressOnContact($contactId, $pct, $courseId, $email, $userEd);
 		Contacts_ModernService::saveEdubitAccessWindowOnContact(
@@ -1926,6 +2051,8 @@ class Leads_OnlineGd12Service {
 					'status' => isset($one['status']) ? $one['status'] : '',
 					'message' => isset($one['message']) ? $one['message'] : '',
 					'version_used' => isset($one['version_used']) ? $one['version_used'] : null,
+					'zalo_progress_tag' => isset($one['zalo_progress_tag'])
+						? $one['zalo_progress_tag'] : null,
 				);
 				// Giữ mẫu raw của tối đa 3 hồ sơ đầu để chẩn đoán thay đổi payload Edubit.
 				if (isset($one['raw_data']) && count($items) < 3) {
@@ -2117,7 +2244,7 @@ class Leads_OnlineGd12Service {
 			 FROM bace_lead_profile
 			 WHERE edubit_activated_at IS NOT NULL
 			   AND edubit_activated_at <> '0000-00-00 00:00:00'
-			   AND online_status IN (?, ?, ?, ?, ?)
+			   AND online_status IN (?, ?, ?, ?, ?, ?)
 			 ORDER BY leadid ASC
 			 LIMIT {$limit}",
 			array(
@@ -2126,6 +2253,7 @@ class Leads_OnlineGd12Service {
 				self::STATUS_SAP_HET_HAN,
 				self::STATUS_HET_HAN,
 				self::STATUS_DAT_80,
+				self::STATUS_HOAN_THANH,
 			)
 		);
 		$updated = 0;

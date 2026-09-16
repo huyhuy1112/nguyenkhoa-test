@@ -1622,12 +1622,14 @@ class Leads_ModernService {
 					|| $onlineStatus === Leads_OnlineGd12Service::STATUS_DAT_50
 					|| $onlineStatus === Leads_OnlineGd12Service::STATUS_SAP_HET_HAN
 					|| $onlineStatus === Leads_OnlineGd12Service::STATUS_HET_HAN
-					|| $onlineStatus === Leads_OnlineGd12Service::STATUS_DAT_80)
+					|| $onlineStatus === Leads_OnlineGd12Service::STATUS_DAT_80
+					|| $onlineStatus === Leads_OnlineGd12Service::STATUS_HOAN_THANH)
 			) ? 1 : 0,
 			'can_edubit_renew' => (
 				!empty($row['edubit_user_id']) || !empty($row['edubit_course_id'])
 			) && (isset($row['edubit_renew_count']) ? (int) $row['edubit_renew_count'] : 0) < Leads_OnlineGd12Service::RENEW_MAX
 				&& $onlineStatus !== Leads_OnlineGd12Service::STATUS_DAT_80
+				&& $onlineStatus !== Leads_OnlineGd12Service::STATUS_HOAN_THANH
 				? 1 : 0,
 		);
 		if ($detailed) {
