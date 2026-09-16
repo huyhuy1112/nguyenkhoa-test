@@ -2196,6 +2196,24 @@ class Leads_OnlineGd12Service {
 		Vtiger_Cron::register($name, $handler, 3600, 'Leads', 1, 0, $desc);
 	}
 
+	/**
+	 * Đồng bộ tiến độ Edubit tự động mỗi giờ.
+	 * Vẫn giữ nút sync thủ công trên Contacts cho trường hợp cần cập nhật ngay.
+	 */
+	public static function registerEdubitProgressCron() {
+		require_once 'vtlib/Vtiger/Cron.php';
+		$name = 'OnlineGd12EdubitProgress';
+		$handler = 'cron/modules/Leads/OnlineGd12EdubitProgress.service';
+		$desc = 'GD 1.2 Online — đồng bộ tiến độ Edubit mỗi giờ';
+		$existing = Vtiger_Cron::getInstance($name);
+		if ($existing) {
+			// Bảo đảm task tạo bằng SQL / bản cũ vẫn chạy đúng chu kỳ.
+			$existing->setFrequency(3600);
+			return;
+		}
+		Vtiger_Cron::register($name, $handler, 3600, 'Leads', 1, 0, $desc);
+	}
+
 	protected static function loadLeadContactFields($leadId) {
 		$adb = PearDatabase::getInstance();
 		$res = $adb->pquery(

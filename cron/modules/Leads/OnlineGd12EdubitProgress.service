@@ -1,0 +1,26 @@
+<?php
+/*+***********************************************************************************
+ * GD 1.2 Online — tự động đồng bộ tiến độ Edubit.
+ * Frequency: 1 giờ. Nút đồng bộ thủ công trên Contacts vẫn hoạt động độc lập.
+ *************************************************************************************/
+
+require_once 'modules/Leads/models/OnlineGd12Service.php';
+
+try {
+	global $current_user;
+	if (empty($current_user) || empty($current_user->id)) {
+		$current_user = Users::getActiveAdminUser();
+	}
+	Leads_OnlineGd12Service::installSchema();
+	$result = Leads_OnlineGd12Service::syncEdubitProgressForAllContacts(
+		300,
+		!empty($current_user->id) ? (int) $current_user->id : null
+	);
+	echo 'Online GD1.2 Edubit progress: scanned='
+		. (isset($result['scanned']) ? (int) $result['scanned'] : 0)
+		. ' ok=' . (isset($result['ok']) ? (int) $result['ok'] : 0)
+		. ' fail=' . (isset($result['fail']) ? (int) $result['fail'] : 0)
+		. ' parsed=' . (isset($result['parsed']) ? (int) $result['parsed'] : 0);
+} catch (Exception $e) {
+	echo 'Online GD1.2 Edubit progress exception: ' . $e->getMessage();
+}
