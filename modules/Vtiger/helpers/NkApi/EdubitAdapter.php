@@ -43,7 +43,12 @@ class NkApi_Edubit_Adapter extends NkApi_Adapter {
 		return array(
 			array('id' => '29403', 'label' => 'KHÓA HỌC KHAI TRƯƠNG QUÁN BÀI BẢN'),
 			array('id' => '29218', 'label' => 'KHÓA HỌC PHA CHẾ TỔNG HỢP'),
-			array('id' => '28108', 'label' => 'KHÓA HỌC PHA CHẾ TỔNG HỢP CƠ BẢN'),
+			// Tổng bài là metadata riêng từng khóa, không dùng chung cho các course_id khác.
+			array(
+				'id' => '28108',
+				'label' => 'KHÓA HỌC PHA CHẾ TỔNG HỢP CƠ BẢN',
+				'total_lessons' => 32,
+			),
 			array('id' => '27312', 'label' => 'KHÓA HỌC PHA CHẾ KINH DOANH (Miễn Phí)'),
 		);
 	}
@@ -310,13 +315,17 @@ class NkApi_Edubit_Adapter extends NkApi_Adapter {
 		if ($courseId === '') {
 			return null;
 		}
-		foreach ($this->listCoursesForUi() as $c) {
-			if (!is_array($c) || !isset($c['id']) || (string) $c['id'] !== $courseId) {
-				continue;
-			}
-			foreach (array('total_lessons', 'lesson_total', 'total') as $k) {
-				if (isset($c[$k]) && is_numeric($c[$k]) && (int) $c[$k] > 0) {
-					return (int) $c[$k];
+		// Cấu hình admin được ưu tiên; catalog mặc định là fallback để cấu hình cũ
+		// (đã lưu trước khi có total_lessons) vẫn tính được đúng theo course_id.
+		foreach (array($this->listCoursesForUi(), self::suggestedCourses()) as $courses) {
+			foreach ($courses as $c) {
+				if (!is_array($c) || !isset($c['id']) || (string) $c['id'] !== $courseId) {
+					continue;
+				}
+				foreach (array('total_lessons', 'lesson_total', 'total') as $k) {
+					if (isset($c[$k]) && is_numeric($c[$k]) && (int) $c[$k] > 0) {
+						return (int) $c[$k];
+					}
 				}
 			}
 		}

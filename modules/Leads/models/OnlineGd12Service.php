@@ -1763,7 +1763,7 @@ class Leads_OnlineGd12Service {
 				}
 				Contacts_ModernService::saveEdubitProgressOnContact(
 					$contactId,
-					$pct === null ? 0 : $pct,
+					$pct,
 					$courseId,
 					$email,
 					$userEd
@@ -1837,6 +1837,7 @@ class Leads_OnlineGd12Service {
 		$activatedAt = trim((string) $adb->query_result($res, 0, 'edubit_activated_at'));
 		$expiresAt = trim((string) $adb->query_result($res, 0, 'edubit_expires_at'));
 		$renewCount = (int) $adb->query_result($res, 0, 'edubit_renew_count');
+		$currentStatus = trim((string) $adb->query_result($res, 0, 'online_status'));
 		if ($email === '' || $courseId === '') {
 			return array('success' => false, 'error' => 'Contact chưa gắn email / course_id Edubit');
 		}
@@ -1858,9 +1859,8 @@ class Leads_OnlineGd12Service {
 		$pct = isset($prog['progress_pct']) && $prog['progress_pct'] !== null
 			? (int) $prog['progress_pct']
 			: null;
-		$status = self::resolveLearningStatus($pct !== null ? $pct : 0, $expiresAt);
-		$writePct = $pct !== null ? $pct : 0;
-		Contacts_ModernService::saveEdubitProgressOnContact($contactId, $writePct, $courseId, $email, $userEd);
+		$status = $pct !== null ? self::resolveLearningStatus($pct, $expiresAt) : $currentStatus;
+		Contacts_ModernService::saveEdubitProgressOnContact($contactId, $pct, $courseId, $email, $userEd);
 		Contacts_ModernService::saveEdubitAccessWindowOnContact(
 			$contactId, $activatedAt, $expiresAt, $renewCount, '', $status
 		);
