@@ -13,13 +13,13 @@ class Leads_OnlineGd12Service {
 	const STATUS_NGUNG_CSKH = 'online_ngung_cskh';
 	/** Đã cấp / kích hoạt khóa trên Edubit */
 	const STATUS_DANG_HOC = 'online_dang_hoc';
-	/** Đạt ≥50% tiến độ Edubit (chưa tới 80%) */
+	/** Vượt 50% tiến độ Edubit (chưa vượt 80%) */
 	const STATUS_DAT_50 = 'online_dat_50';
 	/** Ngày cuối của thời hạn truy cập */
 	const STATUS_SAP_HET_HAN = 'online_sap_het_han';
 	/** Hết hạn truy cập mà chưa đạt 80% */
 	const STATUS_HET_HAN = 'online_het_han';
-	/** Đạt ≥80% tiến độ Edubit */
+	/** Vượt 80% tiến độ Edubit */
 	const STATUS_DAT_80 = 'online_dat_80';
 	/** Đạt 100% tiến độ Edubit */
 	const STATUS_HOAN_THANH = 'online_hoan_thanh';
@@ -82,7 +82,7 @@ class Leads_OnlineGd12Service {
 
 	/**
 	 * Tag học tập theo tiến độ + đồng hồ hạn (doc GD12).
-	 * 100% = Hoàn thành; ≥80% = bàn giao. Hai mốc này thắng mọi tag thời hạn.
+	 * 100% = Hoàn thành; >80% = bàn giao. Hai mốc này thắng mọi tag thời hạn.
 	 * @param int|null $pct
 	 * @param string $expiresAt
 	 * @return string
@@ -91,7 +91,7 @@ class Leads_OnlineGd12Service {
 		if ($pct !== null && $pct !== '' && (int) $pct >= 100) {
 			return self::STATUS_HOAN_THANH;
 		}
-		if ($pct !== null && $pct !== '' && (int) $pct >= 80) {
+		if ($pct !== null && $pct !== '' && (int) $pct > 80) {
 			return self::STATUS_DAT_80;
 		}
 		$expTs = $expiresAt ? strtotime((string) $expiresAt) : false;
@@ -105,7 +105,7 @@ class Leads_OnlineGd12Service {
 				return self::STATUS_SAP_HET_HAN;
 			}
 		}
-		if ($pct !== null && $pct !== '' && (int) $pct >= 50) {
+		if ($pct !== null && $pct !== '' && (int) $pct > 50) {
 			return self::STATUS_DAT_50;
 		}
 		return self::STATUS_DANG_HOC;
@@ -978,9 +978,10 @@ class Leads_OnlineGd12Service {
 		}
 	}
 
-	/** Ba nhãn tiến trình trên Zalo OA; chỉ giữ mốc cao nhất đã đạt. */
+	/** Bốn nhãn tiến trình trên Zalo OA; chỉ giữ trạng thái hiện tại. */
 	public static function zaloProgressTagLabels() {
 		return array(
+			self::STATUS_DANG_HOC => 'danghoc',
 			self::STATUS_DAT_50 => '50',
 			self::STATUS_DAT_80 => '80',
 			self::STATUS_HOAN_THANH => '100',
