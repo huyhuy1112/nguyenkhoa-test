@@ -74,7 +74,8 @@ class Potentials_ModernService {
 				acc.accountname,
 				cd.firstname AS contact_firstname, cd.lastname AS contact_lastname,
 				cd.phone AS contact_phone, cd.mobile AS contact_mobile,
-				pp.district AS pot_district, pp.address_line AS pot_address, pp.confirmed_at, pp.last_touch AS pot_last_touch,
+				pp.district AS pot_district, pp.address_line AS pot_address, pp.phone AS pot_phone,
+				pp.confirmed_at, pp.last_touch AS pot_last_touch,
 				pp.business_model AS pot_business_model,
 				lp.leadid AS linked_leadid,
 				lp.district AS lead_district, lp.address_line AS lead_address, lp.area AS lead_area,
@@ -146,7 +147,7 @@ class Potentials_ModernService {
 			}
 		}
 		$closing = !empty($row['closingdate']) ? $row['closingdate'] : '';
-		$phone = decode_html((string)$row['contact_phone']);
+		$phone = decode_html((string)(!empty($row['pot_phone']) ? $row['pot_phone'] : $row['contact_phone']));
 		if ($phone === '' || $phone === '--') {
 			$phone = decode_html((string)$row['contact_mobile']);
 		}

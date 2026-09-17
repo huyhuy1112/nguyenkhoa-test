@@ -46,38 +46,80 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 
 		$profileAddress = '';
 		$profileDistrict = '';
+		$profileBusinessModel = '';
+		$profilePhone = '';
 		$regionKey = '';
 		try {
 			require_once 'modules/Potentials/models/ModernService.php';
 			Potentials_ModernService::ensureProfileSchema();
 			$adb = PearDatabase::getInstance();
 			$pp = $adb->pquery(
-				'SELECT district, address_line FROM bace_potential_profile WHERE potentialid = ?',
+				'SELECT district, address_line, business_model, phone
+				 FROM bace_potential_profile WHERE potentialid = ?',
 				array($recordId)
 			);
 			if ($pp && $adb->num_rows($pp) > 0) {
 				$profileDistrict = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($pp, 0, 'district'));
 				$profileAddress = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($pp, 0, 'address_line'));
+				$profileBusinessModel = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($pp, 0, 'business_model'));
+				$profilePhone = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($pp, 0, 'phone'));
 			}
-			if ($profileAddress === '' && $profileDistrict === '') {
-				$lp = $adb->pquery(
-					'SELECT district, address_line FROM bace_lead_profile WHERE potential_id = ? LIMIT 1',
-					array($recordId)
-				);
-				if ($lp && $adb->num_rows($lp) > 0) {
+			$lp = $adb->pquery(
+				'SELECT district, address_line, business_model
+				 FROM bace_lead_profile WHERE potential_id = ? LIMIT 1',
+				array($recordId)
+			);
+			if ($lp && $adb->num_rows($lp) > 0) {
+				if ($profileDistrict === '') {
 					$profileDistrict = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($lp, 0, 'district'));
+				}
+				if ($profileAddress === '') {
 					$profileAddress = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($lp, 0, 'address_line'));
+				}
+				if ($profileBusinessModel === '') {
+					$profileBusinessModel = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($lp, 0, 'business_model'));
+				}
+			}
+			if ($profilePhone === '') {
+				$contactId = (int) $recordModel->get('contact_id');
+				if ($contactId > 0) {
+					$contactRes = $adb->pquery(
+						'SELECT phone, mobile FROM vtiger_contactdetails WHERE contactid = ?',
+						array($contactId)
+					);
+					if ($contactRes && $adb->num_rows($contactRes) > 0) {
+						$profilePhone = Vtiger_MkSalesInlineDetailHelper::decodeText(
+							$adb->query_result($contactRes, 0, 'phone')
+						);
+						if ($profilePhone === '' || $profilePhone === '--') {
+							$profilePhone = Vtiger_MkSalesInlineDetailHelper::decodeText(
+								$adb->query_result($contactRes, 0, 'mobile')
+							);
+						}
+					}
 				}
 			}
 		} catch (Exception $e) {
 			$profileAddress = '';
 			$profileDistrict = '';
+			$profileBusinessModel = '';
+			$profilePhone = '';
+		}
+		if ($profilePhone === '--') {
+			$profilePhone = '';
+		}
+		try {
+			require_once 'modules/Vtiger/helpers/BusinessModelHelper.php';
+			$profileBusinessModel = Vtiger_BusinessModel_Helper::normalize($profileBusinessModel);
+		} catch (Exception $e) {
+			// Keep the stored display value when normalization is unavailable.
 		}
 		if (preg_match('/khu\s*vực\s*([123])/iu', $profileDistrict, $rm)) {
 			$regionKey = 'kv' . $rm[1];
 		}
 
-		$infoFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
+		$standardFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
+			array('createdtime', 'Ngày chuyển đổi'),
 			array('closingdate', 'Ngày đóng'),
 			array('assigned_user_id', 'Phụ trách'),
 		));
@@ -107,17 +149,26 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 				'picklist_values' => array(),
 			),
 		);
-		array_splice($infoFields, 1, 0, $locationFields);
 
 		$inlineTags = Vtiger_MkSalesInlineDetailHelper::buildInlineTags($moduleName, $recordId);
+		$sourceLabel = '';
+		$customerTypeLabel = '';
+		$sourceKeys = array('facebook', 'tiktok', 'ladipage_fb', 'website', 'zalo', 'hotline', 'other', 'other_source');
+		$customerTypeKeys = array('individual', 'company', 'co_quan', 'chuan_bi_mo', 'gia_dinh');
 		foreach ($inlineTags as $tag) {
 			$key = isset($tag['key']) ? (string) $tag['key'] : '';
 			if ($regionKey === '' && preg_match('/^kv([123])$/i', $key, $km)) {
 				$regionKey = 'kv' . $km[1];
 			}
+			if ($sourceLabel === '' && in_array($key, $sourceKeys, true)) {
+				$sourceLabel = isset($tag['label']) ? (string) $tag['label'] : $key;
+			}
+			if ($customerTypeLabel === '' && in_array($key, $customerTypeKeys, true)) {
+				$customerTypeLabel = isset($tag['label']) ? (string) $tag['label'] : $key;
+			}
 		}
 		if ($regionKey !== '') {
-			foreach ($infoFields as &$f) {
+			foreach ($locationFields as &$f) {
 				if (!empty($f['name']) && $f['name'] === 'mk_region') {
 					$f['raw_value'] = $regionKey;
 					$f['value'] = 'Khu vực ' . substr($regionKey, -1);
@@ -125,6 +176,40 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 				}
 			}
 			unset($f);
+		}
+		$standardByName = array();
+		foreach ($standardFields as $field) {
+			if (!empty($field['name'])) {
+				$standardByName[$field['name']] = $field;
+			}
+		}
+		$displayField = function ($name, $label, $value) {
+			$value = trim((string) $value);
+			return array(
+				'name' => $name,
+				'label' => $label,
+				'value' => $value !== '' ? $value : '—',
+				'raw_value' => $value,
+				'data_type' => 'string',
+				'editable' => false,
+				'picklist_values' => array(),
+			);
+		};
+		$infoFields = array();
+		if (isset($standardByName['createdtime'])) {
+			$infoFields[] = $standardByName['createdtime'];
+		}
+		$infoFields[] = $displayField('mk_phone_display', 'Số điện thoại', $profilePhone);
+		$infoFields[] = $locationFields[0];
+		$infoFields[] = $locationFields[1];
+		$infoFields[] = $displayField('mk_source_display', 'Nguồn', $sourceLabel);
+		$infoFields[] = $displayField('mk_customer_type_display', 'Loại khách hàng', $customerTypeLabel);
+		$infoFields[] = $displayField('mk_business_model_display', 'Mô hình kinh doanh', $profileBusinessModel);
+		if (isset($standardByName['assigned_user_id'])) {
+			$infoFields[] = $standardByName['assigned_user_id'];
+		}
+		if (isset($standardByName['closingdate'])) {
+			$infoFields[] = $standardByName['closingdate'];
 		}
 
 		$attendance = array(
