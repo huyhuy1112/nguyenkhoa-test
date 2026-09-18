@@ -33,6 +33,11 @@ class Leads_OnlineGd12Service {
 	const PATH_OA = 'oa';
 	const PATH_GD11 = 'gd11';
 
+	/** GD 1.2 — khóa miễn phí → Opp (theo dõi tiến trình trên Opp). */
+	const COURSE_FREE_TO_OPP = '27312';
+	/** GD 1.2 — khóa trả phí → Khách hàng (1 HV có thể học nhiều khóa). */
+	const COURSE_PAID_TO_CONTACT = array('29403', '29218', '28108');
+
 	const STATUS_TAGS = array(
 		self::STATUS_CHUA_DIEN_FORM,
 		self::STATUS_CHUA_DK_TK,
@@ -45,6 +50,18 @@ class Leads_OnlineGd12Service {
 		self::STATUS_DAT_80,
 		self::STATUS_HOAN_THANH,
 	);
+
+	/**
+	 * Khóa miễn phí 27312 → Opp; khóa trả phí (29403/29218/28108) và còn lại → KH.
+	 */
+	public static function isFreeCourseToOpportunity($courseId) {
+		return trim((string) $courseId) === self::COURSE_FREE_TO_OPP;
+	}
+
+	public static function isPaidCourseToContact($courseId) {
+		$id = trim((string) $courseId);
+		return $id !== '' && in_array($id, self::COURSE_PAID_TO_CONTACT, true);
+	}
 
 	public static function statusLabels() {
 		return array(
@@ -1522,22 +1539,124 @@ class Leads_OnlineGd12Service {
 			'courses' => self::edubitCoursesCatalog(),
 		);
 
-		// GD 1.2: cấp TK xong → thẳng Khách hàng (bỏ Opp).
-		$customer = self::promoteLeadToCustomerAfterEdubit($leadId, $out, $userId);
-		$out['customer'] = $customer;
-		if (!empty($customer['success'])) {
-			$out['message'] = (isset($out['message']) ? $out['message'] . ' ' : '')
-				. 'Đã chuyển xuống Khách hàng.';
-			$out['contact_id'] = isset($customer['contact_id']) ? $customer['contact_id'] : 0;
-			$out['list_url'] = 'index.php?module=Contacts&view=List&app=SALES';
+		// GD 1.2: 27312 (miễn phí) → Opp; khóa trả phí / khác → Khách hàng.
+		if (self::isFreeCourseToOpportunity($courseId)) {
+			$promoted = self::promoteLeadToOpportunityAfterEdubit($leadId, $out, $userId);
+			$out['opportunity'] = $promoted;
+			if (!empty($promoted['success'])) {
+				$out['message'] = (isset($out['message']) ? $out['message'] . ' ' : '')
+					. 'Đã chuyển xuống Cơ hội (khóa miễn phí 27312).';
+				$out['potential_id'] = isset($promoted['potential_id']) ? $promoted['potential_id'] : 0;
+				$out['contact_id'] = isset($promoted['contact_id']) ? $promoted['contact_id'] : 0;
+				$out['list_url'] = 'index.php?module=Potentials&view=List&app=SALES';
+			} else {
+				$out['opportunity_error'] = isset($promoted['error']) ? $promoted['error'] : 'Chuyển Opp thất bại';
+			}
 		} else {
-			$out['customer_error'] = isset($customer['error']) ? $customer['error'] : 'Chuyển KH thất bại';
+			$customer = self::promoteLeadToCustomerAfterEdubit($leadId, $out, $userId);
+			$out['customer'] = $customer;
+			if (!empty($customer['success'])) {
+				$out['message'] = (isset($out['message']) ? $out['message'] . ' ' : '')
+					. 'Đã chuyển xuống Khách hàng.';
+				$out['contact_id'] = isset($customer['contact_id']) ? $customer['contact_id'] : 0;
+				$out['list_url'] = 'index.php?module=Contacts&view=List&app=SALES';
+			} else {
+				$out['customer_error'] = isset($customer['error']) ? $customer['error'] : 'Chuyển KH thất bại';
+			}
 		}
 		return $out;
 	}
 
 	/**
-	 * Sau cấp TK trên Lead: tạo/gắn Contact, set Đã cấp, copy tiến độ — không tạo Opp.
+	 * Sau cấp TK khóa miễn phí 27312: Lead → Contact + Opp (theo dõi tiến trình trên Opp).
+	 */
+	public static function promoteLeadToOpportunityAfterEdubit($leadId, array $edubitMeta = array(), $userId = null) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu lead id');
+		}
+		try {
+			require_once 'modules/Leads/models/ConvertService.php';
+			$converted = Leads_ConvertService::convertLead($leadId, array(
+				'modules' => array('Contacts', 'Potentials'),
+				'order_category' => 'Internal',
+			));
+			if (!empty($converted['already_converted'])) {
+				$potentialId = isset($converted['potentialId']) ? (int) $converted['potentialId'] : 0;
+				$contactId = 0;
+				if ($potentialId > 0) {
+					try {
+						$opp = Vtiger_Record_Model::getInstanceById($potentialId, 'Potentials');
+						$contactId = (int) $opp->get('contact_id');
+					} catch (Exception $e) {
+						$contactId = 0;
+					}
+				}
+				if ($contactId <= 0) {
+					$contactId = (int) Leads_ConvertService::getLinkedContactId($leadId, true);
+				}
+			} else {
+				$potentialId = isset($converted['potentialId']) ? (int) $converted['potentialId'] : 0;
+				$contactId = isset($converted['contactId']) ? (int) $converted['contactId'] : 0;
+			}
+			if ($potentialId <= 0) {
+				return array('success' => false, 'error' => 'Không tạo được Cơ hội từ Lead.');
+			}
+
+			$pct = 0;
+			$courseId = isset($edubitMeta['edubit_course_id']) ? trim((string) $edubitMeta['edubit_course_id']) : self::COURSE_FREE_TO_OPP;
+			$emailEd = isset($edubitMeta['edubit_email']) ? trim((string) $edubitMeta['edubit_email']) : '';
+			$userEd = isset($edubitMeta['edubit_user_id']) ? trim((string) $edubitMeta['edubit_user_id']) : '';
+			$adb = PearDatabase::getInstance();
+			$pr = $adb->pquery(
+				'SELECT edubit_progress_pct, edubit_course_id, edubit_email, edubit_user_id
+				 FROM bace_lead_profile WHERE leadid = ?',
+				array($leadId)
+			);
+			if ($pr && $adb->num_rows($pr) > 0) {
+				$pct = (int) $adb->query_result($pr, 0, 'edubit_progress_pct');
+				if ($courseId === '') {
+					$courseId = trim((string) $adb->query_result($pr, 0, 'edubit_course_id'));
+				}
+				if ($emailEd === '') {
+					$emailEd = trim((string) $adb->query_result($pr, 0, 'edubit_email'));
+				}
+				if ($userEd === '') {
+					$userEd = trim((string) $adb->query_result($pr, 0, 'edubit_user_id'));
+				}
+			}
+
+			if ($contactId > 0) {
+				require_once 'modules/Contacts/models/ModernService.php';
+				Contacts_ModernService::ensureCredentialFields();
+				Contacts_ModernService::ensureEdubitProgressColumns();
+				Contacts_ModernService::saveCredentialFields($contactId, 'Chưa cấp', 'Đã cấp');
+				Contacts_ModernService::saveEdubitProgressOnContact($contactId, $pct, $courseId, $emailEd, $userEd);
+				Contacts_ModernService::upsertEdubitCourseOnContact($contactId, array(
+					'course_id' => $courseId,
+					'progress_pct' => $pct,
+					'email' => $emailEd,
+					'user_id' => $userEd,
+					'route' => 'opportunity',
+				));
+				Contacts_ModernService::markEdubitProvisionTimes($contactId, $courseId);
+				self::syncAccessWindowToContact($leadId, $contactId);
+				Leads_ConvertService::syncLeadProfileExtrasToContact($leadId, $contactId);
+			}
+
+			return array(
+				'success' => true,
+				'potential_id' => $potentialId,
+				'contact_id' => $contactId,
+				'list_url' => 'index.php?module=Potentials&view=List&app=SALES',
+			);
+		} catch (Exception $e) {
+			return array('success' => false, 'error' => $e->getMessage());
+		}
+	}
+
+	/**
+	 * Sau cấp TK trên Lead (khóa trả phí): tạo/gắn Contact, set Đã cấp, copy tiến độ — không tạo Opp.
 	 */
 	public static function promoteLeadToCustomerAfterEdubit($leadId, array $edubitMeta = array(), $userId = null) {
 		$leadId = (int) $leadId;
@@ -1581,6 +1700,13 @@ class Leads_OnlineGd12Service {
 			Contacts_ModernService::ensureEdubitProgressColumns();
 			Contacts_ModernService::saveCredentialFields($contactId, 'Chưa cấp', 'Đã cấp');
 			Contacts_ModernService::saveEdubitProgressOnContact($contactId, $pct, $courseId, $emailEd, $userEd);
+			Contacts_ModernService::upsertEdubitCourseOnContact($contactId, array(
+				'course_id' => $courseId,
+				'progress_pct' => $pct,
+				'email' => $emailEd,
+				'user_id' => $userEd,
+				'route' => 'contact',
+			));
 			Contacts_ModernService::markEdubitProvisionTimes($contactId, $courseId);
 			self::syncAccessWindowToContact($leadId, $contactId);
 			Leads_ConvertService::syncLeadProfileExtrasToContact($leadId, $contactId);

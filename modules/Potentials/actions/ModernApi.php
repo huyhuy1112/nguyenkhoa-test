@@ -297,6 +297,30 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 						'courses' => Leads_OnlineGd12Service::edubitCoursesCatalog(),
 					));
 					break;
+				case 'credential_save':
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$opp = Vtiger_Record_Model::getInstanceById($recordId, 'Potentials');
+					$contactId = (int) $opp->get('contact_id');
+					if ($contactId <= 0) {
+						throw new Exception('Cơ hội chưa gắn Khách hàng — không lưu được tiến trình / cấp bằng.');
+					}
+					require_once 'modules/Contacts/models/ModernService.php';
+					$creds = Contacts_ModernService::saveCredentialFields(
+						$contactId,
+						$request->get('da_cap_bang'),
+						$request->get('da_cap_tai_khoan')
+					);
+					$response->setResult(array(
+						'success' => true,
+						'contact_id' => $contactId,
+						'credentials' => $creds,
+						'da_cap_bang' => isset($creds['da_cap_bang']) ? $creds['da_cap_bang'] : $request->get('da_cap_bang'),
+						'da_cap_tai_khoan' => isset($creds['da_cap_tai_khoan']) ? $creds['da_cap_tai_khoan'] : $request->get('da_cap_tai_khoan'),
+					));
+					break;
 				case 'online_edubit_provision':
 					require_once 'modules/Leads/models/OnlineGd12Service.php';
 					$recordId = (int) $request->get('record');

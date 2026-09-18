@@ -89,11 +89,13 @@ class Potentials_ModernService {
 				lp.online_status, lp.eligibility_result,
 				lp.edubit_user_id, lp.edubit_course_id, lp.edubit_email, lp.edubit_progress_pct, lp.edubit_last_error,
 				ld.email AS lead_email, ld.firstname AS lead_firstname, ld.lastname AS lead_lastname,
-				cd.email AS contact_email
+				cd.email AS contact_email,
+				cf.da_cap_bang AS contact_da_cap_bang, cf.da_cap_tai_khoan AS contact_da_cap_tai_khoan
 			FROM vtiger_potential p
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid AND ce.deleted = 0
 			LEFT JOIN vtiger_account acc ON acc.accountid = p.related_to
 			LEFT JOIN vtiger_contactdetails cd ON cd.contactid = p.contact_id
+			LEFT JOIN vtiger_contactscf cf ON cf.contactid = p.contact_id
 			LEFT JOIN bace_potential_profile pp ON pp.potentialid = p.potentialid
 			LEFT JOIN bace_lead_profile lp ON lp.potential_id = p.potentialid
 			LEFT JOIN vtiger_leaddetails ld ON ld.leadid = lp.leadid
@@ -311,7 +313,38 @@ class Potentials_ModernService {
 			'next_action_days_overdue' => $ruleMeta['next_action_days_overdue'],
 			'next_action_timeframe' => $ruleMeta['timeframe_label'],
 			'linked_leadid' => !empty($row['linked_leadid']) ? (int) $row['linked_leadid'] : 0,
+			'da_cap_bang' => self::normalizeOppCredential(
+				isset($row['contact_da_cap_bang']) ? $row['contact_da_cap_bang'] : '',
+				'bang'
+			),
+			'da_cap_tai_khoan' => self::normalizeOppCredential(
+				isset($row['contact_da_cap_tai_khoan']) ? $row['contact_da_cap_tai_khoan'] : '',
+				'tk'
+			),
 		) + $offline + $edubit;
+	}
+
+	protected static function normalizeOppCredential($raw, $kind = 'bang') {
+		$raw = trim(html_entity_decode((string) $raw, ENT_QUOTES, 'UTF-8'));
+		if ($kind === 'tk') {
+			$opts = array('Chưa cấp tài khoản', 'Đã cấp', 'Đã cấp tài khoản');
+			$default = 'Chưa cấp tài khoản';
+		} else {
+			$opts = array('Chưa cấp', 'Đã cấp');
+			$default = 'Chưa cấp';
+		}
+		if ($raw === '') {
+			return $default;
+		}
+		foreach ($opts as $opt) {
+			if (strcasecmp($raw, $opt) === 0) {
+				return $opt;
+			}
+		}
+		if (preg_match('/đã\s*cấp/iu', $raw) && !preg_match('/chưa/iu', $raw)) {
+			return $kind === 'tk' ? 'Đã cấp' : 'Đã cấp';
+		}
+		return $default;
 	}
 
 	/** Public wrapper for Offline check-in tag sync. */

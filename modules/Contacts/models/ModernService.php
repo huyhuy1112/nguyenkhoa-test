@@ -23,6 +23,7 @@ class Contacts_ModernService {
 		self::ensureBusinessModelSchema($adb);
 		self::ensureCredentialFields();
 		self::ensureEdubitProgressColumns($adb);
+		self::ensureEdubitCoursesJsonColumn($adb);
 		$sql = "SELECT cd.contactid, cd.firstname, cd.lastname, cd.title, cd.email, cd.phone, cd.mobile,
 				cd.accountid, ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description,
 				acc.accountname,
@@ -31,6 +32,7 @@ class Contacts_ModernService {
 				cf.da_cap_bang, cf.da_cap_tai_khoan,
 				cf.edubit_progress_pct, cf.edubit_course_id, cf.edubit_email, cf.edubit_user_id,
 				cf.edubit_activated_at, cf.edubit_expires_at, cf.edubit_renew_count, cf.edubit_expiry_reason, cf.online_status,
+				cf.edubit_courses_json,
 				cp.business_model AS contact_business_model
 			FROM vtiger_contactdetails cd
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid AND ce.deleted = 0
@@ -495,6 +497,14 @@ class Contacts_ModernService {
 				$contactId,
 			)
 		);
+		if ($courseId !== '') {
+			self::upsertEdubitCourseOnContact($contactId, array(
+				'course_id' => $courseId,
+				'progress_pct' => $pctVal === null ? 0 : $pctVal,
+				'email' => $email,
+				'user_id' => $userIdEd,
+			));
+		}
 	}
 
 	/**
@@ -551,6 +561,140 @@ class Contacts_ModernService {
 
 	/** Edubit course IDs → ghi Thời gian tham gia PCTH (MQBB để sau). */
 	const EDUBIT_PCTH_COURSE_IDS = array('29218', '28108');
+	/** Edubit course ID → Thời gian tham gia MQBB. */
+	const EDUBIT_MQBB_COURSE_IDS = array('29403');
+	/** Khóa trả phí — HV có thể học nhiều khóa trên cùng Contact. */
+	const EDUBIT_PAID_MULTI_COURSE_IDS = array('29403', '29218', '28108');
+
+	/**
+	 * Cột JSON danh sách khóa Edubit trên Contact (1 HV nhiều khóa).
+	 */
+	public static function ensureEdubitCoursesJsonColumn($adb = null) {
+		static $done = false;
+		if ($done) {
+			return;
+		}
+		if ($adb === null) {
+			$adb = PearDatabase::getInstance();
+		}
+		self::ensureEdubitProgressColumns($adb);
+		$check = $adb->pquery("SHOW COLUMNS FROM vtiger_contactscf LIKE ?", array('edubit_courses_json'));
+		if (!$check || $adb->num_rows($check) === 0) {
+			$adb->pquery("ALTER TABLE vtiger_contactscf ADD COLUMN `edubit_courses_json` TEXT NULL", array());
+		}
+		$done = true;
+	}
+
+	/**
+	 * @return array list of {course_id,label?,progress_pct,email,user_id,activated_at?,route?}
+	 */
+	public static function getEdubitCoursesOnContact($contactId) {
+		$contactId = (int) $contactId;
+		if ($contactId <= 0) {
+			return array();
+		}
+		self::ensureEdubitCoursesJsonColumn();
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT edubit_courses_json, edubit_course_id, edubit_progress_pct, edubit_email, edubit_user_id, edubit_activated_at
+			 FROM vtiger_contactscf WHERE contactid = ?',
+			array($contactId)
+		);
+		$list = array();
+		if ($res && $adb->num_rows($res) > 0) {
+			$raw = trim((string) $adb->query_result($res, 0, 'edubit_courses_json'));
+			if ($raw !== '') {
+				$decoded = json_decode($raw, true);
+				if (is_array($decoded)) {
+					foreach ($decoded as $item) {
+						if (!is_array($item)) {
+							continue;
+						}
+						$cid = isset($item['course_id']) ? trim((string) $item['course_id']) : '';
+						if ($cid === '') {
+							continue;
+						}
+						$list[$cid] = array(
+							'course_id' => $cid,
+							'label' => isset($item['label']) ? (string) $item['label'] : '',
+							'progress_pct' => isset($item['progress_pct']) ? (int) $item['progress_pct'] : 0,
+							'email' => isset($item['email']) ? (string) $item['email'] : '',
+							'user_id' => isset($item['user_id']) ? (string) $item['user_id'] : '',
+							'activated_at' => isset($item['activated_at']) ? (string) $item['activated_at'] : '',
+							'route' => isset($item['route']) ? (string) $item['route'] : '',
+						);
+					}
+				}
+			}
+			// Backward compat: single course_id column.
+			$legacyId = trim((string) $adb->query_result($res, 0, 'edubit_course_id'));
+			if ($legacyId !== '' && !isset($list[$legacyId])) {
+				$list[$legacyId] = array(
+					'course_id' => $legacyId,
+					'label' => '',
+					'progress_pct' => (int) $adb->query_result($res, 0, 'edubit_progress_pct'),
+					'email' => trim((string) $adb->query_result($res, 0, 'edubit_email')),
+					'user_id' => trim((string) $adb->query_result($res, 0, 'edubit_user_id')),
+					'activated_at' => trim((string) $adb->query_result($res, 0, 'edubit_activated_at')),
+					'route' => '',
+				);
+			}
+		}
+		return array_values($list);
+	}
+
+	/**
+	 * Ghi/cập nhật 1 khóa vào danh sách (không xóa khóa khác).
+	 * @param array $meta course_id (required), progress_pct?, email?, user_id?, label?, route?, activated_at?
+	 */
+	public static function upsertEdubitCourseOnContact($contactId, array $meta) {
+		$contactId = (int) $contactId;
+		$courseId = isset($meta['course_id']) ? trim((string) $meta['course_id']) : '';
+		if ($contactId <= 0 || $courseId === '') {
+			return;
+		}
+		self::ensureEdubitCoursesJsonColumn();
+		$adb = PearDatabase::getInstance();
+		$exists = $adb->pquery('SELECT contactid FROM vtiger_contactscf WHERE contactid = ?', array($contactId));
+		if (!$exists || $adb->num_rows($exists) < 1) {
+			$adb->pquery('INSERT INTO vtiger_contactscf (contactid) VALUES (?)', array($contactId));
+		}
+
+		$current = self::getEdubitCoursesOnContact($contactId);
+		$byId = array();
+		foreach ($current as $item) {
+			$byId[$item['course_id']] = $item;
+		}
+		$prev = isset($byId[$courseId]) ? $byId[$courseId] : array();
+		$byId[$courseId] = array(
+			'course_id' => $courseId,
+			'label' => isset($meta['label']) && $meta['label'] !== ''
+				? (string) $meta['label']
+				: (isset($prev['label']) ? $prev['label'] : ''),
+			'progress_pct' => array_key_exists('progress_pct', $meta)
+				? max(0, min(100, (int) $meta['progress_pct']))
+				: (isset($prev['progress_pct']) ? (int) $prev['progress_pct'] : 0),
+			'email' => isset($meta['email']) && $meta['email'] !== ''
+				? (string) $meta['email']
+				: (isset($prev['email']) ? $prev['email'] : ''),
+			'user_id' => isset($meta['user_id']) && $meta['user_id'] !== ''
+				? (string) $meta['user_id']
+				: (isset($prev['user_id']) ? $prev['user_id'] : ''),
+			'activated_at' => isset($meta['activated_at']) && $meta['activated_at'] !== ''
+				? (string) $meta['activated_at']
+				: (isset($prev['activated_at']) && $prev['activated_at'] !== ''
+					? $prev['activated_at']
+					: date('Y-m-d H:i:s')),
+			'route' => isset($meta['route']) && $meta['route'] !== ''
+				? (string) $meta['route']
+				: (isset($prev['route']) ? $prev['route'] : ''),
+		);
+		$json = json_encode(array_values($byId), JSON_UNESCAPED_UNICODE);
+		$adb->pquery(
+			'UPDATE vtiger_contactscf SET edubit_courses_json = ? WHERE contactid = ?',
+			array($json, $contactId)
+		);
+	}
 
 	/**
 	 * Sau Cấp TK: Thời gian đăng ký = lúc bấm tạo TK.
@@ -596,6 +740,20 @@ class Contacts_ModernService {
 			if ($curPcth === '' || $curPcth === '0000-00-00 00:00:00') {
 				$adb->pquery(
 					'UPDATE vtiger_contactscf SET thoigian_pcth = ? WHERE contactid = ?',
+					array($now, $contactId)
+				);
+			}
+		}
+		if ($cid !== '' && in_array($cid, self::EDUBIT_MQBB_COURSE_IDS, true)) {
+			$mqbbRes = $adb->pquery(
+				'SELECT thoigian_mqbb FROM vtiger_contactscf WHERE contactid = ?',
+				array($contactId)
+			);
+			$curMqbb = ($mqbbRes && $adb->num_rows($mqbbRes) > 0)
+				? trim((string) $adb->query_result($mqbbRes, 0, 'thoigian_mqbb')) : '';
+			if ($curMqbb === '' || $curMqbb === '0000-00-00 00:00:00') {
+				$adb->pquery(
+					'UPDATE vtiger_contactscf SET thoigian_mqbb = ? WHERE contactid = ?',
 					array($now, $contactId)
 				);
 			}
@@ -859,6 +1017,7 @@ class Contacts_ModernService {
 			'edubit_renew_count' => isset($row['edubit_renew_count']) ? (int) $row['edubit_renew_count'] : 0,
 			'edubit_renew_remaining' => max(0, 3 - (isset($row['edubit_renew_count']) ? (int) $row['edubit_renew_count'] : 0)),
 			'edubit_expiry_reason' => isset($row['edubit_expiry_reason']) ? trim((string) $row['edubit_expiry_reason']) : '',
+			'edubit_courses' => self::decodeEdubitCoursesJson(isset($row['edubit_courses_json']) ? $row['edubit_courses_json'] : ''),
 			'online_status' => isset($row['online_status']) ? trim((string) $row['online_status']) : '',
 			'can_edubit_renew' => (
 				(!empty($row['edubit_user_id']) || !empty($row['edubit_course_id']))
@@ -867,6 +1026,41 @@ class Contacts_ModernService {
 			) ? 1 : 0,
 			'notes' => decode_html(trim((string)(isset($row['description']) ? $row['description'] : ''))),
 		);
+	}
+
+	/**
+	 * @param string $raw
+	 * @return array
+	 */
+	protected static function decodeEdubitCoursesJson($raw) {
+		$raw = trim((string) $raw);
+		if ($raw === '') {
+			return array();
+		}
+		$decoded = json_decode($raw, true);
+		if (!is_array($decoded)) {
+			return array();
+		}
+		$out = array();
+		foreach ($decoded as $item) {
+			if (!is_array($item)) {
+				continue;
+			}
+			$cid = isset($item['course_id']) ? trim((string) $item['course_id']) : '';
+			if ($cid === '') {
+				continue;
+			}
+			$out[] = array(
+				'course_id' => $cid,
+				'label' => isset($item['label']) ? (string) $item['label'] : '',
+				'progress_pct' => isset($item['progress_pct']) ? (int) $item['progress_pct'] : 0,
+				'email' => isset($item['email']) ? (string) $item['email'] : '',
+				'user_id' => isset($item['user_id']) ? (string) $item['user_id'] : '',
+				'activated_at' => isset($item['activated_at']) ? (string) $item['activated_at'] : '',
+				'route' => isset($item['route']) ? (string) $item['route'] : '',
+			);
+		}
+		return $out;
 	}
 
 	protected static function toIsoDateTime($raw) {

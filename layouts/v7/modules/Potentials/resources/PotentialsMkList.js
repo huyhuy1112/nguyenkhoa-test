@@ -7,7 +7,7 @@
   var ref = window.PotentialsLovableRef;
   var store = window.PotentialsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 15;
+  var COL_COUNT = 17;
   var edubitCoursesCache = null;
 
   function t(key, fallback) {
@@ -84,6 +84,8 @@
     tier: ANY,
     anyTag: ANY,
     owner: ANY,
+    da_cap_bang: ANY,
+    progress: ANY,
     staleOnly: false,
   };
 
@@ -231,6 +233,23 @@
       if (f.anyTag !== ANY && !hasNormalizedTag(o.tags, f.anyTag)) return false;
       if (f.staleOnly && !isStale(o)) return false;
       if (f.owner !== ANY && o.owner !== f.owner) return false;
+      if (f.da_cap_bang !== ANY) {
+        var bang = String(o.da_cap_bang || "Chưa cấp").trim();
+        var wantIssued = f.da_cap_bang === "da_cap";
+        var isIssued = /đã\s*cấp/i.test(bang) && !/chưa/i.test(bang);
+        if (wantIssued !== isIssued) return false;
+      }
+      if (f.progress !== ANY) {
+        var pct =
+          o.edubit_progress_pct != null && o.edubit_progress_pct !== ""
+            ? Number(o.edubit_progress_pct)
+            : null;
+        if (f.progress === "none" && pct != null) return false;
+        if (f.progress === "lt50" && !(pct != null && pct < 50)) return false;
+        if (f.progress === "50_79" && !(pct != null && pct >= 50 && pct < 80)) return false;
+        if (f.progress === "80_99" && !(pct != null && pct >= 80 && pct < 100)) return false;
+        if (f.progress === "done" && !(pct != null && pct >= 100)) return false;
+      }
       return true;
     });
   }
@@ -1345,6 +1364,17 @@
       fieldSelect(t("JS_MK_FILTER_FRANCHISE", "Tag nhượng quyền"), "franchise", ref.FRANCHISE_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_CONFIRM", "Xác nhận tham gia"), "confirm", ref.CONFIRM_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_OWNER", "Phụ trách"), "owner", owners.map(function (o) { return [o, o]; })) +
+      fieldSelect("Tiến trình", "progress", [
+        ["none", "Chưa có tiến độ"],
+        ["lt50", "Dưới 50%"],
+        ["50_79", "50–79%"],
+        ["80_99", "80–99%"],
+        ["done", "Hoàn thành 100%"],
+      ]) +
+      fieldSelect("Đã cấp bằng", "da_cap_bang", [
+        ["chua_cap", "Chưa cấp"],
+        ["da_cap", "Đã cấp"],
+      ]) +
       "</div>";
     host.hidden = !state.filtersOpen;
     syncFilterControls();
@@ -1395,6 +1425,61 @@
       '">' +
       esc(m.label || key) +
       "</span>"
+    );
+  }
+
+  function oppProgressCellHtml(o) {
+    var pct =
+      o.edubit_progress_pct != null && o.edubit_progress_pct !== ""
+        ? Math.max(0, Math.min(100, Number(o.edubit_progress_pct) || 0))
+        : null;
+    var course = String(o.edubit_course_id || "").trim();
+    if (pct === null && !o.edubit_user_id && !course) {
+      return '<span class="mk-leads-muted">—</span>';
+    }
+    var shown = pct === null ? 0 : pct;
+    return (
+      '<div class="mk-contacts-edubit-progress" title="Tiến độ khóa Edubit' +
+      (course ? " · " + esc(course) : "") +
+      '">' +
+      '<div class="mk-contacts-edubit-progress__bar"><span style="width:' +
+      shown +
+      '%"></span></div>' +
+      '<div class="mk-contacts-edubit-progress__label">' +
+      (pct === null ? "—" : shown + "%") +
+      "</div>" +
+      (course
+        ? '<div class="mk-contacts-edubit-progress__meta">ID ' + esc(course) + "</div>"
+        : "") +
+      "</div>"
+    );
+  }
+
+  function oppCredentialSelectHtml(o) {
+    var options = ["Chưa cấp", "Đã cấp"];
+    var cur = String(o.da_cap_bang || "").trim() || options[0];
+    if (options.indexOf(cur) < 0) {
+      cur = /đã\s*cấp/i.test(cur) && !/chưa/i.test(cur) ? options[1] : options[0];
+    }
+    var opts = options
+      .map(function (opt) {
+        return (
+          '<option value="' +
+          esc(opt) +
+          '"' +
+          (opt === cur ? " selected" : "") +
+          ">" +
+          esc(opt) +
+          "</option>"
+        );
+      })
+      .join("");
+    return (
+      '<select class="mk-contacts-cred-select mk-opps-cred-select" data-cred-field="da_cap_bang" data-opp-id="' +
+      esc(o.id) +
+      '" title="Đã cấp bằng">' +
+      opts +
+      "</select>"
     );
   }
 
@@ -1470,6 +1555,12 @@
             '" title="Sửa thẻ">' +
             stackedTagsHtml(cats) +
             "</button></td>" +
+            '<td class="mk-leads-td" data-col="progress">' +
+            oppProgressCellHtml(o) +
+            "</td>" +
+            '<td class="mk-leads-td" data-col="da_cap_bang">' +
+            oppCredentialSelectHtml(o) +
+            "</td>" +
             '<td class="mk-leads-td mk-leads-td--touch" data-col="last_touch">' +
             (window.MkLastTouchCall && window.MkLastTouchCall.lastTouchCallLogHtml
               ? window.MkLastTouchCall.lastTouchCallLogHtml(o, esc)
@@ -1881,6 +1972,51 @@
       if (el.classList && el.classList.contains("mk-leads-region-select") && el.getAttribute("data-opp-id")) {
         e.stopPropagation();
         commitRegionChange(el);
+        return;
+      }
+      if (el.classList && el.classList.contains("mk-opps-cred-select") && el.getAttribute("data-opp-id")) {
+        e.stopPropagation();
+        var oid = el.getAttribute("data-opp-id");
+        var opp = getOpps().find(function (o) {
+          return String(o.id) === String(oid);
+        });
+        if (!opp || !(window.app && app.request && app.request.post)) return;
+        var nextBang = el.value;
+        var nextTk = opp.da_cap_tai_khoan || "Chưa cấp tài khoản";
+        el.disabled = true;
+        app.request
+          .post({
+            data: {
+              module: "Potentials",
+              action: "ModernApi",
+              mode: "credential_save",
+              record: opp.crmid || opp.id,
+              id: opp.crmid || opp.id,
+              da_cap_bang: nextBang,
+              da_cap_tai_khoan: nextTk,
+            },
+          })
+          .then(function (err, res) {
+            el.disabled = false;
+            if (err || !res || !res.success) {
+              if (window.app && app.helper && app.helper.showErrorNotification) {
+                app.helper.showErrorNotification({
+                  message: (err && (err.message || err)) || (res && res.error) || "Không lưu được Đã cấp bằng.",
+                });
+              }
+              return;
+            }
+            if (store && typeof store.patchOpportunity === "function") {
+              store.patchOpportunity(opp.crmid || opp.id, {
+                da_cap_bang: (res.credentials && res.credentials.da_cap_bang) || nextBang,
+                da_cap_tai_khoan: (res.credentials && res.credentials.da_cap_tai_khoan) || nextTk,
+              });
+            } else {
+              opp.da_cap_bang = nextBang;
+              opp.da_cap_tai_khoan = nextTk;
+            }
+            renderTable();
+          });
         return;
       }
       if (el.classList && el.classList.contains("mk-opps-row-check")) {

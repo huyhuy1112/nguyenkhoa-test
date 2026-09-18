@@ -125,6 +125,21 @@ html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-ap
 	min-width: 110px;
 	max-width: 160px;
 }
+.mk-contacts-edubit-courses {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 120px;
+	max-width: 180px;
+}
+.mk-contacts-edubit-progress--multi {
+	padding-bottom: 2px;
+	border-bottom: 1px dashed #e2e8f0;
+}
+.mk-contacts-edubit-progress--multi:last-child {
+	border-bottom: 0;
+	padding-bottom: 0;
+}
 .mk-contacts-edubit-progress__bar {
 	height: 8px;
 	border-radius: 999px;

@@ -45,6 +45,8 @@
 						<col class="mk-leads-col mk-leads-col--biz" />
 						<col class="mk-leads-col mk-leads-col--owner" />
 						<col class="mk-leads-col mk-leads-col--tags" />
+						<col class="mk-leads-col" style="min-width:140px" />
+						<col class="mk-leads-col" style="min-width:120px" />
 						<col class="mk-leads-col mk-leads-col--touch" />
 						<col class="mk-leads-col mk-leads-col--next" />
 						<col class="mk-leads-col mk-leads-col--checkin" style="width:200px;min-width:168px;max-width:200px" />
@@ -68,6 +70,8 @@
 							<th class="mk-leads-th" scope="col">Mô hình kinh doanh</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_ASSIGNED_TO', 'Potentials')}</th>
 							<th class="mk-leads-th mk-leads-col--tags" scope="col">{vtranslate('LBL_MK_COL_TAGS', 'Potentials')}</th>
+							<th class="mk-leads-th" scope="col">Tiến trình</th>
+							<th class="mk-leads-th" scope="col">Đã cấp bằng</th>
 							<th class="mk-leads-th mk-leads-col--touch" scope="col">Tương tác gần đây</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_NEXT_ACTION', 'Potentials')}</th>
 							<th class="mk-leads-th" scope="col">Tham gia</th>

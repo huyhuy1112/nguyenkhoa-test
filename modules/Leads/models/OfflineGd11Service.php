@@ -41,6 +41,123 @@ class Leads_OfflineGd11Service {
 
 	const COUNTER_MAX = 3;
 
+	/** Rank bước Offline: R1 liên hệ → R2 lịch → R3 lớp → R4 chuyển CT. */
+	const STEP_R1 = 1;
+	const STEP_R2 = 2;
+	const STEP_R3 = 3;
+	const STEP_R4 = 4;
+
+	/**
+	 * Map action/status → bước. 0 = thoát (Ngưng CSKH) — luôn cho phép.
+	 * @param string $actionOrStatus
+	 * @return int
+	 */
+	public static function stepRankOf($actionOrStatus) {
+		$key = strtolower(trim((string) $actionOrStatus));
+		$map = array(
+			'hen_goi_lai' => self::STEP_R1,
+			self::STATUS_HEN_GOI_LAI => self::STEP_R1,
+			'khong_nghe_may' => self::STEP_R1,
+			self::STATUS_KHONG_NGHE_MAY => self::STEP_R1,
+			'sai_thong_tin' => self::STEP_R1,
+			self::STATUS_SAI_THONG_TIN => self::STEP_R1,
+			'chua_xac_nhan_lich' => self::STEP_R2,
+			self::STATUS_CHUA_XN_LICH => self::STEP_R2,
+			'da_xac_nhan_lich' => self::STEP_R2,
+			self::STATUS_DA_XN_LICH => self::STEP_R2,
+			'hen_lich_lai' => self::STEP_R2,
+			self::STATUS_HEN_LICH_LAI => self::STEP_R2,
+			'khong_tham_gia' => self::STEP_R3,
+			self::STATUS_KHONG_THAM_GIA => self::STEP_R3,
+			'da_tham_gia' => self::STEP_R3,
+			self::STATUS_DA_THAM_GIA => self::STEP_R3,
+			self::STATUS_NGUNG_CSKH_TAM => self::STEP_R3,
+			'chuyen_chuong_trinh' => self::STEP_R4,
+			self::STATUS_CHUYEN_CT => self::STEP_R4,
+			'ngung_cskh' => 0,
+			self::STATUS_NGUNG_CSKH => 0,
+		);
+		return isset($map[$key]) ? (int) $map[$key] : 0;
+	}
+
+	/**
+	 * Bước cao nhất đã tới (theo status + bộ đếm R1–R4).
+	 * @param array $row bace_lead_profile fields
+	 * @return int
+	 */
+	public static function highestReachedStepFromRow(array $row) {
+		$status = isset($row['offline_status']) ? trim((string) $row['offline_status']) : '';
+		$rank = self::stepRankOf($status);
+		$r1 = 0;
+		$r1 += isset($row['offline_r1_hen_goi']) ? (int) $row['offline_r1_hen_goi'] : 0;
+		$r1 += isset($row['offline_r1_khong_nghe']) ? (int) $row['offline_r1_khong_nghe'] : 0;
+		$r1 += isset($row['offline_r1_sai_tt']) ? (int) $row['offline_r1_sai_tt'] : 0;
+		if ($r1 <= 0 && !empty($row['offline_r1_contact'])) {
+			$r1 = (int) $row['offline_r1_contact'];
+		}
+		if ($r1 > 0) {
+			$rank = max($rank, self::STEP_R1);
+		}
+		if (!empty($row['offline_r2_schedule']) && (int) $row['offline_r2_schedule'] > 0) {
+			$rank = max($rank, self::STEP_R2);
+		}
+		if (!empty($row['offline_r3_class']) && (int) $row['offline_r3_class'] > 0) {
+			$rank = max($rank, self::STEP_R3);
+		}
+		if (!empty($row['offline_r4_transfer']) && (int) $row['offline_r4_transfer'] > 0) {
+			$rank = max($rank, self::STEP_R4);
+		}
+		return (int) $rank;
+	}
+
+	/**
+	 * Cho phép xếp lịch lại sau no-show / điểm danh (R3 → R2).
+	 */
+	public static function isRescheduleException($prevStatus, $action) {
+		$prev = strtolower(trim((string) $prevStatus));
+		$act = strtolower(trim((string) $action));
+		$from = array(
+			self::STATUS_KHONG_THAM_GIA,
+			self::STATUS_DA_THAM_GIA,
+			self::STATUS_NGUNG_CSKH_TAM,
+		);
+		$to = array('hen_lich_lai', 'da_xac_nhan_lich', self::STATUS_HEN_LICH_LAI, self::STATUS_DA_XN_LICH);
+		return in_array($prev, $from, true) && in_array($act, $to, true);
+	}
+
+	/**
+	 * @return array{allowed:bool,error?:string,highest:int,target:int}
+	 */
+	public static function canApplyStepAction($prevStatus, $action, array $row = array()) {
+		$action = strtolower(trim((string) $action));
+		$target = self::stepRankOf($action);
+		if ($target === 0 && ($action === 'ngung_cskh' || $action === self::STATUS_NGUNG_CSKH)) {
+			return array('allowed' => true, 'highest' => self::highestReachedStepFromRow($row), 'target' => 0);
+		}
+		$rowWithStatus = $row;
+		if (!isset($rowWithStatus['offline_status']) || $rowWithStatus['offline_status'] === '') {
+			$rowWithStatus['offline_status'] = $prevStatus;
+		}
+		$highest = self::highestReachedStepFromRow($rowWithStatus);
+		if ($target > 0 && $target < $highest && !self::isRescheduleException($prevStatus, $action)) {
+			$names = array(
+				1 => 'R1 (Hẹn gọi / Không nghe / Sai TT)',
+				2 => 'R2 (Lịch học)',
+				3 => 'R3 (Lớp / điểm danh)',
+				4 => 'R4 (Chuyển CT)',
+			);
+			$hi = isset($names[$highest]) ? $names[$highest] : ('bước ' . $highest);
+			$tg = isset($names[$target]) ? $names[$target] : ('bước ' . $target);
+			return array(
+				'allowed' => false,
+				'error' => 'Đã ở ' . $hi . ' — không được bấm điểm hẹn ' . $tg . ' (bước trước).',
+				'highest' => $highest,
+				'target' => $target,
+			);
+		}
+		return array('allowed' => true, 'highest' => $highest, 'target' => $target);
+	}
+
 	public static function statusLabels() {
 		return array(
 			self::STATUS_HEN_GOI_LAI => 'Hẹn gọi lại',
@@ -617,11 +734,26 @@ class Leads_OfflineGd11Service {
 
 		$adbPrev = PearDatabase::getInstance();
 		$prevRes = $adbPrev->pquery(
-			'SELECT offline_status FROM bace_lead_profile WHERE leadid = ?',
+			'SELECT offline_status, offline_r1_contact, offline_r1_hen_goi, offline_r1_khong_nghe, offline_r1_sai_tt,
+			        offline_r2_schedule, offline_r3_class, offline_r4_transfer
+			 FROM bace_lead_profile WHERE leadid = ?',
 			array($leadId)
 		);
-		$prevStatus = ($prevRes && $adbPrev->num_rows($prevRes) > 0)
-			? trim((string) $adbPrev->query_result($prevRes, 0, 'offline_status')) : '';
+		$prevRow = array();
+		if ($prevRes && $adbPrev->num_rows($prevRes) > 0) {
+			$prevRow = $adbPrev->query_result_rowdata($prevRes, 0);
+		}
+		$prevStatus = isset($prevRow['offline_status']) ? trim((string) $prevRow['offline_status']) : '';
+
+		$stepGate = self::canApplyStepAction($prevStatus, $action, $prevRow);
+		if (empty($stepGate['allowed'])) {
+			return array(
+				'success' => false,
+				'error' => isset($stepGate['error']) ? $stepGate['error'] : 'Không được quay lại bước trước.',
+				'offline_step_rank' => isset($stepGate['highest']) ? $stepGate['highest'] : 0,
+				'offline_target_step' => isset($stepGate['target']) ? $stepGate['target'] : 0,
+			);
+		}
 
 		if (in_array($status, self::R1_TAGS, true)) {
 			$bump = self::bumpR1ForTag($leadId, $status);
@@ -748,9 +880,11 @@ class Leads_OfflineGd11Service {
 		if ($r1Sum <= 0 && !empty($row['offline_r1_contact'])) {
 			$r1Sum = (int) $row['offline_r1_contact'];
 		}
+		$stepRank = self::highestReachedStepFromRow($row);
 		$out = array(
 			'offline_status' => $status,
 			'offline_status_label' => isset($labels[$status]) ? $labels[$status] : '',
+			'offline_step_rank' => $stepRank,
 			'offline_r1_contact' => $r1Sum,
 			'offline_r1_hen_goi' => $r1h,
 			'offline_r1_khong_nghe' => $r1k,

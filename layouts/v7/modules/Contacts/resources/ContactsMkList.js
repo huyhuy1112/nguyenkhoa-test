@@ -595,12 +595,43 @@
   }
 
   function edubitProgressTimelineHtml(contact) {
+    var courses = Array.isArray(contact && contact.edubit_courses) ? contact.edubit_courses : [];
+    if (courses.length > 1) {
+      var rows = courses
+        .map(function (c) {
+          var cid = String((c && c.course_id) || "");
+          var p =
+            c && c.progress_pct != null && c.progress_pct !== ""
+              ? Math.max(0, Math.min(100, Number(c.progress_pct) || 0))
+              : 0;
+          var lab = String((c && c.label) || "").trim() || ("ID " + cid);
+          return (
+            '<div class="mk-contacts-edubit-progress mk-contacts-edubit-progress--multi" title="' +
+            esc(lab) +
+            '">' +
+            '<div class="mk-contacts-edubit-progress__meta">' +
+            esc(lab) +
+            "</div>" +
+            '<div class="mk-contacts-edubit-progress__bar"><span style="width:' +
+            p +
+            '%"></span></div>' +
+            '<div class="mk-contacts-edubit-progress__label">' +
+            p +
+            "%</div></div>"
+          );
+        })
+        .join("");
+      return '<div class="mk-contacts-edubit-courses">' + rows + "</div>";
+    }
     var pct =
       contact && contact.edubit_progress_pct != null && contact.edubit_progress_pct !== ""
         ? Math.max(0, Math.min(100, Number(contact.edubit_progress_pct) || 0))
         : null;
-    if (pct === null && !(contact && (contact.edubit_user_id || contact.edubit_course_id))) {
+    if (pct === null && !(contact && (contact.edubit_user_id || contact.edubit_course_id || courses.length))) {
       return null;
+    }
+    if (pct === null && courses.length === 1) {
+      pct = Number(courses[0].progress_pct) || 0;
     }
     if (pct === null) pct = 0;
     function fmtDay(iso) {
@@ -619,6 +650,8 @@
     var canRenew = Number(contact.can_edubit_renew) === 1 && renewLeft > 0;
     var exp = fmtDay(contact.edubit_expires_at);
     var metaBits = [];
+    var courseId = String(contact.edubit_course_id || (courses[0] && courses[0].course_id) || "").trim();
+    if (courseId) metaBits.push("ID " + courseId);
     if (exp) metaBits.push("Hết hạn " + exp);
     metaBits.push("GH " + renewCount + "/3");
     var renewBtn = canRenew

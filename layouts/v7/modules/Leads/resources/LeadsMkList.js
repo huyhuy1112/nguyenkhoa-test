@@ -1471,6 +1471,10 @@
       var offlineBtn = e.target && e.target.closest ? e.target.closest("[data-mk-offline-action]") : null;
       if (offlineBtn) {
         e.preventDefault();
+        if (offlineBtn.disabled || offlineBtn.classList.contains("is-locked")) {
+          setListVerifyMsg("Đã ở bước sau — không được bấm điểm hẹn bước trước.", "");
+          return;
+        }
         submitOfflineGd11Action(offlineBtn.getAttribute("data-mk-offline-action"), offlineBtn);
         return;
       }
@@ -1888,6 +1892,71 @@
     syncListVerifyC45(document.getElementById("mk-leads-verify-panel"));
   }
 
+  function offlineStepRankOf(actionOrStatus) {
+    var key = String(actionOrStatus || "").toLowerCase();
+    var map = {
+      hen_goi_lai: 1,
+      offline_hen_goi_lai: 1,
+      khong_nghe_may: 1,
+      offline_khong_nghe_may: 1,
+      sai_thong_tin: 1,
+      offline_sai_thong_tin: 1,
+      chua_xac_nhan_lich: 2,
+      offline_chua_xac_nhan_lich: 2,
+      da_xac_nhan_lich: 2,
+      offline_da_xac_nhan_lich: 2,
+      hen_lich_lai: 2,
+      offline_hen_lich_lai: 2,
+      khong_tham_gia: 3,
+      offline_khong_tham_gia: 3,
+      da_tham_gia: 3,
+      offline_da_tham_gia: 3,
+      offline_ngung_cskh_tam: 3,
+      chuyen_chuong_trinh: 4,
+      offline_chuyen_chuong_trinh: 4,
+      ngung_cskh: 0,
+      offline_ngung_cskh: 0,
+    };
+    return map[key] != null ? map[key] : 0;
+  }
+
+  function offlineHighestStep(lead) {
+    if (!lead) return 0;
+    if (lead.offline_step_rank != null && lead.offline_step_rank !== "") {
+      return Number(lead.offline_step_rank) || 0;
+    }
+    var rank = offlineStepRankOf(lead.offline_status);
+    var r1 =
+      (Number(lead.offline_r1_hen_goi) || 0) +
+      (Number(lead.offline_r1_khong_nghe) || 0) +
+      (Number(lead.offline_r1_sai_tt) || 0);
+    if (r1 <= 0) r1 = Number(lead.offline_r1_contact) || 0;
+    if (r1 > 0) rank = Math.max(rank, 1);
+    if ((Number(lead.offline_r2_schedule) || 0) > 0) rank = Math.max(rank, 2);
+    if ((Number(lead.offline_r3_class) || 0) > 0) rank = Math.max(rank, 3);
+    if ((Number(lead.offline_r4_transfer) || 0) > 0) rank = Math.max(rank, 4);
+    return rank;
+  }
+
+  function offlineActionLocked(lead, action) {
+    var target = offlineStepRankOf(action);
+    if (target === 0) return false;
+    var highest = offlineHighestStep(lead);
+    if (target >= highest) return false;
+    var st = String((lead && lead.offline_status) || "");
+    var rescheduleFrom =
+      st === "offline_khong_tham_gia" ||
+      st === "offline_da_tham_gia" ||
+      st === "offline_ngung_cskh_tam";
+    if (
+      rescheduleFrom &&
+      (action === "hen_lich_lai" || action === "da_xac_nhan_lich")
+    ) {
+      return false;
+    }
+    return true;
+  }
+
   function offlineStep1ActionsHtml(lead) {
     var cur = lead.offline_status || "";
     var curLabel = lead.offline_status_label || "";
@@ -1938,13 +2007,21 @@
     var tagsHtml = actions
       .map(function (it) {
         var on = cur === it.status ? " is-active" : "";
+        var locked = offlineActionLocked(lead, it.action);
+        var lockCls = locked ? " is-locked" : "";
+        var title = locked
+          ? it.label + " — đã ở bước sau, không được bấm điểm hẹn bước trước"
+          : it.label;
         return (
           '<button type="button" class="mk-leads-offline-stag' +
           on +
+          lockCls +
           '" data-mk-offline-action="' +
           esc(it.action) +
-          '" title="' +
-          esc(it.label) +
+          '"' +
+          (locked ? " disabled aria-disabled=\"true\"" : "") +
+          ' title="' +
+          esc(title) +
           '">' +
           esc(it.label) +
           "</button>"
@@ -1959,9 +2036,11 @@
         var n = Number(it.count) || 0;
         var max = Number(it.max) || 3;
         var pct = Math.min(100, Math.round((n / max) * 100));
+        var locked = offlineActionLocked(lead, it.action);
         return (
           '<div class="mk-leads-offline-count__row' +
           (cur === it.status ? " is-current" : "") +
+          (locked ? " is-locked" : "") +
           '"><span class="mk-leads-offline-count__lab">' +
           esc(it.label) +
           '</span><span class="mk-leads-offline-count__bar"><i style="width:' +
@@ -2354,19 +2433,32 @@
         } else if (res.customer_error) {
           okMsg += " (Chưa xuống KH: " + res.customer_error + ")";
         }
+        if (res.opportunity && res.opportunity.success) {
+          okMsg = okMsg.indexOf("Cơ hội") >= 0
+            ? okMsg
+            : okMsg + " Đã chuyển xuống Cơ hội.";
+        } else if (res.opportunity_error) {
+          okMsg += " (Chưa xuống Opp: " + res.opportunity_error + ")";
+        }
         setListVerifyMsg("", okMsg);
         if (window.app && app.helper && app.helper.showSuccessNotification) {
           app.helper.showSuccessNotification({ message: okMsg });
         }
         if (
           mode === "online_edubit_provision" &&
-          (res.contact_id || (res.customer && res.customer.success))
+          (res.potential_id ||
+            (res.opportunity && res.opportunity.success) ||
+            res.contact_id ||
+            (res.customer && res.customer.success))
         ) {
           closeListVerifyPanel();
           window.location.href =
             res.list_url ||
+            (res.opportunity && res.opportunity.list_url) ||
             (res.customer && res.customer.list_url) ||
-            "index.php?module=Contacts&view=List&app=SALES";
+            (res.potential_id
+              ? "index.php?module=Potentials&view=List&app=SALES"
+              : "index.php?module=Contacts&view=List&app=SALES");
           return;
         }
         var fresh = res.lead || lead;

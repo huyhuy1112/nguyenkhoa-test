@@ -1152,6 +1152,30 @@ body.mk-leads-verify-open {
 	color: #fff;
 	box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.25);
 }
+.mk-leads-offline-stag.is-locked,
+.mk-leads-offline-stag:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+	background: #f3f4f6;
+	border-color: #d1d5db;
+	color: #6b7280;
+	box-shadow: none;
+	transform: none;
+}
+.mk-leads-offline-stag.is-locked:hover,
+.mk-leads-offline-stag:disabled:hover {
+	background: #f3f4f6;
+	border-color: #d1d5db;
+	color: #6b7280;
+}
+.mk-leads-offline-count__row.is-locked {
+	opacity: 0.55;
+}
+.mk-leads-offline-count__row.is-locked .mk-leads-offline-count__lab::after {
+	content: " (khóa)";
+	font-weight: 500;
+	color: #9ca3af;
+}
 .mk-leads-offline-current {
 	display: inline-block;
 	padding: 2px 8px;
