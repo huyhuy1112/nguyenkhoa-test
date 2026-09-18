@@ -128,7 +128,13 @@ class Leads_ConvertService {
 		$createAccount = !empty($options['create_account']);
 		$orderCategory = self::resolveOrderCategory(isset($options['order_category']) ? $options['order_category'] : '');
 
-		$assignId = isset($options['assigned_user_id']) ? (int)$options['assigned_user_id'] : (int)$current_user->id;
+		$assignId = isset($options['assigned_user_id']) ? (int)$options['assigned_user_id'] : 0;
+		if ($assignId <= 0) {
+			$assignId = (int) $recordModel->get('assigned_user_id');
+		}
+		if ($assignId <= 0 && !empty($current_user->id)) {
+			$assignId = (int) $current_user->id;
+		}
 		// Transfer related records to Contact by default (Contact is always created).
 		$entityValues = array(
 			'transferRelatedRecordsTo' => 'Contacts',

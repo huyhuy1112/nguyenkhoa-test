@@ -1546,9 +1546,8 @@ class Leads_OnlineGd12Service {
 		}
 		try {
 			require_once 'modules/Leads/models/ConvertService.php';
-			$converted = Leads_ConvertService::convertLeadToContactOnly($leadId, array(
-				'assigned_user_id' => $userId,
-			));
+			// Giữ phụ trách Lead (round-robin lúc tạo); không gán lại theo user đang thao tác.
+			$converted = Leads_ConvertService::convertLeadToContactOnly($leadId, array());
 			$contactId = isset($converted['contactId']) ? (int) $converted['contactId'] : 0;
 			if ($contactId <= 0) {
 				return array('success' => false, 'error' => 'Không tạo được Khách hàng từ Lead.');

@@ -606,6 +606,10 @@ class Leads_ModernService {
 		}
 
 		$isNew = !$leadId;
+		if ($isNew) {
+			require_once 'modules/Leads/models/RoundRobinService.php';
+			$ownerId = Leads_RoundRobinService::resolveOwnerForNewLead($ownerId);
+		}
 		if ($leadId) {
 			$recordModel = Vtiger_Record_Model::getInstanceById($leadId, self::MODULE);
 			$recordModel->set('id', $leadId);
