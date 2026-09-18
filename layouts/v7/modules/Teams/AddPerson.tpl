@@ -1,8 +1,9 @@
 {strip}
 <div class="col-sm-12 col-xs-12">
 	<div class="teams-add-person-page">
+		<p class="teams-add-person-page__eyebrow">Management · Nhân sự</p>
 		<h2 class="teams-add-person-page__title">Tạo tài khoản mới</h2>
-		<p class="teams-add-person-page__desc">Thêm người dùng với vai trò truy cập phù hợp trong CRM.</p>
+		<p class="teams-add-person-page__desc">Điền thông tin và chọn vai trò để cấp quyền truy cập CRM.</p>
 		<form class="form-horizontal js-teams-add-person-form" method="post" action="index.php">
 			<input type="hidden" name="module" value="Teams" />
 			<input type="hidden" name="action" value="SavePerson" />

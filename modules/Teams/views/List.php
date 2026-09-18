@@ -107,34 +107,6 @@ class Teams_List_View extends Vtiger_List_View {
 			}
 		}
 
-		$projectMap = array();
-		$projectCount = array();
-		if (!empty($userIds)) {
-			$pRes = $db->pquery(
-				"SELECT ce.smownerid AS userid, p.projectid, p.projectname, p.projectstatus
-				 FROM vtiger_project p
-				 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.projectid
-				 WHERE ce.deleted = 0
-				   AND ce.setype = 'Project'
-				   AND ce.smownerid IN (" . generateQuestionMarks($userIds) . ")
-				 ORDER BY p.projectname",
-				$userIds
-			);
-			while ($pRes && ($r = $db->fetchByAssoc($pRes))) {
-				$uid = (int)$r['userid'];
-				if (!isset($projectMap[$uid])) {
-					$projectMap[$uid] = array();
-					$projectCount[$uid] = 0;
-				}
-				$projectMap[$uid][] = array(
-					'id' => (int)$r['projectid'],
-					'name' => $r['projectname'],
-					'status' => $r['projectstatus']
-				);
-				$projectCount[$uid] = count($projectMap[$uid]);
-			}
-		}
-
 		$now = time();
 		$currentUserId = (int)$currentUser->getId();
 		$normalized = array();
@@ -190,8 +162,6 @@ class Teams_List_View extends Vtiger_List_View {
 				'role_name' => isset($roleMap[$uid]) ? $roleMap[$uid] : '',
 				'date_joined_company' => $dateJoined,
 				'date_joined_company_raw' => $dateJoinedRaw,
-				'project_count' => isset($projectCount[$uid]) ? $projectCount[$uid] : 0,
-				'projects' => isset($projectMap[$uid]) ? $projectMap[$uid] : array(),
 				'is_online' => $isOnline,
 				'is_inactive' => $isInactive,
 				'status_label' => $statusLabel,

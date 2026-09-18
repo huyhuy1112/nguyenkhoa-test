@@ -1,96 +1,53 @@
 {strip}
 <div class="mk-teams-page">
-	<header class="mk-teams-page-header">
-		<div class="mk-teams-page-header__text">
-			<div class="mk-teams-breadcrumb" aria-label="Breadcrumb">
-				<span>{vtranslate($MODULE, $MODULE)}</span>
-			</div>
-			<h1 class="mk-teams-page-title">Nhân sự</h1>
-			<p class="mk-teams-page-subtitle">Quản lý tài khoản và vai trò trong hệ thống</p>
+	<header class="mk-teams-action-header" role="region" aria-label="Nhân sự">
+		<div class="mk-teams-action-header__text">
+			<p class="mk-teams-action-header__eyebrow">Management</p>
+			<h1 class="mk-teams-action-header__title">Nhân sự</h1>
+			<p class="mk-teams-action-header__subtitle">Quản lý tài khoản và vai trò truy cập trong CRM</p>
 		</div>
-		<div class="mk-teams-page-header__actions">
+		<div class="mk-teams-action-header__actions">
 			{if $CAN_ADD_PERSON}
 				<button type="button" class="mk-teams-btn mk-teams-btn--primary js-add-person" data-url="index.php?module=Teams&view=People&app=MANAGEMENT&mode=modal">
-					<span class="mk-teams-btn__ic" aria-hidden="true">{include file="partials/DashboardTopbarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='PLUS'}</span>
+					<span class="mk-teams-btn__ic" aria-hidden="true">+</span>
 					<span class="mk-teams-btn__txt">Thêm tài khoản</span>
 				</button>
 			{/if}
 		</div>
 	</header>
 
-	<div class="mk-teams-body">
-		<section class="mk-teams-people-panel mk-teams-people-panel--solo">
-			<div class="mk-teams-people-toolbar">
-				<h2 class="mk-teams-people-toolbar__title">{vtranslate('LBL_ALL_PEOPLE','Teams')}</h2>
-				<div class="mk-teams-people-toolbar__actions">
-					<div class="mk-teams-search-wrap">
-						<i class="fa fa-search mk-teams-search-wrap__icon" aria-hidden="true"></i>
-						<input type="search" class="mk-teams-search-input" placeholder="{vtranslate('LBL_SEARCH_PEOPLE','Teams')}..." id="teams-people-search-input" autocomplete="off" />
-					</div>
-					<div class="mk-teams-filter-dropdown dropdown">
-						<button type="button" class="mk-teams-icon-btn dropdown-toggle" id="teams-people-filter-toggle" data-toggle="dropdown" title="{vtranslate('LBL_FILTER','Vtiger')}">
-							<i class="fa fa-filter" aria-hidden="true"></i>
-						</button>
-						<ul class="dropdown-menu dropdown-menu-right mk-teams-filter-menu" aria-labelledby="teams-people-filter-toggle">
-							<li class="dropdown-header">{vtranslate('LBL_PEOPLE_JOINED_COMPANY','Teams')}</li>
-							<li><a href="#" class="teams-tenure-option" data-tenure="all">{vtranslate('LBL_TENURE_ALL','Teams')}</a></li>
-							<li><a href="#" class="teams-tenure-option" data-tenure="under1">{vtranslate('LBL_TENURE_UNDER_1','Teams')}</a></li>
-							<li><a href="#" class="teams-tenure-option" data-tenure="1-4">{vtranslate('LBL_TENURE_1_4','Teams')}</a></li>
-							<li><a href="#" class="teams-tenure-option" data-tenure="5-7">{vtranslate('LBL_TENURE_5_7','Teams')}</a></li>
-							<li><a href="#" class="teams-tenure-option" data-tenure="7-10">{vtranslate('LBL_TENURE_7_10','Teams')}</a></li>
-						</ul>
-					</div>
-					{if $CAN_ADD_PERSON}
-						<button type="button" class="mk-teams-btn mk-teams-btn--primary mk-teams-btn--sm js-add-person" data-url="index.php?module=Teams&view=People&app=MANAGEMENT&mode=modal">
-							<span class="mk-teams-btn__ic" aria-hidden="true">{include file="partials/DashboardTopbarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='PLUS'}</span>
-							<span class="mk-teams-btn__txt">{vtranslate('LBL_ADD','Vtiger')}</span>
-						</button>
-					{/if}
-				</div>
+	<section class="mk-teams-filters-card" aria-label="Bộ lọc">
+		<div class="mk-teams-filters-row">
+			<label class="mk-teams-search" for="teams-people-search-input">
+				<span class="mk-teams-search__ic" aria-hidden="true"><i class="fa fa-search"></i></span>
+				<input type="search" class="mk-teams-search__input" id="teams-people-search-input" placeholder="{vtranslate('LBL_SEARCH_PEOPLE','Teams')}..." autocomplete="off" />
+			</label>
+			<div class="mk-teams-filter-dropdown dropdown">
+				<button type="button" class="mk-teams-btn mk-teams-btn--outline dropdown-toggle" id="teams-people-filter-toggle" data-toggle="dropdown">
+					<span class="mk-teams-btn__txt">{vtranslate('LBL_PEOPLE_JOINED_COMPANY','Teams')}</span>
+					<i class="fa fa-angle-down" aria-hidden="true"></i>
+				</button>
+				<ul class="dropdown-menu dropdown-menu-right mk-teams-filter-menu" aria-labelledby="teams-people-filter-toggle">
+					<li><a href="#" class="teams-tenure-option" data-tenure="all">{vtranslate('LBL_TENURE_ALL','Teams')}</a></li>
+					<li><a href="#" class="teams-tenure-option" data-tenure="under1">{vtranslate('LBL_TENURE_UNDER_1','Teams')}</a></li>
+					<li><a href="#" class="teams-tenure-option" data-tenure="1-4">{vtranslate('LBL_TENURE_1_4','Teams')}</a></li>
+					<li><a href="#" class="teams-tenure-option" data-tenure="5-7">{vtranslate('LBL_TENURE_5_7','Teams')}</a></li>
+					<li><a href="#" class="teams-tenure-option" data-tenure="7-10">{vtranslate('LBL_TENURE_7_10','Teams')}</a></li>
+				</ul>
 			</div>
-			<div class="mk-teams-table-card">
-				{include file='partials/People.tpl'|@vtemplate_path:$MODULE}
-			</div>
-		</section>
-	</div>
+		</div>
+	</section>
+
+	<section class="mk-teams-table-card">
+		{include file='partials/People.tpl'|@vtemplate_path:$MODULE}
+	</section>
 </div>
 {/strip}
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Teams/resources/TeamsModal.js')}?v=5"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Teams/resources/Person.js')}?v=5"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Teams/resources/TeamsModal.js')}?v=6"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Teams/resources/Person.js')}?v=6"></script>
 <script type="text/javascript">
 {literal}
 jQuery(document).ready(function($) {
-	$('.teams-project-count').each(function() {
-		var $el = $(this);
-		var userId = $el.data('userid');
-		var $script = $('script.teams-projects-data[data-userid="' + userId + '"]');
-		if ($script.length > 0) {
-			try {
-				var projectsData = JSON.parse($script.html());
-				var projects = projectsData.projects || [];
-				var count = projectsData.count || projects.length;
-				if (projects.length > 0) {
-					var html = '<div style="max-width:300px;"><strong>Dự án (' + count + '):</strong><ul style="margin:8px 0 0;padding-left:18px;">';
-					$.each(projects, function(i, proj) {
-						html += '<li style="margin:4px 0;">' + $('<div>').text(proj.name || '').html();
-						if (proj.status) {
-							html += ' <span style="font-size:11px;color:#40627e;">' + $('<div>').text(proj.status).html() + '</span>';
-						}
-						html += '</li>';
-					});
-					html += '</ul></div>';
-					$el.attr('data-content', html);
-				}
-			} catch (e) {
-				console.error('[Teams] projects popover', e);
-			}
-		}
-	});
-	$('.teams-project-count').popover({ container: 'body', html: true });
-	$(window).on('beforeunload', function() {
-		$('.teams-project-count').popover('destroy');
-	});
-
 	function getYearsInCompany(dateStr) {
 		if (!dateStr) return null;
 		var join = new Date(dateStr);
@@ -128,6 +85,8 @@ jQuery(document).ready(function($) {
 		currentTenureFilter = $(this).data('tenure') || 'all';
 		$('.teams-tenure-option').removeClass('active');
 		$(this).addClass('active');
+		var label = $(this).text();
+		$('#teams-people-filter-toggle .mk-teams-btn__txt').text(label);
 		applyPeopleFilters();
 	});
 	$('.teams-tenure-option[data-tenure="all"]').addClass('active');

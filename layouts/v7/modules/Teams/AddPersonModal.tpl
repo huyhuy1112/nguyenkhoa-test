@@ -1,9 +1,9 @@
 {strip}
 <div class="teams-modal teams-add-person-modal">
 	<div class="teams-modal-header">
-		<p class="teams-modal-kicker">Quản lý nhân sự</p>
+		<p class="teams-modal-kicker">Management · Nhân sự</p>
 		<h3 class="teams-modal-title">Tạo tài khoản mới</h3>
-		<p class="teams-modal-subtitle">Thêm người dùng với vai trò truy cập phù hợp trong CRM.</p>
+		<p class="teams-modal-subtitle">Điền thông tin và chọn vai trò để cấp quyền truy cập CRM.</p>
 	</div>
 	<form id="EditView" class="js-teams-add-person-form teams-modal-form" method="post" action="index.php">
 		<input type="hidden" name="module" value="Teams" />
@@ -22,11 +22,11 @@
 					<input type="text" name="last_name" class="form-control" required placeholder="Nhập tên" autocomplete="family-name" />
 				</div>
 			</div>
-			<div class="form-group" style="margin-top:14px;">
+			<div class="form-group teams-modal-field">
 				<label class="control-label">Email *</label>
 				<input type="email" name="email" class="form-control" required placeholder="name@congty.com" autocomplete="email" />
 			</div>
-			<div class="teams-modal-grid" style="margin-top:14px;">
+			<div class="teams-modal-grid teams-modal-field">
 				<div class="form-group">
 					<label class="control-label">Chức danh *</label>
 					<input type="text" name="title" class="form-control" required placeholder="VD: Nhân viên Sale" />
@@ -49,7 +49,7 @@
 							<option value="{$R.roleid|escape}">{$R.rolename|decode_html|escape}</option>
 						{/foreach}
 					</select>
-					<p class="teams-modal-field-hint">Sale mới cần chọn vai trò <strong>Sale</strong> để vào vòng Round Robin.</p>
+					<p class="teams-modal-field-hint">Sale mới chọn vai trò <strong>Sale</strong> để vào vòng Round Robin Lead.</p>
 				</div>
 				<div class="form-group">
 					<label class="control-label">Múi giờ</label>
@@ -71,8 +71,8 @@
 		</div>
 
 		<div class="teams-modal-footer">
-			<button type="button" class="btn btn-default teams-btn-secondary" data-dismiss="modal">Huỷ</button>
-			<button type="submit" class="btn btn-primary teams-btn-primary">Tạo tài khoản</button>
+			<button type="button" class="teams-btn teams-btn--outline" data-dismiss="modal">Huỷ</button>
+			<button type="submit" class="teams-btn teams-btn--primary">Tạo tài khoản</button>
 		</div>
 	</form>
 </div>
