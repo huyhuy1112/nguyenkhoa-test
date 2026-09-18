@@ -166,7 +166,12 @@ body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-tab
 	border-bottom-color: #08A045;
 }
 
-/* ---- People layout: groups sidebar + main ---- */
+/* ---- People layout (solo / legacy sidebar) ---- */
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-panel--solo {
+	width: 100%;
+	min-height: 480px;
+}
+
 body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-layout {
 	display: flex;
 	align-items: stretch;
@@ -280,6 +285,11 @@ body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-peo
 	border-radius: 0 12px 12px 0;
 	box-shadow: 0 4px 14px rgba(25, 28, 30, 0.06);
 	overflow: hidden;
+}
+
+body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-panel--solo {
+	border-left: 1px solid #d4c4ad;
+	border-radius: 12px;
 }
 
 body[data-module="Teams"][data-view="List"][data-app="MANAGEMENT"] .mk-teams-people-toolbar {

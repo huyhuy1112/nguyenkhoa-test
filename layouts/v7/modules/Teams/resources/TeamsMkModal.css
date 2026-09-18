@@ -128,7 +128,19 @@
 	font-weight: 400;
 	color: rgba(248, 250, 252, 0.72);
 	line-height: 1.45;
-	max-width: 36ch;
+	max-width: 42ch;
+}
+
+.teams-modal-field-hint {
+	margin: 8px 0 0;
+	font-size: 12px;
+	line-height: 1.4;
+	color: #64748b;
+}
+
+.teams-modal-field-hint strong {
+	color: #0f172a;
+	font-weight: 600;
 }
 
 .teams-modal-form {

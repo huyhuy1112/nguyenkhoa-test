@@ -64,14 +64,14 @@
 						</td>
 						<td class="teams-people-lastactive-cell">
 							{if $ROW.is_inactive}
-								<span class="label label-danger">Inactive</span>
+								<span class="label label-danger">Ngừng hoạt động</span>
 							{elseif $ROW.is_online}
 								<span class="label label-success teams-status-online">
 									<span class="dot-online"></span>
-									<span>Online</span>
+									<span>Trực tuyến</span>
 								</span>
 							{elseif $ROW.status_label eq 'Never logged in'}
-								<span class="text-muted teams-status-never"><i class="fa fa-info-circle"></i> Never logged in</span>
+								<span class="text-muted teams-status-never"><i class="fa fa-info-circle"></i> Chưa đăng nhập</span>
 							{else}
 								<span class="text-muted teams-status-ago">
 									<span class="teams-status-dot"></span>
@@ -87,7 +87,6 @@
 								<ul class="dropdown-menu dropdown-menu-right">
 									<li><a href="index.php?module=Users&parent=Settings&view=Edit&record={$ROW.id}">{vtranslate('LBL_EDIT','Vtiger')}</a></li>
 									<li><a href="index.php?module=Users&view=EditAjax&mode=changePassword&recordId={$ROW.id}" target="_blank">{vtranslate('LBL_CHANGE_PASSWORD','Users')}</a></li>
-									<li><a href="index.php?module=Teams&view=AddToGroup&app=Management&userid={$ROW.id}">{vtranslate('LBL_ADD_GROUP','Vtiger')}</a></li>
 									{if $CAN_DEACTIVATE}
 										<li><a href="#" class="js-delete-person dropdown-item" data-userid="{$ROW.id|escape}">Xoá tài khoản</a></li>
 									{/if}
@@ -98,7 +97,7 @@
 				{/foreach}
 			{/foreach}
 			{if $PEOPLE_BY_ROLE|@count eq 0}
-				<tr><td colspan="7" class="text-center text-muted">No people found.</td></tr>
+				<tr><td colspan="7" class="text-center text-muted">Chưa có nhân sự nào.</td></tr>
 			{/if}
 		</tbody>
 	</table>

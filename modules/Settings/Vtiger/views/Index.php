@@ -42,6 +42,12 @@ class Settings_Vtiger_Index_View extends Vtiger_Basic_View {
 		} catch (Exception $e) {
 			/* ignore */
 		}
+		try {
+			require_once 'modules/Leads/models/RoundRobinService.php';
+			Leads_RoundRobinService::ensureSettingsMenu();
+		} catch (Exception $e) {
+			/* ignore */
+		}
 
 		$viewer = $this->getViewer($request);
 
