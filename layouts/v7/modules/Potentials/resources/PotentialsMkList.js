@@ -131,6 +131,67 @@
       .replace(/"/g, "&quot;");
   }
 
+  function confirmAction(options) {
+    options = options || {};
+    var title = options.title || "Xác nhận thao tác";
+    var question = options.question || "Bạn có chắc chắn muốn tiếp tục?";
+    var hint = options.hint || "";
+    var tone = options.tone === "danger" ? "danger" : "primary";
+    var icon = tone === "danger" ? "fa-trash-o" : options.icon || "fa-question-circle";
+    var html =
+      '<div class="mk-ui-confirm">' +
+      '<span class="mk-ui-confirm__icon mk-ui-confirm__icon--' +
+      tone +
+      '" aria-hidden="true"><i class="fa ' +
+      icon +
+      '"></i></span>' +
+      '<div class="mk-ui-confirm__copy">' +
+      '<div class="mk-ui-confirm__question">' +
+      esc(question) +
+      "</div>" +
+      (hint ? '<div class="mk-ui-confirm__hint">' + esc(hint) + "</div>" : "") +
+      "</div></div>";
+    var helper =
+      window.app && window.app.helper
+        ? window.app.helper
+        : typeof app !== "undefined" && app.helper
+          ? app.helper
+          : null;
+
+    if (helper && typeof helper.showConfirmationBox === "function") {
+      return new Promise(function (resolve) {
+        helper
+          .showConfirmationBox({
+            title: title,
+            message: html,
+            htmlSupportEnable: true,
+            buttons: {
+              cancel: {
+                label: "Hủy",
+                className: "btn mk-ui-confirm__btn mk-ui-confirm__btn--cancel",
+              },
+              confirm: {
+                label: options.confirmLabel || "Xác nhận",
+                className:
+                  "btn mk-ui-confirm__btn mk-ui-confirm__btn--" +
+                  (tone === "danger" ? "danger" : "primary"),
+              },
+            },
+          })
+          .then(
+            function () {
+              resolve(true);
+            },
+            function () {
+              resolve(false);
+            }
+          );
+      });
+    }
+
+    return Promise.resolve(window.confirm(question + (hint ? "\n" + hint : "")));
+  }
+
   function getOpps() {
     return store ? store.getOpportunities() : [];
   }
@@ -2243,9 +2304,49 @@
 
     if ($("mk-opps-import-ic")) $("mk-opps-import-ic").innerHTML = ic("import");
     if ($("mk-opps-create-ic")) $("mk-opps-create-ic").innerHTML = ic("plus");
+    if ($("mk-opps-edubit-sync-ic")) $("mk-opps-edubit-sync-ic").innerHTML = ic("repeat");
     if ($("mk-opps-search-ic")) $("mk-opps-search-ic").innerHTML = ic("search");
     if ($("mk-opps-segments-icon")) $("mk-opps-segments-icon").innerHTML = ic("filter");
     if ($("mk-opps-filters-ic")) $("mk-opps-filters-ic").innerHTML = ic("filter");
+
+    var syncBtn = $("mk-opps-edubit-sync-btn");
+    if (syncBtn) {
+      syncBtn.addEventListener("click", function () {
+        if (!store || typeof store.syncEdubitAll !== "function") {
+          notifyErr("API đồng bộ chưa sẵn sàng.");
+          return;
+        }
+        confirmAction({
+          title: "Xác nhận đồng bộ Edubit",
+          question: "Đồng bộ tiến độ cho tất cả cơ hội đã cấp tài khoản Edubit?",
+          hint: "Áp dụng Opp còn mở (lead profile, gồm quà 27312). Thao tác có thể mất vài giây.",
+          icon: "fa-refresh",
+          confirmLabel: "Đồng bộ",
+        }).then(function (confirmed) {
+          if (!confirmed) return;
+          syncBtn.disabled = true;
+          var txt = syncBtn.querySelector(".mk-leads-btn__txt");
+          var oldTxt = txt ? txt.textContent : "";
+          if (txt) txt.textContent = "Đang đồng bộ…";
+          store
+            .syncEdubitAll(150)
+            .then(function (res) {
+              notifyOk((res && res.message) || "Đã đồng bộ tiến độ.");
+              return store.refresh();
+            })
+            .then(function () {
+              renderAll();
+            })
+            .catch(function (err) {
+              notifyErr((err && err.message) || "Không đồng bộ được tiến độ.");
+            })
+            .then(function () {
+              syncBtn.disabled = false;
+              if (txt) txt.textContent = oldTxt || "Đồng bộ tiến độ";
+            });
+        });
+      });
+    }
   }
 
   function init() {

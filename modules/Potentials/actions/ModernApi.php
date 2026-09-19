@@ -22,7 +22,7 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_inline_business_model', 'save_tags', 'delete', 'last_touch_call_log', 'offline_checkin', 'offline_reschedule', 'offline_unreachable', 'online_edubit_provision', 'offline_oa_note'), true)) {
+		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_inline_business_model', 'save_tags', 'delete', 'last_touch_call_log', 'offline_checkin', 'offline_reschedule', 'offline_unreachable', 'online_edubit_provision', 'offline_oa_note', 'credential_save', 'edubit_sync_all'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -320,6 +320,15 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 						'da_cap_bang' => isset($creds['da_cap_bang']) ? $creds['da_cap_bang'] : $request->get('da_cap_bang'),
 						'da_cap_tai_khoan' => isset($creds['da_cap_tai_khoan']) ? $creds['da_cap_tai_khoan'] : $request->get('da_cap_tai_khoan'),
 					));
+					break;
+				case 'edubit_sync_all':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$limit = (int) $request->get('limit');
+					if ($limit <= 0) {
+						$limit = 150;
+					}
+					$saved = Leads_OnlineGd12Service::syncEdubitProgressForAllOpportunities($limit, $userId);
+					$response->setResult($saved);
 					break;
 				case 'online_edubit_provision':
 					require_once 'modules/Leads/models/OnlineGd12Service.php';

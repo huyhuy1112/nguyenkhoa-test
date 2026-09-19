@@ -360,6 +360,59 @@
 	}
 }
 
+/* GD 1.2 — tiến độ Edubit + select cấp bằng (Opp list; class shared with Contacts markup) */
+.mk-opps-page .mk-contacts-cred-select,
+.mk-opps-page .mk-opps-cred-select {
+	display: inline-block;
+	max-width: 100%;
+	min-width: 118px;
+	height: 28px;
+	padding: 2px 8px;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	background: #fff;
+	color: #0f172a;
+	font: inherit;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.2;
+	cursor: pointer;
+}
+.mk-opps-page .mk-contacts-cred-select:focus,
+.mk-opps-page .mk-opps-cred-select:focus {
+	outline: none;
+	border-color: #93c5fd;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.mk-opps-page .mk-contacts-edubit-progress {
+	min-width: 110px;
+	max-width: 160px;
+}
+.mk-opps-page .mk-contacts-edubit-progress__bar {
+	height: 8px;
+	border-radius: 999px;
+	background: #e2e8f0;
+	overflow: hidden;
+}
+.mk-opps-page .mk-contacts-edubit-progress__bar > span {
+	display: block;
+	height: 100%;
+	border-radius: 999px;
+	background: linear-gradient(90deg, #0d9488, #059669);
+}
+.mk-opps-page .mk-contacts-edubit-progress__label {
+	margin-top: 4px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #0f766e;
+}
+.mk-opps-page .mk-contacts-edubit-progress__meta {
+	margin-top: 2px;
+	font-size: 11px;
+	color: #64748b;
+	line-height: 1.3;
+}
+
 /* GD 1.2 Online — cấp TK Edubit trên Opp */
 .mk-opps-edubit {
 	min-width: 200px;

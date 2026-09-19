@@ -1,6 +1,6 @@
 <?php
 /**
- * Chạy tay đồng bộ tiến độ Edubit cho Contacts đã cấp tài khoản.
+ * Chạy tay đồng bộ tiến độ Edubit: Contacts + Opp/lead (quà 27312).
  * Usage: php modules/Leads/scripts/ProcessOnlineGd12EdubitProgress.php
  */
 $root = dirname(dirname(dirname(__DIR__)));
@@ -17,9 +17,10 @@ if ($admin) {
 	vglobal('current_user', $admin);
 }
 
+$userId = !empty($admin->id) ? (int) $admin->id : null;
 Leads_OnlineGd12Service::installSchema();
-$out = Leads_OnlineGd12Service::syncEdubitProgressForAllContacts(
-	300,
-	!empty($admin->id) ? (int) $admin->id : null
+$out = array(
+	'contacts' => Leads_OnlineGd12Service::syncEdubitProgressForAllContacts(300, $userId),
+	'opportunities' => Leads_OnlineGd12Service::syncEdubitProgressForAllOpportunities(300, $userId),
 );
 echo json_encode($out, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n";

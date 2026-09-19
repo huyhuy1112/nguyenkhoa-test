@@ -2136,6 +2136,78 @@ class Leads_OnlineGd12Service {
 	}
 
 	/**
+	 * Đồng bộ tiến độ Edubit cho Opp còn mở (lead profile đã cấp TK — gồm quà 27312).
+	 * @param int $limit trần số hồ sơ / lần
+	 */
+	public static function syncEdubitProgressForAllOpportunities($limit = 150, $userId = null) {
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$limit = max(1, min(300, (int) $limit));
+		$res = $adb->pquery(
+			"SELECT DISTINCT lp.leadid, lp.potential_id
+			 FROM bace_lead_profile lp
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = lp.potential_id AND ce.deleted = 0
+			 LEFT JOIN bace_potential_profile pp ON pp.potentialid = lp.potential_id
+			 WHERE lp.potential_id IS NOT NULL AND lp.potential_id > 0
+			   AND lp.edubit_email IS NOT NULL AND lp.edubit_email <> ''
+			   AND lp.edubit_course_id IS NOT NULL AND lp.edubit_course_id <> ''
+			   AND (pp.converted_to_customer_at IS NULL)
+			 ORDER BY lp.leadid ASC
+			 LIMIT {$limit}",
+			array()
+		);
+		$ok = 0;
+		$fail = 0;
+		$parsed = 0;
+		$maxPct = 0;
+		$items = array();
+		$rows = ($res && $adb->num_rows($res) > 0) ? $adb->num_rows($res) : 0;
+		for ($i = 0; $i < $rows; $i++) {
+			$leadId = (int) $adb->query_result($res, $i, 'leadid');
+			$potentialId = (int) $adb->query_result($res, $i, 'potential_id');
+			$one = self::syncEdubitProgressForLead($leadId, $userId);
+			if (!empty($one['success'])) {
+				$ok++;
+				$pctOne = array_key_exists('progress_pct', $one) && $one['progress_pct'] !== null
+					? (int) $one['progress_pct'] : null;
+				if ($pctOne !== null) {
+					$parsed++;
+					$maxPct = max($maxPct, $pctOne);
+				}
+				$items[] = array(
+					'lead_id' => $leadId,
+					'potential_id' => $potentialId,
+					'progress_pct' => $pctOne,
+					'status' => isset($one['status']) ? $one['status'] : '',
+					'message' => isset($one['message']) ? $one['message'] : '',
+				);
+			} else {
+				$fail++;
+				$items[] = array(
+					'lead_id' => $leadId,
+					'potential_id' => $potentialId,
+					'error' => isset($one['error']) ? $one['error'] : 'fail',
+				);
+			}
+		}
+		$msg = 'Đã đồng bộ ' . $ok . '/' . $rows . ' cơ hội (lead Edubit)'
+			. ($fail > 0 ? (' (lỗi ' . $fail . ')') : '')
+			. ($parsed > 0 ? (' · có %: ' . $parsed . ' · max ' . $maxPct . '%') : '')
+			. ($ok > 0 && $parsed === 0 ? ' · Edubit OK nhưng chưa parse được %' : '')
+			. '.';
+		return array(
+			'success' => true,
+			'scanned' => $rows,
+			'ok' => $ok,
+			'fail' => $fail,
+			'parsed' => $parsed,
+			'max_progress_pct' => $maxPct,
+			'items' => $items,
+			'message' => $msg,
+		);
+	}
+
+	/**
 	 * Đồng bộ tiến độ tất cả Contact đã cấp TK Edubit.
 	 * @param int $limit trần số hồ sơ / lần
 	 */
