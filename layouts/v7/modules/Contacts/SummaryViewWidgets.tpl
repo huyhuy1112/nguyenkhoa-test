@@ -10,8 +10,13 @@
 
 {if !empty($MK_CONTACT_MODERN_UI) || (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY eq 'SALES' || $SELECTED_MENU_CATEGORY eq 'MARKETING')) || (isset($smarty.get.app) && ($smarty.get.app eq 'SALES' || $smarty.get.app eq 'MARKETING'))}
 	<div class="mk-contact-summary-wrap">
-	<div class="mk-contact-summary-grid mk-contact-detail-summary-grid mk-crm-v4-3col">
-		<div class="mk-crm-v4-stack mk-crm-v4-stack--left">
+	<nav class="mk-contact-lane-tabs" role="tablist" aria-label="Phân khu Khách hàng">
+		<button type="button" class="mk-contact-lane-tabs__btn is-active" data-mk-contact-lane="courses" role="tab" aria-selected="true">Khóa học</button>
+		<button type="button" class="mk-contact-lane-tabs__btn" data-mk-contact-lane="materials" role="tab" aria-selected="false">Nguyên liệu</button>
+		<button type="button" class="mk-contact-lane-tabs__btn" data-mk-contact-lane="franchise" role="tab" aria-selected="false">Nhượng quyền</button>
+	</nav>
+	<div class="mk-contact-summary-grid mk-contact-detail-summary-grid mk-crm-v4-3col" data-mk-contact-lane-root="1" data-active-lane="courses">
+		<div class="mk-crm-v4-stack mk-crm-v4-stack--left" data-mk-lane-show="courses materials franchise">
 		<section class="mk-contact-detail-card mk-contact-detail-card--key mk-contact-detail-grid__key" aria-labelledby="mk-contact-detail-keyfields-title">
 			<div class="mk-contact-detail-card__head">
 				<h2 id="mk-contact-detail-keyfields-title" class="mk-contact-detail-card__title">{vtranslate('LBL_KEY_FIELDS', $MODULE_NAME)}</h2>
@@ -24,25 +29,37 @@
 		</section>
 		</div>
 
-		<div class="mk-crm-v4-stack mk-crm-v4-stack--center">
+		<div class="mk-crm-v4-stack mk-crm-v4-stack--center" data-mk-lane-show="courses">
 		<div class="mk-contact-class-reg-strip mk-contact-class-reg-strip--summary">
 			{include file="partials/ContactClassRegPanel.tpl"|vtemplate_path:$MODULE}
 		</div>
 		</div>
 
+		<div class="mk-crm-v4-stack mk-crm-v4-stack--center mk-contact-franchise-lane hide" data-mk-lane-show="franchise">
+		<section class="mk-contact-detail-card mk-contact-detail-card--franchise" aria-labelledby="mk-contact-franchise-title">
+			<div class="mk-contact-detail-card__head">
+				<h2 id="mk-contact-franchise-title" class="mk-contact-detail-card__title">Nhượng quyền</h2>
+			</div>
+			<div class="mk-contact-franchise-lane__body">
+				<p class="mk-contact-franchise-lane__hint">Khu vực nhượng quyền tách khỏi khóa học và bán lẻ nguyên liệu. Dùng tag <strong>Nhượng quyền / Đã ký quỹ / Đang tư vấn</strong> trên list, và các tab liên quan (Hợp đồng / Cơ hội NQ) phía trên để theo dõi.</p>
+				<p class="mk-contact-franchise-lane__note">Không ghi đăng ký lớp học hay đơn nguyên liệu trong tab này.</p>
+			</div>
+		</section>
+		</div>
+
 		<div class="mk-crm-v4-stack mk-crm-v4-stack--right">
-		<section class="mk-contact-detail-card mk-contact-detail-card--activities mk-contact-detail-grid__activities" aria-labelledby="mk-contact-detail-activities-title">
+		<section class="mk-contact-detail-card mk-contact-detail-card--activities mk-contact-detail-grid__activities" data-mk-lane-show="courses materials franchise" aria-labelledby="mk-contact-detail-activities-title">
 			<div id="relatedActivities" class="mk-contact-detail-related-activities">
 				{$RELATED_ACTIVITIES}
 			</div>
 		</section>
 
-		<section class="mk-contact-detail-card mk-contact-detail-card--purchases mk-contact-detail-grid__salesorders" id="mk-contact-section-purchases" aria-labelledby="mk-contact-purchase-title">
+		<section class="mk-contact-detail-card mk-contact-detail-card--purchases mk-contact-detail-grid__salesorders" id="mk-contact-section-purchases" data-mk-lane-show="materials" aria-labelledby="mk-contact-purchase-title">
 			<div class="mk-contact-detail-card__head mk-contact-purchase__head">
 				<span class="mk-contact-purchase__cart-ic" aria-hidden="true">
 					<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 6h15l-1.5 9h-12L6 6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="9" cy="20" r="1.5" fill="currentColor"/><circle cx="17" cy="20" r="1.5" fill="currentColor"/></svg>
 				</span>
-				<h2 id="mk-contact-purchase-title" class="mk-contact-detail-card__title">Lịch sử mua hàng (0)</h2>
+				<h2 id="mk-contact-purchase-title" class="mk-contact-detail-card__title">Bán nguyên liệu / Lịch sử mua hàng (0)</h2>
 				<div class="mk-contact-detail-card__actions pull-right">
 					<button type="button" class="btn btn-sm btn-default mk-contact-detail-btn mk-contact-detail-btn--ghost" id="mk-contact-link-order">Liên kết đơn hàng</button>
 				</div>

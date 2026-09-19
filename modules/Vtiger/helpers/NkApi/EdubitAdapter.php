@@ -41,12 +41,11 @@ class NkApi_Edubit_Adapter extends NkApi_Adapter {
 	/** Catalog gợi ý (admin có thể sửa) — không auto-select. */
 	public static function suggestedCourses() {
 		return array(
-			array('id' => '29403', 'label' => 'KHÓA HỌC KHAI TRƯƠNG QUÁN BÀI BẢN'),
-			array('id' => '29218', 'label' => 'KHÓA HỌC PHA CHẾ TỔNG HỢP'),
-			// Tổng bài là metadata riêng từng khóa, không dùng chung cho các course_id khác.
+			array('id' => '29403', 'label' => 'KHÓA HỌC KHAI TRƯƠNG QUÁN BÀI BẢN (990k)'),
+			array('id' => '29218', 'label' => 'KHÓA HỌC PHA CHẾ TỔNG HỢP (3tr)'),
 			array(
 				'id' => '28108',
-				'label' => 'KHÓA HỌC PHA CHẾ TỔNG HỢP CƠ BẢN',
+				'label' => 'KHÓA HỌC PHA CHẾ TỔNG HỢP CƠ BẢN (299k)',
 				'total_lessons' => 32,
 			),
 			array('id' => '27312', 'label' => 'KHÓA HỌC PHA CHẾ KINH DOANH (Miễn Phí)'),

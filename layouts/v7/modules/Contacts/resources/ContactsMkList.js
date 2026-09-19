@@ -155,15 +155,17 @@
       });
   }
 
-  /** Loại khách chips — khớp Trạng thái khách trên Lead */
+  /** Phân khu chính + chip phụ — Khóa học / NL / NQ tách rõ */
   function getPresetSegments() {
     return [
+      { id: "lane_courses", name: pick("Khóa học", "Courses"), filters: { lane: "courses" } },
+      { id: "lane_materials", name: pick("Nguyên liệu", "Materials"), filters: { lane: "materials" } },
+      { id: "lane_franchise", name: pick("Nhượng quyền", "Franchise"), filters: { lane: "franchise" } },
       { id: "tagged", name: pick("Có tag", "Has tag"), filters: { hasTag: true } },
       { id: "has_store", name: pick("Đã có quán", "Has store"), filters: { customerRank: "co_quan" } },
       { id: "no_store", name: pick("Chưa có quán", "No store yet"), filters: { customerRank: "chuan_bi_mo" } },
       { id: "family", name: pick("Gia đình", "Family"), filters: { customerRank: "gia_dinh" } },
       { id: "first_buy", name: pick("Mua lần đầu", "First purchase"), filters: { material: "mua_lan_dau" } },
-      { id: "franchise", name: pick("Nhượng quyền", "Franchise"), filters: { franchise: "nhuong_quyen" } },
       { id: "deposit", name: pick("Đã ký quỹ", "Deposited"), filters: { franchise: "da_ky_quy" } },
       { id: "gold", name: pick("Hạng Vàng", "Gold tier"), filters: { tier: "vang" } },
     ];
@@ -171,6 +173,7 @@
 
   var EMPTY = {
     search: "",
+    lane: ANY,
     customerRank: ANY,
     classTag: ANY,
     material: ANY,
@@ -284,6 +287,25 @@
       if (f.anyTag !== ANY && !hasNormalizedTag(c.tags, f.anyTag)) return false;
       if (f.staleOnly && !isStale(c)) return false;
       if (f.owner !== ANY && c.owner !== f.owner) return false;
+      if (f.lane !== ANY) {
+        var hasFranchise = !!cats.franchise;
+        var hasMaterial = !!cats.material;
+        var hasCourse =
+          !!cats.classTag ||
+          !!(c.edubit_user_id || c.edubit_course_id) ||
+          (Array.isArray(c.edubit_courses) && c.edubit_courses.length > 0) ||
+          !!(c.thoigian_dangky || c.thoigian_pcth || c.thoigian_mqbb);
+        if (f.lane === "franchise") {
+          if (!hasFranchise) return false;
+        } else if (f.lane === "materials") {
+          // NL: có tag nguyên liệu, ưu tiên không bắt buộc loại trừ NQ nếu cùng lúc có cả hai
+          if (!hasMaterial) return false;
+        } else if (f.lane === "courses") {
+          if (!hasCourse && !hasMaterial && hasFranchise) return false;
+          if (!hasCourse && hasFranchise && !hasMaterial) return false;
+          if (!hasCourse) return false;
+        }
+      }
       return true;
     });
   }
@@ -430,6 +452,11 @@
     owners.sort();
     host.innerHTML =
       '<div class="mk-leads-filters-grid">' +
+      fieldSelect("Phân khu", "lane", [
+        ["courses", "Khóa học"],
+        ["materials", "Nguyên liệu"],
+        ["franchise", "Nhượng quyền"],
+      ]) +
       fieldSelect(t("JS_MK_FILTER_TIER", "Hạng khách hàng"), "tier", ref.TIER_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_CUSTOMER_RANK", "Loại khách"), "customerRank", ref.CUSTOMER_RANK_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_CLASS", "Tag lớp học"), "classTag", ref.CLASS_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +

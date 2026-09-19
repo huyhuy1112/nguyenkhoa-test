@@ -60,14 +60,16 @@
 			{/if}
 			{if !isset($CLASS_REG.can_add) || !empty($CLASS_REG.can_add)}
 				<div class="mk-contact-class-panel__add">
-					<select class="mk-contact-class-panel__select mk-contact-class-panel__class-select inputElement" name="class_code" aria-label="Chọn lớp học">
+					<select class="mk-contact-class-panel__select mk-contact-class-panel__class-select inputElement" name="class_code" aria-label="Chọn sản phẩm / lớp học">
 						{foreach from=$CLASS_REG.class_options|default:[] item=OPT}
 							<option value="{$OPT.code|escape}">{$OPT.label|escape}</option>
 						{/foreach}
 						{if empty($CLASS_REG.class_options)}
-							<option value="mqbb">MQBB</option>
+							<option value="mqbb">MQBB (990k)</option>
 							<option value="pcth">PCTH</option>
+							<option value="pcth_cb">PCTH Cơ bản</option>
 						{/if}
+						<option value="combo_mqbb_pcth">Combo MQBB + PCTH</option>
 					</select>
 					<input type="date"
 						class="mk-contact-class-panel__date mk-contact-class-panel__register-date inputElement"
@@ -80,6 +82,29 @@
 					</button>
 				</div>
 			{/if}
+			<p class="mk-contact-class-panel__hint mk-contact-class-panel__gift-hint">Mua offline → tặng online cùng khóa. Sau đó cấp TK Edubit bên dưới.</p>
+		</section>
+
+		<section class="mk-contact-class-panel__section mk-contact-class-panel__edubit" aria-labelledby="mk-edubit-prov-title">
+			<h3 id="mk-edubit-prov-title" class="mk-contact-class-panel__title">Cấp TK Online (Edubit)</h3>
+			<p class="mk-contact-class-panel__hint">Khóa có phí / tặng kèm: 29403 (990k), 29218 (PCTH), 28108 (PCTH CB). Không dùng 27312 miễn phí tại đây.</p>
+			<div class="mk-contact-class-panel__field">
+				<label class="mk-contact-class-panel__label" for="mk-edubit-course">Khóa online</label>
+				<select id="mk-edubit-course" class="mk-contact-class-panel__select inputElement" data-mk-edubit="course_id">
+					<option value="29403">29403 — Khai trương quán bài bản (990k)</option>
+					<option value="29218">29218 — Pha chế tổng hợp</option>
+					<option value="28108">28108 — Pha chế tổng hợp cơ bản</option>
+				</select>
+			</div>
+			<div class="mk-contact-class-panel__field">
+				<label class="mk-contact-class-panel__label" for="mk-edubit-email">Email học viên</label>
+				<input type="email" id="mk-edubit-email" class="mk-contact-class-panel__select inputElement" data-mk-edubit="email" placeholder="email@…" />
+			</div>
+			<button type="button" class="mk-contact-class-panel__btn mk-contact-class-panel__btn--primary" data-mk-edubit-action="provision">
+				<i class="fa fa-user-plus" aria-hidden="true"></i>
+				<span>Cấp tài khoản</span>
+			</button>
+			<div class="mk-contact-class-panel__edubit-status" data-mk-edubit-status hidden></div>
 		</section>
 
 		<section class="mk-contact-class-panel__section mk-contact-class-panel__creds" aria-labelledby="mk-creds-title">
