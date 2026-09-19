@@ -46,38 +46,80 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 
 		$profileAddress = '';
 		$profileDistrict = '';
+		$profileBusinessModel = '';
+		$profilePhone = '';
 		$regionKey = '';
 		try {
 			require_once 'modules/Potentials/models/ModernService.php';
 			Potentials_ModernService::ensureProfileSchema();
 			$adb = PearDatabase::getInstance();
 			$pp = $adb->pquery(
-				'SELECT district, address_line FROM bace_potential_profile WHERE potentialid = ?',
+				'SELECT district, address_line, business_model, phone
+				 FROM bace_potential_profile WHERE potentialid = ?',
 				array($recordId)
 			);
 			if ($pp && $adb->num_rows($pp) > 0) {
 				$profileDistrict = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($pp, 0, 'district'));
 				$profileAddress = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($pp, 0, 'address_line'));
+				$profileBusinessModel = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($pp, 0, 'business_model'));
+				$profilePhone = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($pp, 0, 'phone'));
 			}
-			if ($profileAddress === '' && $profileDistrict === '') {
-				$lp = $adb->pquery(
-					'SELECT district, address_line FROM bace_lead_profile WHERE potential_id = ? LIMIT 1',
-					array($recordId)
-				);
-				if ($lp && $adb->num_rows($lp) > 0) {
+			$lp = $adb->pquery(
+				'SELECT district, address_line, business_model
+				 FROM bace_lead_profile WHERE potential_id = ? LIMIT 1',
+				array($recordId)
+			);
+			if ($lp && $adb->num_rows($lp) > 0) {
+				if ($profileDistrict === '') {
 					$profileDistrict = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($lp, 0, 'district'));
+				}
+				if ($profileAddress === '') {
 					$profileAddress = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($lp, 0, 'address_line'));
+				}
+				if ($profileBusinessModel === '') {
+					$profileBusinessModel = Vtiger_MkSalesInlineDetailHelper::decodeText($adb->query_result($lp, 0, 'business_model'));
+				}
+			}
+			if ($profilePhone === '') {
+				$contactId = (int) $recordModel->get('contact_id');
+				if ($contactId > 0) {
+					$contactRes = $adb->pquery(
+						'SELECT phone, mobile FROM vtiger_contactdetails WHERE contactid = ?',
+						array($contactId)
+					);
+					if ($contactRes && $adb->num_rows($contactRes) > 0) {
+						$profilePhone = Vtiger_MkSalesInlineDetailHelper::decodeText(
+							$adb->query_result($contactRes, 0, 'phone')
+						);
+						if ($profilePhone === '' || $profilePhone === '--') {
+							$profilePhone = Vtiger_MkSalesInlineDetailHelper::decodeText(
+								$adb->query_result($contactRes, 0, 'mobile')
+							);
+						}
+					}
 				}
 			}
 		} catch (Exception $e) {
 			$profileAddress = '';
 			$profileDistrict = '';
+			$profileBusinessModel = '';
+			$profilePhone = '';
+		}
+		if ($profilePhone === '--') {
+			$profilePhone = '';
+		}
+		try {
+			require_once 'modules/Vtiger/helpers/BusinessModelHelper.php';
+			$profileBusinessModel = Vtiger_BusinessModel_Helper::normalize($profileBusinessModel);
+		} catch (Exception $e) {
+			// Keep the stored display value when normalization is unavailable.
 		}
 		if (preg_match('/khu\s*vực\s*([123])/iu', $profileDistrict, $rm)) {
 			$regionKey = 'kv' . $rm[1];
 		}
 
-		$infoFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
+		$standardFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
+			array('createdtime', 'Ngày chuyển đổi'),
 			array('closingdate', 'Ngày đóng'),
 			array('assigned_user_id', 'Phụ trách'),
 		));
@@ -107,24 +149,26 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 				'picklist_values' => array(),
 			),
 		);
-		array_splice($infoFields, 1, 0, $locationFields);
 
-		$confirmKey = '';
-		$confirmLabel = '—';
 		$inlineTags = Vtiger_MkSalesInlineDetailHelper::buildInlineTags($moduleName, $recordId);
+		$sourceLabel = '';
+		$customerTypeLabel = '';
+		$sourceKeys = array('facebook', 'tiktok', 'ladipage_fb', 'website', 'zalo', 'hotline', 'other', 'other_source');
+		$customerTypeKeys = array('individual', 'company', 'co_quan', 'chuan_bi_mo', 'gia_dinh');
 		foreach ($inlineTags as $tag) {
 			$key = isset($tag['key']) ? (string) $tag['key'] : '';
-			if ($key === 'xac_nhan_tham_gia' || $key === 'khong_xac_nhan_tham_gia') {
-				$confirmKey = $key;
-				$confirmLabel = isset($tag['label']) ? (string) $tag['label'] : $key;
-				break;
-			}
 			if ($regionKey === '' && preg_match('/^kv([123])$/i', $key, $km)) {
 				$regionKey = 'kv' . $km[1];
 			}
+			if ($sourceLabel === '' && in_array($key, $sourceKeys, true)) {
+				$sourceLabel = isset($tag['label']) ? (string) $tag['label'] : $key;
+			}
+			if ($customerTypeLabel === '' && in_array($key, $customerTypeKeys, true)) {
+				$customerTypeLabel = isset($tag['label']) ? (string) $tag['label'] : $key;
+			}
 		}
 		if ($regionKey !== '') {
-			foreach ($infoFields as &$f) {
+			foreach ($locationFields as &$f) {
 				if (!empty($f['name']) && $f['name'] === 'mk_region') {
 					$f['raw_value'] = $regionKey;
 					$f['value'] = 'Khu vực ' . substr($regionKey, -1);
@@ -133,19 +177,118 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 			}
 			unset($f);
 		}
-		$infoFields[] = array(
-			'name' => 'mk_confirm_tag',
-			'label' => 'Xác nhận tham gia',
-			'value' => $confirmLabel !== '' ? $confirmLabel : '—',
-			'raw_value' => $confirmKey,
-			'data_type' => 'picklist',
-			'editable' => true,
-			'picklist_values' => array(
-				'' => '—',
-				'xac_nhan_tham_gia' => 'Xác nhận tham gia',
-				'khong_xac_nhan_tham_gia' => 'Không tham gia',
-			),
+		$standardByName = array();
+		foreach ($standardFields as $field) {
+			if (!empty($field['name'])) {
+				$standardByName[$field['name']] = $field;
+			}
+		}
+		$displayField = function ($name, $label, $value) {
+			$value = trim((string) $value);
+			return array(
+				'name' => $name,
+				'label' => $label,
+				'value' => $value !== '' ? $value : '—',
+				'raw_value' => $value,
+				'data_type' => 'string',
+				'editable' => false,
+				'picklist_values' => array(),
+			);
+		};
+		$infoFields = array();
+		if (isset($standardByName['createdtime'])) {
+			$infoFields[] = $standardByName['createdtime'];
+		}
+		$infoFields[] = $displayField('mk_phone_display', 'Số điện thoại', $profilePhone);
+		$infoFields[] = $locationFields[0];
+		$infoFields[] = $locationFields[1];
+		$infoFields[] = $displayField('mk_source_display', 'Nguồn', $sourceLabel);
+		$infoFields[] = $displayField('mk_customer_type_display', 'Loại khách hàng', $customerTypeLabel);
+		$infoFields[] = $displayField('mk_business_model_display', 'Mô hình kinh doanh', $profileBusinessModel);
+		if (isset($standardByName['assigned_user_id'])) {
+			$infoFields[] = $standardByName['assigned_user_id'];
+		}
+		if (isset($standardByName['closingdate'])) {
+			$infoFields[] = $standardByName['closingdate'];
+		}
+
+		$attendance = array(
+			'eligible' => false,
+			'can_edit' => false,
+			'can_unreachable' => false,
+			'can_reschedule' => false,
+			'post_noshow_miss' => 0,
+			'status' => '',
+			'status_label' => '',
+			'class_date' => '',
+			'checked_in_at' => '',
+			'checked_in_at_label' => '',
 		);
+		try {
+			require_once 'modules/Leads/models/ConvertService.php';
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			Leads_OfflineGd11Service::installSchema();
+			$leadId = (int) Leads_ConvertService::getLinkedLeadIdByPotential($recordId);
+			if ($leadId > 0) {
+				$adb = PearDatabase::getInstance();
+				$ores = $adb->pquery(
+					'SELECT offline_status, offline_class_date, offline_checked_in_at, offline_post_noshow_miss
+					 FROM bace_lead_profile WHERE leadid = ?',
+					array($leadId)
+				);
+				if ($ores && $adb->num_rows($ores) > 0) {
+					$status = trim((string) $adb->query_result($ores, 0, 'offline_status'));
+					$classDate = (string) $adb->query_result($ores, 0, 'offline_class_date');
+					if ($classDate === '0000-00-00') {
+						$classDate = '';
+					}
+					$checkedRaw = (string) $adb->query_result($ores, 0, 'offline_checked_in_at');
+					if ($checkedRaw === '0000-00-00 00:00:00') {
+						$checkedRaw = '';
+					}
+					$miss = (int) $adb->query_result($ores, 0, 'offline_post_noshow_miss');
+					$labels = Leads_OfflineGd11Service::statusLabels();
+					$eligibleStatuses = array(
+						Leads_OfflineGd11Service::STATUS_DA_XN_LICH,
+						Leads_OfflineGd11Service::STATUS_HEN_LICH_LAI,
+						Leads_OfflineGd11Service::STATUS_KHONG_THAM_GIA,
+						Leads_OfflineGd11Service::STATUS_DA_THAM_GIA,
+						Leads_OfflineGd11Service::STATUS_NGUNG_CSKH_TAM,
+					);
+					$editableStatuses = array(
+						Leads_OfflineGd11Service::STATUS_DA_XN_LICH,
+						Leads_OfflineGd11Service::STATUS_HEN_LICH_LAI,
+					);
+					$attendance['status'] = $status;
+					$attendance['status_label'] = isset($labels[$status]) ? $labels[$status] : $status;
+					$attendance['class_date'] = $classDate;
+					$attendance['checked_in_at'] = $checkedRaw !== '' ? date('c', strtotime($checkedRaw)) : '';
+					$attendance['checked_in_at_label'] = $checkedRaw !== ''
+						? date('d/m/Y H:i', strtotime($checkedRaw)) : '';
+					$attendance['post_noshow_miss'] = $miss;
+					$attendance['eligible'] = ($status !== '' && in_array($status, $eligibleStatuses, true));
+					$attendance['can_unreachable'] = ($status !== ''
+						&& in_array($status, Leads_OfflineGd11Service::unreachableCallStatuses(), true));
+					$attendance['can_reschedule'] = in_array($status, array(
+						Leads_OfflineGd11Service::STATUS_KHONG_THAM_GIA,
+						Leads_OfflineGd11Service::STATUS_NGUNG_CSKH_TAM,
+					), true);
+					$cu = Users_Record_Model::getCurrentUserModel();
+					$attendance['can_edit'] = $attendance['eligible']
+						&& in_array($status, $editableStatuses, true)
+						&& $cu && $cu->isAdminUser();
+					// Khóa sau khi đã điểm danh (không lẫn với “chỉ Admin” khi chưa điểm danh).
+					$attendance['locked'] = $attendance['eligible']
+						&& in_array($status, array(
+							Leads_OfflineGd11Service::STATUS_KHONG_THAM_GIA,
+							Leads_OfflineGd11Service::STATUS_DA_THAM_GIA,
+							Leads_OfflineGd11Service::STATUS_NGUNG_CSKH_TAM,
+						), true);
+				}
+			}
+		} catch (Exception $e) {
+			// keep defaults
+		}
 
 		$nextAction = '';
 		$nextActionTimeframe = '';
@@ -200,6 +343,7 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 		$viewer->assign('INLINE_NEXT_ACTION_OVERDUE', $nextActionOverdue);
 		$viewer->assign('INLINE_NEXT_ACTION_ALERT_DAYS', $nextActionAlertDays);
 		$viewer->assign('INLINE_LAST_TOUCH', $lastTouch);
+		$viewer->assign('INLINE_ATTENDANCE', $attendance);
 		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}
 

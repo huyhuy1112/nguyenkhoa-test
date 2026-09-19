@@ -802,3 +802,17 @@ body[data-module="Leads"][data-view="Edit"][data-app="SALES"] .mk-app-shell .con
         grid-template-columns: 1fr 1fr;
     }
 }
+
+.mk-td-field-hint {
+	margin: 10px 0 0;
+	color: #b91c1c;
+	font-size: 13px;
+}
+.mk-td-choice[data-group="study-path"] .mk-td-choice__hint {
+	display: block;
+	margin-top: 6px;
+	font-size: 11px;
+	line-height: 1.35;
+	opacity: 0.75;
+	font-weight: 500;
+}

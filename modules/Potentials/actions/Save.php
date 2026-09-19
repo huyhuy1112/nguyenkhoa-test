@@ -80,6 +80,10 @@ class Potentials_Save_Action extends Vtiger_Save_Action {
 				);
 			}
 
+			if (array_key_exists('mk_phone', $all)) {
+				Potentials_ModernService::saveProfilePhone($recordId, $request->get('mk_phone'));
+			}
+
 			if ($hasTags) {
 				$confirm = '';
 				foreach ($tags as $tg) {

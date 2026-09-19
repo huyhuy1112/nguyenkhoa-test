@@ -5,8 +5,6 @@
 	</div>
 </div>
 </main>
-{assign var=MK_APP_FOOTER_EXTRA_CLASS value='mk-project-shell-footer'}
-{include file="partials/MkAppFooter.tpl"|vtemplate_path:'Vtiger'}
 </div>
 </div>
 {else}

@@ -1,14 +1,34 @@
-{* Potentials Detail header: Sales gets hero shell + same Vtiger includes for Detail.js compatibility. *}
+{* Potentials Detail header: match Leads v4 flat hero + KPI strip (Thẻ / Nguồn / Khu vực). *}
 {strip}
 {if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
+	{assign var=MK_OPP_LEADSOURCE value=$RECORD->getDisplayValue('leadsource')|strip_tags|decode_html|trim}
+	{assign var=MK_OPP_AREA value=$MK_OPP_FULL_ADDRESS|default:''|strip_tags|decode_html|trim}
+	{if empty($MK_OPP_AREA)}
+		{assign var=MK_OPP_AREA value=$RECORD->getDisplayValue('related_to')|strip_tags|decode_html|trim}
+	{/if}
+	{if empty($MK_OPP_LEADSOURCE)}{assign var=MK_OPP_LEADSOURCE value='—'}{/if}
+	{if empty($MK_OPP_AREA)}{assign var=MK_OPP_AREA value='—'}{/if}
 <div class="detailview-header-block mk-opportunity-detail-hero-strip">
-	<div class="detailview-header mk-opportunity-detail-hero">
-		<div class="mk-opportunity-detail-hero__row">
+	<div class="detailview-header mk-opportunity-detail-hero mk-opportunity-detail-hero--flat">
+		<div class="mk-opportunity-detail-hero__row mk-opportunity-detail-hero__main">
 			{include file="DetailViewHeaderTitle.tpl"|vtemplate_path:$MODULE}
 			{include file="DetailViewActions.tpl"|vtemplate_path:$MODULE}
 		</div>
-		<div class="mk-opportunity-detail-hero__tags">
-			{include file="DetailViewTagList.tpl"|vtemplate_path:$MODULE}
+	</div>
+	<div class="mk-opportunity-detail-kpi" aria-label="Chỉ số nhanh">
+		<div class="mk-opportunity-detail-kpi__card mk-opportunity-detail-kpi__card--tags">
+			<span class="mk-opportunity-detail-kpi__label">Thẻ</span>
+			<div class="mk-opportunity-detail-kpi__tags">
+				{include file="DetailViewTagList.tpl"|vtemplate_path:$MODULE}
+			</div>
+		</div>
+		<div class="mk-opportunity-detail-kpi__card">
+			<span class="mk-opportunity-detail-kpi__label">Nguồn</span>
+			<strong class="mk-opportunity-detail-kpi__value">{$MK_OPP_LEADSOURCE|escape:'html'}</strong>
+		</div>
+		<div class="mk-opportunity-detail-kpi__card">
+			<span class="mk-opportunity-detail-kpi__label">Khu vực</span>
+			<strong class="mk-opportunity-detail-kpi__value" title="{$MK_OPP_AREA|escape:'html'}">{$MK_OPP_AREA|escape:'html'}</strong>
 		</div>
 	</div>
 </div>

@@ -882,7 +882,7 @@
     html += '<div class="mk-so-excel-sheet__header">';
     html +=
       '<div class="mk-so-excel-sheet__logo"><img src="layouts/v7/modules/Quotes/resources/images/nguyenkhoa-excel-logo.png" alt="Nguyên Khoa" /></div>';
-    html += '<div class="mk-so-excel-sheet__company">nguyenlieuphachemt</div>';
+    html += '<div class="mk-so-excel-sheet__company">nguyenlieugiasi.vn</div>';
     html +=
       '<div class="mk-so-excel-sheet__company-meta">Địa chỉ: 6/24 Đường số 3, Cư Xá Lữ Gia, Phú Thọ, Hồ Chí Minh<br>Điện thoại: 0973969498</div>';
     html += '<div class="mk-so-excel-sheet__doc-title">BÁO GIÁ</div>';
@@ -1104,23 +1104,29 @@
       .done(function (html) {
         try {
           var frame = $frame.get(0);
-          var frameWindow = frame && frame.contentWindow;
-          if (!frameWindow || !frameWindow.document) {
+          if (!frame) {
             window.open(printUrl, "_blank");
             return;
           }
-          frameWindow.document.open();
-          frameWindow.document.write(html);
-          frameWindow.document.close();
-          setTimeout(function () {
-            try {
-              frameWindow.document.title = "";
-              frameWindow.focus();
-              frameWindow.print();
-            } catch (err) {
-              window.open(printUrl, "_blank");
-            }
-          }, 220);
+          var blob = new Blob([html], { type: "text/html;charset=utf-8" });
+          var blobUrl = URL.createObjectURL(blob);
+          frame.onload = function () {
+            setTimeout(function () {
+              try {
+                var win = frame.contentWindow;
+                if (win && win.document) {
+                  win.document.title = " ";
+                  win.focus();
+                  win.print();
+                } else {
+                  window.open(printUrl, "_blank");
+                }
+              } catch (errPrint) {
+                window.open(printUrl, "_blank");
+              }
+            }, 80);
+          };
+          frame.src = blobUrl;
         } catch (err) {
           window.open(printUrl, "_blank");
         }
@@ -2166,16 +2172,26 @@
         );
       }
       if (!$row.length) {
-        if (attempt < 10) {
+        if (attempt < 16) {
           window.setTimeout(function () {
             applyMkHighlightFromQuery(attempt + 1);
           }, 250);
           return;
         }
+        // Stay on Quotes list — do not jump to stock Detail (looks empty in POS).
+        try {
+          if (app.helper && app.helper.showSuccessNotification) {
+            app.helper.showSuccessNotification({
+              message:
+                "Đã tạo Báo giá. Nếu chưa thấy dòng mới, mở tab Tất cả và tải lại.",
+            });
+          }
+        } catch (eNote) {
+          /* ignore */
+        }
         window.location.href =
-          "index.php?module=Quotes&view=Detail&record=" +
-          encodeURIComponent(highlightId) +
-          "&app=SALES";
+          "index.php?module=Quotes&view=List&app=SALES&mk_quote_scope=all&orderby=quote_no&sortorder=DESC&page=1&nolistcache=1&search_params=%5B%5D&mk_highlight=" +
+          encodeURIComponent(highlightId);
         return;
       }
       $row.addClass("mk-sales-row-selected");

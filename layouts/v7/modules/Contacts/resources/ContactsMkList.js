@@ -17,6 +17,87 @@
     return fallback || key;
   }
 
+  function notifyUser(type, message) {
+    var helper =
+      window.app && window.app.helper
+        ? window.app.helper
+        : typeof app !== "undefined" && app.helper
+          ? app.helper
+          : null;
+    var method =
+      type === "success"
+        ? "showSuccessNotification"
+        : type === "warning"
+          ? "showAlertNotification"
+          : "showErrorNotification";
+    if (helper && typeof helper[method] === "function") {
+      helper[method]({ message: String(message || "") });
+      return;
+    }
+    window.alert(String(message || ""));
+  }
+
+  function confirmAction(options) {
+    options = options || {};
+    var title = options.title || "Xác nhận thao tác";
+    var question = options.question || "Bạn có chắc chắn muốn tiếp tục?";
+    var hint = options.hint || "";
+    var tone = options.tone === "danger" ? "danger" : "primary";
+    var icon = tone === "danger" ? "fa-trash-o" : options.icon || "fa-question-circle";
+    var html =
+      '<div class="mk-ui-confirm">' +
+      '<span class="mk-ui-confirm__icon mk-ui-confirm__icon--' +
+      tone +
+      '" aria-hidden="true"><i class="fa ' +
+      icon +
+      '"></i></span>' +
+      '<div class="mk-ui-confirm__copy">' +
+      '<div class="mk-ui-confirm__question">' +
+      esc(question) +
+      "</div>" +
+      (hint ? '<div class="mk-ui-confirm__hint">' + esc(hint) + "</div>" : "") +
+      "</div></div>";
+    var helper =
+      window.app && window.app.helper
+        ? window.app.helper
+        : typeof app !== "undefined" && app.helper
+          ? app.helper
+          : null;
+
+    if (helper && typeof helper.showConfirmationBox === "function") {
+      return new Promise(function (resolve) {
+        helper
+          .showConfirmationBox({
+            title: title,
+            message: html,
+            htmlSupportEnable: true,
+            buttons: {
+              cancel: {
+                label: "Hủy",
+                className: "btn mk-ui-confirm__btn mk-ui-confirm__btn--cancel",
+              },
+              confirm: {
+                label: options.confirmLabel || "Xác nhận",
+                className:
+                  "btn mk-ui-confirm__btn mk-ui-confirm__btn--" +
+                  (tone === "danger" ? "danger" : "primary"),
+              },
+            },
+          })
+          .then(
+            function () {
+              resolve(true);
+            },
+            function () {
+              resolve(false);
+            }
+          );
+      });
+    }
+
+    return Promise.resolve(window.confirm(question + (hint ? "\n" + hint : "")));
+  }
+
   function pick(vi, en) {
     return ref && ref.pickLabel ? ref.pickLabel(vi, en) : vi;
   }
@@ -69,20 +150,22 @@
         renderTable();
       })
       .catch(function () {
-        window.alert("Không lưu được mô hình kinh doanh.");
+        notifyUser("error", "Không lưu được mô hình kinh doanh.");
         renderTable();
       });
   }
 
-  /** Loại khách chips — khớp Trạng thái khách trên Lead */
+  /** Phân khu chính + chip phụ — Khóa học / NL / NQ tách rõ */
   function getPresetSegments() {
     return [
+      { id: "lane_courses", name: pick("Khóa học", "Courses"), filters: { lane: "courses" } },
+      { id: "lane_materials", name: pick("Nguyên liệu", "Materials"), filters: { lane: "materials" } },
+      { id: "lane_franchise", name: pick("Nhượng quyền", "Franchise"), filters: { lane: "franchise" } },
       { id: "tagged", name: pick("Có tag", "Has tag"), filters: { hasTag: true } },
       { id: "has_store", name: pick("Đã có quán", "Has store"), filters: { customerRank: "co_quan" } },
       { id: "no_store", name: pick("Chưa có quán", "No store yet"), filters: { customerRank: "chuan_bi_mo" } },
       { id: "family", name: pick("Gia đình", "Family"), filters: { customerRank: "gia_dinh" } },
       { id: "first_buy", name: pick("Mua lần đầu", "First purchase"), filters: { material: "mua_lan_dau" } },
-      { id: "franchise", name: pick("Nhượng quyền", "Franchise"), filters: { franchise: "nhuong_quyen" } },
       { id: "deposit", name: pick("Đã ký quỹ", "Deposited"), filters: { franchise: "da_ky_quy" } },
       { id: "gold", name: pick("Hạng Vàng", "Gold tier"), filters: { tier: "vang" } },
     ];
@@ -90,6 +173,7 @@
 
   var EMPTY = {
     search: "",
+    lane: ANY,
     customerRank: ANY,
     classTag: ANY,
     material: ANY,
@@ -203,6 +287,25 @@
       if (f.anyTag !== ANY && !hasNormalizedTag(c.tags, f.anyTag)) return false;
       if (f.staleOnly && !isStale(c)) return false;
       if (f.owner !== ANY && c.owner !== f.owner) return false;
+      if (f.lane !== ANY) {
+        var hasFranchise = !!cats.franchise;
+        var hasMaterial = !!cats.material;
+        var hasCourse =
+          !!cats.classTag ||
+          !!(c.edubit_user_id || c.edubit_course_id) ||
+          (Array.isArray(c.edubit_courses) && c.edubit_courses.length > 0) ||
+          !!(c.thoigian_dangky || c.thoigian_pcth || c.thoigian_mqbb);
+        if (f.lane === "franchise") {
+          if (!hasFranchise) return false;
+        } else if (f.lane === "materials") {
+          // NL: có tag nguyên liệu, ưu tiên không bắt buộc loại trừ NQ nếu cùng lúc có cả hai
+          if (!hasMaterial) return false;
+        } else if (f.lane === "courses") {
+          if (!hasCourse && !hasMaterial && hasFranchise) return false;
+          if (!hasCourse && hasFranchise && !hasMaterial) return false;
+          if (!hasCourse) return false;
+        }
+      }
       return true;
     });
   }
@@ -275,7 +378,7 @@
       { key: "tagged", label: t("JS_MK_KPI_TAGGED", "Có tag"), value: withTags, icon: "crown", tone: "violet" },
       { key: "cap_tk", label: t("JS_MK_KPI_CAP_TK", "Đã cấp tài khoản"), value: withCapTk, icon: "check", tone: "emerald" },
       { key: "phone", label: t("JS_MK_KPI_PHONE", "Có SĐT"), value: withPhone, icon: "clock", tone: "cyan" },
-      { key: "cap_bang", label: t("JS_MK_KPI_CAP_BANG", "Đã cấp bằng"), value: withCapBang, icon: "repeat", tone: "amber" },
+      { key: "cap_bang", label: t("JS_MK_KPI_CAP_BANG", "Tiến trình"), value: withCapBang, icon: "repeat", tone: "amber" },
       { key: "gold", label: t("JS_MK_KPI_GOLD", "Hạng Vàng"), value: gold, icon: "crown", tone: "rose" },
       { key: "franchise", label: t("JS_MK_KPI_FRANCHISE", "Nhượng quyền"), value: franchise, icon: "trend", tone: "indigo" },
     ];
@@ -349,6 +452,11 @@
     owners.sort();
     host.innerHTML =
       '<div class="mk-leads-filters-grid">' +
+      fieldSelect("Phân khu", "lane", [
+        ["courses", "Khóa học"],
+        ["materials", "Nguyên liệu"],
+        ["franchise", "Nhượng quyền"],
+      ]) +
       fieldSelect(t("JS_MK_FILTER_TIER", "Hạng khách hàng"), "tier", ref.TIER_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_CUSTOMER_RANK", "Loại khách"), "customerRank", ref.CUSTOMER_RANK_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_CLASS", "Tag lớp học"), "classTag", ref.CLASS_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
@@ -490,7 +598,7 @@
     if (field === "phone") {
       val = val.replace(/\s+/g, "");
       if (val && !/^\d{10}$/.test(val)) {
-        window.alert("Số điện thoại phải đủ 10 số.");
+        notifyUser("warning", "Số điện thoại phải đủ 10 số.");
         renderTable();
         return;
       }
@@ -508,9 +616,100 @@
         renderTable();
       })
       .catch(function (err) {
-        window.alert((err && err.message) || "Không lưu được.");
+        notifyUser("error", (err && err.message) || "Không lưu được.");
         renderTable();
       });
+  }
+
+  function edubitProgressTimelineHtml(contact) {
+    var courses = Array.isArray(contact && contact.edubit_courses) ? contact.edubit_courses : [];
+    if (courses.length > 1) {
+      var rows = courses
+        .map(function (c) {
+          var cid = String((c && c.course_id) || "");
+          var p =
+            c && c.progress_pct != null && c.progress_pct !== ""
+              ? Math.max(0, Math.min(100, Number(c.progress_pct) || 0))
+              : 0;
+          var lab = String((c && c.label) || "").trim() || ("ID " + cid);
+          return (
+            '<div class="mk-contacts-edubit-progress mk-contacts-edubit-progress--multi" title="' +
+            esc(lab) +
+            '">' +
+            '<div class="mk-contacts-edubit-progress__meta">' +
+            esc(lab) +
+            "</div>" +
+            '<div class="mk-contacts-edubit-progress__bar"><span style="width:' +
+            p +
+            '%"></span></div>' +
+            '<div class="mk-contacts-edubit-progress__label">' +
+            p +
+            "%</div></div>"
+          );
+        })
+        .join("");
+      return '<div class="mk-contacts-edubit-courses">' + rows + "</div>";
+    }
+    var pct =
+      contact && contact.edubit_progress_pct != null && contact.edubit_progress_pct !== ""
+        ? Math.max(0, Math.min(100, Number(contact.edubit_progress_pct) || 0))
+        : null;
+    if (pct === null && !(contact && (contact.edubit_user_id || contact.edubit_course_id || courses.length))) {
+      return null;
+    }
+    if (pct === null && courses.length === 1) {
+      pct = Number(courses[0].progress_pct) || 0;
+    }
+    if (pct === null) pct = 0;
+    function fmtDay(iso) {
+      if (!iso) return "";
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return "";
+      var dd = String(d.getDate()).padStart(2, "0");
+      var mm = String(d.getMonth() + 1).padStart(2, "0");
+      return dd + "/" + mm;
+    }
+    var renewCount = Number(contact.edubit_renew_count) || 0;
+    var renewLeft =
+      contact.edubit_renew_remaining != null
+        ? Number(contact.edubit_renew_remaining)
+        : Math.max(0, 3 - renewCount);
+    var canRenew = Number(contact.can_edubit_renew) === 1 && renewLeft > 0;
+    var exp = fmtDay(contact.edubit_expires_at);
+    var metaBits = [];
+    var courseId = String(contact.edubit_course_id || (courses[0] && courses[0].course_id) || "").trim();
+    if (courseId) metaBits.push("ID " + courseId);
+    if (exp) metaBits.push("Hết hạn " + exp);
+    metaBits.push("GH " + renewCount + "/3");
+    var renewBtn = canRenew
+      ? '<button type="button" class="mk-contacts-edubit-renew" data-mk-edubit-renew="' +
+        esc(contact.id) +
+        '" title="Gia hạn +10 ngày (tối đa 3 lần)">Gia hạn</button>'
+      : contact.edubit_expires_at
+        ? '<span class="mk-contacts-edubit-renew-muted">' +
+          (renewLeft > 0 ? "Còn " + renewLeft + " GH" : "Hết lượt GH") +
+          "</span>"
+        : "";
+    return (
+      '<div class="mk-contacts-edubit-progress" title="Tiến độ khóa Edubit · hạn 10 ngày · gia hạn tối đa 3">' +
+      '<div class="mk-contacts-edubit-progress__bar"><span style="width:' +
+      pct +
+      '%"></span></div>' +
+      '<div class="mk-contacts-edubit-progress__label">' +
+      pct +
+      "%</div>" +
+      (metaBits.length
+        ? '<div class="mk-contacts-edubit-progress__meta">' + esc(metaBits.join(" · ")) + "</div>"
+        : "") +
+      renewBtn +
+      "</div>"
+    );
+  }
+
+  function bangCellHtml(contact) {
+    var timeline = edubitProgressTimelineHtml(contact);
+    if (timeline) return timeline;
+    return credentialSelectHtml(contact, "bang");
   }
 
   function isCredentialIssued(value, kind) {
@@ -524,7 +723,7 @@
     var field = kind === "tk" ? "da_cap_tai_khoan" : "da_cap_bang";
     var options =
       kind === "tk"
-        ? ["Chưa cấp tài khoản", "Đã cấp tài khoản"]
+        ? ["Chưa cấp tài khoản", "Đã cấp"]
         : ["Chưa cấp", "Đã cấp"];
     var cur = String((contact && contact[field]) || "").trim() || options[0];
     if (options.indexOf(cur) < 0) {
@@ -654,7 +853,7 @@
             renderAll();
           })
           .catch(function () {
-            window.alert("Không lưu được thẻ.");
+            notifyUser("error", "Không lưu được thẻ.");
             if (saveBtn) saveBtn.disabled = false;
           });
       }
@@ -675,9 +874,9 @@
       tbody.innerHTML =
         '<tr><td colspan="' +
         COL_COUNT +
-        '" class="mk-leads-empty">' +
-        esc(t("JS_MK_NO_CONTACTS_MATCH", "Không có khách hàng phù hợp bộ lọc.")) +
-        "</td></tr>";
+        '" class="mk-leads-empty"><div class="mk-leads-empty__inner">' +
+        esc(t("JS_MK_NO_CONTACTS_DISPLAY", "Không có khách hàng để hiển thị")) +
+        "</div></td></tr>";
     } else {
       tbody.innerHTML = pageRows
         .map(function (c) {
@@ -714,7 +913,7 @@
             '" title="Sửa thẻ">' +
             stackedContactTags(c) +
             "</button></td>" +
-            '<td class="mk-leads-td">' + credentialSelectHtml(c, "bang") + "</td>" +
+            '<td class="mk-leads-td">' + bangCellHtml(c) + "</td>" +
             '<td class="mk-leads-td">' + credentialSelectHtml(c, "tk") + "</td>" +
             '<td class="mk-leads-td">' + dateCell(c.thoigian_dangky) + "</td>" +
             '<td class="mk-leads-td">' + dateCell(c.thoigian_pcth) + "</td>" +
@@ -972,7 +1171,7 @@
             renderAll();
           })
           .catch(function () {
-            window.alert("Không lưu được trạng thái cấp bằng / tài khoản.");
+            notifyUser("error", "Không lưu được trạng thái cấp bằng / tài khoản.");
             renderTable();
           });
         return;
@@ -1006,6 +1205,35 @@
     });
 
     document.addEventListener("click", function (e) {
+      var renewBtn =
+        e.target && e.target.closest ? e.target.closest("[data-mk-edubit-renew]") : null;
+      if (renewBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var rid = renewBtn.getAttribute("data-mk-edubit-renew");
+        if (!rid) return;
+        confirmAction({
+          title: "Xác nhận gia hạn Edubit",
+          question: "Gia hạn thêm 10 ngày truy cập Edubit?",
+          hint: "Mỗi khách hàng được gia hạn tối đa 3 lần và không đặt lại bộ đếm.",
+          icon: "fa-clock-o",
+          confirmLabel: "Gia hạn",
+        }).then(function (confirmed) {
+          if (!confirmed) return;
+          renewBtn.disabled = true;
+          store
+            .renewEdubitAccess(rid)
+            .then(function (res) {
+              notifyUser("success", (res && res.message) || "Đã gia hạn.");
+              renderTable();
+            })
+            .catch(function (err) {
+              notifyUser("error", (err && err.message) || "Không gia hạn được.");
+              renderTable();
+            });
+        });
+        return;
+      }
       var editBtn = e.target.closest && e.target.closest(".mk-leads-inline-edit[data-contact-id]");
       if (editBtn) {
         e.preventDefault();
@@ -1043,16 +1271,29 @@
         return;
       }
       if (action === "delete") {
-        if (!window.confirm("Xóa " + rows.length + " khách hàng đã chọn?")) return;
-        if (!store || !store.remove) return;
-        Promise.all(
-          rows.map(function (c) {
-            return store.remove(c.id);
-          })
-        ).then(function () {
-          clearSelection();
-          renderAll();
+        confirmAction({
+          title: "Xác nhận xóa khách hàng",
+          question: "Xóa " + rows.length + " khách hàng đã chọn?",
+          hint: "Dữ liệu đã xóa có thể ảnh hưởng đến các bản ghi liên quan.",
+          tone: "danger",
+          confirmLabel: "Xóa khách hàng",
+        }).then(function (confirmed) {
+          if (!confirmed || !store || !store.remove) return;
+          Promise.all(
+            rows.map(function (c) {
+              return store.remove(c.id);
+            })
+          )
+            .then(function () {
+              clearSelection();
+              renderAll();
+              notifyUser("success", "Đã xóa " + rows.length + " khách hàng.");
+            })
+            .catch(function (err) {
+              notifyUser("error", (err && err.message) || "Không xóa được khách hàng.");
+            });
         });
+        return;
       }
     });
 
@@ -1113,9 +1354,49 @@
 
     if ($("mk-contacts-import-ic")) $("mk-contacts-import-ic").innerHTML = ic("import");
     if ($("mk-contacts-create-ic")) $("mk-contacts-create-ic").innerHTML = ic("plus");
+    if ($("mk-contacts-edubit-sync-ic")) $("mk-contacts-edubit-sync-ic").innerHTML = ic("repeat");
     if ($("mk-contacts-search-ic")) $("mk-contacts-search-ic").innerHTML = ic("search");
     if ($("mk-contacts-segments-icon")) $("mk-contacts-segments-icon").innerHTML = ic("filter");
     if ($("mk-contacts-filters-ic")) $("mk-contacts-filters-ic").innerHTML = ic("filter");
+
+    var syncBtn = $("mk-contacts-edubit-sync-btn");
+    if (syncBtn) {
+      syncBtn.addEventListener("click", function () {
+        if (!store || typeof store.syncEdubitAll !== "function") {
+          notifyUser("error", "API đồng bộ chưa sẵn sàng.");
+          return;
+        }
+        confirmAction({
+          title: "Xác nhận đồng bộ Edubit",
+          question: "Đồng bộ tiến độ cho tất cả khách hàng đã cấp tài khoản?",
+          hint: "Hệ thống sẽ lấy tiến độ mới nhất từ Edubit. Thao tác có thể mất vài giây.",
+          icon: "fa-refresh",
+          confirmLabel: "Đồng bộ",
+        }).then(function (confirmed) {
+          if (!confirmed) return;
+          syncBtn.disabled = true;
+          var txt = syncBtn.querySelector(".mk-leads-btn__txt");
+          var oldTxt = txt ? txt.textContent : "";
+          if (txt) txt.textContent = "Đang đồng bộ…";
+          store
+            .syncEdubitAll(150)
+            .then(function (res) {
+              notifyUser("success", (res && res.message) || "Đã đồng bộ tiến độ.");
+              return store.refresh();
+            })
+            .then(function () {
+              renderAll();
+            })
+            .catch(function (err) {
+              notifyUser("error", (err && err.message) || "Không đồng bộ được tiến độ.");
+            })
+            .then(function () {
+              syncBtn.disabled = false;
+              if (txt) txt.textContent = oldTxt || "Đồng bộ tiến độ";
+            });
+          });
+        });
+    }
   }
 
   function init() {

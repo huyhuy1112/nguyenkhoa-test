@@ -12,6 +12,188 @@
     $(".mk-dash-sidebar-mobile-toggle").attr("aria-expanded", "false");
   }
 
+  var COLLAPSE_KEY = "mk_dash_sidebar_collapsed";
+  var ANIM_MS = 420;
+  var sidebarAnimating = false;
+  var sidebarAnimTimer = null;
+
+  function isDesktopSidebar() {
+    return window.matchMedia && window.matchMedia("(min-width: 992px)").matches;
+  }
+
+  function prefersReducedMotion() {
+    return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  function getSidebarOpenWidth() {
+    var $sb = $(".mk-dashboard-sidebar").first();
+    if ($sb.length) {
+      var w = $sb[0].getBoundingClientRect().width;
+      if (w > 40) return Math.round(w);
+    }
+    var raw = getComputedStyle(document.documentElement).getPropertyValue("--mk-dash-sidebar-w");
+    var parsed = parseFloat(raw);
+    return !isNaN(parsed) && parsed > 40 ? Math.round(parsed) : 256;
+  }
+
+  function shellNodes() {
+    // Only the shell: topbar is position:fixed inside it; transforming
+    // children too would double-offset and fight left: var(--mk-dash-sidebar-w).
+    return Array.prototype.slice.call(document.querySelectorAll(".mk-app-shell"));
+  }
+
+  function clearShellTransforms(nodes) {
+    nodes.forEach(function (el) {
+      el.style.transition = "none";
+      el.style.transform = "";
+      el.style.willChange = "";
+    });
+  }
+
+  function setSidebarCollapsed(on, opts) {
+    opts = opts || {};
+    var collapsed = !!on;
+    var instant = !!opts.instant || !isDesktopSidebar() || prefersReducedMotion();
+    var root = document.documentElement;
+    var already = root.classList.contains("mk-dash-sidebar-collapsed");
+    if (collapsed === already && !opts.force) {
+      return;
+    }
+    if (sidebarAnimating && !instant) {
+      return;
+    }
+
+    $(".mk-dash-sidebar-collapse-btn").attr("aria-expanded", collapsed ? "false" : "true");
+    $(".mk-dash-sidebar-expand-fab").attr("aria-expanded", collapsed ? "true" : "false");
+    try {
+      window.localStorage.setItem(COLLAPSE_KEY, collapsed ? "1" : "0");
+    } catch (e) {
+      /* ignore */
+    }
+
+    if (instant) {
+      if (sidebarAnimTimer) {
+        window.clearTimeout(sidebarAnimTimer);
+        sidebarAnimTimer = null;
+      }
+      sidebarAnimating = false;
+      root.classList.remove("mk-dash-sidebar-animating");
+      clearShellTransforms(shellNodes());
+      root.classList.toggle("mk-dash-sidebar-collapsed", collapsed);
+      return;
+    }
+
+    sidebarAnimating = true;
+    var nodes = shellNodes();
+    var openW = getSidebarOpenWidth();
+    if (!collapsed) {
+      // Sidebar is off-screen while collapsed — use stored open width.
+      openW = parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue("--mk-dash-sidebar-open-w")
+      );
+      if (isNaN(openW) || openW < 40) openW = 256;
+    } else if (openW < 40) {
+      openW = 256;
+    }
+
+    root.classList.add("mk-dash-sidebar-animating");
+    nodes.forEach(function (el) {
+      el.style.transition = "none";
+      el.style.willChange = "transform";
+    });
+
+    if (collapsed) {
+      root.classList.add("mk-dash-sidebar-collapsed");
+      nodes.forEach(function (el) {
+        el.style.transform = "translate3d(" + openW + "px, 0, 0)";
+      });
+      void document.body.offsetWidth;
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          nodes.forEach(function (el) {
+            el.style.transition = "transform " + ANIM_MS + "ms cubic-bezier(0.25, 0.1, 0.25, 1)";
+            el.style.transform = "translate3d(0, 0, 0)";
+          });
+        });
+      });
+    } else {
+      root.classList.remove("mk-dash-sidebar-collapsed");
+      nodes.forEach(function (el) {
+        el.style.transform = "translate3d(" + -openW + "px, 0, 0)";
+      });
+      void document.body.offsetWidth;
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          nodes.forEach(function (el) {
+            el.style.transition = "transform " + ANIM_MS + "ms cubic-bezier(0.25, 0.1, 0.25, 1)";
+            el.style.transform = "translate3d(0, 0, 0)";
+          });
+        });
+      });
+    }
+
+    if (sidebarAnimTimer) {
+      window.clearTimeout(sidebarAnimTimer);
+    }
+    sidebarAnimTimer = window.setTimeout(function () {
+      clearShellTransforms(nodes);
+      root.classList.remove("mk-dash-sidebar-animating");
+      sidebarAnimating = false;
+      sidebarAnimTimer = null;
+    }, ANIM_MS + 40);
+  }
+
+  function initDesktopCollapse() {
+    var $collapse = $(".mk-dash-sidebar-collapse-btn");
+    var $expand = $(".mk-dash-sidebar-expand-fab");
+    if (!$collapse.length && !$expand.length) {
+      return;
+    }
+    try {
+      if (isDesktopSidebar() && window.localStorage.getItem(COLLAPSE_KEY) === "1") {
+        setSidebarCollapsed(true, { instant: true });
+      } else if (!isDesktopSidebar()) {
+        document.documentElement.classList.remove("mk-dash-sidebar-collapsed");
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    $collapse.off("click.mkDashCollapse").on("click.mkDashCollapse", function (e) {
+      e.preventDefault();
+      if (!isDesktopSidebar()) {
+        return;
+      }
+      setSidebarCollapsed(true);
+    });
+    $expand.off("click.mkDashExpand").on("click.mkDashExpand", function (e) {
+      e.preventDefault();
+      setSidebarCollapsed(false);
+    });
+    if (window.matchMedia) {
+      var mq = window.matchMedia("(min-width: 992px)");
+      var onChange = function () {
+        if (!mq.matches) {
+          document.documentElement.classList.remove("mk-dash-sidebar-collapsed", "mk-dash-sidebar-animating");
+          clearShellTransforms(shellNodes());
+          sidebarAnimating = false;
+        } else {
+          try {
+            if (window.localStorage.getItem(COLLAPSE_KEY) === "1") {
+              setSidebarCollapsed(true, { instant: true });
+            }
+          } catch (err) {
+            /* ignore */
+          }
+        }
+      };
+      if (mq.addEventListener) {
+        mq.addEventListener("change", onChange);
+      } else if (mq.addListener) {
+        mq.addListener(onChange);
+      }
+    }
+  }
+
   function initAccordion() {
     var $nav = $(".mk-dash-sidebar-nav--accordion");
     if (!$nav.length) {
@@ -83,6 +265,7 @@
     }
     initAccordion();
     initMobileDrawer();
+    initDesktopCollapse();
     // Settings: đóng mọi app group mặc định + đảm bảo chữ menu luôn hiện
     if (document.body && document.body.getAttribute("data-parent") === "Settings") {
       var $nav = $(".mk-dash-sidebar-nav--accordion");

@@ -22,7 +22,7 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_inline_business_model', 'save_tags', 'delete', 'last_touch_call_log'), true)) {
+		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_inline_business_model', 'save_tags', 'delete', 'last_touch_call_log', 'offline_checkin', 'offline_reschedule', 'offline_unreachable', 'online_edubit_provision', 'offline_oa_note', 'credential_save', 'edubit_sync_all'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -143,6 +143,217 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 						'lastTouchCalls' => $logged,
 						'logged' => isset($logged['logged']) ? $logged['logged'] : null,
 					));
+					break;
+				case 'offline_checkin':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$action = $request->get('offline_action');
+					if ($action === null || $action === '') {
+						$action = $request->get('action_name');
+					}
+					$checkin = Leads_OfflineGd11Service::checkinFromPotential($recordId, $action, $userId);
+					if (empty($checkin['success'])) {
+						throw new Exception(isset($checkin['error']) ? $checkin['error'] : 'Check-in thất bại');
+					}
+					// Refresh Opp row fields for UI patch
+					$list = Potentials_ModernService::listPotentials($userId);
+					$opp = null;
+					foreach ($list as $row) {
+						if ((int) $row['crmid'] === $recordId || (string) $row['id'] === (string) $recordId) {
+							$opp = $row;
+							break;
+						}
+					}
+					$response->setResult(array(
+						'success' => true,
+						'status' => isset($checkin['status']) ? $checkin['status'] : '',
+						'status_label' => isset($checkin['status_label']) ? $checkin['status_label'] : '',
+						'drop' => isset($checkin['drop']) ? $checkin['drop'] : '',
+						'checked_in_at' => isset($checkin['checked_in_at']) ? $checkin['checked_in_at'] : '',
+						'tags' => isset($checkin['opp_tags']) ? $checkin['opp_tags'] : array(),
+						'opportunity' => $opp,
+						'oa_qr' => isset($checkin['oa_qr']) ? $checkin['oa_qr'] : null,
+						'lead_id' => isset($checkin['lead_id']) ? (int) $checkin['lead_id'] : 0,
+					));
+					break;
+				case 'offline_oa_qr':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$qr = Leads_OfflineGd11Service::getOaQrFromPotential($recordId);
+					if (empty($qr['success'])) {
+						throw new Exception(isset($qr['error']) ? $qr['error'] : 'Không lấy được QR OA');
+					}
+					$response->setResult($qr);
+					break;
+				case 'offline_oa_note':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$noteKind = $request->get('note_kind');
+					if ($noteKind === null || $noteKind === '') {
+						$noteKind = $request->get('kind');
+					}
+					$customNote = $request->get('note');
+					if ($customNote === null) {
+						$customNote = $request->get('custom_note');
+					}
+					$saved = Leads_OfflineGd11Service::saveOaScanNoteFromPotential(
+						$recordId,
+						$noteKind,
+						$customNote,
+						$userId
+					);
+					if (empty($saved['success'])) {
+						throw new Exception(isset($saved['error']) ? $saved['error'] : 'Không lưu ghi chú OA');
+					}
+					$response->setResult($saved);
+					break;
+				case 'offline_reschedule':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$action = $request->get('offline_action');
+					if ($action === null || $action === '') {
+						$action = $request->get('action_name');
+					}
+					$payloadRaw = $request->get('payload');
+					$payload = array();
+					if (is_string($payloadRaw) && $payloadRaw !== '') {
+						$decoded = json_decode($payloadRaw, true);
+						if (is_array($decoded)) {
+							$payload = $decoded;
+						}
+					} elseif (is_array($payloadRaw)) {
+						$payload = $payloadRaw;
+					}
+					if (empty($action) && !empty($payload['action'])) {
+						$action = $payload['action'];
+					}
+					$reschedule = Leads_OfflineGd11Service::rescheduleFromPotential(
+						$recordId,
+						$action,
+						$payload,
+						$userId
+					);
+					if (empty($reschedule['success'])) {
+						throw new Exception(isset($reschedule['error']) ? $reschedule['error'] : 'Xếp lịch lại thất bại');
+					}
+					$list = Potentials_ModernService::listPotentials($userId);
+					$opp = null;
+					foreach ($list as $row) {
+						if ((int) $row['crmid'] === $recordId || (string) $row['id'] === (string) $recordId) {
+							$opp = $row;
+							break;
+						}
+					}
+					$classDate = isset($payload['class_date']) ? trim((string) $payload['class_date']) : '';
+					$status = isset($reschedule['status']) ? $reschedule['status'] : '';
+					$statusLabel = isset($reschedule['status_label']) ? $reschedule['status_label'] : '';
+					if ($status === '' && !empty($reschedule['lead']['offline_status'])) {
+						$status = $reschedule['lead']['offline_status'];
+					}
+					if ($statusLabel === '' && !empty($reschedule['lead']['offline_status_label'])) {
+						$statusLabel = $reschedule['lead']['offline_status_label'];
+					}
+					if ($classDate === '' && !empty($reschedule['lead']['offline_class_date'])) {
+						$classDate = $reschedule['lead']['offline_class_date'];
+					}
+					$response->setResult(array(
+						'success' => true,
+						'status' => $status,
+						'status_label' => $statusLabel,
+						'drop' => isset($reschedule['drop']) ? $reschedule['drop'] : '',
+						'class_date' => $classDate,
+						'tags' => isset($reschedule['opp_tags']) ? $reschedule['opp_tags'] : array(),
+						'opportunity' => $opp,
+					));
+					break;
+				case 'offline_unreachable':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$unreachable = Leads_OfflineGd11Service::markUnreachableFromPotential($recordId, $userId);
+					if (empty($unreachable['success'])) {
+						throw new Exception(isset($unreachable['error']) ? $unreachable['error'] : 'Không ghi được “Không gọi được”');
+					}
+					$response->setResult($unreachable);
+					break;
+				case 'online_edubit_courses':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$response->setResult(array(
+						'success' => true,
+						'courses' => Leads_OnlineGd12Service::edubitCoursesCatalog(),
+					));
+					break;
+				case 'credential_save':
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$opp = Vtiger_Record_Model::getInstanceById($recordId, 'Potentials');
+					$contactId = (int) $opp->get('contact_id');
+					if ($contactId <= 0) {
+						throw new Exception('Cơ hội chưa gắn Khách hàng — không lưu được tiến trình / cấp bằng.');
+					}
+					require_once 'modules/Contacts/models/ModernService.php';
+					$creds = Contacts_ModernService::saveCredentialFields(
+						$contactId,
+						$request->get('da_cap_bang'),
+						$request->get('da_cap_tai_khoan')
+					);
+					$response->setResult(array(
+						'success' => true,
+						'contact_id' => $contactId,
+						'credentials' => $creds,
+						'da_cap_bang' => isset($creds['da_cap_bang']) ? $creds['da_cap_bang'] : $request->get('da_cap_bang'),
+						'da_cap_tai_khoan' => isset($creds['da_cap_tai_khoan']) ? $creds['da_cap_tai_khoan'] : $request->get('da_cap_tai_khoan'),
+					));
+					break;
+				case 'edubit_sync_all':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$limit = (int) $request->get('limit');
+					if ($limit <= 0) {
+						$limit = 150;
+					}
+					$saved = Leads_OnlineGd12Service::syncEdubitProgressForAllOpportunities($limit, $userId);
+					$response->setResult($saved);
+					break;
+				case 'online_edubit_provision':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$payload = array();
+					$raw = $request->getRaw('payload');
+					if (is_array($raw)) {
+						$payload = $raw;
+					} elseif (is_string($raw) && $raw !== '') {
+						$decoded = json_decode($raw, true);
+						if (is_array($decoded)) {
+							$payload = $decoded;
+						}
+					}
+					if (empty($payload['course_id']) && $request->get('course_id') !== '') {
+						$payload['course_id'] = $request->get('course_id');
+					}
+					if (empty($payload['email']) && $request->get('email') !== '') {
+						$payload['email'] = $request->get('email');
+					}
+					$saved = Leads_OnlineGd12Service::provisionEdubitForPotential($recordId, $payload, $userId);
+					$response->setResult($saved);
 					break;
 				default:
 					throw new Exception('Unsupported mode.');

@@ -1,0 +1,162 @@
+/**
+ * Sales POS list skin — Lovable / Leads-inspired polish for Quotes + SalesOrder.
+ * Keeps existing search/filter markup; only visual language.
+ */
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) {
+	--mk-pos-lovable-border: #e2e8f0;
+	--mk-pos-lovable-muted: #64748b;
+	--mk-pos-lovable-text: #0f172a;
+	--mk-pos-lovable-card: #ffffff;
+	--mk-pos-lovable-soft: #f8fafc;
+	--mk-pos-lovable-primary: #2563eb;
+	--mk-pos-lovable-primary-hover: #1d4ed8;
+	--mk-pos-lovable-radius: 12px;
+	--mk-pos-lovable-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-dash-main {
+	background: #f1f5f9 !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-qt-action-header__title,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-action-header__title {
+	font-size: 26px !important;
+	font-weight: 700 !important;
+	letter-spacing: -0.03em !important;
+	color: var(--mk-pos-lovable-text) !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-qt-action-header__subtitle,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-action-header__subtitle {
+	font-size: 14px !important;
+	color: var(--mk-pos-lovable-muted) !important;
+	max-width: 640px;
+	border-bottom: none !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-qt-btn--primary,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-btn--primary,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-pos-toolbar__actions .mk-qt-btn--primary,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-pos-toolbar__actions .btn-success {
+	background: var(--mk-pos-lovable-primary) !important;
+	border-color: var(--mk-pos-lovable-primary-hover) !important;
+	color: #fff !important;
+	border-radius: 10px !important;
+	font-weight: 600 !important;
+	box-shadow: none !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-qt-btn--outline,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-btn--outline,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-pos-toolbar__actions .mk-qt-btn--outline,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-pos-toolbar__actions .btn-default {
+	background: #fff !important;
+	border: 1px solid var(--mk-pos-lovable-border) !important;
+	color: var(--mk-pos-lovable-text) !important;
+	border-radius: 10px !important;
+	font-weight: 600 !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-pos-main {
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-qt-table-card,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-table-card,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-pos-list-enabled .mk-so-table-card {
+	background: var(--mk-pos-lovable-card) !important;
+	border: 1px solid var(--mk-pos-lovable-border) !important;
+	border-radius: var(--mk-pos-lovable-radius) !important;
+	box-shadow: var(--mk-pos-lovable-shadow) !important;
+	/* visible so PageJump dropup is not clipped */
+	overflow: visible !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-pos-toolbar {
+	background: var(--mk-pos-lovable-card) !important;
+	border-bottom: 1px solid var(--mk-pos-lovable-border) !important;
+	padding: 14px 16px !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-pos-toolbar__title {
+	font-size: 18px !important;
+	font-weight: 700 !important;
+	color: var(--mk-pos-lovable-text) !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-pos-search {
+	height: 40px !important;
+	border: 1px solid var(--mk-pos-lovable-border) !important;
+	border-radius: 10px !important;
+	background: var(--mk-pos-lovable-soft) !important;
+	box-shadow: none !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-pos-search:focus-within {
+	background: #fff !important;
+	border-color: #93c5fd !important;
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) #listview-table,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .listview-table {
+	border-collapse: separate !important;
+	border-spacing: 0 !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) #listview-table thead th,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .listview-table thead th {
+	background: var(--mk-pos-lovable-soft) !important;
+	border-bottom: 1px solid var(--mk-pos-lovable-border) !important;
+	color: var(--mk-pos-lovable-muted) !important;
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.06em !important;
+	text-transform: uppercase !important;
+	padding: 12px 14px !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) #listview-table tbody td,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .listview-table tbody td {
+	border-bottom: 1px solid #f1f5f9 !important;
+	padding: 12px 14px !important;
+	color: #1e293b !important;
+	font-size: 13px !important;
+	vertical-align: middle !important;
+	background: #fff !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) #listview-table tbody tr.listViewEntries:hover > td,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .listview-table tbody tr.listViewEntries:hover > td {
+	background: #f8fafc !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) #listview-table tbody tr.listViewEntries.is-selected > td,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) #listview-table tbody tr.mk-so-row-expanded > td {
+	background: #eff6ff !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-filter-row__footer,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-pos-list-enabled .mk-so-table-card .mk-so-filter-row__footer {
+	background: var(--mk-pos-lovable-soft) !important;
+	border-top: 1px solid var(--mk-pos-lovable-border) !important;
+	padding: 12px 16px !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .pagination > li > a,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .pagination > li > span,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-page-btn {
+	border-radius: 8px !important;
+	border-color: var(--mk-pos-lovable-border) !important;
+	color: #334155 !important;
+	background: #fff !important;
+}
+
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .pagination > .active > a,
+body[data-view="List"][data-app="SALES"]:is([data-module="Quotes"], [data-module="SalesOrder"]) .mk-so-page-btn.is-active {
+	background: var(--mk-pos-lovable-primary) !important;
+	border-color: var(--mk-pos-lovable-primary) !important;
+	color: #fff !important;
+}

@@ -1671,7 +1671,12 @@
 			'<td class="mk-wh-return-col-issue"><code>' + escapeHtml(line.issue_code || '') + '</code></td>' +
 			'<td class="mk-wh-return-col-max mk-wh-proto-td-right">' + escapeHtml(maxQty) + '</td>' +
 			'<td class="mk-wh-return-col-qty mk-wh-proto-td-right"><input type="number" min="0" max="' + escText(maxQty) + '" step="0.01" data-f="qty" value="' + escText(qty) + '" /></td>' +
-			'<td class="mk-wh-return-col-act"><button type="button" class="mk-wh-proto-mini-btn" data-mk-return-take-line="1">Lấy hết</button></td>' +
+			'<td class="mk-wh-return-col-act">' +
+				'<button type="button" class="mk-wh-proto-mini-btn" data-mk-return-take-line="1">Lấy hết</button>' +
+				'<button type="button" class="mk-wh-return-remove" data-mk-return-remove-line="1" title="Không thu hồi dòng này" aria-label="Bỏ dòng">' +
+					'<span aria-hidden="true">&times;</span>' +
+				'</button>' +
+			'</td>' +
 			'</tr>';
 	}
 
@@ -1713,6 +1718,37 @@
 		return getReturnModalState(modal).selected.slice();
 	}
 
+	function syncReturnPartyFromSelected(selected) {
+		var partyEl = qs('#mkWhReturnParty');
+		if (!partyEl) return;
+		var names = [];
+		var seen = {};
+		(selected || []).forEach(function (s) {
+			var name = String((s && s.customer) || '').trim();
+			if (!name) return;
+			var key = name.toLowerCase();
+			if (seen[key]) return;
+			seen[key] = true;
+			names.push(name);
+		});
+		partyEl.value = names.join(', ');
+	}
+
+	/** After removing product rows: drop phiếu xuất that no longer have lines; refresh names. */
+	function pruneReturnSelectionByRemainingLines(modal) {
+		if (!modal) return;
+		var remaining = {};
+		qsa('#mkWhReturnLinesBody [data-mk-return-line="1"]').forEach(function (row) {
+			var code = row.getAttribute('data-issue-code') || '';
+			if (code) remaining[code] = true;
+		});
+		var state = getReturnModalState(modal);
+		state.selected = (state.selected || []).filter(function (s) {
+			return !!(s && s.issueCode && remaining[s.issueCode]);
+		});
+		syncReturnPickedUi(modal);
+	}
+
 	function syncReturnPickedUi(modal) {
 		var selected = selectedReturnIssues(modal);
 		var countEl = qs('#mkWhReturnPickedCount');
@@ -1736,11 +1772,12 @@
 			if (!soId && s.salesorderId) soId = s.salesorderId;
 		});
 		if (qs('#mkWhReturnSoId')) qs('#mkWhReturnSoId').value = soId || '';
+		syncReturnPartyFromSelected(selected);
 		if (takeAll) takeAll.hidden = !selected.length;
 		if (hint) {
 			hint.textContent = selected.length
-				? 'Nhập số lượng từng dòng. Để 0 nếu không trả sản phẩm đó.'
-				: 'Chọn phiếu xuất bên trái, rồi nhập số lượng từng dòng. Dòng để 0 sẽ không trả.';
+				? 'Nhập số lượng từng dòng. Bấm × nếu không thu hồi sản phẩm đó.'
+				: 'Chọn phiếu xuất bên trái, rồi nhập số lượng từng dòng. Bấm × nếu không thu hồi sản phẩm đó.';
 		}
 		qsa('#mkWhReturnSourceResults .mk-wh-return-source').forEach(function (btn) {
 			var code = btn.getAttribute('data-issue-code') || '';
@@ -1815,6 +1852,7 @@
 		if (qs('#mkWhReturnSourceLabel')) qs('#mkWhReturnSourceLabel').value = '';
 		if (qs('#mkWhReturnSourceQ')) qs('#mkWhReturnSourceQ').value = '';
 		if (qs('#mkWhReturnNote')) qs('#mkWhReturnNote').value = '';
+		if (qs('#mkWhReturnParty')) qs('#mkWhReturnParty').value = '';
 		var refund = qs('#mkWhReturnRefund');
 		if (refund) refund.checked = false;
 		var results = qs('#mkWhReturnSourceResults');
@@ -1889,6 +1927,15 @@
 				if (!row) return;
 				var qtyEl = row.querySelector('[data-f="qty"]');
 				if (qtyEl) qtyEl.value = row.getAttribute('data-max-qty') || '0';
+				return;
+			}
+			var removeLine = t.closest && t.closest('[data-mk-return-remove-line="1"]');
+			if (removeLine) {
+				var remRow = removeLine.closest('[data-mk-return-line="1"]');
+				if (remRow && remRow.parentNode) {
+					remRow.parentNode.removeChild(remRow);
+					pruneReturnSelectionByRemainingLines(modal);
+				}
 			}
 		});
 		var searchBtn = qs('#mkWhReturnSourceSearchBtn');
@@ -1929,6 +1976,11 @@
 				showError('Chế độ lưu database chưa sẵn sàng.');
 				return;
 			}
+			var party = qs('#mkWhReturnParty') ? String(qs('#mkWhReturnParty').value || '').trim() : '';
+			var noteRaw = qs('#mkWhReturnNote') ? String(qs('#mkWhReturnNote').value || '').trim() : '';
+			var noteParts = [];
+			if (party) noteParts.push('Người/chỗ thu hồi: ' + party);
+			if (noteRaw) noteParts.push(noteRaw);
 			S.returnActions.save(whId, {
 				docType: qs('#mkWhReturnDocType') ? qs('#mkWhReturnDocType').value : 'return',
 				sourceType: qs('#mkWhReturnSourceType') ? qs('#mkWhReturnSourceType').value : 'retail',
@@ -1937,7 +1989,7 @@
 				servicecontractId: parseInt(qs('#mkWhReturnScId') ? qs('#mkWhReturnScId').value : '0', 10) || 0,
 				issueCodes: selected.map(function (s) { return s.issueCode; }),
 				refund: !!(qs('#mkWhReturnRefund') && qs('#mkWhReturnRefund').checked),
-				note: qs('#mkWhReturnNote') ? qs('#mkWhReturnNote').value : '',
+				note: noteParts.join('\n'),
 				lines: lines,
 			}).then(function () {
 				closeReturnModal();

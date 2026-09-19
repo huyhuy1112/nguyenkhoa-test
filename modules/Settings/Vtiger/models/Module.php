@@ -199,6 +199,7 @@ class Settings_Vtiger_Module_Model extends Vtiger_Base_Model {
 			'Integrations' => array('block' => 'LBL_OTHER_SETTINGS', 'menu' => 'LBL_NK_SYSTEM_INTEGRATIONS'),
 			'IntegrationHub' => array('block' => 'LBL_OTHER_SETTINGS', 'menu' => 'LBL_NK_INTEGRATION_HUB'),
 			'NotificationPrefs' => array('block' => 'LBL_USER_MANAGEMENT', 'menu' => 'LBL_NK_NOTIFICATION_PREFS'),
+			'LeadRoundRobin' => array('block' => 'LBL_MARKETING_SALES', 'menu' => 'LBL_NK_LEAD_ROUND_ROBIN'),
 		);
 		return isset($blocksList[$viewName]) ? $blocksList[$viewName] : null;
 	}

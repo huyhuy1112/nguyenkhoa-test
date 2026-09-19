@@ -503,6 +503,7 @@ class SalesOrder_List_View extends Inventory_List_View {
 			$this->assignSalesListPosTemplateVars($viewer, $posMeta);
 			$this->resetSalesPosListViewState();
 		}
+		$this->ensureSalesOrderPageLimit($request);
 		parent::initializeListViewContents($request, $viewer);
 
 		if (!$this->isToolsOrdersContext($request)) {
@@ -523,5 +524,44 @@ class SalesOrder_List_View extends Inventory_List_View {
 			'needed_time' => 'Needed Time',
 			'createdtime' => 'Created Time',
 		));
+	}
+
+	/** Sales POS list: 15 records per page (16th goes to next page). */
+	const SALES_LIST_PAGE_LIMIT = 15;
+
+	protected function ensureSalesOrderPageLimit(Vtiger_Request $request) {
+		if (!$this->isSalesListContext($request) && !$this->isToolsOrdersContext($request)) {
+			return;
+		}
+		$pageNumber = $request->get('page');
+		if (empty($pageNumber)) {
+			$pageNumber = '1';
+		}
+		if (!$this->pagingModel) {
+			$this->pagingModel = new Vtiger_Paging_Model();
+			$this->pagingModel->set('page', $pageNumber);
+			$this->pagingModel->set('viewid', $request->get('viewname'));
+		}
+		$this->pagingModel->set('limit', self::SALES_LIST_PAGE_LIMIT);
+	}
+
+	function getPageCount(Vtiger_Request $request) {
+		$listViewCount = $this->getListViewCount($request);
+		$pageLimit = self::SALES_LIST_PAGE_LIMIT;
+		if (!$this->isSalesListContext($request) && !$this->isToolsOrdersContext($request)) {
+			$pagingModel = new Vtiger_Paging_Model();
+			$pageLimit = $pagingModel->getPageLimit();
+		}
+		$pageCount = ceil((int) $listViewCount / (int) $pageLimit);
+		if ($pageCount == 0) {
+			$pageCount = 1;
+		}
+		$result = array(
+			'page' => $pageCount,
+			'numberOfRecords' => $listViewCount,
+		);
+		$response = new Vtiger_Response();
+		$response->setResult($result);
+		$response->emit();
 	}
 }

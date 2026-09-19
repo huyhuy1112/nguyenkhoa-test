@@ -138,5 +138,39 @@
         return creds;
       });
     },
+    renewEdubitAccess: function (id, reason) {
+      var oid = String(id || "");
+      var data = { record: oid };
+      if (reason) data.reason = reason;
+      return apiRequest("edubit_renew", data).then(function (res) {
+        if (!res || res.success === false) {
+          throw new Error((res && res.error) || "Gia hạn thất bại");
+        }
+        var next = {};
+        if (res.edubit_expires_at) next.edubit_expires_at = res.edubit_expires_at;
+        if (typeof res.edubit_renew_count !== "undefined") {
+          next.edubit_renew_count = res.edubit_renew_count;
+        }
+        if (typeof res.edubit_renew_remaining !== "undefined") {
+          next.edubit_renew_remaining = res.edubit_renew_remaining;
+        }
+        if (typeof res.can_edubit_renew !== "undefined") {
+          next.can_edubit_renew = res.can_edubit_renew;
+        }
+        if (res.status) next.online_status = res.status;
+        root.ContactsLocalStore.patchContact(oid, next);
+        return res;
+      });
+    },
+    syncEdubitAll: function (limit) {
+      var data = {};
+      if (limit) data.limit = limit;
+      return apiRequest("edubit_sync_all", data).then(function (res) {
+        if (!res || res.success === false) {
+          throw new Error((res && res.error) || "Đồng bộ thất bại");
+        }
+        return res;
+      });
+    },
   };
 })(window);

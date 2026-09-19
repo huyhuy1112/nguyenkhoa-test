@@ -172,5 +172,89 @@
         return res;
       });
     },
+    /**
+     * Bước 3 Offline — Admin điểm danh tại lớp (không OA).
+     * @param {string|number} id potential id
+     * @param {string} action da_tham_gia|khong_tham_gia
+     */
+    offlineCheckin: function (id, action) {
+      var oid = String(id || "");
+      return apiRequest("offline_checkin", {
+        record: oid,
+        offline_action: action || "",
+      }).then(function (res) {
+        if (res && res.opportunity) {
+          root.PotentialsLocalStore.patchOpportunity(oid, res.opportunity);
+        } else {
+          var patch = {};
+          if (res && res.status) {
+            patch.offline_status = res.status;
+            patch.offline_status_label = res.status_label || "";
+          }
+          if (res && Array.isArray(res.tags)) {
+            patch.tags = res.tags;
+          }
+          if (res && res.checked_in_at !== undefined) {
+            patch.offline_checked_in_at = res.checked_in_at || "";
+          }
+          root.PotentialsLocalStore.patchOpportunity(oid, patch);
+        }
+        return res;
+      });
+    },
+    /** Bước 3 — lấy / làm mới QR OA + trạng thái zalo_user_id */
+    offlineOaQr: function (id) {
+      return apiRequest("offline_oa_qr", { record: String(id || "") });
+    },
+    /** Bước 3 — ghi chú không dùng Zalo / không quét */
+    offlineOaNote: function (id, noteKind, customNote) {
+      return apiRequest("offline_oa_note", {
+        record: String(id || ""),
+        note_kind: noteKind || "custom",
+        note: customNote || "",
+      });
+    },
+    /**
+     * Sau không tham gia — Hẹn lịch lại / Chốt lịch mới.
+     */
+    offlineReschedule: function (id, action, extra) {
+      var oid = String(id || "");
+      var payload = Object.assign({ action: action || "" }, extra || {});
+      return apiRequest("offline_reschedule", {
+        record: oid,
+        offline_action: action || "",
+        payload: JSON.stringify(payload),
+      }).then(function (res) {
+        if (res && res.opportunity) {
+          root.PotentialsLocalStore.patchOpportunity(oid, res.opportunity);
+        } else {
+          var patch = {};
+          if (res && res.status) {
+            patch.offline_status = res.status;
+            patch.offline_status_label = res.status_label || "";
+          }
+          if (res && Array.isArray(res.tags)) {
+            patch.tags = res.tags;
+          }
+          if (res && res.class_date !== undefined) {
+            patch.offline_class_date = res.class_date || "";
+          }
+          patch.offline_checked_in_at = "";
+          root.PotentialsLocalStore.patchOpportunity(oid, patch);
+        }
+        return res;
+      });
+    },
+    /** GD 1.2 — đồng bộ % Edubit cho Opp (lead profile đã cấp TK). */
+    syncEdubitAll: function (limit) {
+      var data = {};
+      if (limit) data.limit = limit;
+      return apiRequest("edubit_sync_all", data).then(function (res) {
+        if (!res || res.success === false) {
+          throw new Error((res && res.error) || "Đồng bộ thất bại");
+        }
+        return res;
+      });
+    },
   };
 })(window);

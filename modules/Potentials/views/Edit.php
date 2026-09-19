@@ -36,6 +36,7 @@ class Potentials_Edit_View extends Vtiger_Edit_View {
 			'tags' => array(),
 			'mk_region' => '',
 			'mk_address' => '',
+			'mk_phone' => '',
 		);
 		$recordId = (int) $request->get('record');
 		if ($recordId > 0 && !$request->get('isDuplicate')) {
@@ -54,12 +55,13 @@ class Potentials_Edit_View extends Vtiger_Edit_View {
 				Potentials_ModernService::ensureProfileSchema();
 				$adb = PearDatabase::getInstance();
 				$res = $adb->pquery(
-					'SELECT district, address_line FROM bace_potential_profile WHERE potentialid = ?',
+					'SELECT district, address_line, phone FROM bace_potential_profile WHERE potentialid = ?',
 					array($recordId)
 				);
 				if ($res && $adb->num_rows($res) > 0) {
 					$district = trim(decode_html((string) $adb->query_result($res, 0, 'district')));
 					$meta['mk_address'] = trim(decode_html((string) $adb->query_result($res, 0, 'address_line')));
+					$meta['mk_phone'] = trim(decode_html((string) $adb->query_result($res, 0, 'phone')));
 					if (preg_match('/([123])/', $district, $m)) {
 						$meta['mk_region'] = 'kv' . $m[1];
 					}
@@ -71,6 +73,20 @@ class Potentials_Edit_View extends Vtiger_Edit_View {
 							$meta['mk_region'] = 'kv' . $km[1];
 							break;
 						}
+					}
+				}
+				if ($meta['mk_phone'] === '') {
+					$cRes = $adb->pquery(
+						'SELECT cd.phone, cd.mobile
+						 FROM vtiger_potential p
+						 LEFT JOIN vtiger_contactdetails cd ON cd.contactid = p.contact_id
+						 WHERE p.potentialid = ?',
+						array($recordId)
+					);
+					if ($cRes && $adb->num_rows($cRes) > 0) {
+						$phone = trim(decode_html((string) $adb->query_result($cRes, 0, 'phone')));
+						$mobile = trim(decode_html((string) $adb->query_result($cRes, 0, 'mobile')));
+						$meta['mk_phone'] = $phone !== '' ? $phone : $mobile;
 					}
 				}
 			} catch (Exception $e) {

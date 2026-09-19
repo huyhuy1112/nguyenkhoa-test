@@ -38,7 +38,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-dash-ma
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .main-container.mk-so-detail-page {
 	width: 100%;
-	max-width: 1232px;
+	max-width: none;
 	margin-left: auto !important;
 	margin-right: auto !important;
 	padding-top: 24px !important;
@@ -93,7 +93,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] {
-	font-family: Inter, system-ui, -apple-system, sans-serif;
+	font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
 	color: #2b2b2b;
 }
 
@@ -338,7 +338,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-hero__title {
-	font-family: "Space Grotesk", Inter, sans-serif !important;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
 	font-size: 28px !important;
 	line-height: 36px !important;
 	font-weight: 600 !important;
@@ -813,32 +813,23 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-summary-grid {
 	margin: 24px 0 0;
 	display: grid;
-	grid-template-columns: minmax(320px, 1fr) minmax(0, 2fr);
-	grid-template-areas:
-		"key activities"
-		"documents comments"
-		"documents comments";
-	gap: 24px;
-	align-items: start;
+	grid-template-columns: minmax(260px, 0.95fr) minmax(360px, 1.35fr) minmax(260px, 0.95fr);
+	grid-template-areas: none;
+	gap: 14px;
+	align-items: stretch;
 	width: 100%;
+	max-width: none;
 	min-width: 0;
 	box-sizing: border-box;
 }
 
-body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-summary-grid__key {
-	grid-area: key;
-}
-
-body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-summary-grid__activities {
-	grid-area: activities;
-}
-
-body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-summary-grid__documents {
-	grid-area: documents;
-}
-
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-summary-grid__key,
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-summary-grid__activities,
+body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-summary-grid__documents,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-summary-grid__comments {
-	grid-area: comments;
+	grid-area: auto;
+	width: 100%;
+	max-width: none;
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-card--updates {
@@ -848,11 +839,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 @media (max-width: 991px) {
 	body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-summary-grid {
 		grid-template-columns: 1fr;
-		grid-template-areas:
-			"key"
-			"activities"
-			"documents"
-			"comments";
+		grid-template-areas: none;
 	}
 }
 
@@ -955,7 +942,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-card__title {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 12px;
 	font-weight: 700;
 	margin: 0;
@@ -1150,7 +1137,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-related-activities .widget_header h4,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-related-activities .widget_header h4.display-inline-block,
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-related-activities .widget_header h4.mk-so-detail-activities__title {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 12px;
 	font-weight: 700;
 	line-height: 1.2;
@@ -1379,7 +1366,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 	padding: 10px 12px;
 	min-height: 56px;
 	max-height: none;
-	overflow-y: visible;
+	overflow-y: hidden;
 	border: 1px dashed #d8cfc3;
 	border-radius: 10px;
 	margin: 0;
@@ -1626,7 +1613,7 @@ body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-deta
 }
 
 body[data-module="SalesOrder"][data-view="Detail"][data-app="SALES"] .mk-so-detail-details-row #detailView .block > div:first-child h4 {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 12px;
 	font-weight: 700;
 	margin: 0 0 12px;

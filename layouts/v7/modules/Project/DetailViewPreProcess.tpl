@@ -22,7 +22,7 @@ html.mk-project-detail-management.mk-project-detail-styled .detailViewContainer 
 </style>
 {include file="partials/MkSalesUiMeta.tpl"|@vtemplate_path:'Vtiger'}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Project/resources/ProjectMkDetail.css')}&mk_v=20260630_detail_related_v1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Project/resources/ProjectMkDetail.css')}&mk_v=20260909_nofooter1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Project/resources/ProjectMkRelatedList.css')}&mk_v=20260607_detail_v31" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Project/resources/ProjectMkChart.css')}&mk_v=20260607_detail_v36" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Project/resources/ProjectMkTaskBoard.css')}&mk_v=20260529_detail16" />

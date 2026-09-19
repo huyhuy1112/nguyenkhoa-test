@@ -19,27 +19,37 @@
 				</button>
 			{/if}
 			{if !empty($RECORD)}
+			{assign var=MK_ACC_PREVIEW_LBL value={vtranslate('LBL_PREVIEW_FRANCHISE_CONTRACT', 'Accounts')}}
+			{if $MK_ACC_PREVIEW_LBL eq 'LBL_PREVIEW_FRANCHISE_CONTRACT'}{assign var=MK_ACC_PREVIEW_LBL value='Xem trước hợp đồng'}{/if}
+			{assign var=MK_ACC_PRINT_LBL value={vtranslate('LBL_PRINT_FRANCHISE_CONTRACT', 'Accounts')}}
+			{if $MK_ACC_PRINT_LBL eq 'LBL_PRINT_FRANCHISE_CONTRACT'}{assign var=MK_ACC_PRINT_LBL value='In hợp đồng nhượng quyền'}{/if}
+			{assign var=MK_ACC_PRINT_HINT value={vtranslate('LBL_PRINT_FRANCHISE_CONTRACT_HINT', 'Accounts')}}
+			{if $MK_ACC_PRINT_HINT eq 'LBL_PRINT_FRANCHISE_CONTRACT_HINT'}{assign var=MK_ACC_PRINT_HINT value='Tải file Word — mở bằng Microsoft Word để in đúng format'}{/if}
+			{assign var=MK_ACC_PREVIEW_HINT value={vtranslate('LBL_PREVIEW_FRANCHISE_CONTRACT_HINT', 'Accounts')}}
+			{if $MK_ACC_PREVIEW_HINT eq 'LBL_PREVIEW_FRANCHISE_CONTRACT_HINT'}{assign var=MK_ACC_PREVIEW_HINT value='Xem trên CRM (PDF từ file Word đã điền)'}{/if}
 			<button type="button" class="btn btn-default mk-acc-detail-btn mk-acc-detail-btn--ghost" id="Accounts_detailView_previewFranchiseContract"
 				data-record-id="{$RECORD->getId()}"
 				data-preview-url="index.php?module=Accounts&amp;action=ExportFranchiseWord&amp;record={$RECORD->getId()}&amp;preview=1"
 				data-word-url="index.php?module=Accounts&amp;action=ExportFranchiseWord&amp;record={$RECORD->getId()}"
-				title="{vtranslate('LBL_PREVIEW_FRANCHISE_CONTRACT_HINT', $MODULE_NAME)}">
+				title="{$MK_ACC_PREVIEW_HINT|escape:'html'}">
 				<span class="mk-acc-detail-btn__ic" aria-hidden="true"><i class="fa fa-eye"></i></span>
-				<span class="mk-acc-detail-btn__txt">{vtranslate('LBL_PREVIEW_FRANCHISE_CONTRACT', $MODULE_NAME)}</span>
+				<span class="mk-acc-detail-btn__txt">{$MK_ACC_PREVIEW_LBL|escape:'html'}</span>
 			</button>
 			<button type="button" class="btn btn-default mk-acc-detail-btn mk-acc-detail-btn--ghost" id="Accounts_detailView_printFranchiseContract"
 				data-record-id="{$RECORD->getId()}"
 				data-word-url="index.php?module=Accounts&amp;action=ExportFranchiseWord&amp;record={$RECORD->getId()}"
-				title="{vtranslate('LBL_PRINT_FRANCHISE_CONTRACT_HINT', $MODULE_NAME)}">
+				title="{$MK_ACC_PRINT_HINT|escape:'html'}">
 				<span class="mk-acc-detail-btn__ic" aria-hidden="true"><i class="fa fa-file-word-o"></i></span>
-				<span class="mk-acc-detail-btn__txt">{vtranslate('LBL_PRINT_FRANCHISE_CONTRACT', $MODULE_NAME)}</span>
+				<span class="mk-acc-detail-btn__txt">{$MK_ACC_PRINT_LBL|escape:'html'}</span>
 			</button>
 			{/if}
 			{foreach item=DETAIL_VIEW_BASIC_LINK from=$DETAILVIEW_LINKS['DETAILVIEWBASIC']}
 				{assign var=MK_BASIC_LBL value=$DETAIL_VIEW_BASIC_LINK->getLabel()}
-				{if $MK_BASIC_LBL eq 'LBL_PRINT_FRANCHISE_CONTRACT' || $MK_BASIC_LBL eq 'LBL_EXPORT_FRANCHISE_CONTRACT_WORD'}{continue}{/if}
+				{if $MK_BASIC_LBL neq 'LBL_PRINT_FRANCHISE_CONTRACT' && $MK_BASIC_LBL neq 'LBL_EXPORT_FRANCHISE_CONTRACT_WORD' && $MK_BASIC_LBL neq 'LBL_PREVIEW_FRANCHISE_CONTRACT'}
 				{assign var=MK_BASIC_ICON value='EDIT'}
 				{if $MK_BASIC_LBL eq 'LBL_SEND_EMAIL'}{assign var=MK_BASIC_ICON value='EMAIL'}{/if}
+				{assign var=MK_BASIC_TXT value={vtranslate($MK_BASIC_LBL, 'Accounts')}}
+				{if $MK_BASIC_TXT eq $MK_BASIC_LBL}{assign var=MK_BASIC_TXT value={vtranslate($MK_BASIC_LBL, $MODULE_NAME)}}{/if}
 				<button type="button" class="btn btn-default mk-acc-detail-btn {if $MK_BASIC_LBL eq 'LBL_SEND_EMAIL'}mk-acc-detail-btn--primary{else}mk-acc-detail-btn--ghost{/if}" id="{$MODULE_NAME}_detailView_basicAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($MK_BASIC_LBL)}"
 						{if $DETAIL_VIEW_BASIC_LINK->isPageLoadLink()}
 							onclick="window.location.href = '{$DETAIL_VIEW_BASIC_LINK->getUrl()}&app={$SELECTED_MENU_CATEGORY}'"
@@ -52,8 +62,9 @@
 					{if $MK_BASIC_LBL eq 'LBL_SEND_EMAIL' or $MK_BASIC_LBL eq 'LBL_EDIT'}
 						<span class="mk-acc-detail-btn__ic" aria-hidden="true">{include file="partials/AccountsDetailSvgIcon.tpl"|@vtemplate_path:$MODULE ICON=$MK_BASIC_ICON}</span>
 					{/if}
-					<span class="mk-acc-detail-btn__txt">{vtranslate($MK_BASIC_LBL, $MODULE_NAME)}</span>
+					<span class="mk-acc-detail-btn__txt">{$MK_BASIC_TXT|escape:'html'}</span>
 				</button>
+				{/if}
 			{/foreach}
 			{if !empty($DETAILVIEW_LINKS['DETAILVIEW']) && ($DETAILVIEW_LINKS['DETAILVIEW']|@count gt 0)}
 				<button type="button" class="btn btn-default mk-acc-detail-btn mk-acc-detail-btn--ghost mk-acc-detail-btn--icon-only dropdown-toggle" data-toggle="dropdown" title="{vtranslate('LBL_MORE', $MODULE_NAME)}" aria-label="{vtranslate('LBL_MORE', $MODULE_NAME)}" aria-haspopup="true" aria-expanded="false">
@@ -64,11 +75,15 @@
 						{if $DETAIL_VIEW_LINK->getLabel() eq ""}
 							<li class="divider"></li>
 						{else}
-							<li id="{$MODULE_NAME}_detailView_moreAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($DETAIL_VIEW_LINK->getLabel())}" role="presentation">
+							{assign var=MK_MORE_LBL value=$DETAIL_VIEW_LINK->getLabel()}
+							{assign var=MK_MORE_TXT value={vtranslate($MK_MORE_LBL, 'Accounts')}}
+							{if $MK_MORE_TXT eq $MK_MORE_LBL}{assign var=MK_MORE_TXT value={vtranslate($MK_MORE_LBL, $MODULE_NAME)}}{/if}
+							{if $MK_MORE_LBL eq 'LBL_EXPORT_FRANCHISE_CONTRACT_WORD' && $MK_MORE_TXT eq $MK_MORE_LBL}{assign var=MK_MORE_TXT value='Tải hợp đồng Word'}{/if}
+							<li id="{$MODULE_NAME}_detailView_moreAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($MK_MORE_LBL)}" role="presentation">
 								{if $DETAIL_VIEW_LINK->getUrl()|strstr:"javascript"}
-									<a href="{$DETAIL_VIEW_LINK->getUrl()}" role="menuitem">{vtranslate($DETAIL_VIEW_LINK->getLabel(), $MODULE_NAME)}</a>
+									<a href="{$DETAIL_VIEW_LINK->getUrl()}" role="menuitem">{$MK_MORE_TXT|escape:'html'}</a>
 								{else}
-									<a href="{$DETAIL_VIEW_LINK->getUrl()}&app={$SELECTED_MENU_CATEGORY}" role="menuitem">{vtranslate($DETAIL_VIEW_LINK->getLabel(), $MODULE_NAME)}</a>
+									<a href="{$DETAIL_VIEW_LINK->getUrl()}&app={$SELECTED_MENU_CATEGORY}" role="menuitem">{$MK_MORE_TXT|escape:'html'}</a>
 								{/if}
 							</li>
 						{/if}
@@ -111,13 +126,18 @@
 				</button>
 			{/if}
 			{foreach item=DETAIL_VIEW_BASIC_LINK from=$DETAILVIEW_LINKS['DETAILVIEWBASIC']}
-				<button class="btn btn-default" id="{$MODULE_NAME}_detailView_basicAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($DETAIL_VIEW_BASIC_LINK->getLabel())}"
+				{assign var=MK_BASIC_LBL value=$DETAIL_VIEW_BASIC_LINK->getLabel()}
+				{assign var=MK_BASIC_TXT value={vtranslate($MK_BASIC_LBL, 'Accounts')}}
+				{if $MK_BASIC_TXT eq $MK_BASIC_LBL}{assign var=MK_BASIC_TXT value={vtranslate($MK_BASIC_LBL, $MODULE_NAME)}}{/if}
+				{if $MK_BASIC_LBL eq 'LBL_PRINT_FRANCHISE_CONTRACT' && $MK_BASIC_TXT eq $MK_BASIC_LBL}{assign var=MK_BASIC_TXT value='In hợp đồng nhượng quyền'}{/if}
+				{if $MK_BASIC_LBL eq 'LBL_PREVIEW_FRANCHISE_CONTRACT' && $MK_BASIC_TXT eq $MK_BASIC_LBL}{assign var=MK_BASIC_TXT value='Xem trước hợp đồng'}{/if}
+				<button class="btn btn-default" id="{$MODULE_NAME}_detailView_basicAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($MK_BASIC_LBL)}"
 						{if $DETAIL_VIEW_BASIC_LINK->isPageLoadLink()}
 							onclick="window.location.href = '{$DETAIL_VIEW_BASIC_LINK->getUrl()}&app={$SELECTED_MENU_CATEGORY}'"
 						{else}
 							onclick="{$DETAIL_VIEW_BASIC_LINK->getUrl()}"
 						{/if}>
-					{vtranslate($DETAIL_VIEW_BASIC_LINK->getLabel(), $MODULE_NAME)}
+					{$MK_BASIC_TXT|escape:'html'}
 				</button>
 			{/foreach}
 			{if !empty($DETAILVIEW_LINKS['DETAILVIEW']) && ($DETAILVIEW_LINKS['DETAILVIEW']|@count gt 0)}

@@ -119,3 +119,157 @@ html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-ap
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
+
+/* GD 1.2 — timeline % khóa Edubit (cột Đã cấp bằng) */
+.mk-contacts-edubit-progress {
+	min-width: 110px;
+	max-width: 160px;
+}
+.mk-contacts-edubit-courses {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 120px;
+	max-width: 180px;
+}
+.mk-contacts-edubit-progress--multi {
+	padding-bottom: 2px;
+	border-bottom: 1px dashed #e2e8f0;
+}
+.mk-contacts-edubit-progress--multi:last-child {
+	border-bottom: 0;
+	padding-bottom: 0;
+}
+.mk-contacts-edubit-progress__bar {
+	height: 8px;
+	border-radius: 999px;
+	background: #e2e8f0;
+	overflow: hidden;
+}
+.mk-contacts-edubit-progress__bar > span {
+	display: block;
+	height: 100%;
+	border-radius: 999px;
+	background: linear-gradient(90deg, #0d9488, #059669);
+}
+.mk-contacts-edubit-progress__label {
+	margin-top: 4px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #0f766e;
+}
+.mk-contacts-edubit-progress__meta {
+	margin-top: 2px;
+	font-size: 11px;
+	color: #64748b;
+	line-height: 1.3;
+}
+.mk-contacts-edubit-renew {
+	margin-top: 4px;
+	padding: 2px 8px;
+	font-size: 11px;
+	font-weight: 600;
+	border: 1px solid #0d9488;
+	border-radius: 6px;
+	background: #ecfdf5;
+	color: #0f766e;
+	cursor: pointer;
+}
+.mk-contacts-edubit-renew:hover {
+	background: #d1fae5;
+}
+.mk-contacts-edubit-renew-muted {
+	display: inline-block;
+	margin-top: 4px;
+	font-size: 11px;
+	color: #94a3b8;
+}
+
+/* Confirmation dialog — chuẩn chung cho thao tác Contacts */
+.bootbox .mk-ui-confirm {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+	padding: 4px 0 2px;
+}
+
+.bootbox .mk-ui-confirm__icon {
+	display: inline-flex;
+	flex: 0 0 42px;
+	width: 42px;
+	height: 42px;
+	align-items: center;
+	justify-content: center;
+	border-radius: 12px;
+	font-size: 18px;
+}
+
+.bootbox .mk-ui-confirm__icon--primary {
+	background: #ecfdf5;
+	color: #0f766e;
+}
+
+.bootbox .mk-ui-confirm__icon--danger {
+	background: #fef2f2;
+	color: #dc2626;
+}
+
+.bootbox .mk-ui-confirm__copy {
+	min-width: 0;
+	padding-top: 1px;
+}
+
+.bootbox .mk-ui-confirm__question {
+	color: #0f172a;
+	font-size: 14px;
+	font-weight: 650;
+	line-height: 1.45;
+}
+
+.bootbox .mk-ui-confirm__hint {
+	margin-top: 5px;
+	color: #64748b;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.bootbox .mk-ui-confirm__btn {
+	min-width: 88px;
+	padding: 8px 16px;
+	border-radius: 9px;
+	font-size: 13px;
+	font-weight: 600;
+	box-shadow: none;
+}
+
+.bootbox .mk-ui-confirm__btn--cancel {
+	border: 1px solid #cbd5e1;
+	background: #fff;
+	color: #475569;
+}
+
+.bootbox .mk-ui-confirm__btn--primary {
+	border-color: #0f766e;
+	background: #0f766e;
+	color: #fff;
+}
+
+.bootbox .mk-ui-confirm__btn--primary:hover,
+.bootbox .mk-ui-confirm__btn--primary:focus {
+	border-color: #115e59;
+	background: #115e59;
+	color: #fff;
+}
+
+.bootbox .mk-ui-confirm__btn--danger {
+	border-color: #dc2626;
+	background: #dc2626;
+	color: #fff;
+}
+
+.bootbox .mk-ui-confirm__btn--danger:hover,
+.bootbox .mk-ui-confirm__btn--danger:focus {
+	border-color: #b91c1c;
+	background: #b91c1c;
+	color: #fff;
+}

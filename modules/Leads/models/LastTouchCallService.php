@@ -219,19 +219,44 @@ class Leads_LastTouchCallService {
 
 		$convert = null;
 		$reminderActivityId = 0;
+		$offlineMeta = null;
+		$isOffline = false;
+		try {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			$probe = Leads_ModernService::getLead($leadId, $userId);
+			$isOffline = $probe && Leads_OfflineGd11Service::isOfflineLead($probe, isset($probe['tags']) ? $probe['tags'] : array());
+		} catch (Exception $e) {
+			$isOffline = false;
+		}
+
 		if ($result === self::RESULT_ANSWERED) {
 			self::cancelPendingNotifications($leadId);
-			// Không ghi đè "Hành động tiếp theo" — đó là ghi chú tự do của user.
-			try {
-				$convert = Leads_ConvertService::convertLead($leadId, array(
-					'create_account' => false,
-					'order_category' => 'Internal',
-				));
-			} catch (Exception $e) {
-				throw new Exception('Đã ghi Call #' . $callN . ' (Nghe máy) nhưng convert Opp lỗi: ' . $e->getMessage());
+			if ($isOffline) {
+				// GD 1.1: Opp khi đủ ĐK Bộ B, không convert chỉ vì nghe máy.
+				try {
+					$offlineMeta = Leads_OfflineGd11Service::onLastTouchAnswered($leadId, $userId);
+				} catch (Exception $e) {
+					$offlineMeta = array('error' => $e->getMessage());
+				}
+			} else {
+				try {
+					$convert = Leads_ConvertService::convertLead($leadId, array(
+						'create_account' => false,
+						'order_category' => 'Internal',
+					));
+				} catch (Exception $e) {
+					throw new Exception('Đã ghi Call #' . $callN . ' (Nghe máy) nhưng convert Opp lỗi: ' . $e->getMessage());
+				}
 			}
 		} else {
 			// Không nghe máy: log + nhắc Calendar + chuông — không đụng next_action.
+			if ($isOffline) {
+				try {
+					$offlineMeta = Leads_OfflineGd11Service::onLastTouchMissed($leadId, $userId);
+				} catch (Exception $e) {
+					$offlineMeta = array('error' => $e->getMessage());
+				}
+			}
 			if ($callN < self::MAX_CALLS) {
 				$reminderAt = self::addHours($now, self::GAP_HOURS);
 				$nextN = $callN + 1;
@@ -256,6 +281,7 @@ class Leads_LastTouchCallService {
 		$out = self::getSummary($leadId);
 		$out['lead'] = Leads_ModernService::getLead($leadId, $userId);
 		$out['convert'] = $convert;
+		$out['offline'] = $offlineMeta;
 		$out['logged'] = array(
 			'n' => $callN,
 			'called_at' => $now,

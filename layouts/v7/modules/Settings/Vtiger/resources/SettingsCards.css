@@ -178,9 +178,9 @@ body[data-parent="Settings"] .fieldBlockHeader {
 }
 
 body[data-parent="Settings"] .editViewContents input.form-control,
-body[data-parent="Settings"] .editViewContents select.form-control,
+body[data-parent="Settings"] .editViewContents select.form-control:not(.select2),
 body[data-parent="Settings"] .editViewContents textarea.form-control,
-body[data-parent="Settings"] .editViewContents .inputElement,
+body[data-parent="Settings"] .editViewContents .inputElement:not(.select2-container):not(select.select2),
 body[data-parent="Settings"] .detailview-content input.form-control,
 body[data-parent="Settings"] .detailview-content select.form-control,
 body[data-parent="Settings"] .detailview-content textarea.form-control {
@@ -193,9 +193,9 @@ body[data-parent="Settings"] .detailview-content textarea.form-control {
 }
 
 body[data-parent="Settings"] .editViewContents input.form-control:focus,
-body[data-parent="Settings"] .editViewContents select.form-control:focus,
+body[data-parent="Settings"] .editViewContents select.form-control:not(.select2):focus,
 body[data-parent="Settings"] .editViewContents textarea.form-control:focus,
-body[data-parent="Settings"] .editViewContents .inputElement:focus {
+body[data-parent="Settings"] .editViewContents .inputElement:not(.select2-container):not(select.select2):focus {
 	border-color: var(--mk-settings-accent, #08a045) !important;
 	box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.12) !important;
 	outline: none;

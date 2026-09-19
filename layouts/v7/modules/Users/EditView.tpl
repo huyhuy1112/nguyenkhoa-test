@@ -7,10 +7,10 @@
 * All Rights Reserved.
 ************************************************************************************}
 
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Users/resources/UsersPrefEditContent.css')}&mk_v=20260605_users_edit_spacing1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Users/resources/UsersPrefEditContent.css')}&mk_v=20260918_users_edit_layout3" />
 <div class="editViewPageDiv detailViewContainer {if $IS_PREFERENCE}bace-users-pref-edit{else}bace-users-settings-edit{/if}">
     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-        <form class="form-horizontal recordEditView" id="EditView" name="EditView" method="post" action="index.php" enctype="multipart/form-data">
+        <form class="form-horizontal recordEditView mk-users-edit-form" id="EditView" name="EditView" method="post" action="index.php" enctype="multipart/form-data">
             {assign var=SINGLE_MODULE_NAME value='SINGLE_'|cat:$MODULE}
             <header class="mk-users-edit-hero" id="mkUsersEditHero">
                 <div class="mk-users-edit-hero__icon" aria-hidden="true">

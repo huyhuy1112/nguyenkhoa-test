@@ -1,0 +1,20 @@
+<?php
+/*+***********************************************************************************
+ * GD 1.1 Bước 4 — CSKH sau lớp / no-show. Frequency: 15 phút.
+ *************************************************************************************/
+
+require_once 'modules/Leads/models/OfflineGd11Step4Service.php';
+
+try {
+	global $current_user;
+	if (empty($current_user) || empty($current_user->id)) {
+		$current_user = Users::getActiveAdminUser();
+	}
+	Leads_OfflineGd11Step4Service::installSchema();
+	$result = Leads_OfflineGd11Step4Service::processReminders(100);
+	echo 'Offline GD1.1 Step4 reminders: sent=' . (isset($result['sent']) ? $result['sent'] : 0)
+		. ' skipped=' . (isset($result['skipped']) ? $result['skipped'] : 0)
+		. ' errors=' . (isset($result['errors']) ? $result['errors'] : 0);
+} catch (Exception $e) {
+	echo 'Offline GD1.1 Step4 exception: ' . $e->getMessage();
+}

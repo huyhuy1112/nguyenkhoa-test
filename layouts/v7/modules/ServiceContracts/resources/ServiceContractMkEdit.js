@@ -271,8 +271,8 @@
 		$toggle.prop("disabled", !id);
 		$toggle.prop("checked", vis);
 		$badge.prop("hidden", !shown).text(shown ? String(code).trim().toUpperCase() : "");
-		if ($hint.length && id && shown) {
-			$hint.text(String(code).trim().toUpperCase());
+		if ($hint.length) {
+			$hint.text(shown ? String(code).trim().toUpperCase() : "");
 		}
 	}
 

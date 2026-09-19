@@ -69,7 +69,7 @@
     co_quan: { vi: "Đã có quán", en: "Has store", cat: "customerRank", cls: "mk-tag--co-quan" },
     chuan_bi_mo: { vi: "Chưa có quán", en: "No store yet", cat: "customerRank", cls: "mk-tag--chuan-bi-mo" },
     gia_dinh: { vi: "Gia đình", en: "Family", cat: "customerRank", cls: "mk-tag--gia-dinh" },
-    da_cap_bang: { vi: "Đã cấp bằng", en: "Degree issued", cat: "customerRank", cls: "mk-tag--da-cap-bang" },
+    da_cap_bang: { vi: "Tiến trình", en: "Progress", cat: "customerRank", cls: "mk-tag--da-cap-bang" },
     da_cap_tai_khoan: { vi: "Đã cấp tài khoản", en: "Account issued", cat: "customerRank", cls: "mk-tag--da-cap-tai-khoan" },
     chua_mqbh: { vi: "Chưa MQBH", en: "No MQBH", cat: "classTag", cls: "mk-tag--chua-mqbh" },
     da_tg_free: { vi: "Đã TG FREE", en: "Attended FREE", cat: "classTag", cls: "mk-tag--da-tg-free" },

@@ -32,6 +32,7 @@ class Potentials_ModernService {
 		self::ensureProfileColumn($adb, 'contact_customer_id', 'INT UNSIGNED DEFAULT NULL');
 		self::ensureProfileColumn($adb, 'last_touch', 'DATETIME NULL');
 		self::ensureProfileColumn($adb, 'business_model', 'VARCHAR(80) DEFAULT NULL');
+		self::ensureProfileColumn($adb, 'phone', 'VARCHAR(32) DEFAULT NULL');
 	}
 
 	protected static function ensureProfileColumn(PearDatabase $adb, $column, $definition) {
@@ -55,22 +56,49 @@ class Potentials_ModernService {
 		} catch (Exception $e) {
 			// lead profile column is best-effort for business_model fallback
 		}
+		try {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			Leads_OfflineGd11Service::installSchema($adb);
+		} catch (Exception $e) {
+			// offline columns best-effort
+		}
+		try {
+			require_once 'modules/Leads/models/OnlineGd12Service.php';
+			Leads_OnlineGd12Service::installSchema();
+		} catch (Exception $e) {
+			// online/edubit columns best-effort
+		}
 		$sql = "SELECT p.potentialid, p.potentialname, p.sales_stage, p.closingdate, p.amount,
 				p.leadsource, p.order_category, p.related_to, p.contact_id,
 				ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description,
 				acc.accountname,
 				cd.firstname AS contact_firstname, cd.lastname AS contact_lastname,
 				cd.phone AS contact_phone, cd.mobile AS contact_mobile,
-				pp.district AS pot_district, pp.address_line AS pot_address, pp.confirmed_at, pp.last_touch AS pot_last_touch,
+				pp.district AS pot_district, pp.address_line AS pot_address, pp.phone AS pot_phone,
+				pp.confirmed_at, pp.last_touch AS pot_last_touch,
 				pp.business_model AS pot_business_model,
+				lp.leadid AS linked_leadid,
 				lp.district AS lead_district, lp.address_line AS lead_address, lp.area AS lead_area,
-				lp.business_model AS lead_business_model
+				lp.business_model AS lead_business_model,
+				lp.offline_status, lp.offline_r1_contact, lp.offline_r1_hen_goi, lp.offline_r1_khong_nghe, lp.offline_r1_sai_tt,
+				lp.offline_r2_schedule, lp.offline_r3_class, lp.offline_r4_transfer,
+				lp.offline_post_noshow_miss,
+				lp.offline_preclass_confirm, lp.offline_class_date, lp.offline_checked_in_at,
+				lp.offline_class_time, lp.offline_class_place, lp.zalo_user_id,
+				lp.offline_oa_scanned_at, lp.offline_oa_scan_note,
+				lp.online_status, lp.eligibility_result,
+				lp.edubit_user_id, lp.edubit_course_id, lp.edubit_email, lp.edubit_progress_pct, lp.edubit_last_error,
+				ld.email AS lead_email, ld.firstname AS lead_firstname, ld.lastname AS lead_lastname,
+				cd.email AS contact_email,
+				cf.da_cap_bang AS contact_da_cap_bang, cf.da_cap_tai_khoan AS contact_da_cap_tai_khoan
 			FROM vtiger_potential p
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid AND ce.deleted = 0
 			LEFT JOIN vtiger_account acc ON acc.accountid = p.related_to
 			LEFT JOIN vtiger_contactdetails cd ON cd.contactid = p.contact_id
+			LEFT JOIN vtiger_contactscf cf ON cf.contactid = p.contact_id
 			LEFT JOIN bace_potential_profile pp ON pp.potentialid = p.potentialid
 			LEFT JOIN bace_lead_profile lp ON lp.potential_id = p.potentialid
+			LEFT JOIN vtiger_leaddetails ld ON ld.leadid = lp.leadid
 			WHERE pp.converted_to_customer_at IS NULL
 			ORDER BY ce.modifiedtime DESC, p.potentialid DESC";
 		$res = $adb->pquery($sql, array());
@@ -106,7 +134,11 @@ class Potentials_ModernService {
 	protected static function composeCacheRow(array $row, array $tags, $taggedConfirmAt = '', $lastTouchCalls = null) {
 		$potentialId = (int)$row['potentialid'];
 		$ownerName = self::getOwnerLabel((int)$row['smownerid']);
-		$contactName = trim(decode_html((string)$row['contact_firstname']) . ' ' . decode_html((string)$row['contact_lastname']));
+		// Cùng thứ tự Lead: lastname + firstname (vd. TDB solution), không firstname-first.
+		$contactName = self::composePersonDisplayName(
+			isset($row['contact_firstname']) ? $row['contact_firstname'] : '',
+			isset($row['contact_lastname']) ? $row['contact_lastname'] : ''
+		);
 		$accountName = decode_html((string)$row['accountname']);
 		$modified = !empty($row['modifiedtime']) ? date('c', strtotime($row['modifiedtime'])) : date('c');
 		$created = '';
@@ -117,7 +149,7 @@ class Potentials_ModernService {
 			}
 		}
 		$closing = !empty($row['closingdate']) ? $row['closingdate'] : '';
-		$phone = decode_html((string)$row['contact_phone']);
+		$phone = decode_html((string)(!empty($row['pot_phone']) ? $row['pot_phone'] : $row['contact_phone']));
 		if ($phone === '' || $phone === '--') {
 			$phone = decode_html((string)$row['contact_mobile']);
 		}
@@ -193,6 +225,60 @@ class Potentials_ModernService {
 			// ignore — rule metadata is best-effort
 		}
 
+		$offline = array();
+		try {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			Leads_OfflineGd11Service::installSchema();
+			$offline = Leads_OfflineGd11Service::profileBlock($row, false);
+			if (!empty($offline['offline_status'])) {
+				$classDate = isset($offline['offline_class_date']) ? $offline['offline_class_date'] : '';
+				$hint = Leads_OfflineGd11Service::nextActionForStatus($offline['offline_status'], $classDate);
+				if ($hint !== '') {
+					$ruleMeta['next_action'] = $hint;
+				}
+			}
+		} catch (Exception $e) {
+			$offline = array();
+		}
+
+		$email = '';
+		if (!empty($row['contact_email'])) {
+			$email = decode_html(trim((string) $row['contact_email']));
+		}
+		if (($email === '' || $email === '--') && !empty($row['lead_email'])) {
+			$email = decode_html(trim((string) $row['lead_email']));
+		}
+		if ($email === '--') {
+			$email = '';
+		}
+
+		$onlineStatus = isset($row['online_status']) ? trim((string) $row['online_status']) : '';
+		$edubitUser = isset($row['edubit_user_id']) ? trim((string) $row['edubit_user_id']) : '';
+		$edubitCourse = isset($row['edubit_course_id']) ? trim((string) $row['edubit_course_id']) : '';
+		$edubitEmail = isset($row['edubit_email']) ? trim((string) $row['edubit_email']) : '';
+		if ($edubitEmail === '' && $email !== '') {
+			$edubitEmail = $email;
+		}
+		$tagsLower = array_map('strtolower', $tags);
+		$isOnline = $onlineStatus !== ''
+			|| in_array('mien_phi_online', $tagsLower, true)
+			|| (strpos(implode(' ', $tagsLower), 'online_') !== false);
+		$canEdubit = $isOnline && $edubitUser === '';
+		$edubit = array(
+			'online_status' => $onlineStatus,
+			'eligibility_result' => isset($row['eligibility_result']) ? trim((string) $row['eligibility_result']) : '',
+			'email' => $email,
+			'edubit_user_id' => $edubitUser,
+			'edubit_course_id' => $edubitCourse,
+			'edubit_email' => $edubitEmail,
+			'edubit_progress_pct' => isset($row['edubit_progress_pct']) && $row['edubit_progress_pct'] !== null && $row['edubit_progress_pct'] !== ''
+				? (int) $row['edubit_progress_pct']
+				: null,
+			'edubit_last_error' => isset($row['edubit_last_error']) ? (string) $row['edubit_last_error'] : '',
+			'can_edubit_provision' => $canEdubit ? 1 : 0,
+			'is_online_gd12' => $isOnline ? 1 : 0,
+		);
+
 		return array(
 			'id' => (string)$potentialId,
 			'crmid' => $potentialId,
@@ -226,7 +312,44 @@ class Potentials_ModernService {
 			'next_action_days_remaining' => $ruleMeta['next_action_days_remaining'],
 			'next_action_days_overdue' => $ruleMeta['next_action_days_overdue'],
 			'next_action_timeframe' => $ruleMeta['timeframe_label'],
-		);
+			'linked_leadid' => !empty($row['linked_leadid']) ? (int) $row['linked_leadid'] : 0,
+			'da_cap_bang' => self::normalizeOppCredential(
+				isset($row['contact_da_cap_bang']) ? $row['contact_da_cap_bang'] : '',
+				'bang'
+			),
+			'da_cap_tai_khoan' => self::normalizeOppCredential(
+				isset($row['contact_da_cap_tai_khoan']) ? $row['contact_da_cap_tai_khoan'] : '',
+				'tk'
+			),
+		) + $offline + $edubit;
+	}
+
+	protected static function normalizeOppCredential($raw, $kind = 'bang') {
+		$raw = trim(html_entity_decode((string) $raw, ENT_QUOTES, 'UTF-8'));
+		if ($kind === 'tk') {
+			$opts = array('Chưa cấp tài khoản', 'Đã cấp', 'Đã cấp tài khoản');
+			$default = 'Chưa cấp tài khoản';
+		} else {
+			$opts = array('Chưa cấp', 'Đã cấp');
+			$default = 'Chưa cấp';
+		}
+		if ($raw === '') {
+			return $default;
+		}
+		foreach ($opts as $opt) {
+			if (strcasecmp($raw, $opt) === 0) {
+				return $opt;
+			}
+		}
+		if (preg_match('/đã\s*cấp/iu', $raw) && !preg_match('/chưa/iu', $raw)) {
+			return $kind === 'tk' ? 'Đã cấp' : 'Đã cấp';
+		}
+		return $default;
+	}
+
+	/** Public wrapper for Offline check-in tag sync. */
+	public static function getTagsForPotentialIdsPublic(array $potentialIds, $userId = null) {
+		return self::getTagsForPotentialIds($potentialIds, $userId);
 	}
 
 	protected static function getConfirmTaggedOn(array $potentialIds) {
@@ -539,6 +662,50 @@ class Potentials_ModernService {
 	}
 
 	/**
+	 * Save phone on Opp profile (and Contact when linked).
+	 * @return array{success:bool,phone:string}
+	 */
+	public static function saveProfilePhone($potentialId, $phone) {
+		$potentialId = (int) $potentialId;
+		if ($potentialId <= 0) {
+			throw new Exception('Opportunity not found.');
+		}
+		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $potentialId)
+			&& !Users_Privileges_Model::isPermitted(self::MODULE, 'DetailView', $potentialId)) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$digits = preg_replace('/\D+/', '', (string) $phone);
+		$digits = substr((string) $digits, 0, 15);
+		self::ensureProfileSchema();
+		$adb = PearDatabase::getInstance();
+		$now = date('Y-m-d H:i:s');
+		$exists = $adb->pquery('SELECT potentialid FROM bace_potential_profile WHERE potentialid = ?', array($potentialId));
+		if ($exists && $adb->num_rows($exists) > 0) {
+			$adb->pquery(
+				'UPDATE bace_potential_profile SET phone = ?, modified_at = ? WHERE potentialid = ?',
+				array($digits !== '' ? $digits : null, $now, $potentialId)
+			);
+		} else {
+			$adb->pquery(
+				'INSERT INTO bace_potential_profile (potentialid, phone, modified_at) VALUES (?,?,?)',
+				array($potentialId, $digits !== '' ? $digits : null, $now)
+			);
+		}
+		// Best-effort sync to linked Contact when present.
+		if ($digits !== '') {
+			try {
+				self::saveInlinePhone($potentialId, $digits);
+			} catch (Exception $e) {
+				// Opp may not have contact yet — profile phone is enough.
+			}
+		}
+		return array(
+			'success' => true,
+			'phone' => $digits,
+		);
+	}
+
+	/**
 	 * Update phone on related Contact of an Opportunity.
 	 * @return array{success:bool,phone:string,contact_id:int}
 	 */
@@ -692,5 +859,20 @@ class Potentials_ModernService {
 		$recordModel = Vtiger_Record_Model::getInstanceById($potentialId, self::MODULE);
 		$recordModel->delete();
 		return true;
+	}
+
+	/**
+	 * Display name giống Lead list: lastname + firstname (không firstname-first).
+	 */
+	protected static function composePersonDisplayName($firstname, $lastname) {
+		$firstname = trim(decode_html((string) $firstname));
+		$lastname = trim(decode_html((string) $lastname));
+		if ($firstname === '' || $firstname === '.') {
+			return ($lastname === '.' ? '' : $lastname);
+		}
+		if ($lastname === '' || $lastname === '.') {
+			return $firstname;
+		}
+		return trim($lastname . ' ' . $firstname);
 	}
 }

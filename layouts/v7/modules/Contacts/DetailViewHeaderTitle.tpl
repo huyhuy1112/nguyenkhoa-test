@@ -20,27 +20,37 @@
 			</div>
 			<div class="mk-contact-detail-hero__text recordBasicInfo">
 				<div class="info-row mk-contact-detail-hero__name-row">
+					{assign var=MK_CONTACT_SALUTATION value=$RECORD->getDisplayValue('salutationtype')|decode_html|trim}
+					{assign var=MK_CONTACT_TITLE value=$RECORD->getName()|decode_html|trim}
+					{if $MK_CONTACT_SALUTATION ne ''}
+						{assign var=MK_CONTACT_TITLE value="`$MK_CONTACT_SALUTATION` `$MK_CONTACT_TITLE`"|trim}
+					{/if}
 					<h1 class="mk-contact-detail-hero__title">
-						<span class="recordLabel pushDown" title="{$RECORD->getDisplayValue('salutationtype')}&nbsp;{$RECORD->getName()}">
+						<span class="recordLabel pushDown" title="{$MK_CONTACT_TITLE|escape:'html'}">
 							{assign var=COUNTER value=0}
 							{foreach item=NAME_FIELD from=$MODULE_MODEL->getNameFields()}
 								{assign var=FIELD_MODEL value=$MODULE_MODEL->getField($NAME_FIELD)}
 								{if $FIELD_MODEL->getPermissions()}
+									{assign var=MK_NAME_PART value=$RECORD->get($NAME_FIELD)|decode_html|trim}
 									<span class="{$NAME_FIELD}">
-										{if $RECORD->getDisplayValue('salutationtype') && $FIELD_MODEL->getName() eq 'firstname'}
-											{$RECORD->getDisplayValue('salutationtype')}&nbsp;
+										{if $MK_CONTACT_SALUTATION ne '' && $FIELD_MODEL->getName() eq 'firstname'}
+											{$MK_CONTACT_SALUTATION|escape:'html'}&nbsp;
 										{/if}
-										{trim($RECORD->get($NAME_FIELD))}
+										{$MK_NAME_PART|escape:'html'}
 									</span>
-									{if $COUNTER eq 0 && ($RECORD->get($NAME_FIELD))}&nbsp;{assign var=COUNTER value=$COUNTER+1}{/if}
+									{if $COUNTER eq 0 && $MK_NAME_PART ne ''}&nbsp;{assign var=COUNTER value=$COUNTER+1}{/if}
 								{/if}
 							{/foreach}
 						</span>
 					</h1>
 				</div>
-				<div class="mk-contact-detail-hero__map info-row">
-					<i class="fa fa-map-marker" aria-hidden="true"></i>
-					<a class="showMap" href="javascript:void(0);" onclick="Vtiger_Index_Js.showMap(this);" data-module="{$RECORD->getModule()->getName()}" data-record="{$RECORD->getId()}">{vtranslate('LBL_SHOW_MAP', $MODULE_NAME)}</a>
+				<div class="mk-contact-detail-hero__meta-row">
+					<div class="mk-contact-detail-hero__map info-row">
+						<a class="showMap" href="javascript:void(0);" onclick="Vtiger_Index_Js.showMap(this);" data-module="{$RECORD->getModule()->getName()}" data-record="{$RECORD->getId()}">{vtranslate('LBL_SHOW_MAP', $MODULE_NAME)}</a>
+					</div>
+					<div class="mk-contact-detail-hero__tags mk-contact-detail-hero__tags--inline">
+						{include file="DetailViewTagList.tpl"|vtemplate_path:$MODULE}
+					</div>
 				</div>
 			</div>
 		</div>

@@ -9,7 +9,6 @@
 				<span class="mk-leads-segments-card__icon" id="mk-leads-segments-icon" aria-hidden="true"></span> {vtranslate('LBL_MK_SEGMENTS', 'Leads')}
 			</div>
 			<div id="mk-leads-segments" class="mk-leads-segments"></div>
-			<button type="button" class="mk-leads-segments-save" id="mk-leads-save-segment"><span id="mk-leads-save-segment-ic" aria-hidden="true"></span> {vtranslate('LBL_MK_SAVE_CURRENT', 'Leads')}</button>
 		</div>
 
 		<div class="mk-leads-filters-card" role="region" aria-label="{vtranslate('LBL_FILTERS', 'Vtiger')}">
@@ -30,7 +29,7 @@
 			<div id="mk-leads-filters-panel" class="mk-leads-filters-panel" hidden></div>
 		</div>
 
-		<div class="mk-so-table-card mk-leads-table-card" role="region" aria-label="{vtranslate('LBL_MK_LEADS_TABLE', 'Leads')}">
+		<div class="mk-so-table-card mk-leads-table-card" role="region" aria-label="{vtranslate('LBL_MK_LEADS_TABLE', 'Leads')}" id="mk-leads-table-wrap">
 			<div id="mk-leads-bulk" class="mk-leads-bulk-bar" hidden></div>
 			<div class="mk-leads-table-scroll">
 				<table class="mk-leads-table" id="mk-leads-table">
@@ -41,6 +40,9 @@
 						<col class="mk-leads-col mk-leads-col--phone" />
 						<col class="mk-leads-col mk-leads-col--area" />
 						<col class="mk-leads-col mk-leads-col--address" />
+						<col class="mk-leads-col mk-leads-col--biz" />
+						<col class="mk-leads-col mk-leads-col--products" />
+						<col class="mk-leads-col mk-leads-col--pstage" />
 						<col class="mk-leads-col mk-leads-col--source" />
 						<col class="mk-leads-col mk-leads-col--ctype" />
 						<col class="mk-leads-col mk-leads-col--owner" />
@@ -62,6 +64,8 @@
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_AREA', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_ADDRESS', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">Mô hình kinh doanh</th>
+							<th class="mk-leads-th" scope="col">Sản phẩm</th>
+							<th class="mk-leads-th" scope="col">Stage</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_SOURCE', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_CUSTOMER_TYPE', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_OWNER', 'Leads')}</th>

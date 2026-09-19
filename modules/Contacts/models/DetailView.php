@@ -1,13 +1,34 @@
 <?php
 /*+***********************************************************************************
- * The contents of this file are subject to the vtiger CRM Public License Version 1.0
- * ("License"); You may not use this file except in compliance with the License
- * The Original Code is:  vtiger CRM Open Source
- * The Initial Developer of the Original Code is vtiger.
- * Portions created by vtiger are Copyright (C) vtiger.
- * All Rights Reserved.
+ * Contacts Detail View — inherit Accounts base, strip franchise-only toolbar links.
  *************************************************************************************/
 
-//Same as Accounts Detail View
 class Contacts_DetailView_Model extends Accounts_DetailView_Model {
+
+	public function getDetailViewLinks($linkParams) {
+		$linkModelList = parent::getDetailViewLinks($linkParams);
+		$skipLabels = array(
+			'LBL_PRINT_FRANCHISE_CONTRACT',
+			'LBL_PREVIEW_FRANCHISE_CONTRACT',
+			'LBL_EXPORT_FRANCHISE_CONTRACT_WORD',
+			'LBL_SHOW_ACCOUNT_HIERARCHY',
+		);
+
+		foreach (array('DETAILVIEWBASIC', 'DETAILVIEW') as $linkType) {
+			if (empty($linkModelList[$linkType]) || !is_array($linkModelList[$linkType])) {
+				continue;
+			}
+			$cleaned = array();
+			foreach ($linkModelList[$linkType] as $link) {
+				$label = is_object($link) ? $link->getLabel() : '';
+				if ($label !== '' && in_array($label, $skipLabels, true)) {
+					continue;
+				}
+				$cleaned[] = $link;
+			}
+			$linkModelList[$linkType] = $cleaned;
+		}
+
+		return $linkModelList;
+	}
 }
