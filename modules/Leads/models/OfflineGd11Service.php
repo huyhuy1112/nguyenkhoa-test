@@ -947,17 +947,17 @@ class Leads_OfflineGd11Service {
 		$map = array(
 			self::STATUS_HEN_GOI_LAI => 'Gọi lại theo lịch hẹn (R1)',
 			self::STATUS_KHONG_NGHE_MAY => 'Gọi lại — không nghe máy (R1)',
-			self::STATUS_SAI_THONG_TIN => 'Xác minh lại thông tin / nguồn',
+			self::STATUS_SAI_THONG_TIN => 'Xác minh lại thông tin / nguồn (R1)',
 			self::STATUS_CHUYEN_CT => 'Chuyển chương trình phù hợp (R4)',
 			self::STATUS_CHUA_XN_LICH => 'Chốt & xác nhận lịch Offline (R2)',
 			self::STATUS_DA_XN_LICH => $classDate !== ''
 				? ('Nhắc lịch lớp Offline ' . $classDate)
-				: 'Chuẩn bị lớp / nhắc lịch Offline',
-			self::STATUS_HEN_LICH_LAI => 'Hẹn lịch lại với HV (R3)',
-			self::STATUS_KHONG_THAM_GIA => 'Ghi nhận không tham gia — follow nếu cần',
+				: 'Chuẩn bị lớp / nhắc lịch Offline (R2)',
+			self::STATUS_HEN_LICH_LAI => 'Hẹn lịch lại với HV (R2)',
+			self::STATUS_KHONG_THAM_GIA => 'Không tham gia lớp — điểm rơi R3 (max 3)',
 			self::STATUS_DA_THAM_GIA => 'CSKH sau lớp Offline',
-			self::STATUS_NGUNG_CSKH => 'Ngưng CSKH Offline (đã đủ R)',
-			self::STATUS_NGUNG_CSKH_TAM => 'Dừng CSKH tạm thời — được đặt lịch lại (3 lần)',
+			self::STATUS_NGUNG_CSKH => 'Ngưng CSKH Offline (đã đủ điểm rơi R)',
+			self::STATUS_NGUNG_CSKH_TAM => 'Dừng CSKH tạm thời — được đặt lịch lại (R3)',
 		);
 		return isset($map[$status]) ? $map[$status] : '';
 	}
