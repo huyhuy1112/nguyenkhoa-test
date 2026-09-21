@@ -7,7 +7,7 @@
 <script type="text/javascript">document.documentElement.classList.add('mk-settings-ui-ready');document.body.setAttribute('data-parent','Settings');</script>
 	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Settings/Vtiger/resources/SettingsUi.css')}?mk_v=20260921_settings_ui3" />
 	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Settings/Vtiger/resources/SettingsCards.css')}?mk_v=20260921_settings_cards3" />
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}?mk_v=20260814_settings_ui2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}?mk_v=20260921_sidebar_collapse1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Settings/Vtiger/resources/SettingsListScroll.js')}?mk_v=20260814_settings_ui2"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Settings/Vtiger/resources/SettingsUi.js')}?mk_v=20260814_settings_ui2"></script>
 <script type="text/javascript" src="{vresource_url('~layouts/v7/lib/jquery/Lightweight-jQuery-In-page-Filtering-Plugin-instaFilta/instafilta.js')}"></script>

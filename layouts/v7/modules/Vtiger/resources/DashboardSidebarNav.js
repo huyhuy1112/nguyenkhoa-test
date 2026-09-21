@@ -79,6 +79,16 @@
       sidebarAnimating = false;
       root.classList.remove("mk-dash-sidebar-animating");
       clearShellTransforms(shellNodes());
+      if (collapsed && !already) {
+        try {
+          var measured = getSidebarOpenWidth();
+          if (measured > 40) {
+            root.style.setProperty("--mk-dash-sidebar-open-w", measured + "px");
+          }
+        } catch (e) {
+          /* ignore */
+        }
+      }
       root.classList.toggle("mk-dash-sidebar-collapsed", collapsed);
       return;
     }
@@ -103,6 +113,12 @@
     });
 
     if (collapsed) {
+      // Remember open width for expand + CSS translate % / width restore
+      try {
+        root.style.setProperty("--mk-dash-sidebar-open-w", openW + "px");
+      } catch (e) {
+        /* ignore */
+      }
       root.classList.add("mk-dash-sidebar-collapsed");
       nodes.forEach(function (el) {
         el.style.transform = "translate3d(" + openW + "px, 0, 0)";

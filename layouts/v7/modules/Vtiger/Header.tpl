@@ -65,7 +65,7 @@
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernNotifications.css')}?mk_v=20260827_notif_mix1" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernQuickCreate.css')}" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernProfileDropdown.css')}" media="screen" />
-		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}&mk_v=20260909_nofooter1" media="screen" />
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}&mk_v=20260921_sidebar_collapse1" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkDetailNoComments.css')}?mk_v=20260804_nocomment1" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkCrmResponsive.css')}?mk_v=20260730_kpi_fit1" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkQuickPreview.css')}&mk_v=20260625_quick_preview_v5" media="screen" />
