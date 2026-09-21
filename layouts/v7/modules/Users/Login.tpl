@@ -143,6 +143,7 @@
 			background: rgba(107, 254, 156, 0.2);
 			filter: blur(52px);
 			transition: background 0.2s ease;
+			animation: nkGlowBreath 5.5s ease-in-out infinite;
 		}
 		.nk-split-brand__photo-wrap:hover .nk-split-brand__photo-glow {
 			background: rgba(107, 254, 156, 0.3);
@@ -190,13 +191,17 @@
 			object-position: center center;
 			filter: drop-shadow(0 28px 56px rgba(0, 0, 0, 0.42));
 			transition: transform 0.2s ease;
+			transform: scale(1);
+		}
+		.nk-split-brand__slide.is-active img {
+			animation: nkKenBurns 5.2s ease-out forwards;
 		}
 		/* Ảnh 1: căn giữa dọc (file có khoảng trống dưới nên trông hơi lệch lên) */
 		.nk-split-brand__slide:first-of-type img {
 			object-position: center 54%;
 		}
 		.nk-split-brand__photo-wrap:hover .nk-split-brand__slide.is-active img {
-			transform: scale(1.02);
+			/* Ken Burns đang chạy — hover chỉ tăng nhẹ shadow, không đè scale */
 		}
 
 		.nk-split-brand__copy {
@@ -237,6 +242,7 @@
 			border-radius: 50%;
 			background: rgba(255,255,255,0.05);
 			filter: blur(48px);
+			animation: nkBlobFloatA 14s ease-in-out infinite;
 		}
 		.nk-split-brand__decor::after {
 			content: "";
@@ -248,6 +254,30 @@
 			border-radius: 50%;
 			background: rgba(107, 254, 156, 0.05);
 			filter: blur(100px);
+			animation: nkBlobFloatB 18s ease-in-out infinite;
+		}
+		.nk-split-brand__blob {
+			position: absolute;
+			border-radius: 50%;
+			pointer-events: none;
+			filter: blur(64px);
+			opacity: 0.55;
+		}
+		.nk-split-brand__blob--a {
+			top: 18%;
+			right: 12%;
+			width: 11rem;
+			height: 11rem;
+			background: rgba(107, 254, 156, 0.18);
+			animation: nkBlobFloatA 16s ease-in-out infinite reverse;
+		}
+		.nk-split-brand__blob--b {
+			bottom: 22%;
+			left: 8%;
+			width: 14rem;
+			height: 14rem;
+			background: rgba(255, 255, 255, 0.08);
+			animation: nkBlobFloatB 20s ease-in-out infinite;
 		}
 
 		/* ── Right form panel ── */
@@ -347,6 +377,7 @@
 		.nk-field input:focus,
 		.nk-field select:focus {
 			border-bottom-color: #00341a;
+			box-shadow: 0 6px 18px -10px rgba(0, 52, 26, 0.45) !important;
 		}
 		.nk-field input::placeholder { color: rgba(113, 121, 113, 0.55); }
 		.nk-field input:-webkit-autofill,
@@ -453,6 +484,8 @@
 		.forgotPasswordLink:hover { opacity: 0.8; }
 
 		.nk-submit-btn {
+			position: relative;
+			overflow: hidden;
 			width: 100%;
 			padding: 16px;
 			border: 0;
@@ -466,9 +499,23 @@
 			cursor: pointer;
 			transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
 		}
+		.nk-submit-btn::after {
+			content: "";
+			position: absolute;
+			top: 0;
+			left: -120%;
+			width: 60%;
+			height: 100%;
+			background: linear-gradient(105deg, transparent 0%, rgba(107, 254, 156, 0.28) 45%, transparent 100%);
+			transform: skewX(-18deg);
+			pointer-events: none;
+		}
 		.nk-submit-btn:hover {
 			box-shadow: 0 16px 40px rgba(0, 52, 26, 0.25);
 			transform: translateY(-2px);
+		}
+		.nk-submit-btn:hover::after {
+			animation: nkBtnShimmer 0.85s ease;
 		}
 		.nk-submit-btn:active { transform: translateY(0); }
 
@@ -521,6 +568,118 @@
 			background: #ffffff !important;
 			color: #0b1c30 !important;
 		}
+
+		/* ── Login motion (entrance + ambient) ── */
+		@keyframes nkFadeUp {
+			from { opacity: 0; transform: translateY(18px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+		@keyframes nkFadeIn {
+			from { opacity: 0; }
+			to { opacity: 1; }
+		}
+		@keyframes nkGlowBreath {
+			0%, 100% { opacity: 0.75; transform: scale(1); }
+			50% { opacity: 1; transform: scale(1.06); }
+		}
+		@keyframes nkKenBurns {
+			from { transform: scale(1); }
+			to { transform: scale(1.045); }
+		}
+		@keyframes nkBlobFloatA {
+			0%, 100% { transform: translate(0, 0); }
+			50% { transform: translate(18px, -22px); }
+		}
+		@keyframes nkBlobFloatB {
+			0%, 100% { transform: translate(0, 0); }
+			50% { transform: translate(-24px, 16px); }
+		}
+		@keyframes nkBtnShimmer {
+			from { left: -120%; }
+			to { left: 140%; }
+		}
+		@keyframes nkAccentPulse {
+			0%, 100% { opacity: 0.85; }
+			50% { opacity: 1; text-shadow: 0 0 24px rgba(107, 254, 156, 0.35); }
+		}
+
+		.nk-split-brand__logo,
+		.nk-split-brand__photo-wrap,
+		.nk-split-brand__copy,
+		.nk-split-mobile-logo,
+		.nk-split-form-header,
+		#loginFormDiv .nk-field,
+		#loginFormDiv .nk-skin-select,
+		#loginFormDiv .nk-form-row,
+		#loginFormDiv .nk-submit-btn,
+		.failureMessage:not(.hide),
+		.successMessage:not(.hide) {
+			opacity: 0;
+		}
+
+		body.nk-login-ready .nk-split-brand__logo {
+			animation: nkFadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+		}
+		body.nk-login-ready .nk-split-brand__photo-wrap {
+			animation: nkFadeUp 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
+		}
+		body.nk-login-ready .nk-split-brand__copy {
+			animation: nkFadeUp 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.32s both;
+		}
+		body.nk-login-ready .nk-split-brand__headline span {
+			animation: nkAccentPulse 3.8s ease-in-out 1.1s infinite;
+		}
+		body.nk-login-ready .nk-split-mobile-logo {
+			animation: nkFadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+		}
+		body.nk-login-ready .nk-split-form-header {
+			animation: nkFadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+		}
+		body.nk-login-ready #loginFormDiv .nk-field:nth-of-type(1) {
+			animation: nkFadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.22s both;
+		}
+		body.nk-login-ready #loginFormDiv .nk-field:nth-of-type(2) {
+			animation: nkFadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+		}
+		body.nk-login-ready #loginFormDiv .nk-skin-select {
+			animation: nkFadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.34s both;
+		}
+		body.nk-login-ready #loginFormDiv .nk-form-row {
+			animation: nkFadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.38s both;
+		}
+		body.nk-login-ready #loginFormDiv .nk-submit-btn {
+			animation: nkFadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.46s both;
+		}
+		body.nk-login-ready .failureMessage:not(.hide),
+		body.nk-login-ready .successMessage:not(.hide) {
+			animation: nkFadeIn 0.4s ease 0.2s both;
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.nk-split-brand__logo,
+			.nk-split-brand__photo-wrap,
+			.nk-split-brand__copy,
+			.nk-split-mobile-logo,
+			.nk-split-form-header,
+			#loginFormDiv .nk-field,
+			#loginFormDiv .nk-skin-select,
+			#loginFormDiv .nk-form-row,
+			#loginFormDiv .nk-submit-btn,
+			.failureMessage:not(.hide),
+			.successMessage:not(.hide) {
+				opacity: 1 !important;
+				animation: none !important;
+			}
+			.nk-split-brand__photo-glow,
+			.nk-split-brand__decor::before,
+			.nk-split-brand__decor::after,
+			.nk-split-brand__blob,
+			.nk-split-brand__slide.is-active img,
+			body.nk-login-ready .nk-split-brand__headline span,
+			.nk-submit-btn:hover::after {
+				animation: none !important;
+			}
+		}
 	</style>
 
 	<span class="app-nav"></span>
@@ -529,7 +688,10 @@
 
 			{* ── Left: brand visual ── *}
 			<section class="nk-split-brand" aria-hidden="true">
-				<div class="nk-split-brand__decor"></div>
+				<div class="nk-split-brand__decor">
+					<span class="nk-split-brand__blob nk-split-brand__blob--a" aria-hidden="true"></span>
+					<span class="nk-split-brand__blob nk-split-brand__blob--b" aria-hidden="true"></span>
+				</div>
 				<div class="nk-split-brand__inner">
 					<div class="nk-split-brand__logo">
 						<img src="layouts/v7/resources/Images/nguyenkhoa-login-logo.png?v=20260703c" alt="Nguyên Khoa" width="320" height="128">
@@ -538,7 +700,7 @@
 					<div class="nk-split-brand__photo-wrap">
 						<div class="nk-split-brand__photo-glow"></div>
 						<div class="nk-split-brand__photo-figure">
-							<div class="nk-split-brand__slideshow" data-interval="3000">
+							<div class="nk-split-brand__slideshow" data-interval="5200">
 								<img class="nk-split-brand__slideshow-sizer" src="layouts/v7/resources/Images/nguyenkhoa-login-left.png?v=20260706b" alt="" width="471" height="530" aria-hidden="true">
 								<div class="nk-split-brand__slide is-active">
 									<img src="layouts/v7/resources/Images/nguyenkhoa-login-left.png?v=20260706b" alt="Nguyên Khoa" width="471" height="530">
@@ -656,10 +818,25 @@
 		</main>
 
 		<script>
+			(function () {
+				function markReady() {
+					if (document.body) document.body.classList.add('nk-login-ready');
+				}
+				if (document.readyState === 'loading') {
+					document.addEventListener('DOMContentLoaded', markReady);
+				} else {
+					requestAnimationFrame(markReady);
+				}
+				/* Fallback nếu animation class không kịp gắn */
+				setTimeout(markReady, 1200);
+			})();
+
 			jQuery(document).ready(function () {
 				var validationMessage = jQuery('#validationMessage');
 				var forgotPasswordDiv = jQuery('#forgotPasswordDiv');
 				var loginFormDiv = jQuery('#loginFormDiv');
+
+				document.body.classList.add('nk-login-ready');
 
 				loginFormDiv.find('#username').focus();
 
@@ -669,11 +846,19 @@
 					var $slides = $slideshow.find('.nk-split-brand__slide');
 					if ($slides.length < 2) return;
 					var idx = 0;
-					var interval = parseInt($slideshow.data('interval'), 10) || 3000;
+					var interval = parseInt($slideshow.data('interval'), 10) || 5200;
 					setInterval(function () {
 						$slides.removeClass('is-active');
 						idx = (idx + 1) % $slides.length;
-						$slides.eq(idx).addClass('is-active');
+						var $next = $slides.eq(idx);
+						$next.addClass('is-active');
+						/* Restart Ken Burns on each slide */
+						var img = $next.find('img')[0];
+						if (img) {
+							img.style.animation = 'none';
+							void img.offsetWidth;
+							img.style.animation = '';
+						}
 					}, interval);
 				})();
 
