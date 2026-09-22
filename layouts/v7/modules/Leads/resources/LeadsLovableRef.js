@@ -189,30 +189,6 @@
   /** Tags available on Create form — used for list/inline tag editors. */
   var CREATE_TAG_GROUPS = [
     {
-      id: "source",
-      labelVi: "Nguồn",
-      labelEn: "Source",
-      tags: ["facebook", "tiktok", "website", "zalo", "other"],
-    },
-    {
-      id: "customer",
-      labelVi: "Loại / trạng thái khách",
-      labelEn: "Customer",
-      tags: [
-        "individual",
-        "company",
-        "co_quan",
-        "chuan_bi_mo",
-        "gia_dinh",
-      ],
-    },
-    {
-      id: "learning",
-      labelVi: "Học",
-      labelEn: "Learning",
-      tags: ["chua_hoc", "da_hoc"],
-    },
-    {
       id: "online",
       labelVi: "Online 1.2",
       labelEn: "Online 1.2",

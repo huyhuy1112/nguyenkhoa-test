@@ -33,7 +33,7 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 			'dedupe_leads', 'last_touch_call_log',
 			'sheet_settings_save', 'sheet_poll_now', 'merge_leads', 'restore_lead', 'purge_lead', 'soft_delete',
 			'sales_verify_save', 'online_verify_save', 'offline_gd11_apply', 'offline_gd11_step2',
-			'offline_gd11_step2_remind',
+			'offline_gd11_step2_remind', 'r1_notif_action',
 			'online_gd12_transfer_from_offline', 'online_gd12_transfer_from_online',
 			'online_edubit_provision', 'online_edubit_sync_progress', 'online_edubit_renew',
 			'product_upsert', 'product_remove', 'product_set_stage',
@@ -457,6 +457,24 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 					}
 					$action = isset($payload['action']) ? $payload['action'] : $request->get('offline_action');
 					$saved = Leads_OfflineGd11Service::applyAction($id, $action, $payload, $userId);
+					$response->setResult($saved);
+					break;
+
+				case 'r1_notif_action':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					if (($id === null || $id === '') && isset($payload['leadId'])) {
+						$id = $payload['leadId'];
+					}
+					$action = isset($payload['action']) ? $payload['action'] : $request->get('r1_action');
+					$saved = Leads_OfflineGd11Service::handleR1NotifAction($id, $action, $userId);
 					$response->setResult($saved);
 					break;
 

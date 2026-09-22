@@ -1026,17 +1026,112 @@ class Leads_OfflineGd11Service {
 			}
 			require_once 'modules/Leads/models/CommerceService.php';
 			Leads_CommerceService::linkActivityToLead($leadId, $activityId);
+			$notifMeta = null;
+			if (in_array($status, self::R1_TAGS, true)) {
+				$notifMeta = self::scheduleR1Notification($leadId, $status, $when, $assignId);
+			}
 			return array(
 				'success' => true,
 				'activity_id' => $activityId,
 				'due_at' => $when,
 				'assigned_user_id' => $assignId,
+				'r1_notification' => $notifMeta,
 			);
 		} catch (Exception $e) {
 			return array('success' => false, 'error' => $e->getMessage());
 		} catch (Throwable $e) {
 			return array('success' => false, 'error' => $e->getMessage());
 		}
+	}
+
+	/**
+	 * Lên lịch chuông R1 (Modern Notifications) với marker action cho popup.
+	 */
+	public static function scheduleR1Notification($leadId, $status, $deliverAt, $userId = null) {
+		$leadId = (int) $leadId;
+		$userId = (int) $userId;
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'invalid_lead');
+		}
+		if ($userId <= 0) {
+			$userId = self::resolveTaskAssignee($leadId, null);
+		}
+		$labels = self::statusLabels();
+		$statusLabel = isset($labels[$status]) ? $labels[$status] : 'Hẹn gọi lại';
+		$leadName = '';
+		try {
+			$record = Vtiger_Record_Model::getInstanceById($leadId, 'Leads');
+			$leadName = trim((string) $record->get('lastname') . ' ' . $record->get('firstname'));
+			if ($leadName === '') {
+				$leadName = trim((string) $record->get('company'));
+			}
+		} catch (Exception $e) {
+			$leadName = '';
+		}
+		$marker = '[[mk_r1:leadId=' . $leadId . ';status=' . $status . ']]';
+		$message = "R1 · {$statusLabel}\n"
+			. ($leadName !== '' ? $leadName . ' — ' : '')
+			. "Lead #{$leadId}\n"
+			. "Đến giờ gọi lại. Chọn Hẹn gọi lại hoặc Đã xác nhận.\n"
+			. $marker;
+		require_once 'modules/Vtiger/models/NotificationSchedule.php';
+		$sourceKey = 'r1_lead_' . $leadId;
+		$schedId = Vtiger_NotificationSchedule::schedule(
+			$userId,
+			'Leads',
+			$leadId,
+			$message,
+			$deliverAt,
+			$sourceKey
+		);
+		return array(
+			'success' => true,
+			'schedule_id' => $schedId,
+			'deliver_at' => $deliverAt,
+			'userid' => $userId,
+		);
+	}
+
+	/**
+	 * Action từ popup thông báo R1.
+	 * hen_goi_lai → +1 R1 + nhắc tiếp
+	 * da_xac_nhan → thoát R1 (không bump), sale sang form 3 câu / R2
+	 */
+	public static function handleR1NotifAction($leadId, $action, $userId = null) {
+		$leadId = (int) $leadId;
+		$action = strtolower(trim((string) $action));
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu lead id');
+		}
+		require_once 'modules/Vtiger/models/NotificationSchedule.php';
+		Vtiger_NotificationSchedule::cancelBySourcePrefix('r1_lead_' . $leadId);
+
+		if ($action === 'hen_goi_lai' || $action === 'callback') {
+			return self::applyAction($leadId, 'hen_goi_lai', array(), $userId);
+		}
+		if ($action === 'da_xac_nhan' || $action === 'confirmed' || $action === 'answered') {
+			// Thoát vòng R1: gắn hint next action, không + counter.
+			require_once 'modules/Leads/models/ModernService.php';
+			try {
+				Leads_ModernService::updateNextAction($leadId, 'Đã nhận máy — xác minh 3 câu / xếp lịch R2');
+			} catch (Exception $e) {
+				$adb = PearDatabase::getInstance();
+				$adb->pquery(
+					"UPDATE bace_lead_profile SET next_action = ?, modified_at = ? WHERE leadid = ?",
+					array('Đã nhận máy — xác minh 3 câu / xếp lịch R2', date('Y-m-d H:i:s'), $leadId)
+				);
+			}
+			$lead = Leads_ModernService::getLead((string) $leadId, $userId);
+			return array(
+				'success' => true,
+				'action' => 'da_xac_nhan',
+				'next' => 'verify_form',
+				'message' => 'Đã xác nhận nhận máy — tiếp tục form 3 câu / xếp lịch.',
+				'lead' => $lead,
+				'detail_url' => 'index.php?module=Leads&view=Detail&record=' . $leadId,
+			);
+		}
+		return array('success' => false, 'error' => 'Action không hợp lệ');
 	}
 
 	protected static function resolveTaskAssignee($leadId, $userId = null) {
@@ -1061,6 +1156,10 @@ class Leads_OfflineGd11Service {
 			if (!empty($payload[$key])) {
 				$ts = strtotime((string) $payload[$key]);
 				if ($ts && $ts > time() - 3600) {
+					require_once 'modules/Vtiger/models/R1ReminderSettings.php';
+					if (in_array($status, self::R1_TAGS, true)) {
+						return Vtiger_R1ReminderSettings::snapToBusinessHours(date('Y-m-d H:i:s', $ts));
+					}
 					return date('Y-m-d H:i:s', $ts);
 				}
 			}
@@ -1071,6 +1170,11 @@ class Leads_OfflineGd11Service {
 			if ($ts && $ts > time()) {
 				return date('Y-m-d H:i:s', $ts);
 			}
+		}
+		// R1: +gap giờ trong khung làm việc (mặc định 3h, 08:00–16:00).
+		if (in_array($status, self::R1_TAGS, true)) {
+			require_once 'modules/Vtiger/models/R1ReminderSettings.php';
+			return Vtiger_R1ReminderSettings::addGapWithinBusinessHours(date('Y-m-d H:i:s'));
 		}
 		// Mặc định: ngày mai 09:00 (Sales/Admin chỉnh trên Calendar nếu cần).
 		$tomorrow = strtotime('+1 day');

@@ -712,6 +712,7 @@
         return String(notif.notif_type);
       }
       var m = message || "";
+      if (/\[\[mk_r1:/i.test(m) || /^R1\s*·/i.test(m)) return "r1";
       if (String(notif && notif.id).indexOf("cskh:") === 0) return "cskh";
       if (/đã nhắc đến bạn/i.test(m)) return "mention";
       if (/được assign|được giao|assigned/i.test(m)) return "assign";
@@ -726,9 +727,172 @@
         mention: { label: "Mention", icon: "fa-at", cls: "type-mention" },
         assign: { label: "Assign", icon: "fa-user-plus", cls: "type-assign" },
         reminder: { label: "Nhắc", icon: "fa-clock-o", cls: "type-reminder" },
+        r1: { label: "R1", icon: "fa-phone", cls: "type-r1" },
         other: { label: "TB", icon: "fa-bell-o", cls: "type-other" },
       };
       return map[type] || map.other;
+    },
+
+    parseR1Marker: function (message) {
+      var m = String(message || "").match(/\[\[mk_r1:([^\]]+)\]\]/i);
+      if (!m) return null;
+      var out = {};
+      String(m[1])
+        .split(";")
+        .forEach(function (pair) {
+          var parts = pair.split("=");
+          if (parts.length >= 2) {
+            out[parts[0].trim()] = parts.slice(1).join("=").trim();
+          }
+        });
+      if (!out.leadId) return null;
+      return out;
+    },
+
+    stripR1Marker: function (message) {
+      return String(message || "")
+        .replace(/\s*\[\[mk_r1:[^\]]+\]\]\s*/gi, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+    },
+
+    submitR1Action: function (leadId, action, btn) {
+      var self = this;
+      if (btn) {
+        btn.disabled = true;
+        btn.classList.add("is-loading");
+      }
+      jQuery.ajax({
+        url: "index.php?module=Leads&action=ModernApi",
+        type: "POST",
+        dataType: "json",
+        data: {
+          mode: "r1_notif_action",
+          id: leadId,
+          record: leadId,
+          payload: JSON.stringify({ action: action, leadId: leadId }),
+        },
+        success: function (resp) {
+          var ok = resp && (resp.success === true || (resp.result && resp.result.success));
+          var result = resp && resp.result ? resp.result : resp;
+          if (!ok) {
+            var err =
+              (result && result.error) ||
+              (resp && resp.error && resp.error.message) ||
+              "Không xử lý được";
+            if (app.helper && app.helper.showErrorNotification) {
+              app.helper.showErrorNotification({ message: err });
+            } else {
+              window.alert(err);
+            }
+            if (btn) {
+              btn.disabled = false;
+              btn.classList.remove("is-loading");
+            }
+            return;
+          }
+          self.dismissR1Popup();
+          if (app.helper && app.helper.showSuccessNotification) {
+            app.helper.showSuccessNotification({
+              message: (result && result.message) || "Đã cập nhật R1",
+            });
+          }
+          if (action === "da_xac_nhan" && result && result.detail_url) {
+            window.location.href = result.detail_url;
+            return;
+          }
+          self.forceNextRender = true;
+          self.loadAllNotifications();
+        },
+        error: function () {
+          if (btn) {
+            btn.disabled = false;
+            btn.classList.remove("is-loading");
+          }
+          if (app.helper && app.helper.showErrorNotification) {
+            app.helper.showErrorNotification({ message: "Lỗi mạng — thử lại" });
+          }
+        },
+      });
+    },
+
+    buildR1ActionsHtml: function (leadId) {
+      return (
+        '<div class="mk-r1-actions" data-r1-lead="' +
+        leadId +
+        '">' +
+        '<button type="button" class="mk-r1-btn mk-r1-btn--ghost" data-r1-action="hen_goi_lai">Hẹn gọi lại</button>' +
+        '<button type="button" class="mk-r1-btn mk-r1-btn--primary" data-r1-action="da_xac_nhan">Đã xác nhận</button>' +
+        "</div>"
+      );
+    },
+
+    ensureR1PopupHost: function () {
+      if (jQuery("#mk-r1-popup-host").length) return;
+      jQuery("body").append(
+        '<div id="mk-r1-popup-host" class="mk-r1-popup-host" aria-live="polite"></div>'
+      );
+      jQuery(document)
+        .off("click.mkR1Popup")
+        .on("click.mkR1Popup", "#mk-r1-popup-host [data-r1-action]", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var $btn = jQuery(this);
+          var leadId = $btn.closest("[data-r1-lead]").attr("data-r1-lead");
+          var action = $btn.attr("data-r1-action");
+          if (leadId && action) {
+            ModernNotifications.submitR1Action(leadId, action, this);
+          }
+        })
+        .on("click.mkR1Popup", "#mk-r1-popup-host .mk-r1-popup__close", function (e) {
+          e.preventDefault();
+          ModernNotifications.dismissR1Popup();
+        });
+    },
+
+    showR1Popup: function (notif) {
+      this.ensureR1PopupHost();
+      var message = this.decodeHtmlEntities(notif.message || "");
+      var meta = this.parseR1Marker(message);
+      if (!meta) return;
+      var clean = this.stripR1Marker(message);
+      var split = this.splitMessageForDisplay(clean);
+      var $host = jQuery("#mk-r1-popup-host");
+      $host.html(
+        '<div class="mk-r1-popup is-enter" role="dialog" aria-label="Nhắc R1">' +
+          '<button type="button" class="mk-r1-popup__close" aria-label="Đóng">&times;</button>' +
+          '<div class="mk-r1-popup__badge"><i class="fa fa-phone"></i> R1</div>' +
+          '<h3 class="mk-r1-popup__title">' +
+          this.escapeHtml(split.title || "Nhắc gọi lại") +
+          "</h3>" +
+          (split.body
+            ? '<p class="mk-r1-popup__body">' +
+              this.escapeHtml(split.body).replace(/\n/g, "<br>") +
+              "</p>"
+            : "") +
+          this.buildR1ActionsHtml(meta.leadId) +
+          "</div>"
+      );
+      requestAnimationFrame(function () {
+        $host.find(".mk-r1-popup").addClass("is-visible").removeClass("is-enter");
+      });
+    },
+
+    dismissR1Popup: function () {
+      var $card = jQuery("#mk-r1-popup-host .mk-r1-popup");
+      if (!$card.length) return;
+      $card.removeClass("is-visible").addClass("is-leave");
+      setTimeout(function () {
+        jQuery("#mk-r1-popup-host").empty();
+      }, 280);
+    },
+
+    escapeHtml: function (text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
     },
 
     renderNotificationItem: function (notif, container, isRead) {
@@ -742,7 +906,12 @@
 
       // Decode HTML entities in message and highlight keywords
       message = this.decodeHtmlEntities(message);
-      var notifType = this.resolveNotifType(notif, message);
+      var r1Meta = this.parseR1Marker(message);
+      if (r1Meta) {
+        message = this.stripR1Marker(message);
+      }
+      var notifType = this.resolveNotifType(notif, (notif.message || "") + " " + message);
+      if (r1Meta) notifType = "r1";
       var typeMeta = this.typeMeta(notifType);
       var splitMsg = this.splitMessageForDisplay(message);
       var titleHtml = this.highlightKeywords(splitMsg.title);
@@ -870,6 +1039,19 @@
       }
 
       inner.appendChild(mainRow);
+      if (r1Meta && r1Meta.leadId) {
+        var actionsWrap = document.createElement("div");
+        actionsWrap.innerHTML = self.buildR1ActionsHtml(r1Meta.leadId);
+        var actionsEl = actionsWrap.firstChild;
+        actionsEl.addEventListener("click", function (e) {
+          var btn = e.target && e.target.closest ? e.target.closest("[data-r1-action]") : null;
+          if (!btn) return;
+          e.preventDefault();
+          e.stopPropagation();
+          self.submitR1Action(r1Meta.leadId, btn.getAttribute("data-r1-action"), btn);
+        });
+        inner.appendChild(actionsEl);
+      }
       contentWrapper.appendChild(inner);
 
       li.addEventListener("click", function (e) {
@@ -1026,6 +1208,15 @@
       if (hasNew) {
         this.playSound();
         this.shakeBell();
+        for (var k = 0; k < newList.length; k++) {
+          var item = newList[k];
+          if (this.previousIds.indexOf(String(item.id)) !== -1) continue;
+          var rawMsg = this.decodeHtmlEntities(item.message || "");
+          if (this.parseR1Marker(rawMsg) || /^R1\s*·/i.test(rawMsg)) {
+            this.showR1Popup(item);
+            break;
+          }
+        }
       }
 
       this.previousIds = newIds;

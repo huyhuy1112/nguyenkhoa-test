@@ -42,7 +42,6 @@
 						<col class="mk-leads-col mk-leads-col--address" />
 						<col class="mk-leads-col mk-leads-col--biz" />
 						<col class="mk-leads-col mk-leads-col--products" />
-						<col class="mk-leads-col mk-leads-col--pstage" />
 						<col class="mk-leads-col mk-leads-col--source" />
 						<col class="mk-leads-col mk-leads-col--ctype" />
 						<col class="mk-leads-col mk-leads-col--owner" />
@@ -65,7 +64,6 @@
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_ADDRESS', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">Mô hình kinh doanh</th>
 							<th class="mk-leads-th" scope="col">Sản phẩm</th>
-							<th class="mk-leads-th" scope="col">Stage</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_SOURCE', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_CUSTOMER_TYPE', 'Leads')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_OWNER', 'Leads')}</th>

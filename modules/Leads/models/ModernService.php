@@ -147,6 +147,7 @@ class Leads_ModernService {
 	protected static function verifyProfileSelectSql() {
 		return ', p.form_c1, p.form_c2, p.form_c3, p.verify_c1, p.verify_c2, p.verify_c3, p.verify_c4, p.verify_c5,
 			p.eligibility_result, p.potential_level, p.verify_score, p.verify_change_reason, p.verified_at, p.verified_by,
+			p.answers_locked_at, p.answers_locked_by,
 			p.online_status, p.online_q1, p.online_q2, p.online_q3, p.online_q4, p.online_path, p.online_source_leadid, p.zalo_user_id,
 			p.edubit_user_id, p.edubit_course_id, p.edubit_email, p.edubit_activated_at, p.edubit_expires_at,
 			p.edubit_renew_count, p.edubit_expiry_reason, p.edubit_progress_pct, p.edubit_last_error,
@@ -1549,6 +1550,15 @@ class Leads_ModernService {
 				$verifiedAt = date('c', $ts);
 			}
 		}
+		$answersLockedAt = '';
+		$answersLocked = 0;
+		if (!empty($row['answers_locked_at']) && $row['answers_locked_at'] !== '0000-00-00 00:00:00') {
+			$tsLock = strtotime($row['answers_locked_at']);
+			if ($tsLock) {
+				$answersLockedAt = date('c', $tsLock);
+				$answersLocked = 1;
+			}
+		}
 		$isOnline = self::isOnlineGd12Row($row, $tags);
 		$eligLabel = $isOnline
 			? Leads_OnlineGd12Service::eligibilityLabel($eligibility)
@@ -1584,6 +1594,8 @@ class Leads_ModernService {
 			'online_status' => $onlineStatus,
 			'online_path' => $onlinePath,
 			'online_score_locked' => ($onlinePath === 'gd11') ? 1 : 0,
+			'answers_locked' => $answersLocked,
+			'answers_locked_at' => $answersLockedAt,
 			'can_transfer_offline' => ($isOnline && $eligibility === 'du_dk' && $potential !== '') ? 1 : 0,
 			'online_source_leadid' => isset($row['online_source_leadid']) ? (int) $row['online_source_leadid'] : 0,
 			'online_q1' => $onlineQ1,

@@ -1294,36 +1294,11 @@
   }
 
   function listOnlineVerifyOptions() {
+    var base = listVerifyOptions();
     return {
-      q1: [
-        { code: "A", label: "Học phục vụ gia đình / sở thích" },
-        { code: "B", label: "Xe đẩy / mang đi / online / tại nhà" },
-        { code: "C", label: "Chuẩn bị mở quán, đã có mặt bằng" },
-        { code: "D", label: "Đã có quán, kinh doanh chưa tốt" },
-        { code: "E", label: "Đã có quán, kinh doanh ổn định / tốt" },
-      ],
-      q2: [
-        { code: "A", label: "Trong 1 tháng / ngay bây giờ" },
-        { code: "B", label: "1–3 tháng" },
-        { code: "C", label: "3–6 tháng" },
-        { code: "D", label: "Trên 6 tháng / chưa xác định" },
-      ],
-      q3: [
-        { code: "A", label: "Dưới 50 triệu" },
-        { code: "B", label: "Từ 50 đến dưới 100 triệu" },
-        { code: "C", label: "Từ 100 đến dưới 300 triệu" },
-        { code: "D", label: "Từ 300 đến dưới 500 triệu" },
-        { code: "E", label: "Từ 500 triệu trở lên" },
-      ],
-      q4: [
-        { code: "A", label: "Xe đẩy cà phê – trà sữa – trà trái cây" },
-        { code: "B", label: "Trà sữa – topping, mặt bằng 20–30 m²" },
-        { code: "C", label: "Trà sữa pha máy, mặt bằng 20–30 m²" },
-        { code: "D", label: "Cà phê – trà sữa, máy lạnh" },
-        { code: "E", label: "Cà phê sân vườn, diện tích vừa – lớn" },
-        { code: "F", label: "Cà phê không gian mở, diện tích nhỏ" },
-        { code: "G", label: "Học pha chế cho gia đình / sở thích" },
-      ],
+      q1: base.c1,
+      q2: base.c2,
+      q3: base.c3,
     };
   }
 
@@ -1374,25 +1349,20 @@
     return {
       c1: [
         { code: "A", label: "Chuẩn bị mở quán" },
-        { code: "B", label: "Đã có quán, muốn cập nhật kiến thức / công thức / menu" },
-        { code: "C", label: "Đã có quán, đang gặp vấn đề cần cải thiện" },
-        { code: "D", label: "Học để biết thêm, phục vụ gia đình hoặc sở thích" },
+        { code: "B", label: "Đã có quán" },
+        { code: "C", label: "Học pha chế để phục vụ gia đình hoặc sở thích cá nhân" },
       ],
       c2: [
-        { code: "A", label: "Xe đẩy cà phê – trà sữa – trà trái cây" },
-        { code: "B", label: "Trà sữa – topping, có mặt bằng 20–30 m²" },
-        { code: "C", label: "Trà sữa pha máy, có mặt bằng 20–30 m²" },
-        { code: "D", label: "Cà phê – trà sữa, máy lạnh" },
-        { code: "E", label: "Cà phê sân vườn, diện tích vừa – lớn" },
-        { code: "F", label: "Cà phê không gian mở, diện tích nhỏ" },
-        { code: "G", label: "Học pha chế cho gia đình / sở thích" },
+        { code: "A", label: "Thuê mặt bằng / có sẵn mặt bằng để mở quán" },
+        { code: "B", label: "Mở vỉa hè / bán online" },
       ],
       c3: [
-        { code: "A", label: "Dưới 50 triệu" },
-        { code: "B", label: "Từ 50 đến dưới 100 triệu" },
-        { code: "C", label: "Từ 100 đến dưới 300 triệu" },
-        { code: "D", label: "Từ 300 đến dưới 500 triệu" },
-        { code: "E", label: "Từ 500 triệu trở lên" },
+        { code: "A", label: "Dưới 100 triệu" },
+        { code: "B", label: "Từ 100 đến dưới 200 triệu" },
+        { code: "C", label: "Từ 200 đến dưới 300 triệu" },
+        { code: "D", label: "Từ 300 đến dưới 400 triệu" },
+        { code: "E", label: "Từ 400 đến dưới 500 triệu" },
+        { code: "F", label: "Từ 500 triệu trở lên" },
       ],
     };
   }
@@ -1431,10 +1401,10 @@
       '<aside class="mk-leads-verify-panel__sheet" role="dialog" aria-modal="true" aria-labelledby="mk-leads-verify-title">' +
       '<header class="mk-leads-verify-panel__head">' +
       '<div class="mk-leads-verify-panel__head-main">' +
-      '<span class="mk-leads-verify-panel__badge" id="mk-leads-verify-badge">Bộ B</span>' +
+      '<span class="mk-leads-verify-panel__badge" id="mk-leads-verify-badge">3 câu</span>' +
       "<div>" +
       '<h3 id="mk-leads-verify-title">Sales xác minh</h3>' +
-      '<p class="mk-leads-verify-panel__sub" id="mk-leads-verify-sub">Gọi xác minh C1–C3, rồi C4/C5 nếu đủ điều kiện</p>' +
+      '<p class="mk-leads-verify-panel__sub" id="mk-leads-verify-sub">Gọi xác minh 3 câu (Online & Offline dùng chung)</p>' +
       "</div></div>" +
       '<button type="button" class="mk-leads-verify-panel__x" data-mk-verify-close="1" aria-label="Đóng">&times;</button>' +
       "</header>" +
@@ -1453,7 +1423,6 @@
     wrap.addEventListener("change", function (e) {
       var t = e.target;
       if (t && t.getAttribute && t.getAttribute("data-mk-verify")) {
-        syncListVerifyC45(wrap);
         setListVerifyMsg("", "");
       }
     });
@@ -1542,19 +1511,44 @@
     var badge = document.getElementById("mk-leads-verify-badge");
     var title = document.getElementById("mk-leads-verify-title");
     var sub = document.getElementById("mk-leads-verify-sub");
-    var locked = online && Number(lead.online_score_locked) === 1;
-    if (badge) badge.textContent = online ? (locked ? "Đường 2" : "Online 1.2") : "Bộ B";
-    if (title) title.textContent = online ? (locked ? "Online Đường 2 (khoá chấm)" : "Xác minh Online (4 câu)") : "Sales xác minh";
+    var lockedPath = online && Number(lead.online_score_locked) === 1;
+    var lockedAnswers = Number(lead.answers_locked) === 1;
+    var locked = lockedPath || lockedAnswers;
+    if (badge) {
+      badge.textContent = lockedAnswers
+        ? "Đã khoá"
+        : online
+          ? lockedPath
+            ? "Đường 2"
+            : "Online"
+          : "Offline";
+    }
+    if (title) {
+      title.textContent = lockedAnswers
+        ? "Đáp án đã khoá"
+        : online
+          ? lockedPath
+            ? "Online Đường 2 (khoá chấm)"
+            : "Xác minh Online (3 câu)"
+          : "Sales xác minh (3 câu)";
+    }
     if (sub) {
-      sub.textContent = online
-        ? (lead.name || "Lead") +
+      if (lockedAnswers) {
+        sub.textContent =
+          (lead.name || "Lead") +
           (lead.phone ? " · " + lead.phone : "") +
-          (locked
-            ? " · Chuyển từ Offline 1.1 — không chấm lại"
-            : " · Zalo OA — bộ 4 câu")
-        : (lead.name || "Lead") +
-          (lead.phone ? " · " + lead.phone : "") +
-          " · Google Sheet — C1–C3";
+          " · Đã thông báo kết quả — không sửa đáp án (đổi form sau 3 tháng)";
+      } else {
+        sub.textContent = online
+          ? (lead.name || "Lead") +
+            (lead.phone ? " · " + lead.phone : "") +
+            (lockedPath
+              ? " · Chuyển từ Offline 1.1 — không chấm lại"
+              : " · Bộ 3 câu dùng chung Offline")
+          : (lead.name || "Lead") +
+            (lead.phone ? " · " + lead.phone : "") +
+            " · Bộ 3 câu dùng chung Online";
+      }
     }
     var foot = document.querySelector("#mk-leads-verify-panel .mk-leads-verify-panel__foot");
     if (foot) {
@@ -1590,7 +1584,8 @@
   function fillListVerifyBodyOnline(lead) {
     var body = document.getElementById("mk-leads-verify-body");
     if (!body || !lead) return;
-    var locked = Number(lead.online_score_locked) === 1;
+    var locked = Number(lead.online_score_locked) === 1 || Number(lead.answers_locked) === 1;
+    var answersLocked = Number(lead.answers_locked) === 1;
     var opts =
       (lead.online_verify_options && lead.online_verify_options.q1
         ? lead.online_verify_options
@@ -1598,39 +1593,36 @@
     var q1 = lead.online_q1 || "";
     var q2 = lead.online_q2 || "";
     var q3 = lead.online_q3 || "";
-    var q4 = lead.online_q4 || "";
     paintListVerifyHeader(lead, true);
+    var lockBanner = answersLocked
+      ? '<p class="mk-leads-verify-offline__meta" style="color:#b45309"><strong>Đáp án đã khoá</strong> sau khi thông báo kết quả. Muốn đổi: khách đăng ký lại form sau 3 tháng.</p>'
+      : "";
     var editSection = locked
-      ? '<section class="mk-leads-verify-section"><h4>Đáp án đã chép từ Offline (khoá)</h4>' +
-        '<p class="mk-leads-verify-offline__meta">Q1=' +
+      ? '<section class="mk-leads-verify-section"><h4>Đáp án đã chốt</h4>' +
+        lockBanner +
+        '<p class="mk-leads-verify-offline__meta">C1=' +
         esc(q1 || "—") +
-        " · Q2=" +
+        " · C2=" +
         esc(q2 || "—") +
-        " · Q3=" +
+        " · C3=" +
         esc(q3 || "—") +
-        " · Q4=" +
-        esc(q4 || "—") +
         (lead.online_source_leadid
           ? " · Nguồn Offline #" + esc(String(lead.online_source_leadid))
           : "") +
         "</p></section>"
       : '<section class="mk-leads-verify-section">' +
-        "<h4>Sau cuộc gọi / chỉnh đáp án</h4>" +
+        "<h4>Sau cuộc gọi — 3 câu (dùng chung Offline)</h4>" +
         '<label class="mk-leads-verify-field"><span>Câu 1 — Tình trạng</span>' +
         listVerifySelectHtml("q1", opts.q1, q1) +
         listVerifyFormHint(lead.online_q1, lead.online_q1_label) +
         "</label>" +
-        '<label class="mk-leads-verify-field"><span>Câu 2 — Thời gian dự kiến</span>' +
+        '<label class="mk-leads-verify-field"><span>Câu 2 — Mô hình</span>' +
         listVerifySelectHtml("q2", opts.q2, q2) +
         listVerifyFormHint(lead.online_q2, lead.online_q2_label) +
         "</label>" +
         '<label class="mk-leads-verify-field"><span>Câu 3 — Ngân sách</span>' +
         listVerifySelectHtml("q3", opts.q3, q3) +
         listVerifyFormHint(lead.online_q3, lead.online_q3_label) +
-        "</label>" +
-        '<label class="mk-leads-verify-field"><span>Câu 4 — Mô hình</span>' +
-        listVerifySelectHtml("q4", opts.q4, q4) +
-        listVerifyFormHint(lead.online_q4, lead.online_q4_label) +
         "</label></section>";
     body.innerHTML =
       '<div class="mk-leads-verify-hero">' +
@@ -1642,27 +1634,22 @@
       (lead.phone ? '<span class="mk-leads-verify-phone">' + esc(lead.phone) + "</span>" : "") +
       "</div></div>" +
       '<section class="mk-leads-verify-section">' +
-      "<h4>Đáp án Form Zalo OA <span>(4 câu)</span></h4>" +
-      '<div class="mk-leads-verify-formcards mk-leads-verify-formcards--4">' +
-      '<div class="mk-leads-verify-formcard"><em>Q1</em><strong>' +
+      "<h4>Đáp án Form <span>(3 câu)</span></h4>" +
+      '<div class="mk-leads-verify-formcards">' +
+      '<div class="mk-leads-verify-formcard"><em>C1</em><strong>' +
       esc(lead.online_q1 || "—") +
       "</strong><small>" +
-      esc(lead.online_q1_label || (locked ? "Chép từ Offline" : "Chưa có từ Form OA")) +
+      esc(lead.online_q1_label || (locked ? "Chép từ Offline" : "Chưa có từ Form")) +
       "</small></div>" +
-      '<div class="mk-leads-verify-formcard"><em>Q2</em><strong>' +
+      '<div class="mk-leads-verify-formcard"><em>C2</em><strong>' +
       esc(lead.online_q2 || "—") +
       "</strong><small>" +
-      esc(lead.online_q2_label || (locked ? "Chép từ C5" : "Chưa có từ Form OA")) +
+      esc(lead.online_q2_label || (locked ? "Chép từ Offline" : "Chưa có từ Form")) +
       "</small></div>" +
-      '<div class="mk-leads-verify-formcard"><em>Q3</em><strong>' +
+      '<div class="mk-leads-verify-formcard"><em>C3</em><strong>' +
       esc(lead.online_q3 || "—") +
       "</strong><small>" +
-      esc(lead.online_q3_label || (locked ? "Chép từ Offline" : "Chưa có từ Form OA")) +
-      "</small></div>" +
-      '<div class="mk-leads-verify-formcard"><em>Q4</em><strong>' +
-      esc(lead.online_q4 || "—") +
-      "</strong><small>" +
-      esc(lead.online_q4_label || (locked ? "Chép từ Offline" : "Chưa có từ Form OA")) +
+      esc(lead.online_q3_label || (locked ? "Chép từ Offline" : "Chưa có từ Form")) +
       "</small></div></div></section>" +
       editSection +
       onlineEdubitHtml(lead) +
@@ -1785,7 +1772,7 @@
     return (
       '<div class="mk-leads-verify-offline__transfer mk-leads-verify-offline__transfer--rev">' +
       "<h5>Đường 2 — Online → Offline</h5>" +
-      '<p class="mk-leads-verify-offline__meta">Tạo hồ sơ Offline mới (Q1→C1, Q2→C5, Q3→C3, Q4→C2). Lead Online cũ sẽ xoá (thùng rác).</p>' +
+      '<p class="mk-leads-verify-offline__meta">Tạo hồ sơ Offline mới (C1–C3 chép sang). Lead Online cũ sẽ xoá (thùng rác).</p>' +
       '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--primary" data-mk-transfer-offline="1">Chuyển sang Offline</button></div>'
     );
   }
@@ -1797,21 +1784,43 @@
     var c1 = lead.verify_c1 || lead.form_c1 || "";
     var c2 = lead.verify_c2 || lead.form_c2 || "";
     var c3 = lead.verify_c3 || lead.form_c3 || "";
-    var c4 = lead.verify_c4 != null && lead.verify_c4 !== "" ? String(lead.verify_c4) : "";
-    var c5 = lead.verify_c5 != null && lead.verify_c5 !== "" ? String(lead.verify_c5) : "";
-    var levels =
-      opts.c4 && opts.c4.length
-        ? opts.c4
-        : [1, 2, 3, 4].map(function (n) {
-            return { code: String(n), label: "Mức " + n };
-          });
-    var levels5 =
-      opts.c5 && opts.c5.length
-        ? opts.c5
-        : levels;
-    var c4Label = opts.c4_label || "Câu 4 — Đánh giá mức độ quyết tâm / nhu cầu (1–4)";
-    var c5Label = opts.c5_label || "Câu 5 — Đánh giá mức độ phù hợp / khả năng triển khai (1–4)";
+    var answersLocked = Number(lead.answers_locked) === 1;
     paintListVerifyHeader(lead, false);
+    var editFields = answersLocked
+      ? '<p class="mk-leads-verify-offline__meta" style="color:#b45309"><strong>Đáp án đã khoá</strong> sau khi thông báo kết quả. C1=' +
+        esc(c1 || "—") +
+        " · C2=" +
+        esc(c2 || "—") +
+        " · C3=" +
+        esc(c3 || "—") +
+        ". Muốn đổi: khách đăng ký lại form sau 3 tháng.</p>"
+      : '<label class="mk-leads-verify-field"><span>Câu 1 — Tình trạng</span>' +
+        listVerifySelectHtml("c1", opts.c1, c1) +
+        listVerifyFormHint(lead.form_c1, lead.form_c1_label) +
+        "</label>" +
+        '<label class="mk-leads-verify-field"><span>Câu 2 — Mô hình</span>' +
+        listVerifySelectHtml("c2", opts.c2, c2) +
+        listVerifyFormHint(lead.form_c2, lead.form_c2_label) +
+        "</label>" +
+        '<label class="mk-leads-verify-field"><span>Câu 3 — Ngân sách</span>' +
+        listVerifySelectHtml("c3", opts.c3, c3) +
+        listVerifyFormHint(lead.form_c3, lead.form_c3_label) +
+        "</label>" +
+        '<label class="mk-leads-verify-field"><span>Lịch học sau xác minh <em>(Offline 1.1)</em></span>' +
+        listVerifySelectHtml(
+          "schedule_outcome",
+          [
+            { code: "chua_xac_nhan_lich", label: "Chưa xác nhận lịch học" },
+            { code: "da_xac_nhan_lich", label: "Đã xác nhận lịch học" },
+          ],
+          lead.offline_status === "offline_da_xac_nhan_lich" ? "da_xac_nhan_lich" : "chua_xac_nhan_lich",
+          "— Chọn —"
+        ) +
+        "</label>" +
+        '<label class="mk-leads-verify-field"><span>Ngày học (nếu đã xác nhận)</span>' +
+        '<input type="date" class="mk-leads-verify-select" data-mk-verify="class_date" value="' +
+        esc(lead.offline_class_date || "") +
+        '" /></label>';
     body.innerHTML =
       '<div class="mk-leads-verify-hero">' +
       '<div class="mk-leads-verify-hero__name">' +
@@ -1840,56 +1849,13 @@
       esc(lead.form_c3_label || "Chưa có từ Form") +
       "</small></div></div></section>" +
       '<section class="mk-leads-verify-section">' +
-      "<h4>Sau cuộc gọi — Bộ B</h4>" +
-      '<label class="mk-leads-verify-field"><span>Câu 1 — Tình trạng</span>' +
-      listVerifySelectHtml("c1", opts.c1, c1) +
-      listVerifyFormHint(lead.form_c1, lead.form_c1_label) +
-      "</label>" +
-      '<label class="mk-leads-verify-field"><span>Câu 2 — Mô hình</span>' +
-      listVerifySelectHtml("c2", opts.c2, c2) +
-      listVerifyFormHint(lead.form_c2, lead.form_c2_label) +
-      "</label>" +
-      '<label class="mk-leads-verify-field"><span>Câu 3 — Ngân sách</span>' +
-      listVerifySelectHtml("c3", opts.c3, c3) +
-      listVerifyFormHint(lead.form_c3, lead.form_c3_label) +
-      "</label>" +
-      '<div class="mk-leads-verify-c45" data-mk-verify-c45>' +
-      '<p class="mk-leads-verify-c45__hint" data-mk-verify-c45-hint>Đủ điều kiện sơ lược — chọn C4 và C5 để chấm mức tiềm năng.</p>' +
-      '<label class="mk-leads-verify-field"><span>' +
-      esc(c4Label) +
-      "</span>" +
-      listVerifySelectHtml("c4", levels, c4, "— Chọn mức —") +
-      "</label>" +
-      '<label class="mk-leads-verify-field"><span>' +
-      esc(c5Label) +
-      "</span>" +
-      listVerifySelectHtml("c5", levels5, c5, "— Chọn mức —") +
-      "</label></div>" +
-      '<p class="mk-leads-verify-c45-skip" data-mk-verify-c45-skip hidden>Không đủ điều kiện (lớp loại) — không cần C4/C5.</p>' +
-      '<label class="mk-leads-verify-field"><span>Lịch học sau xác minh <em>(Offline 1.1)</em></span>' +
-      listVerifySelectHtml(
-        "schedule_outcome",
-        [
-          { code: "chua_xac_nhan_lich", label: "Chưa xác nhận lịch học" },
-          { code: "da_xac_nhan_lich", label: "Đã xác nhận lịch học" },
-        ],
-        lead.offline_status === "offline_da_xac_nhan_lich" ? "da_xac_nhan_lich" : "chua_xac_nhan_lich",
-        "— Chọn —"
-      ) +
-      "</label>" +
-      '<label class="mk-leads-verify-field"><span>Ngày học (nếu đã xác nhận)</span>' +
-      '<input type="date" class="mk-leads-verify-select" data-mk-verify="class_date" value="' +
-      esc(lead.offline_class_date || "") +
-      '" /></label>' +
+      "<h4>Sau cuộc gọi — 3 câu</h4>" +
+      editFields +
       offlineStep1ActionsHtml(lead) +
-      '<label class="mk-leads-verify-field"><span>Lý do đổi đáp án <em>(bắt buộc nếu khác Form)</em></span>' +
-      '<textarea class="mk-leads-verify-note" rows="2" data-mk-verify="change_reason" placeholder="Ví dụ: Khách khai Form nhầm mô hình">' +
-      esc(lead.verify_change_reason || "") +
-      "</textarea></label></section>" +
+      "</section>" +
       listVerifyStatusHtml(lead) +
       '<p class="mk-leads-verify-err" data-mk-verify-err hidden></p>' +
       '<p class="mk-leads-verify-ok" data-mk-verify-ok hidden></p>';
-    syncListVerifyC45(document.getElementById("mk-leads-verify-panel"));
   }
 
   function offlineStepRankOf(actionOrStatus) {
@@ -2140,7 +2106,7 @@
     return (
       '<div class="mk-leads-verify-offline__transfer">' +
       "<h5>Đường 2 — Offline → Online</h5>" +
-      '<p class="mk-leads-verify-offline__meta">Tạo hồ sơ Online mới (C1→Q1, C5→Q2, C3→Q3, C2→Q4), khoá chấm, tag Chưa ĐK TK. Lead Offline cũ sẽ xoá (thùng rác).</p>' +
+      '<p class="mk-leads-verify-offline__meta">Tạo hồ sơ Online mới (C1–C3 chép sang), khoá chấm, tag Chưa ĐK TK. Lead Offline cũ sẽ xoá (thùng rác).</p>' +
       '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--primary" data-mk-transfer-online="1">Chuyển sang Online</button></div>'
     );
   }
@@ -2764,23 +2730,21 @@
     var payload = readListVerifyPayload(panel);
     var online = payload.mode === "online_gd12";
     setListVerifyMsg("", "");
+    if (lead && Number(lead.answers_locked) === 1 && action === "save") {
+      setListVerifyMsg(
+        "Đáp án đã khoá sau khi thông báo kết quả. Khách muốn đổi thì đăng ký lại form sau 3 tháng.",
+        ""
+      );
+      return;
+    }
     if (online) {
-      if (!payload.q1 || !payload.q2 || !payload.q3 || !payload.q4) {
-        setListVerifyMsg("Vui lòng chọn đủ Q1–Q4 (4 câu Online).", "");
+      if (!payload.q1 || !payload.q2 || !payload.q3) {
+        setListVerifyMsg("Vui lòng chọn đủ 3 câu (C1–C3).", "");
         return;
       }
     } else {
       if (!payload.c1 || !payload.c2 || !payload.c3) {
         setListVerifyMsg("Vui lòng chọn đủ C1, C2, C3.", "");
-        return;
-      }
-      var excluded =
-        payload.c1 === "D" ||
-        payload.c2 === "G" ||
-        payload.c3 === "A" ||
-        (payload.c2 === "A" && payload.c3 === "B");
-      if (!excluded && (!payload.c4 || !payload.c5)) {
-        setListVerifyMsg("Đủ điều kiện — vui lòng chọn Câu 4 và Câu 5 (mức 1–4) để chấm tiềm năng.", "");
         return;
       }
     }
@@ -3698,7 +3662,7 @@
                 '" data-lead-id="' +
                 esc(l.id) +
                 '" title="' +
-                (isOnlineVerifyLead(l) ? "Xác minh Online (4 câu)" : "Sales xác minh Bộ B (3 câu)") +
+                (isOnlineVerifyLead(l) ? "Xác minh Online (3 câu)" : "Sales xác minh (3 câu)") +
                 '">' +
                 '<svg class="mk-leads-verify-btn__ic" width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
                 '<path d="M12 3 5 6v6c0 5 3.2 8.2 7 9.5 3.8-1.3 7-4.5 7-9.5V6l-7-3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>' +
@@ -3726,9 +3690,6 @@
             "</td>" +
             '<td class="mk-leads-td mk-leads-td--products">' +
             renderProductChipsCell(l) +
-            "</td>" +
-            '<td class="mk-leads-td mk-leads-td--pstage">' +
-            renderProductStageCell(l) +
             "</td>" +
             '<td class="mk-leads-td">' +
             (src ? tagBadgeHtml(src) : '<span class="mk-leads-muted">—</span>') +

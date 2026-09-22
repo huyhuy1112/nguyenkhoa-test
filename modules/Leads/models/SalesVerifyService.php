@@ -1,8 +1,8 @@
 <?php
 /*+***********************************************************************************
- * Bộ B – 5 câu Sales xác minh (GD 1.1).
- * Đầu vào: C1–C3 sau xác minh (+ C4, C5 nếu đủ ĐK).
- * Đầu ra: Kết luận điều kiện + Mức tiềm năng. Không ghi đè đáp án Form.
+ * Bộ 3 câu hỏi sàng lọc (GD 1.1 mới) — Online + Offline dùng chung.
+ * Đầu vào: C1–C3 sau xác minh. Không còn C4/C5.
+ * Đầu ra: Kết luận ĐK · Mức tiềm năng · Nhóm KH · Mô hình KD.
  *************************************************************************************/
 
 class Leads_SalesVerifyService {
@@ -33,6 +33,9 @@ class Leads_SalesVerifyService {
 			'verify_change_reason' => "TEXT DEFAULT NULL",
 			'verified_at' => "DATETIME DEFAULT NULL",
 			'verified_by' => "INT(19) DEFAULT NULL",
+			// GD1.1: khoá đáp án sau khi Sales thông báo kết quả / tên lớp.
+			'answers_locked_at' => "DATETIME DEFAULT NULL",
+			'answers_locked_by' => "INT(19) DEFAULT NULL",
 		);
 		foreach ($cols as $name => $def) {
 			$res = $adb->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE ?", array($name));
@@ -40,44 +43,142 @@ class Leads_SalesVerifyService {
 				$adb->pquery("ALTER TABLE bace_lead_profile ADD COLUMN {$name} {$def}", array());
 			}
 		}
+		// Backfill: hồ sơ đã xác minh trước đó coi như đã khoá.
+		try {
+			$adb->pquery(
+				"UPDATE bace_lead_profile
+				 SET answers_locked_at = verified_at,
+				     answers_locked_by = verified_by
+				 WHERE answers_locked_at IS NULL
+				   AND verified_at IS NOT NULL
+				   AND verified_at <> ''
+				   AND verified_at <> '0000-00-00 00:00:00'",
+				array()
+			);
+		} catch (Exception $e) {
+			// ignore
+		}
 	}
 
 	/**
-	 * Lớp 0 + điểm + trần → kết luận.
+	 * Đáp án sau xác minh đã khoá (GD1.1 — sau khi thông báo kết quả).
+	 */
+	public static function isAnswersLocked($leadId) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return false;
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$res = $adb->pquery(
+			'SELECT answers_locked_at FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return false;
+		}
+		$at = trim((string) $adb->query_result($res, 0, 'answers_locked_at'));
+		return ($at !== '' && $at !== '0000-00-00 00:00:00');
+	}
+
+	public static function lockAnswers($leadId, $userId = 0) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return false;
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$now = date('Y-m-d H:i:s');
+		$userId = (int) $userId;
+		$adb->pquery(
+			'UPDATE bace_lead_profile SET answers_locked_at = ?, answers_locked_by = ?, modified_at = ? WHERE leadid = ?',
+			array($now, $userId > 0 ? $userId : null, $now, $leadId)
+		);
+		return true;
+	}
+
+	/**
+	 * Mở khoá khi khách tự khai lại form sau ≥ 3 tháng (GD1.1).
+	 */
+	public static function unlockAnswersIfReFormAllowed($leadId) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0 || !self::isAnswersLocked($leadId)) {
+			return false;
+		}
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT answers_locked_at FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		$at = ($res && $adb->num_rows($res) > 0)
+			? trim((string) $adb->query_result($res, 0, 'answers_locked_at'))
+			: '';
+		$ts = $at !== '' ? strtotime($at) : false;
+		if (!$ts || $ts > strtotime('-3 months')) {
+			return false;
+		}
+		$adb->pquery(
+			'UPDATE bace_lead_profile SET answers_locked_at = NULL, answers_locked_by = NULL, modified_at = ? WHERE leadid = ?',
+			array(date('Y-m-d H:i:s'), $leadId)
+		);
+		return true;
+	}
+
+	/**
+	 * Luật chấm GD1.1 mới (dừng khi khớp):
+	 * 1) C1=C (gia đình) → Không đủ ĐK
+	 * 2) C3=F (≥500tr) → Siêu tiềm năng
+	 * 3) C2=A (mặt bằng) → Tiềm năng
+	 * 4) Còn lại → Bình thường
 	 * @return array
 	 */
 	public static function compute(array $input) {
 		$c1 = strtoupper(trim((string) (isset($input['c1']) ? $input['c1'] : '')));
 		$c2 = strtoupper(trim((string) (isset($input['c2']) ? $input['c2'] : '')));
 		$c3 = strtoupper(trim((string) (isset($input['c3']) ? $input['c3'] : '')));
-		$c4 = (int) (isset($input['c4']) ? $input['c4'] : 0);
-		$c5 = (int) (isset($input['c5']) ? $input['c5'] : 0);
 
-		$excluded = self::isLayer0Excluded($c1, $c2, $c3);
-		if ($excluded) {
+		$group = self::customerGroupFromC1($c1);
+		$biz = self::businessModelFromC2($c2);
+
+		if ($c1 === 'C') {
 			return array(
 				'success' => true,
 				'eligibility_result' => 'khong_du_dk',
 				'eligibility_label' => 'Không đủ điều kiện',
-				'potential_level' => '',
-				'potential_label' => '',
+				'potential_level' => 'khong_du_dk',
+				'potential_label' => 'Không đủ điều kiện',
+				'customer_group' => $group,
+				'customer_group_label' => self::customerGroupLabel($group),
+				'business_model' => $biz,
+				'business_model_label' => $biz,
 				'score' => null,
-				'raw_band' => '',
-				'ceiling' => '',
 				'ask_c4_c5' => false,
-				'reason' => $excluded,
+				'reason' => 'C1 = C — học gia đình / sở thích',
 			);
 		}
 
-		$askC45 = true;
-		$score = null;
-		$rawBand = '';
-		$ceiling = self::ceilingFor($c2, $c3);
-		$level = '';
-		if ($c4 >= 1 && $c4 <= 4 && $c5 >= 1 && $c5 <= 4) {
-			$score = self::scoreC3($c3) + self::levelPoints($c4) + self::levelPoints($c5);
-			$rawBand = self::rawBand($score);
-			$level = self::applyCeiling($rawBand, $ceiling);
+		if ($c1 !== 'A' && $c1 !== 'B') {
+			return array(
+				'success' => false,
+				'eligibility_result' => '',
+				'eligibility_label' => '',
+				'potential_level' => '',
+				'potential_label' => '',
+				'customer_group' => '',
+				'customer_group_label' => '',
+				'business_model' => '',
+				'business_model_label' => '',
+				'score' => null,
+				'ask_c4_c5' => false,
+				'reason' => 'Thiếu hoặc sai mã Câu 1',
+			);
+		}
+
+		$level = 'binh_thuong';
+		if ($c3 === 'F') {
+			$level = 'sieu_tiem_nang';
+		} elseif ($c2 === 'A') {
+			$level = 'tiem_nang';
 		}
 
 		return array(
@@ -86,99 +187,48 @@ class Leads_SalesVerifyService {
 			'eligibility_label' => 'Đủ điều kiện',
 			'potential_level' => $level,
 			'potential_label' => self::potentialLabel($level),
-			'score' => $score,
-			'raw_band' => $rawBand,
-			'ceiling' => $ceiling,
-			'ask_c4_c5' => $askC45,
+			'customer_group' => $group,
+			'customer_group_label' => self::customerGroupLabel($group),
+			'business_model' => $biz,
+			'business_model_label' => $biz,
+			'score' => null,
+			'ask_c4_c5' => false,
 			'reason' => '',
 		);
 	}
 
-	protected static function isLayer0Excluded($c1, $c2, $c3) {
-		if ($c1 === 'D') {
-			return 'C1 = D — học gia đình / sở thích';
+	public static function customerGroupFromC1($c1) {
+		$c1 = strtoupper(trim((string) $c1));
+		if ($c1 === 'A') {
+			return 'nhom_2';
 		}
-		if ($c2 === 'G') {
-			return 'C2 = G — học pha chế gia đình / sở thích';
+		if ($c1 === 'B') {
+			return 'nhom_3';
 		}
-		if ($c3 === 'A') {
-			return 'C3 = A — ngân sách dưới 50 triệu';
-		}
-		if ($c2 === 'A' && $c3 === 'B') {
-			return 'C2 = A và C3 = B — xe đẩy + 50–100 triệu';
+		if ($c1 === 'C') {
+			return 'nhom_1';
 		}
 		return '';
 	}
 
-	protected static function scoreC3($c3) {
-		if ($c3 === 'D' || $c3 === 'E') {
-			return 3;
-		}
-		if ($c3 === 'C') {
-			return 2;
-		}
-		if ($c3 === 'B') {
-			return 1;
-		}
-		return 0;
-	}
-
-	protected static function levelPoints($level) {
-		$level = (int) $level;
-		if ($level === 1) {
-			return 3;
-		}
-		if ($level === 2) {
-			return 2;
-		}
-		if ($level === 3) {
-			return 1;
-		}
-		return 0;
-	}
-
-	protected static function rawBand($score) {
-		$score = (int) $score;
-		if ($score >= 7) {
-			return 'cao';
-		}
-		if ($score >= 4) {
-			return 'trung_binh';
-		}
-		return 'thap';
-	}
-
-	/** Trần thấp nhất khớp. */
-	protected static function ceilingFor($c2, $c3) {
-		if ($c3 === 'B') {
-			return 'binh_thuong';
-		}
-		if ($c2 === 'A') {
-			return 'tiem_nang';
-		}
-		if (in_array($c3, array('C', 'D', 'E'), true) && in_array($c2, array('B', 'C', 'D', 'E', 'F'), true)) {
-			return 'sieu_tiem_nang';
-		}
-		return 'sieu_tiem_nang';
-	}
-
-	protected static function applyCeiling($rawBand, $ceiling) {
-		$order = array('binh_thuong' => 0, 'tiem_nang' => 1, 'sieu_tiem_nang' => 2);
-		$fromBand = array(
-			'cao' => 'sieu_tiem_nang',
-			'trung_binh' => 'tiem_nang',
-			'thap' => 'binh_thuong',
+	public static function customerGroupLabel($code) {
+		$map = array(
+			'nhom_1' => 'Nhóm 1 — Gia đình, sở thích',
+			'nhom_2' => 'Nhóm 2 — Chuẩn bị mở quán',
+			'nhom_3' => 'Nhóm 3 — Đã có quán',
 		);
-		$raw = isset($fromBand[$rawBand]) ? $fromBand[$rawBand] : 'binh_thuong';
-		$rawN = isset($order[$raw]) ? $order[$raw] : 0;
-		$ceilN = isset($order[$ceiling]) ? $order[$ceiling] : 2;
-		$finalN = min($rawN, $ceilN);
-		foreach ($order as $k => $n) {
-			if ($n === $finalN) {
-				return $k;
-			}
+		return isset($map[$code]) ? $map[$code] : '';
+	}
+
+	public static function businessModelFromC2($c2) {
+		$c2 = strtoupper(trim((string) $c2));
+		if ($c2 === 'A') {
+			return 'Thuê hoặc có sẵn mặt bằng';
 		}
-		return 'binh_thuong';
+		if ($c2 === 'B') {
+			return 'Mở vỉa hè, bán online';
+		}
+		return '';
 	}
 
 	public static function potentialLabel($code) {
@@ -186,6 +236,7 @@ class Leads_SalesVerifyService {
 			'sieu_tiem_nang' => 'Siêu tiềm năng',
 			'tiem_nang' => 'Tiềm năng',
 			'binh_thuong' => 'Bình thường',
+			'khong_du_dk' => 'Không đủ điều kiện',
 		);
 		return isset($map[$code]) ? $map[$code] : '';
 	}
@@ -219,11 +270,15 @@ class Leads_SalesVerifyService {
 			throw new Exception('Lead not found.');
 		}
 
+		if (self::isAnswersLocked($leadId)) {
+			throw new Exception(
+				'Đáp án đã khoá sau khi thông báo kết quả. Khách muốn đổi thì đăng ký lại form sau 3 tháng.'
+			);
+		}
+
 		$c1 = strtoupper(trim((string) (isset($payload['c1']) ? $payload['c1'] : '')));
 		$c2 = strtoupper(trim((string) (isset($payload['c2']) ? $payload['c2'] : '')));
 		$c3 = strtoupper(trim((string) (isset($payload['c3']) ? $payload['c3'] : '')));
-		$c4 = isset($payload['c4']) ? (int) $payload['c4'] : 0;
-		$c5 = isset($payload['c5']) ? (int) $payload['c5'] : 0;
 		$reason = isset($payload['change_reason']) ? trim((string) $payload['change_reason']) : '';
 
 		if ($c1 === '' || $c2 === '' || $c3 === '') {
@@ -238,26 +293,14 @@ class Leads_SalesVerifyService {
 		$formC1 = strtoupper(trim((string) $adb->query_result($exists, 0, 'form_c1')));
 		$formC2 = strtoupper(trim((string) $adb->query_result($exists, 0, 'form_c2')));
 		$formC3 = strtoupper(trim((string) $adb->query_result($exists, 0, 'form_c3')));
-		$changedFromForm = ($formC1 !== '' && $formC1 !== $c1)
-			|| ($formC2 !== '' && $formC2 !== $c2)
-			|| ($formC3 !== '' && $formC3 !== $c3);
-		if ($changedFromForm && $reason === '') {
-			throw new Exception('Đáp án sau xác minh khác Form — vui lòng ghi lý do thay đổi.');
-		}
 
 		$result = self::compute(array(
 			'c1' => $c1,
 			'c2' => $c2,
 			'c3' => $c3,
-			'c4' => $c4,
-			'c5' => $c5,
 		));
-		if (!empty($result['ask_c4_c5']) && ($c4 < 1 || $c5 < 1)) {
-			throw new Exception('Khách đủ điều kiện — cần chọn Câu 4 và Câu 5 (mức 1–4).');
-		}
-		if (empty($result['ask_c4_c5'])) {
-			$c4 = 0;
-			$c5 = 0;
+		if (empty($result['success'])) {
+			throw new Exception(isset($result['reason']) && $result['reason'] !== '' ? $result['reason'] : 'Không chấm được bộ 3 câu.');
 		}
 
 		$now = date('Y-m-d H:i:s');
@@ -265,20 +308,20 @@ class Leads_SalesVerifyService {
 
 		$adb->pquery(
 			'UPDATE bace_lead_profile SET
-				verify_c1=?, verify_c2=?, verify_c3=?, verify_c4=?, verify_c5=?,
-				eligibility_result=?, potential_level=?, verify_score=?,
-				verify_change_reason=?, verified_at=?, verified_by=?, modified_at=?
+				verify_c1=?, verify_c2=?, verify_c3=?, verify_c4=NULL, verify_c5=NULL,
+				eligibility_result=?, potential_level=?, verify_score=NULL,
+				verify_change_reason=?, verified_at=?, verified_by=?,
+				answers_locked_at=?, answers_locked_by=?, modified_at=?
 			 WHERE leadid=?',
 			array(
 				$c1,
 				$c2,
 				$c3,
-				$c4 > 0 ? $c4 : null,
-				$c5 > 0 ? $c5 : null,
 				$result['eligibility_result'],
 				$result['potential_level'] !== '' ? $result['potential_level'] : null,
-				$result['score'] !== null ? (int) $result['score'] : null,
 				$reason !== '' ? $reason : null,
+				$now,
+				$userId > 0 ? $userId : null,
 				$now,
 				$userId > 0 ? $userId : null,
 				$now,
@@ -286,7 +329,9 @@ class Leads_SalesVerifyService {
 			)
 		);
 
-		$biz = Vtiger_BusinessModel_Helper::fromFormAnswer($c2);
+		$biz = isset($result['business_model']) && $result['business_model'] !== ''
+			? $result['business_model']
+			: Vtiger_BusinessModel_Helper::fromFormAnswer($c2);
 		$patch = array(
 			'business_model' => $biz,
 		);
@@ -371,12 +416,14 @@ class Leads_SalesVerifyService {
 				$out[] = 'sieu_tiem_nang';
 			} elseif ($potentialLevel === 'tiem_nang') {
 				$out[] = 'tiem_nang';
+			} elseif ($potentialLevel === 'binh_thuong') {
+				$out[] = 'binh_thuong';
 			}
 		}
 		return array_values(array_unique($out));
 	}
 
-	/** Lưu đáp án Form (Bộ A) — chỉ ghi khi cột còn trống. */
+	/** Lưu đáp án Form — chỉ ghi khi cột còn trống; hoặc ghi đè nếu đã mở khoá sau 3 tháng. */
 	public static function seedFormAnswers($leadId, $c1, $c2, $c3) {
 		$adb = PearDatabase::getInstance();
 		self::installSchema($adb);
@@ -386,6 +433,7 @@ class Leads_SalesVerifyService {
 		if ($c1 === '' && $c2 === '' && $c3 === '') {
 			return;
 		}
+		$unlocked = self::unlockAnswersIfReFormAllowed($leadId);
 		$res = $adb->pquery(
 			'SELECT form_c1, form_c2, form_c3 FROM bace_lead_profile WHERE leadid = ?',
 			array((int) $leadId)
@@ -396,6 +444,23 @@ class Leads_SalesVerifyService {
 		$fc1 = trim((string) $adb->query_result($res, 0, 'form_c1'));
 		$fc2 = trim((string) $adb->query_result($res, 0, 'form_c2'));
 		$fc3 = trim((string) $adb->query_result($res, 0, 'form_c3'));
+		if ($unlocked) {
+			// Form mới sau ≥ 3 tháng: ghi đè đáp án form; verify sẽ do Sales chấm lại.
+			$adb->pquery(
+				'UPDATE bace_lead_profile SET form_c1=?, form_c2=?, form_c3=?,
+					verify_c1=NULL, verify_c2=NULL, verify_c3=NULL,
+					eligibility_result=NULL, potential_level=NULL, verified_at=NULL, verified_by=NULL,
+					modified_at=? WHERE leadid=?',
+				array(
+					$c1 !== '' ? $c1 : null,
+					$c2 !== '' ? $c2 : null,
+					$c3 !== '' ? $c3 : null,
+					date('Y-m-d H:i:s'),
+					(int) $leadId,
+				)
+			);
+			return;
+		}
 		$adb->pquery(
 			'UPDATE bace_lead_profile SET form_c1=?, form_c2=?, form_c3=?, modified_at=? WHERE leadid=?',
 			array(
@@ -412,42 +477,25 @@ class Leads_SalesVerifyService {
 		return array(
 			'c1' => array(
 				array('code' => 'A', 'label' => 'Chuẩn bị mở quán'),
-				array('code' => 'B', 'label' => 'Đã có quán, muốn cập nhật kiến thức / công thức / menu'),
-				array('code' => 'C', 'label' => 'Đã có quán, đang gặp vấn đề cần cải thiện'),
-				array('code' => 'D', 'label' => 'Học để biết thêm, phục vụ gia đình hoặc sở thích'),
+				array('code' => 'B', 'label' => 'Đã có quán'),
+				array('code' => 'C', 'label' => 'Học pha chế để phục vụ gia đình hoặc sở thích cá nhân'),
 			),
 			'c2' => array(
-				array('code' => 'A', 'label' => 'Xe đẩy cà phê – trà sữa – trà trái cây'),
-				array('code' => 'B', 'label' => 'Trà sữa – topping, có mặt bằng 20–30 m²'),
-				array('code' => 'C', 'label' => 'Trà sữa pha máy, có mặt bằng 20–30 m²'),
-				array('code' => 'D', 'label' => 'Cà phê – trà sữa, máy lạnh'),
-				array('code' => 'E', 'label' => 'Cà phê sân vườn, diện tích vừa – lớn'),
-				array('code' => 'F', 'label' => 'Cà phê không gian mở, diện tích nhỏ'),
-				array('code' => 'G', 'label' => 'Học pha chế cho gia đình / sở thích'),
+				array('code' => 'A', 'label' => 'Thuê mặt bằng / có sẵn mặt bằng để mở quán'),
+				array('code' => 'B', 'label' => 'Mở vỉa hè / bán online'),
 			),
 			'c3' => array(
-				array('code' => 'A', 'label' => 'Dưới 50 triệu'),
-				array('code' => 'B', 'label' => 'Từ 50 đến dưới 100 triệu'),
-				array('code' => 'C', 'label' => 'Từ 100 đến dưới 300 triệu'),
-				array('code' => 'D', 'label' => 'Từ 300 đến dưới 500 triệu'),
-				array('code' => 'E', 'label' => 'Từ 500 triệu trở lên'),
+				array('code' => 'A', 'label' => 'Dưới 100 triệu'),
+				array('code' => 'B', 'label' => 'Từ 100 đến dưới 200 triệu'),
+				array('code' => 'C', 'label' => 'Từ 200 đến dưới 300 triệu'),
+				array('code' => 'D', 'label' => 'Từ 300 đến dưới 400 triệu'),
+				array('code' => 'E', 'label' => 'Từ 400 đến dưới 500 triệu'),
+				array('code' => 'F', 'label' => 'Từ 500 triệu trở lên'),
 			),
-			'c4' => array(
-				array('code' => '1', 'label' => 'Mức 1 — Rất cao'),
-				array('code' => '2', 'label' => 'Mức 2 — Cao'),
-				array('code' => '3', 'label' => 'Mức 3 — Trung bình'),
-				array('code' => '4', 'label' => 'Mức 4 — Thấp'),
-			),
-			'c5' => array(
-				array('code' => '1', 'label' => 'Mức 1 — Rất cao'),
-				array('code' => '2', 'label' => 'Mức 2 — Cao'),
-				array('code' => '3', 'label' => 'Mức 3 — Trung bình'),
-				array('code' => '4', 'label' => 'Mức 4 — Thấp'),
-			),
-			'c4_label' => 'Câu 4 — Đánh giá mức độ quyết tâm / nhu cầu (1–4)',
-			'c5_label' => 'Câu 5 — Đánh giá mức độ phù hợp / khả năng triển khai (1–4)',
-			'c4_levels' => array(1, 2, 3, 4),
-			'c5_levels' => array(1, 2, 3, 4),
+			'c1_label' => 'Câu 1 — Tình trạng hiện tại',
+			'c2_label' => 'Câu 2 — Mô hình dự định / đang kinh doanh',
+			'c3_label' => 'Câu 3 — Khả năng tài chính tối đa',
+			'ask_c4_c5' => false,
 		);
 	}
 }

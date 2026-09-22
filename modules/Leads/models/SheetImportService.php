@@ -632,23 +632,24 @@ class Leads_SheetImportService {
 		);
 	}
 
-	/** @return string A|B|C|D|'' */
+	/** @return string A|B|C|'' */
 	public static function parseFormQ1($raw) {
 		$code = self::parseLeadingLetter($raw, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-		if ($code !== '') {
+		if ($code === 'D') {
+			// Legacy form: D = gia đình → map sang C mới.
+			return 'C';
+		}
+		if ($code === 'A' || $code === 'B' || $code === 'C') {
 			return $code;
 		}
 		$f = self::fold($raw);
 		if ($f === '') {
 			return '';
 		}
-		if (strpos($f, 'gia dinh') !== false || strpos($f, 'so thich') !== false || strpos($f, 'hoc de biet') !== false) {
-			return 'D';
-		}
-		if (strpos($f, 'gap van de') !== false || strpos($f, 'cai thien') !== false) {
+		if (strpos($f, 'gia dinh') !== false || strpos($f, 'so thich') !== false || strpos($f, 'hoc de biet') !== false || strpos($f, 'hoc pha che') !== false) {
 			return 'C';
 		}
-		if (strpos($f, 'da co quan') !== false || strpos($f, 'cap nhat') !== false) {
+		if (strpos($f, 'da co quan') !== false) {
 			return 'B';
 		}
 		if (strpos($f, 'chuan bi mo') !== false || strpos($f, 'mo quan') !== false) {
@@ -657,75 +658,63 @@ class Leads_SheetImportService {
 		return '';
 	}
 
-	/** @return string A–G|'' */
+	/** @return string A|B|'' */
 	public static function parseFormQ2($raw) {
 		$code = self::parseLeadingLetter($raw, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-		if ($code !== '') {
+		if ($code === 'A' || $code === 'B') {
 			return $code;
+		}
+		// Legacy A–G map → A (mặt bằng) / B (vỉa hè·online)
+		if (in_array($code, array('C', 'D', 'E', 'F'), true)) {
+			return 'A';
+		}
+		if ($code === 'G') {
+			return '';
 		}
 		$f = self::fold($raw);
 		if ($f === '') {
 			return '';
 		}
-		if (strpos($f, 'gia dinh') !== false || strpos($f, 'so thich') !== false) {
-			return 'G';
-		}
-		if (strpos($f, 'xe day') !== false) {
-			return 'A';
-		}
-		if (strpos($f, 'topping') !== false) {
+		if (strpos($f, 'via he') !== false || strpos($f, 'online') !== false || strpos($f, 'xe day') !== false || strpos($f, 'mang di') !== false || strpos($f, 'tai nha') !== false) {
 			return 'B';
 		}
-		if (strpos($f, 'pha may') !== false) {
-			return 'C';
-		}
-		if (strpos($f, 'san vuon') !== false) {
-			return 'E';
-		}
-		if (strpos($f, 'khong gian mo') !== false) {
-			return 'F';
-		}
-		if (strpos($f, 'may lanh') !== false || strpos($f, 'ca phe may') !== false) {
-			return 'D';
+		if (strpos($f, 'mat bang') !== false || strpos($f, 'thue') !== false || strpos($f, 'may lanh') !== false || strpos($f, 'san vuon') !== false || strpos($f, 'topping') !== false || strpos($f, 'pha may') !== false) {
+			return 'A';
 		}
 		return '';
 	}
 
-	/** @return string A–E|'' */
+	/** @return string A–F|'' */
 	public static function parseFormQ3($raw) {
 		$code = self::parseLeadingLetter($raw, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-		if ($code !== '') {
+		if ($code !== '' && strpos('ABCDEF', $code) !== false) {
 			return $code;
 		}
 		$f = self::fold($raw);
 		if ($f === '') {
 			return '';
 		}
-		// D trước A: "duoi 500" không được khớp nhầm thành "duoi 50".
-		if (
-			(strpos($f, '300') !== false && strpos($f, '500') !== false)
-			|| (preg_match('/\b300\b/', $f) && preg_match('/\b500\b/', $f))
-		) {
+		if (strpos($f, '500') !== false && (strpos($f, 'tro len') !== false || strpos($f, 'tu 500') !== false || strpos($f, 'tren 500') !== false || strpos($f, '>=') !== false)) {
+			return 'F';
+		}
+		if ((strpos($f, '400') !== false && strpos($f, '500') !== false) || preg_match('/\b400\b.*\b500\b/', $f)) {
+			return 'E';
+		}
+		if ((strpos($f, '300') !== false && strpos($f, '400') !== false) || preg_match('/\b300\b.*\b400\b/', $f)) {
 			return 'D';
 		}
-		if (strpos($f, '500') !== false && (strpos($f, 'tro len') !== false || strpos($f, 'tu 500') !== false || strpos($f, 'tren 500') !== false)) {
-			return 'E';
-		}
-		if (strpos($f, '100') !== false && strpos($f, '300') !== false) {
+		if ((strpos($f, '200') !== false && strpos($f, '300') !== false) || preg_match('/\b200\b.*\b300\b/', $f)) {
 			return 'C';
 		}
-		if (
-			(preg_match('/\b50\b/', $f) && preg_match('/\b100\b/', $f))
-			|| strpos($f, '50 100') !== false
-		) {
+		if ((strpos($f, '100') !== false && strpos($f, '200') !== false) || preg_match('/\b100\b.*\b200\b/', $f)) {
 			return 'B';
 		}
-		// Word-boundary: "duoi 50" ≠ substring của "duoi 500".
-		if (preg_match('/\bduoi 50\b/', $f) || preg_match('/\b< ?50\b/', $f) || $f === 'a') {
+		if (preg_match('/\bduoi 100\b/', $f) || preg_match('/\b< ?100\b/', $f) || (strpos($f, 'duoi') !== false && strpos($f, '100') !== false && strpos($f, '200') === false)) {
 			return 'A';
 		}
-		if (strpos($f, 'tu 500') !== false || strpos($f, 'tren 500') !== false) {
-			return 'E';
+		// Legacy E = ≥500 → F
+		if ($code === 'E' && (strpos($f, '500') !== false || $f === '')) {
+			return 'F';
 		}
 		return '';
 	}
@@ -745,8 +734,8 @@ class Leads_SheetImportService {
 	}
 
 	/**
-	 * Bộ A – 6 rule, dừng khi khớp.
-	 * @return string so_luoc_du_dk|can_xm_muc_dich|can_xm_mo_hinh|so_luoc_khong_dk|''
+	 * Sàng lọc sơ bộ từ form 3 câu (GD1.1 mới).
+	 * @return string so_luoc_du_dk|so_luoc_khong_dk|''
 	 */
 	public static function computeSoLuocResult($c1, $c2, $c3) {
 		$c1 = strtoupper(trim((string) $c1));
@@ -755,24 +744,15 @@ class Leads_SheetImportService {
 		if ($c1 === '' && $c2 === '' && $c3 === '') {
 			return '';
 		}
-		$family = ($c1 === 'D' || $c2 === 'G');
-		$highBudget = in_array($c3, array('C', 'D', 'E'), true);
-		if ($family && $highBudget) {
-			return 'can_xm_muc_dich';
+		require_once 'modules/Leads/models/SalesVerifyService.php';
+		$result = Leads_SalesVerifyService::compute(array('c1' => $c1, 'c2' => $c2, 'c3' => $c3));
+		if (empty($result['success'])) {
+			return '';
 		}
-		if ($family) {
+		if (isset($result['eligibility_result']) && $result['eligibility_result'] === 'khong_du_dk') {
 			return 'so_luoc_khong_dk';
 		}
-		if ($c3 === 'A') {
-			return 'so_luoc_khong_dk';
-		}
-		if ($c2 === 'A' && $c3 === 'B') {
-			return 'so_luoc_khong_dk';
-		}
-		if ($c2 === 'A' && $highBudget) {
-			return 'can_xm_mo_hinh';
-		}
-		if ($c1 !== '' && $c2 !== '' && $c3 !== '') {
+		if (isset($result['eligibility_result']) && $result['eligibility_result'] === 'du_dk') {
 			return 'so_luoc_du_dk';
 		}
 		return '';
@@ -783,10 +763,10 @@ class Leads_SheetImportService {
 		if ($c1 === 'A') {
 			return 'chuan_bi_mo';
 		}
-		if ($c1 === 'B' || $c1 === 'C') {
+		if ($c1 === 'B') {
 			return 'co_quan';
 		}
-		if ($c1 === 'D') {
+		if ($c1 === 'C' || $c1 === 'D') {
 			return 'gia_dinh';
 		}
 		return '';

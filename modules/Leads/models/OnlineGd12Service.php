@@ -129,39 +129,18 @@ class Leads_OnlineGd12Service {
 	}
 
 	/**
-	 * Catalog Q1–Q4 for CRM verify panel (Online OA).
+	 * Catalog 3 câu dùng chung Online + Offline (GD1.1 mới).
 	 */
 	public static function optionsCatalog() {
+		require_once 'modules/Leads/models/SalesVerifyService.php';
+		$base = Leads_SalesVerifyService::optionsCatalog();
 		return array(
-			'q1' => array(
-				array('code' => 'A', 'label' => 'Học phục vụ gia đình / sở thích'),
-				array('code' => 'B', 'label' => 'Xe đẩy / mang đi / online / tại nhà'),
-				array('code' => 'C', 'label' => 'Chuẩn bị mở quán, đã có mặt bằng'),
-				array('code' => 'D', 'label' => 'Đã có quán, kinh doanh chưa tốt'),
-				array('code' => 'E', 'label' => 'Đã có quán, kinh doanh ổn định / tốt'),
-			),
-			'q2' => array(
-				array('code' => 'A', 'label' => 'Trong 1 tháng / ngay bây giờ'),
-				array('code' => 'B', 'label' => '1–3 tháng'),
-				array('code' => 'C', 'label' => '3–6 tháng'),
-				array('code' => 'D', 'label' => 'Trên 6 tháng / chưa xác định'),
-			),
-			'q3' => array(
-				array('code' => 'A', 'label' => 'Dưới 50 triệu'),
-				array('code' => 'B', 'label' => 'Từ 50 đến dưới 100 triệu'),
-				array('code' => 'C', 'label' => 'Từ 100 đến dưới 300 triệu'),
-				array('code' => 'D', 'label' => 'Từ 300 đến dưới 500 triệu'),
-				array('code' => 'E', 'label' => 'Từ 500 triệu trở lên'),
-			),
-			'q4' => array(
-				array('code' => 'A', 'label' => 'Xe đẩy cà phê – trà sữa – trà trái cây'),
-				array('code' => 'B', 'label' => 'Trà sữa – topping, mặt bằng 20–30 m²'),
-				array('code' => 'C', 'label' => 'Trà sữa pha máy, mặt bằng 20–30 m²'),
-				array('code' => 'D', 'label' => 'Cà phê – trà sữa, máy lạnh'),
-				array('code' => 'E', 'label' => 'Cà phê sân vườn, diện tích vừa – lớn'),
-				array('code' => 'F', 'label' => 'Cà phê không gian mở, diện tích nhỏ'),
-				array('code' => 'G', 'label' => 'Học pha chế cho gia đình / sở thích'),
-			),
+			'q1' => isset($base['c1']) ? $base['c1'] : array(),
+			'q2' => isset($base['c2']) ? $base['c2'] : array(),
+			'q3' => isset($base['c3']) ? $base['c3'] : array(),
+			'q1_label' => isset($base['c1_label']) ? $base['c1_label'] : 'Câu 1',
+			'q2_label' => isset($base['c2_label']) ? $base['c2_label'] : 'Câu 2',
+			'q3_label' => isset($base['c3_label']) ? $base['c3_label'] : 'Câu 3',
 		);
 	}
 
@@ -193,7 +172,7 @@ class Leads_OnlineGd12Service {
 	}
 
 	/**
-	 * Sales re-score / save Online 4-question answers on a lead.
+	 * Sales re-score / save Online 3-question answers on a lead (cùng bộ Offline).
 	 */
 	public static function saveForLead($leadId, array $payload, $userId = null) {
 		$leadId = (int) $leadId;
@@ -203,22 +182,28 @@ class Leads_OnlineGd12Service {
 		if (self::isScoreLocked($leadId)) {
 			return array(
 				'success' => false,
-				'error' => 'Hồ sơ Đường 2 (từ Offline 1.1) đã khoá chấm tự động — không sửa bộ 4 câu.',
+				'error' => 'Hồ sơ Đường 2 (từ Offline 1.1) đã khoá chấm tự động — không sửa bộ 3 câu.',
+			);
+		}
+		require_once 'modules/Leads/models/SalesVerifyService.php';
+		if (Leads_SalesVerifyService::isAnswersLocked($leadId)) {
+			return array(
+				'success' => false,
+				'error' => 'Đáp án đã khoá sau khi thông báo kết quả. Khách muốn đổi thì đăng ký lại form sau 3 tháng.',
 			);
 		}
 		$q1 = isset($payload['q1']) ? $payload['q1'] : (isset($payload['c1']) ? $payload['c1'] : '');
 		$q2 = isset($payload['q2']) ? $payload['q2'] : (isset($payload['c2']) ? $payload['c2'] : '');
 		$q3 = isset($payload['q3']) ? $payload['q3'] : (isset($payload['c3']) ? $payload['c3'] : '');
-		$q4 = isset($payload['q4']) ? $payload['q4'] : (isset($payload['c4']) ? $payload['c4'] : '');
-		$result = self::compute($q1, $q2, $q3, $q4);
+		$result = self::compute($q1, $q2, $q3, '');
 		if (empty($result['success'])) {
-			return array('success' => false, 'error' => 'Không chấm được bộ 4 câu', 'result' => $result);
+			return array('success' => false, 'error' => 'Không chấm được bộ 3 câu', 'result' => $result);
 		}
 		self::applyToLead($leadId, $result, '');
+		Leads_SalesVerifyService::lockAnswers($leadId, $userId);
 		require_once 'modules/Leads/models/ModernService.php';
 		$lead = Leads_ModernService::getLead((string) $leadId, $userId);
 
-		// GD 1.2: đủ ĐK → ở Lead để cấp TK Edubit; cấp xong mới xuống KH (không qua Opp).
 		$out = array('success' => true, 'result' => $result, 'lead' => $lead);
 		if (isset($result['eligibility_result']) && $result['eligibility_result'] === 'du_dk') {
 			$out['next'] = 'edubit_provision';
@@ -330,21 +315,23 @@ class Leads_OnlineGd12Service {
 		$c1 = isset($src['verify_c1']) ? strtoupper(trim((string) $src['verify_c1'])) : '';
 		$c2 = isset($src['verify_c2']) ? strtoupper(trim((string) $src['verify_c2'])) : '';
 		$c3 = isset($src['verify_c3']) ? strtoupper(trim((string) $src['verify_c3'])) : '';
-		$c5 = isset($src['verify_c5']) ? (int) $src['verify_c5'] : 0;
 		$q1 = $c1;
-		$q2 = self::mapVerifyC5ToQ2($c5);
+		$q2 = $c2;
 		$q3 = $c3;
-		$q4 = $c2;
-		if ($q1 === '' || $q2 === '' || $q3 === '' || $q4 === '') {
+		$q4 = '';
+		if ($q1 === '' || $q2 === '' || $q3 === '') {
 			return array(
 				'success' => false,
-				'error' => 'Thiếu đáp án sau xác minh (cần C1, C2, C3 và C5) để chép sang Online',
+				'error' => 'Thiếu đáp án sau xác minh (cần C1, C2, C3) để chép sang Online',
 			);
 		}
 
-		$group = self::customerGroupFromQ1($q1);
-		$seg = self::segmentFromGroup($group['code']);
-		$biz = self::businessModelKey($q4);
+		require_once 'modules/Leads/models/SalesVerifyService.php';
+		$groupCode = Leads_SalesVerifyService::customerGroupFromC1($q1);
+		$seg = self::segmentFromGroup($groupCode);
+		$biz = isset($src['business_model']) && trim((string) $src['business_model']) !== ''
+			? trim((string) $src['business_model'])
+			: Leads_SalesVerifyService::businessModelFromC2($q2);
 		$phone = isset($src['phone']) ? trim((string) $src['phone']) : '';
 		$name = isset($src['name']) ? trim((string) $src['name']) : '';
 		if ($name === '' || $phone === '') {
@@ -466,15 +453,13 @@ class Leads_OnlineGd12Service {
 		$q1 = isset($src['online_q1']) ? strtoupper(trim((string) $src['online_q1'])) : '';
 		$q2 = isset($src['online_q2']) ? strtoupper(trim((string) $src['online_q2'])) : '';
 		$q3 = isset($src['online_q3']) ? strtoupper(trim((string) $src['online_q3'])) : '';
-		$q4 = isset($src['online_q4']) ? strtoupper(trim((string) $src['online_q4'])) : '';
 		$c1 = $q1;
-		$c2 = $q4;
+		$c2 = $q2;
 		$c3 = $q3;
-		$c5 = self::mapQ2ToVerifyC5($q2);
-		if ($c1 === '' || $c2 === '' || $c3 === '' || $c5 < 1) {
+		if ($c1 === '' || $c2 === '' || $c3 === '') {
 			return array(
 				'success' => false,
-				'error' => 'Thiếu đáp án Online (cần Q1–Q4) để chép sang Offline',
+				'error' => 'Thiếu đáp án Online (cần 3 câu C1–C3) để chép sang Offline',
 			);
 		}
 
@@ -485,7 +470,8 @@ class Leads_OnlineGd12Service {
 		}
 
 		$seg = isset($src['segment']) ? trim((string) $src['segment']) : '';
-		$biz = isset($src['business_model']) ? trim((string) $src['business_model']) : self::businessModelKey($q4);
+		require_once 'modules/Leads/models/SalesVerifyService.php';
+		$biz = isset($src['business_model']) ? trim((string) $src['business_model']) : Leads_SalesVerifyService::businessModelFromC2($c2);
 		$tags = array('mien_phi_offline');
 		if ($pot === 'sieu_tiem_nang' || $pot === 'tiem_nang') {
 			$tags[] = $pot;
@@ -526,7 +512,7 @@ class Leads_OnlineGd12Service {
 		$adb->pquery(
 			"UPDATE bace_lead_profile SET
 				form_c1 = ?, form_c2 = ?, form_c3 = ?,
-				verify_c1 = ?, verify_c2 = ?, verify_c3 = ?, verify_c5 = ?,
+				verify_c1 = ?, verify_c2 = ?, verify_c3 = ?, verify_c4 = NULL, verify_c5 = NULL,
 				eligibility_result = 'du_dk', potential_level = ?, business_model = ?, segment = ?,
 				online_status = NULL, online_path = NULL, online_source_leadid = ?,
 				online_q1 = NULL, online_q2 = NULL, online_q3 = NULL, online_q4 = NULL,
@@ -539,7 +525,6 @@ class Leads_OnlineGd12Service {
 				$c1,
 				$c2,
 				$c3,
-				$c5,
 				$pot,
 				$biz !== '' ? $biz : null,
 				$seg !== '' ? $seg : null,
@@ -619,60 +604,44 @@ class Leads_OnlineGd12Service {
 	}
 
 	/**
-	 * @param string $q1 A–E
-	 * @param string $q2 A–D
-	 * @param string $q3 A–E
-	 * @param string $q4 A–G
+	 * @param string $q1 A–C (Câu 1)
+	 * @param string $q2 A–B (Câu 2)
+	 * @param string $q3 A–F (Câu 3)
+	 * @param string $q4 ignored — giữ chữ ký cũ
 	 * @return array
 	 */
-	public static function compute($q1, $q2, $q3, $q4) {
+	public static function compute($q1, $q2, $q3, $q4 = '') {
+		require_once 'modules/Leads/models/SalesVerifyService.php';
 		$q1 = strtoupper(trim((string) $q1));
 		$q2 = strtoupper(trim((string) $q2));
 		$q3 = strtoupper(trim((string) $q3));
-		$q4 = strtoupper(trim((string) $q4));
 
-		$group = self::customerGroupFromQ1($q1);
-		$modelCode = $q4;
-		$modelLabel = self::modelLabel($q4);
-
-		$gate1 = in_array($q1, array('C', 'D', 'E'), true);
-		$gate2 = !in_array($q4, array('A', 'G'), true);
-		$eligible = $gate1 && $gate2;
+		$base = Leads_SalesVerifyService::compute(array(
+			'c1' => $q1,
+			'c2' => $q2,
+			'c3' => $q3,
+		));
+		$eligible = isset($base['eligibility_result']) && $base['eligibility_result'] === 'du_dk';
 
 		$out = array(
-			'success' => true,
+			'success' => !empty($base['success']),
 			'q1' => $q1,
 			'q2' => $q2,
 			'q3' => $q3,
-			'q4' => $q4,
-			'eligibility_result' => $eligible ? 'du_dk' : 'khong_du_dk',
-			'eligibility_label' => $eligible ? 'Đủ điều kiện' : 'Không đủ điều kiện',
-			'customer_group' => $group['code'],
-			'customer_group_label' => $group['label'],
-			'business_model' => $modelCode,
-			'business_model_label' => $modelLabel,
-			'potential_level' => '',
-			'potential_label' => 'Không đánh giá',
+			'q4' => '',
+			'eligibility_result' => isset($base['eligibility_result']) ? $base['eligibility_result'] : '',
+			'eligibility_label' => isset($base['eligibility_label']) ? $base['eligibility_label'] : '',
+			'customer_group' => isset($base['customer_group']) ? $base['customer_group'] : '',
+			'customer_group_label' => isset($base['customer_group_label']) ? $base['customer_group_label'] : '',
+			'business_model' => isset($base['business_model']) ? $base['business_model'] : '',
+			'business_model_label' => isset($base['business_model_label']) ? $base['business_model_label'] : '',
+			'potential_level' => isset($base['potential_level']) ? $base['potential_level'] : '',
+			'potential_label' => isset($base['potential_label']) ? $base['potential_label'] : '',
 			'score' => null,
 			'raw_band' => '',
 			'status_tag' => $eligible ? self::STATUS_CHUA_DK_TK : self::STATUS_KHONG_DU_DK,
+			'reason' => isset($base['reason']) ? $base['reason'] : '',
 		);
-
-		if (!$eligible) {
-			return $out;
-		}
-
-		$p2 = self::pointsQ2($q2);
-		$p3 = self::pointsQ3($q3);
-		$p4 = self::pointsQ4($q4);
-		$total = $p2 + $p3 + $p4;
-		$raw = self::rawBand($total);
-		$level = self::applyCeiling($raw, $q3);
-
-		$out['score'] = $total;
-		$out['raw_band'] = $raw;
-		$out['potential_level'] = $level;
-		$out['potential_label'] = self::potentialLabel($level);
 		return $out;
 	}
 
@@ -2625,7 +2594,8 @@ class Leads_OnlineGd12Service {
 		$map = array(
 			'nhom_1' => 'gia_dinh',
 			'nhom_2' => 'chuan_bi_mo',
-			'nhom_3' => 'chuan_bi_mo',
+			'nhom_3' => 'co_quan',
+			// legacy Online Q1 groups
 			'nhom_4' => 'co_quan',
 			'nhom_5' => 'co_quan',
 		);
