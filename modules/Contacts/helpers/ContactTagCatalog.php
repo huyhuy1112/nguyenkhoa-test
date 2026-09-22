@@ -10,9 +10,10 @@ class Contacts_ContactTagCatalog {
 	protected static $allowedKeys = array(
 		// Loại khách (Trạng thái khách từ Lead)
 		'co_quan', 'chuan_bi_mo', 'gia_dinh', 'moi_quen', 'da_co_quan_he',
-		// Tag lớp học / chương trình
+		// Tag lớp học / chương trình / sản phẩm (Lead → Contact)
 		'chua_mqbh', 'da_tg_free', 'da_tg_fb1', 'thu_3',
 		'pcth', 'van_hanh', 'mkt', 'lop_khac',
+		'mien_phi_online', 'mien_phi_offline',
 		// Tag nguyên liệu / chăm sóc
 		'tiem_nang', 'mua_lan_dau', 'mua_lai', 'mua_on_dinh', 'dang_cham_soc',
 		'dang_tu_van', 'kh_can_nhac', 'khong_mua', 'ngung_mua',
@@ -70,6 +71,10 @@ class Contacts_ContactTagCatalog {
 		'van_hanh' => 'van_hanh',
 		'mkt' => 'mkt',
 		'lop_khac' => 'lop_khac',
+		'mien_phi_online' => 'mien_phi_online',
+		'mien phi online' => 'mien_phi_online',
+		'mien_phi_offline' => 'mien_phi_offline',
+		'mien phi offline' => 'mien_phi_offline',
 	);
 
 	public static function normalizeKey($tagName) {

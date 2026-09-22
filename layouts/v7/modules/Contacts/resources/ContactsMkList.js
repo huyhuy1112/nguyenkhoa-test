@@ -186,6 +186,14 @@
     staleOnly: false,
   };
 
+  var PRODUCT_TABS = [
+    { id: "unclassified", label: "Chưa phân loại" },
+    { id: "online", label: "Online" },
+    { id: "offline", label: "Offline" },
+    { id: "nvl", label: "NVL" },
+    { id: "franchise", label: "Nhượng quyền" },
+  ];
+
   var state = {
     filters: Object.assign({}, EMPTY),
     sortKey: "last_touch",
@@ -194,6 +202,7 @@
     filtersOpen: false,
     activeSegment: null,
     selected: {},
+    productTab: "all",
   };
 
   function $(id) {
@@ -266,11 +275,57 @@
     return false;
   }
 
+  function productGroupsFromTags(tags) {
+    var set = {};
+    (tags || []).forEach(function (tg) {
+      var k = ref && ref.normalizeTag ? ref.normalizeTag(tg) : String(tg || "").toLowerCase();
+      if (k === "mien_phi_online") set.online = 1;
+      else if (k === "mien_phi_offline") set.offline = 1;
+      else if (k === "nhuong_quyen" || k === "da_ky_quy") set.franchise = 1;
+      else if (k === "mua_lan_dau" || k === "mua_lai") set.nvl = 1;
+    });
+    return Object.keys(set);
+  }
+
+  function hasProductGroup(row, group) {
+    var g = productGroupsFromTags(row && row.tags);
+    if (group === "unclassified") return g.length === 0;
+    return g.indexOf(group) >= 0;
+  }
+
+  function countProductTab(rows, tabId) {
+    var n = 0;
+    (rows || []).forEach(function (c) {
+      if (hasProductGroup(c, tabId)) n++;
+    });
+    return n;
+  }
+
+  function productTabItemsHtml(rows) {
+    return PRODUCT_TABS.map(function (it) {
+      var n = countProductTab(rows, it.id);
+      return (
+        '<button type="button" class="mk-leads-segment-btn mk-leads-ptab' +
+        (state.productTab === it.id ? " is-active" : "") +
+        '" data-product-tab="' +
+        esc(it.id) +
+        '">' +
+        esc(it.label) +
+        ' <span class="mk-leads-ptab__n">' +
+        n +
+        "</span></button>"
+      );
+    }).join("");
+  }
+
   function filterContacts(rows) {
     var f = state.filters;
     var q = (f.search || "").toLowerCase().trim();
     return rows.filter(function (c) {
       var cats = categorize(c.tags);
+      if (state.productTab && state.productTab !== "all") {
+        if (!hasProductGroup(c, state.productTab)) return false;
+      }
       if (q) {
         var hay = [c.name, c.title, c.account, c.address, c.email, c.phone, c.owner, (c.tags || []).join(" ")]
           .join(" ")
@@ -408,7 +463,8 @@
   function renderSegments() {
     var host = $("mk-contacts-segments");
     if (!host) return;
-    var allOn = !state.activeSegment ? " is-active" : "";
+    var rows = getContacts();
+    var allOn = !state.activeSegment && state.productTab === "all" ? " is-active" : "";
     var html =
       '<button type="button" class="mk-leads-segment-btn' +
       allOn +
@@ -429,6 +485,7 @@
         );
       })
       .join("");
+    html += productTabItemsHtml(rows);
     host.innerHTML = html;
   }
 
@@ -1082,6 +1139,7 @@
   function applySegment(segId) {
     if (segId === "__all__") {
       state.activeSegment = null;
+      state.productTab = "all";
       state.filters = Object.assign({}, EMPTY);
       state.page = 1;
       renderAll();
@@ -1089,6 +1147,7 @@
     }
     var seg = getPresetSegments().find(function (s) { return s.id === segId; });
     state.activeSegment = segId;
+    state.productTab = "all";
     state.filters = Object.assign({}, EMPTY);
     if (seg && seg.filters) {
       Object.keys(seg.filters).forEach(function (k) {
@@ -1300,6 +1359,14 @@
     var segHost = $("mk-contacts-segments");
     if (segHost) {
       segHost.addEventListener("click", function (e) {
+        var ptab = e.target.closest("[data-product-tab]");
+        if (ptab) {
+          state.productTab = ptab.getAttribute("data-product-tab") || "all";
+          state.activeSegment = null;
+          state.page = 1;
+          renderAll();
+          return;
+        }
         var btn = e.target.closest("[data-seg]");
         if (!btn) return;
         applySegment(btn.getAttribute("data-seg"));
@@ -1322,6 +1389,7 @@
       reset.addEventListener("click", function () {
         state.filters = Object.assign({}, EMPTY);
         state.activeSegment = null;
+        state.productTab = "all";
         state.page = 1;
         if (search) search.value = "";
         renderAll();

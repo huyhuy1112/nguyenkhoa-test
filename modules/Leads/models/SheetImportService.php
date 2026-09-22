@@ -611,7 +611,7 @@ class Leads_SheetImportService {
 			$qa['Câu 3 – Ngân sách'] = $q3Raw;
 		}
 
-		$tags = array();
+		$tags = array('other'); // Google Sheet → Nguồn = Khác
 		$cust = self::customerTagFromQ1($c1);
 		if ($cust !== '') {
 			$tags[] = $cust;

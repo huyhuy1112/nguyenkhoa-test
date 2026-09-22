@@ -601,6 +601,11 @@ class Leads_ModernService {
 
 		list($firstname, $lastname) = self::splitName($name);
 		$tags = isset($payload['tags']) && is_array($payload['tags']) ? $payload['tags'] : array();
+		if (!empty($payload['sheet_source'])) {
+			$tags = self::ensureSourceTag($tags, 'other');
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			$tags = Leads_OfflineGd11Service::ensureProgramTag($tags);
+		}
 		$company = trim((string)(isset($payload['companyName']) ? $payload['companyName'] : ''));
 		if ($company === '') {
 			$company = '-';
@@ -624,7 +629,7 @@ class Leads_ModernService {
 		$recordModel->set('phone', $phone);
 		$recordModel->set('email', isset($payload['email']) ? $payload['email'] : '');
 		$recordModel->set('company', $company);
-		$recordModel->set('leadsource', self::mapLeadsource($tags));
+		$recordModel->set('leadsource', !empty($payload['sheet_source']) ? 'Other' : self::mapLeadsource($tags));
 		$recordModel->set('leadstatus', self::mapLeadstatus($tags));
 		$recordModel->set('assigned_user_id', $ownerId);
 		$recordModel->set('lane', isset($payload['address']) ? $payload['address'] : '');
@@ -711,6 +716,7 @@ class Leads_ModernService {
 		// Enforce screening tags (no potential tags when Không đạt)
 		$tags = self::applyScreeningTags($tags, $screening);
 		if (!empty($payload['sheet_source'])) {
+			$tags = self::ensureSourceTag($tags, 'other');
 			require_once 'modules/Leads/models/OfflineGd11Service.php';
 			$tags = Leads_OfflineGd11Service::ensureProgramTag($tags);
 		}
@@ -1385,6 +1391,10 @@ class Leads_ModernService {
 		}
 		require_once 'modules/Leads/models/SheetImportService.php';
 		$screeningLabel = Leads_SheetImportService::screeningLabel($screening);
+		// Sheet leads cũ chưa gắn tag nguồn → hiện Khác trên list.
+		if (!empty($row['sheet_source'])) {
+			$tags = self::ensureSourceTag($tags, 'other');
+		}
 		$verify = self::composeVerifyBlock($row, $tags);
 
 		$address = self::decodeText(isset($row['address_line']) ? $row['address_line'] : '');
@@ -2060,6 +2070,11 @@ class Leads_ModernService {
 		}
 	}
 
+	/** Public wrapper — convert / sheet backfill. */
+	public static function syncTagsPublic($leadId, array $tagNames, $userId) {
+		self::syncTags($leadId, $tagNames, $userId);
+	}
+
 	protected static function resolveLeadId($idOrCacheId) {
 		if ($idOrCacheId === null || $idOrCacheId === '') {
 			return null;
@@ -2440,6 +2455,37 @@ class Leads_ModernService {
 			'other_source' => 'Other',
 		);
 		return isset($map[$source]) ? $map[$source] : 'Other';
+	}
+
+	/**
+	 * Đảm bảo đúng 1 tag nguồn; sheet → mặc định other (Khác).
+	 */
+	public static function ensureSourceTag(array $tags, $preferred = 'other') {
+		$preferred = strtolower(trim((string) $preferred));
+		if ($preferred === '' || !in_array($preferred, self::$sourceTags, true)) {
+			$preferred = 'other';
+		}
+		$out = array();
+		$hasPreferred = false;
+		foreach ($tags as $tag) {
+			$t = strtolower(trim((string) $tag));
+			if ($t === '') {
+				continue;
+			}
+			if (in_array($t, self::$sourceTags, true)) {
+				if ($t === $preferred) {
+					$hasPreferred = true;
+					$out[] = $preferred;
+				}
+				// Sheet/force: bỏ nguồn khác, chỉ giữ preferred.
+				continue;
+			}
+			$out[] = $tag;
+		}
+		if (!$hasPreferred) {
+			$out[] = $preferred;
+		}
+		return array_values(array_unique($out));
 	}
 
 	protected static function mapLeadstatus(array $tags) {

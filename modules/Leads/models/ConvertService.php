@@ -49,6 +49,12 @@ class Leads_ConvertService {
 		$potentialId = (int)$potential->getId();
 		if ($potentialId > 0) {
 			self::transferLeadTags($leadId, array('Potentials' => $potentialId), $ownerId);
+			try {
+				require_once 'modules/Leads/models/LeadProductsService.php';
+				Leads_LeadProductsService::linkPotential($leadId, $potentialId);
+			} catch (Exception $e) {
+				// best-effort
+			}
 		}
 		if ($potentialId <= 0) {
 			return null;
@@ -90,6 +96,7 @@ class Leads_ConvertService {
 			return null;
 		}
 		self::relateRecords($leadId, self::MODULE, $potentialId, 'Potentials');
+		self::transferLeadTags($leadId, array('Potentials' => $potentialId), $ownerId);
 		return $potentialId;
 	}
 
@@ -263,6 +270,14 @@ class Leads_ConvertService {
 			'Contacts' => $contactId,
 			'Accounts' => $accountId,
 		), (int)$current_user->id);
+		if ($potentialId) {
+			try {
+				require_once 'modules/Leads/models/LeadProductsService.php';
+				Leads_LeadProductsService::linkPotential($leadId, $potentialId);
+			} catch (Exception $e) {
+				// best-effort
+			}
+		}
 
 		return array(
 			'success' => true,
@@ -957,6 +972,43 @@ class Leads_ConvertService {
 	}
 
 	/**
+	 * Sheet lead → đảm bảo tag nguồn other (Khác) trước khi chuyển Opp/KH.
+	 */
+	protected static function ensureSheetSourceTagOnLead($leadId, $userId = null) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return;
+		}
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT sheet_source FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		if (!$res || $adb->num_rows($res) < 1 || !(int) $adb->query_result($res, 0, 'sheet_source')) {
+			return;
+		}
+		global $current_user;
+		if ($userId === null || (int) $userId <= 0) {
+			$userId = !empty($current_user->id) ? (int) $current_user->id : 0;
+		}
+		require_once 'modules/Vtiger/models/Tag.php';
+		require_once 'modules/Leads/models/ModernService.php';
+		$models = Vtiger_Tag_Model::getAllAccessible($userId, self::MODULE, $leadId);
+		$names = array();
+		if (is_array($models)) {
+			foreach ($models as $m) {
+				if (is_object($m) && method_exists($m, 'getName')) {
+					$names[] = $m->getName();
+				}
+			}
+		}
+		$next = Leads_ModernService::ensureSourceTag($names, 'other');
+		require_once 'modules/Leads/models/OfflineGd11Service.php';
+		$next = Leads_OfflineGd11Service::ensureProgramTag($next);
+		Leads_ModernService::syncTagsPublic($leadId, $next, $userId);
+	}
+
+	/**
 	 * Copy freetags from Lead to converted entities (Opportunity, Contact, Account).
 	 * Opportunity & Contact receive BA-filtered tags only (Excel categories).
 	 */
@@ -968,6 +1020,11 @@ class Leads_ConvertService {
 		global $current_user;
 		if ($userId === null || (int)$userId <= 0) {
 			$userId = (int)$current_user->id;
+		}
+		try {
+			self::ensureSheetSourceTagOnLead($leadId, $userId);
+		} catch (Exception $e) {
+			// best-effort
 		}
 		require_once 'modules/Vtiger/models/Tag.php';
 		$tagModels = Vtiger_Tag_Model::getAllAccessible($userId, self::MODULE, $leadId);

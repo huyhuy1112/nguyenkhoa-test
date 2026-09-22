@@ -415,6 +415,25 @@ class Leads_LeadProductsService {
 		return true;
 	}
 
+	/**
+	 * Gắn Opp vừa tạo/convert vào các dòng sản phẩm Lead chưa có potential_id.
+	 */
+	public static function linkPotential($leadId, $potentialId) {
+		$leadId = (int) $leadId;
+		$potentialId = (int) $potentialId;
+		if ($leadId <= 0 || $potentialId <= 0) {
+			return;
+		}
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$adb->pquery(
+			"UPDATE " . self::TABLE . "
+			 SET potential_id = ?, modified_at = ?
+			 WHERE leadid = ? AND (potential_id IS NULL OR potential_id = 0)",
+			array($potentialId, date('Y-m-d H:i:s'), $leadId)
+		);
+	}
+
 	protected static function assertCanEditLead($leadId, $userId = null) {
 		if (!self::canEditLead($leadId, $userId)) {
 			throw new Exception('Bạn không có quyền kéo stage / gắn sản phẩm cho Lead này.');
