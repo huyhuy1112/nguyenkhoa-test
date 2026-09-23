@@ -256,6 +256,10 @@
                 }
               }
               self.isFirstLoad = false;
+              var unreadOnFirst = response.list.filter(function (n) {
+                return String(n.is_read) === "0";
+              });
+              self.maybeShowPendingR1Popup(unreadOnFirst, { playSound: false });
             }
           }
         },
@@ -544,6 +548,8 @@
                   }
                 }
                 self.isFirstLoad = false;
+              // Mọi trang: nếu còn R1 chưa đọc thì hiện popup ngay (sales không chỉ ở Leads).
+              self.maybeShowPendingR1Popup(unreadList, { playSound: false });
             }
           }
         },
@@ -1213,13 +1219,37 @@
           if (this.previousIds.indexOf(String(item.id)) !== -1) continue;
           var rawMsg = this.decodeHtmlEntities(item.message || "");
           if (this.parseR1Marker(rawMsg) || /^R1\s*·/i.test(rawMsg)) {
-            this.showR1Popup(item);
+            this.maybeShowPendingR1Popup([item], { playSound: false });
             break;
           }
         }
       }
 
       this.previousIds = newIds;
+    },
+
+    /**
+     * Hiện popup R1 (Hẹn gọi lại / Đã xác nhận) nếu còn thông báo R1 chưa đọc.
+     * Gọi trên mọi trang CRM (Topbar global), kể cả lần load đầu.
+     */
+    maybeShowPendingR1Popup: function (unreadList, opts) {
+      opts = opts || {};
+      if (!unreadList || !unreadList.length) return;
+      if (jQuery("#mk-r1-popup-host .mk-r1-popup").length) return;
+      for (var i = 0; i < unreadList.length; i++) {
+        var item = unreadList[i];
+        if (String(item.is_read) === "1") continue;
+        var rawMsg = this.decodeHtmlEntities(item.message || "");
+        if (!this.parseR1Marker(rawMsg) && !/^R1\s*·/i.test(rawMsg)) continue;
+        // Cần marker để gắn leadId + nút action.
+        if (!this.parseR1Marker(rawMsg)) continue;
+        if (opts.playSound) {
+          this.playSound();
+          this.shakeBell();
+        }
+        this.showR1Popup(item);
+        break;
+      }
     },
 
     shakeBell: function () {

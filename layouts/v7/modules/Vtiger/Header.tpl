@@ -62,7 +62,7 @@
 		{foreach key=index item=cssModel from=$STYLES}
 			<link type="text/css" rel="{$cssModel->getRel()}" href="{vresource_url($cssModel->getHref())}" media="{$cssModel->getMedia()}" />
 		{/foreach}
-		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernNotifications.css')}?mk_v=20260827_notif_mix1" media="screen" />
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernNotifications.css')}?mk_v=20260923_r1_global1" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernQuickCreate.css')}" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernProfileDropdown.css')}" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}&mk_v=20260921_sidebar_collapse1" media="screen" />
