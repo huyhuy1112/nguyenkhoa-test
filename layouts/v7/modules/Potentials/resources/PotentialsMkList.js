@@ -84,7 +84,6 @@
     tier: ANY,
     anyTag: ANY,
     owner: ANY,
-    da_cap_bang: ANY,
     progress: ANY,
     staleOnly: false,
   };
@@ -350,12 +349,6 @@
       if (f.anyTag !== ANY && !hasNormalizedTag(o.tags, f.anyTag)) return false;
       if (f.staleOnly && !isStale(o)) return false;
       if (f.owner !== ANY && o.owner !== f.owner) return false;
-      if (f.da_cap_bang !== ANY) {
-        var bang = String(o.da_cap_bang || "Chưa cấp").trim();
-        var wantIssued = f.da_cap_bang === "da_cap";
-        var isIssued = /đã\s*cấp/i.test(bang) && !/chưa/i.test(bang);
-        if (wantIssued !== isIssued) return false;
-      }
       if (f.progress !== ANY) {
         var pct =
           o.edubit_progress_pct != null && o.edubit_progress_pct !== ""
@@ -1488,10 +1481,6 @@
         ["50_79", "50–79%"],
         ["80_99", "80–99%"],
         ["done", "Hoàn thành 100%"],
-      ]) +
-      fieldSelect("Đã cấp bằng", "da_cap_bang", [
-        ["chua_cap", "Chưa cấp"],
-        ["da_cap", "Đã cấp"],
       ]) +
       "</div>";
     host.hidden = !state.filtersOpen;
