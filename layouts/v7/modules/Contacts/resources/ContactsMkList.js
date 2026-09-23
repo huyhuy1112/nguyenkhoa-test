@@ -178,6 +178,31 @@
     { id: "bronze", label: pick("Hạng Đồng", "Bronze tier"), filters: { tier: "dong" } },
   ];
 
+  /** Tag lớp tính là 1 "khóa" khi đếm 1/2/3/4 khóa dưới filter Khóa học */
+  var COURSE_COUNT_TAGS = [
+    "da_mqbb",
+    "da_990k",
+    "da_pcth",
+    "da_pcthcb",
+    "mien_phi_offline",
+    "mien_phi_online",
+  ];
+
+  var COURSE_COUNT_CHIPS = [
+    { n: 4, label: "Học 4 khóa" },
+    { n: 3, label: "Học 3 khóa" },
+    { n: 2, label: "Học 2 khóa" },
+    { n: 1, label: "Học 1 khóa" },
+  ];
+
+  /** Tên ngắn khóa Edubit (đồng bộ ProductCatalog) */
+  var EDUBIT_COURSE_LABELS = {
+    "29403": "MQBB 990k",
+    "29218": "PCTH",
+    "28108": "PCTH Cơ bản",
+    "27312": "Miễn phí Opp",
+  };
+
   var EMPTY = {
     search: "",
     lane: ANY,
@@ -190,6 +215,7 @@
     owner: ANY,
     offlineStatus: ANY,
     progress: ANY,
+    courseCount: ANY,
     hasTag: false,
     hasAccount: false,
     staleOnly: false,
@@ -230,9 +256,14 @@
     state.filters.tier = ANY;
   }
 
+  function clearCourseCountFilter() {
+    state.filters.courseCount = ANY;
+  }
+
   function applyNvlSubFilter(subId) {
     state.productTab = "nvl";
     state.activeSegment = null;
+    clearCourseCountFilter();
     state.filters.customerRank = ANY;
     state.filters.franchise = ANY;
     state.filters.tier = ANY;
@@ -251,6 +282,17 @@
         });
       }
     }
+    state.page = 1;
+    renderAll();
+  }
+
+  function applyCourseCountFilter(n) {
+    state.activeSegment = "lane_courses";
+    state.productTab = "all";
+    clearNvlSubFilters();
+    state.filters.lane = "courses";
+    state.filters.offlineStatus = ANY;
+    state.filters.courseCount = n && n !== ANY ? String(n) : ANY;
     state.page = 1;
     renderAll();
   }
@@ -323,6 +365,71 @@
       if (ref.normalizeTag(tags[i]) === key) return true;
     }
     return false;
+  }
+
+  /** Số tag lớp/khóa distinct trên Contact (dùng đếm 1/2/3/4 khóa). */
+  function courseTagCount(contact) {
+    var seen = {};
+    var n = 0;
+    (contact && contact.tags ? contact.tags : []).forEach(function (tg) {
+      var k = ref && ref.normalizeTag ? ref.normalizeTag(tg) : String(tg || "").toLowerCase();
+      if (COURSE_COUNT_TAGS.indexOf(k) < 0 || seen[k]) return;
+      seen[k] = 1;
+      n++;
+    });
+    return n;
+  }
+
+  function contactMatchesCourseLane(c) {
+    var cats = categorize(c.tags);
+    var hasFranchise = !!cats.franchise;
+    var hasMaterial = !!cats.material;
+    var hasCourse =
+      !!cats.classTag ||
+      !!(c.edubit_user_id || c.edubit_course_id) ||
+      (Array.isArray(c.edubit_courses) && c.edubit_courses.length > 0) ||
+      !!(c.thoigian_dangky || c.thoigian_pcth || c.thoigian_mqbb || c.thoigian_pcthcb);
+    if (!hasCourse && !hasMaterial && hasFranchise) return false;
+    if (!hasCourse && hasFranchise && !hasMaterial) return false;
+    return !!hasCourse;
+  }
+
+  function countCourseTagBuckets(rows) {
+    var buckets = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    (rows || []).forEach(function (c) {
+      if (!contactMatchesCourseLane(c)) return;
+      var n = courseTagCount(c);
+      if (n <= 0) return;
+      if (n >= 4) buckets[4]++;
+      else buckets[n]++;
+    });
+    return buckets;
+  }
+
+  function edubitCourseLabel(courseId, fallback) {
+    var cid = String(courseId || "").replace(/\D+/g, "");
+    if (cid && EDUBIT_COURSE_LABELS[cid]) return EDUBIT_COURSE_LABELS[cid];
+    var fb = String(fallback || "").trim();
+    if (fb) return fb;
+    return cid ? "Khóa " + cid : "Khóa học";
+  }
+
+  function resolveEdubitCourses(contact) {
+    var courses = Array.isArray(contact && contact.edubit_courses) ? contact.edubit_courses.slice() : [];
+    if (courses.length) return courses;
+    if (contact && (contact.edubit_course_id || contact.edubit_user_id || contact.edubit_progress_pct != null)) {
+      return [
+        {
+          course_id: contact.edubit_course_id || "",
+          label: "",
+          progress_pct:
+            contact.edubit_progress_pct != null && contact.edubit_progress_pct !== ""
+              ? Number(contact.edubit_progress_pct)
+              : 0,
+        },
+      ];
+    }
+    return [];
   }
 
   function productGroupsFromTags(tags) {
@@ -416,6 +523,15 @@
         if (f.progress === "50_79" && !(pct != null && pct >= 50 && pct < 80)) return false;
         if (f.progress === "80_99" && !(pct != null && pct >= 80 && pct < 100)) return false;
         if (f.progress === "done" && !(pct != null && pct >= 100)) return false;
+      }
+      if (f.courseCount && f.courseCount !== ANY) {
+        var wantN = parseInt(f.courseCount, 10);
+        var haveN = courseTagCount(c);
+        if (wantN >= 4) {
+          if (haveN < 4) return false;
+        } else if (haveN !== wantN) {
+          return false;
+        }
       }
       if (q) {
         var hay = [c.name, c.title, c.account, c.address, c.email, c.phone, c.owner, (c.tags || []).join(" ")]
@@ -619,6 +735,31 @@
       });
       html += "</span>";
     }
+    if (state.activeSegment === "lane_courses" || state.filters.lane === "courses") {
+      html += '<span class="mk-leads-offline-filters" role="group" aria-label="Số khóa học theo tag">';
+      var fcc = (state.filters && state.filters.courseCount) || ANY;
+      var buckets = countCourseTagBuckets(rows);
+      html +=
+        '<button type="button" class="mk-leads-offline-filter' +
+        (fcc === ANY ? " is-active" : "") +
+        '" data-course-count="' +
+        ANY +
+        '">Tất cả khóa</button>';
+      COURSE_COUNT_CHIPS.forEach(function (it) {
+        var n = buckets[it.n] || 0;
+        html +=
+          '<button type="button" class="mk-leads-offline-filter' +
+          (String(fcc) === String(it.n) ? " is-active" : "") +
+          '" data-course-count="' +
+          esc(String(it.n)) +
+          '">' +
+          esc(it.label) +
+          ' <span class="mk-leads-ptab__n">(' +
+          n +
+          ")</span></button>";
+      });
+      html += "</span>";
+    }
     host.innerHTML = html;
   }
 
@@ -819,45 +960,9 @@
   }
 
   function edubitProgressTimelineHtml(contact) {
-    var courses = Array.isArray(contact && contact.edubit_courses) ? contact.edubit_courses : [];
-    if (courses.length > 1) {
-      var rows = courses
-        .map(function (c) {
-          var cid = String((c && c.course_id) || "");
-          var p =
-            c && c.progress_pct != null && c.progress_pct !== ""
-              ? Math.max(0, Math.min(100, Number(c.progress_pct) || 0))
-              : 0;
-          var lab = String((c && c.label) || "").trim() || ("ID " + cid);
-          return (
-            '<div class="mk-contacts-edubit-progress mk-contacts-edubit-progress--multi" title="' +
-            esc(lab) +
-            '">' +
-            '<div class="mk-contacts-edubit-progress__meta">' +
-            esc(lab) +
-            "</div>" +
-            '<div class="mk-contacts-edubit-progress__bar"><span style="width:' +
-            p +
-            '%"></span></div>' +
-            '<div class="mk-contacts-edubit-progress__label">' +
-            p +
-            "%</div></div>"
-          );
-        })
-        .join("");
-      return '<div class="mk-contacts-edubit-courses">' + rows + "</div>";
-    }
-    var pct =
-      contact && contact.edubit_progress_pct != null && contact.edubit_progress_pct !== ""
-        ? Math.max(0, Math.min(100, Number(contact.edubit_progress_pct) || 0))
-        : null;
-    if (pct === null && !(contact && (contact.edubit_user_id || contact.edubit_course_id || courses.length))) {
-      return null;
-    }
-    if (pct === null && courses.length === 1) {
-      pct = Number(courses[0].progress_pct) || 0;
-    }
-    if (pct === null) pct = 0;
+    var courses = resolveEdubitCourses(contact);
+    if (!courses.length) return null;
+
     function fmtDay(iso) {
       if (!iso) return "";
       var d = new Date(iso);
@@ -866,6 +971,7 @@
       var mm = String(d.getMonth() + 1).padStart(2, "0");
       return dd + "/" + mm;
     }
+
     var renewCount = Number(contact.edubit_renew_count) || 0;
     var renewLeft =
       contact.edubit_renew_remaining != null
@@ -873,11 +979,6 @@
         : Math.max(0, 3 - renewCount);
     var canRenew = Number(contact.can_edubit_renew) === 1 && renewLeft > 0;
     var exp = fmtDay(contact.edubit_expires_at);
-    var metaBits = [];
-    var courseId = String(contact.edubit_course_id || (courses[0] && courses[0].course_id) || "").trim();
-    if (courseId) metaBits.push("ID " + courseId);
-    if (exp) metaBits.push("Hết hạn " + exp);
-    metaBits.push("GH " + renewCount + "/3");
     var renewBtn = canRenew
       ? '<button type="button" class="mk-contacts-edubit-renew" data-mk-edubit-renew="' +
         esc(contact.id) +
@@ -887,18 +988,54 @@
           (renewLeft > 0 ? "Còn " + renewLeft + " GH" : "Hết lượt GH") +
           "</span>"
         : "";
+
+    var rows = courses
+      .map(function (c, idx) {
+        var cid = String((c && c.course_id) || "");
+        var p =
+          c && c.progress_pct != null && c.progress_pct !== ""
+            ? Math.max(0, Math.min(100, Number(c.progress_pct) || 0))
+            : 0;
+        if (
+          courses.length === 1 &&
+          contact.edubit_progress_pct != null &&
+          contact.edubit_progress_pct !== ""
+        ) {
+          p = Math.max(0, Math.min(100, Number(contact.edubit_progress_pct) || 0));
+        }
+        var lab = edubitCourseLabel(cid, c && c.label);
+        var metaExtra = [];
+        if (courses.length === 1) {
+          if (exp) metaExtra.push("Hết hạn " + exp);
+          metaExtra.push("GH " + renewCount + "/3");
+        }
+        return (
+          '<div class="mk-contacts-edubit-progress' +
+          (courses.length > 1 ? " mk-contacts-edubit-progress--multi" : "") +
+          '" title="' +
+          esc(lab + " · " + p + "%") +
+          '">' +
+          '<div class="mk-contacts-edubit-progress__meta">' +
+          esc(lab) +
+          (metaExtra.length ? " · " + esc(metaExtra.join(" · ")) : "") +
+          "</div>" +
+          '<div class="mk-contacts-edubit-progress__bar"><span style="width:' +
+          p +
+          '%"></span></div>' +
+          '<div class="mk-contacts-edubit-progress__label">' +
+          p +
+          "%</div>" +
+          (idx === 0 && courses.length === 1 ? renewBtn : "") +
+          "</div>"
+        );
+      })
+      .join("");
+
+    if (courses.length === 1) return rows;
     return (
-      '<div class="mk-contacts-edubit-progress" title="Tiến độ khóa Edubit · hạn 10 ngày · gia hạn tối đa 3">' +
-      '<div class="mk-contacts-edubit-progress__bar"><span style="width:' +
-      pct +
-      '%"></span></div>' +
-      '<div class="mk-contacts-edubit-progress__label">' +
-      pct +
-      "%</div>" +
-      (metaBits.length
-        ? '<div class="mk-contacts-edubit-progress__meta">' + esc(metaBits.join(" · ")) + "</div>"
-        : "") +
-      renewBtn +
+      '<div class="mk-contacts-edubit-courses">' +
+      rows +
+      (renewBtn ? '<div class="mk-contacts-edubit-courses__renew">' + renewBtn + "</div>" : "") +
       "</div>"
     );
   }
@@ -1409,6 +1546,10 @@
         state.filters[k] = seg.filters[k];
       });
     }
+    // Chỉ giữ subfilter số khóa khi đang ở Khóa học; segment khác thì clear.
+    if (segId !== "lane_courses") {
+      state.filters.courseCount = ANY;
+    }
     state.page = 1;
     renderAll();
   }
@@ -1620,8 +1761,14 @@
           state.productTab = "offline";
           state.activeSegment = null;
           clearNvlSubFilters();
+          clearCourseCountFilter();
           state.page = 1;
           renderAll();
+          return;
+        }
+        var courseCountBtn = e.target.closest("[data-course-count]");
+        if (courseCountBtn) {
+          applyCourseCountFilter(courseCountBtn.getAttribute("data-course-count") || ANY);
           return;
         }
         var nvlBtn = e.target.closest("[data-nvl-sub]");
@@ -1638,6 +1785,8 @@
           if (nextTab !== "nvl") {
             clearNvlSubFilters();
           }
+          clearCourseCountFilter();
+          state.filters.lane = ANY;
           state.productTab = nextTab;
           state.activeSegment = null;
           state.page = 1;
