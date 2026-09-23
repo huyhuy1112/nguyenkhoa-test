@@ -155,14 +155,10 @@
       });
   }
 
-  /** Phân khu + lớp học — lọc theo tag (tag con NVL nằm ở NVL_SUB_FILTERS) */
+  /** Tag lớp học — lọc theo tag (tag con NVL nằm ở NVL_SUB_FILTERS; NVL/Nhượng quyền dùng product tabs) */
   function getPresetSegments() {
     return [
       { id: "lane_courses", name: pick("Khóa học", "Courses"), filters: { lane: "courses" } },
-      { id: "lane_materials", name: pick("Nguyên liệu", "Materials"), filters: { lane: "materials" } },
-      { id: "lane_franchise", name: pick("Nhượng quyền", "Franchise"), filters: { lane: "franchise" } },
-      { id: "family", name: pick("Gia đình", "Family"), filters: { customerRank: "gia_dinh" } },
-      { id: "first_buy", name: pick("Mua lần đầu", "First purchase"), filters: { material: "mua_lan_dau" } },
       { id: "da_mqbb", name: "Đã MQBB", filters: { classTag: "da_mqbb" } },
       { id: "da_990k", name: "Đã 990k", filters: { classTag: "da_990k" } },
       { id: "da_pcth", name: "Đã PCTH", filters: { classTag: "da_pcth" } },
