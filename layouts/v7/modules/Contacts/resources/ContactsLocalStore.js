@@ -123,6 +123,23 @@
         return res;
       });
     },
+    saveOfflineAttend: function (id, classCode, datetime) {
+      var oid = String(id || "");
+      return apiRequest("save_offline_attend", {
+        record: oid,
+        class_code: classCode || "mqbb",
+        datetime: datetime || "",
+      }).then(function (res) {
+        var patch = {};
+        var code = (res && res.class_code) || classCode || "mqbb";
+        var iso = (res && res.datetime) || "";
+        if (code === "pcth_cb") patch.thoigian_pcthcb = iso;
+        else if (code === "pcth") patch.thoigian_pcth = iso;
+        else patch.thoigian_mqbb = iso;
+        root.ContactsLocalStore.patchContact(oid, patch);
+        return res;
+      });
+    },
     saveCredentials: function (id, daCapBang, daCapTaiKhoan) {
       var oid = String(id || "");
       return apiRequest("credential_save", {

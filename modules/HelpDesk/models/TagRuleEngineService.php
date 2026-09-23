@@ -366,6 +366,9 @@ class HelpDesk_TagRuleEngineService {
 			array('mkt', 'Marketing'),
 			array('van_hanh', 'Vận hành'),
 			array('nguyen_lieu_chuoi', 'NL chuỗi'),
+			array('da_pcthcb', 'Đã PCTHCB'),
+			array('mien_phi_offline', 'Miễn phí Offline'),
+			array('mien_phi_online', 'Miễn phí Online'),
 		);
 		$i = 0;
 		foreach ($entry as $pair) {

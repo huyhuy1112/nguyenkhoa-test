@@ -273,3 +273,28 @@ html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-ap
 	background: #b91c1c;
 	color: #fff;
 }
+
+/* Offline attend editor (list cell) */
+.mk-contacts-offline-attend {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 6px;
+	min-width: 148px;
+}
+.mk-contacts-offline-attend .mk-contacts-offline-class {
+	width: 100%;
+	max-width: 160px;
+}
+.mk-contacts-offline-attend .mk-contacts-offline-dt {
+	width: 100%;
+	max-width: 180px;
+	font-size: 12px;
+}
+
+.mk-tag--da-pcthcb { background: #ecfdf5; color: #047857; }
+.mk-tag--mien-phi-offline { background: #fff7ed; color: #c2410c; }
+.mk-tag--mien-phi-online { background: #eff6ff; color: #1d4ed8; }
+.mk-tag--bac { background: #f1f5f9; color: #475569; }
+.mk-tag--dong { background: #fff7ed; color: #9a3412; }
+.mk-tag--offline { background: #ffedd5; color: #9a3412; }

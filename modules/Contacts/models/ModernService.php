@@ -29,7 +29,7 @@ class Contacts_ModernService {
 				cd.accountid, ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description,
 				acc.accountname,
 				ca.mailingstreet, ca.mailingcity, ca.mailingstate, ca.mailingcountry,
-				cf.thoigian_dangky, cf.thoigian_pcth, cf.thoigian_mqbb,
+				cf.thoigian_dangky, cf.thoigian_pcth, cf.thoigian_mqbb, cf.thoigian_pcthcb,
 				cf.da_cap_bang, cf.da_cap_tai_khoan,
 				cf.edubit_progress_pct, cf.edubit_course_id, cf.edubit_email, cf.edubit_user_id,
 				cf.edubit_activated_at, cf.edubit_expires_at, cf.edubit_renew_count, cf.edubit_expiry_reason, cf.online_status,
@@ -98,6 +98,7 @@ class Contacts_ModernService {
 			'thoigian_dangky' => 'Thời gian Đăng Ký',
 			'thoigian_pcth' => 'Thời gian tham gia PCTH',
 			'thoigian_mqbb' => 'Thời gian tham gia MQBB',
+			'thoigian_pcthcb' => 'Thời gian tham gia PCTHCB',
 		);
 		foreach ($specs as $col => $label) {
 			$check = $adb->pquery("SHOW COLUMNS FROM vtiger_contactscf LIKE ?", array($col));
@@ -1003,6 +1004,7 @@ class Contacts_ModernService {
 			'thoigian_dangky' => self::toIsoDateTime(isset($row['thoigian_dangky']) ? $row['thoigian_dangky'] : ''),
 			'thoigian_pcth' => self::toIsoDateTime(isset($row['thoigian_pcth']) ? $row['thoigian_pcth'] : ''),
 			'thoigian_mqbb' => self::toIsoDateTime(isset($row['thoigian_mqbb']) ? $row['thoigian_mqbb'] : ''),
+			'thoigian_pcthcb' => self::toIsoDateTime(isset($row['thoigian_pcthcb']) ? $row['thoigian_pcthcb'] : ''),
 			'da_cap_bang' => self::normalizeCredentialPick(
 				self::decodeCredentialText(isset($row['da_cap_bang']) ? $row['da_cap_bang'] : ''),
 				array('Chưa cấp', 'Đã cấp'),
@@ -1771,8 +1773,10 @@ class Contacts_ModernService {
 
 		// Sync thời gian tham gia theo lớp = lần đăng ký đầu tiên của lớp đó.
 		if ($kind === 'register' && (int)$classStateAfter['cycle'] === 1) {
-			if ($classCode === 'pcth' || $classCode === 'pcth_cb') {
+			if ($classCode === 'pcth') {
 				$cfCol = 'thoigian_pcth';
+			} elseif ($classCode === 'pcth_cb') {
+				$cfCol = 'thoigian_pcthcb';
 			} else {
 				$cfCol = 'thoigian_mqbb';
 			}
@@ -2089,6 +2093,81 @@ class Contacts_ModernService {
 			'phone' => $outPhone === '--' ? '' : $outPhone,
 			'address' => $outAddress === '--' ? '' : $outAddress,
 			'business_model' => $savedBiz,
+		);
+	}
+
+	/**
+	 * Lưu thời gian tham gia lớp Offline trên list (MQBB / PCTH / PCTHCB).
+	 * @return array
+	 */
+	public static function saveOfflineAttend($contactId, $classCode, $datetime) {
+		$contactId = (int) $contactId;
+		if ($contactId <= 0) {
+			throw new Exception('Contact not found.');
+		}
+		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $contactId)) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$classCode = self::normalizeClassRegCode($classCode, true);
+		$colMap = array(
+			'mqbb' => 'thoigian_mqbb',
+			'pcth' => 'thoigian_pcth',
+			'pcth_cb' => 'thoigian_pcthcb',
+		);
+		$col = isset($colMap[$classCode]) ? $colMap[$classCode] : '';
+		if ($col === '') {
+			throw new Exception('Lớp học không hợp lệ.');
+		}
+		self::ensureEventTimeColumns();
+		$raw = trim((string) $datetime);
+		$value = null;
+		if ($raw !== '') {
+			$ts = strtotime(str_replace('T', ' ', $raw));
+			if ($ts === false) {
+				throw new Exception('Thời gian không hợp lệ.');
+			}
+			$value = date('Y-m-d H:i:s', $ts);
+		}
+		$adb = PearDatabase::getInstance();
+		$exists = $adb->pquery('SELECT contactid FROM vtiger_contactscf WHERE contactid = ?', array($contactId));
+		if ($exists && $adb->num_rows($exists) > 0) {
+			$adb->pquery(
+				"UPDATE vtiger_contactscf SET {$col} = ? WHERE contactid = ?",
+				array($value, $contactId)
+			);
+		} else {
+			$adb->pquery(
+				"INSERT INTO vtiger_contactscf (contactid, {$col}) VALUES (?,?)",
+				array($contactId, $value)
+			);
+		}
+		// Gắn tag lớp tương ứng khi có thời gian.
+		if ($value !== null) {
+			$tagMap = array(
+				'mqbb' => 'da_mqbb',
+				'pcth' => 'da_pcth',
+				'pcth_cb' => 'da_pcthcb',
+			);
+			$want = isset($tagMap[$classCode]) ? $tagMap[$classCode] : '';
+			if ($want !== '') {
+				try {
+					global $current_user;
+					$uid = !empty($current_user->id) ? (int) $current_user->id : 1;
+					require_once 'modules/Vtiger/models/Tag.php';
+					$map = self::getTagsForContactIds(array($contactId), $uid);
+					$names = isset($map[$contactId]) ? array_values($map[$contactId]) : array();
+					$names[] = $want;
+					self::saveTags($contactId, $names, $uid);
+				} catch (Exception $e) {
+					// best-effort
+				}
+			}
+		}
+		return array(
+			'success' => true,
+			'class_code' => $classCode,
+			'field' => $col,
+			'datetime' => $value ? self::toIsoDateTime($value) : '',
 		);
 	}
 

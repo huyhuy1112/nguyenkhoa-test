@@ -14,6 +14,10 @@ class Contacts_ContactTagCatalog {
 		'chua_mqbh', 'da_tg_free', 'da_tg_fb1', 'thu_3',
 		'pcth', 'van_hanh', 'mkt', 'lop_khac',
 		'mien_phi_online', 'mien_phi_offline',
+		'da_mqbb', 'da_990k', 'da_pcth', 'da_pcthcb',
+		// Offline R1 status (filter con Offline)
+		'offline_hen_goi_lai', 'offline_khong_nghe_may', 'offline_sai_thong_tin',
+		'offline_hen_lich_lai', 'offline_chuyen_chuong_trinh', 'offline_ngung_cskh',
 		// Tag nguyên liệu / chăm sóc
 		'tiem_nang', 'mua_lan_dau', 'mua_lai', 'mua_on_dinh', 'dang_cham_soc',
 		'dang_tu_van', 'kh_can_nhac', 'khong_mua', 'ngung_mua',
@@ -75,6 +79,19 @@ class Contacts_ContactTagCatalog {
 		'mien phi online' => 'mien_phi_online',
 		'mien_phi_offline' => 'mien_phi_offline',
 		'mien phi offline' => 'mien_phi_offline',
+		'da_mqbb' => 'da_mqbb',
+		'da mqbb' => 'da_mqbb',
+		'đã mqbb' => 'da_mqbb',
+		'da_990k' => 'da_990k',
+		'da 990k' => 'da_990k',
+		'đã 990k' => 'da_990k',
+		'da_pcth' => 'da_pcth',
+		'da pcth' => 'da_pcth',
+		'đã pcth' => 'da_pcth',
+		'da_pcthcb' => 'da_pcthcb',
+		'da pcthcb' => 'da_pcthcb',
+		'đã pcthcb' => 'da_pcthcb',
+		'da_pcth_cb' => 'da_pcthcb',
 	);
 
 	public static function normalizeKey($tagName) {

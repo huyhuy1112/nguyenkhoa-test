@@ -7,7 +7,7 @@
   var ref = window.ContactsLovableRef;
   var store = window.ContactsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 15;
+  var COL_COUNT = 17;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -155,19 +155,26 @@
       });
   }
 
-  /** Phân khu chính + chip phụ — Khóa học / NL / NQ tách rõ */
+  /** Phân khu + loại khách + hạng + lớp học — lọc theo tag */
   function getPresetSegments() {
     return [
       { id: "lane_courses", name: pick("Khóa học", "Courses"), filters: { lane: "courses" } },
       { id: "lane_materials", name: pick("Nguyên liệu", "Materials"), filters: { lane: "materials" } },
       { id: "lane_franchise", name: pick("Nhượng quyền", "Franchise"), filters: { lane: "franchise" } },
-      { id: "tagged", name: pick("Có tag", "Has tag"), filters: { hasTag: true } },
       { id: "has_store", name: pick("Đã có quán", "Has store"), filters: { customerRank: "co_quan" } },
       { id: "no_store", name: pick("Chưa có quán", "No store yet"), filters: { customerRank: "chuan_bi_mo" } },
       { id: "family", name: pick("Gia đình", "Family"), filters: { customerRank: "gia_dinh" } },
       { id: "first_buy", name: pick("Mua lần đầu", "First purchase"), filters: { material: "mua_lan_dau" } },
       { id: "deposit", name: pick("Đã ký quỹ", "Deposited"), filters: { franchise: "da_ky_quy" } },
       { id: "gold", name: pick("Hạng Vàng", "Gold tier"), filters: { tier: "vang" } },
+      { id: "silver", name: pick("Hạng Bạc", "Silver tier"), filters: { tier: "bac" } },
+      { id: "bronze", name: pick("Hạng Đồng", "Bronze tier"), filters: { tier: "dong" } },
+      { id: "da_mqbb", name: "Đã MQBB", filters: { classTag: "da_mqbb" } },
+      { id: "da_990k", name: "Đã 990k", filters: { classTag: "da_990k" } },
+      { id: "da_pcth", name: "Đã PCTH", filters: { classTag: "da_pcth" } },
+      { id: "mien_phi_offline", name: "Miễn phí Offline", filters: { classTag: "mien_phi_offline" } },
+      { id: "mien_phi_online", name: "Miễn phí Online", filters: { classTag: "mien_phi_online" } },
+      { id: "da_pcthcb", name: "Đã PCTHCB", filters: { classTag: "da_pcthcb" } },
     ];
   }
 
@@ -181,17 +188,27 @@
     tier: ANY,
     anyTag: ANY,
     owner: ANY,
+    offlineStatus: ANY,
+    progress: ANY,
     hasTag: false,
     hasAccount: false,
     staleOnly: false,
   };
 
   var PRODUCT_TABS = [
-    { id: "unclassified", label: "Chưa phân loại" },
     { id: "online", label: "Online" },
     { id: "offline", label: "Offline" },
     { id: "nvl", label: "NVL" },
     { id: "franchise", label: "Nhượng quyền" },
+  ];
+
+  var OFFLINE_STATUS_FILTERS = [
+    { key: "offline_hen_goi_lai", label: "Hẹn gọi lại" },
+    { key: "offline_khong_nghe_may", label: "Không nghe máy" },
+    { key: "offline_sai_thong_tin", label: "Sai thông tin" },
+    { key: "offline_hen_lich_lai", label: "Hẹn lịch lại" },
+    { key: "offline_chuyen_chuong_trinh", label: "Chuyển CT" },
+    { key: "offline_ngung_cskh", label: "Ngưng CSKH" },
   ];
 
   var state = {
@@ -279,10 +296,33 @@
     var set = {};
     (tags || []).forEach(function (tg) {
       var k = ref && ref.normalizeTag ? ref.normalizeTag(tg) : String(tg || "").toLowerCase();
-      if (k === "mien_phi_online") set.online = 1;
-      else if (k === "mien_phi_offline") set.offline = 1;
-      else if (k === "nhuong_quyen" || k === "da_ky_quy") set.franchise = 1;
-      else if (k === "mua_lan_dau" || k === "mua_lai") set.nvl = 1;
+      if (
+        k === "mien_phi_online" ||
+        k === "da_990k" ||
+        k.indexOf("online_") === 0
+      ) {
+        set.online = 1;
+      } else if (
+        k === "mien_phi_offline" ||
+        k === "da_mqbb" ||
+        k === "da_pcth" ||
+        k === "da_pcthcb" ||
+        k === "da_tg_free" ||
+        k === "da_tg_fb1" ||
+        k.indexOf("offline_") === 0
+      ) {
+        set.offline = 1;
+      } else if (k === "nhuong_quyen" || k === "da_ky_quy" || k === "dang_tu_van") {
+        set.franchise = 1;
+      } else if (
+        k === "mua_lan_dau" ||
+        k === "mua_lai" ||
+        k === "mua_on_dinh" ||
+        k === "tiem_nang" ||
+        k === "dang_cham_soc"
+      ) {
+        set.nvl = 1;
+      }
     });
     return Object.keys(set);
   }
@@ -326,6 +366,24 @@
       if (state.productTab && state.productTab !== "all") {
         if (!hasProductGroup(c, state.productTab)) return false;
       }
+      if (f.offlineStatus && f.offlineStatus !== ANY) {
+        if (!hasNormalizedTag(c.tags, f.offlineStatus)) return false;
+      }
+      if (f.progress && f.progress !== ANY) {
+        var pct =
+          c.edubit_progress_pct != null && c.edubit_progress_pct !== ""
+            ? Number(c.edubit_progress_pct)
+            : null;
+        if (Array.isArray(c.edubit_courses) && c.edubit_courses.length && (pct === null || isNaN(pct))) {
+          pct = Number(c.edubit_courses[0].progress_pct);
+          if (isNaN(pct)) pct = null;
+        }
+        if (f.progress === "none" && pct != null) return false;
+        if (f.progress === "lt50" && !(pct != null && pct < 50)) return false;
+        if (f.progress === "50_79" && !(pct != null && pct >= 50 && pct < 80)) return false;
+        if (f.progress === "80_99" && !(pct != null && pct >= 80 && pct < 100)) return false;
+        if (f.progress === "done" && !(pct != null && pct >= 100)) return false;
+      }
       if (q) {
         var hay = [c.name, c.title, c.account, c.address, c.email, c.phone, c.owner, (c.tags || []).join(" ")]
           .join(" ")
@@ -335,7 +393,7 @@
       if (f.hasTag && !(c.tags || []).length) return false;
       if (f.hasAccount && !c.account) return false;
       if (f.customerRank !== ANY && (!cats.customerRank || ref.normalizeTag(cats.customerRank) !== f.customerRank)) return false;
-      if (f.classTag !== ANY && (!cats.classTag || ref.normalizeTag(cats.classTag) !== f.classTag)) return false;
+      if (f.classTag !== ANY && !hasNormalizedTag(c.tags, f.classTag)) return false;
       if (f.material !== ANY && (!cats.material || ref.normalizeTag(cats.material) !== f.material)) return false;
       if (f.franchise !== ANY && (!cats.franchise || ref.normalizeTag(cats.franchise) !== f.franchise)) return false;
       if (f.tier !== ANY && (!cats.tier || ref.normalizeTag(cats.tier) !== f.tier)) return false;
@@ -349,7 +407,7 @@
           !!cats.classTag ||
           !!(c.edubit_user_id || c.edubit_course_id) ||
           (Array.isArray(c.edubit_courses) && c.edubit_courses.length > 0) ||
-          !!(c.thoigian_dangky || c.thoigian_pcth || c.thoigian_mqbb);
+          !!(c.thoigian_dangky || c.thoigian_pcth || c.thoigian_mqbb || c.thoigian_pcthcb);
         if (f.lane === "franchise") {
           if (!hasFranchise) return false;
         } else if (f.lane === "materials") {
@@ -371,7 +429,7 @@
     return rows.slice().sort(function (a, b) {
       var av = a[key];
       var bv = b[key];
-      if (key === "thoigian_dangky" || key === "thoigian_pcth" || key === "thoigian_mqbb" || key === "converted_at") {
+      if (key === "thoigian_dangky" || key === "thoigian_pcth" || key === "thoigian_mqbb" || key === "thoigian_pcthcb" || key === "converted_at") {
         av = av ? new Date(av).getTime() : 0;
         bv = bv ? new Date(bv).getTime() : 0;
         if (av < bv) return -1 * dir;
@@ -433,7 +491,7 @@
       { key: "tagged", label: t("JS_MK_KPI_TAGGED", "Có tag"), value: withTags, icon: "crown", tone: "violet" },
       { key: "cap_tk", label: t("JS_MK_KPI_CAP_TK", "Đã cấp tài khoản"), value: withCapTk, icon: "check", tone: "emerald" },
       { key: "phone", label: t("JS_MK_KPI_PHONE", "Có SĐT"), value: withPhone, icon: "clock", tone: "cyan" },
-      { key: "cap_bang", label: t("JS_MK_KPI_CAP_BANG", "Tiến trình"), value: withCapBang, icon: "repeat", tone: "amber" },
+      { key: "cap_bang", label: t("JS_MK_KPI_CAP_BANG", "Cấp bằng"), value: withCapBang, icon: "repeat", tone: "amber" },
       { key: "gold", label: t("JS_MK_KPI_GOLD", "Hạng Vàng"), value: gold, icon: "crown", tone: "rose" },
       { key: "franchise", label: t("JS_MK_KPI_FRANCHISE", "Nhượng quyền"), value: franchise, icon: "trend", tone: "indigo" },
     ];
@@ -486,6 +544,27 @@
       })
       .join("");
     html += productTabItemsHtml(rows);
+    if (state.productTab === "offline") {
+      html += '<span class="mk-leads-offline-filters" role="group" aria-label="Lọc trạng thái Offline">';
+      var fos = (state.filters && state.filters.offlineStatus) || ANY;
+      html +=
+        '<button type="button" class="mk-leads-offline-filter' +
+        (fos === ANY ? " is-active" : "") +
+        '" data-offline-status="' +
+        ANY +
+        '">Tất cả Offline</button>';
+      OFFLINE_STATUS_FILTERS.forEach(function (it) {
+        html +=
+          '<button type="button" class="mk-leads-offline-filter' +
+          (fos === it.key ? " is-active" : "") +
+          '" data-offline-status="' +
+          esc(it.key) +
+          '">' +
+          esc(it.label) +
+          "</button>";
+      });
+      html += "</span>";
+    }
     host.innerHTML = html;
   }
 
@@ -519,6 +598,13 @@
       fieldSelect(t("JS_MK_FILTER_CLASS", "Tag lớp học"), "classTag", ref.CLASS_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_MATERIAL", "Tag nguyên liệu"), "material", ref.MATERIAL_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_FRANCHISE", "Tag nhượng quyền"), "franchise", ref.FRANCHISE_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_PROGRESS", "Tiến trình"), "progress", [
+        ["none", "Chưa có tiến độ"],
+        ["lt50", "Dưới 50%"],
+        ["50_79", "50–79%"],
+        ["80_99", "80–99%"],
+        ["done", "Hoàn thành 100%"],
+      ]) +
       fieldSelect(t("JS_MK_FILTER_OWNER", "Phụ trách"), "owner", owners.map(function (o) { return [o, o]; })) +
       "</div>";
     host.hidden = !state.filtersOpen;
@@ -764,9 +850,116 @@
   }
 
   function bangCellHtml(contact) {
-    var timeline = edubitProgressTimelineHtml(contact);
-    if (timeline) return timeline;
     return credentialSelectHtml(contact, "bang");
+  }
+
+  function progressCellHtml(contact) {
+    var timeline = edubitProgressTimelineHtml(contact);
+    return timeline || '<span class="mk-leads-muted">—</span>';
+  }
+
+  function productChipsFromTags(contact) {
+    var groups = productGroupsFromTags(contact && contact.tags);
+    var labels = { online: "Online", offline: "Offline", nvl: "NVL", franchise: "Nhượng quyền" };
+    if (!groups.length) {
+      return '<span class="mk-leads-muted">—</span>';
+    }
+    return (
+      '<span class="mk-lead-pchips">' +
+      groups
+        .map(function (g) {
+          return (
+            '<span class="mk-lead-pchip mk-lead-pchip--' +
+            esc(g) +
+            '">' +
+            esc(labels[g] || g) +
+            "</span>"
+          );
+        })
+        .join("") +
+      "</span>"
+    );
+  }
+
+  function customerTypeCellHtml(contact) {
+    var cats = categorize(contact && contact.tags);
+    if (!cats.customerRank) return '<span class="mk-leads-muted">—</span>';
+    var m = tagMeta(cats.customerRank);
+    return (
+      '<span class="mk-tag ' +
+      esc(m.cls || "") +
+      '">' +
+      esc(m.label || cats.customerRank) +
+      "</span>"
+    );
+  }
+
+  function toDatetimeLocalValue(iso) {
+    if (!iso) return "";
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    var pad = function (n) {
+      return (n < 10 ? "0" : "") + n;
+    };
+    return (
+      d.getFullYear() +
+      "-" +
+      pad(d.getMonth() + 1) +
+      "-" +
+      pad(d.getDate()) +
+      "T" +
+      pad(d.getHours()) +
+      ":" +
+      pad(d.getMinutes())
+    );
+  }
+
+  function offlineAttendCellHtml(contact) {
+    var id = contact.crmid || contact.id;
+    var map = {
+      mqbb: contact.thoigian_mqbb || "",
+      pcth: contact.thoigian_pcth || "",
+      pcth_cb: contact.thoigian_pcthcb || "",
+    };
+    var curClass = "mqbb";
+    if (map.pcth_cb) curClass = "pcth_cb";
+    else if (map.pcth) curClass = "pcth";
+    else if (map.mqbb) curClass = "mqbb";
+    var opts = [
+      ["mqbb", "MQBB"],
+      ["pcth", "PCTH"],
+      ["pcth_cb", "PCTHCB"],
+    ];
+    return (
+      '<div class="mk-contacts-offline-attend" data-contact-id="' +
+      esc(id) +
+      '" data-mqbb="' +
+      esc(toDatetimeLocalValue(map.mqbb)) +
+      '" data-pcth="' +
+      esc(toDatetimeLocalValue(map.pcth)) +
+      '" data-pcth_cb="' +
+      esc(toDatetimeLocalValue(map.pcth_cb)) +
+      '">' +
+      '<select class="mk-leads-region-select mk-contacts-offline-class" title="Lớp Offline">' +
+      opts
+        .map(function (o) {
+          return (
+            '<option value="' +
+            esc(o[0]) +
+            '"' +
+            (curClass === o[0] ? " selected" : "") +
+            ">" +
+            esc(o[1]) +
+            "</option>"
+          );
+        })
+        .join("") +
+      "</select>" +
+      '<input type="datetime-local" class="mk-leads-inline-input mk-contacts-offline-dt" value="' +
+      esc(toDatetimeLocalValue(map[curClass] || "")) +
+      '" title="Thời gian tham gia Offline" />' +
+      "</div>"
+    );
   }
 
   function isCredentialIssued(value, kind) {
@@ -965,16 +1158,22 @@
             '<td class="mk-leads-td mk-leads-td--biz">' +
             businessModelSelectHtml(c.crmid || c.id, c.business_model) +
             "</td>" +
+            '<td class="mk-leads-td mk-leads-td--products">' +
+            productChipsFromTags(c) +
+            "</td>" +
+            '<td class="mk-leads-td mk-leads-td--cust">' +
+            customerTypeCellHtml(c) +
+            "</td>" +
             '<td class="mk-leads-td mk-leads-td--tags"><button type="button" class="mk-leads-tags-edit" data-contact-id="' +
             esc(c.id) +
             '" title="Sửa thẻ">' +
             stackedContactTags(c) +
             "</button></td>" +
+            '<td class="mk-leads-td">' + progressCellHtml(c) + "</td>" +
             '<td class="mk-leads-td">' + bangCellHtml(c) + "</td>" +
             '<td class="mk-leads-td">' + credentialSelectHtml(c, "tk") + "</td>" +
             '<td class="mk-leads-td">' + dateCell(c.thoigian_dangky) + "</td>" +
-            '<td class="mk-leads-td">' + dateCell(c.thoigian_pcth) + "</td>" +
-            '<td class="mk-leads-td">' + dateCell(c.thoigian_mqbb) + "</td>" +
+            '<td class="mk-leads-td">' + offlineAttendCellHtml(c) + "</td>" +
             '<td class="mk-leads-td mk-leads-td--owner"><span class="mk-leads-owner-inner">' +
             '<span class="mk-owner-avatar" style="background:' + ownerColor(c.owner) + '">' + esc(ownerInitials(c.owner)) + "</span>" +
             "<span>" + esc(c.owner || "—") + "</span></span></td>" +
@@ -1359,9 +1558,21 @@
     var segHost = $("mk-contacts-segments");
     if (segHost) {
       segHost.addEventListener("click", function (e) {
+        var offlineBtn = e.target.closest("[data-offline-status]");
+        if (offlineBtn) {
+          state.filters.offlineStatus = offlineBtn.getAttribute("data-offline-status") || ANY;
+          state.productTab = "offline";
+          state.activeSegment = null;
+          state.page = 1;
+          renderAll();
+          return;
+        }
         var ptab = e.target.closest("[data-product-tab]");
         if (ptab) {
           state.productTab = ptab.getAttribute("data-product-tab") || "all";
+          if (state.productTab !== "offline") {
+            state.filters.offlineStatus = ANY;
+          }
           state.activeSegment = null;
           state.page = 1;
           renderAll();
@@ -1395,6 +1606,37 @@
         renderAll();
       });
     }
+
+    document.addEventListener("change", function (e) {
+      var wrap = e.target && e.target.closest ? e.target.closest(".mk-contacts-offline-attend") : null;
+      if (!wrap) return;
+      var isClass = e.target.classList.contains("mk-contacts-offline-class");
+      var isDt = e.target.classList.contains("mk-contacts-offline-dt");
+      if (!isClass && !isDt) return;
+      var contactId = wrap.getAttribute("data-contact-id");
+      var classSel = wrap.querySelector(".mk-contacts-offline-class");
+      var dt = wrap.querySelector(".mk-contacts-offline-dt");
+      if (!contactId || !store || !store.saveOfflineAttend) return;
+      var classCode = classSel ? classSel.value : "mqbb";
+      if (isClass && dt) {
+        dt.value = wrap.getAttribute("data-" + classCode) || "";
+        return;
+      }
+      var datetime = dt ? dt.value : "";
+      store
+        .saveOfflineAttend(contactId, classCode, datetime)
+        .then(function (res) {
+          var iso = (res && res.datetime) || "";
+          wrap.setAttribute("data-" + classCode, toDatetimeLocalValue(iso));
+          if (store.refresh) return store.refresh();
+        })
+        .then(function () {
+          renderAll();
+        })
+        .catch(function () {
+          notifyUser("error", "Không lưu được thời gian tham gia Offline.");
+        });
+    });
 
     document.addEventListener(
       "focusout",

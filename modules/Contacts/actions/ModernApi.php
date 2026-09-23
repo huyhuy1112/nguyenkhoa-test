@@ -22,7 +22,7 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields', 'last_touch_call_log', 'edubit_renew', 'edubit_sync_progress', 'edubit_sync_all', 'edubit_provision'), true)) {
+		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields', 'save_offline_attend', 'last_touch_call_log', 'edubit_renew', 'edubit_sync_progress', 'edubit_sync_all', 'edubit_provision'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -152,6 +152,17 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 					}
 					$bizArg = array_key_exists('business_model', $all) ? $request->get('business_model') : null;
 					$response->setResult(Contacts_ModernService::saveInlineFields($recordId, $phoneArg, $addressArg, $bizArg));
+					break;
+				case 'save_offline_attend':
+					$recordId = $request->get('record');
+					if ($recordId === null || $recordId === '') {
+						$recordId = $request->get('id');
+					}
+					$response->setResult(Contacts_ModernService::saveOfflineAttend(
+						$recordId,
+						$request->get('class_code'),
+						$request->get('datetime')
+					));
 					break;
 				case 'delete':
 					$recordId = $request->get('record');
