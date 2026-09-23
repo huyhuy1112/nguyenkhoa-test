@@ -155,20 +155,14 @@
       });
   }
 
-  /** Phân khu + loại khách + hạng + lớp học — lọc theo tag */
+  /** Phân khu + lớp học — lọc theo tag (tag con NVL nằm ở NVL_SUB_FILTERS) */
   function getPresetSegments() {
     return [
       { id: "lane_courses", name: pick("Khóa học", "Courses"), filters: { lane: "courses" } },
       { id: "lane_materials", name: pick("Nguyên liệu", "Materials"), filters: { lane: "materials" } },
       { id: "lane_franchise", name: pick("Nhượng quyền", "Franchise"), filters: { lane: "franchise" } },
-      { id: "has_store", name: pick("Đã có quán", "Has store"), filters: { customerRank: "co_quan" } },
-      { id: "no_store", name: pick("Chưa có quán", "No store yet"), filters: { customerRank: "chuan_bi_mo" } },
       { id: "family", name: pick("Gia đình", "Family"), filters: { customerRank: "gia_dinh" } },
       { id: "first_buy", name: pick("Mua lần đầu", "First purchase"), filters: { material: "mua_lan_dau" } },
-      { id: "deposit", name: pick("Đã ký quỹ", "Deposited"), filters: { franchise: "da_ky_quy" } },
-      { id: "gold", name: pick("Hạng Vàng", "Gold tier"), filters: { tier: "vang" } },
-      { id: "silver", name: pick("Hạng Bạc", "Silver tier"), filters: { tier: "bac" } },
-      { id: "bronze", name: pick("Hạng Đồng", "Bronze tier"), filters: { tier: "dong" } },
       { id: "da_mqbb", name: "Đã MQBB", filters: { classTag: "da_mqbb" } },
       { id: "da_990k", name: "Đã 990k", filters: { classTag: "da_990k" } },
       { id: "da_pcth", name: "Đã PCTH", filters: { classTag: "da_pcth" } },
@@ -177,6 +171,16 @@
       { id: "da_pcthcb", name: "Đã PCTHCB", filters: { classTag: "da_pcthcb" } },
     ];
   }
+
+  /** Tag con của NVL — chỉ hiện khi chọn tab NVL */
+  var NVL_SUB_FILTERS = [
+    { id: "has_store", label: pick("Đã có quán", "Has store"), filters: { customerRank: "co_quan" } },
+    { id: "no_store", label: pick("Chưa có quán", "No store yet"), filters: { customerRank: "chuan_bi_mo" } },
+    { id: "deposit", label: pick("Đã ký quỹ", "Deposited"), filters: { franchise: "da_ky_quy" } },
+    { id: "gold", label: pick("Hạng Vàng", "Gold tier"), filters: { tier: "vang" } },
+    { id: "silver", label: pick("Hạng Bạc", "Silver tier"), filters: { tier: "bac" } },
+    { id: "bronze", label: pick("Hạng Đồng", "Bronze tier"), filters: { tier: "dong" } },
+  ];
 
   var EMPTY = {
     search: "",
@@ -220,7 +224,40 @@
     activeSegment: null,
     selected: {},
     productTab: "all",
+    nvlSubFilter: ANY,
   };
+
+  function clearNvlSubFilters() {
+    state.nvlSubFilter = ANY;
+    state.filters.customerRank = ANY;
+    state.filters.franchise = ANY;
+    state.filters.tier = ANY;
+  }
+
+  function applyNvlSubFilter(subId) {
+    state.productTab = "nvl";
+    state.activeSegment = null;
+    state.filters.customerRank = ANY;
+    state.filters.franchise = ANY;
+    state.filters.tier = ANY;
+    state.nvlSubFilter = subId || ANY;
+    if (subId && subId !== ANY) {
+      var item = null;
+      for (var i = 0; i < NVL_SUB_FILTERS.length; i++) {
+        if (NVL_SUB_FILTERS[i].id === subId) {
+          item = NVL_SUB_FILTERS[i];
+          break;
+        }
+      }
+      if (item && item.filters) {
+        Object.keys(item.filters).forEach(function (k) {
+          state.filters[k] = item.filters[k];
+        });
+      }
+    }
+    state.page = 1;
+    renderAll();
+  }
 
   function $(id) {
     return document.getElementById(id);
@@ -559,6 +596,27 @@
           (fos === it.key ? " is-active" : "") +
           '" data-offline-status="' +
           esc(it.key) +
+          '">' +
+          esc(it.label) +
+          "</button>";
+      });
+      html += "</span>";
+    }
+    if (state.productTab === "nvl") {
+      html += '<span class="mk-leads-offline-filters" role="group" aria-label="Lọc NVL">';
+      var fnvl = state.nvlSubFilter || ANY;
+      html +=
+        '<button type="button" class="mk-leads-offline-filter' +
+        (fnvl === ANY ? " is-active" : "") +
+        '" data-nvl-sub="' +
+        ANY +
+        '">Tất cả NVL</button>';
+      NVL_SUB_FILTERS.forEach(function (it) {
+        html +=
+          '<button type="button" class="mk-leads-offline-filter' +
+          (fnvl === it.id ? " is-active" : "") +
+          '" data-nvl-sub="' +
+          esc(it.id) +
           '">' +
           esc(it.label) +
           "</button>";
@@ -1339,6 +1397,7 @@
     if (segId === "__all__") {
       state.activeSegment = null;
       state.productTab = "all";
+      state.nvlSubFilter = ANY;
       state.filters = Object.assign({}, EMPTY);
       state.page = 1;
       renderAll();
@@ -1347,6 +1406,7 @@
     var seg = getPresetSegments().find(function (s) { return s.id === segId; });
     state.activeSegment = segId;
     state.productTab = "all";
+    state.nvlSubFilter = ANY;
     state.filters = Object.assign({}, EMPTY);
     if (seg && seg.filters) {
       Object.keys(seg.filters).forEach(function (k) {
@@ -1563,16 +1623,26 @@
           state.filters.offlineStatus = offlineBtn.getAttribute("data-offline-status") || ANY;
           state.productTab = "offline";
           state.activeSegment = null;
+          clearNvlSubFilters();
           state.page = 1;
           renderAll();
           return;
         }
+        var nvlBtn = e.target.closest("[data-nvl-sub]");
+        if (nvlBtn) {
+          applyNvlSubFilter(nvlBtn.getAttribute("data-nvl-sub") || ANY);
+          return;
+        }
         var ptab = e.target.closest("[data-product-tab]");
         if (ptab) {
-          state.productTab = ptab.getAttribute("data-product-tab") || "all";
-          if (state.productTab !== "offline") {
+          var nextTab = ptab.getAttribute("data-product-tab") || "all";
+          if (nextTab !== "offline") {
             state.filters.offlineStatus = ANY;
           }
+          if (nextTab !== "nvl") {
+            clearNvlSubFilters();
+          }
+          state.productTab = nextTab;
           state.activeSegment = null;
           state.page = 1;
           renderAll();
@@ -1601,6 +1671,7 @@
         state.filters = Object.assign({}, EMPTY);
         state.activeSegment = null;
         state.productTab = "all";
+        state.nvlSubFilter = ANY;
         state.page = 1;
         if (search) search.value = "";
         renderAll();
