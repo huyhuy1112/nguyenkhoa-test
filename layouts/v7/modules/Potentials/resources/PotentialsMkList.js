@@ -1079,22 +1079,17 @@
         "</div>";
     } else if (isAdminUser() && !editable) {
       html += '<div class="mk-opps-checkin__hint">Đã ghi nhận · khóa chọn lại</div>';
-      if (st === "offline_da_tham_gia") {
-        var oaOk = !!(o.zalo_user_id && String(o.zalo_user_id).trim());
+      if (st === "offline_da_tham_gia" && o.offline_oa_scan_note) {
         html +=
-          '<div class="mk-opps-checkin__actions">' +
-          '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--oa" data-mk-opp-oa-qr="' +
-          esc(o.id) +
-          '">' +
-          (oaOk ? "Xem QR OA · đã gắn" : "QR OA tại quầy") +
-          "</button>" +
+          '<div class="mk-opps-checkin__hint">' +
+          esc(String(o.offline_oa_scan_note)) +
           "</div>";
-        if (o.offline_oa_scan_note) {
-          html +=
-            '<div class="mk-opps-checkin__hint">' +
-            esc(String(o.offline_oa_scan_note)) +
-            "</div>";
-        }
+      }
+      if (st === "offline_da_tham_gia" && o.zalo_user_id) {
+        html +=
+          '<div class="mk-opps-checkin__hint mk-opps-checkin__hint--ok">QR khớp OA · ' +
+          esc(String(o.zalo_user_id)) +
+          "</div>";
       }
     } else {
       html += '<div class="mk-opps-checkin__hint">Chỉ Admin ghi nhận</div>';
@@ -1156,12 +1151,7 @@
         if (res && res.drop) {
           notifyOk("Đã đủ 3 lần không tham gia → Ngưng CSKH Offline.");
         } else if (action === "da_tham_gia") {
-          notifyOk("Đã ghi nhận tham gia lớp — mở QR OA cho khách quét.");
-          if (res && res.oa_qr) {
-            openOaQrModal(oid, res.oa_qr);
-          } else {
-            openOaQrModal(oid, null);
-          }
+          notifyOk("Đã ghi nhận tham gia lớp.");
         } else {
           var r3 = res && res.lead ? Number(res.lead.offline_r3_class) || 0 : 0;
           notifyOk(
@@ -1183,6 +1173,7 @@
   }
 
   var oaQrPollTimer = null;
+  var deskFeedTab = "matched";
 
   function closeOaQrModal() {
     if (oaQrPollTimer) {
@@ -1193,21 +1184,66 @@
     if (m) m.remove();
   }
 
-  function paintOaQrModal(host, oid, data) {
-    if (!host || !data) return;
-    var scanned = !!data.scanned || !!(data.zalo_user_id && String(data.zalo_user_id).trim());
-    var follow = data.follow_url ? String(data.follow_url) : "";
-    var qrImg = data.qr_image_url ? String(data.qr_image_url) : "";
-    var phone = data.phone ? String(data.phone) : "";
-    var note = data.note ? String(data.note) : "";
-    var tips = Array.isArray(data.instructions) ? data.instructions : [];
-    var statusHtml = scanned
-      ? '<p class="mk-opps-oa-qr__ok">Đã gắn OA id: <code>' +
-        esc(String(data.zalo_user_id)) +
-        "</code></p>"
-      : '<p class="mk-opps-oa-qr__wait">Chưa gắn OA id — nhờ khách quét <strong>QR form</strong> rồi điền đúng SĐT đăng ký' +
-        (phone ? " (<strong>" + esc(phone) + "</strong>)" : "") +
-        ".</p>";
+  function formatDeskTime(raw) {
+    if (!raw) return "";
+    var s = String(raw).replace("T", " ");
+    if (s.length >= 16) return s.slice(0, 16);
+    return s;
+  }
+
+  function paintDeskFeedList(rows, emptyLabel) {
+    if (!rows || !rows.length) {
+      return '<p class="mk-opps-oa-qr__empty">' + esc(emptyLabel) + "</p>";
+    }
+    return (
+      '<ul class="mk-opps-desk-feed">' +
+      rows
+        .map(function (r) {
+          var title =
+            r.result === "matched"
+              ? r.opp_name || "Opp #" + r.potential_id
+              : r.message || "Không trùng SĐT";
+          var phone = r.phone ? String(r.phone) : "—";
+          var link =
+            r.potential_id > 0
+              ? '<a class="mk-opps-desk-feed__link" href="index.php?module=Potentials&view=Detail&record=' +
+                esc(String(r.potential_id)) +
+                '&app=SALES" target="_blank" rel="noopener">Mở Opp</a>'
+              : "";
+          return (
+            '<li class="mk-opps-desk-feed__item mk-opps-desk-feed__item--' +
+            esc(r.result || "unmatched") +
+            '">' +
+            '<div class="mk-opps-desk-feed__top">' +
+            '<strong class="mk-opps-desk-feed__phone">' +
+            esc(phone) +
+            "</strong>" +
+            '<span class="mk-opps-desk-feed__time">' +
+            esc(formatDeskTime(r.created_at)) +
+            "</span></div>" +
+            '<div class="mk-opps-desk-feed__msg">' +
+            esc(title) +
+            "</div>" +
+            link +
+            "</li>"
+          );
+        })
+        .join("") +
+      "</ul>"
+    );
+  }
+
+  function paintDeskOaQrModal(host, qrData, feedData) {
+    if (!host) return;
+    qrData = qrData || {};
+    feedData = feedData || { matched: [], unmatched: [], ambiguous: [], counts: {} };
+    var follow = qrData.follow_url ? String(qrData.follow_url) : "";
+    var qrImg = qrData.qr_image_url ? String(qrData.qr_image_url) : "";
+    var tips = Array.isArray(qrData.instructions) ? qrData.instructions : [];
+    var counts = feedData.counts || {};
+    var nOk = Number(counts.matched) || 0;
+    var nNo = Number(counts.unmatched) || 0;
+    var nAm = Number(counts.ambiguous) || 0;
     var qrBlock = qrImg
       ? '<img class="mk-opps-oa-qr__img" src="' +
         esc(qrImg) +
@@ -1222,103 +1258,109 @@
           .join("") +
         "</ul>"
       : "";
+    var tab = deskFeedTab === "unmatched" ? "unmatched" : deskFeedTab === "ambiguous" ? "ambiguous" : "matched";
+    var listHtml =
+      tab === "matched"
+        ? paintDeskFeedList(feedData.matched, "Chưa có lượt khớp trong khung giờ này.")
+        : tab === "ambiguous"
+          ? paintDeskFeedList(feedData.ambiguous, "Không có SĐT trùng nhiều Opp.")
+          : paintDeskFeedList(feedData.unmatched, "Chưa có SĐT không khớp.");
+
     host.innerHTML =
-      '<div class="mk-opps-oa-qr__dialog" role="dialog" aria-modal="true" aria-label="QR form Zalo OA">' +
+      '<div class="mk-opps-oa-qr__dialog mk-opps-oa-qr__dialog--desk" role="dialog" aria-modal="true" aria-label="QR tại quầy">' +
       '<header class="mk-opps-oa-qr__head">' +
-      "<h3>Quét QR form điền thông tin</h3>" +
+      "<h3>QR tại quầy · Check-in Opp</h3>" +
       '<button type="button" class="mk-opps-oa-qr__close" data-mk-oa-qr-close aria-label="Đóng">×</button>' +
       "</header>" +
-      '<div class="mk-opps-oa-qr__body">' +
+      '<div class="mk-opps-oa-qr__body mk-opps-oa-qr__body--desk">' +
       '<div class="mk-opps-oa-qr__left">' +
       qrBlock +
       (follow
         ? '<a class="mk-opps-oa-qr__link" href="' +
           esc(follow) +
           '" target="_blank" rel="noopener">Mở link form / OA</a>'
-        : '<p class="mk-opps-oa-qr__link-hint">Quét QR bên trái để mở form điền thông tin</p>') +
+        : '<p class="mk-opps-oa-qr__link-hint">Quét QR để mở form điền SĐT</p>') +
+      tipsHtml +
       "</div>" +
       '<div class="mk-opps-oa-qr__right">' +
-      statusHtml +
-      '<p class="mk-opps-oa-qr__howto-title">Cách dùng 3 nút</p>' +
-      tipsHtml +
-      (note ? '<p class="mk-opps-oa-qr__note">Ghi chú: ' + esc(note) + "</p>" : "") +
+      '<p class="mk-opps-oa-qr__howto-title">Đối chiếu SĐT Opp (12 giờ gần nhất)</p>' +
+      '<div class="mk-opps-desk-tabs" role="tablist">' +
+      '<button type="button" class="mk-opps-desk-tab' +
+      (tab === "matched" ? " is-active" : "") +
+      '" data-desk-tab="matched">Khớp (' +
+      nOk +
+      ")</button>" +
+      '<button type="button" class="mk-opps-desk-tab' +
+      (tab === "unmatched" ? " is-active" : "") +
+      '" data-desk-tab="unmatched">Không khớp (' +
+      nNo +
+      ")</button>" +
+      '<button type="button" class="mk-opps-desk-tab' +
+      (tab === "ambiguous" ? " is-active" : "") +
+      '" data-desk-tab="ambiguous">Trùng nhiều (' +
+      nAm +
+      ")</button>" +
+      "</div>" +
+      '<div class="mk-opps-desk-feed-wrap" data-desk-feed>' +
+      listHtml +
+      "</div>" +
       '<div class="mk-opps-oa-qr__actions">' +
-      '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--ok" data-mk-oa-qr-refresh="' +
-      esc(oid) +
-      '">Làm mới trạng thái</button>' +
-      '<button type="button" class="mk-opps-checkin__btn" data-mk-oa-qr-note="no_zalo" data-opp-id="' +
-      esc(oid) +
-      '">Không dùng Zalo</button>' +
-      '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--no" data-mk-oa-qr-note="refused" data-opp-id="' +
-      esc(oid) +
-      '">Không chịu quét</button>' +
+      '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--ok" data-mk-desk-qr-refresh>Làm mới</button>' +
       "</div>" +
       "</div>" +
       "</div>" +
       "</div>";
   }
 
-  function openOaQrModal(oid, seed) {
-    closeOaQrModal();
-    var backdrop = document.createElement("div");
-    backdrop.id = "mk-opps-oa-qr-modal";
-    backdrop.className = "mk-opps-oa-qr";
-    document.body.appendChild(backdrop);
-    paintOaQrModal(backdrop, oid, seed || { scanned: false, instructions: [] });
-    if (!seed || !seed.follow_url) {
-      refreshOaQrModal(oid);
-    }
-    if (oaQrPollTimer) clearInterval(oaQrPollTimer);
-    oaQrPollTimer = setInterval(function () {
-      refreshOaQrModal(oid, true);
-    }, 8000);
-  }
-
-  function refreshOaQrModal(oid, quiet) {
-    if (!store || !store.offlineOaQr) return;
-    store
-      .offlineOaQr(oid)
-      .then(function (res) {
-        var host = document.getElementById("mk-opps-oa-qr-modal");
-        if (!host) return;
-        paintOaQrModal(host, oid, res || {});
-        if (res && res.scanned && !quiet) {
-          notifyOk("Đã gắn OA id cho khách.");
-        }
-        if (res && res.zalo_user_id) {
-          rootPatchOaOnOpp(oid, res);
+  function loadDeskOaModal(quiet) {
+    if (!store || !store.offlineOaDeskQr) return;
+    var host = document.getElementById("mk-opps-oa-qr-modal");
+    if (!host) return;
+    Promise.all([
+      store.offlineOaDeskQr(),
+      store.offlineOaCheckinFeed ? store.offlineOaCheckinFeed(12) : Promise.resolve({}),
+    ])
+      .then(function (pair) {
+        var h = document.getElementById("mk-opps-oa-qr-modal");
+        if (!h) return;
+        paintDeskOaQrModal(h, pair[0] || {}, pair[1] || {});
+        if (!quiet) {
+          var c = (pair[1] && pair[1].counts) || {};
+          if (Number(c.matched) || Number(c.unmatched) || Number(c.ambiguous)) {
+            /* keep silent on open — feed is visible */
+          }
         }
       })
       .catch(function (err) {
         if (quiet) return;
-        notifyErr((err && err.message) || "Không làm mới được QR OA.");
+        notifyErr((err && err.message) || "Không tải được QR quầy.");
       });
   }
 
-  function rootPatchOaOnOpp(oid, res) {
-    if (!store || !store.patchOpportunity) return;
-    store.patchOpportunity(String(oid), {
-      zalo_user_id: res.zalo_user_id || "",
-      offline_oa_scanned_at: res.scanned_at || "",
-      offline_oa_scan_note: res.note || "",
-    });
+  function openDeskOaQrModal() {
+    closeOaQrModal();
+    deskFeedTab = "matched";
+    var backdrop = document.createElement("div");
+    backdrop.id = "mk-opps-oa-qr-modal";
+    backdrop.className = "mk-opps-oa-qr";
+    document.body.appendChild(backdrop);
+    paintDeskOaQrModal(backdrop, {}, { matched: [], unmatched: [], ambiguous: [], counts: {} });
+    loadDeskOaModal(false);
+    if (oaQrPollTimer) clearInterval(oaQrPollTimer);
+    oaQrPollTimer = setInterval(function () {
+      loadDeskOaModal(true);
+    }, 10000);
   }
 
-  function saveOaQrNote(oid, kind) {
-    if (!store || !store.offlineOaNote) return;
-    store
-      .offlineOaNote(oid, kind, "")
-      .then(function (res) {
-        notifyOk(kind === "no_zalo" ? "Đã ghi: khách không dùng Zalo." : "Đã ghi: không chịu quét.");
-        var host = document.getElementById("mk-opps-oa-qr-modal");
-        if (host) paintOaQrModal(host, oid, res || {});
-        rootPatchOaOnOpp(oid, res || {});
-        renderAll();
-      })
-      .catch(function (err) {
-        notifyErr((err && err.message) || "Không lưu ghi chú.");
-      });
+  // Legacy stubs — per-Opp QR đã bỏ; giữ tên để tránh lỗi nếu còn gọi cũ.
+  function openOaQrModal() {
+    openDeskOaQrModal();
   }
+  function refreshOaQrModal() {
+    loadDeskOaModal(true);
+  }
+  function saveOaQrNote() {}
+  function rootPatchOaOnOpp() {}
 
   function sortOpps(rows) {
     var key = state.sortKey;
@@ -2183,31 +2225,24 @@
         submitOfflineCheckin(checkinBtn.getAttribute("data-mk-opp-checkin"), checkinBtn);
         return;
       }
-      var oaOpen = e.target.closest && e.target.closest("[data-mk-opp-oa-qr]");
-      if (oaOpen) {
-        e.preventDefault();
-        e.stopPropagation();
-        openOaQrModal(oaOpen.getAttribute("data-mk-opp-oa-qr"), null);
-        return;
-      }
       if (e.target.closest && e.target.closest("[data-mk-oa-qr-close]")) {
         e.preventDefault();
         e.stopPropagation();
         closeOaQrModal();
         return;
       }
-      var oaRefresh = e.target.closest && e.target.closest("[data-mk-oa-qr-refresh]");
-      if (oaRefresh) {
+      var deskTab = e.target.closest && e.target.closest("[data-desk-tab]");
+      if (deskTab && e.target.closest("#mk-opps-oa-qr-modal")) {
         e.preventDefault();
         e.stopPropagation();
-        refreshOaQrModal(oaRefresh.getAttribute("data-mk-oa-qr-refresh"), false);
+        deskFeedTab = deskTab.getAttribute("data-desk-tab") || "matched";
+        loadDeskOaModal(true);
         return;
       }
-      var oaNote = e.target.closest && e.target.closest("[data-mk-oa-qr-note][data-opp-id]");
-      if (oaNote) {
+      if (e.target.closest && e.target.closest("[data-mk-desk-qr-refresh]")) {
         e.preventDefault();
         e.stopPropagation();
-        saveOaQrNote(oaNote.getAttribute("data-opp-id"), oaNote.getAttribute("data-mk-oa-qr-note"));
+        loadDeskOaModal(false);
         return;
       }
       var edubitBtn =
@@ -2361,10 +2396,18 @@
 
     if ($("mk-opps-import-ic")) $("mk-opps-import-ic").innerHTML = ic("import");
     if ($("mk-opps-create-ic")) $("mk-opps-create-ic").innerHTML = ic("plus");
+    if ($("mk-opps-desk-qr-ic")) $("mk-opps-desk-qr-ic").innerHTML = ic("ticket");
     if ($("mk-opps-edubit-sync-ic")) $("mk-opps-edubit-sync-ic").innerHTML = ic("repeat");
     if ($("mk-opps-search-ic")) $("mk-opps-search-ic").innerHTML = ic("search");
     if ($("mk-opps-segments-icon")) $("mk-opps-segments-icon").innerHTML = ic("filter");
     if ($("mk-opps-filters-ic")) $("mk-opps-filters-ic").innerHTML = ic("filter");
+
+    var deskQrBtn = $("mk-opps-desk-qr-btn");
+    if (deskQrBtn) {
+      deskQrBtn.addEventListener("click", function () {
+        openDeskOaQrModal();
+      });
+    }
 
     var syncBtn = $("mk-opps-edubit-sync-btn");
     if (syncBtn) {

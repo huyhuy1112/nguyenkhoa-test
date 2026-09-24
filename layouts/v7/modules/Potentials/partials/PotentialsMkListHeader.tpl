@@ -7,6 +7,10 @@
 			<p class="mk-leads-action-header__subtitle">{vtranslate('LBL_MK_OPPS_SUBTITLE', 'Potentials')}</p>
 		</div>
 		<div class="mk-leads-action-header__actions">
+			<button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-opps-desk-qr-btn" title="QR form Zalo OA dùng chung tại quầy — đối chiếu SĐT Opp">
+				<span class="mk-leads-btn__ic" id="mk-opps-desk-qr-ic" aria-hidden="true"></span>
+				<span class="mk-leads-btn__txt">QR tại quầy</span>
+			</button>
 			<button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-opps-edubit-sync-btn" title="{vtranslate('LBL_MK_EDUBIT_SYNC_HINT', 'Contacts')}">
 				<span class="mk-leads-btn__ic" id="mk-opps-edubit-sync-ic" aria-hidden="true"></span>
 				<span class="mk-leads-btn__txt">{vtranslate('LBL_MK_EDUBIT_SYNC', 'Contacts')}</span>

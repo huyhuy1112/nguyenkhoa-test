@@ -216,6 +216,18 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 					}
 					$response->setResult($saved);
 					break;
+				case 'offline_oa_desk_qr':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$response->setResult(Leads_OfflineGd11Service::getDeskOaQr());
+					break;
+				case 'offline_oa_checkin_feed':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$hours = (int) $request->get('hours');
+					if ($hours <= 0) {
+						$hours = 12;
+					}
+					$response->setResult(Leads_OfflineGd11Service::listDeskCheckinFeed($hours));
+					break;
 				case 'offline_reschedule':
 					require_once 'modules/Leads/models/OfflineGd11Service.php';
 					$recordId = (int) $request->get('record');

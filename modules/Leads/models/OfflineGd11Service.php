@@ -1431,8 +1431,9 @@ class Leads_OfflineGd11Service {
 	/**
 	 * Bước 3 — Admin check-in tại máy điểm danh (Opp). Không gửi OA.
 	 * @param string $action da_tham_gia|khong_tham_gia
+	 * @param array $opts skip_admin_check=true khi webhook OA tự điểm danh
 	 */
-	public static function checkinFromPotential($potentialId, $action, $userId = null) {
+	public static function checkinFromPotential($potentialId, $action, $userId = null, array $opts = array()) {
 		global $current_user;
 		$potentialId = (int) $potentialId;
 		$action = strtolower(trim((string) $action));
@@ -1446,7 +1447,8 @@ class Leads_OfflineGd11Service {
 			$userId = (int) $current_user->id;
 		}
 		$isAdmin = !empty($current_user->is_admin) && $current_user->is_admin === 'on';
-		if (!$isAdmin) {
+		$skipAdmin = !empty($opts['skip_admin_check']);
+		if (!$skipAdmin && !$isAdmin) {
 			return array('success' => false, 'error' => 'Chỉ Admin được điểm danh lớp Offline (Bước 3).');
 		}
 
@@ -1903,5 +1905,301 @@ class Leads_OfflineGd11Service {
 		} catch (Exception $e) {
 			// best-effort
 		}
+	}
+
+	/**
+	 * Log quầy QR dùng chung — khớp / không khớp Opp theo SĐT.
+	 */
+	public static function ensureOppDeskCheckinLogSchema($adb = null) {
+		static $done = false;
+		if ($done) {
+			return;
+		}
+		if ($adb === null) {
+			$adb = PearDatabase::getInstance();
+		}
+		$adb->query(
+			"CREATE TABLE IF NOT EXISTS bace_opp_oa_desk_checkin (
+				id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				phone VARCHAR(32) NOT NULL DEFAULT '',
+				oa_user_id VARCHAR(64) NULL,
+				result VARCHAR(32) NOT NULL DEFAULT 'unmatched',
+				potential_id INT UNSIGNED NULL,
+				lead_id INT UNSIGNED NULL,
+				opp_name VARCHAR(255) NULL,
+				message VARCHAR(255) NULL,
+				created_at DATETIME NOT NULL,
+				KEY idx_desk_created (created_at),
+				KEY idx_desk_result (result),
+				KEY idx_desk_phone (phone)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+		);
+		$done = true;
+	}
+
+	/**
+	 * QR form dùng chung tại quầy (không gắn 1 Opp).
+	 * @return array
+	 */
+	public static function getDeskOaQr() {
+		$follow = self::resolveOaFollowUrl();
+		$qrImg = self::offlineOaFormQrImageUrl();
+		return array(
+			'success' => true,
+			'shared' => true,
+			'follow_url' => isset($follow['url']) ? $follow['url'] : '',
+			'oa_id' => isset($follow['oa_id']) ? $follow['oa_id'] : '',
+			'oa_name' => isset($follow['oa_name']) ? $follow['oa_name'] : '',
+			'qr_image_url' => $qrImg,
+			'instructions' => array(
+				'Khách quét QR → điền form Zalo OA (đúng SĐT đăng ký lớp).',
+				'CRM đối chiếu SĐT trên Opp Offline đã xác nhận lịch.',
+				'Khớp 1 Opp → tự gắn Có tham gia. Không khớp → hiện ở tab Không khớp.',
+			),
+		);
+	}
+
+	/**
+	 * Tìm Opp Offline đủ điều kiện điểm danh theo SĐT.
+	 * @return array list of {potential_id, lead_id, offline_status, name, phone}
+	 */
+	public static function findEligibleOppsByPhone($phone) {
+		$variants = self::phoneMatchVariants($phone);
+		if (empty($variants)) {
+			return array();
+		}
+		$adb = PearDatabase::getInstance();
+		$ph = implode(',', array_fill(0, count($variants), '?'));
+		$sql = "SELECT p.potentialid, p.potentialname, lp.leadid, lp.offline_status,
+				pp.phone AS pot_phone, cd.phone AS contact_phone, cd.mobile AS contact_mobile, la.phone AS lead_phone
+			FROM vtiger_potential p
+			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid AND ce.deleted = 0
+			LEFT JOIN bace_potential_profile pp ON pp.potentialid = p.potentialid
+			LEFT JOIN vtiger_contactdetails cd ON cd.contactid = p.contact_id
+			LEFT JOIN bace_lead_profile lp ON lp.potential_id = p.potentialid
+			LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = lp.leadid
+			WHERE (pp.converted_to_customer_at IS NULL OR pp.converted_to_customer_at = '' OR pp.converted_to_customer_at = '0000-00-00 00:00:00')
+			  AND lp.leadid IS NOT NULL
+			  AND lp.offline_status IN (?, ?)
+			  AND (
+				REPLACE(REPLACE(REPLACE(REPLACE(IFNULL(pp.phone,''),' ',''),'-',''),'.',''),'+','') IN ($ph)
+				OR REPLACE(REPLACE(REPLACE(REPLACE(IFNULL(cd.phone,''),' ',''),'-',''),'.',''),'+','') IN ($ph)
+				OR REPLACE(REPLACE(REPLACE(REPLACE(IFNULL(cd.mobile,''),' ',''),'-',''),'.',''),'+','') IN ($ph)
+				OR REPLACE(REPLACE(REPLACE(REPLACE(IFNULL(la.phone,''),' ',''),'-',''),'.',''),'+','') IN ($ph)
+			  )
+			ORDER BY p.potentialid DESC";
+		$params = array_merge(
+			array(self::STATUS_DA_XN_LICH, self::STATUS_HEN_LICH_LAI),
+			$variants,
+			$variants,
+			$variants,
+			$variants
+		);
+		$res = $adb->pquery($sql, $params);
+		$out = array();
+		$seen = array();
+		if ($res) {
+			$n = $adb->num_rows($res);
+			for ($i = 0; $i < $n; $i++) {
+				$pid = (int) $adb->query_result($res, $i, 'potentialid');
+				if ($pid <= 0 || isset($seen[$pid])) {
+					continue;
+				}
+				$seen[$pid] = 1;
+				$out[] = array(
+					'potential_id' => $pid,
+					'lead_id' => (int) $adb->query_result($res, $i, 'leadid'),
+					'offline_status' => trim((string) $adb->query_result($res, $i, 'offline_status')),
+					'name' => decode_html((string) $adb->query_result($res, $i, 'potentialname')),
+					'phone' => trim((string) (
+						$adb->query_result($res, $i, 'pot_phone')
+						?: $adb->query_result($res, $i, 'contact_phone')
+						?: $adb->query_result($res, $i, 'contact_mobile')
+						?: $adb->query_result($res, $i, 'lead_phone')
+					)),
+				);
+			}
+		}
+		return $out;
+	}
+
+	protected static function writeDeskCheckinLog($phone, $oaUserId, $result, $potentialId, $leadId, $oppName, $message) {
+		self::ensureOppDeskCheckinLogSchema();
+		$adb = PearDatabase::getInstance();
+		$adb->pquery(
+			'INSERT INTO bace_opp_oa_desk_checkin
+				(phone, oa_user_id, result, potential_id, lead_id, opp_name, message, created_at)
+			 VALUES (?,?,?,?,?,?,?,?)',
+			array(
+				substr(preg_replace('/\D+/', '', (string) $phone), 0, 32),
+				substr(trim((string) $oaUserId), 0, 64),
+				substr((string) $result, 0, 32),
+				(int) $potentialId,
+				(int) $leadId,
+				$oppName !== '' ? substr((string) $oppName, 0, 255) : null,
+				$message !== '' ? substr((string) $message, 0, 255) : null,
+				date('Y-m-d H:i:s'),
+			)
+		);
+	}
+
+	/**
+	 * Webhook OA form: đối chiếu SĐT → Opp Offline → tự Có tham gia nếu khớp đúng 1.
+	 * @return array
+	 */
+	public static function processDeskCheckinByPhone($phone, $oaUserId = '') {
+		$phone = trim((string) $phone);
+		$oaUserId = trim((string) $oaUserId);
+		$norm = self::normalizeVnPhone($phone);
+		if ($norm === '' && preg_replace('/\D+/', '', $phone) === '') {
+			return array('success' => false, 'result' => 'invalid_phone', 'error' => 'Thiếu SĐT');
+		}
+		$matches = self::findEligibleOppsByPhone($phone);
+		if (count($matches) === 0) {
+			self::writeDeskCheckinLog(
+				$norm !== '' ? $norm : $phone,
+				$oaUserId,
+				'unmatched',
+				null,
+				null,
+				'',
+				'Không trùng khớp với SĐT Opp nào (đã XN lịch)'
+			);
+			return array(
+				'success' => true,
+				'result' => 'unmatched',
+				'message' => 'Không trùng khớp với SĐT Opp nào',
+				'matches' => 0,
+			);
+		}
+		if (count($matches) > 1) {
+			$names = array();
+			foreach ($matches as $m) {
+				$names[] = $m['name'] . ' #' . $m['potential_id'];
+			}
+			self::writeDeskCheckinLog(
+				$norm !== '' ? $norm : $phone,
+				$oaUserId,
+				'ambiguous',
+				null,
+				null,
+				'',
+				'Trùng ' . count($matches) . ' Opp: ' . implode(', ', $names)
+			);
+			return array(
+				'success' => true,
+				'result' => 'ambiguous',
+				'message' => 'SĐT khớp nhiều Opp — cần chọn thủ công',
+				'matches' => count($matches),
+				'opps' => $matches,
+			);
+		}
+		$hit = $matches[0];
+		if ($oaUserId !== '' && !empty($hit['lead_id'])) {
+			try {
+				self::linkZaloUserIdByPhone($phone, $oaUserId, null);
+			} catch (Exception $e) {
+				// best-effort
+			}
+		}
+		$checkin = self::checkinFromPotential(
+			(int) $hit['potential_id'],
+			'da_tham_gia',
+			1,
+			array('skip_admin_check' => true)
+		);
+		if (empty($checkin['success'])) {
+			$err = isset($checkin['error']) ? $checkin['error'] : 'Check-in thất bại';
+			self::writeDeskCheckinLog(
+				$norm !== '' ? $norm : $phone,
+				$oaUserId,
+				'error',
+				(int) $hit['potential_id'],
+				(int) $hit['lead_id'],
+				$hit['name'],
+				$err
+			);
+			return array(
+				'success' => false,
+				'result' => 'error',
+				'error' => $err,
+				'potential_id' => (int) $hit['potential_id'],
+			);
+		}
+		self::writeDeskCheckinLog(
+			$norm !== '' ? $norm : $phone,
+			$oaUserId,
+			'matched',
+			(int) $hit['potential_id'],
+			(int) $hit['lead_id'],
+			$hit['name'],
+			'QR khớp · Đã Có tham gia'
+		);
+		return array(
+			'success' => true,
+			'result' => 'matched',
+			'message' => 'QR khớp · Đã Có tham gia',
+			'potential_id' => (int) $hit['potential_id'],
+			'lead_id' => (int) $hit['lead_id'],
+			'opp_name' => $hit['name'],
+			'checkin' => $checkin,
+		);
+	}
+
+	/**
+	 * Feed quầy: khớp / không khớp trong N giờ gần nhất.
+	 * @return array
+	 */
+	public static function listDeskCheckinFeed($hours = 12) {
+		self::ensureOppDeskCheckinLogSchema();
+		$hours = max(1, min(72, (int) $hours));
+		$adb = PearDatabase::getInstance();
+		$since = date('Y-m-d H:i:s', time() - $hours * 3600);
+		$res = $adb->pquery(
+			'SELECT id, phone, oa_user_id, result, potential_id, lead_id, opp_name, message, created_at
+			 FROM bace_opp_oa_desk_checkin
+			 WHERE created_at >= ?
+			 ORDER BY created_at DESC, id DESC
+			 LIMIT 200',
+			array($since)
+		);
+		$matched = array();
+		$unmatched = array();
+		$ambiguous = array();
+		if ($res) {
+			$n = $adb->num_rows($res);
+			for ($i = 0; $i < $n; $i++) {
+				$row = array(
+					'id' => (int) $adb->query_result($res, $i, 'id'),
+					'phone' => (string) $adb->query_result($res, $i, 'phone'),
+					'oa_user_id' => (string) $adb->query_result($res, $i, 'oa_user_id'),
+					'result' => (string) $adb->query_result($res, $i, 'result'),
+					'potential_id' => (int) $adb->query_result($res, $i, 'potential_id'),
+					'lead_id' => (int) $adb->query_result($res, $i, 'lead_id'),
+					'opp_name' => decode_html((string) $adb->query_result($res, $i, 'opp_name')),
+					'message' => decode_html((string) $adb->query_result($res, $i, 'message')),
+					'created_at' => (string) $adb->query_result($res, $i, 'created_at'),
+				);
+				if ($row['result'] === 'matched') {
+					$matched[] = $row;
+				} elseif ($row['result'] === 'ambiguous') {
+					$ambiguous[] = $row;
+				} else {
+					$unmatched[] = $row;
+				}
+			}
+		}
+		return array(
+			'success' => true,
+			'hours' => $hours,
+			'matched' => $matched,
+			'unmatched' => $unmatched,
+			'ambiguous' => $ambiguous,
+			'counts' => array(
+				'matched' => count($matched),
+				'unmatched' => count($unmatched),
+				'ambiguous' => count($ambiguous),
+			),
+		);
 	}
 }

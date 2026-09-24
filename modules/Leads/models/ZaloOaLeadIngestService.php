@@ -130,6 +130,7 @@ class Leads_ZaloOaLeadIngestService {
 		$merged['is_completed'] = 1;
 		self::saveState($ev['oa_user_id'], $merged);
 		$linked = self::tryLinkOfflineZaloByPhone($merged, $ev['oa_user_id'], $newLeadId);
+		$desk = self::tryOppDeskCheckinByPhone($merged, $ev['oa_user_id']);
 
 		return array(
 			'success' => true,
@@ -138,6 +139,7 @@ class Leads_ZaloOaLeadIngestService {
 			'lead' => $lead,
 			'oa_user_id' => $ev['oa_user_id'],
 			'offline_zalo_linked' => $linked,
+			'opp_desk_checkin' => $desk,
 		);
 	}
 
@@ -155,6 +157,22 @@ class Leads_ZaloOaLeadIngestService {
 			return Leads_OfflineGd11Service::linkZaloUserIdByPhone($phone, $oaUserId, $excludeLeadId);
 		} catch (Exception $e) {
 			return array('updated' => 0, 'lead_ids' => array(), 'error' => $e->getMessage());
+		}
+	}
+
+	/**
+	 * Bước 3 quầy: sau khi form OA có SĐT → đối chiếu Opp → tự Có tham gia.
+	 */
+	protected static function tryOppDeskCheckinByPhone(array $merged, $oaUserId) {
+		$phone = isset($merged['phone']) ? $merged['phone'] : '';
+		if (trim((string) $phone) === '') {
+			return array('success' => false, 'result' => 'no_phone');
+		}
+		try {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			return Leads_OfflineGd11Service::processDeskCheckinByPhone($phone, $oaUserId);
+		} catch (Exception $e) {
+			return array('success' => false, 'error' => $e->getMessage());
 		}
 	}
 
