@@ -80,6 +80,7 @@ class Potentials_ModernService {
 				lp.leadid AS linked_leadid,
 				lp.district AS lead_district, lp.address_line AS lead_address, lp.area AS lead_area,
 				lp.business_model AS lead_business_model,
+				la.lane AS lead_lane,
 				lp.offline_status, lp.offline_r1_contact, lp.offline_r1_hen_goi, lp.offline_r1_khong_nghe, lp.offline_r1_sai_tt,
 				lp.offline_r2_schedule, lp.offline_r3_class, lp.offline_r4_transfer,
 				lp.offline_post_noshow_miss,
@@ -623,6 +624,54 @@ class Potentials_ModernService {
 			'region' => $regionKey,
 			'tags' => isset($tagsMap[$potentialId]) ? array_values($tagsMap[$potentialId]) : array(),
 		);
+	}
+
+	/**
+	 * Upsert district + address_line trên bace_potential_profile.
+	 * Không ghi đè field đang có nếu giá trị mới rỗng (trừ khi cả hai đều truyền — dùng cho convert Lead→Opp).
+	 */
+	public static function upsertProfileAddress($potentialId, $district, $address) {
+		$potentialId = (int) $potentialId;
+		if ($potentialId <= 0) {
+			return;
+		}
+		$district = trim(decode_html((string) $district));
+		$address = trim(decode_html((string) $address));
+		if ($district === '' && $address === '') {
+			return;
+		}
+		self::ensureProfileSchema();
+		$adb = PearDatabase::getInstance();
+		$now = date('Y-m-d H:i:s');
+		$exists = $adb->pquery(
+			'SELECT potentialid, district, address_line FROM bace_potential_profile WHERE potentialid = ?',
+			array($potentialId)
+		);
+		if ($exists && $adb->num_rows($exists) > 0) {
+			$curDistrict = trim(decode_html((string) $adb->query_result($exists, 0, 'district')));
+			$curAddress = trim(decode_html((string) $adb->query_result($exists, 0, 'address_line')));
+			$nextDistrict = $district !== '' ? $district : $curDistrict;
+			$nextAddress = $address !== '' ? $address : $curAddress;
+			$adb->pquery(
+				'UPDATE bace_potential_profile SET district = ?, address_line = ?, modified_at = ? WHERE potentialid = ?',
+				array(
+					$nextDistrict !== '' ? $nextDistrict : null,
+					$nextAddress !== '' ? $nextAddress : null,
+					$now,
+					$potentialId,
+				)
+			);
+		} else {
+			$adb->pquery(
+				'INSERT INTO bace_potential_profile (potentialid, district, address_line, modified_at) VALUES (?,?,?,?)',
+				array(
+					$potentialId,
+					$district !== '' ? $district : null,
+					$address !== '' ? $address : null,
+					$now,
+				)
+			);
+		}
 	}
 
 	/**

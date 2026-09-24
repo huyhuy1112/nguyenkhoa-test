@@ -659,16 +659,32 @@ class Leads_ConvertService {
 			array($potentialId, $leadId)
 		);
 		if ($leadId > 0 && $potentialId > 0) {
-			try {
-				$res = $adb->pquery('SELECT business_model FROM bace_lead_profile WHERE leadid = ?', array($leadId));
-				$biz = ($res && $adb->num_rows($res) > 0) ? $adb->query_result($res, 0, 'business_model') : '';
-				if ($biz !== '' && $biz !== null) {
-					require_once 'modules/Potentials/models/ModernService.php';
-					Potentials_ModernService::saveInlineBusinessModel($potentialId, $biz);
-				}
-			} catch (Exception $e) {
-				// best-effort copy
+			self::syncLeadProfileExtrasToPotential($leadId, $potentialId);
+		}
+	}
+
+	/**
+	 * Copy địa chỉ / quận / mô hình KD từ Lead sang Opp khi link convert.
+	 */
+	public static function syncLeadProfileExtrasToPotential($leadId, $potentialId) {
+		$leadId = (int) $leadId;
+		$potentialId = (int) $potentialId;
+		if ($leadId <= 0 || $potentialId <= 0) {
+			return;
+		}
+		$addr = self::resolveLeadAddressFields($leadId);
+		try {
+			require_once 'modules/Potentials/models/ModernService.php';
+			if (!empty($addr['business_model'])) {
+				Potentials_ModernService::saveInlineBusinessModel($potentialId, $addr['business_model']);
 			}
+			$street = isset($addr['street']) ? trim((string) $addr['street']) : '';
+			$district = isset($addr['city']) ? trim((string) $addr['city']) : '';
+			if ($street !== '' || $district !== '') {
+				Potentials_ModernService::upsertProfileAddress($potentialId, $district, $street);
+			}
+		} catch (Exception $e) {
+			// best-effort copy
 		}
 	}
 

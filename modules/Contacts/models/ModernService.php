@@ -945,7 +945,8 @@ class Contacts_ModernService {
 		$contactId = (int)$row['contactid'];
 		$first = decode_html((string)$row['firstname']);
 		$last = decode_html((string)$row['lastname']);
-		$name = trim($first . ' ' . $last);
+		// Thứ tự VN: Họ (+ đệm) + tên = lastname + firstname
+		$name = trim($last . ' ' . $first);
 		if ($name === '' || $name === '.') {
 			$name = $last !== '' ? $last : ($first !== '' ? $first : '—');
 		}
@@ -1860,7 +1861,7 @@ class Contacts_ModernService {
 
 		$fn = trim((string) $contact->get('firstname'));
 		$ln = trim((string) $contact->get('lastname'));
-		$name = isset($payload['name']) ? trim((string) $payload['name']) : trim($fn . ' ' . $ln);
+		$name = isset($payload['name']) ? trim((string) $payload['name']) : trim($ln . ' ' . $fn);
 		$phone = '';
 		if (!empty($payload['phone'])) {
 			$phone = trim((string) $payload['phone']);
