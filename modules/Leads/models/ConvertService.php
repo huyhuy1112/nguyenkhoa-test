@@ -121,20 +121,18 @@ class Leads_ConvertService {
 			self::resetConvertedFlagIfNeeded($leadId);
 		}
 
-		// BA default: Contact + Opportunity. Offline GD1.1 có thể chỉ tạo Opp (create_contact=false).
+		// BA default: Contact + Opportunity. Offline GD1.1: chỉ Opp (bypass vtws_convertlead).
+		$createContact = !isset($options['create_contact']) || $options['create_contact'] !== false;
+		if (!$createContact) {
+			return self::convertLeadToPotentialOnly($leadId, $options);
+		}
 		$modules = isset($options['modules']) && is_array($options['modules'])
 			? $options['modules']
 			: array('Contacts', 'Potentials');
-		$createContact = !isset($options['create_contact']) || $options['create_contact'] !== false;
-		if (!$createContact) {
-			$modules = array_values(array_filter($modules, function ($m) {
-				return $m !== 'Contacts';
-			}));
-		}
 		if (!in_array('Potentials', $modules, true)) {
 			$modules[] = 'Potentials';
 		}
-		if ($createContact && !in_array('Contacts', $modules, true)) {
+		if (!in_array('Contacts', $modules, true)) {
 			$modules[] = 'Contacts';
 		}
 		$createAccount = !empty($options['create_account']);
@@ -147,9 +145,8 @@ class Leads_ConvertService {
 		if ($assignId <= 0 && !empty($current_user->id)) {
 			$assignId = (int) $current_user->id;
 		}
-		$transferTo = ($createContact && in_array('Contacts', $modules, true)) ? 'Contacts' : 'Potentials';
 		$entityValues = array(
-			'transferRelatedRecordsTo' => $transferTo,
+			'transferRelatedRecordsTo' => 'Contacts',
 			'assignedTo' => vtws_getWebserviceEntityId(vtws_getOwnerType($assignId), $assignId),
 			'leadId' => vtws_getWebserviceEntityId(self::MODULE, $leadId),
 			'imageAttachmentId' => '',
@@ -237,7 +234,7 @@ class Leads_ConvertService {
 			}
 			throw new Exception('Convert lead failed (empty result). Kiểm tra field bắt buộc Contact/Opportunity.');
 		}
-		if ($createContact && empty($result['Contacts'])) {
+		if (empty($result['Contacts'])) {
 			throw new Exception('Convert lead failed: Contact không được tạo.');
 		}
 		if (empty($result['Potentials'])) {
@@ -289,6 +286,105 @@ class Leads_ConvertService {
 			'potentialId' => $potentialId,
 			'contactId' => $contactId,
 			'accountId' => $accountId,
+			'redirect' => self::potentialDetailUrl($potentialId),
+		);
+	}
+
+	/**
+	 * Offline GD1.1: Lead → Opportunity only (không tạo Contact).
+	 * Vtiger vtws_convertlead bắt buộc Contact/Account — bypass bằng tạo Opp trực tiếp.
+	 */
+	public static function convertLeadToPotentialOnly($leadId, array $options = array()) {
+		global $current_user;
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			throw new Exception('Invalid lead id.');
+		}
+
+		$status = self::getConversionStatus($leadId);
+		if (!$status['canConvert']) {
+			return array(
+				'already_converted' => true,
+				'success' => true,
+				'potentialId' => $status['potentialId'],
+				'contactId' => null,
+				'redirect' => $status['potentialUrl'],
+			);
+		}
+
+		if (!Users_Privileges_Model::isPermitted('Potentials', 'CreateView')) {
+			throw new Exception('Không có quyền tạo Cơ hội.');
+		}
+
+		$lead = Vtiger_Record_Model::getInstanceById($leadId, self::MODULE);
+		if (method_exists($lead, 'isLeadConverted') && $lead->isLeadConverted()) {
+			self::resetConvertedFlagIfNeeded($leadId);
+		}
+
+		$assignId = isset($options['assigned_user_id']) ? (int) $options['assigned_user_id'] : 0;
+		if ($assignId <= 0) {
+			$assignId = (int) $lead->get('assigned_user_id');
+		}
+		if ($assignId <= 0 && !empty($current_user->id)) {
+			$assignId = (int) $current_user->id;
+		}
+		$orderCategory = self::resolveOrderCategory(isset($options['order_category']) ? $options['order_category'] : '');
+
+		$name = self::composeLeadFullName($lead);
+		if ($name === '') {
+			$name = 'Lead #' . $leadId;
+		}
+
+		$potential = Vtiger_Record_Model::getCleanInstance('Potentials');
+		$potential->set('mode', '');
+		$potential->set('potentialname', $name);
+		$potential->set('amount', 0);
+		$potential->set('assigned_user_id', $assignId);
+		$potential->set('sales_stage', 'Prospecting');
+		$potential->set('closingdate', date('Y-m-d', strtotime('+30 days')));
+		$potential->set('order_category', $orderCategory);
+
+		$company = trim((string) $lead->get('company'));
+		if ($company !== '' && $company !== '-') {
+			$accountId = self::lookupAccountIdByName($company);
+			if ($accountId > 0) {
+				$potential->set('related_to', $accountId);
+			}
+		}
+
+		$potential->save();
+		$potentialId = (int) $potential->getId();
+		if ($potentialId <= 0) {
+			throw new Exception('Không tạo được Cơ hội.');
+		}
+
+		self::relateRecords($leadId, self::MODULE, $potentialId, 'Potentials');
+		self::storePotentialId($leadId, $potentialId);
+		self::transferLeadTags($leadId, array('Potentials' => $potentialId), $assignId > 0 ? $assignId : (int) $current_user->id);
+		try {
+			require_once 'modules/Leads/models/LeadProductsService.php';
+			Leads_LeadProductsService::linkPotential($leadId, $potentialId);
+		} catch (Exception $e) {
+			// best-effort
+		}
+		try {
+			if (function_exists('vtws_transferLeadRelatedRecords')) {
+				vtws_transferLeadRelatedRecords($leadId, $potentialId, 'Potentials');
+			}
+		} catch (Exception $e) {
+			// best-effort
+		}
+
+		$adb = PearDatabase::getInstance();
+		$adb->pquery('UPDATE vtiger_leaddetails SET converted = 1 WHERE leadid = ?', array($leadId));
+		$adb->pquery('DELETE FROM vtiger_campaignleadrel WHERE leadid = ?', array($leadId));
+		$adb->pquery('DELETE FROM vtiger_tracker WHERE item_id = ?', array($leadId));
+
+		return array(
+			'success' => true,
+			'potentialId' => $potentialId,
+			'contactId' => null,
+			'accountId' => null,
 			'redirect' => self::potentialDetailUrl($potentialId),
 		);
 	}

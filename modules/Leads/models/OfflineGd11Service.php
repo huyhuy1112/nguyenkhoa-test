@@ -1232,6 +1232,23 @@ class Leads_OfflineGd11Service {
 				);
 			}
 			$ok = is_array($res) && !empty($res['success']);
+			if ($ok) {
+				try {
+					$adb = PearDatabase::getInstance();
+					$stRes = $adb->pquery(
+						'SELECT offline_status FROM bace_lead_profile WHERE leadid = ?',
+						array($leadId)
+					);
+					$st = ($stRes && $adb->num_rows($stRes) > 0)
+						? trim((string) $adb->query_result($stRes, 0, 'offline_status'))
+						: '';
+					if ($st !== '') {
+						self::syncOfflineStatusToPotential($leadId, $st, $userId);
+					}
+				} catch (Exception $eSync) {
+					// best-effort
+				}
+			}
 			return array(
 				'converted' => $ok,
 				'potentialId' => isset($res['potentialId']) ? $res['potentialId'] : null,
@@ -1245,7 +1262,7 @@ class Leads_OfflineGd11Service {
 	}
 
 	/**
-	 * Bước 2 đủ để xuống Opp: đã XN lịch (hoặc hẹn lịch lại) + có giờ học + địa điểm.
+	 * Bước 2 đủ để xuống Opp: đã XN lịch (hoặc hẹn lịch lại) + có giờ học.
 	 */
 	public static function isOfflineStep2Ready($leadId) {
 		$leadId = (int) $leadId;
@@ -1255,7 +1272,7 @@ class Leads_OfflineGd11Service {
 		self::installSchema();
 		$adb = PearDatabase::getInstance();
 		$res = $adb->pquery(
-			'SELECT offline_status, offline_class_time, offline_class_place, offline_class_date
+			'SELECT offline_status, offline_class_time
 			 FROM bace_lead_profile WHERE leadid = ?',
 			array($leadId)
 		);
@@ -1267,8 +1284,7 @@ class Leads_OfflineGd11Service {
 			return false;
 		}
 		$time = trim((string) $adb->query_result($res, 0, 'offline_class_time'));
-		$place = trim((string) $adb->query_result($res, 0, 'offline_class_place'));
-		return $time !== '' && $place !== '';
+		return $time !== '';
 	}
 
 	protected static function leadIsOffline($leadId) {

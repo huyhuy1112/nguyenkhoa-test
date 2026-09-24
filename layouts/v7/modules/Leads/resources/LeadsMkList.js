@@ -1970,24 +1970,6 @@
       return "";
     }
     var confirmed = Number(lead.offline_preclass_confirm) === 1;
-    var plan = lead.offline_step2_plan || {};
-    var planRows = "";
-    var keys = ["t1", "t2", "t3", "t4", "t5", "t6"];
-    for (var i = 0; i < keys.length; i++) {
-      var k = keys[i];
-      var it = plan[k] || {};
-      planRows +=
-        '<div class="mk-leads-verify-offline__ms">' +
-        "<span><strong>" +
-        esc(k.toUpperCase()) +
-        "</strong> " +
-        esc(it.label || "") +
-        (it.sent ? " · đã gửi" : it.due_at ? " · " + esc(it.due_at) : "") +
-        "</span>" +
-        '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="send_milestone" data-mk-milestone="' +
-        esc(k) +
-        '">Gửi</button></div>';
-    }
     var noshowBanner = isNoshow
       ? '<p class="mk-leads-verify-offline__meta" style="color:#b91c1c"><strong>Không đến lớp</strong> — chọn <em>Ngày học</em> phía trên rồi bấm <strong>Chốt lịch mới</strong> (hoặc Hẹn lịch lại).</p>'
       : "";
@@ -2012,7 +1994,7 @@
       '<input type="text" class="mk-leads-verify-select" data-mk-step2="zalo_user_id" value="' +
       esc(lead.zalo_user_id || "") +
       '" placeholder="user_id từ Zalo OA" /></label>' +
-      '<p class="mk-leads-verify-offline__meta">Nhập tay · hoặc tự khớp nếu có lead OA cùng SĐT · để trống = nhắc qua Calendar</p>' +
+      '<p class="mk-leads-verify-offline__meta">Nhập giờ học rồi bấm Lưu — Lead sẽ chuyển sang Cơ hội (không tạo Khách hàng).</p>' +
       '<div class="mk-leads-verify-offline__actions">' +
       (isNoshow
         ? ""
@@ -2028,11 +2010,6 @@
         ? ""
         : '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-step2-action="tu_choi_tham_gia">Từ chối / Ngưng</button>') +
       "</div>" +
-      (isNoshow
-        ? ""
-        : '<div class="mk-leads-verify-offline__ms-list"><strong>Mốc nhắc (T1–T6)</strong>' +
-          planRows +
-          "</div>") +
       "</div>"
     );
   }
@@ -2364,6 +2341,10 @@
       zalo_user_id: get("zalo_user_id"),
       milestone: milestone || "",
     };
+    if (action === "save_class_meta" && !payload.class_time) {
+      setListVerifyMsg("Nhập giờ học trước khi lưu.", "");
+      return;
+    }
     if (action === "chot_lich_moi" && !payload.class_date) {
       setListVerifyMsg("Chốt lịch mới — chọn Ngày học phía trên.", "");
       return;
@@ -2401,7 +2382,7 @@
           ok += " · T1 đã gửi";
         }
         if (res.convert && res.convert.converted) {
-          ok = "Đã lưu Bước 2 & chuyển sang Cơ hội (không tạo Khách hàng).";
+          ok = "Đã lưu giờ học & chuyển sang Cơ hội (không tạo Khách hàng).";
           if (store && typeof store.remove === "function" && id) {
             try {
               store.remove(String(id));
@@ -2410,7 +2391,9 @@
             }
           }
         } else if (res.convert && res.convert.reason === "await_step2") {
-          ok += " · Cần đủ giờ học + địa điểm để xuống Opp.";
+          ok += " · Cần nhập giờ học để xuống Opp.";
+        } else if (res.convert && res.convert.reason && res.convert.reason !== "ok" && !res.convert.skipped) {
+          ok += " · Convert Opp: " + res.convert.reason;
         }
         setListVerifyMsg("", ok);
         renderTable();
@@ -2662,7 +2645,7 @@
           : "Đã lưu & chuyển sang Cơ hội (đủ ĐK Offline).";
       } else if (res.convert && res.convert.reason === "await_step2") {
         okMsg =
-          "Đã lưu xác minh. Nhập Bước 2 (giờ học + địa điểm) rồi bấm Lưu giờ/địa điểm để chuyển xuống Opp.";
+          "Đã lưu xác minh. Nhập giờ học ở Bước 2 rồi bấm Lưu giờ/địa điểm để chuyển xuống Opp.";
       } else if (res.convert && res.convert.skipped) {
         okMsg = "Đã lưu xác minh (Opp đã tồn tại).";
       } else if (res.convert && res.convert.reason && res.convert.reason !== "ok" && !res.convert.skipped) {
@@ -2687,7 +2670,7 @@
             : res.convert && res.convert.converted
               ? "Đã lưu Bộ B & tạo Cơ hội."
               : res.convert && res.convert.reason === "await_step2"
-                ? "Đã lưu Bộ B — hoàn tất Bước 2 rồi mới xuống Opp."
+                ? "Đã lưu Bộ B — nhập giờ học Bước 2 rồi mới xuống Opp."
                 : "Đã lưu xác minh Bộ B.",
         });
       }
