@@ -1361,18 +1361,24 @@
       });
   }
 
+  function preclassCarePillHtml(o) {
+    if (!isOfflineOpp(o)) return "";
+    var stLabel = String(o.offline_status_label || "").trim();
+    var title = stLabel
+      ? "Chăm sóc trước lớp · " + stLabel
+      : "Chăm sóc trước lớp — điểm rơi R1→R4";
+    return (
+      '<button type="button" class="mk-leads-screen-pill mk-leads-screen-pill--ok mk-opps-preclass-pill" data-mk-opp-preclass="' +
+      esc(o.id) +
+      '" title="' +
+      esc(title) +
+      '">Chăm sóc trước lớp</button>'
+    );
+  }
+
   function offlineCheckinCell(o) {
-    var careBtn =
-      isOfflineOpp(o)
-        ? '<div class="mk-opps-checkin__actions" style="margin-bottom:6px">' +
-          '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--care" data-mk-opp-preclass="' +
-          esc(o.id) +
-          '">Chăm sóc trước lớp</button></div>'
-        : "";
     if (!canOfflineCheckin(o)) {
-      return careBtn
-        ? '<div class="mk-opps-checkin" data-opp-id="' + esc(o.id) + '">' + careBtn + "</div>"
-        : '<span class="mk-leads-muted">—</span>';
+      return '<span class="mk-leads-muted">—</span>';
     }
     var st = String((o && o.offline_status) || "");
     var label = String(o.offline_status_label || o.offline_status || "").trim();
@@ -1386,7 +1392,6 @@
       '<div class="mk-opps-checkin" data-opp-id="' +
       esc(o.id) +
       '">' +
-      careBtn +
       '<div class="mk-opps-checkin__status">' +
       '<span class="mk-opps-checkin__label">' +
       esc(label || "Offline") +
@@ -2149,9 +2154,16 @@
               ? esc(formatDateTimeFull(o.converted_at || o.createdtime))
               : '<span class="mk-leads-muted">—</span>') +
             "</td>" +
-            '<td class="mk-leads-td mk-leads-td--lead"><a class="mk-leads-name" href="' + detailUrl(o.crmid || o.id) + '">' +
+            '<td class="mk-leads-td mk-leads-td--lead">' +
+            '<span class="mk-leads-lead-cell">' +
+            ic("user") +
+            '<span class="mk-leads-lead-text"><a class="mk-leads-name" href="' +
+            detailUrl(o.crmid || o.id) +
+            '">' +
             (customerName ? esc(customerName) : '<span class="mk-leads-muted">—</span>') +
-            "</a></td>" +
+            "</a>" +
+            preclassCarePillHtml(o) +
+            "</span></span></td>" +
             '<td class="mk-leads-td" data-col="phone">' +
             editableCellHtml("phone", o.phone, o.crmid || o.id, "Nhập SĐT") +
             "</td>" +

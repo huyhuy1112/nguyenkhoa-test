@@ -1130,3 +1130,13 @@
 	background: #dcfce7;
 	border-color: #22c55e;
 }
+.mk-opps-preclass-pill {
+	appearance: none;
+	cursor: pointer;
+	font-family: inherit;
+}
+.mk-opps-preclass-pill:hover {
+	background: #bbf7d0;
+	border-color: #86efac;
+	color: #14532d;
+}
