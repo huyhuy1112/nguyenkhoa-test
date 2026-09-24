@@ -121,15 +121,20 @@ class Leads_ConvertService {
 			self::resetConvertedFlagIfNeeded($leadId);
 		}
 
-		// BA workflow: Lead is input data only.
-		// Convert Lead -> Opportunity MUST create Contact (BA confirmed).
+		// BA default: Contact + Opportunity. Offline GD1.1 có thể chỉ tạo Opp (create_contact=false).
 		$modules = isset($options['modules']) && is_array($options['modules'])
 			? $options['modules']
 			: array('Contacts', 'Potentials');
+		$createContact = !isset($options['create_contact']) || $options['create_contact'] !== false;
+		if (!$createContact) {
+			$modules = array_values(array_filter($modules, function ($m) {
+				return $m !== 'Contacts';
+			}));
+		}
 		if (!in_array('Potentials', $modules, true)) {
 			$modules[] = 'Potentials';
 		}
-		if (!in_array('Contacts', $modules, true)) {
+		if ($createContact && !in_array('Contacts', $modules, true)) {
 			$modules[] = 'Contacts';
 		}
 		$createAccount = !empty($options['create_account']);
@@ -142,9 +147,9 @@ class Leads_ConvertService {
 		if ($assignId <= 0 && !empty($current_user->id)) {
 			$assignId = (int) $current_user->id;
 		}
-		// Transfer related records to Contact by default (Contact is always created).
+		$transferTo = ($createContact && in_array('Contacts', $modules, true)) ? 'Contacts' : 'Potentials';
 		$entityValues = array(
-			'transferRelatedRecordsTo' => 'Contacts',
+			'transferRelatedRecordsTo' => $transferTo,
 			'assignedTo' => vtws_getWebserviceEntityId(vtws_getOwnerType($assignId), $assignId),
 			'leadId' => vtws_getWebserviceEntityId(self::MODULE, $leadId),
 			'imageAttachmentId' => '',
@@ -232,7 +237,7 @@ class Leads_ConvertService {
 			}
 			throw new Exception('Convert lead failed (empty result). Kiểm tra field bắt buộc Contact/Opportunity.');
 		}
-		if (empty($result['Contacts'])) {
+		if ($createContact && empty($result['Contacts'])) {
 			throw new Exception('Convert lead failed: Contact không được tạo.');
 		}
 		if (empty($result['Potentials'])) {

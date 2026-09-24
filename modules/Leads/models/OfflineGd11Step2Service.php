@@ -297,7 +297,11 @@ class Leads_OfflineGd11Step2Service {
 		if ($action === 'preclass_confirm') {
 			self::setPreclassConfirm($leadId, 1);
 			Leads_OfflineGd11Service::setNextActionHint($leadId, Leads_OfflineGd11Service::STATUS_DA_XN_LICH);
-			return self::okLead($leadId, $userId, array('offline_preclass_confirm' => 1));
+			$convert = Leads_OfflineGd11Service::tryConvertEligible($leadId, $userId);
+			return self::okLead($leadId, $userId, array(
+				'offline_preclass_confirm' => 1,
+				'convert' => $convert,
+			));
 		}
 		if ($action === 'preclass_unconfirm') {
 			self::setPreclassConfirm($leadId, 0);
@@ -353,6 +357,7 @@ class Leads_OfflineGd11Step2Service {
 				'step2' => $step2,
 				'calendar' => $cal,
 				'status' => Leads_OfflineGd11Service::STATUS_DA_XN_LICH,
+				'convert' => Leads_OfflineGd11Service::tryConvertEligible($leadId, $userId),
 			));
 		}
 
@@ -404,7 +409,9 @@ class Leads_OfflineGd11Step2Service {
 					$params
 				);
 			}
-			return self::okLead($leadId, $userId, array());
+			// Đủ giờ + địa điểm → chuyển xuống Opp (không tạo Contact).
+			$convert = Leads_OfflineGd11Service::tryConvertEligible($leadId, $userId);
+			return self::okLead($leadId, $userId, array('convert' => $convert));
 		}
 
 		return array('success' => false, 'error' => 'Action Bước 2 không hợp lệ');

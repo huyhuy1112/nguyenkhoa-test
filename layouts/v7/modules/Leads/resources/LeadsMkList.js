@@ -2400,6 +2400,18 @@
         if (res.step2 && res.step2.t1 && res.step2.t1.success) {
           ok += " · T1 đã gửi";
         }
+        if (res.convert && res.convert.converted) {
+          ok = "Đã lưu Bước 2 & chuyển sang Cơ hội (không tạo Khách hàng).";
+          if (store && typeof store.remove === "function" && id) {
+            try {
+              store.remove(String(id));
+            } catch (eRm) {
+              /* ignore */
+            }
+          }
+        } else if (res.convert && res.convert.reason === "await_step2") {
+          ok += " · Cần đủ giờ học + địa điểm để xuống Opp.";
+        }
         setListVerifyMsg("", ok);
         renderTable();
       });
@@ -2648,6 +2660,9 @@
         okMsg = online
           ? "Đã lưu & chuyển sang Cơ hội (đủ ĐK Online)."
           : "Đã lưu & chuyển sang Cơ hội (đủ ĐK Offline).";
+      } else if (res.convert && res.convert.reason === "await_step2") {
+        okMsg =
+          "Đã lưu xác minh. Nhập Bước 2 (giờ học + địa điểm) rồi bấm Lưu giờ/địa điểm để chuyển xuống Opp.";
       } else if (res.convert && res.convert.skipped) {
         okMsg = "Đã lưu xác minh (Opp đã tồn tại).";
       } else if (res.convert && res.convert.reason && res.convert.reason !== "ok" && !res.convert.skipped) {
@@ -2671,7 +2686,9 @@
               : "Đã lưu xác minh Online (4 câu)."
             : res.convert && res.convert.converted
               ? "Đã lưu Bộ B & tạo Cơ hội."
-              : "Đã lưu xác minh Bộ B.",
+              : res.convert && res.convert.reason === "await_step2"
+                ? "Đã lưu Bộ B — hoàn tất Bước 2 rồi mới xuống Opp."
+                : "Đã lưu xác minh Bộ B.",
         });
       }
     });

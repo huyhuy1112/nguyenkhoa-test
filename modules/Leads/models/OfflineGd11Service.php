@@ -693,7 +693,12 @@ class Leads_OfflineGd11Service {
 					$out['calendar'] = self::createFollowUpTask($leadId, self::STATUS_CHUA_XN_LICH, array(), $userId);
 				}
 			}
-			$out['convert'] = self::tryConvertEligible($leadId, $userId);
+			// Không convert tại Lưu xác minh — đợi Bước 2 (giờ/địa điểm) rồi mới xuống Opp.
+			$out['convert'] = array(
+				'converted' => false,
+				'skipped' => true,
+				'reason' => 'await_step2',
+			);
 			return $out;
 		}
 		return null;
@@ -859,8 +864,8 @@ class Leads_OfflineGd11Service {
 			'step2' => $step2Meta,
 			'lead' => $lead,
 		);
-		if ($status === self::STATUS_DA_XN_LICH || $status === self::STATUS_CHUA_XN_LICH) {
-			// Đủ ĐK thường đã convert lúc verify; nếu Sales gắn lịch sau thì thử convert lần nữa (idempotent).
+		if ($status === self::STATUS_DA_XN_LICH || $status === self::STATUS_HEN_LICH_LAI) {
+			// Chỉ convert khi đã đủ Bước 2 (giờ + địa điểm); không tạo Contact.
 			$out['convert'] = self::tryConvertEligible($leadId, $userId);
 		}
 		return $out;
@@ -1182,12 +1187,20 @@ class Leads_OfflineGd11Service {
 	}
 
 	/**
-	 * Convert Lead → Opp khi đủ ĐK Offline (idempotent nếu đã có Opp).
+	 * Convert Lead → Opp khi đủ ĐK Offline + đã nhập Bước 2 (giờ/địa điểm).
+	 * Chỉ tạo Opportunity, không tạo Contact.
 	 */
 	public static function tryConvertEligible($leadId, $userId = null) {
 		$leadId = (int) $leadId;
 		if ($leadId <= 0) {
 			return array('converted' => false, 'reason' => 'invalid');
+		}
+		if (!self::isOfflineStep2Ready($leadId)) {
+			return array(
+				'converted' => false,
+				'skipped' => true,
+				'reason' => 'await_step2',
+			);
 		}
 		require_once 'modules/Leads/models/ConvertService.php';
 		$status = Leads_ConvertService::getConversionStatus($leadId);
@@ -1202,6 +1215,8 @@ class Leads_OfflineGd11Service {
 		try {
 			$opts = array(
 				'create_account' => false,
+				'create_contact' => false,
+				'modules' => array('Potentials'),
 				'order_category' => 'Internal',
 			);
 			if ($userId) {
@@ -1220,12 +1235,40 @@ class Leads_OfflineGd11Service {
 			return array(
 				'converted' => $ok,
 				'potentialId' => isset($res['potentialId']) ? $res['potentialId'] : null,
+				'contactId' => isset($res['contactId']) ? $res['contactId'] : null,
 				'redirect' => isset($res['redirect']) ? $res['redirect'] : '',
 				'reason' => $ok ? 'ok' : 'convert_failed',
 			);
 		} catch (Exception $e) {
 			return array('converted' => false, 'reason' => $e->getMessage());
 		}
+	}
+
+	/**
+	 * Bước 2 đủ để xuống Opp: đã XN lịch (hoặc hẹn lịch lại) + có giờ học + địa điểm.
+	 */
+	public static function isOfflineStep2Ready($leadId) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return false;
+		}
+		self::installSchema();
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT offline_status, offline_class_time, offline_class_place, offline_class_date
+			 FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		if (!$res || $adb->num_rows($res) <= 0) {
+			return false;
+		}
+		$st = trim((string) $adb->query_result($res, 0, 'offline_status'));
+		if ($st !== self::STATUS_DA_XN_LICH && $st !== self::STATUS_HEN_LICH_LAI) {
+			return false;
+		}
+		$time = trim((string) $adb->query_result($res, 0, 'offline_class_time'));
+		$place = trim((string) $adb->query_result($res, 0, 'offline_class_place'));
+		return $time !== '' && $place !== '';
 	}
 
 	protected static function leadIsOffline($leadId) {
