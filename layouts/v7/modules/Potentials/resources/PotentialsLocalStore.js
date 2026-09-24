@@ -206,13 +206,27 @@
     offlineOaQr: function (id) {
       return apiRequest("offline_oa_qr", { record: String(id || "") });
     },
-    /** QR form dùng chung tại quầy */
+    /** QR form dùng chung tại quầy (deprecated) */
     offlineOaDeskQr: function () {
       return apiRequest("offline_oa_desk_qr", {});
     },
     /** Feed khớp / không khớp SĐT từ quầy */
     offlineOaCheckinFeed: function (hours) {
       return apiRequest("offline_oa_checkin_feed", { hours: hours || 12 });
+    },
+    /** Quầy: tìm Opp theo SĐT */
+    offlineDeskLookup: function (phone) {
+      return apiRequest("offline_desk_lookup", { phone: String(phone || "") });
+    },
+    /** Quầy: xác nhận Có tham gia */
+    offlineDeskConfirm: function (id) {
+      var oid = String(id || "");
+      return apiRequest("offline_desk_confirm", { record: oid }).then(function (res) {
+        if (res && res.opportunity) {
+          root.PotentialsLocalStore.patchOpportunity(oid, res.opportunity);
+        }
+        return res;
+      });
     },
     /** Bước 3 — ghi chú không dùng Zalo / không quét */
     offlineOaNote: function (id, noteKind, customNote) {

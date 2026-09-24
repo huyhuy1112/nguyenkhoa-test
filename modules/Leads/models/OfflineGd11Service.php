@@ -1938,25 +1938,161 @@ class Leads_OfflineGd11Service {
 	}
 
 	/**
-	 * QR form dùng chung tại quầy (không gắn 1 Opp).
+	 * QR form dùng chung tại quầy — deprecated (điểm danh chuyển sang tìm SĐT).
 	 * @return array
 	 */
 	public static function getDeskOaQr() {
-		$follow = self::resolveOaFollowUrl();
-		$qrImg = self::offlineOaFormQrImageUrl();
 		return array(
 			'success' => true,
 			'shared' => true,
-			'follow_url' => isset($follow['url']) ? $follow['url'] : '',
-			'oa_id' => isset($follow['oa_id']) ? $follow['oa_id'] : '',
-			'oa_name' => isset($follow['oa_name']) ? $follow['oa_name'] : '',
-			'qr_image_url' => $qrImg,
+			'deprecated' => true,
+			'follow_url' => '',
+			'qr_image_url' => '',
 			'instructions' => array(
-				'Khách quét QR → điền form Zalo OA (đúng SĐT đăng ký lớp).',
-				'CRM đối chiếu SĐT trên Opp Offline đã xác nhận lịch.',
-				'Khớp 1 Opp → tự gắn Có tham gia. Không khớp → hiện ở tab Không khớp.',
+				'Điểm danh tại quầy: nhập SĐT khách → xác nhận tham gia.',
+				'Không dùng biểu mẫu Zalo OA GD 1.2 để điểm danh lớp.',
 			),
 		);
+	}
+
+	/**
+	 * Quầy: tìm Opp theo SĐT (chưa điểm danh). Không tự Có tham gia.
+	 * @return array
+	 */
+	public static function lookupDeskByPhone($phone, $logUnmatched = true) {
+		$phone = trim((string) $phone);
+		$norm = self::normalizeVnPhone($phone);
+		$digits = preg_replace('/\D+/', '', $phone);
+		if ($norm === '' && $digits === '') {
+			return array(
+				'success' => false,
+				'result' => 'invalid_phone',
+				'error' => 'SĐT không hợp lệ — nhập đủ số điện thoại.',
+				'phone' => $phone,
+				'matches' => array(),
+			);
+		}
+		if ($norm !== '' && !preg_match('/^0\d{9}$/', $norm) && strlen($digits) < 9) {
+			return array(
+				'success' => false,
+				'result' => 'invalid_phone',
+				'error' => 'SĐT không hợp lệ — kiểm tra lại số khách đọc.',
+				'phone' => $norm !== '' ? $norm : $phone,
+				'matches' => array(),
+			);
+		}
+		$matches = self::findEligibleOppsByPhone($phone);
+		$labels = self::statusLabels();
+		foreach ($matches as &$m) {
+			$st = isset($m['offline_status']) ? $m['offline_status'] : '';
+			$m['status_label'] = isset($labels[$st]) ? $labels[$st] : $st;
+			$m['detail_url'] = 'index.php?module=Potentials&view=Detail&record='
+				. (int) $m['potential_id'] . '&app=SALES';
+		}
+		unset($m);
+
+		$displayPhone = $norm !== '' ? $norm : $digits;
+		if (count($matches) === 0) {
+			if ($logUnmatched) {
+				self::writeDeskCheckinLog(
+					$displayPhone,
+					'',
+					'unmatched',
+					0,
+					0,
+					'',
+					'Không tìm thấy Opp với SĐT này (đã XN lịch)'
+				);
+			}
+			return array(
+				'success' => true,
+				'result' => 'unmatched',
+				'phone' => $displayPhone,
+				'message' => 'Không tìm thấy Opp với SĐT này',
+				'matches' => array(),
+			);
+		}
+		if (count($matches) === 1) {
+			return array(
+				'success' => true,
+				'result' => 'matched',
+				'phone' => $displayPhone,
+				'message' => 'Đã tìm thấy Opp — bấm Xác nhận tham gia',
+				'matches' => $matches,
+				'opportunity' => $matches[0],
+			);
+		}
+		return array(
+			'success' => true,
+			'result' => 'ambiguous',
+			'phone' => $displayPhone,
+			'message' => 'SĐT khớp nhiều Opp — chọn đúng hồ sơ rồi xác nhận',
+			'matches' => $matches,
+		);
+	}
+
+	/**
+	 * Quầy: xác nhận Có tham gia sau khi đã tìm thấy Opp.
+	 * @return array
+	 */
+	public static function confirmDeskAttendance($potentialId, $userId = null) {
+		global $current_user;
+		$potentialId = (int) $potentialId;
+		if ($potentialId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu opportunity id');
+		}
+		if ($userId === null && !empty($current_user->id)) {
+			$userId = (int) $current_user->id;
+		}
+		$checkin = self::checkinFromPotential(
+			$potentialId,
+			'da_tham_gia',
+			$userId,
+			array('skip_admin_check' => true)
+		);
+		if (empty($checkin['success'])) {
+			$err = isset($checkin['error']) ? $checkin['error'] : 'Không xác nhận tham gia được';
+			self::writeDeskCheckinLog(
+				'',
+				'',
+				'error',
+				$potentialId,
+				isset($checkin['lead_id']) ? (int) $checkin['lead_id'] : 0,
+				'',
+				$err
+			);
+			return $checkin;
+		}
+		$oppName = '';
+		try {
+			$rec = Vtiger_Record_Model::getInstanceById($potentialId, 'Potentials');
+			$oppName = trim(decode_html((string) $rec->get('potentialname')));
+		} catch (Exception $e) {
+			$oppName = '';
+		}
+		$phone = '';
+		try {
+			$adb = PearDatabase::getInstance();
+			$pr = $adb->pquery('SELECT phone FROM bace_potential_profile WHERE potentialid = ?', array($potentialId));
+			if ($pr && $adb->num_rows($pr) > 0) {
+				$phone = trim((string) $adb->query_result($pr, 0, 'phone'));
+			}
+		} catch (Exception $e) {
+			$phone = '';
+		}
+		self::writeDeskCheckinLog(
+			self::normalizeVnPhone($phone) !== '' ? self::normalizeVnPhone($phone) : $phone,
+			'',
+			'matched',
+			$potentialId,
+			isset($checkin['lead_id']) ? (int) $checkin['lead_id'] : 0,
+			$oppName,
+			'Quầy xác nhận · Có tham gia'
+		);
+		$checkin['result'] = 'matched';
+		$checkin['message'] = 'Đã xác nhận tham gia';
+		$checkin['opp_name'] = $oppName;
+		return $checkin;
 	}
 
 	/**

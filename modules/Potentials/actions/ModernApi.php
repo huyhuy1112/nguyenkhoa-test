@@ -22,7 +22,7 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_inline_business_model', 'save_tags', 'delete', 'last_touch_call_log', 'offline_checkin', 'offline_reschedule', 'offline_unreachable', 'online_edubit_provision', 'offline_oa_note', 'credential_save', 'edubit_sync_all'), true)) {
+		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_inline_business_model', 'save_tags', 'delete', 'last_touch_call_log', 'offline_checkin', 'offline_reschedule', 'offline_unreachable', 'online_edubit_provision', 'offline_oa_note', 'credential_save', 'edubit_sync_all', 'offline_desk_confirm'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -227,6 +227,43 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 						$hours = 12;
 					}
 					$response->setResult(Leads_OfflineGd11Service::listDeskCheckinFeed($hours));
+					break;
+				case 'offline_desk_lookup':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$phone = $request->get('phone');
+					if ($phone === null || $phone === '') {
+						$phone = $request->get('mobile');
+					}
+					$lookup = Leads_OfflineGd11Service::lookupDeskByPhone($phone, true);
+					if (empty($lookup['success']) && isset($lookup['error'])) {
+						$response->setResult($lookup);
+						break;
+					}
+					$response->setResult($lookup);
+					break;
+				case 'offline_desk_confirm':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('potential_id');
+					}
+					$confirmed = Leads_OfflineGd11Service::confirmDeskAttendance($recordId, $userId);
+					if (empty($confirmed['success'])) {
+						throw new Exception(isset($confirmed['error']) ? $confirmed['error'] : 'Xác nhận tham gia thất bại');
+					}
+					$list = Potentials_ModernService::listPotentials($userId);
+					$opp = null;
+					foreach ($list as $row) {
+						if ((int) $row['crmid'] === $recordId || (string) $row['id'] === (string) $recordId) {
+							$opp = $row;
+							break;
+						}
+					}
+					$confirmed['opportunity'] = $opp;
+					$response->setResult($confirmed);
 					break;
 				case 'offline_reschedule':
 					require_once 'modules/Leads/models/OfflineGd11Service.php';
