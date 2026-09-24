@@ -1805,7 +1805,22 @@
         '<label class="mk-leads-verify-field"><span>Câu 3 — Ngân sách</span>' +
         listVerifySelectHtml("c3", opts.c3, c3) +
         listVerifyFormHint(lead.form_c3, lead.form_c3_label) +
-        "</label>";
+        "</label>" +
+        '<label class="mk-leads-verify-field"><span>Lịch học sau xác minh <em>(Offline 1.1)</em></span>' +
+        listVerifySelectHtml(
+          "schedule_outcome",
+          [
+            { code: "chua_xac_nhan_lich", label: "Chưa xác nhận lịch học" },
+            { code: "da_xac_nhan_lich", label: "Đã xác nhận lịch học" },
+          ],
+          lead.offline_status === "offline_da_xac_nhan_lich" ? "da_xac_nhan_lich" : "chua_xac_nhan_lich",
+          "— Chọn —"
+        ) +
+        "</label>" +
+        '<label class="mk-leads-verify-field"><span>Ngày học (nếu đã xác nhận)</span>' +
+        '<input type="date" class="mk-leads-verify-select" data-mk-verify="class_date" value="' +
+        esc(lead.offline_class_date || "") +
+        '" /></label>';
     body.innerHTML =
       '<div class="mk-leads-verify-hero">' +
       '<div class="mk-leads-verify-hero__name">' +
@@ -1908,10 +1923,11 @@
     return true;
   }
 
-  /** Leads chỉ giữ Đường 2; điểm rơi R1→R4 chuyển sang Opp 「Chăm sóc trước lớp」. */
+  /** Leads: lịch học + Bước 2 + Đường 2. Điểm rơi R1→R4 ở Opp 「Chăm sóc trước lớp」. */
   function offlineStep1ActionsHtml(lead) {
     return (
       '<div class="mk-leads-verify-offline" data-mk-offline-box="1">' +
+      offlineStep2Html(lead) +
       offlineTransferOnlineHtml(lead) +
       "</div>"
     );

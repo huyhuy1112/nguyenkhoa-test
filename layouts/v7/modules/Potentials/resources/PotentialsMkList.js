@@ -1262,10 +1262,6 @@
           esc(curLabel) +
           "</strong></p>"
         : "") +
-      '<label class="mk-opps-preclass__date">Ngày học' +
-      '<input type="date" data-preclass-class-date value="' +
-      esc(o.offline_class_date || "") +
-      '" /></label>' +
       '<div class="mk-opps-preclass-stags" role="group" aria-label="Điểm rơi Offline R1–R4">' +
       tagsHtml +
       "</div>" +
@@ -1323,13 +1319,10 @@
       setPreclassMsg("API chưa sẵn sàng.", "");
       return;
     }
-    var dateEl = host.querySelector("[data-preclass-class-date]");
     if (btn) btn.disabled = true;
     setPreclassMsg("", "");
     store
-      .offlineGd11Apply(oid, action, {
-        class_date: dateEl ? dateEl.value || "" : "",
-      })
+      .offlineGd11Apply(oid, action, {})
       .then(function (res) {
         if (btn) btn.disabled = false;
         if (!res || !res.success) {
