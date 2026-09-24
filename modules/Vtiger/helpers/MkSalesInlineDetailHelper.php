@@ -137,6 +137,13 @@ class Vtiger_MkSalesInlineDetailHelper {
 		}
 		if ($dataType === 'date' || $dataType === 'datetime') {
 			$editValue = $fieldModel->getUITypeModel()->getDisplayValue($rawValue);
+		} else {
+			// Decode HTML entities for edit inputs (tránh hiện ho&agrave;ng trong textarea)
+			$textLike = array('string', 'text', 'email', 'phone', 'url', 'skype', 'salutation');
+			$uitype = (int) $fieldModel->get('uitype');
+			if (in_array($dataType, $textLike, true) || in_array($uitype, array(1, 2, 19, 20, 21), true)) {
+				$editValue = self::decodeText((string) $editValue);
+			}
 		}
 		$picklistValues = array();
 		if ($dataType === 'picklist') {

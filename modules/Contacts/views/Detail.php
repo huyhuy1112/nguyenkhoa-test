@@ -108,6 +108,7 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 			}
 			if ($listField['name'] === 'mailingstreet' && $fullAddress !== '') {
 				$listField['value'] = $fullAddress;
+				$listField['raw_value'] = $fullAddress;
 			}
 		}
 		unset($listField);
