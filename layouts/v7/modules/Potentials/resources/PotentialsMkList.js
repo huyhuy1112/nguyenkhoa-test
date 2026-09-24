@@ -1193,7 +1193,7 @@
 
   function paintDeskFeedList(rows, emptyLabel) {
     if (!rows || !rows.length) {
-      return '<p class="mk-opps-oa-qr__empty">' + esc(emptyLabel) + "</p>";
+      return '<p class="mk-opps-desk-empty">' + esc(emptyLabel) + "</p>";
     }
     return (
       '<ul class="mk-opps-desk-feed">' +
@@ -1208,7 +1208,7 @@
             r.potential_id > 0
               ? '<a class="mk-opps-desk-feed__link" href="index.php?module=Potentials&view=Detail&record=' +
                 esc(String(r.potential_id)) +
-                '&app=SALES" target="_blank" rel="noopener">Mở Opp</a>'
+                '&app=SALES" target="_blank" rel="noopener">Mở</a>'
               : "";
           return (
             '<li class="mk-opps-desk-feed__item mk-opps-desk-feed__item--' +
@@ -1223,8 +1223,8 @@
             "</span></div>" +
             '<div class="mk-opps-desk-feed__msg">' +
             esc(title) +
+            (link ? " · " + link : "") +
             "</div>" +
-            link +
             "</li>"
           );
         })
@@ -1241,15 +1241,16 @@
         .map(function (m) {
           return (
             '<li class="mk-opps-desk-match">' +
+            '<div class="mk-opps-desk-match__body">' +
             '<div class="mk-opps-desk-match__name">' +
             esc(m.name || "Opp #" + m.potential_id) +
             "</div>" +
-            '<div class="mk-opps-desk-match__meta">SĐT: <strong>' +
+            '<div class="mk-opps-desk-match__meta">' +
             esc(m.phone || "—") +
-            "</strong> · " +
+            " · " +
             esc(m.status_label || m.offline_status || "") +
-            "</div>" +
-            '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--ok" data-mk-desk-confirm="' +
+            "</div></div>" +
+            '<button type="button" class="mk-opps-desk-confirm" data-mk-desk-confirm="' +
             esc(String(m.potential_id)) +
             '">Xác nhận tham gia</button>' +
             "</li>"
@@ -1260,96 +1261,121 @@
     );
   }
 
-  function paintDeskPhoneModal(host, opts) {
+  function buildLookupResultHtml(lookup, phoneVal) {
+    if (!lookup) {
+      return '<div class="mk-opps-desk-idle"><span class="mk-opps-desk-idle__glow" aria-hidden="true"></span><span>Nhập SĐT rồi bấm Tìm</span></div>';
+    }
+    if (lookup.result === "invalid_phone") {
+      return (
+        '<div class="mk-opps-desk-result mk-opps-desk-result--bad">' +
+        '<span class="mk-opps-desk-result__badge">Lỗi</span>' +
+        esc(lookup.error || "SĐT không hợp lệ") +
+        "</div>"
+      );
+    }
+    if (lookup.result === "unmatched") {
+      return (
+        '<div class="mk-opps-desk-result mk-opps-desk-result--warn">' +
+        '<span class="mk-opps-desk-result__badge">Không khớp</span>' +
+        "Không tìm thấy Opp với <strong>" +
+        esc(lookup.phone || phoneVal || "—") +
+        "</strong>" +
+        "</div>"
+      );
+    }
+    if (lookup.result === "matched" || lookup.result === "ambiguous") {
+      return (
+        '<div class="mk-opps-desk-result mk-opps-desk-result--ok">' +
+        '<span class="mk-opps-desk-result__badge">Khớp</span>' +
+        esc(lookup.message || "Đã tìm thấy") +
+        "</div>" +
+        paintMatchCards(lookup.matches || (lookup.opportunity ? [lookup.opportunity] : []))
+      );
+    }
+    return "";
+  }
+
+  function syncDeskTabButtons(host, feedData) {
     if (!host) return;
-    opts = opts || {};
-    var phoneVal = opts.phone != null ? String(opts.phone) : "";
-    var lookup = opts.lookup || null;
-    var feedData = opts.feed || { matched: [], unmatched: [], ambiguous: [], counts: {} };
-    var counts = feedData.counts || {};
+    var counts = (feedData && feedData.counts) || {};
     var nOk = Number(counts.matched) || 0;
     var nNo = Number(counts.unmatched) || 0;
-    var resultHtml = "";
-    if (lookup) {
-      if (lookup.result === "invalid_phone") {
-        resultHtml =
-          '<div class="mk-opps-desk-result mk-opps-desk-result--bad">' +
-          esc(lookup.error || "SĐT không hợp lệ") +
-          "</div>";
-      } else if (lookup.result === "unmatched") {
-        resultHtml =
-          '<div class="mk-opps-desk-result mk-opps-desk-result--warn">' +
-          "<strong>Không tìm thấy</strong> Opp với SĐT <code>" +
-          esc(lookup.phone || phoneVal) +
-          "</code>. Kiểm tra lại số khách đọc hoặc Opp đã xác nhận lịch chưa." +
-          "</div>";
-      } else if (lookup.result === "matched" || lookup.result === "ambiguous") {
-        resultHtml =
-          '<div class="mk-opps-desk-result mk-opps-desk-result--ok">' +
-          esc(lookup.message || "Đã tìm thấy") +
-          "</div>" +
-          paintMatchCards(lookup.matches || (lookup.opportunity ? [lookup.opportunity] : []));
-      }
-    } else {
-      resultHtml =
-        '<p class="mk-opps-oa-qr__empty">Hỏi SĐT khách → nhập vào ô trên → Enter hoặc bấm Tìm.</p>';
+    var tabOk = host.querySelector('[data-desk-tab="matched"]');
+    var tabNo = host.querySelector('[data-desk-tab="unmatched"]');
+    if (tabOk) {
+      tabOk.textContent = "Đã tham gia (" + nOk + ")";
+      tabOk.classList.toggle("is-active", deskFeedTab !== "unmatched");
     }
-    var tab = deskFeedTab === "unmatched" ? "unmatched" : "matched";
-    var listHtml =
-      tab === "matched"
-        ? paintDeskFeedList(feedData.matched, "Chưa có lượt xác nhận trong khung giờ này.")
-        : paintDeskFeedList(feedData.unmatched, "Chưa có SĐT không tìm thấy.");
+    if (tabNo) {
+      tabNo.textContent = "Không tìm thấy (" + nNo + ")";
+      tabNo.classList.toggle("is-active", deskFeedTab === "unmatched");
+    }
+  }
 
+  function updateDeskFeedDom(host, feedData) {
+    if (!host) return;
+    feedData = feedData || { matched: [], unmatched: [], counts: {} };
+    var wrap = host.querySelector("[data-desk-feed]");
+    if (!wrap) return;
+    var tab = deskFeedTab === "unmatched" ? "unmatched" : "matched";
+    wrap.innerHTML =
+      tab === "matched"
+        ? paintDeskFeedList(feedData.matched, "Chưa có lượt xác nhận.")
+        : paintDeskFeedList(feedData.unmatched, "Chưa có SĐT không tìm thấy.");
+    syncDeskTabButtons(host, feedData);
+  }
+
+  function updateDeskLookupDom(host, lookup, phoneVal) {
+    if (!host) return;
+    var out = host.querySelector("[data-desk-lookup-out]");
+    if (!out) return;
+    out.innerHTML = buildLookupResultHtml(lookup, phoneVal);
+  }
+
+  /** Vẽ khung modal 1 lần — refresh lịch sử không đụng ô SĐT. */
+  function paintDeskPhoneModalShell(host) {
+    if (!host) return;
     host.innerHTML =
-      '<div class="mk-opps-oa-qr__dialog mk-opps-oa-qr__dialog--desk" role="dialog" aria-modal="true" aria-label="Check-in SĐT">' +
-      '<header class="mk-opps-oa-qr__head">' +
-      "<h3>Check-in tại quầy · SĐT</h3>" +
-      '<button type="button" class="mk-opps-oa-qr__close" data-mk-oa-qr-close aria-label="Đóng">×</button>' +
+      '<div class="mk-opps-desk" role="dialog" aria-modal="true" aria-label="Check-in SĐT">' +
+      '<header class="mk-opps-desk__head">' +
+      '<div class="mk-opps-desk__brand">' +
+      '<span class="mk-opps-desk__pulse" aria-hidden="true"></span>' +
+      "<div>" +
+      '<p class="mk-opps-desk__eyebrow">Offline · Quầy</p>' +
+      "<h3>Check-in SĐT</h3>" +
+      "</div></div>" +
+      '<button type="button" class="mk-opps-desk__close" data-mk-oa-qr-close aria-label="Đóng">×</button>' +
       "</header>" +
-      '<div class="mk-opps-oa-qr__body mk-opps-oa-qr__body--desk mk-opps-oa-qr__body--phone">' +
-      '<div class="mk-opps-desk-search">' +
-      '<label class="mk-opps-desk-search__label" for="mk-opps-desk-phone">Số điện thoại khách</label>' +
-      '<div class="mk-opps-desk-search__row">' +
-      '<input type="tel" inputmode="numeric" autocomplete="tel" id="mk-opps-desk-phone" class="mk-opps-desk-phone" placeholder="090…" value="' +
-      esc(phoneVal) +
-      '" />' +
-      '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--ok" data-mk-desk-lookup>Tìm</button>' +
+      '<div class="mk-opps-desk__grid">' +
+      '<section class="mk-opps-desk__main">' +
+      '<label class="mk-opps-desk__label" for="mk-opps-desk-phone">Số điện thoại</label>' +
+      '<div class="mk-opps-desk__search">' +
+      '<input type="tel" inputmode="numeric" autocomplete="tel" id="mk-opps-desk-phone" class="mk-opps-desk-phone" placeholder="090…" />' +
+      '<button type="button" class="mk-opps-desk__go" data-mk-desk-lookup>Tìm</button>' +
       "</div>" +
-      '<p class="mk-opps-desk-search__hint">Không dùng biểu mẫu Zalo OA GD 1.2 — chỉ tìm Opp đã xác nhận lịch.</p>' +
-      '<div class="mk-opps-desk-lookup-out" data-desk-lookup-out>' +
-      resultHtml +
+      '<div class="mk-opps-desk-lookup-out" data-desk-lookup-out></div>' +
+      "</section>" +
+      '<aside class="mk-opps-desk__side">' +
+      '<div class="mk-opps-desk__side-head">' +
+      "<h4>Lịch sử 12 giờ</h4>" +
+      '<button type="button" class="mk-opps-desk__refresh" data-mk-desk-qr-refresh title="Làm mới">↻</button>' +
       "</div>" +
-      "</div>" +
-      '<div class="mk-opps-oa-qr__right">' +
-      '<p class="mk-opps-oa-qr__howto-title">Lịch sử quầy (12 giờ)</p>' +
       '<div class="mk-opps-desk-tabs" role="tablist">' +
-      '<button type="button" class="mk-opps-desk-tab' +
-      (tab === "matched" ? " is-active" : "") +
-      '" data-desk-tab="matched">Đã tham gia (' +
-      nOk +
-      ")</button>" +
-      '<button type="button" class="mk-opps-desk-tab' +
-      (tab === "unmatched" ? " is-active" : "") +
-      '" data-desk-tab="unmatched">Không tìm thấy (' +
-      nNo +
-      ")</button>" +
+      '<button type="button" class="mk-opps-desk-tab is-active" data-desk-tab="matched">Đã tham gia (0)</button>' +
+      '<button type="button" class="mk-opps-desk-tab" data-desk-tab="unmatched">Không tìm thấy (0)</button>' +
       "</div>" +
-      '<div class="mk-opps-desk-feed-wrap">' +
-      listHtml +
-      "</div>" +
-      '<div class="mk-opps-oa-qr__actions">' +
-      '<button type="button" class="mk-opps-checkin__btn" data-mk-desk-qr-refresh>Làm mới lịch sử</button>' +
-      "</div>" +
-      "</div>" +
+      '<div class="mk-opps-desk-feed-wrap" data-desk-feed></div>' +
+      "</aside>" +
       "</div>" +
       "</div>";
 
+    updateDeskLookupDom(host, null, "");
+    updateDeskFeedDom(host, { matched: [], unmatched: [], counts: {} });
     var input = host.querySelector("#mk-opps-desk-phone");
     if (input) {
       setTimeout(function () {
         input.focus();
-        input.select();
-      }, 50);
+      }, 40);
     }
   }
 
@@ -1363,11 +1389,7 @@
         deskModalState.feed = feed || {};
         var host = document.getElementById("mk-opps-oa-qr-modal");
         if (!host) return;
-        paintDeskPhoneModal(host, {
-          phone: deskModalState.phone,
-          lookup: deskModalState.lookup,
-          feed: deskModalState.feed,
-        });
+        updateDeskFeedDom(host, deskModalState.feed);
       })
       .catch(function (err) {
         if (quiet) return;
@@ -1384,6 +1406,8 @@
       notifyErr("API tìm SĐT chưa sẵn sàng.");
       return;
     }
+    var go = host ? host.querySelector("[data-mk-desk-lookup]") : null;
+    if (go) go.disabled = true;
     store
       .offlineDeskLookup(phone)
       .then(function (res) {
@@ -1393,10 +1417,15 @@
         } else if (res && (res.result === "matched" || res.result === "ambiguous")) {
           deskFeedTab = "matched";
         }
+        updateDeskLookupDom(host, deskModalState.lookup, phone);
         return refreshDeskFeedOnly(true);
       })
       .catch(function (err) {
         notifyErr((err && err.message) || "Không tìm được SĐT.");
+      })
+      .then(function () {
+        if (go) go.disabled = false;
+        if (input) input.focus();
       });
   }
 
@@ -1407,8 +1436,15 @@
       .then(function (res) {
         notifyOk((res && res.message) || "Đã xác nhận tham gia.");
         deskModalState.lookup = null;
-        deskModalState.phone = "";
         deskFeedTab = "matched";
+        var host = document.getElementById("mk-opps-oa-qr-modal");
+        var input = host ? host.querySelector("#mk-opps-desk-phone") : null;
+        if (input) {
+          input.value = "";
+          deskModalState.phone = "";
+          input.focus();
+        }
+        updateDeskLookupDom(host, null, "");
         renderAll();
         return refreshDeskFeedOnly(true);
       })
@@ -1423,14 +1459,14 @@
     deskModalState = { phone: "", lookup: null, feed: null };
     var backdrop = document.createElement("div");
     backdrop.id = "mk-opps-oa-qr-modal";
-    backdrop.className = "mk-opps-oa-qr";
+    backdrop.className = "mk-opps-oa-qr mk-opps-oa-qr--desk";
     document.body.appendChild(backdrop);
-    paintDeskPhoneModal(backdrop, deskModalState);
+    paintDeskPhoneModalShell(backdrop);
     refreshDeskFeedOnly(true);
     if (oaQrPollTimer) clearInterval(oaQrPollTimer);
     oaQrPollTimer = setInterval(function () {
       refreshDeskFeedOnly(true);
-    }, 15000);
+    }, 20000);
   }
 
   function openOaQrModal() {
@@ -2316,7 +2352,10 @@
         e.preventDefault();
         e.stopPropagation();
         deskFeedTab = deskTab.getAttribute("data-desk-tab") || "matched";
-        refreshDeskFeedOnly(true);
+        updateDeskFeedDom(
+          document.getElementById("mk-opps-oa-qr-modal"),
+          deskModalState.feed || { matched: [], unmatched: [], counts: {} }
+        );
         return;
       }
       if (e.target.closest && e.target.closest("[data-mk-desk-qr-refresh]")) {
