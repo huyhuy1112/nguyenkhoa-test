@@ -100,6 +100,7 @@ class Potentials_ModernService {
 			LEFT JOIN bace_potential_profile pp ON pp.potentialid = p.potentialid
 			LEFT JOIN bace_lead_profile lp ON lp.potential_id = p.potentialid
 			LEFT JOIN vtiger_leaddetails ld ON ld.leadid = lp.leadid
+			LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = lp.leadid
 			WHERE pp.converted_to_customer_at IS NULL
 			ORDER BY ce.modifiedtime DESC, p.potentialid DESC";
 		$res = $adb->pquery($sql, array());
@@ -159,6 +160,12 @@ class Potentials_ModernService {
 		}
 		$district = decode_html((string)(!empty($row['pot_district']) ? $row['pot_district'] : $row['lead_district']));
 		$address = decode_html((string)(!empty($row['pot_address']) ? $row['pot_address'] : $row['lead_address']));
+		if ($address === '' || $address === '-' || $address === '--') {
+			$address = decode_html((string)(isset($row['lead_lane']) ? $row['lead_lane'] : ''));
+		}
+		if ($address === '-' || $address === '--') {
+			$address = '';
+		}
 		require_once 'modules/Vtiger/helpers/BusinessModelHelper.php';
 		$businessModel = Vtiger_BusinessModel_Helper::normalize(
 			!empty($row['pot_business_model']) ? $row['pot_business_model'] : (isset($row['lead_business_model']) ? $row['lead_business_model'] : '')
