@@ -1100,16 +1100,16 @@ body.mk-leads-verify-open {
 }
 .mk-leads-verify-offline {
 	margin: 12px 0;
-	padding: 12px;
-	border-radius: 12px;
-	background: #fff7ed;
-	border: 1px solid #fed7aa;
+	padding: 0;
+	border-radius: 0;
+	background: transparent;
+	border: 0;
 }
 .mk-leads-verify-offline h4 {
 	margin: 0 0 6px;
 	font-size: 13px;
 	font-weight: 700;
-	color: #9a3412;
+	color: #14532d;
 }
 .mk-leads-verify-offline__meta {
 	margin: 0 0 10px;

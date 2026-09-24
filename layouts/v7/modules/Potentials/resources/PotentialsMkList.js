@@ -1017,9 +1017,362 @@
     return '<div class="mk-opps-checkin__meta">' + parts.join("") + "</div>";
   }
 
+  function isOfflineOpp(o) {
+    if (!o) return false;
+    if (Number(o.linked_leadid) > 0) return true;
+    var st = String(o.offline_status || "");
+    if (st.indexOf("offline_") === 0) return true;
+    var tags = o.tags || [];
+    for (var i = 0; i < tags.length; i++) {
+      var t = tags[i];
+      var key = typeof t === "string" ? t : (t && (t.key || t.name)) || "";
+      key = String(key).toLowerCase();
+      if (key === "mien_phi_offline" || key.indexOf("offline_") === 0) return true;
+    }
+    return false;
+  }
+
+  function offlineStepRankOf(actionOrStatus) {
+    var key = String(actionOrStatus || "").toLowerCase();
+    var map = {
+      hen_goi_lai: 1,
+      offline_hen_goi_lai: 1,
+      khong_nghe_may: 1,
+      offline_khong_nghe_may: 1,
+      sai_thong_tin: 1,
+      offline_sai_thong_tin: 1,
+      chua_xac_nhan_lich: 2,
+      offline_chua_xac_nhan_lich: 2,
+      da_xac_nhan_lich: 2,
+      offline_da_xac_nhan_lich: 2,
+      hen_lich_lai: 2,
+      offline_hen_lich_lai: 2,
+      khong_tham_gia: 3,
+      offline_khong_tham_gia: 3,
+      da_tham_gia: 3,
+      offline_da_tham_gia: 3,
+      offline_ngung_cskh_tam: 3,
+      chuyen_chuong_trinh: 4,
+      offline_chuyen_chuong_trinh: 4,
+      ngung_cskh: 0,
+      offline_ngung_cskh: 0,
+    };
+    return map[key] != null ? map[key] : 0;
+  }
+
+  function offlineHighestStep(o) {
+    if (!o) return 0;
+    if (o.offline_step_rank != null && o.offline_step_rank !== "") {
+      return Number(o.offline_step_rank) || 0;
+    }
+    var rank = offlineStepRankOf(o.offline_status);
+    var r1 =
+      (Number(o.offline_r1_hen_goi) || 0) +
+      (Number(o.offline_r1_khong_nghe) || 0) +
+      (Number(o.offline_r1_sai_tt) || 0);
+    if (r1 <= 0) r1 = Number(o.offline_r1_contact) || 0;
+    if (r1 > 0) rank = Math.max(rank, 1);
+    if ((Number(o.offline_r2_schedule) || 0) > 0) rank = Math.max(rank, 2);
+    if ((Number(o.offline_r3_class) || 0) > 0) rank = Math.max(rank, 3);
+    if ((Number(o.offline_r4_transfer) || 0) > 0) rank = Math.max(rank, 4);
+    return rank;
+  }
+
+  function offlineActionLocked(o, action) {
+    var target = offlineStepRankOf(action);
+    if (target === 0) return false;
+    var highest = offlineHighestStep(o);
+    if (target >= highest) return false;
+    var st = String((o && o.offline_status) || "");
+    var rescheduleFrom =
+      st === "offline_khong_tham_gia" ||
+      st === "offline_da_tham_gia" ||
+      st === "offline_ngung_cskh_tam";
+    if (
+      rescheduleFrom &&
+      (action === "hen_lich_lai" || action === "da_xac_nhan_lich")
+    ) {
+      return false;
+    }
+    return true;
+  }
+
+  function closePreclassCareModal() {
+    var m = document.getElementById("mk-opps-preclass-modal");
+    if (m) m.remove();
+  }
+
+  function setPreclassMsg(err, ok) {
+    var host = document.getElementById("mk-opps-preclass-modal");
+    if (!host) return;
+    var errEl = host.querySelector("[data-preclass-err]");
+    var okEl = host.querySelector("[data-preclass-ok]");
+    if (errEl) {
+      if (err) {
+        errEl.hidden = false;
+        errEl.textContent = err;
+      } else {
+        errEl.hidden = true;
+        errEl.textContent = "";
+      }
+    }
+    if (okEl) {
+      if (ok) {
+        okEl.hidden = false;
+        okEl.textContent = ok;
+      } else {
+        okEl.hidden = true;
+        okEl.textContent = "";
+      }
+    }
+  }
+
+  function paintPreclassCareBody(host, o) {
+    if (!host || !o) return;
+    var body = host.querySelector("[data-preclass-body]");
+    if (!body) return;
+    var cur = o.offline_status || "";
+    var curLabel = o.offline_status_label || "";
+    var actions = [
+      {
+        action: "hen_goi_lai",
+        status: "offline_hen_goi_lai",
+        drop: "R1",
+        label: "Hẹn gọi lại",
+        count: o.offline_r1_hen_goi || 0,
+        max: 3,
+      },
+      {
+        action: "khong_nghe_may",
+        status: "offline_khong_nghe_may",
+        drop: "R1",
+        label: "Không nghe máy",
+        count: o.offline_r1_khong_nghe || 0,
+        max: 3,
+      },
+      {
+        action: "sai_thong_tin",
+        status: "offline_sai_thong_tin",
+        drop: "R1",
+        label: "Sai thông tin",
+        count: o.offline_r1_sai_tt || 0,
+        max: 3,
+      },
+      {
+        action: "hen_lich_lai",
+        status: "offline_hen_lich_lai",
+        drop: "R2",
+        label: "Hẹn lịch lại",
+        count: o.offline_r2_schedule || 0,
+        max: 3,
+      },
+      {
+        action: "chuyen_chuong_trinh",
+        status: "offline_chuyen_chuong_trinh",
+        drop: "R4",
+        label: "Chuyển CT",
+        count: o.offline_r4_transfer || 0,
+        max: 3,
+      },
+      {
+        action: "ngung_cskh",
+        status: "offline_ngung_cskh",
+        drop: "",
+        label: "Ngưng CSKH",
+        count: null,
+        max: null,
+      },
+    ];
+    function dropLabel(it) {
+      return it.drop ? it.drop + " · " + it.label : it.label;
+    }
+    var tagsHtml = actions
+      .map(function (it) {
+        var on = cur === it.status ? " is-active" : "";
+        var locked = offlineActionLocked(o, it.action);
+        var full = dropLabel(it);
+        var title = locked
+          ? full + " — đã ở bước sau, không được bấm điểm hẹn bước trước"
+          : full + (it.drop ? " (điểm rơi " + it.drop + ", max 3)" : "");
+        return (
+          '<button type="button" class="mk-opps-preclass-stag' +
+          on +
+          (locked ? " is-locked" : "") +
+          '" data-mk-preclass-action="' +
+          esc(it.action) +
+          '"' +
+          (it.drop ? ' data-mk-offline-drop="' + esc(it.drop) + '"' : "") +
+          (locked ? ' disabled aria-disabled="true"' : "") +
+          ' title="' +
+          esc(title) +
+          '">' +
+          esc(full) +
+          "</button>"
+        );
+      })
+      .join("");
+    var countItems = [];
+    actions.forEach(function (it) {
+      if (it.max == null) return;
+      if (it.drop === "R4") {
+        var r3 = Number(o.offline_r3_class) || 0;
+        countItems.push({
+          drop: "R3",
+          label: "Lớp (không tham gia)",
+          status: "offline_khong_tham_gia",
+          count: r3,
+          max: 3,
+          locked: offlineHighestStep(o) > 3,
+        });
+      }
+      countItems.push({
+        drop: it.drop,
+        label: it.label,
+        status: it.status,
+        count: it.count,
+        max: it.max,
+        locked: offlineActionLocked(o, it.action),
+      });
+    });
+    var detailRows = countItems
+      .map(function (it) {
+        var n = Number(it.count) || 0;
+        var max = Number(it.max) || 3;
+        var pct = Math.min(100, Math.round((n / max) * 100));
+        var lab = it.drop ? it.drop + " · " + it.label : it.label;
+        return (
+          '<div class="mk-opps-preclass-count__row' +
+          (cur === it.status ? " is-current" : "") +
+          (it.locked ? " is-locked" : "") +
+          '"><span class="mk-opps-preclass-count__lab">' +
+          esc(lab) +
+          '</span><span class="mk-opps-preclass-count__bar"><i style="width:' +
+          pct +
+          '%"></i></span><strong class="mk-opps-preclass-count__n">' +
+          n +
+          "/" +
+          max +
+          "</strong></div>"
+        );
+      })
+      .join("");
+    body.innerHTML =
+      (curLabel
+        ? '<p class="mk-opps-preclass__current">Đang gắn: <strong>' +
+          esc(curLabel) +
+          "</strong></p>"
+        : "") +
+      '<label class="mk-opps-preclass__date">Ngày học' +
+      '<input type="date" data-preclass-class-date value="' +
+      esc(o.offline_class_date || "") +
+      '" /></label>' +
+      '<div class="mk-opps-preclass-stags" role="group" aria-label="Điểm rơi Offline R1–R4">' +
+      tagsHtml +
+      "</div>" +
+      '<details class="mk-opps-preclass-count" open>' +
+      "<summary>Chi tiết điểm rơi (số lần / 3)</summary>" +
+      '<div class="mk-opps-preclass-count__body">' +
+      detailRows +
+      "</div></details>" +
+      '<p class="mk-opps-preclass__msg mk-opps-preclass__msg--err" data-preclass-err hidden></p>' +
+      '<p class="mk-opps-preclass__msg mk-opps-preclass__msg--ok" data-preclass-ok hidden></p>';
+  }
+
+  function openPreclassCareModal(oppId) {
+    var o =
+      getOpps().find(function (x) {
+        return String(x.id) === String(oppId) || String(x.crmid || "") === String(oppId);
+      }) || null;
+    if (!o) {
+      notifyErr("Không tìm thấy Opp.");
+      return;
+    }
+    closePreclassCareModal();
+    var backdrop = document.createElement("div");
+    backdrop.id = "mk-opps-preclass-modal";
+    backdrop.className = "mk-opps-preclass";
+    backdrop._mkOpp = o;
+    backdrop.innerHTML =
+      '<div class="mk-opps-preclass__dialog" role="dialog" aria-modal="true" aria-label="Chăm sóc trước lớp">' +
+      '<header class="mk-opps-preclass__head">' +
+      "<div>" +
+      "<h3>Chăm sóc trước lớp</h3>" +
+      '<p class="mk-opps-preclass__sub">R1 liên hệ · R2 lịch · R3 lớp · R4 chuyển CT — mỗi điểm max 3 → Ngưng CSKH</p>' +
+      '<p class="mk-opps-preclass__sub">' +
+      esc(o.name || "Opp #" + o.id) +
+      (o.phone ? " · " + esc(o.phone) : "") +
+      "</p>" +
+      "</div>" +
+      '<button type="button" class="mk-opps-preclass__close" data-mk-preclass-close aria-label="Đóng">×</button>' +
+      "</header>" +
+      '<div class="mk-opps-preclass__body" data-preclass-body></div>' +
+      "</div>";
+    document.body.appendChild(backdrop);
+    paintPreclassCareBody(backdrop, o);
+  }
+
+  function submitPreclassCareAction(action, btn) {
+    var host = document.getElementById("mk-opps-preclass-modal");
+    var o = host && host._mkOpp;
+    var oid = o && o.id;
+    if (!action || !oid) {
+      setPreclassMsg("Thiếu Opp / action.", "");
+      return;
+    }
+    if (!store || !store.offlineGd11Apply) {
+      setPreclassMsg("API chưa sẵn sàng.", "");
+      return;
+    }
+    var dateEl = host.querySelector("[data-preclass-class-date]");
+    if (btn) btn.disabled = true;
+    setPreclassMsg("", "");
+    store
+      .offlineGd11Apply(oid, action, {
+        class_date: dateEl ? dateEl.value || "" : "",
+      })
+      .then(function (res) {
+        if (btn) btn.disabled = false;
+        if (!res || !res.success) {
+          setPreclassMsg(
+            (res && res.error) || "Cập nhật điểm rơi thất bại.",
+            ""
+          );
+          return;
+        }
+        var fresh =
+          res.opportunity ||
+          getOpps().find(function (x) {
+            return String(x.id) === String(oid);
+          }) ||
+          o;
+        host._mkOpp = fresh;
+        paintPreclassCareBody(host, fresh);
+        setPreclassMsg("", "Đã cập nhật: " + (res.status_label || res.status || action));
+        notifyOk("Đã cập nhật: " + (res.status_label || res.status || action));
+        renderAll();
+      })
+      .catch(function (err) {
+        if (btn) btn.disabled = false;
+        var msg =
+          typeof err === "string"
+            ? err
+            : (err && (err.message || err.error)) || "Cập nhật điểm rơi thất bại.";
+        setPreclassMsg(msg, "");
+      });
+  }
+
   function offlineCheckinCell(o) {
+    var careBtn =
+      isOfflineOpp(o)
+        ? '<div class="mk-opps-checkin__actions" style="margin-bottom:6px">' +
+          '<button type="button" class="mk-opps-checkin__btn mk-opps-checkin__btn--care" data-mk-opp-preclass="' +
+          esc(o.id) +
+          '">Chăm sóc trước lớp</button></div>'
+        : "";
     if (!canOfflineCheckin(o)) {
-      return '<span class="mk-leads-muted">—</span>';
+      return careBtn
+        ? '<div class="mk-opps-checkin" data-opp-id="' + esc(o.id) + '">' + careBtn + "</div>"
+        : '<span class="mk-leads-muted">—</span>';
     }
     var st = String((o && o.offline_status) || "");
     var label = String(o.offline_status_label || o.offline_status || "").trim();
@@ -1033,6 +1386,7 @@
       '<div class="mk-opps-checkin" data-opp-id="' +
       esc(o.id) +
       '">' +
+      careBtn +
       '<div class="mk-opps-checkin__status">' +
       '<span class="mk-opps-checkin__label">' +
       esc(label || "Offline") +
@@ -2368,6 +2722,32 @@
         e.preventDefault();
         e.stopPropagation();
         runDeskLookup();
+        return;
+      }
+      if (e.target.closest && e.target.closest("[data-mk-preclass-close]")) {
+        e.preventDefault();
+        e.stopPropagation();
+        closePreclassCareModal();
+        return;
+      }
+      if (e.target && e.target.id === "mk-opps-preclass-modal") {
+        e.preventDefault();
+        e.stopPropagation();
+        closePreclassCareModal();
+        return;
+      }
+      var preclassOpen = e.target.closest && e.target.closest("[data-mk-opp-preclass]");
+      if (preclassOpen) {
+        e.preventDefault();
+        e.stopPropagation();
+        openPreclassCareModal(preclassOpen.getAttribute("data-mk-opp-preclass"));
+        return;
+      }
+      var preclassAct = e.target.closest && e.target.closest("[data-mk-preclass-action]");
+      if (preclassAct) {
+        e.preventDefault();
+        e.stopPropagation();
+        submitPreclassCareAction(preclassAct.getAttribute("data-mk-preclass-action"), preclassAct);
         return;
       }
       var confirmBtn = e.target.closest && e.target.closest("[data-mk-desk-confirm]");

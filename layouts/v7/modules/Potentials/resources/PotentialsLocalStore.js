@@ -228,6 +228,29 @@
         return res;
       });
     },
+    /** Chăm sóc trước lớp — điểm rơi R1→R4 */
+    offlineGd11Apply: function (id, action, extra) {
+      var oid = String(id || "");
+      var payload = Object.assign({ action: action || "" }, extra || {});
+      return apiRequest("offline_gd11_apply", {
+        record: oid,
+        offline_action: action || "",
+        payload: JSON.stringify(payload),
+      }).then(function (res) {
+        if (res && res.opportunity) {
+          root.PotentialsLocalStore.patchOpportunity(oid, res.opportunity);
+        } else if (res && res.success) {
+          var patch = {};
+          if (res.status) {
+            patch.offline_status = res.status;
+            patch.offline_status_label = res.status_label || "";
+          }
+          if (Array.isArray(res.tags)) patch.tags = res.tags;
+          root.PotentialsLocalStore.patchOpportunity(oid, patch);
+        }
+        return res;
+      });
+    },
     /** Bước 3 — ghi chú không dùng Zalo / không quét */
     offlineOaNote: function (id, noteKind, customNote) {
       return apiRequest("offline_oa_note", {

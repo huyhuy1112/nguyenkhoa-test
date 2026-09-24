@@ -22,7 +22,7 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_inline_business_model', 'save_tags', 'delete', 'last_touch_call_log', 'offline_checkin', 'offline_reschedule', 'offline_unreachable', 'online_edubit_provision', 'offline_oa_note', 'credential_save', 'edubit_sync_all', 'offline_desk_confirm'), true)) {
+		if (in_array($mode, array('save_confirm_tag', 'save_inline_location', 'save_inline_phone', 'save_inline_business_model', 'save_tags', 'delete', 'last_touch_call_log', 'offline_checkin', 'offline_reschedule', 'offline_unreachable', 'online_edubit_provision', 'offline_oa_note', 'credential_save', 'edubit_sync_all', 'offline_desk_confirm', 'offline_gd11_apply'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -178,6 +178,51 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 						'oa_qr' => isset($checkin['oa_qr']) ? $checkin['oa_qr'] : null,
 						'lead_id' => isset($checkin['lead_id']) ? (int) $checkin['lead_id'] : 0,
 					));
+					break;
+				case 'offline_gd11_apply':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$payloadRaw = $request->get('payload');
+					$payload = array();
+					if (is_string($payloadRaw) && $payloadRaw !== '') {
+						$decoded = json_decode($payloadRaw, true);
+						if (is_array($decoded)) {
+							$payload = $decoded;
+						}
+					} elseif (is_array($payloadRaw)) {
+						$payload = $payloadRaw;
+					}
+					$action = $request->get('offline_action');
+					if ($action === null || $action === '') {
+						$action = $request->get('action_name');
+					}
+					if (($action === null || $action === '') && !empty($payload['action'])) {
+						$action = $payload['action'];
+					}
+					$applied = Leads_OfflineGd11Service::applyFromPotential(
+						$recordId,
+						$action,
+						$payload,
+						$userId
+					);
+					if (empty($applied['success'])) {
+						$response->setResult($applied);
+						break;
+					}
+					$list = Potentials_ModernService::listPotentials($userId);
+					$opp = null;
+					foreach ($list as $row) {
+						if ((int) $row['crmid'] === $recordId || (string) $row['id'] === (string) $recordId) {
+							$opp = $row;
+							break;
+						}
+					}
+					$applied['opportunity'] = $opp;
+					$applied['tags'] = isset($applied['opp_tags']) ? $applied['opp_tags'] : array();
+					$response->setResult($applied);
 					break;
 				case 'offline_oa_qr':
 					require_once 'modules/Leads/models/OfflineGd11Service.php';

@@ -1805,22 +1805,7 @@
         '<label class="mk-leads-verify-field"><span>Câu 3 — Ngân sách</span>' +
         listVerifySelectHtml("c3", opts.c3, c3) +
         listVerifyFormHint(lead.form_c3, lead.form_c3_label) +
-        "</label>" +
-        '<label class="mk-leads-verify-field"><span>Lịch học sau xác minh <em>(Offline 1.1)</em></span>' +
-        listVerifySelectHtml(
-          "schedule_outcome",
-          [
-            { code: "chua_xac_nhan_lich", label: "Chưa xác nhận lịch học" },
-            { code: "da_xac_nhan_lich", label: "Đã xác nhận lịch học" },
-          ],
-          lead.offline_status === "offline_da_xac_nhan_lich" ? "da_xac_nhan_lich" : "chua_xac_nhan_lich",
-          "— Chọn —"
-        ) +
-        "</label>" +
-        '<label class="mk-leads-verify-field"><span>Ngày học (nếu đã xác nhận)</span>' +
-        '<input type="date" class="mk-leads-verify-select" data-mk-verify="class_date" value="' +
-        esc(lead.offline_class_date || "") +
-        '" /></label>';
+        "</label>";
     body.innerHTML =
       '<div class="mk-leads-verify-hero">' +
       '<div class="mk-leads-verify-hero__name">' +
@@ -1923,160 +1908,11 @@
     return true;
   }
 
+  /** Leads chỉ giữ Đường 2; điểm rơi R1→R4 chuyển sang Opp 「Chăm sóc trước lớp」. */
   function offlineStep1ActionsHtml(lead) {
-    var cur = lead.offline_status || "";
-    var curLabel = lead.offline_status_label || "";
-    // Điểm rơi theo tài liệu GD1.1: R1 liên hệ → R2 lịch → R3 lớp → R4 chuyển CT.
-    var actions = [
-      {
-        action: "hen_goi_lai",
-        status: "offline_hen_goi_lai",
-        drop: "R1",
-        label: "Hẹn gọi lại",
-        count: lead.offline_r1_hen_goi || 0,
-        max: 3,
-      },
-      {
-        action: "khong_nghe_may",
-        status: "offline_khong_nghe_may",
-        drop: "R1",
-        label: "Không nghe máy",
-        count: lead.offline_r1_khong_nghe || 0,
-        max: 3,
-      },
-      {
-        action: "sai_thong_tin",
-        status: "offline_sai_thong_tin",
-        drop: "R1",
-        label: "Sai thông tin",
-        count: lead.offline_r1_sai_tt || 0,
-        max: 3,
-      },
-      {
-        action: "hen_lich_lai",
-        status: "offline_hen_lich_lai",
-        drop: "R2",
-        label: "Hẹn lịch lại",
-        count: lead.offline_r2_schedule || 0,
-        max: 3,
-      },
-      {
-        action: "chuyen_chuong_trinh",
-        status: "offline_chuyen_chuong_trinh",
-        drop: "R4",
-        label: "Chuyển CT",
-        count: lead.offline_r4_transfer || 0,
-        max: 3,
-      },
-      {
-        action: "ngung_cskh",
-        status: "offline_ngung_cskh",
-        drop: "",
-        label: "Ngưng CSKH",
-        count: null,
-        max: null,
-      },
-    ];
-    function dropLabel(it) {
-      return it.drop ? it.drop + " · " + it.label : it.label;
-    }
-    var tagsHtml = actions
-      .map(function (it) {
-        var on = cur === it.status ? " is-active" : "";
-        var locked = offlineActionLocked(lead, it.action);
-        var lockCls = locked ? " is-locked" : "";
-        var full = dropLabel(it);
-        var title = locked
-          ? full + " — đã ở bước sau, không được bấm điểm hẹn bước trước"
-          : full + (it.drop ? " (điểm rơi " + it.drop + ", max 3)" : "");
-        return (
-          '<button type="button" class="mk-leads-offline-stag' +
-          on +
-          lockCls +
-          '" data-mk-offline-action="' +
-          esc(it.action) +
-          '"' +
-          (it.drop ? ' data-mk-offline-drop="' + esc(it.drop) + '"' : "") +
-          (locked ? " disabled aria-disabled=\"true\"" : "") +
-          ' title="' +
-          esc(title) +
-          '">' +
-          esc(full) +
-          "</button>"
-        );
-      })
-      .join("");
-    var countItems = [];
-    actions.forEach(function (it) {
-      if (it.max == null) return;
-      if (it.drop === "R4") {
-        // Chèn R3 (lớp / không tham gia) đúng thứ tự tài liệu trước R4.
-        var r3 = Number(lead.offline_r3_class) || 0;
-        countItems.push({
-          drop: "R3",
-          label: "Lớp (không tham gia)",
-          status: "offline_khong_tham_gia",
-          count: r3,
-          max: 3,
-          locked: offlineHighestStep(lead) > 3,
-          action: null,
-        });
-      }
-      countItems.push({
-        drop: it.drop,
-        label: it.label,
-        status: it.status,
-        count: it.count,
-        max: it.max,
-        locked: offlineActionLocked(lead, it.action),
-        action: it.action,
-      });
-    });
-    var detailRows = countItems
-      .map(function (it) {
-        var n = Number(it.count) || 0;
-        var max = Number(it.max) || 3;
-        var pct = Math.min(100, Math.round((n / max) * 100));
-        var lab = it.drop ? it.drop + " · " + it.label : it.label;
-        return (
-          '<div class="mk-leads-offline-count__row' +
-          (cur === it.status ? " is-current" : "") +
-          (it.locked ? " is-locked" : "") +
-          '" data-mk-offline-drop="' +
-          esc(it.drop || "") +
-          '"><span class="mk-leads-offline-count__lab">' +
-          esc(lab) +
-          '</span><span class="mk-leads-offline-count__bar"><i style="width:' +
-          pct +
-          '%"></i></span><strong class="mk-leads-offline-count__n">' +
-          n +
-          "/" +
-          max +
-          "</strong></div>"
-        );
-      })
-      .join("");
     return (
       '<div class="mk-leads-verify-offline" data-mk-offline-box="1">' +
-      "<h4>Offline 1.1 — điểm rơi R1→R4</h4>" +
-      '<p class="mk-leads-verify-offline__meta mk-leads-offline-drop-legend">' +
-      "R1 liên hệ · R2 lịch · R3 lớp · R4 chuyển CT — mỗi điểm max 3 → Ngưng CSKH" +
-      "</p>" +
-      (curLabel
-        ? '<p class="mk-leads-verify-offline__meta">Đang gắn: <strong class="mk-leads-offline-current">' +
-          esc(curLabel) +
-          "</strong></p>"
-        : "") +
-      '<div class="mk-leads-offline-stags" role="group" aria-label="Điểm rơi Offline R1–R4">' +
-      tagsHtml +
-      "</div>" +
-      '<details class="mk-leads-offline-count" open>' +
-      "<summary>Chi tiết điểm rơi (số lần / 3)</summary>" +
-      '<div class="mk-leads-offline-count__body">' +
-      detailRows +
-      "</div></details>" +
       offlineTransferOnlineHtml(lead) +
-      offlineStep2Html(lead) +
       "</div>"
     );
   }

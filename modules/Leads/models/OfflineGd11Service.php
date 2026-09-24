@@ -1517,6 +1517,44 @@ class Leads_OfflineGd11Service {
 	}
 
 	/**
+	 * Opp — Chăm sóc trước lớp: áp điểm rơi R1→R4 (giữ rule không lùi bước / max 3 / noti).
+	 */
+	public static function applyFromPotential($potentialId, $action, array $payload = array(), $userId = null) {
+		global $current_user;
+		$potentialId = (int) $potentialId;
+		$action = strtolower(trim((string) $action));
+		if ($potentialId <= 0) {
+			return array('success' => false, 'error' => 'Thiếu opportunity id');
+		}
+		if ($action === '') {
+			return array('success' => false, 'error' => 'Thiếu action Offline');
+		}
+		if ($userId === null && !empty($current_user->id)) {
+			$userId = (int) $current_user->id;
+		}
+
+		require_once 'modules/Leads/models/ConvertService.php';
+		$leadId = (int) Leads_ConvertService::getLinkedLeadIdByPotential($potentialId);
+		if ($leadId <= 0) {
+			return array('success' => false, 'error' => 'Opp chưa gắn Lead Offline');
+		}
+
+		$out = self::applyAction($leadId, $action, $payload, $userId);
+		if (empty($out['success'])) {
+			return $out;
+		}
+		$sync = self::syncOfflineStatusToPotential(
+			$leadId,
+			isset($out['status']) ? $out['status'] : '',
+			$userId
+		);
+		$out['potential_id'] = $potentialId;
+		$out['lead_id'] = $leadId;
+		$out['opp_tags'] = isset($sync['tags']) ? $sync['tags'] : array();
+		return $out;
+	}
+
+	/**
 	 * Link / QR Zalo OA cho quầy check-in (Bước 3).
 	 * @return array
 	 */
