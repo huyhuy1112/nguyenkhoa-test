@@ -2306,26 +2306,44 @@ class Leads_OfflineGd11Service {
 		}
 		$adb = PearDatabase::getInstance();
 		$ph = implode(',', array_fill(0, count($variants), '?'));
-		$sql = "SELECT p.potentialid, p.potentialname, lp.leadid, lp.offline_status,
-				pp.phone AS pot_phone, cd.phone AS contact_phone, cd.mobile AS contact_mobile, la.phone AS lead_phone
+		$strip = function ($expr) {
+			return "REPLACE(REPLACE(REPLACE(REPLACE(IFNULL($expr,''),' ',''),'-',''),'.',''),'+','')";
+		};
+		$sql = "SELECT p.potentialid, p.potentialname,
+				COALESCE(lp.leadid, lp2.leadid) AS leadid,
+				COALESCE(NULLIF(lp.offline_status, ''), lp2.offline_status) AS offline_status,
+				pp.phone AS pot_phone, cd.phone AS contact_phone, cd.mobile AS contact_mobile,
+				la.phone AS lead_phone, la.mobile AS lead_mobile
 			FROM vtiger_potential p
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid AND ce.deleted = 0
 			LEFT JOIN bace_potential_profile pp ON pp.potentialid = p.potentialid
 			LEFT JOIN vtiger_contactdetails cd ON cd.contactid = p.contact_id
 			LEFT JOIN bace_lead_profile lp ON lp.potential_id = p.potentialid
-			LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = lp.leadid
+			LEFT JOIN (
+				SELECT rel.relcrmid AS potentialid, rel.crmid AS leadid
+				FROM vtiger_crmentityrel rel
+				WHERE rel.module = 'Leads' AND rel.relmodule = 'Potentials'
+				UNION
+				SELECT rel.crmid AS potentialid, rel.relcrmid AS leadid
+				FROM vtiger_crmentityrel rel
+				WHERE rel.module = 'Potentials' AND rel.relmodule = 'Leads'
+			) link ON link.potentialid = p.potentialid
+			LEFT JOIN bace_lead_profile lp2 ON lp2.leadid = link.leadid
+			LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = COALESCE(lp.leadid, lp2.leadid)
 			WHERE (pp.converted_to_customer_at IS NULL OR pp.converted_to_customer_at = '' OR pp.converted_to_customer_at = '0000-00-00 00:00:00')
-			  AND lp.leadid IS NOT NULL
-			  AND lp.offline_status IN (?, ?)
+			  AND COALESCE(lp.leadid, lp2.leadid) IS NOT NULL
+			  AND COALESCE(NULLIF(lp.offline_status, ''), lp2.offline_status) IN (?, ?)
 			  AND (
-				REPLACE(REPLACE(REPLACE(REPLACE(IFNULL(pp.phone,''),' ',''),'-',''),'.',''),'+','') IN ($ph)
-				OR REPLACE(REPLACE(REPLACE(REPLACE(IFNULL(cd.phone,''),' ',''),'-',''),'.',''),'+','') IN ($ph)
-				OR REPLACE(REPLACE(REPLACE(REPLACE(IFNULL(cd.mobile,''),' ',''),'-',''),'.',''),'+','') IN ($ph)
-				OR REPLACE(REPLACE(REPLACE(REPLACE(IFNULL(la.phone,''),' ',''),'-',''),'.',''),'+','') IN ($ph)
+				{$strip('pp.phone')} IN ($ph)
+				OR {$strip('cd.phone')} IN ($ph)
+				OR {$strip('cd.mobile')} IN ($ph)
+				OR {$strip('la.phone')} IN ($ph)
+				OR {$strip('la.mobile')} IN ($ph)
 			  )
 			ORDER BY p.potentialid DESC";
 		$params = array_merge(
 			array(self::STATUS_DA_XN_LICH, self::STATUS_HEN_LICH_LAI),
+			$variants,
 			$variants,
 			$variants,
 			$variants,
@@ -2342,9 +2360,16 @@ class Leads_OfflineGd11Service {
 					continue;
 				}
 				$seen[$pid] = 1;
+				$leadId = (int) $adb->query_result($res, $i, 'leadid');
+				if ($leadId > 0) {
+					$adb->pquery(
+						'UPDATE bace_lead_profile SET potential_id = ? WHERE leadid = ? AND (potential_id IS NULL OR potential_id = 0)',
+						array($pid, $leadId)
+					);
+				}
 				$out[] = array(
 					'potential_id' => $pid,
-					'lead_id' => (int) $adb->query_result($res, $i, 'leadid'),
+					'lead_id' => $leadId,
 					'offline_status' => trim((string) $adb->query_result($res, $i, 'offline_status')),
 					'name' => decode_html((string) $adb->query_result($res, $i, 'potentialname')),
 					'phone' => trim((string) (
@@ -2352,6 +2377,7 @@ class Leads_OfflineGd11Service {
 						?: $adb->query_result($res, $i, 'contact_phone')
 						?: $adb->query_result($res, $i, 'contact_mobile')
 						?: $adb->query_result($res, $i, 'lead_phone')
+						?: $adb->query_result($res, $i, 'lead_mobile')
 					)),
 				);
 			}
