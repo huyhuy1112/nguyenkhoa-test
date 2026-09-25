@@ -137,6 +137,11 @@
     van_hanh: { vi: "Vận hành", en: "Operations", cat: "class", cls: "mk-tag--van-hanh" },
     mkt: { vi: "Marketing", en: "Marketing", cat: "class", cls: "mk-tag--mkt" },
     lop_khac: { vi: "Lớp khác", en: "Other class", cat: "class", cls: "mk-tag--lop-khac" },
+    da_mqbb: { vi: "Đã MQBB", en: "Done MQBB", cat: "class", cls: "mk-tag--da-mqbb" },
+    da_990k: { vi: "Đã 990k", en: "Paid 990k", cat: "class", cls: "mk-tag--da-990k" },
+    da_pcth: { vi: "Đã PCTH", en: "Done PCTH", cat: "class", cls: "mk-tag--da-pcth" },
+    da_pcthcb: { vi: "Đã PCTHCB", en: "Done PCTHCB", cat: "class", cls: "mk-tag--da-pcthcb" },
+    chua_mqbh: { vi: "Chưa MQBH", en: "No MQBH", cat: "class", cls: "mk-tag--chua-mqbh" },
     tiem_nang: { vi: "Tiềm năng", en: "Potential", cat: "material", cls: "mk-tag--tiem-nang" },
     mua_lan_dau: { vi: "Mua lần đầu", en: "First purchase", cat: "material", cls: "mk-tag--mua-lan-dau" },
     mua_lai: { vi: "Mua lại", en: "Repeat purchase", cat: "material", cls: "mk-tag--mua-lai" },
@@ -165,8 +170,20 @@
   // Credential tags (Đã cấp bằng / Đã cấp tài khoản) belong to Contacts only — not Opp/Leads pickers.
   var CREDENTIAL_TAGS = [];
   var CLASS_TAGS = [
-    "da_tg_free", "da_tg_fb1", "thu_3", "mien_phi_online", "mien_phi_offline",
-    "chua_hoc", "da_hoc", "pcth", "van_hanh", "mkt", "lop_khac", "nguyen_lieu_chuoi",
+    "da_mqbb",
+    "da_990k",
+    "da_pcth",
+    "da_pcthcb",
+    "mien_phi_offline",
+    "mien_phi_online",
+    "chua_mqbh",
+    "da_tg_free",
+    "da_tg_fb1",
+    "thu_3",
+    "pcth",
+    "van_hanh",
+    "mkt",
+    "lop_khac",
   ];
   var MATERIAL_TAGS = [
     "dang_tu_van", "mua_lan_dau", "dung_cham_soc", "kh_can_nhac",

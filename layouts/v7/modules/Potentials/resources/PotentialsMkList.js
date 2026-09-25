@@ -633,7 +633,7 @@
           })
           .join("");
         return (
-          '<div class="mk-leads-tag-popover__group">' +
+          '<div class="mk-leads-tag-popover__group" data-group="' + esc(g.id) + '">' +
           '<div class="mk-leads-tag-popover__group-title">' +
           esc(g.label) +
           "</div>" +
@@ -663,8 +663,9 @@
       var chip = e.target.closest && e.target.closest(".mk-leads-tag-chip");
       if (chip) {
         var group = chip.closest(".mk-leads-tag-popover__group");
+        var groupId = group ? group.getAttribute("data-group") : "";
         var turningOn = !chip.classList.contains("is-on");
-        if (group && turningOn) {
+        if (group && turningOn && groupId !== "class") {
           group.querySelectorAll(".mk-leads-tag-chip.is-on").forEach(function (el) {
             el.classList.remove("is-on");
             el.setAttribute("aria-pressed", "false");

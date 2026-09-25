@@ -157,6 +157,7 @@
   TAG_META_RAW["l2"] = { vi: "L2", en: "L2", cat: "other", cls: "mk-tag--l2" };
   TAG_META_RAW["chua_990k"] = { vi: "Chưa 990k", en: "Not 990k", cat: "other", cls: "mk-tag--chua-990k" };
   TAG_META_RAW["da_990k"] = { vi: "Đã 990k", en: "Paid 990k", cat: "other", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["da_pcthcb"] = { vi: "Đã PCTHCB", en: "Done PCTHCB", cat: "other", cls: "mk-tag--da-pcthcb" };
   TAG_META_RAW["lop_online"] = { vi: "Lớp online", en: "Online class", cat: "other", cls: "mk-tag--lop-online" };
   TAG_META_RAW["moi_lai"] = { vi: "Mời lại", en: "Re-invite", cat: "other", cls: "mk-tag--moi-lai" };
   TAG_META_RAW["doi_lich"] = { vi: "Dời lịch", en: "Reschedule", cat: "other", cls: "mk-tag--doi-lich" };
@@ -220,16 +221,37 @@
       ],
     },
     {
-      id: "program",
-      labelVi: "Chương trình",
-      labelEn: "Program",
-      tags: ["mien_phi_online", "mien_phi_offline", "pcth", "van_hanh", "mkt", "lop_khac", "nhuong_quyen"],
+      id: "class",
+      labelVi: "Lớp học",
+      labelEn: "Class",
+      tags: [
+        "da_mqbb",
+        "da_990k",
+        "da_pcth",
+        "da_pcthcb",
+        "mien_phi_offline",
+        "mien_phi_online",
+        "chua_mqbh",
+        "da_tg_free",
+        "da_tg_fb1",
+        "thu_3",
+        "pcth",
+        "van_hanh",
+        "mkt",
+        "lop_khac",
+      ],
     },
     {
-      id: "purchase",
-      labelVi: "Tình trạng mua",
-      labelEn: "Purchase",
-      tags: ["mua_lan_dau", "mua_lai", "khong_mua", "ngung_mua"],
+      id: "franchise",
+      labelVi: "Nhượng quyền",
+      labelEn: "Franchise",
+      tags: ["nhuong_quyen", "da_ky_quy", "dang_tu_van"],
+    },
+    {
+      id: "material",
+      labelVi: "Nguyên liệu / tình trạng mua",
+      labelEn: "Material",
+      tags: ["mua_lan_dau", "mua_lai", "khong_mua", "ngung_mua", "mua_it_lai", "tiem_nang", "dang_cham_soc", "kh_can_nhac"],
     },
     {
       id: "region",
@@ -242,12 +264,10 @@
       labelVi: "Chăm sóc / trạng thái",
       labelEn: "Care",
       tags: [
-        "dang_tu_van", "dung_cham_soc", "kh_can_nhac", "mua_it_lai", "nguyen_lieu_chuoi",
-        "khong_nghe_may", "thue_bao", "tiem_nang", "tham_khao", "khong_du_tai_chinh", "da_ky_quy",
-        "thu_3", "lop_online", "moi_lai", "da_tg_free", "doi_lich", "l1", "l2", "khong_hoc",
-        "trung_so", "ngung_cham_soc", "chua_mqbb", "da_mqbb", "chua_mqbb_chua_pcth",
-        "chua_mqbb_da_pcth", "da_mqbb_chua_pcth", "da_mqbb_da_pcth", "da_pcth", "chua_pcth",
-        "da_990k", "chua_990k", "hoan_tien_lop_hoc",
+        "dung_cham_soc", "nguyen_lieu_chuoi", "khong_nghe_may", "thue_bao", "tham_khao",
+        "khong_du_tai_chinh", "lop_online", "moi_lai", "doi_lich", "l1", "l2", "khong_hoc",
+        "trung_so", "ngung_cham_soc", "chua_pcth", "chua_990k", "hoan_tien_lop_hoc",
+        "chua_mqbb_chua_pcth", "chua_mqbb_da_pcth", "da_mqbb_chua_pcth", "da_mqbb_da_pcth",
       ],
     },
   ];
