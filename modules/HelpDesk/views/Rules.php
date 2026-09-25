@@ -41,8 +41,8 @@ class HelpDesk_Rules_View extends Vtiger_Index_View {
 	public function getHeaderScripts(Vtiger_Request $request) {
 		$headerScriptInstances = parent::getHeaderScripts($request);
 		$jsFileNames = array(
-			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngineStore.js?mk_v=20260925_fieldrows1',
-			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.js?mk_v=20260925_fieldrows1',
+			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngineStore.js?mk_v=20260925_questions1',
+			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.js?mk_v=20260925_questions1',
 			'modules.HelpDesk.resources.Rules',
 		);
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);

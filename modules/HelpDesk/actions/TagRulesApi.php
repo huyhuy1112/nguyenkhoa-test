@@ -28,7 +28,7 @@ class HelpDesk_TagRulesApi_Action extends Vtiger_Action_Controller {
 			'save_tag', 'delete_tag', 'save_group', 'delete_group', 'save_rule', 'delete_rule', 'set_rule_active',
 			'save_scenario', 'delete_scenario', 'reseed', 'dismiss', 'apply_lead',
 			'save_affiliate_tier', 'delete_affiliate_tier', 'set_affiliate_tier_active',
-			'save_sheet_scoring', 'reset_sheet_scoring',
+			'save_sheet_scoring', 'reset_sheet_scoring', 'save_screening_bank',
 		);
 		if (in_array($mode, $write, true)) {
 			$request->validateWriteAccess();
@@ -210,6 +210,19 @@ class HelpDesk_TagRulesApi_Action extends Vtiger_Action_Controller {
 						'success' => true,
 						'sheet_scoring' => $cfg,
 						'state' => $svc->bootstrap(),
+					));
+					break;
+
+				case 'save_screening_bank':
+					require_once 'modules/Leads/models/SalesVerifyService.php';
+					$payload = json_decode((string)$request->get('payload'), true);
+					if (!is_array($payload)) {
+						$payload = array();
+					}
+					$bank = Leads_SalesVerifyService::saveScreeningBank($payload);
+					$response->setResult(array(
+						'success' => true,
+						'screening_bank' => $bank,
 					));
 					break;
 

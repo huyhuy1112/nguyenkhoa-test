@@ -728,6 +728,7 @@ class HelpDesk_TagRuleEngineService {
 			'scenarios' => $this->getScenarios(),
 			'affiliate_tiers' => $this->getAffiliateTiers(),
 			'sheet_scoring' => $this->getSheetScoringConfig(),
+			'screening_bank' => $this->loadScreeningBankSafe(),
 			'channel_options' => $this->getScenarioChannelOptions(),
 			'assignee_options' => $this->getScenarioAssigneeOptions(),
 			'cskh_alert_days' => $this->getCskhAlertDays(),
@@ -737,6 +738,15 @@ class HelpDesk_TagRuleEngineService {
 			$out['alerts'] = $this->getAlerts((int)$userId, 200);
 		}
 		return $out;
+	}
+
+	protected function loadScreeningBankSafe() {
+		try {
+			require_once 'modules/Leads/models/SalesVerifyService.php';
+			return Leads_SalesVerifyService::getScreeningBank();
+		} catch (Exception $e) {
+			return array('questions' => array(), 'levels' => array());
+		}
 	}
 
 	/**

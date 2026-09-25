@@ -1512,6 +1512,25 @@ class Leads_ModernService {
 		return false;
 	}
 
+	protected static function loadVerifyExtraAnswers($leadId, $detailed) {
+		if (!$detailed || (int) $leadId <= 0) {
+			return array();
+		}
+		try {
+			require_once 'modules/Leads/models/SalesVerifyService.php';
+			Leads_SalesVerifyService::installSchema();
+			$adb = PearDatabase::getInstance();
+			$res = $adb->pquery('SELECT verify_extra_json FROM bace_lead_profile WHERE leadid = ?', array((int) $leadId));
+			if (!$res || $adb->num_rows($res) < 1) {
+				return array();
+			}
+			$data = json_decode((string) $adb->query_result($res, 0, 'verify_extra_json'), true);
+			return is_array($data) ? $data : array();
+		} catch (Exception $e) {
+			return array();
+		}
+	}
+
 	protected static function composeVerifyBlock(array $row, array $tags = array()) {
 		require_once 'modules/Leads/models/SalesVerifyService.php';
 		require_once 'modules/Leads/models/OnlineGd12Service.php';
@@ -1621,6 +1640,7 @@ class Leads_ModernService {
 			'potential_level' => $potential,
 			'potential_label' => $potLabel,
 			'verify_score' => $score,
+			'extra_answers' => self::loadVerifyExtraAnswers(isset($row['leadid']) ? (int) $row['leadid'] : 0, $detailed),
 			'verify_change_reason' => $changeReason,
 			'verified_at' => $verifiedAt,
 			'verified_by' => isset($row['verified_by']) ? (int) $row['verified_by'] : null,

@@ -1802,10 +1802,13 @@
         listVerifySelectHtml("c2", opts.c2, c2) +
         listVerifyFormHint(lead.form_c2, lead.form_c2_label) +
         "</label>" +
-        '<label class="mk-leads-verify-field"><span>Câu 3 — Ngân sách</span>' +
+        '<label class="mk-leads-verify-field"><span>' +
+        esc((opts.c3_label || "Câu 3 — Ngân sách")) +
+        "</span>" +
         listVerifySelectHtml("c3", opts.c3, c3) +
         listVerifyFormHint(lead.form_c3, lead.form_c3_label) +
         "</label>" +
+        extraQuestionsHtml(opts, lead) +
         '<label class="mk-leads-verify-field"><span>Lịch học sau xác minh <em>(Offline 1.1)</em></span>' +
         listVerifySelectHtml(
           "schedule_outcome",
@@ -2014,6 +2017,35 @@
     );
   }
 
+  function extraQuestionsHtml(opts, lead) {
+    var extra = (opts && opts.extra) || [];
+    if (!extra.length) return "";
+    var saved = lead.extra_answers || {};
+    return extra.map(function (q) {
+      return (
+        '<label class="mk-leads-verify-field"><span>' +
+        esc(q.label || q.id) +
+        (q.required ? " *" : " <em>(không bắt buộc)</em>") +
+        "</span>" +
+        listVerifySelectHtml("extra_" + q.id, q.options || [], saved[q.id] || "", "— Chọn —") +
+        "</label>"
+      );
+    }).join("");
+  }
+
+  function readExtraAnswers(host) {
+    var extra = {};
+    if (!host || !host.querySelectorAll) return extra;
+    var nodes = host.querySelectorAll("[data-mk-verify]");
+    for (var i = 0; i < nodes.length; i++) {
+      var name = nodes[i].getAttribute("data-mk-verify") || "";
+      if (name.indexOf("extra_") !== 0) continue;
+      var val = String(nodes[i].value || "").trim();
+      if (val) extra[name.slice(6)] = val;
+    }
+    return extra;
+  }
+
   function fillListVerifyBody(lead) {
     var body = document.getElementById("mk-leads-verify-body");
     var panel = document.getElementById("mk-leads-verify-panel");
@@ -2045,6 +2077,7 @@
       c1: get("c1"),
       c2: get("c2"),
       c3: get("c3"),
+      extra: readExtraAnswers(host),
       c4: get("c4") ? parseInt(get("c4"), 10) : 0,
       c5: get("c5") ? parseInt(get("c5"), 10) : 0,
       change_reason: get("change_reason"),

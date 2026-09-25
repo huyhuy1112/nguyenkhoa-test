@@ -244,7 +244,7 @@
 		return hay.indexOf(q) >= 0;
 	}
 
-	var TAB_IDS = { rules: true, tags: true, scenarios: true, affiliate: true, sheet_scoring: true };
+	var TAB_IDS = { rules: true, tags: true, scenarios: true, affiliate: true, questions: true };
 	var TAB_STORAGE_KEY = 'mk_tre_active_tab';
 
 	function readPersistedTab() {
@@ -371,7 +371,7 @@
 				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'tags' ? ' is-active' : '') + '" data-tab="tags">Tag</button>'
 				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'scenarios' ? ' is-active' : '') + '" data-tab="scenarios">Kịch bản</button>'
 				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'affiliate' ? ' is-active' : '') + '" data-tab="affiliate">Mã giới thiệu</button>'
-				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'sheet_scoring' ? ' is-active' : '') + '" data-tab="sheet_scoring">Điểm lọc Sheet</button>'
+				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'questions' ? ' is-active' : '') + '" data-tab="questions">Câu hỏi</button>'
 				+ '    </div>'
 				+ '  </div>'
 				+ '  <div class="mk-tre-panel" id="mk-tre-panel"></div>'
@@ -407,18 +407,14 @@
 				$('#mk-tre-stats').html(htmlAff);
 				return;
 			}
-			if (this.activeTab === 'sheet_scoring') {
-				var cfg = store.getSheetScoring ? store.getSheetScoring() : {};
-				var q1Count = cfg.q1 ? Object.keys(cfg.q1).length : 0;
-				var q2Count = cfg.q2 ? Object.keys(cfg.q2).length : 0;
-				var q3Count = cfg.q3 ? Object.keys(cfg.q3).length : 0;
-				var regionCount = cfg.region ? Object.keys(cfg.region).length : 0;
-				var htmlScore = ''
-					+ '<article class="mk-tre-stat-card"><span class="mk-tre-stat-card__label">Câu hỏi</span><strong class="mk-tre-stat-card__value">3</strong><span class="mk-tre-stat-card__hint">Q1, Q2, Q3</span></article>'
-					+ '<article class="mk-tre-stat-card mk-tre-stat-card--accent"><span class="mk-tre-stat-card__label">Đáp án map</span><strong class="mk-tre-stat-card__value">' + (q1Count + q2Count + q3Count) + '</strong><span class="mk-tre-stat-card__hint">Điểm theo lựa chọn</span></article>'
-					+ '<article class="mk-tre-stat-card"><span class="mk-tre-stat-card__label">Khu vực</span><strong class="mk-tre-stat-card__value">' + regionCount + '</strong><span class="mk-tre-stat-card__hint">Điểm cộng/trừ vùng</span></article>'
-					+ '<article class="mk-tre-stat-card"><span class="mk-tre-stat-card__label">Mục đích</span><strong class="mk-tre-stat-card__value">Bộ A</strong><span class="mk-tre-stat-card__hint">Tham chiếu lọc Sheet</span></article>';
-				$('#mk-tre-stats').html(htmlScore);
+			if (this.activeTab === 'questions') {
+				var bank = store.getScreeningBank ? store.getScreeningBank() : { questions: [], levels: [] };
+				var qCount = (bank.questions || []).length;
+				var lvCount = (bank.levels || []).length;
+				$('#mk-tre-stats').html(
+					'<article class="mk-tre-stat-card"><span class="mk-tre-stat-card__label">Câu hỏi</span><strong class="mk-tre-stat-card__value">' + qCount + '</strong><span class="mk-tre-stat-card__hint">3 câu gốc bắt buộc</span></article>'
+					+ '<article class="mk-tre-stat-card mk-tre-stat-card--accent"><span class="mk-tre-stat-card__label">Mức xếp loại</span><strong class="mk-tre-stat-card__value">' + lvCount + '</strong><span class="mk-tre-stat-card__hint">Khớp đáp án, không cộng điểm</span></article>'
+				);
 				return;
 			}
 			var rules = store.getRules();
@@ -452,7 +448,7 @@
 			if (this.activeTab === 'rules') $panel.html(this.renderRulesTab());
 			else if (this.activeTab === 'tags') $panel.html(this.renderTagsTab());
 			else if (this.activeTab === 'affiliate') $panel.html(this.renderAffiliateTab());
-			else if (this.activeTab === 'sheet_scoring') $panel.html(this.renderSheetScoringTab());
+			else if (this.activeTab === 'questions') $panel.html(this.renderQuestionsTab());
 			else $panel.html(this.renderScenariosTab());
 		},
 
@@ -528,6 +524,100 @@
 				+ this.renderSheetScoringRows(groupName, scoreMap, cfg)
 				+ '</tbody></table></div>'
 				+ '</article>';
+		},
+
+		renderQuestionsTab: function () {
+			var bank = store.getScreeningBank ? store.getScreeningBank() : { questions: [], levels: [] };
+			var questions = bank.questions || [];
+			var levels = bank.levels || [];
+			var qRows = questions.map(function (q, idx) {
+				var opts = (q.options || []).map(function (o) { return o.code + '|' + o.label; }).join('\n');
+				return ''
+					+ '<div class="mk-tre-score-card js-tre-q-card" data-idx="' + idx + '" style="margin-bottom:12px">'
+					+ '  <div class="mk-tre-form-row">'
+					+ '    <label class="mk-tre-field"><span>Mã</span><input class="mk-tre-input js-tre-q-id" value="' + esc(q.id) + '"' + (q.core ? ' readonly' : '') + ' /></label>'
+					+ '    <label class="mk-tre-field"><span>Nội dung</span><input class="mk-tre-input js-tre-q-label" value="' + esc(q.label || '') + '" /></label>'
+					+ '    <label class="mk-tre-opt"><span class="mk-tre-opt__text"><strong>Bắt buộc</strong></span><span class="mk-tre-switch"><input type="checkbox" class="js-tre-q-required"' + (q.required || q.core ? ' checked' : '') + (q.core ? ' disabled' : '') + ' /><span class="mk-tre-switch__track"></span></span></label>'
+					+ '  </div>'
+					+ '  <label class="mk-tre-field"><span>Đáp án (mỗi dòng: MÃ|Nội dung)</span><textarea class="mk-tre-textarea js-tre-q-options" rows="4">' + esc(opts) + '</textarea></label>'
+					+ (q.core ? '' : '  <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-q-del">Xoá câu</button>')
+					+ '</div>';
+			}).join('');
+			var lvRows = levels.map(function (lv) {
+				var when = (lv.when || []).map(function (c) {
+					return c.q + (c.op === 'in' ? ' in ' : '=') + c.value;
+				}).join(' & ');
+				return ''
+					+ '<div class="mk-tre-form-row js-tre-lv-row" style="margin-top:8px">'
+					+ '  <label class="mk-tre-field"><span>Mã mức</span><input class="mk-tre-input js-tre-lv-code" value="' + esc(lv.code) + '" /></label>'
+					+ '  <label class="mk-tre-field"><span>Tên</span><input class="mk-tre-input js-tre-lv-label" value="' + esc(lv.label || '') + '" /></label>'
+					+ '  <label class="mk-tre-field"><span>Ưu tiên</span><input class="mk-tre-input js-tre-lv-prio" type="number" value="' + esc(lv.priority) + '" /></label>'
+					+ '  <label class="mk-tre-field"><span>Khi</span><input class="mk-tre-input js-tre-lv-when" value="' + esc(when) + '" placeholder="c1=C hoặc c1 in A,B & c3=F" /></label>'
+					+ '</div>';
+			}).join('');
+			return ''
+				+ '<section class="mk-tre-section">'
+				+ '  <div class="mk-tre-section__head"><div class="mk-tre-section__titles">'
+				+ '    <h2 class="mk-tre-section__title">Bộ câu hỏi sàng lọc</h2>'
+				+ '    <p class="mk-tre-section__sub">3 câu gốc luôn bắt buộc. Câu thêm để Sales chọn khi gọi. Mức xếp loại khớp theo điều kiện, không cộng điểm.</p>'
+				+ '  </div><div class="mk-tre-section__actions">'
+				+ '    <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-q-add">Thêm câu</button>'
+				+ '    <button type="button" class="mk-tre-btn mk-tre-btn--primary js-tre-q-save">Lưu bộ câu hỏi</button>'
+				+ '  </div></div>'
+				+ '  <div class="mk-tre-section__body"><div class="js-tre-q-list">' + qRows + '</div>'
+				+ '    <h3 style="margin-top:18px">Mức xếp loại</h3>'
+				+ '    <p class="mk-tre-muted">Số ưu tiên nhỏ hơn được xét trước. Ví dụ: c1=C · c3=F · c1 in A,B & c2=A</p>'
+				+ '    <div class="js-tre-lv-list">' + lvRows + '</div>'
+				+ '    <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-lv-add" style="margin-top:8px">Thêm mức</button>'
+				+ '  </div></section>';
+		},
+
+		readQuestionsForm: function () {
+			var questions = [];
+			$('#mk-tre-panel .js-tre-q-card').each(function () {
+				var $card = $(this);
+				var options = [];
+				String($card.find('.js-tre-q-options').val() || '').split('\n').forEach(function (line) {
+					line = line.trim();
+					if (!line) return;
+					var bits = line.split('|');
+					var code = (bits[0] || '').trim();
+					var label = (bits.slice(1).join('|') || code).trim();
+					if (code) options.push({ code: code, label: label });
+				});
+				questions.push({
+					id: $card.find('.js-tre-q-id').val(),
+					label: $card.find('.js-tre-q-label').val(),
+					required: $card.find('.js-tre-q-required').prop('checked') || $card.find('.js-tre-q-required').prop('disabled'),
+					active: true,
+					options: options
+				});
+			});
+			var levels = [];
+			$('#mk-tre-panel .js-tre-lv-row').each(function () {
+				var $row = $(this);
+				var when = [];
+				String($row.find('.js-tre-lv-when').val() || '').split('&').forEach(function (part) {
+					part = part.trim();
+					if (!part) return;
+					var inMatch = part.match(/^([a-zA-Z0-9_]+)\s+in\s+(.+)$/i);
+					if (inMatch) {
+						when.push({ q: inMatch[1].toLowerCase(), op: 'in', value: inMatch[2].replace(/\s/g, '') });
+						return;
+					}
+					var eq = part.split('=');
+					if (eq.length >= 2) {
+						when.push({ q: eq[0].trim().toLowerCase(), op: 'eq', value: eq.slice(1).join('=').trim() });
+					}
+				});
+				levels.push({
+					code: $row.find('.js-tre-lv-code').val(),
+					label: $row.find('.js-tre-lv-label').val(),
+					priority: parseInt($row.find('.js-tre-lv-prio').val(), 10) || 100,
+					when: when
+				});
+			});
+			return { questions: questions, levels: levels };
 		},
 
 		renderSheetScoringTab: function () {
@@ -1484,6 +1574,41 @@
 			});
 
 			this.$root.on('click', '.js-tre-sc-create', function () { self.openScenarioForm(null); });
+			this.$root.on('click', '.js-tre-q-add', function () {
+				var html = ''
+					+ '<div class="mk-tre-score-card js-tre-q-card" style="margin-bottom:12px">'
+					+ '  <div class="mk-tre-form-row">'
+					+ '    <label class="mk-tre-field"><span>Mã</span><input class="mk-tre-input js-tre-q-id" value="c' + ($('.js-tre-q-card').length + 1) + '" /></label>'
+					+ '    <label class="mk-tre-field"><span>Nội dung</span><input class="mk-tre-input js-tre-q-label" placeholder="Câu hỏi mới" /></label>'
+					+ '    <label class="mk-tre-opt"><span class="mk-tre-opt__text"><strong>Bắt buộc</strong></span><span class="mk-tre-switch"><input type="checkbox" class="js-tre-q-required" /><span class="mk-tre-switch__track"></span></span></label>'
+					+ '  </div>'
+					+ '  <label class="mk-tre-field"><span>Đáp án (mỗi dòng: MÃ|Nội dung)</span><textarea class="mk-tre-textarea js-tre-q-options" rows="3" placeholder="A|Đáp án A"></textarea></label>'
+					+ '  <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-q-del">Xoá câu</button>'
+					+ '</div>';
+				$('#mk-tre-panel .js-tre-q-list').append(html);
+			});
+			this.$root.on('click', '.js-tre-q-del', function () {
+				$(this).closest('.js-tre-q-card').remove();
+			});
+			this.$root.on('click', '.js-tre-lv-add', function () {
+				$('#mk-tre-panel .js-tre-lv-list').append(
+					'<div class="mk-tre-form-row js-tre-lv-row" style="margin-top:8px">'
+					+ '<label class="mk-tre-field"><span>Mã mức</span><input class="mk-tre-input js-tre-lv-code" /></label>'
+					+ '<label class="mk-tre-field"><span>Tên</span><input class="mk-tre-input js-tre-lv-label" /></label>'
+					+ '<label class="mk-tre-field"><span>Ưu tiên</span><input class="mk-tre-input js-tre-lv-prio" type="number" value="50" /></label>'
+					+ '<label class="mk-tre-field"><span>Khi</span><input class="mk-tre-input js-tre-lv-when" placeholder="c4=A" /></label></div>'
+				);
+			});
+			this.$root.on('click', '.js-tre-q-save', function () {
+				try {
+					store.saveScreeningBank(self.readQuestionsForm());
+					self.renderStats();
+					toast('Đã lưu bộ câu hỏi');
+				} catch (e) {
+					window.alert(e.message || 'Không lưu được bộ câu hỏi');
+				}
+			});
+
 			this.$root.on('click', '.js-tre-sc-edit', function () { self.openScenarioForm($(this).data('id')); });
 			this.$root.on('click', '.js-tre-sc-del', function () {
 				if (!window.confirm('Xoá "' + $(this).data('title') + '"?')) return;

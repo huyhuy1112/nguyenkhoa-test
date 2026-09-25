@@ -12,6 +12,7 @@
 		scenarios: [],
 		affiliate_tiers: [],
 		sheet_scoring: null,
+		screening_bank: { questions: [], levels: [] },
 		alerts: [],
 		channel_options: [],
 		assignee_options: [],
@@ -32,6 +33,7 @@
 		if (Array.isArray(next.scenarios)) state.scenarios = next.scenarios;
 		if (Array.isArray(next.affiliate_tiers)) state.affiliate_tiers = next.affiliate_tiers;
 		if (next.sheet_scoring && typeof next.sheet_scoring === 'object') state.sheet_scoring = next.sheet_scoring;
+		if (next.screening_bank && typeof next.screening_bank === 'object') state.screening_bank = next.screening_bank;
 		if (Array.isArray(next.alerts)) state.alerts = next.alerts;
 		if (Array.isArray(next.channel_options)) state.channel_options = next.channel_options;
 		if (Array.isArray(next.assignee_options)) state.assignee_options = next.assignee_options;
@@ -192,6 +194,19 @@
 			if (list[i].id === id) return clone(list[i]);
 		}
 		return null;
+	}
+
+	function getScreeningBank() {
+		return clone(state.screening_bank || { questions: [], levels: [] });
+	}
+
+	function saveScreeningBank(payload) {
+		var body = apiSync({ mode: 'save_screening_bank', payload: JSON.stringify(payload || {}) });
+		if (body && body.screening_bank) {
+			state.screening_bank = body.screening_bank;
+			listeners.forEach(function (cb) { try { cb(); } catch (e) {} });
+		}
+		return body && body.screening_bank ? clone(body.screening_bank) : getScreeningBank();
 	}
 
 	function getSheetScoring() {
@@ -521,6 +536,8 @@
 		getAffiliateTiers: getAffiliateTiers,
 		getAffiliateTierById: getAffiliateTierById,
 		getSheetScoring: getSheetScoring,
+		getScreeningBank: getScreeningBank,
+		saveScreeningBank: saveScreeningBank,
 		getChannelOptions: getChannelOptions,
 		getAssigneeOptions: getAssigneeOptions,
 		getCustomers: getCustomers,
