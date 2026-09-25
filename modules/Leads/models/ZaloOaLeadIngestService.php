@@ -686,7 +686,9 @@ class Leads_ZaloOaLeadIngestService {
 		$fold = self::fold($text);
 		$looksLikeForm = (strpos($fold, 'ban da gui thong tin cho oa') !== false)
 			|| (strpos($fold, 'chia se thong tin') !== false)
-			|| (strpos($fold, 'ho ten') !== false && strpos($fold, 'so dien thoai') !== false);
+			|| (strpos($fold, 'xin duoc nhan thong tin') !== false)
+			|| (strpos($fold, 'ho ten') !== false && strpos($fold, 'so dien thoai') !== false)
+			|| (strpos($fold, 'nguoi dang ky') !== false && strpos($fold, 'so dien thoai') !== false);
 		if (!$looksLikeForm) {
 			return $out;
 		}
@@ -695,6 +697,8 @@ class Leads_ZaloOaLeadIngestService {
 		$out['full_name'] = self::extractLabeledValue($text, array(
 			'họ\s*tên',
 			'ho\s*ten',
+			'người\s*đăng\s*ký',
+			'nguoi\s*dang\s*ky',
 		));
 		$phoneRaw = self::extractLabeledValue($text, array(
 			'số\s*điện\s*thoại',
@@ -739,7 +743,9 @@ class Leads_ZaloOaLeadIngestService {
 		$raw = isset($ev['contact_form_raw']) ? (string) $ev['contact_form_raw'] : '';
 		$fold = self::fold($raw);
 		if (strpos($fold, 'nhap thong tin lop offline') !== false
-			|| strpos($fold, 'diem danh lop') !== false) {
+			|| strpos($fold, 'diem danh lop') !== false
+			|| strpos($fold, 'xin duoc nhan thong tin') !== false
+			|| strpos($fold, 'nguoi dang ky') !== false) {
 			return trim((string) (isset($ev['phone']) ? $ev['phone'] : '')) !== '';
 		}
 		$extra = array('tinh_trang', 'business_model', 'ngan_sach', 'address', 'thoi_gian');
