@@ -245,7 +245,7 @@ class HelpDesk_TagRulesApi_Action extends Vtiger_Action_Controller {
 					$response->setResult(array(
 						'success' => true,
 						'next_action' => $action,
-						'match' => $svc->matchRules($svc->getLeadTagLabels($leadId), true),
+						'match' => $svc->matchRules($svc->getLeadTagLabels($leadId), true, $svc->loadLeadFacts($leadId)),
 					));
 					break;
 

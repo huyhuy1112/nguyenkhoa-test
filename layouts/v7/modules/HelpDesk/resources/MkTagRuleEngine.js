@@ -633,6 +633,15 @@
 						esc(r.alert_days) +
 						' ngày</span>';
 				}
+				if (r.condition_mode === 'OR') {
+					thenMeta += '<span class="mk-tre-chip">OR</span>';
+				}
+				if (r.formula_metric && r.formula_value != null && r.formula_value !== '') {
+					thenMeta += '<span class="mk-tre-chip mk-tre-chip--warn">' + esc(r.formula_metric) + ' ' + esc(r.formula_op || '>=') + ' ' + esc(r.formula_value) + '</span>';
+				}
+				if ((r.important_tags || []).length) {
+					thenMeta += '<span class="mk-tre-chip">' + (r.important_tags || []).length + ' điều kiện quan trọng</span>';
+				}
 
 				return ''
 					+ '<tr>'
@@ -1035,8 +1044,9 @@
 		openRuleForm: function (ruleId) {
 			var isEdit = !!ruleId;
 			var rule = isEdit ? store.getRuleById(ruleId) : {
-				status_label: '', name: '', tag_ids: [], priority: 50, is_active: true,
-				alert_days: 3, next_action: '', require_note: false, scenario_id: ''
+				status_label: '', name: '', tag_ids: [], important_tags: [], priority: 50, is_active: true,
+				alert_days: 3, next_action: '', require_note: false, scenario_id: '',
+				condition_mode: 'AND', formula_metric: '', formula_op: '>=', formula_value: '', warning_value: '', action_code: ''
 			};
 			var tags = store.getTags();
 			var scenarios = store.getScenarios();
@@ -1093,13 +1103,46 @@
 			}).join('');
 
 			var selectedCount = selected.length;
+			var importantSelected = rule.important_tags || [];
+			var importantSelect = '<select class="mk-tre-input mk-tre-input--select" name="important_tags" multiple size="4">'
+				+ tags.map(function (t) {
+					var sel = importantSelected.indexOf(t.id) >= 0 ? ' selected' : '';
+					return '<option value="' + esc(t.id) + '"' + sel + '>' + esc(t.name) + '</option>';
+				}).join('')
+				+ '</select>';
+			var metric = rule.formula_metric || '';
+			var metricOpts = [
+				['', 'Không dùng công thức'],
+				['r1', 'R1 — liên hệ lỗi'],
+				['r2', 'R2 — chưa chốt lịch'],
+				['r3', 'R3 — không đến lớp'],
+				['r4', 'R4 — không đủ ĐK'],
+				['idle_days', 'Số ngày chưa chăm']
+			].map(function (pair) {
+				return '<option value="' + pair[0] + '"' + (metric === pair[0] ? ' selected' : '') + '>' + pair[1] + '</option>';
+			}).join('');
+			var op = rule.formula_op || '>=';
+			var opOpts = ['>=', '>', '=', '<=', '<'].map(function (o) {
+				return '<option value="' + o + '"' + (op === o ? ' selected' : '') + '>' + o + '</option>';
+			}).join('');
+			var action = rule.action_code || '';
+			var actionOpts = [
+				['', 'Chỉ ghi hành động (chữ)'],
+				['stay_lead', 'Ở lại Leads'],
+				['create_task', 'Tạo lịch gọi'],
+				['convert_opp', 'Chuyển sang Cơ hội'],
+				['transfer_program', 'Chuyển chương trình'],
+				['stop_cskh', 'Ngưng chăm sóc']
+			].map(function (pair) {
+				return '<option value="' + pair[0] + '"' + (action === pair[0] ? ' selected' : '') + '>' + pair[1] + '</option>';
+			}).join('');
 			var body = ''
 				+ '<div class="mk-tre-form mk-tre-form--rule">'
 				+ '  <div class="mk-tre-flow" aria-hidden="true">'
 				+ '    <span class="mk-tre-flow__badge mk-tre-flow__badge--if">Nếu</span>'
 				+ '    <span class="mk-tre-flow__line"></span>'
 				+ '    <span class="mk-tre-flow__badge mk-tre-flow__badge--then">Thì</span>'
-				+ '    <p class="mk-tre-flow__text">Đủ tag (AND) → trạng thái + hành động / kịch bản</p>'
+				+ '    <p class="mk-tre-flow__text">Điều kiện (AND/OR) + tag quan trọng + công thức → hành động / cảnh báo</p>'
 				+ '  </div>'
 
 				+ '  <section class="mk-tre-form-block">'
@@ -1114,6 +1157,13 @@
 				+ '        <label class="mk-tre-field"><span>Trạng thái khi khớp</span><input class="mk-tre-input" name="status_label" value="' + esc(rule.status_label) + '" placeholder="VD: Không nghe máy" autocomplete="off" /></label>'
 				+ '      </div>'
 				+ '      <label class="mk-tre-field"><span>Hành động tiếp theo</span><input class="mk-tre-input" name="next_action" value="' + esc(rule.next_action || '') + '" placeholder="VD: Nhắn Zalo + gọi lại trong 24h" autocomplete="off" /></label>'
+				+ '      <label class="mk-tre-field"><span>Mã hành động hệ thống</span><select class="mk-tre-input mk-tre-input--select" name="action_code">' + actionOpts + '</select></label>'
+				+ '      <div class="mk-tre-form-row">'
+				+ '        <label class="mk-tre-field"><span>Công thức</span><select class="mk-tre-input mk-tre-input--select" name="formula_metric">' + metricOpts + '</select></label>'
+				+ '        <label class="mk-tre-field"><span>So sánh</span><select class="mk-tre-input mk-tre-input--select" name="formula_op">' + opOpts + '</select></label>'
+				+ '        <label class="mk-tre-field"><span>Ngưỡng hành động</span><input class="mk-tre-input" type="number" name="formula_value" value="' + esc(rule.formula_value == null ? '' : rule.formula_value) + '" placeholder="VD: 3" /></label>'
+				+ '        <label class="mk-tre-field"><span>Ngưỡng cảnh báo</span><input class="mk-tre-input" type="number" name="warning_value" value="' + esc(rule.warning_value == null ? '' : rule.warning_value) + '" placeholder="VD: 2" /></label>'
+				+ '      </div>'
 				+ '      <label class="mk-tre-field"><span>Gắn kịch bản</span><select class="mk-tre-input mk-tre-input--select" name="scenario_id">' + scOpts + '</select></label>'
 				+ '      <div class="mk-tre-form-row">'
 				+ '        <label class="mk-tre-field"><span>Priority</span><input class="mk-tre-input" type="number" name="priority" value="' + esc(rule.priority) + '" min="1" /></label>'
@@ -1126,7 +1176,7 @@
 				+ '    <header class="mk-tre-form-block__head">'
 				+ '      <span class="mk-tre-form-block__step">02</span>'
 				+ '      <div><h3 class="mk-tre-form-block__title">Điều kiện tag</h3>'
-				+ '      <p class="mk-tre-form-block__sub">Lead phải có <strong>đủ</strong> các tag đã chọn (AND)</p></div>'
+				+ '      <p class="mk-tre-form-block__sub">Chọn AND (đủ tag) hoặc OR (một trong các tag). Tag quan trọng luôn bắt buộc.</p></div>'
 				+ '      <span class="mk-tre-tag-count js-tre-tag-count">' + selectedCount + ' đã chọn</span>'
 				+ '    </header>'
 				+ '    <div class="mk-tre-form-block__body">'
@@ -1136,6 +1186,15 @@
 				+ '      </div>'
 				+ '      <div class="mk-tre-tag-picker">' + (tagGroups || '<span class="mk-tre-muted">Chưa có tag trong catalogue.</span>') + '</div>'
 				+ '      <p class="mk-tre-tag-empty js-tre-tag-empty" hidden>Không tìm thấy tag phù hợp.</p>'
+				+ '      <div class="mk-tre-form-row" style="margin-top:12px">'
+				+ '        <label class="mk-tre-field"><span>Ghép điều kiện</span><select class="mk-tre-input mk-tre-input--select" name="condition_mode">'
+				+ '          <option value="AND"' + ((rule.condition_mode || 'AND') === 'AND' ? ' selected' : '') + '>AND — đủ mọi tag</option>'
+				+ '          <option value="OR"' + (rule.condition_mode === 'OR' ? ' selected' : '') + '>OR — một trong các tag</option>'
+				+ '        </select></label>'
+				+ '        <label class="mk-tre-field"><span>Tag quan trọng (bắt buộc)</span>'
+				+ importantSelect
+				+ '        </label>'
+				+ '      </div>'
 				+ '    </div>'
 				+ '  </section>'
 
@@ -1257,9 +1316,13 @@
 				var $el = $(this);
 				var name = $el.attr('name');
 				if (!name) return;
-				if ($el.attr('type') === 'checkbox' && name === 'tag_ids') {
+		if ($el.attr('type') === 'checkbox' && name === 'tag_ids') {
 					if (!data.tag_ids) data.tag_ids = [];
 					if ($el.prop('checked')) data.tag_ids.push($el.val());
+					return;
+				}
+				if ($el.is('select') && $el.prop('multiple')) {
+					data[name] = $el.val() || [];
 					return;
 				}
 				if ($el.attr('type') === 'checkbox') {
