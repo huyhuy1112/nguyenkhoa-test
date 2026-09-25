@@ -723,14 +723,19 @@
 
   function canOfflineCheckin(o) {
     var st = String((o && o.offline_status) || "");
-    return (
+    if (
       st === "offline_da_xac_nhan_lich" ||
       st === "offline_hen_lich_lai" ||
       st === "offline_khong_tham_gia" ||
       st === "offline_da_tham_gia" ||
       st === "offline_ngung_cskh_tam" ||
       st === "offline_ngung_cskh"
-    );
+    ) {
+      return true;
+    }
+    var date = o && o.offline_class_date ? String(o.offline_class_date) : "";
+    var time = o && o.offline_class_time ? String(o.offline_class_time) : "";
+    return date !== "" || time !== "";
   }
 
   /** Chỉ cho điểm danh khi chưa ghi nhận kết quả lớp. */

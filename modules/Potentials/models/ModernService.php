@@ -111,6 +111,12 @@ class Potentials_ModernService {
 			$potentialIds[] = (int)$row['potentialid'];
 			$rows[] = $row;
 		}
+		try {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			$rows = Leads_OfflineGd11Service::fillMissingOfflineOnPotentialRows($rows);
+		} catch (Exception $e) {
+			// keep rows from the primary join
+		}
 		$tagsByPotential = self::getTagsForPotentialIds($potentialIds, $userId);
 		$confirmAtByTag = self::getConfirmTaggedOn($potentialIds);
 		$ltById = array();

@@ -933,6 +933,109 @@ class Leads_OfflineGd11Service {
 		return $out + self::composeStep2Block($row, $detailed);
 	}
 
+	/**
+	 * Opp list join chỉ theo potential_id. Nếu convert chỉ gắn vtiger_crmentityrel
+	 * thì cột Tham gia trống — lấy lại hồ sơ Lead và ghi potential_id.
+	 * @param array $rows
+	 * @return array
+	 */
+	public static function fillMissingOfflineOnPotentialRows(array $rows) {
+		if (!$rows) {
+			return $rows;
+		}
+		$missing = array();
+		foreach ($rows as $row) {
+			$status = isset($row['offline_status']) ? trim((string) $row['offline_status']) : '';
+			$date = isset($row['offline_class_date']) ? trim((string) $row['offline_class_date']) : '';
+			$pid = isset($row['potentialid']) ? (int) $row['potentialid'] : 0;
+			if ($pid > 0 && $status === '' && ($date === '' || $date === '0000-00-00')) {
+				$missing[$pid] = true;
+			}
+		}
+		if (!$missing) {
+			return $rows;
+		}
+		$ids = array_keys($missing);
+		$adb = PearDatabase::getInstance();
+		$map = array();
+		$queries = array(
+			"SELECT rel.relcrmid AS potentialid, lp.leadid, lp.offline_status, lp.offline_r1_contact,
+				lp.offline_r1_hen_goi, lp.offline_r1_khong_nghe, lp.offline_r1_sai_tt,
+				lp.offline_r2_schedule, lp.offline_r3_class, lp.offline_r4_transfer,
+				lp.offline_post_noshow_miss, lp.offline_preclass_confirm, lp.offline_class_date,
+				lp.offline_class_time, lp.offline_class_place, lp.offline_checked_in_at,
+				lp.zalo_user_id, lp.offline_oa_scanned_at, lp.offline_oa_scan_note
+			 FROM vtiger_crmentityrel rel
+			 INNER JOIN bace_lead_profile lp ON lp.leadid = rel.crmid
+			 WHERE rel.module = 'Leads' AND rel.relmodule = 'Potentials'
+			   AND rel.relcrmid IN (" . generateQuestionMarks($ids) . ")",
+			"SELECT rel.crmid AS potentialid, lp.leadid, lp.offline_status, lp.offline_r1_contact,
+				lp.offline_r1_hen_goi, lp.offline_r1_khong_nghe, lp.offline_r1_sai_tt,
+				lp.offline_r2_schedule, lp.offline_r3_class, lp.offline_r4_transfer,
+				lp.offline_post_noshow_miss, lp.offline_preclass_confirm, lp.offline_class_date,
+				lp.offline_class_time, lp.offline_class_place, lp.offline_checked_in_at,
+				lp.zalo_user_id, lp.offline_oa_scanned_at, lp.offline_oa_scan_note
+			 FROM vtiger_crmentityrel rel
+			 INNER JOIN bace_lead_profile lp ON lp.leadid = rel.relcrmid
+			 WHERE rel.module = 'Potentials' AND rel.relmodule = 'Leads'
+			   AND rel.crmid IN (" . generateQuestionMarks($ids) . ")",
+		);
+		foreach ($queries as $sql) {
+			$res = $adb->pquery($sql, $ids);
+			if (!$res) {
+				continue;
+			}
+			for ($i = 0; $i < $adb->num_rows($res); $i++) {
+				$pid = (int) $adb->query_result($res, $i, 'potentialid');
+				if ($pid <= 0 || isset($map[$pid])) {
+					continue;
+				}
+				$map[$pid] = array(
+					'linked_leadid' => (int) $adb->query_result($res, $i, 'leadid'),
+					'offline_status' => $adb->query_result($res, $i, 'offline_status'),
+					'offline_r1_contact' => $adb->query_result($res, $i, 'offline_r1_contact'),
+					'offline_r1_hen_goi' => $adb->query_result($res, $i, 'offline_r1_hen_goi'),
+					'offline_r1_khong_nghe' => $adb->query_result($res, $i, 'offline_r1_khong_nghe'),
+					'offline_r1_sai_tt' => $adb->query_result($res, $i, 'offline_r1_sai_tt'),
+					'offline_r2_schedule' => $adb->query_result($res, $i, 'offline_r2_schedule'),
+					'offline_r3_class' => $adb->query_result($res, $i, 'offline_r3_class'),
+					'offline_r4_transfer' => $adb->query_result($res, $i, 'offline_r4_transfer'),
+					'offline_post_noshow_miss' => $adb->query_result($res, $i, 'offline_post_noshow_miss'),
+					'offline_preclass_confirm' => $adb->query_result($res, $i, 'offline_preclass_confirm'),
+					'offline_class_date' => $adb->query_result($res, $i, 'offline_class_date'),
+					'offline_class_time' => $adb->query_result($res, $i, 'offline_class_time'),
+					'offline_class_place' => $adb->query_result($res, $i, 'offline_class_place'),
+					'offline_checked_in_at' => $adb->query_result($res, $i, 'offline_checked_in_at'),
+					'zalo_user_id' => $adb->query_result($res, $i, 'zalo_user_id'),
+					'offline_oa_scanned_at' => $adb->query_result($res, $i, 'offline_oa_scanned_at'),
+					'offline_oa_scan_note' => $adb->query_result($res, $i, 'offline_oa_scan_note'),
+				);
+				$leadId = (int) $map[$pid]['linked_leadid'];
+				if ($leadId > 0) {
+					$adb->pquery(
+						'UPDATE bace_lead_profile SET potential_id = ? WHERE leadid = ? AND (potential_id IS NULL OR potential_id = 0 OR potential_id = ?)',
+						array($pid, $leadId, $pid)
+					);
+				}
+			}
+		}
+		if (!$map) {
+			return $rows;
+		}
+		foreach ($rows as $i => $row) {
+			$pid = isset($row['potentialid']) ? (int) $row['potentialid'] : 0;
+			if ($pid <= 0 || empty($map[$pid])) {
+				continue;
+			}
+			foreach ($map[$pid] as $key => $value) {
+				if (!isset($rows[$i][$key]) || $rows[$i][$key] === '' || $rows[$i][$key] === null) {
+					$rows[$i][$key] = $value;
+				}
+			}
+		}
+		return $rows;
+	}
+
 	protected static function composeStep2Block(array $row, $detailed = false) {
 		$status = isset($row['offline_status']) ? trim((string) $row['offline_status']) : '';
 		// List: chỉ trả field nhẹ nếu đã vào Offline; bỏ plan/config.
