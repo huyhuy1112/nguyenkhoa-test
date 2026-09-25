@@ -1103,39 +1103,52 @@
 			}).join('');
 
 			var selectedCount = selected.length;
-			var importantSelected = rule.important_tags || [];
-			var importantSelect = '<select class="mk-tre-input mk-tre-input--select" name="important_tags" multiple size="4">'
-				+ tags.map(function (t) {
-					var sel = importantSelected.indexOf(t.id) >= 0 ? ' selected' : '';
-					return '<option value="' + esc(t.id) + '"' + sel + '>' + esc(t.name) + '</option>';
-				}).join('')
-				+ '</select>';
-			var metric = rule.formula_metric || '';
-			var metricOpts = [
-				['', 'Không dùng công thức'],
+			var fcFields = [
+				['tag', 'Tag'],
+				['business_model', 'Mô hình kinh doanh'],
+				['eligibility', 'Đủ điều kiện'],
+				['leadsource', 'Nguồn'],
+				['idle_days', 'Số ngày chưa chăm'],
+				['class_time', 'Giờ học'],
 				['r1', 'R1 — liên hệ lỗi'],
 				['r2', 'R2 — chưa chốt lịch'],
 				['r3', 'R3 — không đến lớp'],
-				['r4', 'R4 — không đủ ĐK'],
-				['idle_days', 'Số ngày chưa chăm']
-			].map(function (pair) {
-				return '<option value="' + pair[0] + '"' + (metric === pair[0] ? ' selected' : '') + '>' + pair[1] + '</option>';
-			}).join('');
-			var op = rule.formula_op || '>=';
-			var opOpts = ['>=', '>', '=', '<=', '<'].map(function (o) {
-				return '<option value="' + o + '"' + (op === o ? ' selected' : '') + '>' + o + '</option>';
-			}).join('');
-			var action = rule.action_code || '';
-			var actionOpts = [
-				['', 'Chỉ ghi hành động (chữ)'],
-				['stay_lead', 'Ở lại Leads'],
-				['create_task', 'Tạo lịch gọi'],
-				['convert_opp', 'Chuyển sang Cơ hội'],
-				['transfer_program', 'Chuyển chương trình'],
-				['stop_cskh', 'Ngưng chăm sóc']
-			].map(function (pair) {
-				return '<option value="' + pair[0] + '"' + (action === pair[0] ? ' selected' : '') + '>' + pair[1] + '</option>';
-			}).join('');
+				['r4', 'R4 — không đủ điều kiện']
+			];
+			function fcOps(field) {
+				if (field === 'idle_days' || field === 'r1' || field === 'r2' || field === 'r3' || field === 'r4') {
+					return ['>=', '>', '=', '<=', '<'];
+				}
+				if (field === 'class_time') return ['not_empty', 'empty'];
+				if (field === 'tag') return ['has', 'not_has'];
+				return ['eq', 'neq', 'contains'];
+			}
+			function fcOpLabel(op) {
+				var map = { has: 'có', not_has: 'không có', eq: 'bằng', neq: 'khác', contains: 'chứa', not_empty: 'đã có', empty: 'đang trống', '>=': '≥', '>': '>', '=': '=', '<=': '≤', '<': '<' };
+				return map[op] || op;
+			}
+			function fcRowHtml(row) {
+				row = row || { field: 'business_model', op: 'eq', value: '', important: false };
+				var fieldOpts = fcFields.map(function (pair) {
+					return '<option value="' + pair[0] + '"' + (row.field === pair[0] ? ' selected' : '') + '>' + pair[1] + '</option>';
+				}).join('');
+				var ops = fcOps(row.field);
+				if (ops.indexOf(row.op) < 0) row.op = ops[0];
+				var opOptsHtml = ops.map(function (o) {
+					return '<option value="' + o + '"' + (row.op === o ? ' selected' : '') + '>' + fcOpLabel(o) + '</option>';
+				}).join('');
+				return ''
+					+ '<div class="mk-tre-form-row js-tre-fc-row" style="margin-top:8px;align-items:end">'
+					+ '  <label class="mk-tre-field"><span>Trường</span><select class="mk-tre-input mk-tre-input--select" name="fc_field">' + fieldOpts + '</select></label>'
+					+ '  <label class="mk-tre-field"><span>So sánh</span><select class="mk-tre-input mk-tre-input--select" name="fc_op">' + opOptsHtml + '</select></label>'
+					+ '  <label class="mk-tre-field"><span>Giá trị</span><input class="mk-tre-input" name="fc_value" value="' + esc(row.value || '') + '" placeholder="VD: ca_phe_san_vuon hoặc 3" /></label>'
+					+ '  <label class="mk-tre-opt" style="flex:0"><span class="mk-tre-opt__text"><strong>Quan trọng</strong></span>'
+					+ '    <span class="mk-tre-switch"><input type="checkbox" name="fc_important"' + (row.important ? ' checked' : '') + ' /><span class="mk-tre-switch__track"></span></span></label>'
+					+ '  <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-fc-del">Xoá</button>'
+					+ '</div>';
+			}
+			var fcSource = (rule.field_conditions && rule.field_conditions.length) ? rule.field_conditions : [{ field: 'business_model', op: 'eq', value: '', important: false }];
+			var fcRowsHtml = fcSource.map(fcRowHtml).join('');
 			var body = ''
 				+ '<div class="mk-tre-form mk-tre-form--rule">'
 				+ '  <div class="mk-tre-flow" aria-hidden="true">'
@@ -1156,13 +1169,18 @@
 				+ '        <label class="mk-tre-field"><span>Mã / tên rule</span><input class="mk-tre-input" name="name" value="' + esc(rule.name) + '" placeholder="VD: R03 Miss call" autocomplete="off" /></label>'
 				+ '        <label class="mk-tre-field"><span>Trạng thái khi khớp</span><input class="mk-tre-input" name="status_label" value="' + esc(rule.status_label) + '" placeholder="VD: Không nghe máy" autocomplete="off" /></label>'
 				+ '      </div>'
-				+ '      <label class="mk-tre-field"><span>Hành động tiếp theo</span><input class="mk-tre-input" name="next_action" value="' + esc(rule.next_action || '') + '" placeholder="VD: Nhắn Zalo + gọi lại trong 24h" autocomplete="off" /></label>'
-				+ '      <label class="mk-tre-field"><span>Mã hành động hệ thống</span><select class="mk-tre-input mk-tre-input--select" name="action_code">' + actionOpts + '</select></label>'
+				+ '      <label class="mk-tre-field"><span>Hành động tiếp theo</span><input class="mk-tre-input" name="next_action" value="' + esc(rule.next_action || '') + '" placeholder="Câu sale cần làm — không đổi luồng hay chuyển Opp" autocomplete="off" /></label>'
 				+ '      <div class="mk-tre-form-row">'
-				+ '        <label class="mk-tre-field"><span>Công thức</span><select class="mk-tre-input mk-tre-input--select" name="formula_metric">' + metricOpts + '</select></label>'
-				+ '        <label class="mk-tre-field"><span>So sánh</span><select class="mk-tre-input mk-tre-input--select" name="formula_op">' + opOpts + '</select></label>'
-				+ '        <label class="mk-tre-field"><span>Ngưỡng hành động</span><input class="mk-tre-input" type="number" name="formula_value" value="' + esc(rule.formula_value == null ? '' : rule.formula_value) + '" placeholder="VD: 3" /></label>'
-				+ '        <label class="mk-tre-field"><span>Ngưỡng cảnh báo</span><input class="mk-tre-input" type="number" name="warning_value" value="' + esc(rule.warning_value == null ? '' : rule.warning_value) + '" placeholder="VD: 2" /></label>'
+				+ '        <label class="mk-tre-field"><span>Ghép các dòng điều kiện</span><select class="mk-tre-input mk-tre-input--select" name="condition_mode">'
+				+ '          <option value="AND"' + ((rule.condition_mode || 'AND') === 'AND' ? ' selected' : '') + '>AND — đủ mọi dòng</option>'
+				+ '          <option value="OR"' + (rule.condition_mode === 'OR' ? ' selected' : '') + '>OR — một trong các dòng</option>'
+				+ '        </select></label>'
+				+ '        <label class="mk-tre-field"><span>Cảnh báo từ mức</span><input class="mk-tre-input" type="number" name="warning_value" value="' + esc(rule.warning_value == null ? '' : rule.warning_value) + '" min="0" placeholder="VD: 2 — trước ngưỡng số ngày/số lần" /></label>'
+				+ '      </div>'
+				+ '      <div class="mk-tre-field"><span>Điều kiện theo trường</span>'
+				+ '        <div class="js-tre-fc-list">' + fcRowsHtml + '</div>'
+				+ '        <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-fc-add" style="margin-top:8px">Thêm dòng</button>'
+				+ '        <p class="mk-tre-form-block__sub">Dòng quan trọng luôn bắt buộc. Rule chỉ ghi câu hành động và cảnh báo.</p>'
 				+ '      </div>'
 				+ '      <label class="mk-tre-field"><span>Gắn kịch bản</span><select class="mk-tre-input mk-tre-input--select" name="scenario_id">' + scOpts + '</select></label>'
 				+ '      <div class="mk-tre-form-row">'
@@ -1186,15 +1204,6 @@
 				+ '      </div>'
 				+ '      <div class="mk-tre-tag-picker">' + (tagGroups || '<span class="mk-tre-muted">Chưa có tag trong catalogue.</span>') + '</div>'
 				+ '      <p class="mk-tre-tag-empty js-tre-tag-empty" hidden>Không tìm thấy tag phù hợp.</p>'
-				+ '      <div class="mk-tre-form-row" style="margin-top:12px">'
-				+ '        <label class="mk-tre-field"><span>Ghép điều kiện</span><select class="mk-tre-input mk-tre-input--select" name="condition_mode">'
-				+ '          <option value="AND"' + ((rule.condition_mode || 'AND') === 'AND' ? ' selected' : '') + '>AND — đủ mọi tag</option>'
-				+ '          <option value="OR"' + (rule.condition_mode === 'OR' ? ' selected' : '') + '>OR — một trong các tag</option>'
-				+ '        </select></label>'
-				+ '        <label class="mk-tre-field"><span>Tag quan trọng (bắt buộc)</span>'
-				+ importantSelect
-				+ '        </label>'
-				+ '      </div>'
 				+ '    </div>'
 				+ '  </section>'
 
@@ -1321,8 +1330,7 @@
 					if ($el.prop('checked')) data.tag_ids.push($el.val());
 					return;
 				}
-				if ($el.is('select') && $el.prop('multiple')) {
-					data[name] = $el.val() || [];
+				if ($el.attr('name') && String($el.attr('name')).indexOf('fc_') === 0) {
 					return;
 				}
 				if ($el.attr('type') === 'checkbox') {
@@ -1353,6 +1361,20 @@
 				delete data.owner_select;
 				delete data.owner_new;
 			}
+			data.field_conditions = [];
+			$('#mk-tre-modal-body .js-tre-fc-row').each(function () {
+				var $row = $(this);
+				var value = String($row.find('[name="fc_value"]').val() || '').trim();
+				var field = $row.find('[name="fc_field"]').val() || '';
+				if (!field) return;
+				if (!value && field !== 'class_time') return;
+				data.field_conditions.push({
+					field: field,
+					op: $row.find('[name="fc_op"]').val() || '',
+					value: value,
+					important: $row.find('[name="fc_important"]').prop('checked')
+				});
+			});
 			return data;
 		},
 
@@ -1673,6 +1695,27 @@
 				if (e.key === 'Escape') {
 					closeAllPickDropdowns(null);
 				}
+			});
+
+			$(document).on('click.mkTagRuleEngine', '.js-tre-fc-add', function () {
+				$('#mk-tre-modal-body .js-tre-fc-list').append(
+					'<div class="mk-tre-form-row js-tre-fc-row" style="margin-top:8px;align-items:end">'
+					+ '<label class="mk-tre-field"><span>Trường</span><select class="mk-tre-input mk-tre-input--select" name="fc_field">'
+					+ '<option value="tag">Tag</option><option value="business_model">Mô hình kinh doanh</option>'
+					+ '<option value="eligibility">Đủ điều kiện</option><option value="leadsource">Nguồn</option>'
+					+ '<option value="idle_days">Số ngày chưa chăm</option><option value="class_time">Giờ học</option>'
+					+ '<option value="r1">R1</option><option value="r2">R2</option><option value="r3">R3</option><option value="r4">R4</option>'
+					+ '</select></label>'
+					+ '<label class="mk-tre-field"><span>So sánh</span><select class="mk-tre-input mk-tre-input--select" name="fc_op"><option value="eq">bằng</option><option value="has">có</option><option value=">=">≥</option></select></label>'
+					+ '<label class="mk-tre-field"><span>Giá trị</span><input class="mk-tre-input" name="fc_value" placeholder="Giá trị" /></label>'
+					+ '<label class="mk-tre-opt" style="flex:0"><span class="mk-tre-opt__text"><strong>Quan trọng</strong></span><span class="mk-tre-switch"><input type="checkbox" name="fc_important" /><span class="mk-tre-switch__track"></span></span></label>'
+					+ '<button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-fc-del">Xoá</button></div>'
+				);
+			});
+			$(document).on('click.mkTagRuleEngine', '.js-tre-fc-del', function () {
+				var $list = $('#mk-tre-modal-body .js-tre-fc-list');
+				if ($list.find('.js-tre-fc-row').length <= 1) return;
+				$(this).closest('.js-tre-fc-row').remove();
 			});
 
 			$(document).on('click.mkTagRuleEngine', '.js-tre-rule-save', function () {

@@ -353,7 +353,7 @@
 			formula_op: payload.formula_op || '>=',
 			formula_value: formulaValue,
 			warning_value: warningValue,
-			action_code: payload.action_code || '',
+			field_conditions: payload.field_conditions || [],
 			priority: parseInt(payload.priority, 10) || 0,
 			is_active: payload.is_active !== false,
 			alert_days: alertDays,
