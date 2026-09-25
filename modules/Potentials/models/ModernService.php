@@ -80,7 +80,7 @@ class Potentials_ModernService {
 				lp.leadid AS linked_leadid,
 				lp.district AS lead_district, lp.address_line AS lead_address, lp.area AS lead_area,
 				lp.business_model AS lead_business_model,
-				la.lane AS lead_lane,
+				la.lane AS lead_lane, la.phone AS lead_phone, la.mobile AS lead_mobile,
 				lp.offline_status, lp.offline_r1_contact, lp.offline_r1_hen_goi, lp.offline_r1_khong_nghe, lp.offline_r1_sai_tt,
 				lp.offline_r2_schedule, lp.offline_r3_class, lp.offline_r4_transfer,
 				lp.offline_post_noshow_miss,
@@ -160,6 +160,12 @@ class Potentials_ModernService {
 		$phone = decode_html((string)(!empty($row['pot_phone']) ? $row['pot_phone'] : $row['contact_phone']));
 		if ($phone === '' || $phone === '--') {
 			$phone = decode_html((string)$row['contact_mobile']);
+		}
+		if ($phone === '' || $phone === '--') {
+			$phone = decode_html((string)(isset($row['lead_phone']) ? $row['lead_phone'] : ''));
+		}
+		if ($phone === '' || $phone === '--') {
+			$phone = decode_html((string)(isset($row['lead_mobile']) ? $row['lead_mobile'] : ''));
 		}
 		if ($phone === '--') {
 			$phone = '';
@@ -737,7 +743,11 @@ class Potentials_ModernService {
 			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
 		}
 		$digits = preg_replace('/\D+/', '', (string) $phone);
-		$digits = substr((string) $digits, 0, 15);
+		if ($digits !== '') {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			$norm = Leads_OfflineGd11Service::normalizeVnPhone($digits);
+			$digits = $norm !== '' ? $norm : substr($digits, 0, 15);
+		}
 		self::ensureProfileSchema();
 		$adb = PearDatabase::getInstance();
 		$now = date('Y-m-d H:i:s');
@@ -758,13 +768,39 @@ class Potentials_ModernService {
 			try {
 				self::saveInlinePhone($potentialId, $digits);
 			} catch (Exception $e) {
-				// Opp may not have contact yet — profile phone is enough.
+				// Opp offline chưa có Contact — SĐT trên hồ sơ Opp vẫn được lưu.
 			}
+			self::syncPhoneToLinkedLead($potentialId, $digits);
 		}
 		return array(
 			'success' => true,
 			'phone' => $digits,
 		);
+	}
+
+	/**
+	 * Ghi SĐT sang Lead gắn Opp để điểm danh QR vẫn dò được.
+	 */
+	protected static function syncPhoneToLinkedLead($potentialId, $digits) {
+		$potentialId = (int) $potentialId;
+		$digits = trim((string) $digits);
+		if ($potentialId <= 0 || $digits === '') {
+			return;
+		}
+		try {
+			require_once 'modules/Leads/models/ConvertService.php';
+			$leadId = (int) Leads_ConvertService::getLinkedLeadIdByPotential($potentialId);
+			if ($leadId <= 0) {
+				return;
+			}
+			$adb = PearDatabase::getInstance();
+			$adb->pquery(
+				'UPDATE vtiger_leadaddress SET phone = ?, mobile = ? WHERE leadaddressid = ?',
+				array($digits, $digits, $leadId)
+			);
+		} catch (Exception $e) {
+			// best-effort
+		}
 	}
 
 	/**

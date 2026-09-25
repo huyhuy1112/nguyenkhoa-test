@@ -71,7 +71,7 @@ class Potentials_ModernApi_Action extends Vtiger_Action_Controller {
 					if ($recordId === null || $recordId === '') {
 						$recordId = $request->get('id');
 					}
-					$result = Potentials_ModernService::saveInlinePhone(
+					$result = Potentials_ModernService::saveProfilePhone(
 						$recordId,
 						$request->get('phone')
 					);
