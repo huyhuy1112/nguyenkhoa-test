@@ -7,7 +7,7 @@
 			<p class="mk-leads-action-header__subtitle">{vtranslate('LBL_MK_OPPS_SUBTITLE', 'Potentials')}</p>
 		</div>
 		<div class="mk-leads-action-header__actions">
-			<button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-opps-desk-qr-btn" title="Check-in tại quầy bằng số điện thoại">
+			<button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-opps-desk-qr-btn" title="Check-in lớp offline bằng mã QR">
 				<span class="mk-leads-btn__ic" id="mk-opps-desk-qr-ic" aria-hidden="true"></span>
 				<span class="mk-leads-btn__txt">Check-in SĐT</span>
 			</button>

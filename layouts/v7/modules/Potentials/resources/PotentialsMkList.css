@@ -674,6 +674,24 @@
 	text-transform: uppercase;
 	color: #64748b;
 }
+.mk-opps-desk-qr {
+	display: flex;
+	justify-content: center;
+	padding: 12px;
+	background: #fff;
+	border: 1px solid #dbe7df;
+	border-radius: 16px;
+}
+.mk-opps-desk-qr img {
+	width: min(280px, 100%);
+	height: auto;
+}
+.mk-opps-desk__hint {
+	margin: 12px 0 0;
+	color: #475569;
+	font-size: 14px;
+	line-height: 1.45;
+}
 .mk-opps-desk__search {
 	display: flex;
 	gap: 10px;

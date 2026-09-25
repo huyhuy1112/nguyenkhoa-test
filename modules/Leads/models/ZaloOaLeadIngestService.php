@@ -55,6 +55,19 @@ class Leads_ZaloOaLeadIngestService {
 			return array('success' => true, 'ignored' => true, 'reason' => 'missing_oa_user_id');
 		}
 
+		if (!empty($ev['contact_form_raw']) && self::isOfflineDeskCheckinForm($ev)) {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			$checkin = Leads_OfflineGd11Service::processDeskCheckinByPhone(
+				isset($ev['phone']) ? $ev['phone'] : '',
+				$ev['oa_user_id']
+			);
+			return array(
+				'success' => true,
+				'offline_checkin' => true,
+				'oa_user_id' => $ev['oa_user_id'],
+			) + (is_array($checkin) ? $checkin : array());
+		}
+
 		// Mốc 1: vào OA / follow — tạo hồ sơ Chưa điền form + gửi KB-01 từ CRM.
 		if (!empty($ev['is_entry']) && empty($ev['contact_form_raw'])) {
 			$stubId = Leads_OnlineGd12Service::ensureStubLead(
@@ -716,6 +729,26 @@ class Leads_ZaloOaLeadIngestService {
 		));
 
 		return $out;
+	}
+
+	/**
+	 * Điểm danh lớp offline: chỉ họ tên + SĐT, hoặc kịch bản nhap-thong-tin-lop-offline.
+	 * Form giai đoạn 1.2 còn tình trạng / mô hình / ngân sách / địa chỉ.
+	 */
+	protected static function isOfflineDeskCheckinForm(array $ev) {
+		$raw = isset($ev['contact_form_raw']) ? (string) $ev['contact_form_raw'] : '';
+		$fold = self::fold($raw);
+		if (strpos($fold, 'nhap thong tin lop offline') !== false
+			|| strpos($fold, 'diem danh lop') !== false) {
+			return trim((string) (isset($ev['phone']) ? $ev['phone'] : '')) !== '';
+		}
+		$extra = array('tinh_trang', 'business_model', 'ngan_sach', 'address', 'thoi_gian');
+		foreach ($extra as $key) {
+			if (!empty($ev[$key]) && trim((string) $ev[$key]) !== '') {
+				return false;
+			}
+		}
+		return trim((string) (isset($ev['phone']) ? $ev['phone'] : '')) !== '';
 	}
 
 	protected static function normalizeMessageText($text) {

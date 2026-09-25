@@ -1694,24 +1694,23 @@
   function paintDeskPhoneModalShell(host) {
     if (!host) return;
     host.innerHTML =
-      '<div class="mk-opps-desk" role="dialog" aria-modal="true" aria-label="Check-in SĐT">' +
+      '<div class="mk-opps-desk" role="dialog" aria-modal="true" aria-label="Quét mã điểm danh">' +
       '<header class="mk-opps-desk__head">' +
       '<div class="mk-opps-desk__brand">' +
       '<span class="mk-opps-desk__pulse" aria-hidden="true"></span>' +
       "<div>" +
       '<p class="mk-opps-desk__eyebrow">Offline · Quầy</p>' +
-      "<h3>Check-in SĐT</h3>" +
+      "<h3>Quét mã điểm danh</h3>" +
       "</div></div>" +
       '<button type="button" class="mk-opps-desk__close" data-mk-oa-qr-close aria-label="Đóng">×</button>' +
       "</header>" +
       '<div class="mk-opps-desk__grid">' +
       '<section class="mk-opps-desk__main">' +
-      '<label class="mk-opps-desk__label" for="mk-opps-desk-phone">Số điện thoại</label>' +
-      '<div class="mk-opps-desk__search">' +
-      '<input type="tel" inputmode="numeric" autocomplete="tel" id="mk-opps-desk-phone" class="mk-opps-desk-phone" placeholder="090…" />' +
-      '<button type="button" class="mk-opps-desk__go" data-mk-desk-lookup>Tìm</button>' +
+      '<p class="mk-opps-desk__label">Học viên quét mã Zalo, nhập họ tên và số điện thoại</p>' +
+      '<div class="mk-opps-desk-qr">' +
+      '<img src="layouts/v7/modules/Potentials/resources/offline-oa-form-qr.png?mk_v=20260925_checkinqr1" alt="Mã QR điểm danh lớp offline" />' +
       "</div>" +
-      '<div class="mk-opps-desk-lookup-out" data-desk-lookup-out></div>' +
+      '<p class="mk-opps-desk__hint">CRM nhận số điện thoại từ chatbot và ghi điểm danh. Lịch sử hiện bên phải.</p>' +
       "</section>" +
       '<aside class="mk-opps-desk__side">' +
       '<div class="mk-opps-desk__side-head">' +
@@ -1727,14 +1726,7 @@
       "</div>" +
       "</div>";
 
-    updateDeskLookupDom(host, null, "");
     updateDeskFeedDom(host, { matched: [], unmatched: [], counts: {} });
-    var input = host.querySelector("#mk-opps-desk-phone");
-    if (input) {
-      setTimeout(function () {
-        input.focus();
-      }, 40);
-    }
   }
 
   var deskModalState = { phone: "", lookup: null, feed: null };

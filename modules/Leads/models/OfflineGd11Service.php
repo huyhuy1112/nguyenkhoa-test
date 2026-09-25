@@ -2142,15 +2142,15 @@ class Leads_OfflineGd11Service {
 	 * @return array
 	 */
 	public static function getDeskOaQr() {
+		$image = self::offlineOaFormQrImageUrl();
 		return array(
 			'success' => true,
 			'shared' => true,
-			'deprecated' => true,
-			'follow_url' => '',
-			'qr_image_url' => '',
+			'qr_image_url' => $image,
+			'follow_url' => 'https://chatbot.zalo.me/ref/2080837349914896711?id=nhap-thong-tin-lop-offline',
 			'instructions' => array(
-				'Điểm danh tại quầy: nhập SĐT khách → xác nhận tham gia.',
-				'Không dùng biểu mẫu Zalo OA GD 1.2 để điểm danh lớp.',
+				'Học viên quét mã, nhập họ tên và số điện thoại.',
+				'CRM lấy SĐT để điểm danh lớp. Form giai đoạn 1.2 không đi vào luồng này.',
 			),
 		);
 	}
