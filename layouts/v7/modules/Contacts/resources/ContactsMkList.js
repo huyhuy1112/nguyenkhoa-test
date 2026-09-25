@@ -238,7 +238,7 @@
   ];
 
   var state = {
-    filters: Object.assign({}, EMPTY),
+    filters: Object.assign({ classTags: [] }, EMPTY),
     sortKey: "last_touch",
     sortDir: "desc",
     page: 1,
@@ -542,7 +542,18 @@
       if (f.hasTag && !(c.tags || []).length) return false;
       if (f.hasAccount && !c.account) return false;
       if (f.customerRank !== ANY && (!cats.customerRank || ref.normalizeTag(cats.customerRank) !== f.customerRank)) return false;
-      if (f.classTag !== ANY && !hasNormalizedTag(c.tags, f.classTag)) return false;
+      var needClass = [];
+      if (f.classTag !== ANY && f.classTag) {
+        needClass.push(f.classTag);
+      }
+      if (Array.isArray(f.classTags)) {
+        f.classTags.forEach(function (tg) {
+          if (tg && needClass.indexOf(tg) < 0) needClass.push(tg);
+        });
+      }
+      for (var ci = 0; ci < needClass.length; ci++) {
+        if (!hasNormalizedTag(c.tags, needClass[ci])) return false;
+      }
       if (f.material !== ANY && (!cats.material || ref.normalizeTag(cats.material) !== f.material)) return false;
       if (f.franchise !== ANY && (!cats.franchise || ref.normalizeTag(cats.franchise) !== f.franchise)) return false;
       if (f.tier !== ANY && (!cats.tier || ref.normalizeTag(cats.tier) !== f.tier)) return false;
@@ -680,7 +691,14 @@
       "</button>";
     html += getPresetSegments()
       .map(function (seg) {
-        var active = state.activeSegment === seg.id ? " is-active" : "";
+        var active =
+          state.activeSegment === seg.id ||
+          (seg.filters &&
+            seg.filters.classTag &&
+            Array.isArray(state.filters.classTags) &&
+            state.filters.classTags.indexOf(seg.filters.classTag) >= 0)
+            ? " is-active"
+            : "";
         return (
           '<button type="button" class="mk-leads-segment-btn' +
           active +
@@ -1231,7 +1249,9 @@
           })
           .join("");
         return (
-          '<div class="mk-leads-tag-popover__group">' +
+          '<div class="mk-leads-tag-popover__group" data-group="' +
+          esc(g.id) +
+          '">' +
           '<div class="mk-leads-tag-popover__group-title">' +
           esc(g.label) +
           "</div>" +
@@ -1260,10 +1280,11 @@
       e.stopPropagation();
       var chip = e.target.closest && e.target.closest(".mk-leads-tag-chip");
       if (chip) {
-        var group = chip.closest(".mk-leads-tag-popover__group");
+        var groupEl = chip.closest(".mk-leads-tag-popover__group");
+        var groupId = groupEl ? groupEl.getAttribute("data-group") : "";
         var turningOn = !chip.classList.contains("is-on");
-        if (group && turningOn) {
-          group.querySelectorAll(".mk-leads-tag-chip.is-on").forEach(function (el) {
+        if (groupEl && turningOn && groupId !== "class") {
+          groupEl.querySelectorAll(".mk-leads-tag-chip.is-on").forEach(function (el) {
             el.classList.remove("is-on");
             el.setAttribute("aria-pressed", "false");
           });
@@ -1531,16 +1552,29 @@
       state.activeSegment = null;
       state.productTab = "all";
       state.nvlSubFilter = ANY;
-      state.filters = Object.assign({}, EMPTY);
+      state.filters = Object.assign({ classTags: [] }, EMPTY);
       state.page = 1;
       renderAll();
       return;
     }
     var seg = getPresetSegments().find(function (s) { return s.id === segId; });
+    if (seg && seg.filters && seg.filters.classTag) {
+      if (!Array.isArray(state.filters.classTags)) state.filters.classTags = [];
+      var tag = seg.filters.classTag;
+      var idx = state.filters.classTags.indexOf(tag);
+      if (idx >= 0) state.filters.classTags.splice(idx, 1);
+      else state.filters.classTags.push(tag);
+      state.filters.classTag = ANY;
+      state.productTab = "all";
+      state.activeSegment = state.filters.classTags.length ? segId : null;
+      state.page = 1;
+      renderAll();
+      return;
+    }
     state.activeSegment = segId;
     state.productTab = "all";
     state.nvlSubFilter = ANY;
-    state.filters = Object.assign({}, EMPTY);
+    state.filters = Object.assign({ classTags: [] }, EMPTY);
     if (seg && seg.filters) {
       Object.keys(seg.filters).forEach(function (k) {
         state.filters[k] = seg.filters[k];
@@ -1654,6 +1688,9 @@
       var key = el.getAttribute("data-fkey");
       if (!key) return;
       state.filters[key] = el.value;
+      if (key === "classTag") {
+        state.filters.classTags = el.value && el.value !== ANY ? [el.value] : [];
+      }
       state.activeSegment = null;
       state.page = 1;
       renderAll();
@@ -1813,7 +1850,7 @@
     var reset = $("mk-contacts-reset");
     if (reset) {
       reset.addEventListener("click", function () {
-        state.filters = Object.assign({}, EMPTY);
+        state.filters = Object.assign({ classTags: [] }, EMPTY);
         state.activeSegment = null;
         state.productTab = "all";
         state.nvlSubFilter = ANY;

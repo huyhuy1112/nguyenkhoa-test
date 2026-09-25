@@ -53,7 +53,7 @@ class HelpDesk_Rules_View extends Vtiger_Index_View {
 		$headerCssInstances = parent::getHeaderCss($request);
 		$cssFileNames = array(
 			'~layouts/v7/modules/HelpDesk/resources/HelpDeskRulesList.css',
-			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.css?mk_v=20260925_qdui1',
+			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.css?mk_v=20260925_qbig1',
 		);
 		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
 		return array_merge($headerCssInstances, $cssInstances);
