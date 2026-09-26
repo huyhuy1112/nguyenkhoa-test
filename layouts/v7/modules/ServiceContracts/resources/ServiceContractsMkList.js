@@ -107,11 +107,18 @@
   }
 
   function decodeHtml(s) {
+    if (window.mkDecodeHtml) return window.mkDecodeHtml(s);
     var str = String(s == null ? "" : s);
     if (!str || str.indexOf("&") < 0) return str;
     var el = document.createElement("textarea");
-    el.innerHTML = str;
-    return el.value;
+    var i;
+    for (i = 0; i < 5; i++) {
+      el.innerHTML = str;
+      var next = el.value;
+      if (next === str) break;
+      str = next;
+    }
+    return str;
   }
 
   function esc(s) {

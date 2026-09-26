@@ -108,6 +108,7 @@
 		<script type="text/javascript">var __pageCreationTime = (new Date()).getTime();</script>
 		<script src="{vresource_url('layouts/v7/lib/jquery/jquery.min.js')}"></script>
 		<script src="{vresource_url('layouts/v7/lib/jquery/jquery-migrate-1.4.1.js')}"></script>
+		<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkHtmlText.js')}?mk_v=20260926_htmltext1"></script>
 		<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkTheme.js')}"></script>
 		<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkPhoneFormat.js')}?mk_v=20260810_phone_fmt3"></script>
 		<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkCurrency.js')}?mk_v=20260806_vn_group1"></script>

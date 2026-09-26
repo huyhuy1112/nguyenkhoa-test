@@ -772,7 +772,8 @@
 
   function esc(s) {
     // Use == null so numeric 0 is preserved (KPI "Mới hôm nay" etc.)
-    return String(s == null ? "" : s)
+    var str = window.mkDecodeHtml ? window.mkDecodeHtml(s) : decodeHtmlEntities(s);
+    return String(str == null ? "" : str)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/"/g, "&quot;");

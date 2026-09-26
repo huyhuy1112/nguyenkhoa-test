@@ -31,6 +31,7 @@
 	}
 
 	function decodeHtmlEntities(s) {
+		if (window.mkDecodeHtml) return window.mkDecodeHtml(s);
 		return (s || '')
 			.replace(/&quot;/g, '"')
 			.replace(/&#039;/g, "'")
@@ -40,7 +41,7 @@
 	}
 
 	function esc(s) {
-		return String(s || '').replace(/[&<>"']/g, function (c) {
+		return String(decodeHtmlEntities(s) || '').replace(/[&<>"']/g, function (c) {
 			return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[c];
 		});
 	}
