@@ -2300,6 +2300,10 @@ class Leads_OfflineGd11Service {
 	 * @return array list of {potential_id, lead_id, offline_status, name, phone}
 	 */
 	public static function findEligibleOppsByPhone($phone) {
+		$fromList = self::findEligibleOppsFromListPhone($phone);
+		if (!empty($fromList)) {
+			return $fromList;
+		}
 		$want = array();
 		foreach (self::phoneMatchVariants($phone) as $variant) {
 			$want[$variant] = true;
@@ -2415,6 +2419,59 @@ class Leads_OfflineGd11Service {
 					'phone' => $display,
 				);
 			}
+		}
+		return $out;
+	}
+
+	/**
+	 * So đúng số đang hiện trên danh sách Cơ hội (cùng dữ liệu cột Điện thoại).
+	 * Chỉ Opp đã xác nhận lịch hoặc hẹn lịch lại.
+	 */
+	protected static function findEligibleOppsFromListPhone($phone) {
+		$want = array();
+		foreach (self::phoneMatchVariants($phone) as $variant) {
+			$want[$variant] = true;
+		}
+		$norm = self::normalizeVnPhone($phone);
+		if ($norm !== '') {
+			$want[$norm] = true;
+		}
+		if (!$want) {
+			return array();
+		}
+		try {
+			require_once 'modules/Potentials/models/ModernService.php';
+			$rows = Potentials_ModernService::listPotentials();
+		} catch (Exception $e) {
+			return array();
+		}
+		if (!is_array($rows)) {
+			return array();
+		}
+		$allowed = array(self::STATUS_DA_XN_LICH, self::STATUS_HEN_LICH_LAI);
+		$out = array();
+		foreach ($rows as $row) {
+			if (!is_array($row)) {
+				continue;
+			}
+			$status = isset($row['offline_status']) ? trim((string) $row['offline_status']) : '';
+			if (!in_array($status, $allowed, true)) {
+				continue;
+			}
+			if (!self::phoneListMatches(array(isset($row['phone']) ? $row['phone'] : ''), $want)) {
+				continue;
+			}
+			$pid = isset($row['crmid']) ? (int) $row['crmid'] : (isset($row['id']) ? (int) $row['id'] : 0);
+			if ($pid <= 0) {
+				continue;
+			}
+			$out[] = array(
+				'potential_id' => $pid,
+				'lead_id' => isset($row['linked_leadid']) ? (int) $row['linked_leadid'] : 0,
+				'offline_status' => $status,
+				'name' => isset($row['name']) ? (string) $row['name'] : '',
+				'phone' => isset($row['phone']) ? trim((string) $row['phone']) : '',
+			);
 		}
 		return $out;
 	}
