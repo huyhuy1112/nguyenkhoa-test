@@ -15,6 +15,20 @@ class Leads_ModernService {
 	/** true = getLead (đầy đủ options/plan); false = list (nhẹ). */
 	protected static $composeDetailed = false;
 
+	/** Skip CREATE/ALTER on list pages after the schema has already been applied. */
+	public static function schemaWarm($name) {
+		$path = 'cache/bace/' . preg_replace('/[^a-z0-9_]/', '', (string) $name) . '.ok';
+		return is_file($path) && (time() - filemtime($path)) < 21600;
+	}
+
+	public static function markSchemaWarm($name) {
+		$dir = 'cache/bace';
+		if (!is_dir($dir)) {
+			@mkdir($dir, 0775, true);
+		}
+		@file_put_contents($dir . '/' . preg_replace('/[^a-z0-9_]/', '', (string) $name) . '.ok', '1');
+	}
+
 	const MAX_CALLS_PER_DAY = 10;
 
 	protected static $sourceTags = array('facebook', 'tiktok', 'website', 'zalo', 'other', 'other_source');
@@ -169,7 +183,10 @@ class Leads_ModernService {
 			return array();
 		}
 		self::$composeDetailed = false;
-		self::installSchema($adb);
+		if (!self::schemaWarm('leads_list')) {
+			self::installSchema($adb);
+			self::markSchemaWarm('leads_list');
+		}
 		self::ensureModernProfilesForAliveLeads();
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
@@ -195,20 +212,6 @@ class Leads_ModernService {
 			}
 		}
 		$tagsByLead = self::getTagsForLeadIds($leadIds, $userId);
-		try {
-			require_once 'modules/Leads/models/LeadProductsService.php';
-			foreach ($leadIds as $syncId) {
-				$syncId = (int) $syncId;
-				$t = isset($tagsByLead[$syncId]) ? $tagsByLead[$syncId] : array();
-				if ($t) {
-					Leads_LeadProductsService::syncFromTags($syncId, $t, $userId, false);
-				}
-			}
-		} catch (Exception $e) {
-			// chips still load from existing product rows
-		} catch (Throwable $e) {
-			// ignore
-		}
 		$purchasesByLead = self::getPurchasesForLeadIds($leadIds);
 		$tasksByLead = self::getCalendarTasksForLeadIds($leadIds);
 		$productsByLead = array();

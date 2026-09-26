@@ -20,11 +20,15 @@ class Contacts_ModernService {
 			$userId = (int)$current_user->id;
 		}
 		$adb = PearDatabase::getInstance();
-		self::ensureEventTimeColumns($adb);
-		self::ensureBusinessModelSchema($adb);
-		self::ensureCredentialFields();
-		self::ensureEdubitProgressColumns($adb);
-		self::ensureEdubitCoursesJsonColumn($adb);
+		require_once 'modules/Leads/models/ModernService.php';
+		if (!Leads_ModernService::schemaWarm('contacts_list')) {
+			self::ensureEventTimeColumns($adb);
+			self::ensureBusinessModelSchema($adb);
+			self::ensureCredentialFields();
+			self::ensureEdubitProgressColumns($adb);
+			self::ensureEdubitCoursesJsonColumn($adb);
+			Leads_ModernService::markSchemaWarm('contacts_list');
+		}
 		$sql = "SELECT cd.contactid, cd.firstname, cd.lastname, cd.title, cd.email, cd.phone, cd.mobile,
 				cd.accountid, ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description,
 				acc.accountname,

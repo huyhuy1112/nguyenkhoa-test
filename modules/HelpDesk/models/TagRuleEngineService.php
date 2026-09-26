@@ -10,6 +10,9 @@ class HelpDesk_TagRuleEngineService {
 	/** @var PearDatabase */
 	protected $db;
 
+	/** Rules loaded once per request (list pages call this on every row). */
+	protected static $rulesRequestCache = array();
+
 	const SCHEMA_VERSION = 5;
 	const CSKH_RULE_ID = 'rule-cskh';
 	const CSKH_ALERT_DAYS_DEFAULT = 7;
@@ -1817,6 +1820,10 @@ class HelpDesk_TagRuleEngineService {
 	}
 
 	public function getRules($activeOnly = false) {
+		$key = $activeOnly ? '1' : '0';
+		if (isset(self::$rulesRequestCache[$key])) {
+			return self::$rulesRequestCache[$key];
+		}
 		$sql = 'SELECT * FROM mk_tag_rules';
 		$params = array();
 		if ($activeOnly) {
@@ -1865,7 +1872,8 @@ class HelpDesk_TagRuleEngineService {
 				}
 			}
 		}
-		return array_values($rules);
+		self::$rulesRequestCache[$key] = array_values($rules);
+		return self::$rulesRequestCache[$key];
 	}
 
 	public function getRuleById($id) {
@@ -1878,6 +1886,7 @@ class HelpDesk_TagRuleEngineService {
 	}
 
 	public function upsertRule(array $payload, $generateId = true) {
+		self::$rulesRequestCache = array();
 		$id = isset($payload['id']) ? trim((string)$payload['id']) : '';
 		$name = trim((string)($payload['name'] ?? ''));
 		if ($name === '') {
@@ -1960,11 +1969,13 @@ class HelpDesk_TagRuleEngineService {
 	}
 
 	public function setRuleActive($id, $active) {
+		self::$rulesRequestCache = array();
 		$this->db->pquery('UPDATE mk_tag_rules SET is_active = ? WHERE id = ?', array($active ? 1 : 0, $id));
 		return $this->getRuleById($id);
 	}
 
 	public function deleteRule($id) {
+		self::$rulesRequestCache = array();
 		$this->db->pquery('DELETE FROM mk_tag_rule_conditions WHERE rule_id = ?', array($id));
 		$this->db->pquery('DELETE FROM mk_tag_rule_dismissals WHERE rule_id = ?', array($id));
 		$this->db->pquery('DELETE FROM mk_tag_rules WHERE id = ?', array($id));

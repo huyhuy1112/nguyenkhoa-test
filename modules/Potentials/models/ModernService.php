@@ -49,24 +49,27 @@ class Potentials_ModernService {
 			$userId = (int)$current_user->id;
 		}
 		$adb = PearDatabase::getInstance();
-		self::ensureProfileSchema($adb);
-		try {
-			require_once 'modules/Leads/models/ModernService.php';
-			Leads_ModernService::installSchema($adb);
-		} catch (Exception $e) {
-			// lead profile column is best-effort for business_model fallback
-		}
-		try {
-			require_once 'modules/Leads/models/OfflineGd11Service.php';
-			Leads_OfflineGd11Service::installSchema($adb);
-		} catch (Exception $e) {
-			// offline columns best-effort
-		}
-		try {
-			require_once 'modules/Leads/models/OnlineGd12Service.php';
-			Leads_OnlineGd12Service::installSchema();
-		} catch (Exception $e) {
-			// online/edubit columns best-effort
+		require_once 'modules/Leads/models/ModernService.php';
+		if (!Leads_ModernService::schemaWarm('opps_list')) {
+			self::ensureProfileSchema($adb);
+			try {
+				Leads_ModernService::installSchema($adb);
+			} catch (Exception $e) {
+				// lead profile column is best-effort for business_model fallback
+			}
+			try {
+				require_once 'modules/Leads/models/OfflineGd11Service.php';
+				Leads_OfflineGd11Service::installSchema($adb);
+			} catch (Exception $e) {
+				// offline columns best-effort
+			}
+			try {
+				require_once 'modules/Leads/models/OnlineGd12Service.php';
+				Leads_OnlineGd12Service::installSchema();
+			} catch (Exception $e) {
+				// online/edubit columns best-effort
+			}
+			Leads_ModernService::markSchemaWarm('opps_list');
 		}
 		$sql = "SELECT p.potentialid, p.potentialname, p.sales_stage, p.closingdate, p.amount,
 				p.leadsource, p.order_category, p.related_to, p.contact_id,
@@ -248,7 +251,10 @@ class Potentials_ModernService {
 		$offline = array();
 		try {
 			require_once 'modules/Leads/models/OfflineGd11Service.php';
-			Leads_OfflineGd11Service::installSchema();
+			require_once 'modules/Leads/models/ModernService.php';
+			if (!Leads_ModernService::schemaWarm('opps_list')) {
+				Leads_OfflineGd11Service::installSchema();
+			}
 			$offline = Leads_OfflineGd11Service::profileBlock($row, false);
 			if (!empty($offline['offline_status'])) {
 				$classDate = isset($offline['offline_class_date']) ? $offline['offline_class_date'] : '';
