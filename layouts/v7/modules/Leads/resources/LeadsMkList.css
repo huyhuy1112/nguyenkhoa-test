@@ -1052,6 +1052,36 @@ body.mk-leads-verify-open {
 	font-weight: 700;
 	color: #334155;
 }
+.mk-leads-edubit-courses {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+.mk-leads-edubit-course {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	padding: 8px 10px;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	background: #fff;
+	font-size: 13px;
+	color: #0f172a;
+	cursor: pointer;
+}
+.mk-leads-edubit-course.is-owned {
+	background: #f8fafc;
+	color: #64748b;
+	cursor: default;
+}
+.mk-leads-edubit-course em {
+	margin-left: auto;
+	font-style: normal;
+	font-size: 12px;
+	font-weight: 600;
+	color: #0b6e4f;
+}
 .mk-leads-verify-field em {
 	font-style: normal;
 	font-weight: 500;

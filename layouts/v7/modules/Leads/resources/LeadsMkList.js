@@ -1679,16 +1679,29 @@
       );
     }
     var courses = Array.isArray(lead.edubit_courses) ? lead.edubit_courses : [];
-    var opts =
-      '<option value="">— Chọn khóa học (bắt buộc) —</option>' +
-      courses
-        .map(function (c) {
-          var id = String((c && (c.id || c.course_id)) || "");
-          var label = String((c && (c.label || c.name)) || id);
-          var sel = lead.edubit_course_id && String(lead.edubit_course_id) === id ? " selected" : "";
-          return '<option value="' + esc(id) + '"' + sel + ">" + esc(label) + " (" + esc(id) + ")</option>";
-        })
-        .join("");
+    var ownedId = lead.edubit_course_id ? String(lead.edubit_course_id) : "";
+    var opts = courses
+      .map(function (c) {
+        var id = String((c && (c.id || c.course_id)) || "");
+        var label = String((c && (c.label || c.name)) || id);
+        var owned = ownedId !== "" && ownedId === id;
+        return (
+          '<label class="mk-leads-edubit-course' +
+          (owned ? " is-owned" : "") +
+          '"><input type="checkbox" value="' +
+          esc(id) +
+          '" data-mk-edubit-course="1"' +
+          (owned ? " checked disabled" : "") +
+          " /><span>" +
+          esc(label) +
+          " (" +
+          esc(id) +
+          ")</span>" +
+          (owned ? "<em>Đã có</em>" : "") +
+          "</label>"
+        );
+      })
+      .join("");
     var progress =
       lead.edubit_progress_pct != null && lead.edubit_progress_pct !== ""
         ? String(lead.edubit_progress_pct) + "%"
@@ -1726,7 +1739,7 @@
           ? " · " + esc(String(lead.online_status_label))
           : "") +
         "</p>"
-      : '<p class="mk-leads-verify-offline__meta">Chưa cấp TK. Chọn khóa rồi bấm Cấp TK — xong sẽ <strong>thẳng xuống Khách hàng</strong> (không qua Opp). Hạn truy cập = 10 ngày kể từ kích hoạt.</p>';
+      : '<p class="mk-leads-verify-offline__meta">Chưa cấp TK. Tick một hoặc nhiều khóa rồi bấm Cấp TK — cùng một email, xong sẽ <strong>thẳng xuống Khách hàng</strong> (không qua Opp). Hạn truy cập = 10 ngày kể từ kích hoạt.</p>';
     var err = lead.edubit_last_error
       ? '<p class="mk-leads-verify-err" style="display:block">' + esc(String(lead.edubit_last_error)) + "</p>"
       : "";
@@ -1748,12 +1761,14 @@
       '<input type="email" class="inputElement" data-mk-edubit="email" value="' +
       esc(lead.edubit_email || lead.email || "") +
       '" placeholder="bắt buộc" /></label>' +
-      '<label class="mk-leads-verify-field"><span>Khóa học</span>' +
-      '<select class="inputElement" data-mk-edubit="course_id">' +
+      '<div class="mk-leads-verify-field"><span>Khóa học</span>' +
+      '<div class="mk-leads-edubit-courses" data-mk-edubit="courses">' +
       opts +
-      "</select></label>" +
+      "</div></div>" +
       '<div class="mk-leads-verify-offline__actions">' +
-      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--primary" data-mk-edubit-action="provision">Cấp TK + kích hoạt khóa</button>' +
+      '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--primary" data-mk-edubit-action="provision">' +
+      (lead.edubit_user_id ? "Thêm khóa học" : "Cấp TK + kích hoạt khóa") +
+      "</button>" +
       '<button type="button" class="mk-leads-verify-panel__btn mk-leads-verify-panel__btn--ghost" data-mk-edubit-action="sync">Đồng bộ tiến độ</button>' +
       renewBtn +
       "</div></div>"
@@ -2226,9 +2241,12 @@
       setListVerifyMsg("API không sẵn sàng.", "");
       return;
     }
-    var courseEl = panel.querySelector('[data-mk-edubit="course_id"]');
     var emailEl = panel.querySelector('[data-mk-edubit="email"]');
-    var courseId = courseEl ? String(courseEl.value || "").trim() : "";
+    var courseIds = [];
+    panel.querySelectorAll("[data-mk-edubit-course]").forEach(function (box) {
+      if (box.checked && !box.disabled) courseIds.push(String(box.value || "").trim());
+    });
+    var courseId = courseIds[0] || "";
     var email = emailEl ? String(emailEl.value || "").trim() : "";
     var mode =
       action === "sync"
@@ -2236,8 +2254,8 @@
         : action === "renew"
           ? "online_edubit_renew"
           : "online_edubit_provision";
-    if (mode === "online_edubit_provision" && !courseId) {
-      setListVerifyMsg("Phải chọn khóa học — không có course_id mặc định.", "");
+    if (mode === "online_edubit_provision" && !courseIds.length) {
+      setListVerifyMsg("Chọn ít nhất một khóa chưa có trên tài khoản.", "");
       return;
     }
     if (mode === "online_edubit_provision" && !email) {
@@ -2257,6 +2275,7 @@
     setListVerifyMsg("", "");
     var payload = {
       course_id: courseId,
+      course_ids: courseIds,
       email: email,
       name: (lead && lead.name) || "",
       phone: (lead && lead.phone) || "",

@@ -1394,9 +1394,34 @@ class Leads_OnlineGd12Service {
 	}
 
 	/**
-	 * Cấp TK Edubit + kích hoạt khóa. Bắt buộc course_id (Sales chọn).
+	 * @param array $payload
+	 * @return string[]
+	 */
+	protected static function normalizeLeadProvisionCourseIds(array $payload) {
+		$raw = array();
+		if (isset($payload['course_ids']) && is_array($payload['course_ids'])) {
+			$raw = $payload['course_ids'];
+		} elseif (isset($payload['course_ids']) && is_string($payload['course_ids']) && $payload['course_ids'] !== '') {
+			$raw = preg_split('/\s*,\s*/', $payload['course_ids']);
+		}
+		if (isset($payload['course_id']) && trim((string) $payload['course_id']) !== '') {
+			$raw[] = $payload['course_id'];
+		}
+		$out = array();
+		foreach ($raw as $id) {
+			$id = preg_replace('/\D+/', '', (string) $id);
+			if ($id !== '' && !in_array($id, $out, true)) {
+				$out[] = $id;
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Cấp TK Edubit. Một email kích hoạt nhiều khóa (course_ids) hoặc một course_id.
+	 * Khóa miễn phí 27312 vẫn đi riêng xuống Cơ hội.
 	 * @param int $leadId
-	 * @param array $payload course_id (required), email?, name?, phone?, password?
+	 * @param array $payload course_ids[] hoặc course_id, email?, name?, phone?, password?
 	 */
 	public static function provisionEdubitForLead($leadId, array $payload = array(), $userId = null) {
 		global $current_user;
@@ -1407,9 +1432,24 @@ class Leads_OnlineGd12Service {
 		if ($userId === null && !empty($current_user->id)) {
 			$userId = (int) $current_user->id;
 		}
-		$courseId = isset($payload['course_id']) ? trim((string) $payload['course_id']) : '';
-		if ($courseId === '') {
-			return array('success' => false, 'error' => 'Phải chọn khóa học (course_id). Không có mặc định.');
+		$courseIds = self::normalizeLeadProvisionCourseIds($payload);
+		if (empty($courseIds)) {
+			return array('success' => false, 'error' => 'Chọn ít nhất một khóa học.');
+		}
+		$freeIds = array();
+		$paidIds = array();
+		foreach ($courseIds as $courseId) {
+			if (self::isFreeCourseToOpportunity($courseId)) {
+				$freeIds[] = $courseId;
+			} else {
+				$paidIds[] = $courseId;
+			}
+		}
+		if (!empty($freeIds) && !empty($paidIds)) {
+			return array(
+				'success' => false,
+				'error' => 'Khóa miễn phí 27312 cấp riêng để xuống Cơ hội. Bỏ khóa đó nếu muốn cấp các khóa có phí xuống Khách hàng.',
+			);
 		}
 
 		self::installSchema();
@@ -1440,6 +1480,51 @@ class Leads_OnlineGd12Service {
 			return array('success' => false, 'error' => 'Cần email hợp lệ để cấp TK Edubit (điền trên form cấp TK).');
 		}
 
+		$prof = $adb->pquery(
+			'SELECT edubit_user_id, edubit_email, edubit_course_id, edubit_activated_at FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		$storedUserId = '';
+		$storedEmail = '';
+		$storedCourseId = '';
+		$storedActivated = '';
+		if ($prof && $adb->num_rows($prof) > 0) {
+			$storedUserId = trim((string) $adb->query_result($prof, 0, 'edubit_user_id'));
+			$storedEmail = trim((string) $adb->query_result($prof, 0, 'edubit_email'));
+			$storedCourseId = trim((string) $adb->query_result($prof, 0, 'edubit_course_id'));
+			$storedActivated = trim((string) $adb->query_result($prof, 0, 'edubit_activated_at'));
+		}
+		$hadAccount = $storedUserId !== '' || $storedActivated !== '';
+		if ($hadAccount && $storedEmail !== '' && strcasecmp($storedEmail, $email) !== 0) {
+			return array(
+				'success' => false,
+				'error' => 'Tài khoản Edubit đang dùng email ' . $storedEmail . '. Thêm khóa trên đúng email này.',
+			);
+		}
+		if ($hadAccount && $storedEmail !== '') {
+			$email = $storedEmail;
+		}
+		$owned = array();
+		if ($storedCourseId !== '') {
+			$owned[$storedCourseId] = true;
+		}
+		$toAdd = array();
+		foreach ($courseIds as $courseId) {
+			if (empty($owned[$courseId])) {
+				$toAdd[] = $courseId;
+			}
+		}
+		if (empty($toAdd)) {
+			return array(
+				'success' => true,
+				'already' => true,
+				'edubit_email' => $email,
+				'edubit_course_id' => $storedCourseId,
+				'message' => 'Học viên đã có khóa này trên tài khoản.',
+				'courses' => self::edubitCoursesCatalog(),
+			);
+		}
+
 		require_once 'modules/Vtiger/helpers/NkApiConnection.php';
 		/** @var NkApi_Edubit_Adapter $adapter */
 		$adapter = NkApiConnection::adapter('edubit');
@@ -1451,13 +1536,6 @@ class Leads_OnlineGd12Service {
 				'email' => $email,
 				'password' => $password,
 			));
-			$activated = $adapter->activateCourse(array(
-				'name' => $name,
-				'phone' => $phone,
-				'email' => $email,
-				'password' => $password,
-				'course_id' => $courseId,
-			));
 		} catch (Exception $e) {
 			$adb->pquery(
 				'UPDATE bace_lead_profile SET edubit_last_error = ?, modified_at = ? WHERE leadid = ?',
@@ -1466,50 +1544,120 @@ class Leads_OnlineGd12Service {
 			return array('success' => false, 'error' => $e->getMessage());
 		}
 
-		$userIdEd = isset($created['user_id']) ? (string) $created['user_id'] : '';
+		$userIdEd = isset($created['user_id']) ? trim((string) $created['user_id']) : '';
+		if ($userIdEd === '') {
+			$userIdEd = $storedUserId;
+		}
 		$now = date('Y-m-d H:i:s');
-		$expiresAt = self::computeExpiresAt($now);
-		$adb->pquery(
-			'UPDATE bace_lead_profile SET
-				online_status = ?,
-				edubit_user_id = ?,
-				edubit_course_id = ?,
-				edubit_email = ?,
-				edubit_activated_at = ?,
-				edubit_expires_at = ?,
-				edubit_renew_count = 0,
-				edubit_progress_pct = COALESCE(edubit_progress_pct, 0),
-				edubit_last_error = NULL,
-				modified_at = ?
-			 WHERE leadid = ?',
-			array(self::STATUS_DANG_HOC, $userIdEd, $courseId, $email, $now, $expiresAt, $now, $leadId)
-		);
+		$added = array();
+		$failed = array();
+		$activateStatus = '';
+		foreach ($toAdd as $courseId) {
+			try {
+				$activated = $adapter->activateCourse(array(
+					'name' => $name,
+					'phone' => $phone,
+					'email' => $email,
+					'password' => $password,
+					'course_id' => $courseId,
+				));
+				$activateStatus = isset($activated['status']) ? (string) $activated['status'] : $activateStatus;
+			} catch (Exception $e) {
+				$errText = $e->getMessage();
+				if (stripos($errText, 'COURSE_ACTIVATED') === false && stripos($errText, 'ACTIVATED') === false) {
+					$failed[] = $courseId . ': ' . $errText;
+					continue;
+				}
+			}
+			$added[] = $courseId;
+		}
+		if (empty($added)) {
+			$err = 'Không kích hoạt được khóa. ' . implode(' ', $failed);
+			$adb->pquery(
+				'UPDATE bace_lead_profile SET edubit_last_error = ?, modified_at = ? WHERE leadid = ?',
+				array(mb_substr($err, 0, 250), $now, $leadId)
+			);
+			return array('success' => false, 'error' => $err, 'failed' => $failed);
+		}
+
+		$primaryCourse = $storedCourseId !== '' ? $storedCourseId : $added[0];
+		$freeOnly = count($added) === 1 && self::isFreeCourseToOpportunity($added[0]) && empty($paidIds);
+		if (!$hadAccount) {
+			$expiresAt = self::computeExpiresAt($now);
+			$adb->pquery(
+				'UPDATE bace_lead_profile SET
+					online_status = ?,
+					edubit_user_id = ?,
+					edubit_course_id = ?,
+					edubit_email = ?,
+					edubit_activated_at = ?,
+					edubit_expires_at = ?,
+					edubit_renew_count = 0,
+					edubit_progress_pct = COALESCE(edubit_progress_pct, 0),
+					edubit_last_error = NULL,
+					modified_at = ?
+				 WHERE leadid = ?',
+				array(self::STATUS_DANG_HOC, $userIdEd, $primaryCourse, $email, $now, $expiresAt, $now, $leadId)
+			);
+		} else {
+			$expiresAt = '';
+			$expRow = $adb->pquery('SELECT edubit_expires_at FROM bace_lead_profile WHERE leadid = ?', array($leadId));
+			if ($expRow && $adb->num_rows($expRow) > 0) {
+				$expiresAt = trim((string) $adb->query_result($expRow, 0, 'edubit_expires_at'));
+			}
+			$adb->pquery(
+				'UPDATE bace_lead_profile SET
+					online_status = ?,
+					edubit_user_id = COALESCE(NULLIF(edubit_user_id, \'\'), ?),
+					edubit_course_id = COALESCE(NULLIF(edubit_course_id, \'\'), ?),
+					edubit_email = ?,
+					edubit_last_error = NULL,
+					modified_at = ?
+				 WHERE leadid = ?',
+				array(self::STATUS_DANG_HOC, $userIdEd, $primaryCourse, $email, $now, $leadId)
+			);
+		}
 		self::syncStatusTagsOnly($leadId, array('zalo', 'mien_phi_online', self::STATUS_DANG_HOC));
 		self::sendCareToLead($leadId, 'kb07');
 
 		$genPass = isset($created['password']) ? (string) $created['password'] : '';
+		$expLabel = ($expiresAt !== '' && strtotime($expiresAt)) ? date('d/m/Y', strtotime($expiresAt)) : '';
+		if (!$hadAccount) {
+			$message = 'Đã cấp TK Edubit và kích hoạt ' . count($added) . ' khóa.';
+			if ($genPass !== '') {
+				$message .= ' Mật khẩu tạm: ' . $genPass . '.';
+			}
+			if ($expLabel !== '') {
+				$message .= ' Hạn truy cập đến ' . $expLabel . '.';
+			}
+		} else {
+			$message = 'Đã thêm ' . count($added) . ' khóa vào tài khoản ' . $email . '.';
+		}
+		if (!empty($failed)) {
+			$message .= ' Không kích hoạt được: ' . implode(' ', $failed);
+		}
 		$out = array(
 			'success' => true,
 			'status' => self::STATUS_DANG_HOC,
 			'status_label' => self::statusLabel(self::STATUS_DANG_HOC),
 			'edubit_user_id' => $userIdEd,
-			'edubit_course_id' => $courseId,
+			'edubit_course_id' => $primaryCourse,
+			'added_course_ids' => $added,
+			'failed' => $failed,
 			'edubit_email' => $email,
-			'edubit_activated_at' => date('c', strtotime($now)),
-			'edubit_expires_at' => date('c', strtotime($expiresAt)),
-			'edubit_renew_count' => 0,
-			'edubit_renew_remaining' => self::RENEW_MAX,
-			'generated_password' => $genPass,
+			'edubit_activated_at' => $hadAccount ? '' : date('c', strtotime($now)),
+			'edubit_expires_at' => ($expiresAt !== '' && strtotime($expiresAt)) ? date('c', strtotime($expiresAt)) : '',
+			'edubit_renew_count' => $hadAccount ? null : 0,
+			'edubit_renew_remaining' => $hadAccount ? null : self::RENEW_MAX,
+			'generated_password' => $hadAccount ? '' : $genPass,
 			'create_status' => isset($created['status']) ? $created['status'] : '',
-			'activate_status' => isset($activated['status']) ? $activated['status'] : '',
-			'message' => $genPass !== ''
-				? ('Đã cấp TK Edubit. Mật khẩu tạm: ' . $genPass . '. Hạn truy cập đến ' . date('d/m/Y', strtotime($expiresAt)) . '.')
-				: ('Đã cấp TK / kích hoạt khóa Edubit. Hạn truy cập đến ' . date('d/m/Y', strtotime($expiresAt)) . '.'),
+			'activate_status' => $activateStatus,
+			'message' => $message,
 			'courses' => self::edubitCoursesCatalog(),
 		);
 
 		// GD 1.2: 27312 (miễn phí) → Opp; khóa trả phí / khác → Khách hàng.
-		if (self::isFreeCourseToOpportunity($courseId)) {
+		if ($freeOnly) {
 			$promoted = self::promoteLeadToOpportunityAfterEdubit($leadId, $out, $userId);
 			$out['opportunity'] = $promoted;
 			if (!empty($promoted['success'])) {
@@ -1643,6 +1791,15 @@ class Leads_OnlineGd12Service {
 
 			$pct = 0;
 			$courseId = isset($edubitMeta['edubit_course_id']) ? trim((string) $edubitMeta['edubit_course_id']) : '';
+			$addedIds = array();
+			if (!empty($edubitMeta['added_course_ids']) && is_array($edubitMeta['added_course_ids'])) {
+				foreach ($edubitMeta['added_course_ids'] as $addedId) {
+					$addedId = preg_replace('/\D+/', '', (string) $addedId);
+					if ($addedId !== '' && !in_array($addedId, $addedIds, true)) {
+						$addedIds[] = $addedId;
+					}
+				}
+			}
 			$emailEd = isset($edubitMeta['edubit_email']) ? trim((string) $edubitMeta['edubit_email']) : '';
 			$userEd = isset($edubitMeta['edubit_user_id']) ? trim((string) $edubitMeta['edubit_user_id']) : '';
 			$adb = PearDatabase::getInstance();
@@ -1668,15 +1825,23 @@ class Leads_OnlineGd12Service {
 			Contacts_ModernService::ensureCredentialFields();
 			Contacts_ModernService::ensureEdubitProgressColumns();
 			Contacts_ModernService::saveCredentialFields($contactId, 'Chưa cấp', 'Đã cấp');
+			if (empty($addedIds) && $courseId !== '') {
+				$addedIds[] = $courseId;
+			}
+			if ($courseId === '' && !empty($addedIds)) {
+				$courseId = $addedIds[0];
+			}
 			Contacts_ModernService::saveEdubitProgressOnContact($contactId, $pct, $courseId, $emailEd, $userEd);
-			Contacts_ModernService::upsertEdubitCourseOnContact($contactId, array(
-				'course_id' => $courseId,
-				'progress_pct' => $pct,
-				'email' => $emailEd,
-				'user_id' => $userEd,
-				'route' => 'contact',
-			));
-			Contacts_ModernService::markEdubitProvisionTimes($contactId, $courseId);
+			foreach ($addedIds as $addedId) {
+				Contacts_ModernService::upsertEdubitCourseOnContact($contactId, array(
+					'course_id' => $addedId,
+					'progress_pct' => $addedId === $courseId ? $pct : 0,
+					'email' => $emailEd,
+					'user_id' => $userEd,
+					'route' => 'contact',
+				));
+				Contacts_ModernService::markEdubitProvisionTimes($contactId, $addedId);
+			}
 			self::syncAccessWindowToContact($leadId, $contactId);
 			Leads_ConvertService::syncLeadProfileExtrasToContact($leadId, $contactId);
 
