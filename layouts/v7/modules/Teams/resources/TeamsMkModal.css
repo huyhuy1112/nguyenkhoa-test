@@ -1,16 +1,17 @@
 /**
- * Teams — Add Person / Add Group modals (luxury shell)
+ * Teams — Add Person modal
+ * Header: CRM green; overlay: neutral dim
  */
 
 .teams-overlay {
 	position: fixed;
 	inset: 0;
 	z-index: 1050;
-	background: rgba(8, 12, 20, 0.62);
-	backdrop-filter: blur(6px);
-	-webkit-backdrop-filter: blur(6px);
+	background: rgba(15, 23, 42, 0.48);
+	backdrop-filter: blur(3px);
+	-webkit-backdrop-filter: blur(3px);
 	opacity: 0;
-	transition: opacity 0.28s ease;
+	transition: opacity 0.22s ease;
 }
 
 .teams-overlay.teams-overlay-visible {
@@ -21,7 +22,7 @@
 	position: fixed;
 	top: 50%;
 	left: 50%;
-	transform: translate(-50%, -50%) scale(0.94);
+	transform: translate(-50%, -50%) scale(0.97);
 	z-index: 1051;
 	width: min(640px, 94vw);
 	max-height: 92vh;
@@ -29,12 +30,10 @@
 	display: flex;
 	flex-direction: column;
 	background: #ffffff;
-	border: 1px solid rgba(15, 23, 42, 0.08);
-	border-radius: 20px;
-	box-shadow:
-		0 28px 80px rgba(15, 23, 42, 0.22),
-		0 0 0 1px rgba(255, 255, 255, 0.04) inset;
-	transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+	border: 1px solid #e2e8f0;
+	border-radius: 16px;
+	box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
+	transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .teams-overlay.teams-overlay-visible .teams-modal-shell {
@@ -49,17 +48,18 @@
 	width: 34px;
 	height: 34px;
 	border: none;
-	border-radius: 10px;
-	background: rgba(255, 255, 255, 0.14);
-	color: #f8fafc;
+	border-radius: 999px;
+	background: #ffffff;
+	color: #0f172a;
 	font-size: 22px;
 	line-height: 1;
 	cursor: pointer;
+	box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
 	transition: background 0.15s ease, transform 0.15s ease;
 }
 
 .teams-modal-close:hover {
-	background: rgba(255, 255, 255, 0.24);
+	background: #f8fafc;
 	transform: scale(1.04);
 }
 
@@ -68,87 +68,86 @@
 	flex-direction: column;
 	min-height: 0;
 	max-height: 92vh;
+	font-family: Inter, system-ui, -apple-system, sans-serif;
 }
 
 .teams-modal-header {
 	position: relative;
 	flex: 0 0 auto;
-	padding: 26px 28px 22px;
-	background:
-		linear-gradient(135deg, #0f172a 0%, #1e293b 48%, #0f172a 100%);
-	color: #f8fafc;
-	border-radius: 20px 20px 0 0;
+	padding: 22px 28px 20px;
+	background: linear-gradient(90deg, #08A045 0%, #059669 48%, #047857 100%);
+	border-bottom: none;
 	overflow: hidden;
 }
 
 .teams-modal-header::before {
 	content: "";
 	position: absolute;
-	inset: 0;
-	background:
-		radial-gradient(ellipse 80% 120% at 0% 0%, rgba(8, 160, 69, 0.22), transparent 55%),
-		radial-gradient(ellipse 60% 80% at 100% 100%, rgba(22, 216, 255, 0.12), transparent 50%);
-	pointer-events: none;
-}
-
-.teams-modal-header::after {
-	content: "";
-	position: absolute;
-	left: 28px;
-	right: 28px;
-	bottom: 0;
-	height: 2px;
-	background: linear-gradient(90deg, transparent, #08A045 35%, #16d8ff 65%, transparent);
-	opacity: 0.85;
+	left: 0;
+	right: 0;
+	top: 0;
+	height: 3px;
+	background: rgba(255, 255, 255, 0.45);
 }
 
 .teams-modal-kicker {
 	position: relative;
-	margin: 0 0 4px;
+	margin: 0 0 6px;
+	padding-right: 40px;
 	font-size: 11px;
-	font-weight: 600;
-	letter-spacing: 0.14em;
+	font-weight: 700;
+	letter-spacing: 0.12em;
 	text-transform: uppercase;
-	color: rgba(8, 160, 69, 0.92);
+	color: #bbf7d0;
 }
 
 .teams-modal-title {
 	position: relative;
 	margin: 0;
+	padding-right: 40px;
+	font-family: 'Space Grotesk', Inter, sans-serif;
 	font-size: 22px;
 	font-weight: 700;
 	letter-spacing: -0.02em;
 	line-height: 1.25;
+	color: #ffffff;
 }
 
 .teams-modal-subtitle {
 	position: relative;
-	margin: 6px 0 0;
+	margin: 8px 0 0;
+	padding-right: 40px;
 	font-size: 13px;
 	font-weight: 400;
-	color: rgba(248, 250, 252, 0.72);
+	color: rgba(255, 255, 255, 0.82);
 	line-height: 1.45;
-	max-width: 36ch;
+	max-width: 48ch;
 }
 
 .teams-modal-form {
 	flex: 1 1 auto;
 	min-height: 0;
 	overflow-y: auto;
-	padding: 22px 28px 8px;
+	padding: 20px 28px 8px;
 	scrollbar-width: thin;
+	background: #f8fafc;
 }
 
 .teams-modal-section {
-	margin-bottom: 20px;
+	margin-bottom: 16px;
+	padding: 16px 18px;
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
 }
 
 .teams-modal-section-title {
-	margin: 0 0 12px;
-	padding-bottom: 8px;
-	font-size: 11px;
-	font-weight: 700;
-	letter-spacing: 0.1em;
+	margin: 0 0 14px;
+	padding-bottom: 10px;
+	font-size: 12px;
+	font-weight: 800;
+	letter-spacing: 0.04em;
 	text-transform: uppercase;
 	color: #64748b;
 	border-bottom: 1px solid #e2e8f0;
@@ -160,6 +159,10 @@
 	gap: 14px 16px;
 }
 
+.teams-modal-field {
+	margin-top: 14px;
+}
+
 .teams-modal-grid .form-group,
 .teams-modal-section .form-group {
 	margin-bottom: 0;
@@ -169,7 +172,7 @@
 	display: block;
 	margin-bottom: 6px;
 	font-size: 12px;
-	font-weight: 600;
+	font-weight: 700;
 	color: #334155;
 	letter-spacing: 0.01em;
 }
@@ -177,18 +180,13 @@
 .teams-modal .form-control,
 .teams-modal select.form-control {
 	height: 42px;
-	border-radius: 12px;
-	border: 1px solid #dbe2ea;
-	background: #f8fafc;
+	border-radius: 10px;
+	border: 1px solid #e2e8f0;
+	background: #ffffff;
 	box-shadow: none;
 	font-size: 14px;
 	color: #0f172a;
-	transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-
-.teams-modal textarea.form-control {
-	height: auto;
-	min-height: 88px;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .teams-modal .form-control:focus,
@@ -199,6 +197,18 @@
 	outline: none;
 }
 
+.teams-modal-field-hint {
+	margin: 8px 0 0;
+	font-size: 12px;
+	line-height: 1.4;
+	color: #64748b;
+}
+
+.teams-modal-field-hint strong {
+	color: #0f172a;
+	font-weight: 700;
+}
+
 .teams-modal-footer {
 	flex: 0 0 auto;
 	display: flex;
@@ -206,117 +216,50 @@
 	justify-content: flex-end;
 	gap: 10px;
 	margin: 0;
-	padding: 16px 28px 22px;
-	border-top: 1px solid #e8edf3;
-	background: linear-gradient(180deg, #fafbfc 0%, #f1f5f9 100%);
-	border-radius: 0 0 20px 20px;
-}
-
-.teams-modal-footer .teams-btn-primary {
-	min-width: 108px;
-	height: 42px;
-	padding: 0 22px;
-	border: none;
-	border-radius: 999px;
-	background: linear-gradient(135deg, #08A045 0%, #08A045 52%, #ea580c 100%);
-	color: #0f172a;
-	font-size: 12px;
-	font-weight: 700;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-	box-shadow: 0 10px 24px rgba(245, 158, 11, 0.28);
-	transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.teams-modal-footer .teams-btn-primary:hover,
-.teams-modal-footer .teams-btn-primary:focus {
-	background: linear-gradient(135deg, #08A045 0%, #ea580c 52%, #c2410c 100%);
-	color: #0f172a;
-	transform: translateY(-1px);
-	box-shadow: 0 14px 28px rgba(245, 158, 11, 0.34);
-}
-
-.teams-modal-footer .teams-btn-secondary {
-	min-width: 96px;
-	height: 42px;
-	padding: 0 18px;
-	border-radius: 999px;
-	border: 1px solid #cbd5e1;
+	padding: 14px 28px 18px;
+	border-top: 1px solid #e2e8f0;
 	background: #ffffff;
-	color: #475569;
-	font-size: 12px;
-	font-weight: 600;
-	letter-spacing: 0.06em;
-	text-transform: uppercase;
 }
 
-.teams-modal-footer .teams-btn-secondary:hover {
-	background: #f8fafc;
-	border-color: #94a3b8;
-	color: #0f172a;
-}
-
-/* Add Group — member picker */
-.teams-add-group-modal .teams-assign-options {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 10px 18px;
-	margin-bottom: 14px;
-	padding: 12px 14px;
-	border-radius: 12px;
-	background: #f8fafc;
-	border: 1px solid #e2e8f0;
-}
-
-.teams-add-group-modal .teams-assign-options label {
-	margin: 0;
-	font-size: 13px;
-	font-weight: 500;
-	color: #334155;
-	cursor: pointer;
-}
-
-.teams-add-group-modal .teams-users-checkbox-list {
-	max-height: 280px;
-	overflow-y: auto;
-	border-radius: 14px;
-	border: 1px solid #e2e8f0;
-	padding: 12px 16px;
-	background: #f8fafc;
-}
-
-.teams-add-group-modal .teams-users-checkbox-list .checkbox {
-	margin: 0;
-	padding: 0;
-}
-
-.teams-add-group-modal .teams-users-checkbox-list label {
-	display: flex;
-	align-items: flex-start;
-	gap: 12px;
-	margin: 0;
-	padding: 10px 8px;
-	font-size: 13px;
-	color: #1e293b;
-	cursor: pointer;
+.teams-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 108px;
+	height: 40px;
+	padding: 0 16px;
 	border-radius: 10px;
-	transition: background 0.15s ease;
-}
-
-.teams-add-group-modal .teams-users-checkbox-list label:hover {
-	background: rgba(15, 23, 42, 0.04);
-}
-
-.teams-add-group-modal .teams-users-checkbox-list input[type="checkbox"] {
-	margin: 2px 0 0;
-	flex: 0 0 auto;
-	width: 16px;
-	height: 16px;
+	font-size: 13px;
+	font-weight: 700;
 	cursor: pointer;
+	border: 1px solid transparent;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.teams-add-group-modal .teams-users-checkbox-list label strong {
-	font-weight: 600;
+.teams-btn--primary {
+	background: #08A045;
+	border-color: #08A045;
+	color: #fff;
+}
+
+.teams-btn--primary:hover,
+.teams-btn--primary:focus {
+	background: #07903e;
+	border-color: #07903e;
+	color: #fff;
+}
+
+.teams-btn--outline {
+	background: #fff;
+	border-color: #e2e8f0;
+	color: #475569;
+}
+
+.teams-btn--outline:hover,
+.teams-btn--outline:focus {
+	background: #f8fafc;
+	border-color: #cbd5e1;
+	color: #0f172a;
 }
 
 @media (max-width: 560px) {
@@ -327,21 +270,38 @@
 	.teams-modal-form,
 	.teams-modal-footer,
 	.teams-modal-header {
-		padding-left: 18px;
-		padding-right: 18px;
+		padding-left: 16px;
+		padding-right: 16px;
 	}
 }
 
-/* Dark theme */
 html[data-theme="dark"] .teams-modal-shell {
 	background: #171b24;
 	border-color: rgba(255, 255, 255, 0.08);
-	box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
 }
 
-html[data-theme="dark"] .teams-modal-section-title {
+html[data-theme="dark"] .teams-modal-header,
+html[data-theme="dark"] .teams-modal-footer,
+html[data-theme="dark"] .teams-modal-section {
+	border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .teams-modal-footer,
+html[data-theme="dark"] .teams-modal-section {
+	background: #171b24;
+}
+
+html[data-theme="dark"] .teams-modal-form {
+	background: #0f131a;
+}
+
+html[data-theme="dark"] .teams-modal-title {
+	color: #ffffff;
+}
+
+html[data-theme="dark"] .teams-modal-section-title,
+html[data-theme="dark"] .teams-modal-field-hint {
 	color: #94a3b8;
-	border-bottom-color: rgba(255, 255, 255, 0.08);
 }
 
 html[data-theme="dark"] .teams-modal .control-label {
@@ -355,34 +315,13 @@ html[data-theme="dark"] .teams-modal select.form-control {
 	color: #f1f5f9;
 }
 
-html[data-theme="dark"] .teams-modal .form-control:focus,
-html[data-theme="dark"] .teams-modal select.form-control:focus {
-	background: #141a24;
-	border-color: #08A045;
-}
-
-html[data-theme="dark"] .teams-modal-footer {
-	background: linear-gradient(180deg, #141a24 0%, #0f131a 100%);
-	border-top-color: rgba(255, 255, 255, 0.08);
-}
-
-html[data-theme="dark"] .teams-modal-footer .teams-btn-secondary {
+html[data-theme="dark"] .teams-btn--outline {
 	background: transparent;
 	border-color: rgba(255, 255, 255, 0.14);
 	color: #cbd5e1;
 }
 
-html[data-theme="dark"] .teams-add-group-modal .teams-assign-options,
-html[data-theme="dark"] .teams-add-group-modal .teams-users-checkbox-list {
-	background: #0f131a;
-	border-color: rgba(255, 255, 255, 0.1);
-}
-
-html[data-theme="dark"] .teams-add-group-modal .teams-assign-options label,
-html[data-theme="dark"] .teams-add-group-modal .teams-users-checkbox-list label {
-	color: #e2e8f0;
-}
-
-html[data-theme="dark"] .teams-add-group-modal .teams-users-checkbox-list label:hover {
-	background: rgba(255, 255, 255, 0.04);
+html[data-theme="dark"] .teams-modal-close {
+	background: #ffffff;
+	color: #0f172a;
 }

@@ -1,7 +1,7 @@
 <?php
 /*+***********************************************************************************
  * HelpDesk_TagRuleEngineService — Tag Rule Engine (DB).
- * Nếu tags (AND) → Thì next_action / cảnh báo / kịch bản.
+ * Nếu điều kiện (AND/OR + quan trọng + công thức) → hành động / cảnh báo / kịch bản.
  * Dùng slug catalog Sales; ghi bace_lead_profile.next_action khi match.
  *************************************************************************************/
 
@@ -9,6 +9,9 @@ class HelpDesk_TagRuleEngineService {
 
 	/** @var PearDatabase */
 	protected $db;
+
+	/** Rules loaded once per request (list pages call this on every row). */
+	protected static $rulesRequestCache = array();
 
 	const SCHEMA_VERSION = 5;
 	const CSKH_RULE_ID = 'rule-cskh';
@@ -128,6 +131,7 @@ class HelpDesk_TagRuleEngineService {
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
 		$this->ensureCatalogExtraColumns();
+		$this->ensureRuleLogicColumns();
 
 		$ver = $this->getMeta('schema_version');
 		if ((int)$ver < 1) {
@@ -170,6 +174,200 @@ class HelpDesk_TagRuleEngineService {
 		if (empty($cols['scope_contact'])) {
 			$this->db->query('ALTER TABLE mk_tag_catalog ADD COLUMN scope_contact TINYINT(1) NOT NULL DEFAULT 1');
 		}
+	}
+
+	/**
+	 * Điều kiện AND/OR, tag quan trọng, công thức, ngưỡng cảnh báo, mã hành động.
+	 */
+	protected function ensureRuleLogicColumns() {
+		$need = array(
+			'condition_mode' => "VARCHAR(8) NOT NULL DEFAULT 'AND'",
+			'important_tags' => 'VARCHAR(500) NULL',
+			'formula_metric' => 'VARCHAR(32) NULL',
+			'formula_op' => 'VARCHAR(8) NULL',
+			'formula_value' => 'INT NULL',
+			'warning_value' => 'INT NULL',
+			'action_code' => 'VARCHAR(32) NULL',
+			'conditions_json' => 'MEDIUMTEXT NULL',
+		);
+		$cols = array();
+		try {
+			$rs = $this->db->getColumnNames('mk_tag_rules');
+			if (is_array($rs)) {
+				foreach ($rs as $c) {
+					$cols[strtolower((string)$c)] = true;
+				}
+			}
+		} catch (Exception $e) {
+			$cols = array();
+		}
+		foreach ($need as $name => $def) {
+			if (empty($cols[$name])) {
+				$this->db->query('ALTER TABLE mk_tag_rules ADD COLUMN ' . $name . ' ' . $def);
+			}
+		}
+	}
+
+	public static function fieldCatalog() {
+		return array(
+			'tag' => array('label' => 'Tag', 'type' => 'tag'),
+			'business_model' => array('label' => 'Mô hình kinh doanh', 'type' => 'text'),
+			'eligibility' => array('label' => 'Đủ điều kiện', 'type' => 'text'),
+			'leadsource' => array('label' => 'Nguồn', 'type' => 'text'),
+			'idle_days' => array('label' => 'Số ngày chưa chăm', 'type' => 'number'),
+			'class_time' => array('label' => 'Giờ học', 'type' => 'presence'),
+			'r1' => array('label' => 'R1 — liên hệ lỗi', 'type' => 'number'),
+			'r2' => array('label' => 'R2 — chưa chốt lịch', 'type' => 'number'),
+			'r3' => array('label' => 'R3 — không đến lớp', 'type' => 'number'),
+			'r4' => array('label' => 'R4 — không đủ điều kiện', 'type' => 'number'),
+		);
+	}
+
+	public static function formulaMetrics() {
+		return array(
+			'' => 'Không dùng công thức',
+			'r1' => 'R1 — số lần liên hệ lỗi',
+			'r2' => 'R2 — chưa chốt lịch',
+			'r3' => 'R3 — không đến lớp',
+			'r4' => 'R4 — không đủ điều kiện',
+			'idle_days' => 'Số ngày chưa chăm',
+		);
+	}
+
+	public static function decodeFieldConditions($json) {
+		if ($json === null || $json === '') {
+			return array();
+		}
+		$data = json_decode((string)$json, true);
+		return is_array($data) ? self::sanitizeFieldConditions($data) : array();
+	}
+
+	public static function sanitizeFieldConditions($rows) {
+		if (!is_array($rows)) {
+			return array();
+		}
+		$catalog = self::fieldCatalog();
+		$out = array();
+		foreach ($rows as $row) {
+			if (!is_array($row)) {
+				continue;
+			}
+			$field = isset($row['field']) ? trim((string)$row['field']) : '';
+			if (!isset($catalog[$field])) {
+				continue;
+			}
+			$type = $catalog[$field]['type'];
+			$op = isset($row['op']) ? trim((string)$row['op']) : '';
+			$allowed = $type === 'number'
+				? array('>=', '>', '=', '<=', '<')
+				: ($type === 'presence' ? array('empty', 'not_empty') : array('eq', 'neq', 'has', 'not_has', 'contains'));
+			if (!in_array($op, $allowed, true)) {
+				$op = $allowed[0];
+			}
+			$out[] = array(
+				'field' => $field,
+				'op' => $op,
+				'value' => isset($row['value']) ? trim((string)$row['value']) : '',
+				'important' => !empty($row['important']),
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * Rule chỉ ghi câu hành động / cảnh báo. Không chuyển Opp, không đổi trạng thái luồng.
+	 * @return array{pass:bool,warning:bool,message:string}
+	 */
+	protected function evaluateFieldConditions(array $rule, array $facts, array $tagSet) {
+		$rows = isset($rule['field_conditions']) ? $rule['field_conditions'] : array();
+		$important = array();
+		$rest = array();
+		foreach ($rows as $row) {
+			if (!empty($row['important'])) {
+				$important[] = $row;
+			} else {
+				$rest[] = $row;
+			}
+		}
+		foreach ($important as $row) {
+			$hit = $this->fieldRowHits($row, $facts, $tagSet, null);
+			if (!$hit['pass']) {
+				return array('pass' => false, 'warning' => false, 'message' => '');
+			}
+		}
+		if (empty($rest)) {
+			return array('pass' => !empty($important), 'warning' => false, 'message' => '');
+		}
+		$mode = isset($rule['condition_mode']) ? $rule['condition_mode'] : 'AND';
+		$warnAt = isset($rule['warning_value']) ? $rule['warning_value'] : null;
+		$any = false;
+		$all = true;
+		$warning = false;
+		$message = '';
+		foreach ($rest as $row) {
+			$hit = $this->fieldRowHits($row, $facts, $tagSet, $warnAt);
+			if ($hit['pass']) {
+				$any = true;
+			} else {
+				$all = false;
+				if (!empty($hit['warning'])) {
+					$warning = true;
+					$message = $hit['message'];
+				}
+			}
+		}
+		$pass = $mode === 'OR' ? $any : $all;
+		if ($pass) {
+			return array('pass' => true, 'warning' => false, 'message' => '');
+		}
+		if ($warning && $mode !== 'OR') {
+			return array('pass' => false, 'warning' => true, 'message' => $message !== '' ? $message : 'Cảnh báo: sắp tới hành động');
+		}
+		return array('pass' => false, 'warning' => false, 'message' => '');
+	}
+
+	protected function fieldRowHits(array $row, array $facts, array $tagSet, $warnAt) {
+		$field = $row['field'];
+		$op = $row['op'];
+		$value = isset($row['value']) ? (string)$row['value'] : '';
+		if ($field === 'tag') {
+			$has = isset($tagSet[$value]) || isset($tagSet[strtolower($value)]);
+			$pass = ($op === 'not_has' || $op === 'neq') ? !$has : $has;
+			return array('pass' => $pass, 'warning' => false, 'message' => '');
+		}
+		if ($field === 'class_time') {
+			$present = isset($facts['class_time']) && trim((string)$facts['class_time']) !== '';
+			$pass = $op === 'empty' ? !$present : $present;
+			return array('pass' => $pass, 'warning' => false, 'message' => '');
+		}
+		$catalog = self::fieldCatalog();
+		$type = isset($catalog[$field]['type']) ? $catalog[$field]['type'] : 'text';
+		if ($type === 'number') {
+			$current = isset($facts[$field]) ? (int)$facts[$field] : 0;
+			$threshold = (int)$value;
+			$pass = self::compareNumber($current, $op === '' ? '>=' : $op, $threshold);
+			$warning = !$pass && $warnAt !== null && $current >= (int)$warnAt && $current < $threshold;
+			$label = $catalog[$field]['label'];
+			return array(
+				'pass' => $pass,
+				'warning' => $warning,
+				'message' => $warning ? ('Cảnh báo: ' . $label . ' = ' . $current . ', chưa tới ' . $threshold) : '',
+			);
+		}
+		$current = isset($facts[$field]) ? trim((string)$facts[$field]) : '';
+		$pass = false;
+		if ($op === 'contains') {
+			if (function_exists('mb_stripos')) {
+				$pass = $value !== '' && mb_stripos($current, $value) !== false;
+			} else {
+				$pass = $value !== '' && stripos($current, $value) !== false;
+			}
+		} elseif ($op === 'neq') {
+			$pass = strcasecmp($current, $value) !== 0;
+		} else {
+			$pass = strcasecmp($current, $value) === 0;
+		}
+		return array('pass' => $pass, 'warning' => false, 'message' => '');
 	}
 
 	/**
@@ -366,6 +564,9 @@ class HelpDesk_TagRuleEngineService {
 			array('mkt', 'Marketing'),
 			array('van_hanh', 'Vận hành'),
 			array('nguyen_lieu_chuoi', 'NL chuỗi'),
+			array('da_pcthcb', 'Đã PCTHCB'),
+			array('mien_phi_offline', 'Miễn phí Offline'),
+			array('mien_phi_online', 'Miễn phí Online'),
 		);
 		$i = 0;
 		foreach ($entry as $pair) {
@@ -530,6 +731,7 @@ class HelpDesk_TagRuleEngineService {
 			'scenarios' => $this->getScenarios(),
 			'affiliate_tiers' => $this->getAffiliateTiers(),
 			'sheet_scoring' => $this->getSheetScoringConfig(),
+			'screening_bank' => $this->loadScreeningBankSafe(),
 			'channel_options' => $this->getScenarioChannelOptions(),
 			'assignee_options' => $this->getScenarioAssigneeOptions(),
 			'cskh_alert_days' => $this->getCskhAlertDays(),
@@ -539,6 +741,15 @@ class HelpDesk_TagRuleEngineService {
 			$out['alerts'] = $this->getAlerts((int)$userId, 200);
 		}
 		return $out;
+	}
+
+	protected function loadScreeningBankSafe() {
+		try {
+			require_once 'modules/Leads/models/SalesVerifyService.php';
+			return Leads_SalesVerifyService::getScreeningBank();
+		} catch (Exception $e) {
+			return array('questions' => array(), 'levels' => array());
+		}
 	}
 
 	/**
@@ -1609,6 +1820,10 @@ class HelpDesk_TagRuleEngineService {
 	}
 
 	public function getRules($activeOnly = false) {
+		$key = $activeOnly ? '1' : '0';
+		if (isset(self::$rulesRequestCache[$key])) {
+			return self::$rulesRequestCache[$key];
+		}
 		$sql = 'SELECT * FROM mk_tag_rules';
 		$params = array();
 		if ($activeOnly) {
@@ -1633,6 +1848,13 @@ class HelpDesk_TagRuleEngineService {
 					'require_note' => (int)$row['require_note'] === 1,
 					'scenario_id' => $row['scenario_id'] !== null ? (string)$row['scenario_id'] : null,
 					'tag_ids' => array(),
+					'condition_mode' => isset($row['condition_mode']) && strtoupper((string)$row['condition_mode']) === 'OR' ? 'OR' : 'AND',
+					'important_tags' => self::splitTagIds(isset($row['important_tags']) ? $row['important_tags'] : ''),
+					'formula_metric' => isset($row['formula_metric']) ? trim((string)$row['formula_metric']) : '',
+					'formula_op' => isset($row['formula_op']) ? trim((string)$row['formula_op']) : '',
+					'formula_value' => isset($row['formula_value']) && $row['formula_value'] !== null && $row['formula_value'] !== '' ? (int)$row['formula_value'] : null,
+					'warning_value' => isset($row['warning_value']) && $row['warning_value'] !== null && $row['warning_value'] !== '' ? (int)$row['warning_value'] : null,
+					'field_conditions' => self::decodeFieldConditions(isset($row['conditions_json']) ? $row['conditions_json'] : ''),
 				);
 			}
 		}
@@ -1650,7 +1872,8 @@ class HelpDesk_TagRuleEngineService {
 				}
 			}
 		}
-		return array_values($rules);
+		self::$rulesRequestCache[$key] = array_values($rules);
+		return self::$rulesRequestCache[$key];
 	}
 
 	public function getRuleById($id) {
@@ -1663,6 +1886,7 @@ class HelpDesk_TagRuleEngineService {
 	}
 
 	public function upsertRule(array $payload, $generateId = true) {
+		self::$rulesRequestCache = array();
 		$id = isset($payload['id']) ? trim((string)$payload['id']) : '';
 		$name = trim((string)($payload['name'] ?? ''));
 		if ($name === '') {
@@ -1691,18 +1915,47 @@ class HelpDesk_TagRuleEngineService {
 			}
 		}
 		$tagIds = array_keys($tagIds);
+		$conditionMode = (isset($payload['condition_mode']) && strtoupper((string)$payload['condition_mode']) === 'OR') ? 'OR' : 'AND';
+		$important = array();
+		if (!empty($payload['important_tags']) && is_array($payload['important_tags'])) {
+			foreach ($payload['important_tags'] as $tid) {
+				$tid = trim((string)$tid);
+				if ($tid !== '') {
+					$important[$tid] = true;
+				}
+			}
+		}
+		$importantCsv = implode(',', array_keys($important));
+		$metric = isset($payload['formula_metric']) ? trim((string)$payload['formula_metric']) : '';
+		if (!array_key_exists($metric, self::formulaMetrics())) {
+			$metric = '';
+		}
+		$op = isset($payload['formula_op']) ? trim((string)$payload['formula_op']) : '>=';
+		if (!in_array($op, array('>=', '>', '=', '<=', '<'), true)) {
+			$op = '>=';
+		}
+		$formulaValue = null;
+		if (isset($payload['formula_value']) && $payload['formula_value'] !== '' && $payload['formula_value'] !== null) {
+			$formulaValue = (int)$payload['formula_value'];
+		}
+		$warningValue = null;
+		if (isset($payload['warning_value']) && $payload['warning_value'] !== '' && $payload['warning_value'] !== null) {
+			$warningValue = (int)$payload['warning_value'];
+		}
+		$fieldConditions = self::sanitizeFieldConditions(isset($payload['field_conditions']) ? $payload['field_conditions'] : array());
+		$conditionsJson = !empty($fieldConditions) ? json_encode($fieldConditions, JSON_UNESCAPED_UNICODE) : null;
 
 		$exists = $this->db->pquery('SELECT id FROM mk_tag_rules WHERE id = ?', array($id));
 		if ($exists && $this->db->num_rows($exists) > 0) {
 			$this->db->pquery(
-				'UPDATE mk_tag_rules SET status_label=?, name=?, priority=?, is_active=?, alert_days=?, next_action=?, require_note=?, scenario_id=? WHERE id=?',
-				array($statusLabel, $name, $priority, $isActive ? 1 : 0, $alertDays, $nextAction, $requireNote ? 1 : 0, $scenarioId, $id)
+				'UPDATE mk_tag_rules SET status_label=?, name=?, priority=?, is_active=?, alert_days=?, next_action=?, require_note=?, scenario_id=?, condition_mode=?, important_tags=?, formula_metric=?, formula_op=?, formula_value=?, warning_value=?, action_code=?, conditions_json=? WHERE id=?',
+				array($statusLabel, $name, $priority, $isActive ? 1 : 0, $alertDays, $nextAction, $requireNote ? 1 : 0, $scenarioId, $conditionMode, $importantCsv !== '' ? $importantCsv : null, $metric !== '' ? $metric : null, $metric !== '' ? $op : null, $formulaValue, $warningValue, null, $conditionsJson, $id)
 			);
 		} else {
 			$this->db->pquery(
-				'INSERT INTO mk_tag_rules (id, status_label, name, priority, is_active, alert_days, next_action, require_note, scenario_id)
-				 VALUES (?,?,?,?,?,?,?,?,?)',
-				array($id, $statusLabel, $name, $priority, $isActive ? 1 : 0, $alertDays, $nextAction, $requireNote ? 1 : 0, $scenarioId)
+				'INSERT INTO mk_tag_rules (id, status_label, name, priority, is_active, alert_days, next_action, require_note, scenario_id, condition_mode, important_tags, formula_metric, formula_op, formula_value, warning_value, action_code, conditions_json)
+				 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+				array($id, $statusLabel, $name, $priority, $isActive ? 1 : 0, $alertDays, $nextAction, $requireNote ? 1 : 0, $scenarioId, $conditionMode, $importantCsv !== '' ? $importantCsv : null, $metric !== '' ? $metric : null, $metric !== '' ? $op : null, $formulaValue, $warningValue, null, $conditionsJson)
 			);
 		}
 		$this->db->pquery('DELETE FROM mk_tag_rule_conditions WHERE rule_id = ?', array($id));
@@ -1716,43 +1969,82 @@ class HelpDesk_TagRuleEngineService {
 	}
 
 	public function setRuleActive($id, $active) {
+		self::$rulesRequestCache = array();
 		$this->db->pquery('UPDATE mk_tag_rules SET is_active = ? WHERE id = ?', array($active ? 1 : 0, $id));
 		return $this->getRuleById($id);
 	}
 
 	public function deleteRule($id) {
+		self::$rulesRequestCache = array();
 		$this->db->pquery('DELETE FROM mk_tag_rule_conditions WHERE rule_id = ?', array($id));
 		$this->db->pquery('DELETE FROM mk_tag_rule_dismissals WHERE rule_id = ?', array($id));
 		$this->db->pquery('DELETE FROM mk_tag_rules WHERE id = ?', array($id));
 		return true;
 	}
 
-	/** ——— Match + apply to Lead ——— */
+	protected static function splitTagIds($csv) {
+		$out = array();
+		foreach (explode(',', (string)$csv) as $part) {
+			$part = trim($part);
+			if ($part !== '') {
+				$out[] = $part;
+			}
+		}
+		return $out;
+	}
 
-	public function matchRules(array $tagIdsOrLabels, $activeOnly = true) {
+	/**
+	 * @param array|null $facts r1,r2,r3,r4,idle_days — null = bỏ qua công thức (tương thích cũ)
+	 */
+	public function matchRules(array $tagIdsOrLabels, $activeOnly = true, $facts = null) {
 		$slugs = $this->normalizeTagList($tagIdsOrLabels);
 		$set = array_fill_keys($slugs, true);
 		$matches = array();
+		$warnings = array();
 		foreach ($this->getRules($activeOnly) as $rule) {
-			$need = $rule['tag_ids'];
-			if (empty($need)) {
+			$hasTags = !empty($rule['tag_ids']) || !empty($rule['important_tags']);
+			$hasRows = !empty($rule['field_conditions']);
+			if ($hasTags && !$this->tagsSatisfyRule($rule, $set)) {
 				continue;
 			}
-			$ok = true;
-			foreach ($need as $tid) {
-				if (!isset($set[$tid])) {
-					$ok = false;
-					break;
-				}
+			if (!$hasTags && !$hasRows) {
+				continue;
 			}
-			if ($ok) {
-				$matches[] = array('rule' => $rule);
+			if ($hasRows) {
+				if (!is_array($facts)) {
+					continue;
+				}
+				$rowHit = $this->evaluateFieldConditions($rule, $facts, $set);
+				if ($rowHit['pass']) {
+					$matches[] = array('rule' => $rule, 'warning' => false);
+				} elseif ($rowHit['warning']) {
+					$warnings[] = array(
+						'rule' => $rule,
+						'message' => $rowHit['message'],
+					);
+				}
+				continue;
+			}
+			$formula = $this->evaluateFormula($rule, $facts);
+			if ($formula['skip']) {
+				$matches[] = array('rule' => $rule, 'warning' => false);
+				continue;
+			}
+			if ($formula['pass']) {
+				$matches[] = array('rule' => $rule, 'warning' => false, 'metric' => $formula['value']);
+				continue;
+			}
+			if ($formula['warning']) {
+				$warnings[] = array(
+					'rule' => $rule,
+					'message' => $formula['message'],
+					'metric' => $formula['value'],
+				);
 			}
 		}
 		usort($matches, function ($a, $b) {
 			return ((int)$a['rule']['priority']) - ((int)$b['rule']['priority']);
 		});
-		// next_action trên Lead: ưu tiên rule giai đoạn muộn nhất (priority cao nhất)
 		$best = null;
 		foreach ($matches as $m) {
 			if ($best === null || (int)$m['rule']['priority'] >= (int)$best['priority']) {
@@ -1762,8 +2054,143 @@ class HelpDesk_TagRuleEngineService {
 		return array(
 			'slugs' => $slugs,
 			'matches' => $matches,
+			'warnings' => $warnings,
 			'best' => $best,
 		);
+	}
+
+	protected function tagsSatisfyRule(array $rule, array $set) {
+		$need = isset($rule['tag_ids']) ? $rule['tag_ids'] : array();
+		$important = isset($rule['important_tags']) ? $rule['important_tags'] : array();
+		if (empty($need) && empty($important)) {
+			return false;
+		}
+		foreach ($important as $tid) {
+			if (!isset($set[$tid])) {
+				return false;
+			}
+		}
+		if (empty($need)) {
+			return !empty($important);
+		}
+		$mode = isset($rule['condition_mode']) ? $rule['condition_mode'] : 'AND';
+		if ($mode === 'OR') {
+			foreach ($need as $tid) {
+				if (isset($set[$tid])) {
+					return true;
+				}
+			}
+			return false;
+		}
+		foreach ($need as $tid) {
+			if (!isset($set[$tid])) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * @return array{skip:bool,pass:bool,warning:bool,value:int|null,message:string}
+	 */
+	protected function evaluateFormula(array $rule, $facts) {
+		$metric = isset($rule['formula_metric']) ? $rule['formula_metric'] : '';
+		$empty = array('skip' => true, 'pass' => false, 'warning' => false, 'value' => null, 'message' => '');
+		if ($metric === '' || $rule['formula_value'] === null) {
+			return $empty;
+		}
+		if (!is_array($facts)) {
+			return $empty;
+		}
+		$value = isset($facts[$metric]) ? (int)$facts[$metric] : 0;
+		$threshold = (int)$rule['formula_value'];
+		$op = isset($rule['formula_op']) && $rule['formula_op'] !== '' ? $rule['formula_op'] : '>=';
+		$pass = self::compareNumber($value, $op, $threshold);
+		$warnAt = $rule['warning_value'];
+		$warning = !$pass && $warnAt !== null && $value >= (int)$warnAt;
+		$message = '';
+		if ($warning) {
+			$message = 'Cảnh báo: ' . $metric . ' = ' . $value . ' (ngưỡng ' . $op . ' ' . $threshold . ')';
+		}
+		return array(
+			'skip' => false,
+			'pass' => $pass,
+			'warning' => $warning,
+			'value' => $value,
+			'message' => $message,
+		);
+	}
+
+	protected static function compareNumber($value, $op, $threshold) {
+		switch ($op) {
+			case '>':
+				return $value > $threshold;
+			case '=':
+				return $value === $threshold;
+			case '<=':
+				return $value <= $threshold;
+			case '<':
+				return $value < $threshold;
+			case '>=':
+			default:
+				return $value >= $threshold;
+		}
+	}
+
+	public function loadLeadFacts($leadId) {
+		$leadId = (int)$leadId;
+		$facts = array(
+			'r1' => 0,
+			'r2' => 0,
+			'r3' => 0,
+			'r4' => 0,
+			'idle_days' => 0,
+			'business_model' => '',
+			'eligibility' => '',
+			'leadsource' => '',
+			'class_time' => '',
+		);
+		if ($leadId <= 0) {
+			return $facts;
+		}
+		try {
+			$src = $this->db->pquery('SELECT leadsource FROM vtiger_leaddetails WHERE leadid = ?', array($leadId));
+			if ($src && $this->db->num_rows($src) > 0) {
+				$facts['leadsource'] = trim((string)$this->db->query_result($src, 0, 'leadsource'));
+			}
+		} catch (Exception $e) {
+			// ignore
+		}
+		try {
+			$res = $this->db->pquery(
+				'SELECT offline_r1_hen_goi, offline_r1_khong_nghe, offline_r1_sai_tt,
+				        offline_r2_schedule, offline_r3_class, offline_r4_transfer, modified_at,
+				        business_model, eligibility_result, offline_class_time
+				 FROM bace_lead_profile WHERE leadid = ?',
+				array($leadId)
+			);
+			if ($res && $this->db->num_rows($res) > 0) {
+				$facts['r1'] = (int)$this->db->query_result($res, 0, 'offline_r1_hen_goi')
+					+ (int)$this->db->query_result($res, 0, 'offline_r1_khong_nghe')
+					+ (int)$this->db->query_result($res, 0, 'offline_r1_sai_tt');
+				$facts['r2'] = (int)$this->db->query_result($res, 0, 'offline_r2_schedule');
+				$facts['r3'] = (int)$this->db->query_result($res, 0, 'offline_r3_class');
+				$facts['r4'] = (int)$this->db->query_result($res, 0, 'offline_r4_transfer');
+				$facts['business_model'] = trim((string)$this->db->query_result($res, 0, 'business_model'));
+				$facts['eligibility'] = trim((string)$this->db->query_result($res, 0, 'eligibility_result'));
+				$facts['class_time'] = trim((string)$this->db->query_result($res, 0, 'offline_class_time'));
+				$mod = $this->db->query_result($res, 0, 'modified_at');
+				if ($mod) {
+					$ts = strtotime((string)$mod);
+					if ($ts) {
+						$facts['idle_days'] = max(0, (int)floor((time() - $ts) / 86400));
+					}
+				}
+			}
+		} catch (Exception $e) {
+			// profile chưa đủ cột — giữ mặc định
+		}
+		return $facts;
 	}
 
 	public function getLeadTagLabels($leadId) {
@@ -1789,9 +2216,12 @@ class HelpDesk_TagRuleEngineService {
 	}
 
 	public function getNextActionForLead($leadId) {
-		$match = $this->matchRules($this->getLeadTagLabels($leadId), true);
+		$match = $this->matchRules($this->getLeadTagLabels($leadId), true, $this->loadLeadFacts($leadId));
 		if (!empty($match['best']['next_action'])) {
 			return (string)$match['best']['next_action'];
+		}
+		if (!empty($match['warnings'][0]['message'])) {
+			return (string)$match['warnings'][0]['message'];
 		}
 		return '';
 	}
@@ -1817,7 +2247,7 @@ class HelpDesk_TagRuleEngineService {
 			'next_action_days_overdue' => null,
 			'timeframe_label' => '',
 		);
-		$match = $this->matchRules($tags, true);
+		$match = $this->matchRules($tags, true, null);
 		$best = !empty($match['best']) ? $match['best'] : null;
 		if (!$best) {
 			return $meta;

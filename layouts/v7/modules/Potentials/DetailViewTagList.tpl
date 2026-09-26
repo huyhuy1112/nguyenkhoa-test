@@ -1,5 +1,10 @@
-{* Potentials SALES — tag strip + modals (Lovable chips) *}
+{* Potentials SALES — tag strip + modals (Lovable chips). Add-tag first like Leads. *}
 <div class="tagContainer mk-opp-tag-container">
+    <div id="addTagContainer">
+        <a id="addTagTriggerer" class="badge mk-opp-add-tag-btn" href="javascript:void(0);" title="{vtranslate('LBL_ADD_TAG',$MODULE)}" aria-label="{vtranslate('LBL_ADD_TAG',$MODULE)}">
+            <i class="fa fa-plus" aria-hidden="true"></i>
+        </a>
+    </div>
     <div class="tag-contents {if empty($TAGS_LIST)} hide{/if}">
         <div class="detailTagList" data-num-of-tags-to-show="999">
             {foreach from=$TAGS_LIST item=TAG_MODEL}
@@ -12,12 +17,6 @@
                 &nbsp;{vtranslate('LBL_MORE',$MODULE)|strtolower}
             </a>
         </div>
-    </div>
-    <div id="addTagContainer">
-        <a id="addTagTriggerer" class="badge mk-opp-add-tag-btn">
-            <i class="fa fa-plus"></i>
-            {vtranslate('LBL_ADD_NEW_TAG',$MODULE)}
-        </a>
     </div>
     <div class="viewAllTagsContainer hide">
         <div class="modal-dialog mk-opp-tags-modal-dialog mk-opp-tags-modal-dialog--view">

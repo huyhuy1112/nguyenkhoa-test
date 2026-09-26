@@ -674,17 +674,33 @@ function decode_emptyspace_html($str){
 }
 
 function decode_html($str) {
-	// null or blank
-	if (!$str) return $str;
+	// null or blank, and non-strings (0, false) stay as-is
+	if (!$str || !is_string($str)) return $str;
+	if (strpos($str, '&') === false) return $str;
 
 	global $default_charset;
-	// Direct Popup action or Ajax Popup action should be treated the same.
-	if ((isset($_REQUEST['action']) && $_REQUEST['action'] == 'Popup') || (isset($_REQUEST['file']) && $_REQUEST['file'] == 'Popup'))
-		return html_entity_decode($str);
-	else if ($str)
-		return html_entity_decode($str, ENT_QUOTES, $default_charset);
-	else
-		return $str;
+	$charset = (!empty($default_charset) && is_string($default_charset)) ? $default_charset : 'UTF-8';
+	$flags = ENT_QUOTES;
+	if (defined('ENT_HTML5')) {
+		$flags = ENT_QUOTES | ENT_HTML5;
+	}
+	// vtiger often stores Vietnamese twice (&amp;atilde;). One pass leaves the code on screen.
+	$prev = $str;
+	for ($i = 0; $i < 5; $i++) {
+		try {
+			$decoded = html_entity_decode($prev, $flags, $charset);
+		} catch (Throwable $e) {
+			$decoded = html_entity_decode($prev, $flags, 'UTF-8');
+		}
+		if (!is_string($decoded) || $decoded === $prev) {
+			break;
+		}
+		$prev = $decoded;
+		if (strpos($prev, '&') === false) {
+			break;
+		}
+	}
+	return $prev;
 }
 
 function popup_decode_html($str) {

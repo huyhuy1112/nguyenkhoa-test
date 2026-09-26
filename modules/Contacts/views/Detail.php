@@ -46,25 +46,93 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 		}
 		$subtitle = trim(html_entity_decode(strip_tags((string) $recordModel->getDisplayValue('contact_no')), ENT_QUOTES, 'UTF-8'));
 		require_once 'modules/Contacts/models/ModernService.php';
+		$businessModel = '';
 		try {
 			Contacts_ModernService::ensureEventTimeColumns();
+			Contacts_ModernService::ensureBusinessModelSchema();
 			// Reload module so newly registered fields are available for inline edit.
 			$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+			$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
+			$adb = PearDatabase::getInstance();
+			$bizRes = $adb->pquery(
+				'SELECT business_model FROM bace_contact_profile WHERE contactid = ?',
+				array($recordId)
+			);
+			if ($bizRes && $adb->num_rows($bizRes) > 0) {
+				$businessModel = Vtiger_MkSalesInlineDetailHelper::decodeText(
+					$adb->query_result($bizRes, 0, 'business_model')
+				);
+			}
+			if ($businessModel === '') {
+				$leadBizRes = $adb->pquery(
+					"SELECT business_model FROM bace_lead_profile
+					 WHERE contact_id = ? AND business_model IS NOT NULL
+					   AND TRIM(business_model) <> ''
+					 ORDER BY leadid DESC LIMIT 1",
+					array($recordId)
+				);
+				if ($leadBizRes && $adb->num_rows($leadBizRes) > 0) {
+					$businessModel = Vtiger_MkSalesInlineDetailHelper::decodeText(
+						$adb->query_result($leadBizRes, 0, 'business_model')
+					);
+				}
+			}
+			require_once 'modules/Vtiger/helpers/BusinessModelHelper.php';
+			$businessModel = Vtiger_BusinessModel_Helper::normalize($businessModel);
 		} catch (Exception $e) {
 			// ignore — schema ensure is best-effort
 		}
 
-		$infoFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
+		$listFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
+			array('createdtime', 'Ngày chuyển'),
 			array('phone', 'Điện thoại'),
-			array('mobile', 'Di động'),
-			array('email', 'Email'),
 			array('mailingstreet', 'Địa chỉ'),
-			array('title', 'Chức danh'),
+		));
+		$addressParts = array();
+		foreach (array('mailingstreet', 'mailingcity', 'mailingstate', 'mailingcountry') as $addressField) {
+			$addressValue = Vtiger_MkSalesInlineDetailHelper::decodeText(
+				$recordModel->getDisplayValue($addressField)
+			);
+			if ($addressValue !== '' && $addressValue !== '--' && !in_array($addressValue, $addressParts, true)) {
+				$addressParts[] = $addressValue;
+			}
+		}
+		$fullAddress = implode(', ', $addressParts);
+		foreach ($listFields as &$listField) {
+			if ($listField['name'] === 'phone'
+				&& ($listField['value'] === '' || $listField['value'] === '—' || $listField['value'] === '--')) {
+				$mobileValue = Vtiger_MkSalesInlineDetailHelper::decodeText($recordModel->getDisplayValue('mobile'));
+				if ($mobileValue !== '' && $mobileValue !== '--') {
+					$listField['value'] = $mobileValue;
+				}
+			}
+			if ($listField['name'] === 'mailingstreet' && $fullAddress !== '') {
+				$listField['value'] = $fullAddress;
+				$listField['raw_value'] = $fullAddress;
+			}
+		}
+		unset($listField);
+		$listFields[] = array(
+			'name' => 'mk_business_model_display',
+			'label' => 'Mô hình kinh doanh',
+			'value' => $businessModel !== '' ? $businessModel : '—',
+			'raw_value' => $businessModel,
+			'data_type' => 'string',
+			'editable' => false,
+			'picklist_values' => array(),
+		);
+		$detailFields = Vtiger_MkSalesInlineDetailHelper::buildFields($moduleModel, $recordModel, array(
+			array('da_cap_bang', 'Đã cấp bằng'),
+			array('da_cap_tai_khoan', 'Đã cấp tài khoản'),
 			array('thoigian_dangky', 'Thời gian Đăng Ký'),
 			array('thoigian_pcth', 'Thời gian tham gia PCTH'),
 			array('thoigian_mqbb', 'Thời gian tham gia MQBB'),
 			array('assigned_user_id', 'Phụ trách'),
+			array('mobile', 'Di động'),
+			array('email', 'Email'),
+			array('title', 'Chức danh'),
 		));
+		$infoFields = array_merge($listFields, $detailFields);
 
 		$lastTouch = array(
 			'can_add' => true,
@@ -123,6 +191,7 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 				$viewer->assign('MK_CLASS_REG', Contacts_ModernService::getClassRegSummary($recordId));
 				$viewer->assign('MK_CREDENTIALS', Contacts_ModernService::getCredentialState($recordId));
 				$viewer->assign('MK_CONTACT_CCCD', Contacts_ModernService::getLeadCccdForContact($recordId));
+				$viewer->assign('MK_EDUBIT', Contacts_ModernService::edubitProvisionPanel($recordId));
 			} catch (Exception $e) {
 				$viewer->assign('MK_CLASS_REG', array(
 					'logs' => array(),
@@ -138,9 +207,18 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 					'da_cap_bang' => 'Chưa cấp',
 					'da_cap_tai_khoan' => 'Chưa cấp tài khoản',
 					'bang_options' => array('Chưa cấp', 'Đã cấp'),
-					'tk_options' => array('Chưa cấp tài khoản', 'Đã cấp tài khoản'),
+					'tk_options' => array('Chưa cấp tài khoản', 'Đã cấp'),
 				));
 				$viewer->assign('MK_CONTACT_CCCD', '');
+				$viewer->assign('MK_EDUBIT', array(
+					'email' => '',
+					'has_account' => false,
+					'courses' => array(
+						array('id' => '29403', 'label' => '29403 — Khai trương quán bài bản (990k)', 'owned' => false),
+						array('id' => '29218', 'label' => '29218 — Pha chế tổng hợp', 'owned' => false),
+						array('id' => '28108', 'label' => '28108 — Pha chế tổng hợp cơ bản', 'owned' => false),
+					),
+				));
 			}
 		}
 	}

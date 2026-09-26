@@ -32,7 +32,11 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 			'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save', 'bulk_assign_owner',
 			'dedupe_leads', 'last_touch_call_log',
 			'sheet_settings_save', 'sheet_poll_now', 'merge_leads', 'restore_lead', 'purge_lead', 'soft_delete',
-			'sales_verify_save',
+			'sales_verify_save', 'online_verify_save', 'offline_gd11_apply', 'offline_gd11_step2',
+			'offline_gd11_step2_remind', 'r1_notif_action',
+			'online_gd12_transfer_from_offline', 'online_gd12_transfer_from_online',
+			'online_edubit_provision', 'online_edubit_sync_progress', 'online_edubit_renew',
+			'product_upsert', 'product_remove', 'product_set_stage',
 		), true)) {
 			$request->validateWriteAccess();
 		}
@@ -56,10 +60,12 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 
 			switch ($mode) {
 				case 'list':
+					require_once 'modules/Leads/models/LeadProductsService.php';
 					$response->setResult(array(
 						'success' => true,
 						'leads' => Leads_ModernService::listLeads($userId),
 						'assignable_users' => Leads_ModernService::listAssignableUsers(),
+						'product_catalog' => Leads_LeadProductsService::catalog(),
 					));
 					break;
 
@@ -323,6 +329,177 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 					$response->setResult($saved);
 					break;
 
+				case 'online_verify_preview':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$payload = $this->decodePayload($request);
+					$result = Leads_OnlineGd12Service::compute(
+						isset($payload['q1']) ? $payload['q1'] : (isset($payload['c1']) ? $payload['c1'] : ''),
+						isset($payload['q2']) ? $payload['q2'] : (isset($payload['c2']) ? $payload['c2'] : ''),
+						isset($payload['q3']) ? $payload['q3'] : (isset($payload['c3']) ? $payload['c3'] : ''),
+						isset($payload['q4']) ? $payload['q4'] : (isset($payload['c4']) ? $payload['c4'] : '')
+					);
+					$response->setResult(array('success' => !empty($result['success']), 'result' => $result));
+					break;
+
+				case 'online_verify_save':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					$saved = Leads_OnlineGd12Service::saveForLead($id, $payload, $userId);
+					$response->setResult($saved);
+					break;
+
+				case 'online_gd12_transfer_from_offline':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					$saved = Leads_OnlineGd12Service::transferFromOffline($id, $userId);
+					$response->setResult($saved);
+					break;
+
+				case 'online_gd12_transfer_from_online':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					$saved = Leads_OnlineGd12Service::transferFromOnline($id, $userId);
+					$response->setResult($saved);
+					break;
+
+				case 'online_edubit_courses':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$response->setResult(array(
+						'success' => true,
+						'courses' => Leads_OnlineGd12Service::edubitCoursesCatalog(),
+					));
+					break;
+
+				case 'online_edubit_provision':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					$saved = Leads_OnlineGd12Service::provisionEdubitForLead($id, $payload, $userId);
+					if (!empty($saved['success'])) {
+						$lead = Leads_ModernService::getLead($id, $userId);
+						$saved['lead'] = $lead;
+					}
+					$response->setResult($saved);
+					break;
+
+				case 'online_edubit_sync_progress':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					$saved = Leads_OnlineGd12Service::syncEdubitProgressForLead($id, $userId);
+					if (!empty($saved['success'])) {
+						$lead = Leads_ModernService::getLead($id, $userId);
+						$saved['lead'] = $lead;
+					}
+					$response->setResult($saved);
+					break;
+
+				case 'online_edubit_renew':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					$saved = Leads_OnlineGd12Service::renewEdubitAccessForLead($id, $payload, $userId);
+					if (!empty($saved['success'])) {
+						$lead = Leads_ModernService::getLead($id, $userId);
+						$saved['lead'] = $lead;
+					}
+					$response->setResult($saved);
+					break;
+
+				case 'offline_gd11_apply':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					$action = isset($payload['action']) ? $payload['action'] : $request->get('offline_action');
+					$saved = Leads_OfflineGd11Service::applyAction($id, $action, $payload, $userId);
+					$response->setResult($saved);
+					break;
+
+				case 'r1_notif_action':
+					require_once 'modules/Leads/models/OfflineGd11Service.php';
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					if (($id === null || $id === '') && isset($payload['leadId'])) {
+						$id = $payload['leadId'];
+					}
+					$action = isset($payload['action']) ? $payload['action'] : $request->get('r1_action');
+					$saved = Leads_OfflineGd11Service::handleR1NotifAction($id, $action, $userId);
+					$response->setResult($saved);
+					break;
+
+				case 'offline_gd11_step2':
+					require_once 'modules/Leads/models/OfflineGd11Step2Service.php';
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					$action = isset($payload['action']) ? $payload['action'] : $request->get('step2_action');
+					$saved = Leads_OfflineGd11Step2Service::applyAction($id, $action, $payload, $userId);
+					$response->setResult($saved);
+					break;
+
+				case 'offline_gd11_step2_remind':
+					require_once 'modules/Leads/models/OfflineGd11Step2Service.php';
+					Leads_OfflineGd11Step2Service::installSchema();
+					$result = Leads_OfflineGd11Step2Service::processReminders(100);
+					$response->setResult(array('success' => true) + $result);
+					break;
+
 				case 'sheet_poll_status':
 					require_once 'modules/Leads/models/SheetImportService.php';
 					$settings = Leads_SheetImportService::getSettings();
@@ -457,6 +634,75 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 					));
 					break;
 
+				case 'product_catalog':
+					require_once 'modules/Leads/models/LeadProductsService.php';
+					$response->setResult(array(
+						'success' => true,
+						'catalog' => Leads_LeadProductsService::catalog(),
+					));
+					break;
+
+				case 'product_upsert':
+					require_once 'modules/Leads/models/LeadProductsService.php';
+					$payload = $this->decodePayload($request);
+					$leadId = $request->get('id');
+					if ($leadId === null || $leadId === '') {
+						$leadId = $request->get('record');
+					}
+					if (($leadId === null || $leadId === '') && isset($payload['id'])) {
+						$leadId = $payload['id'];
+					}
+					$leadId = Leads_ModernService::resolveLeadRecordId($leadId);
+					$group = $request->get('group');
+					if ($group === null || $group === '') {
+						$group = isset($payload['group']) ? $payload['group'] : '';
+					}
+					$productName = $request->get('product_name');
+					if ($productName === null) {
+						$productName = isset($payload['product_name']) ? $payload['product_name'] : '';
+					}
+					$product = Leads_LeadProductsService::upsertProduct($leadId, $group, $productName, $userId);
+					$response->setResult(array(
+						'success' => true,
+						'product' => $product,
+						'lead' => Leads_ModernService::getLead($leadId, $userId),
+					));
+					break;
+
+				case 'product_remove':
+					require_once 'modules/Leads/models/LeadProductsService.php';
+					$payload = $this->decodePayload($request);
+					$productId = $request->get('product_id');
+					if ($productId === null || $productId === '') {
+						$productId = isset($payload['product_id']) ? $payload['product_id'] : $request->get('id');
+					}
+					$leadId = Leads_LeadProductsService::removeProduct($productId, $userId);
+					$response->setResult(array(
+						'success' => true,
+						'lead' => Leads_ModernService::getLead($leadId, $userId),
+					));
+					break;
+
+				case 'product_set_stage':
+					require_once 'modules/Leads/models/LeadProductsService.php';
+					$payload = $this->decodePayload($request);
+					$productId = $request->get('product_id');
+					if ($productId === null || $productId === '') {
+						$productId = isset($payload['product_id']) ? $payload['product_id'] : $request->get('id');
+					}
+					$stage = $request->get('stage');
+					if ($stage === null || $stage === '') {
+						$stage = isset($payload['stage']) ? $payload['stage'] : '';
+					}
+					$product = Leads_LeadProductsService::setStage($productId, $stage, $userId);
+					$leadId = isset($product['leadid']) ? $product['leadid'] : 0;
+					$response->setResult(array(
+						'success' => true,
+						'product' => $product,
+						'lead' => $leadId ? Leads_ModernService::getLead($leadId, $userId) : null,
+					));
+					break;
+
 				case 'convert':
 					$leadId = $request->get('id');
 					if ($leadId === null || $leadId === '') {
@@ -504,14 +750,28 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 
 	protected function decodePayload(Vtiger_Request $request) {
 		$raw = $request->getRaw('payload');
-		if ($raw) {
+		if (is_array($raw)) {
+			return $raw;
+		}
+		if (is_string($raw) && $raw !== '') {
 			$decoded = json_decode($raw, true);
 			if (is_array($decoded)) {
 				return $decoded;
 			}
+			$decoded = json_decode(html_entity_decode($raw, ENT_QUOTES, 'UTF-8'), true);
+			if (is_array($decoded)) {
+				return $decoded;
+			}
+		}
+		$viaGet = $request->get('payload');
+		if (is_array($viaGet)) {
+			return $viaGet;
 		}
 		$all = $request->getAll();
 		unset($all['module'], $all['action'], $all['mode'], $all['__vtrftk']);
+		if (isset($all['payload']) && is_array($all['payload'])) {
+			return $all['payload'];
+		}
 		return is_array($all) ? $all : array();
 	}
 }

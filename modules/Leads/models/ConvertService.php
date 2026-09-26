@@ -49,6 +49,12 @@ class Leads_ConvertService {
 		$potentialId = (int)$potential->getId();
 		if ($potentialId > 0) {
 			self::transferLeadTags($leadId, array('Potentials' => $potentialId), $ownerId);
+			try {
+				require_once 'modules/Leads/models/LeadProductsService.php';
+				Leads_LeadProductsService::linkPotential($leadId, $potentialId);
+			} catch (Exception $e) {
+				// best-effort
+			}
 		}
 		if ($potentialId <= 0) {
 			return null;
@@ -56,6 +62,41 @@ class Leads_ConvertService {
 
 		self::relateRecords($leadId, self::MODULE, $potentialId, 'Potentials');
 		self::storePotentialId($leadId, $potentialId);
+		return $potentialId;
+	}
+
+	/**
+	 * Create an Opportunity linked to a Lead without marking the Lead converted
+	 * (used when one product line is won while others stay open).
+	 */
+	public static function createRelatedPotential($leadId, $name, $ownerId) {
+		$leadId = (int) $leadId;
+		$ownerId = (int) $ownerId;
+		if ($leadId <= 0) {
+			return null;
+		}
+		$name = trim((string) $name);
+		if ($name === '') {
+			$name = 'Lead #' . $leadId;
+		}
+		if ($ownerId <= 0) {
+			global $current_user;
+			$ownerId = (int) $current_user->id;
+		}
+		$potential = Vtiger_Record_Model::getCleanInstance('Potentials');
+		$potential->set('potentialname', $name);
+		$potential->set('amount', 0);
+		$potential->set('assigned_user_id', $ownerId);
+		$potential->set('sales_stage', 'Closed Won');
+		$potential->set('closingdate', date('Y-m-d'));
+		$potential->set('order_category', self::defaultOrderCategory());
+		$potential->save();
+		$potentialId = (int) $potential->getId();
+		if ($potentialId <= 0) {
+			return null;
+		}
+		self::relateRecords($leadId, self::MODULE, $potentialId, 'Potentials');
+		self::transferLeadTags($leadId, array('Potentials' => $potentialId), $ownerId);
 		return $potentialId;
 	}
 
@@ -80,8 +121,11 @@ class Leads_ConvertService {
 			self::resetConvertedFlagIfNeeded($leadId);
 		}
 
-		// BA workflow: Lead is input data only.
-		// Convert Lead -> Opportunity MUST create Contact (BA confirmed).
+		// BA default: Contact + Opportunity. Offline GD1.1: chỉ Opp (bypass vtws_convertlead).
+		$createContact = !isset($options['create_contact']) || $options['create_contact'] !== false;
+		if (!$createContact) {
+			return self::convertLeadToPotentialOnly($leadId, $options);
+		}
 		$modules = isset($options['modules']) && is_array($options['modules'])
 			? $options['modules']
 			: array('Contacts', 'Potentials');
@@ -94,8 +138,13 @@ class Leads_ConvertService {
 		$createAccount = !empty($options['create_account']);
 		$orderCategory = self::resolveOrderCategory(isset($options['order_category']) ? $options['order_category'] : '');
 
-		$assignId = isset($options['assigned_user_id']) ? (int)$options['assigned_user_id'] : (int)$current_user->id;
-		// Transfer related records to Contact by default (Contact is always created).
+		$assignId = isset($options['assigned_user_id']) ? (int)$options['assigned_user_id'] : 0;
+		if ($assignId <= 0) {
+			$assignId = (int) $recordModel->get('assigned_user_id');
+		}
+		if ($assignId <= 0 && !empty($current_user->id)) {
+			$assignId = (int) $current_user->id;
+		}
 		$entityValues = array(
 			'transferRelatedRecordsTo' => 'Contacts',
 			'assignedTo' => vtws_getWebserviceEntityId(vtws_getOwnerType($assignId), $assignId),
@@ -223,6 +272,14 @@ class Leads_ConvertService {
 			'Contacts' => $contactId,
 			'Accounts' => $accountId,
 		), (int)$current_user->id);
+		if ($potentialId) {
+			try {
+				require_once 'modules/Leads/models/LeadProductsService.php';
+				Leads_LeadProductsService::linkPotential($leadId, $potentialId);
+			} catch (Exception $e) {
+				// best-effort
+			}
+		}
 
 		return array(
 			'success' => true,
@@ -231,6 +288,281 @@ class Leads_ConvertService {
 			'accountId' => $accountId,
 			'redirect' => self::potentialDetailUrl($potentialId),
 		);
+	}
+
+	/**
+	 * Offline GD1.1: Lead → Opportunity only (không tạo Contact).
+	 * Vtiger vtws_convertlead bắt buộc Contact/Account — bypass bằng tạo Opp trực tiếp.
+	 */
+	public static function convertLeadToPotentialOnly($leadId, array $options = array()) {
+		global $current_user;
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			throw new Exception('Invalid lead id.');
+		}
+
+		$status = self::getConversionStatus($leadId);
+		if (!$status['canConvert']) {
+			return array(
+				'already_converted' => true,
+				'success' => true,
+				'potentialId' => $status['potentialId'],
+				'contactId' => null,
+				'redirect' => $status['potentialUrl'],
+			);
+		}
+
+		if (!Users_Privileges_Model::isPermitted('Potentials', 'CreateView')) {
+			throw new Exception('Không có quyền tạo Cơ hội.');
+		}
+
+		$lead = Vtiger_Record_Model::getInstanceById($leadId, self::MODULE);
+		if (method_exists($lead, 'isLeadConverted') && $lead->isLeadConverted()) {
+			self::resetConvertedFlagIfNeeded($leadId);
+		}
+
+		$assignId = isset($options['assigned_user_id']) ? (int) $options['assigned_user_id'] : 0;
+		if ($assignId <= 0) {
+			$assignId = (int) $lead->get('assigned_user_id');
+		}
+		if ($assignId <= 0 && !empty($current_user->id)) {
+			$assignId = (int) $current_user->id;
+		}
+		$orderCategory = self::resolveOrderCategory(isset($options['order_category']) ? $options['order_category'] : '');
+
+		$name = self::composeLeadFullName($lead);
+		if ($name === '') {
+			$name = 'Lead #' . $leadId;
+		}
+
+		$potential = Vtiger_Record_Model::getCleanInstance('Potentials');
+		$potential->set('mode', '');
+		$potential->set('potentialname', $name);
+		$potential->set('amount', 0);
+		$potential->set('assigned_user_id', $assignId);
+		$potential->set('sales_stage', 'Prospecting');
+		$potential->set('closingdate', date('Y-m-d', strtotime('+30 days')));
+		$potential->set('order_category', $orderCategory);
+
+		$company = trim((string) $lead->get('company'));
+		if ($company !== '' && $company !== '-') {
+			$accountId = self::lookupAccountIdByName($company);
+			if ($accountId > 0) {
+				$potential->set('related_to', $accountId);
+			}
+		}
+
+		$potential->save();
+		$potentialId = (int) $potential->getId();
+		if ($potentialId <= 0) {
+			throw new Exception('Không tạo được Cơ hội.');
+		}
+
+		self::relateRecords($leadId, self::MODULE, $potentialId, 'Potentials');
+		self::storePotentialId($leadId, $potentialId);
+		self::transferLeadTags($leadId, array('Potentials' => $potentialId), $assignId > 0 ? $assignId : (int) $current_user->id);
+		try {
+			require_once 'modules/Leads/models/LeadProductsService.php';
+			Leads_LeadProductsService::linkPotential($leadId, $potentialId);
+		} catch (Exception $e) {
+			// best-effort
+		}
+		try {
+			if (function_exists('vtws_transferLeadRelatedRecords')) {
+				vtws_transferLeadRelatedRecords($leadId, $potentialId, 'Potentials');
+			}
+		} catch (Exception $e) {
+			// best-effort
+		}
+
+		$adb = PearDatabase::getInstance();
+		$adb->pquery('UPDATE vtiger_leaddetails SET converted = 1 WHERE leadid = ?', array($leadId));
+		$adb->pquery('DELETE FROM vtiger_campaignleadrel WHERE leadid = ?', array($leadId));
+		$adb->pquery('DELETE FROM vtiger_tracker WHERE item_id = ?', array($leadId));
+
+		return array(
+			'success' => true,
+			'potentialId' => $potentialId,
+			'contactId' => null,
+			'accountId' => null,
+			'redirect' => self::potentialDetailUrl($potentialId),
+		);
+	}
+
+	/**
+	 * GD 1.2 Online: Lead → Contact only (không tạo Opp).
+	 * Idempotent nếu đã có contact_id trên profile.
+	 */
+	public static function convertLeadToContactOnly($leadId, array $options = array()) {
+		global $current_user;
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			throw new Exception('Invalid lead id.');
+		}
+
+		$existing = self::getLinkedContactId($leadId, true);
+		if ($existing) {
+			$adb = PearDatabase::getInstance();
+			$adb->pquery('UPDATE vtiger_leaddetails SET converted = 1 WHERE leadid = ?', array($leadId));
+			self::syncLeadProfileExtrasToContact($leadId, (int) $existing);
+			return array(
+				'success' => true,
+				'contactId' => $existing,
+				'already' => true,
+				'redirect' => 'index.php?module=Contacts&view=List&app=SALES',
+			);
+		}
+
+		if (!Users_Privileges_Model::isPermitted('Contacts', 'CreateView')) {
+			throw new Exception('Không có quyền tạo Khách hàng.');
+		}
+
+		$lead = Vtiger_Record_Model::getInstanceById($leadId, self::MODULE);
+		$assignId = isset($options['assigned_user_id']) ? (int) $options['assigned_user_id'] : 0;
+		if ($assignId <= 0) {
+			$assignId = (int) $lead->get('assigned_user_id');
+		}
+		if ($assignId <= 0 && !empty($current_user->id)) {
+			$assignId = (int) $current_user->id;
+		}
+
+		$firstname = self::decodeLeadField(trim((string) $lead->get('firstname')));
+		$lastname = self::decodeLeadField(trim((string) $lead->get('lastname')));
+		if ($lastname === '' && $firstname === '') {
+			$lastname = 'Khách hàng #' . $leadId;
+		} elseif ($lastname === '') {
+			$lastname = $firstname;
+			$firstname = '';
+		}
+
+		$contact = Vtiger_Record_Model::getCleanInstance('Contacts');
+		$contact->set('mode', '');
+		$contact->set('lastname', $lastname);
+		if ($firstname !== '' && $firstname !== '.') {
+			$contact->set('firstname', $firstname);
+		}
+		$contact->set('assigned_user_id', $assignId);
+
+		$email = self::decodeLeadField(trim((string) $lead->get('email')));
+		if ($email !== '') {
+			$contact->set('email', $email);
+		}
+		$phone = self::decodeLeadField(trim((string) $lead->get('phone')));
+		if ($phone !== '') {
+			$contact->set('phone', $phone);
+		}
+		$mobile = self::decodeLeadField(trim((string) $lead->get('mobile')));
+		if ($mobile !== '') {
+			$contact->set('mobile', $mobile);
+		}
+
+		$addr = self::resolveLeadAddressFields($leadId, $lead);
+		if ($addr['street'] !== '') {
+			$contact->set('mailingstreet', $addr['street']);
+		}
+		if ($addr['city'] !== '') {
+			$contact->set('mailingcity', $addr['city']);
+		}
+
+		$contact->save();
+		$contactId = (int) $contact->getId();
+		if ($contactId <= 0) {
+			throw new Exception('Không tạo được Contact.');
+		}
+
+		self::relateRecords($leadId, self::MODULE, $contactId, 'Contacts');
+		self::storeContactId($leadId, $contactId);
+		self::syncLeadSegmentTagToContact($leadId, $contactId, $assignId > 0 ? $assignId : (int) $current_user->id);
+		self::transferLeadTags($leadId, array('Contacts' => $contactId), $assignId > 0 ? $assignId : (int) $current_user->id);
+		self::syncLeadProfileExtrasToContact($leadId, $contactId, $addr);
+
+		$adb = PearDatabase::getInstance();
+		$adb->pquery('UPDATE vtiger_leaddetails SET converted = 1 WHERE leadid = ?', array($leadId));
+
+		return array(
+			'success' => true,
+			'contactId' => $contactId,
+			'redirect' => 'index.php?module=Contacts&view=List&app=SALES',
+		);
+	}
+
+	/**
+	 * Địa chỉ Lead: profile.address_line → leadaddress.lane; quận/huyện → mailingcity.
+	 * @return array{street:string,city:string,business_model:string}
+	 */
+	public static function resolveLeadAddressFields($leadId, $lead = null) {
+		$leadId = (int) $leadId;
+		$out = array('street' => '', 'city' => '', 'business_model' => '');
+		$adb = PearDatabase::getInstance();
+		try {
+			$pr = $adb->pquery(
+				'SELECT address_line, district, business_model FROM bace_lead_profile WHERE leadid = ?',
+				array($leadId)
+			);
+			if ($pr && $adb->num_rows($pr) > 0) {
+				$out['street'] = self::decodeLeadField(trim((string) $adb->query_result($pr, 0, 'address_line')));
+				$out['city'] = self::decodeLeadField(trim((string) $adb->query_result($pr, 0, 'district')));
+				$out['business_model'] = trim((string) $adb->query_result($pr, 0, 'business_model'));
+			}
+		} catch (Exception $e) {
+			// schema cũ
+		}
+		if ($out['street'] === '') {
+			$lane = '';
+			if ($lead && method_exists($lead, 'get')) {
+				$lane = self::decodeLeadField(trim((string) $lead->get('lane')));
+			}
+			if ($lane === '') {
+				$lr = $adb->pquery('SELECT lane FROM vtiger_leadaddress WHERE leadaddressid = ?', array($leadId));
+				if ($lr && $adb->num_rows($lr) > 0) {
+					$lane = self::decodeLeadField(trim((string) $adb->query_result($lr, 0, 'lane')));
+				}
+			}
+			$out['street'] = $lane;
+		}
+		return $out;
+	}
+
+	/**
+	 * Backfill địa chỉ / mô hình KD lên Contact (kể cả khi Contact đã tồn tại).
+	 */
+	public static function syncLeadProfileExtrasToContact($leadId, $contactId, array $addr = null) {
+		$leadId = (int) $leadId;
+		$contactId = (int) $contactId;
+		if ($leadId <= 0 || $contactId <= 0) {
+			return;
+		}
+		if ($addr === null) {
+			$addr = self::resolveLeadAddressFields($leadId);
+		}
+		try {
+			$contact = Vtiger_Record_Model::getInstanceById($contactId, 'Contacts');
+			$dirty = false;
+			$curStreet = self::decodeLeadField(trim((string) $contact->get('mailingstreet')));
+			if (($curStreet === '' || $curStreet === '-' || $curStreet === '--') && $addr['street'] !== '') {
+				$contact->set('mailingstreet', $addr['street']);
+				$dirty = true;
+			}
+			$curCity = self::decodeLeadField(trim((string) $contact->get('mailingcity')));
+			if (($curCity === '' || $curCity === '-' || $curCity === '--') && $addr['city'] !== '') {
+				$contact->set('mailingcity', $addr['city']);
+				$dirty = true;
+			}
+			if ($dirty) {
+				$contact->set('mode', 'edit');
+				$contact->save();
+			}
+		} catch (Exception $e) {
+			// ignore address sync failure
+		}
+		if (!empty($addr['business_model'])) {
+			try {
+				require_once 'modules/Contacts/models/ModernService.php';
+				Contacts_ModernService::upsertBusinessModel($contactId, $addr['business_model']);
+			} catch (Exception $e) {
+				// ignore
+			}
+		}
 	}
 
 	protected static function decodeLeadField($value) {
@@ -428,16 +760,32 @@ class Leads_ConvertService {
 			array($potentialId, $leadId)
 		);
 		if ($leadId > 0 && $potentialId > 0) {
-			try {
-				$res = $adb->pquery('SELECT business_model FROM bace_lead_profile WHERE leadid = ?', array($leadId));
-				$biz = ($res && $adb->num_rows($res) > 0) ? $adb->query_result($res, 0, 'business_model') : '';
-				if ($biz !== '' && $biz !== null) {
-					require_once 'modules/Potentials/models/ModernService.php';
-					Potentials_ModernService::saveInlineBusinessModel($potentialId, $biz);
-				}
-			} catch (Exception $e) {
-				// best-effort copy
+			self::syncLeadProfileExtrasToPotential($leadId, $potentialId);
+		}
+	}
+
+	/**
+	 * Copy địa chỉ / quận / mô hình KD từ Lead sang Opp khi link convert.
+	 */
+	public static function syncLeadProfileExtrasToPotential($leadId, $potentialId) {
+		$leadId = (int) $leadId;
+		$potentialId = (int) $potentialId;
+		if ($leadId <= 0 || $potentialId <= 0) {
+			return;
+		}
+		$addr = self::resolveLeadAddressFields($leadId);
+		try {
+			require_once 'modules/Potentials/models/ModernService.php';
+			if (!empty($addr['business_model'])) {
+				Potentials_ModernService::saveInlineBusinessModel($potentialId, $addr['business_model']);
 			}
+			$street = isset($addr['street']) ? trim((string) $addr['street']) : '';
+			$district = isset($addr['city']) ? trim((string) $addr['city']) : '';
+			if ($street !== '' || $district !== '') {
+				Potentials_ModernService::upsertProfileAddress($potentialId, $district, $street);
+			}
+		} catch (Exception $e) {
+			// best-effort copy
 		}
 	}
 
@@ -741,6 +1089,43 @@ class Leads_ConvertService {
 	}
 
 	/**
+	 * Sheet lead → đảm bảo tag nguồn other (Khác) trước khi chuyển Opp/KH.
+	 */
+	protected static function ensureSheetSourceTagOnLead($leadId, $userId = null) {
+		$leadId = (int) $leadId;
+		if ($leadId <= 0) {
+			return;
+		}
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT sheet_source FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		if (!$res || $adb->num_rows($res) < 1 || !(int) $adb->query_result($res, 0, 'sheet_source')) {
+			return;
+		}
+		global $current_user;
+		if ($userId === null || (int) $userId <= 0) {
+			$userId = !empty($current_user->id) ? (int) $current_user->id : 0;
+		}
+		require_once 'modules/Vtiger/models/Tag.php';
+		require_once 'modules/Leads/models/ModernService.php';
+		$models = Vtiger_Tag_Model::getAllAccessible($userId, self::MODULE, $leadId);
+		$names = array();
+		if (is_array($models)) {
+			foreach ($models as $m) {
+				if (is_object($m) && method_exists($m, 'getName')) {
+					$names[] = $m->getName();
+				}
+			}
+		}
+		$next = Leads_ModernService::ensureSourceTag($names, 'other');
+		require_once 'modules/Leads/models/OfflineGd11Service.php';
+		$next = Leads_OfflineGd11Service::ensureProgramTag($next);
+		Leads_ModernService::syncTagsPublic($leadId, $next, $userId);
+	}
+
+	/**
 	 * Copy freetags from Lead to converted entities (Opportunity, Contact, Account).
 	 * Opportunity & Contact receive BA-filtered tags only (Excel categories).
 	 */
@@ -752,6 +1137,11 @@ class Leads_ConvertService {
 		global $current_user;
 		if ($userId === null || (int)$userId <= 0) {
 			$userId = (int)$current_user->id;
+		}
+		try {
+			self::ensureSheetSourceTagOnLead($leadId, $userId);
+		} catch (Exception $e) {
+			// best-effort
 		}
 		require_once 'modules/Vtiger/models/Tag.php';
 		$tagModels = Vtiger_Tag_Model::getAllAccessible($userId, self::MODULE, $leadId);

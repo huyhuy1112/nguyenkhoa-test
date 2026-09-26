@@ -572,6 +572,11 @@ class Leads_SheetImportService {
 		$c1 = self::parseFormQ1($q1Raw);
 		$c2 = self::parseFormQ2($q2Raw);
 		$c3 = self::parseFormQ3($q3Raw);
+		// Legacy Q2 = G (học gia đình / sở thích): không còn trong C2 mới → đẩy sang C1 = C.
+		if (self::isLegacyFamilyHobbyAnswer($q2Raw)) {
+			$c1 = 'C';
+			$c2 = '';
+		}
 		$screening = self::computeSoLuocResult($c1, $c2, $c3);
 		if ($screening === '') {
 			$screening = self::normalizeScreeningResult(self::getMappedCell($assoc, $colMap, 'screening'));
@@ -606,11 +611,13 @@ class Leads_SheetImportService {
 			$qa['Câu 3 – Ngân sách'] = $q3Raw;
 		}
 
-		$tags = array();
+		$tags = array('other'); // Google Sheet → Nguồn = Khác
 		$cust = self::customerTagFromQ1($c1);
 		if ($cust !== '') {
 			$tags[] = $cust;
 		}
+		require_once 'modules/Leads/models/OfflineGd11Service.php';
+		$tags = Leads_OfflineGd11Service::ensureProgramTag($tags);
 
 		return array(
 			'name' => $name !== '' ? $name : ('KH ' . $phone),
@@ -630,23 +637,24 @@ class Leads_SheetImportService {
 		);
 	}
 
-	/** @return string A|B|C|D|'' */
+	/** @return string A|B|C|'' */
 	public static function parseFormQ1($raw) {
 		$code = self::parseLeadingLetter($raw, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-		if ($code !== '') {
+		if ($code === 'D' || $code === 'G') {
+			// Legacy D (Q1) / G (Q2 nhầm cột) = gia đình → C mới.
+			return 'C';
+		}
+		if ($code === 'A' || $code === 'B' || $code === 'C') {
 			return $code;
 		}
 		$f = self::fold($raw);
 		if ($f === '') {
 			return '';
 		}
-		if (strpos($f, 'gia dinh') !== false || strpos($f, 'so thich') !== false || strpos($f, 'hoc de biet') !== false) {
-			return 'D';
-		}
-		if (strpos($f, 'gap van de') !== false || strpos($f, 'cai thien') !== false) {
+		if (strpos($f, 'gia dinh') !== false || strpos($f, 'so thich') !== false || strpos($f, 'hoc de biet') !== false || strpos($f, 'hoc pha che') !== false) {
 			return 'C';
 		}
-		if (strpos($f, 'da co quan') !== false || strpos($f, 'cap nhat') !== false) {
+		if (strpos($f, 'da co quan') !== false) {
 			return 'B';
 		}
 		if (strpos($f, 'chuan bi mo') !== false || strpos($f, 'mo quan') !== false) {
@@ -655,67 +663,146 @@ class Leads_SheetImportService {
 		return '';
 	}
 
-	/** @return string A–G|'' */
-	public static function parseFormQ2($raw) {
+	/**
+	 * Legacy Q2 = G hoặc text học gia đình / sở thích (không còn trong C2 mới).
+	 * @return bool
+	 */
+	public static function isLegacyFamilyHobbyAnswer($raw) {
 		$code = self::parseLeadingLetter($raw, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-		if ($code !== '') {
+		if ($code === 'G') {
+			return true;
+		}
+		$f = self::fold($raw);
+		if ($f === '') {
+			return false;
+		}
+		return (
+			strpos($f, 'gia dinh') !== false
+			|| strpos($f, 'so thich') !== false
+			|| strpos($f, 'hoc pha che cho gia') !== false
+			|| strpos($f, 'pha che cho gia dinh') !== false
+		);
+	}
+
+	/** @return string A|B|'' */
+	public static function parseFormQ2($raw) {
+		if (self::isLegacyFamilyHobbyAnswer($raw)) {
+			// Không map vào C2 — caller đẩy sang C1 = C.
+			return '';
+		}
+		$code = self::parseLeadingLetter($raw, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+		if ($code === 'A' || $code === 'B') {
+			// Legacy "A. Xe đẩy…" → B (vỉa hè); "A. Thuê mặt bằng…" → A.
+			$f = self::fold($raw);
+			if ($code === 'A' && $f !== '' && (
+				strpos($f, 'xe day') !== false
+				|| strpos($f, 'via he') !== false
+				|| strpos($f, 'mang di') !== false
+				|| (strpos($f, 'online') !== false && strpos($f, 'mat bang') === false)
+			)) {
+				return 'B';
+			}
 			return $code;
+		}
+		// Legacy A–G map → A (mặt bằng) / B (vỉa hè·online)
+		if (in_array($code, array('C', 'D', 'E', 'F'), true)) {
+			return 'A';
 		}
 		$f = self::fold($raw);
 		if ($f === '') {
 			return '';
 		}
-		if (strpos($f, 'gia dinh') !== false || strpos($f, 'so thich') !== false) {
-			return 'G';
-		}
-		if (strpos($f, 'xe day') !== false) {
-			return 'A';
-		}
-		if (strpos($f, 'topping') !== false) {
+		if (strpos($f, 'via he') !== false || strpos($f, 'online') !== false || strpos($f, 'xe day') !== false || strpos($f, 'mang di') !== false || strpos($f, 'tai nha') !== false) {
 			return 'B';
 		}
-		if (strpos($f, 'pha may') !== false) {
-			return 'C';
-		}
-		if (strpos($f, 'san vuon') !== false) {
-			return 'E';
-		}
-		if (strpos($f, 'khong gian mo') !== false) {
-			return 'F';
-		}
-		if (strpos($f, 'may lanh') !== false || strpos($f, 'ca phe may') !== false) {
-			return 'D';
+		if (strpos($f, 'mat bang') !== false || strpos($f, 'thue') !== false || strpos($f, 'may lanh') !== false || strpos($f, 'san vuon') !== false || strpos($f, 'topping') !== false || strpos($f, 'pha may') !== false) {
+			return 'A';
 		}
 		return '';
 	}
 
-	/** @return string A–E|'' */
+	/** @return string A–F|'' */
 	public static function parseFormQ3($raw) {
 		$code = self::parseLeadingLetter($raw, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-		if ($code !== '') {
+		$f = self::fold($raw);
+
+		// Legacy sheet E = ≥500tr → F (trước khi trả E theo chữ cái).
+		if ($code === 'E') {
+			if ($f === '' || strpos($f, '500') !== false) {
+				// "E. Từ 500…" hoặc "E" trần (sheet cũ) → F; "E. 400–500" vẫn E.
+				if (strpos($f, '400') !== false && strpos($f, '500') !== false && strpos($f, 'tro len') === false && strpos($f, 'tu 500') === false) {
+					return 'E';
+				}
+				return 'F';
+			}
+			return 'E';
+		}
+
+		if ($code === 'F') {
+			return 'F';
+		}
+
+		// Chữ A–D: giữ mã; bổ sung remap khoảng sheet cũ qua text bên dưới nếu cần.
+		if ($code !== '' && strpos('ABCD', $code) !== false) {
+			$fromText = self::parseFormQ3FromBudgetText($f);
+			// Sheet cũ: "A. Dưới 50" / "B. 50–100" / "C. 100–300" / "D. 300–500"
+			if ($fromText !== '') {
+				return $fromText;
+			}
 			return $code;
 		}
-		$f = self::fold($raw);
+
 		if ($f === '') {
 			return '';
 		}
-		if (strpos($f, 'duoi 50') !== false || preg_match('/\b< ?50\b/', $f) || $f === 'a') {
-			return 'A';
+		return self::parseFormQ3FromBudgetText($f);
+	}
+
+	/**
+	 * Map mô tả ngân sách (kể cả thang sheet cũ) → mã A–F mới.
+	 * @return string A–F|''
+	 */
+	protected static function parseFormQ3FromBudgetText($f) {
+		$f = trim((string) $f);
+		if ($f === '') {
+			return '';
 		}
-		if (strpos($f, '500') !== false && (strpos($f, 'tro len') !== false || strpos($f, 'tro len') !== false || strpos($f, 'tu 500') !== false)) {
+		if (strpos($f, '500') !== false && (strpos($f, 'tro len') !== false || strpos($f, 'tu 500') !== false || strpos($f, 'tren 500') !== false || strpos($f, '>=') !== false)) {
+			return 'F';
+		}
+		if ((strpos($f, '400') !== false && strpos($f, '500') !== false) || preg_match('/\b400\b.*\b500\b/', $f)) {
 			return 'E';
 		}
-		if (strpos($f, '300') !== false && strpos($f, '500') !== false) {
+		// Sheet cũ: "Từ 300 đến dưới 500" (không có mốc 400) → D
+		if ((strpos($f, '300') !== false && strpos($f, '500') !== false) || preg_match('/\b300\b.*\b500\b/', $f)) {
 			return 'D';
 		}
-		if (strpos($f, '100') !== false && strpos($f, '300') !== false) {
+		if ((strpos($f, '300') !== false && strpos($f, '400') !== false) || preg_match('/\b300\b.*\b400\b/', $f)) {
+			return 'D';
+		}
+		if ((strpos($f, '200') !== false && strpos($f, '300') !== false) || preg_match('/\b200\b.*\b300\b/', $f)) {
 			return 'C';
 		}
-		if ((strpos($f, '50') !== false && strpos($f, '100') !== false) || strpos($f, '50 100') !== false) {
+		// Sheet cũ: "Từ 100 đến dưới 300" → C (bao phủ nửa trên)
+		if ((strpos($f, '100') !== false && strpos($f, '300') !== false) || preg_match('/\b100\b.*\b300\b/', $f)) {
+			return 'C';
+		}
+		if ((strpos($f, '100') !== false && strpos($f, '200') !== false) || preg_match('/\b100\b.*\b200\b/', $f)) {
 			return 'B';
 		}
-		if (strpos($f, 'tu 500') !== false || strpos($f, 'tren 500') !== false) {
-			return 'E';
+		// Sheet cũ: "Từ 50 đến dưới 100" → A (dưới 100 mới)
+		if ((strpos($f, '50') !== false && strpos($f, '100') !== false) || preg_match('/\b50\b.*\b100\b/', $f)) {
+			return 'A';
+		}
+		if (
+			preg_match('/\bduoi 100\b/', $f)
+			|| preg_match('/\bduoi 50\b/', $f)
+			|| preg_match('/\b< ?100\b/', $f)
+			|| preg_match('/\b< ?50\b/', $f)
+			|| (strpos($f, 'duoi') !== false && strpos($f, '50') !== false)
+			|| (strpos($f, 'duoi') !== false && strpos($f, '100') !== false && strpos($f, '200') === false)
+		) {
+			return 'A';
 		}
 		return '';
 	}
@@ -735,8 +822,8 @@ class Leads_SheetImportService {
 	}
 
 	/**
-	 * Bộ A – 6 rule, dừng khi khớp.
-	 * @return string so_luoc_du_dk|can_xm_muc_dich|can_xm_mo_hinh|so_luoc_khong_dk|''
+	 * Sàng lọc sơ bộ từ form 3 câu (GD1.1 mới).
+	 * @return string so_luoc_du_dk|so_luoc_khong_dk|''
 	 */
 	public static function computeSoLuocResult($c1, $c2, $c3) {
 		$c1 = strtoupper(trim((string) $c1));
@@ -745,24 +832,15 @@ class Leads_SheetImportService {
 		if ($c1 === '' && $c2 === '' && $c3 === '') {
 			return '';
 		}
-		$family = ($c1 === 'D' || $c2 === 'G');
-		$highBudget = in_array($c3, array('C', 'D', 'E'), true);
-		if ($family && $highBudget) {
-			return 'can_xm_muc_dich';
+		require_once 'modules/Leads/models/SalesVerifyService.php';
+		$result = Leads_SalesVerifyService::compute(array('c1' => $c1, 'c2' => $c2, 'c3' => $c3));
+		if (empty($result['success'])) {
+			return '';
 		}
-		if ($family) {
+		if (isset($result['eligibility_result']) && $result['eligibility_result'] === 'khong_du_dk') {
 			return 'so_luoc_khong_dk';
 		}
-		if ($c3 === 'A') {
-			return 'so_luoc_khong_dk';
-		}
-		if ($c2 === 'A' && $c3 === 'B') {
-			return 'so_luoc_khong_dk';
-		}
-		if ($c2 === 'A' && $highBudget) {
-			return 'can_xm_mo_hinh';
-		}
-		if ($c1 !== '' && $c2 !== '' && $c3 !== '') {
+		if (isset($result['eligibility_result']) && $result['eligibility_result'] === 'du_dk') {
 			return 'so_luoc_du_dk';
 		}
 		return '';
@@ -773,10 +851,10 @@ class Leads_SheetImportService {
 		if ($c1 === 'A') {
 			return 'chuan_bi_mo';
 		}
-		if ($c1 === 'B' || $c1 === 'C') {
+		if ($c1 === 'B') {
 			return 'co_quan';
 		}
-		if ($c1 === 'D') {
+		if ($c1 === 'C' || $c1 === 'D') {
 			return 'gia_dinh';
 		}
 		return '';

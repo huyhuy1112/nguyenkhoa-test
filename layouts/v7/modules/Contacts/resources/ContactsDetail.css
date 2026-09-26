@@ -44,7 +44,7 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-dash-
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .main-container.mk-contact-detail-page,
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .main-container.mk-contact-detail-page {
 	width: 100%;
-	max-width: 1232px;
+	max-width: none;
 	margin-left: auto !important;
 	margin-right: auto !important;
 	padding-top: 24px !important;
@@ -107,7 +107,7 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"],
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] {
-	font-family: Inter, system-ui, -apple-system, sans-serif;
+	font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
 	color: #2b2b2b;
 }
 
@@ -271,7 +271,7 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__title,
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__title {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 1.625rem;
 	font-weight: 700;
 	margin: 0;
@@ -855,17 +855,29 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-related-tabs .mk-contact-primary-tabs,
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-related-tabs .mk-contact-primary-tabs {
 	overflow-x: auto;
-	overflow-y: visible;
+	overflow-y: hidden;
 	scrollbar-width: thin;
 	-webkit-overflow-scrolling: touch;
 	border-bottom: 0 !important;
 	min-height: 48px;
+	height: 48px;
 	align-items: center;
 }
 
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-related-tabs .navbar-collapse,
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-related-tabs .navbar-collapse {
-	overflow: visible;
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-related-tabs .nav.nav-tabs,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-related-tabs .nav.nav-tabs {
+	overflow-x: auto;
+	overflow-y: hidden;
+	flex-wrap: nowrap;
+	min-height: 48px;
+	height: 48px;
+	align-items: center;
 }
 
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-related-toggle-item,
@@ -1340,26 +1352,26 @@ body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-d
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-summary-grid {
 	margin: 24px 0 0;
 	display: grid;
-	grid-template-columns: minmax(320px, 1fr) minmax(0, 2fr);
-	grid-template-areas:
-		"key activities"
-		"key salesorders";
-	gap: 24px;
-	align-items: start;
+	grid-template-columns: minmax(260px, 0.95fr) minmax(360px, 1.35fr) minmax(260px, 0.95fr);
+	grid-template-areas: none;
+	gap: 14px;
+	align-items: stretch;
 	width: 100%;
+	max-width: none;
 	min-width: 0;
 	box-sizing: border-box;
 }
 
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-grid__key,
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-grid__key {
- grid-area: key; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-grid__key,
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-grid__activities,
-body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-grid__activities {
- grid-area: activities; }
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-grid__activities,
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-grid__salesorders,
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-grid__salesorders {
- grid-area: salesorders; }
+	grid-area: auto;
+	width: 100%;
+	max-width: none;
+}
 
 /* Purchase history card (Customer BA) — mirror Opportunity card */
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-card--purchases .mk-contact-purchase__head,
@@ -1459,10 +1471,7 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 	body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-summary-grid,
 	body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-summary-grid {
 		grid-template-columns: 1fr;
-		grid-template-areas:
-			"key"
-			"activities"
-			"salesorders";
+		grid-template-areas: none;
 	}
 }
 
@@ -1528,7 +1537,7 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-card__title,
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-card__title {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 12px;
 	font-weight: 700;
 	margin: 0;
@@ -1741,7 +1750,7 @@ body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-d
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-related-activities .widget_header h4,
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-related-activities .widget_header h4.display-inline-block,
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-related-activities .widget_header h4.display-inline-block {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 12px;
 	font-weight: 700;
 	line-height: 1.2;
@@ -2168,7 +2177,7 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-card--comments .recentCommentsHeader h4,
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-card--comments .recentCommentsHeader h4 {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 12px;
 	font-weight: 700;
 	margin: 0;
@@ -2264,7 +2273,7 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-details-row #detailView .block > div:first-child h4,
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-details-row #detailView .block > div:first-child h4 {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 12px;
 	font-weight: 700;
 	margin: 0 0 12px;
@@ -2883,6 +2892,44 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 	color: #64748b;
 }
 
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-edubit-courses,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-edubit-courses {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-edubit-course,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-edubit-course {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	padding: 8px 10px;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	background: #fff;
+	font-size: 13px;
+	color: #0f172a;
+	cursor: pointer;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-edubit-course.is-owned,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-edubit-course.is-owned {
+	background: #f8fafc;
+	color: #64748b;
+	cursor: default;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-edubit-course em,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-edubit-course em {
+	margin-left: auto;
+	font-style: normal;
+	font-size: 12px;
+	font-weight: 600;
+	color: #0b6e4f;
+}
+
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__select,
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__select {
 	width: 100%;
@@ -2928,4 +2975,89 @@ body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-c
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__btn:disabled {
 	opacity: 0.6;
 	cursor: not-allowed;
+}
+
+/* Opp-standard: meta + tags one row; no tag strip border */
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__meta-row,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__meta-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 14px;
+	margin-top: 8px;
+}
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags,
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__tags--inline,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__tags--inline {
+	margin: 0;
+	padding: 0;
+	border: none;
+}
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__icon,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__icon {
+	background: #0f766e !important;
+	border: none !important;
+	color: #fff !important;
+}
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__icon .mk-contact-detail-hero__icon-glyph,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__icon .mk-contact-detail-hero__icon-glyph,
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-detail-hero__icon strong,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-detail-hero__icon strong {
+	color: #fff !important;
+}
+
+/* ===== Contact lanes: Khóa học / Nguyên liệu / Nhượng quyền ===== */
+.mk-contact-lane-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0 0 14px;
+	padding: 0 2px;
+}
+.mk-contact-lane-tabs__btn {
+	appearance: none;
+	border: 1px solid #d1d5db;
+	background: #fff;
+	color: #374151;
+	font-size: 13px;
+	font-weight: 600;
+	padding: 8px 14px;
+	border-radius: 999px;
+	cursor: pointer;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.mk-contact-lane-tabs__btn:hover {
+	border-color: #9ca3af;
+	background: #f9fafb;
+}
+.mk-contact-lane-tabs__btn.is-active {
+	background: #0f766e;
+	border-color: #0f766e;
+	color: #fff;
+}
+.mk-contact-franchise-lane__body {
+	padding: 12px 16px 16px;
+}
+.mk-contact-franchise-lane__hint,
+.mk-contact-franchise-lane__note {
+	margin: 0 0 8px;
+	font-size: 13px;
+	line-height: 1.45;
+	color: #4b5563;
+}
+.mk-contact-franchise-lane__note {
+	color: #9a3412;
+}
+.mk-contact-class-panel__edubit {
+	margin-top: 4px;
+}
+.mk-contact-class-panel__edubit-status {
+	margin-top: 10px;
+	font-size: 12px;
+	color: #0f766e;
+	font-weight: 600;
+}
+.mk-contact-class-panel__gift-hint {
+	margin-top: 10px;
 }

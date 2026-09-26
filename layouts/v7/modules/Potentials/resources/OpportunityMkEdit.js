@@ -1,13 +1,13 @@
 /**
  * Potentials Create/Edit (SALES) — slim form matched to list columns.
- * Hides stock CRM noise; keeps Contact + Opp name + owner + region/address/tags.
+ * Hides stock CRM noise; keeps Opp name + owner + region/phone/address/tags.
  */
 (function ($) {
 	'use strict';
 
 	var MK_BUILD = '20260803_opp_ui_polish2';
 	var selectedTags = {};
-	var meta = { tags: [], mk_region: '', mk_address: '' };
+	var meta = { tags: [], mk_region: '', mk_address: '', mk_phone: '' };
 	var leadSearchCache = null;
 	var LEAD_SOURCE_TAGS = ['facebook', 'tiktok', 'website', 'zalo', 'hotline', 'other', 'other_source', 'ladipage_fb'];
 	var LEAD_CUSTOMER_TAGS = ['individual', 'company', 'ca_nhan', 'co_quan', 'chuan_bi_mo', 'gia_dinh'];
@@ -122,7 +122,6 @@
 		'dự đoán giá trị',
 		'order category',
 		'trạng thái cơ hội',
-		'tên khách hàng',
 		'tên liên hệ',
 		'expected close',
 		'sales stage',
@@ -167,16 +166,17 @@
 
 	function readBootMeta() {
 		var el = document.getElementById('mkOppEditMetaBoot');
-		if (!el) return { tags: [], mk_region: '', mk_address: '' };
+		if (!el) return { tags: [], mk_region: '', mk_address: '', mk_phone: '' };
 		try {
 			var parsed = JSON.parse(el.textContent || '{}');
 			return {
 				tags: Array.isArray(parsed.tags) ? parsed.tags : [],
 				mk_region: parsed.mk_region || '',
-				mk_address: parsed.mk_address || ''
+				mk_address: parsed.mk_address || '',
+				mk_phone: parsed.mk_phone || ''
 			};
 		} catch (e) {
-			return { tags: [], mk_region: '', mk_address: '' };
+			return { tags: [], mk_region: '', mk_address: '', mk_phone: '' };
 		}
 	}
 
@@ -229,6 +229,7 @@
 		});
 		var region = ($('#mkOppRegion').val() || '').trim();
 		var address = ($('#mkOppAddress').val() || '').trim();
+		var phone = ($('#mkOppPhone').val() || '').trim();
 		if (region) {
 			['kv1', 'kv2', 'kv3'].forEach(function (k) {
 				selectedTags[k] = false;
@@ -241,6 +242,7 @@
 		ensureHidden($f, 'mk_tags', JSON.stringify(keys));
 		ensureHidden($f, 'mk_region', region);
 		ensureHidden($f, 'mk_address', address);
+		ensureHidden($f, 'mk_phone', phone);
 	}
 
 	function softDefaultRequired($f) {
@@ -361,6 +363,76 @@
 
 		softDefaultRequired($f);
 		enhanceOppNameField($f);
+		mountPersonalFields($f);
+	}
+
+	function regionSelectHtml(selected) {
+		selected = String(selected || '');
+		var opts = [
+			['', '— Chọn khu vực —'],
+			['kv1', 'Khu vực 1'],
+			['kv2', 'Khu vực 2'],
+			['kv3', 'Khu vực 3']
+		];
+		return (
+			'<select id="mkOppRegion" class="inputElement mk-opp-personal-input">' +
+			opts
+				.map(function (o) {
+					return (
+						'<option value="' +
+						esc(o[0]) +
+						'"' +
+						(selected === o[0] ? ' selected' : '') +
+						'>' +
+						esc(o[1]) +
+						'</option>'
+					);
+				})
+				.join('') +
+			'</select>'
+		);
+	}
+
+	/**
+	 * Place Khu vực / SĐT / Địa chỉ in the main Opp block (replacing stock Account + Contact slots).
+	 */
+	function mountPersonalFields($f) {
+		if (!$f || !$f.length) return;
+		if ($('#mkOppPersonalFields').length) {
+			if (!$('#mkOppRegion').val() && meta.mk_region) $('#mkOppRegion').val(meta.mk_region);
+			if (!$('#mkOppAddress').val() && meta.mk_address) $('#mkOppAddress').val(meta.mk_address);
+			if (!$('#mkOppPhone').val() && meta.mk_phone) $('#mkOppPhone').val(meta.mk_phone);
+			return;
+		}
+
+		var $name = $f.find('[name="potentialname"]');
+		var $nameTr = $name.closest('tr');
+		if (!$nameTr.length) return;
+
+		var $rows = $(
+			'<tr id="mkOppPersonalFields" class="mk-opp-personal-fields">' +
+				'<td class="fieldLabel"><label>Khu vực</label></td>' +
+				'<td class="fieldValue">' +
+				regionSelectHtml(meta.mk_region || '') +
+				'</td>' +
+				'<td class="fieldLabel"><label>SĐT</label></td>' +
+				'<td class="fieldValue">' +
+				'<input type="tel" id="mkOppPhone" class="inputElement mk-opp-personal-input" ' +
+				'placeholder="Nhập số điện thoại" autocomplete="tel" inputmode="numeric" maxlength="14" />' +
+				'</td>' +
+				'</tr>' +
+				'<tr class="mk-opp-personal-fields mk-opp-personal-fields--address">' +
+				'<td class="fieldLabel"><label>Địa chỉ</label></td>' +
+				'<td class="fieldValue" colspan="3">' +
+				'<input type="text" id="mkOppAddress" class="inputElement mk-opp-personal-input" ' +
+				'placeholder="Nhập địa chỉ" autocomplete="street-address" />' +
+				'</td>' +
+				'</tr>'
+		);
+		$nameTr.after($rows);
+		$('#mkOppPhone').val(meta.mk_phone || '');
+		$('#mkOppAddress').val(meta.mk_address || '');
+		syncHidden();
 	}
 
 	function currentRecordId($f) {
@@ -571,8 +643,10 @@
 
 		var region = regionKeyOfLead(lead);
 		var address = addressOfLead(lead);
+		var phone = String((lead && lead.phone) || '').trim();
 		if (region) $('#mkOppRegion').val(region);
 		if (address) $('#mkOppAddress').val(address);
+		if (phone) $('#mkOppPhone').val(phone);
 
 		var src = sourceTagOfLead(lead);
 		var cust = customerTagOfLead(lead);
@@ -867,22 +941,9 @@
 				'<section class="mk-opp-extras" id="mkOppListParity">' +
 					'<div class="mk-opp-extras__divider" aria-hidden="true"></div>' +
 					'<div class="mk-opp-extras__head">' +
-					'<h4 class="mk-opp-extras__title">Khu vực &amp; Tags</h4>' +
-					'<p class="mk-opp-extras__hint">Cùng bộ trường hiển thị trên danh sách Cơ hội.</p>' +
+					'<h4 class="mk-opp-extras__title">Tags</h4>' +
+					'<p class="mk-opp-extras__hint">Cùng bộ tag hiển thị trên danh sách Cơ hội.</p>' +
 					'</div>' +
-					'<div class="mk-opp-list-parity__grid">' +
-					'<div class="mk-opp-list-parity__field">' +
-					'<span class="mk-opp-list-parity__label">Khu vực</span>' +
-					'<select id="mkOppRegion" class="inputElement">' +
-					'<option value="">— Chọn khu vực —</option>' +
-					'<option value="kv1">Khu vực 1</option>' +
-					'<option value="kv2">Khu vực 2</option>' +
-					'<option value="kv3">Khu vực 3</option>' +
-					'</select></div>' +
-					'<div class="mk-opp-list-parity__field">' +
-					'<span class="mk-opp-list-parity__label">Địa chỉ</span>' +
-					'<input type="text" id="mkOppAddress" class="inputElement" placeholder="Nhập địa chỉ" autocomplete="off" />' +
-					'</div></div>' +
 					'<div class="mk-opp-list-parity__label mk-opp-list-parity__tags-label">Tags</div>' +
 					'<div class="mk-opp-list-parity__body" id="mkOppTagsBody"></div>' +
 					'</section>'
@@ -893,8 +954,6 @@
 			} else {
 				$host.append($panel);
 			}
-			$('#mkOppRegion').val(meta.mk_region || '');
-			$('#mkOppAddress').val(meta.mk_address || '');
 		}
 
 		var catalog = catalogForForm();
@@ -921,7 +980,6 @@
 						'</button>'
 					);
 				}
-				// Chăm sóc / nhóm dài: luôn 2 hàng (dòng), chia đều — không 1 hàng + scroll ngang
 				var use2Rows = g.id === 'care' || tags.length > 10;
 				var chipsHtml;
 				if (use2Rows && tags.length > 1) {
@@ -977,10 +1035,14 @@
 			});
 
 		$(document)
-			.off('change.mkOppLoc input.mkOppLoc', '#mkOppRegion, #mkOppAddress')
-			.on('change.mkOppLoc input.mkOppLoc', '#mkOppRegion, #mkOppAddress', function () {
-				syncHidden();
-			});
+			.off('change.mkOppLoc input.mkOppLoc', '#mkOppRegion, #mkOppAddress, #mkOppPhone')
+			.on(
+				'change.mkOppLoc input.mkOppLoc',
+				'#mkOppRegion, #mkOppAddress, #mkOppPhone',
+				function () {
+					syncHidden();
+				}
+			);
 	}
 
 	function seedFromMeta() {

@@ -63,7 +63,7 @@ body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .main-con
 body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .main-container.mk-accounts-detail-page
 {
 	width: 100%;
-	max-width: 1232px;
+	max-width: none;
 	margin-left: auto !important;
 	margin-right: auto !important;
 	padding-top: 24px !important;
@@ -138,7 +138,7 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-dash-ma
 {
 	padding: 0;
 	box-sizing: border-box;
-	font-family: Inter, system-ui, -apple-system, sans-serif;
+	font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
 	color: #0f172a;
 	background: transparent;
 }
@@ -362,7 +362,7 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detai
 body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__title,
 body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-hero__title
 {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 1.625rem;
 	font-weight: 600;
 	margin: 0 0 6px;
@@ -954,35 +954,34 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .related-ta
 	background: rgba(8, 160, 69, 0.08);
 }
 
-/* ---- Summary grid: 2fr / 1fr top row; balanced 3-col bottom ---- */
+/* ---- Summary grid: 3 columns (Leads v4) ---- */
 body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-summary-grid,
 body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-summary-grid,
 body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-summary-grid
 {
 	display: grid;
-	grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-	grid-template-areas:
-		"key activities"
-		"bottom bottom";
-	gap: 28px;
-	align-items: start;
+	grid-template-columns: minmax(260px, 0.95fr) minmax(360px, 1.35fr) minmax(260px, 0.95fr);
+	grid-template-areas: none;
+	gap: 14px;
+	align-items: stretch;
 	width: 100%;
+	max-width: none;
 	min-width: 0;
 }
 
 body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-grid__key,
 body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-grid__key,
-body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-grid__key
-{
-	grid-area: key;
-	min-width: 0;
-}
-
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-grid__key,
 body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-grid__activities,
 body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-grid__activities,
-body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-grid__activities
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-grid__activities,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-grid__documents,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-grid__documents,
+body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-grid__documents
 {
-	grid-area: activities;
+	grid-area: auto;
+	width: 100%;
+	max-width: none;
 	min-width: 0;
 }
 
@@ -990,12 +989,7 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detai
 body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-bottom-grid,
 body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-bottom-grid
 {
-	grid-area: bottom;
-	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: 28px;
-	width: 100%;
-	min-width: 0;
+	display: contents;
 }
 
 body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-bottom-grid > .mk-acc-detail-card,
@@ -1009,10 +1003,7 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-det
 	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-summary-grid,
 	body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-summary-grid {
 		grid-template-columns: 1fr;
-		grid-template-areas:
-			"key"
-			"activities"
-			"bottom";
+		grid-template-areas: none;
 	}
 
 	body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-bottom-grid,
@@ -1048,8 +1039,8 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-det
 
 /* ── Franchise Chi tiết — modern field cards ── */
 body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-detail {
-	max-width: 1080px;
-	margin: 0 auto;
+	max-width: none;
+	margin: 0;
 }
 
 body[data-module="Accounts"][data-view="Detail"].mk-acc-detail-franchise .mk-acc-fr-block {
@@ -1258,7 +1249,7 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detai
 body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card__title,
 body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card__title
 {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 1.125rem;
 	font-weight: 600;
 	margin: 0;
@@ -1423,7 +1414,7 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detai
 body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--key .mk-acc-detail-card__title,
 body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--key .mk-acc-detail-card__title
 {
-	font-family: Inter, system-ui, -apple-system, sans-serif;
+	font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
 	font-size: 26px;
 	font-weight: 500;
 	line-height: 1.2;
@@ -1609,7 +1600,7 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detai
 body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_header h4,
 body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .widget_header h4
 {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 1.125rem;
 	font-weight: 600;
 	line-height: 1.2;
@@ -1792,7 +1783,7 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detai
 body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-related-activities .widget_header h4.display-inline-block,
 body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-related-activities .widget_header h4.display-inline-block
 {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 1.125rem;
 	font-weight: 600;
 	margin: 0;
@@ -1837,7 +1828,7 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detai
 body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-health__title,
 body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-health__title
 {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 1.125rem;
 	font-weight: 600;
 	margin: 0 0 10px;
@@ -1907,7 +1898,7 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detai
 body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-card--comments .widget_header h4,
 body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-card--comments .widget_header h4
 {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 1.125rem;
 	font-weight: 600;
 	margin: 0;
@@ -2034,7 +2025,7 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-det
 	margin-right: auto;
 	margin-top: 0;
 	margin-bottom: 0;
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 1.125rem;
 	font-weight: 600;
 	color: #3d3830;
@@ -2247,7 +2238,7 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detai
 body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-details-row #detailView .block > div:first-child h4,
 body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .mk-acc-detail-details-row #detailView .block > div:first-child h4
 {
-	font-family: "Space Grotesk", Inter, sans-serif;
+	font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 	font-size: 1.125rem;
 	font-weight: 600;
 	margin: 0 0 10px;
@@ -2788,4 +2779,32 @@ body[data-module="Accounts"][data-view="Detail"][data-app="SUPPORT"] .main-conta
 	left: auto !important;
 	width: 100% !important;
 	max-width: none !important;
+}
+
+/* Opp-standard: meta + tags one row; solid teal avatar */
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__meta-row,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__meta-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 14px;
+	margin-top: 8px;
+}
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__tags,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__tags,
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__tags--inline,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__tags--inline {
+	margin: 0;
+	padding: 0;
+	border: none;
+}
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__avatar,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__avatar {
+	background: #0f766e !important;
+	border: none !important;
+	color: #fff !important;
+}
+body[data-module="Accounts"][data-view="Detail"][data-app="SALES"] .mk-acc-detail-hero__icon-glyph,
+body[data-module="Accounts"][data-view="Detail"][data-app="MARKETING"] .mk-acc-detail-hero__icon-glyph {
+	color: #fff !important;
 }

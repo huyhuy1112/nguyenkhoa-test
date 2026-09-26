@@ -22,7 +22,7 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields', 'last_touch_call_log'), true)) {
+		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields', 'save_offline_attend', 'last_touch_call_log', 'edubit_renew', 'edubit_sync_progress', 'edubit_sync_all', 'edubit_provision'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -75,9 +75,27 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 					if ($classCode === null || $classCode === '') {
 						$classCode = $request->get('class');
 					}
+					// Combo MQBB+PCTH: ghi 2 lần đăng ký + tặng 2 khóa online.
+					if (strtolower(trim((string) $classCode)) === 'combo_mqbb_pcth') {
+						$summary = Contacts_ModernService::addClassRegLog($recordId, $date, $userId, $kind, 'mqbb');
+						$summaryPcth = Contacts_ModernService::addClassRegLog($recordId, $date, $userId, $kind, 'pcth');
+						$response->setResult(array(
+							'success' => true,
+							'class_reg' => $summaryPcth,
+							'combo' => true,
+							'gift' => array(
+								'gift_online' => true,
+								'course_ids' => array('29403', '29218'),
+								'hint' => 'Combo: đã ghi MQBB + PCTH và tặng online cùng khóa.',
+							),
+						));
+						break;
+					}
+					$summary = Contacts_ModernService::addClassRegLog($recordId, $date, $userId, $kind, $classCode);
 					$response->setResult(array(
 						'success' => true,
-						'class_reg' => Contacts_ModernService::addClassRegLog($recordId, $date, $userId, $kind, $classCode),
+						'class_reg' => $summary,
+						'gift' => isset($summary['gift']) ? $summary['gift'] : null,
 					));
 					break;
 				case 'credential_get':
@@ -135,6 +153,17 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 					$bizArg = array_key_exists('business_model', $all) ? $request->get('business_model') : null;
 					$response->setResult(Contacts_ModernService::saveInlineFields($recordId, $phoneArg, $addressArg, $bizArg));
 					break;
+				case 'save_offline_attend':
+					$recordId = $request->get('record');
+					if ($recordId === null || $recordId === '') {
+						$recordId = $request->get('id');
+					}
+					$response->setResult(Contacts_ModernService::saveOfflineAttend(
+						$recordId,
+						$request->get('class_code'),
+						$request->get('datetime')
+					));
+					break;
 				case 'delete':
 					$recordId = $request->get('record');
 					if ($recordId === null || $recordId === '') {
@@ -174,6 +203,86 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 						'lastTouchCalls' => $logged,
 						'logged' => isset($logged['logged']) ? $logged['logged'] : null,
 					));
+					break;
+				case 'edubit_renew':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$payloadRaw = $request->get('payload');
+					$payload = array();
+					if (is_string($payloadRaw) && $payloadRaw !== '') {
+						$decoded = json_decode($payloadRaw, true);
+						if (is_array($decoded)) {
+							$payload = $decoded;
+						}
+					} elseif (is_array($payloadRaw)) {
+						$payload = $payloadRaw;
+					}
+					if ($request->get('reason') !== null && $request->get('reason') !== '') {
+						$payload['reason'] = $request->get('reason');
+					}
+					$saved = Leads_OnlineGd12Service::renewEdubitAccessForContact($recordId, $payload, $userId);
+					$response->setResult($saved);
+					break;
+				case 'edubit_sync_progress':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$saved = Leads_OnlineGd12Service::syncEdubitProgressForContact($recordId, $userId);
+					$response->setResult($saved);
+					break;
+				case 'edubit_sync_all':
+					require_once 'modules/Leads/models/OnlineGd12Service.php';
+					$limit = (int) $request->get('limit');
+					if ($limit <= 0) {
+						$limit = 150;
+					}
+					$saved = Leads_OnlineGd12Service::syncEdubitProgressForAllContacts($limit, $userId);
+					$response->setResult($saved);
+					break;
+				case 'product_catalog':
+					require_once 'modules/Contacts/helpers/ProductCatalog.php';
+					$response->setResult(array(
+						'success' => true,
+						'catalog' => Contacts_ProductCatalog::catalogPayload(),
+					));
+					break;
+				case 'edubit_provision':
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$payload = array();
+					$raw = $request->getRaw('payload');
+					if (is_array($raw)) {
+						$payload = $raw;
+					} elseif (is_string($raw) && $raw !== '') {
+						$decoded = json_decode($raw, true);
+						if (is_array($decoded)) {
+							$payload = $decoded;
+						}
+					}
+					if (empty($payload['course_id']) && $request->get('course_id') !== '') {
+						$payload['course_id'] = $request->get('course_id');
+					}
+					if (empty($payload['course_ids']) && $request->get('course_ids') !== '') {
+						$payload['course_ids'] = $request->get('course_ids');
+					}
+					if (empty($payload['email']) && $request->get('email') !== '') {
+						$payload['email'] = $request->get('email');
+					}
+					if (empty($payload['name']) && $request->get('name') !== '') {
+						$payload['name'] = $request->get('name');
+					}
+					if (empty($payload['phone']) && $request->get('phone') !== '') {
+						$payload['phone'] = $request->get('phone');
+					}
+					$saved = Contacts_ModernService::provisionEdubitForContact($recordId, $payload, $userId);
+					$response->setResult($saved);
 					break;
 				default:
 					throw new Exception('Unsupported mode.');

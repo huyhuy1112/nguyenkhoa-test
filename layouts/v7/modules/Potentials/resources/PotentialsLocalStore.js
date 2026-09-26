@@ -172,5 +172,134 @@
         return res;
       });
     },
+    /**
+     * Bước 3 Offline — Admin điểm danh tại lớp (không OA).
+     * @param {string|number} id potential id
+     * @param {string} action da_tham_gia|khong_tham_gia
+     */
+    offlineCheckin: function (id, action) {
+      var oid = String(id || "");
+      return apiRequest("offline_checkin", {
+        record: oid,
+        offline_action: action || "",
+      }).then(function (res) {
+        if (res && res.opportunity) {
+          root.PotentialsLocalStore.patchOpportunity(oid, res.opportunity);
+        } else {
+          var patch = {};
+          if (res && res.status) {
+            patch.offline_status = res.status;
+            patch.offline_status_label = res.status_label || "";
+          }
+          if (res && Array.isArray(res.tags)) {
+            patch.tags = res.tags;
+          }
+          if (res && res.checked_in_at !== undefined) {
+            patch.offline_checked_in_at = res.checked_in_at || "";
+          }
+          root.PotentialsLocalStore.patchOpportunity(oid, patch);
+        }
+        return res;
+      });
+    },
+    /** Bước 3 — lấy / làm mới QR OA + trạng thái zalo_user_id (per Opp — legacy) */
+    offlineOaQr: function (id) {
+      return apiRequest("offline_oa_qr", { record: String(id || "") });
+    },
+    /** QR form dùng chung tại quầy (deprecated) */
+    offlineOaDeskQr: function () {
+      return apiRequest("offline_oa_desk_qr", {});
+    },
+    /** Feed khớp / không khớp SĐT từ quầy */
+    offlineOaCheckinFeed: function (hours) {
+      return apiRequest("offline_oa_checkin_feed", { hours: hours || 12 });
+    },
+    /** Quầy: tìm Opp theo SĐT */
+    offlineDeskLookup: function (phone) {
+      return apiRequest("offline_desk_lookup", { phone: String(phone || "") });
+    },
+    /** Quầy: xác nhận Có tham gia */
+    offlineDeskConfirm: function (id) {
+      var oid = String(id || "");
+      return apiRequest("offline_desk_confirm", { record: oid }).then(function (res) {
+        if (res && res.opportunity) {
+          root.PotentialsLocalStore.patchOpportunity(oid, res.opportunity);
+        }
+        return res;
+      });
+    },
+    /** Chăm sóc trước lớp — điểm rơi R1→R4 */
+    offlineGd11Apply: function (id, action, extra) {
+      var oid = String(id || "");
+      var payload = Object.assign({ action: action || "" }, extra || {});
+      return apiRequest("offline_gd11_apply", {
+        record: oid,
+        offline_action: action || "",
+        payload: JSON.stringify(payload),
+      }).then(function (res) {
+        if (res && res.opportunity) {
+          root.PotentialsLocalStore.patchOpportunity(oid, res.opportunity);
+        } else if (res && res.success) {
+          var patch = {};
+          if (res.status) {
+            patch.offline_status = res.status;
+            patch.offline_status_label = res.status_label || "";
+          }
+          if (Array.isArray(res.tags)) patch.tags = res.tags;
+          root.PotentialsLocalStore.patchOpportunity(oid, patch);
+        }
+        return res;
+      });
+    },
+    /** Bước 3 — ghi chú không dùng Zalo / không quét */
+    offlineOaNote: function (id, noteKind, customNote) {
+      return apiRequest("offline_oa_note", {
+        record: String(id || ""),
+        note_kind: noteKind || "custom",
+        note: customNote || "",
+      });
+    },
+    /**
+     * Sau không tham gia — Hẹn lịch lại / Chốt lịch mới.
+     */
+    offlineReschedule: function (id, action, extra) {
+      var oid = String(id || "");
+      var payload = Object.assign({ action: action || "" }, extra || {});
+      return apiRequest("offline_reschedule", {
+        record: oid,
+        offline_action: action || "",
+        payload: JSON.stringify(payload),
+      }).then(function (res) {
+        if (res && res.opportunity) {
+          root.PotentialsLocalStore.patchOpportunity(oid, res.opportunity);
+        } else {
+          var patch = {};
+          if (res && res.status) {
+            patch.offline_status = res.status;
+            patch.offline_status_label = res.status_label || "";
+          }
+          if (res && Array.isArray(res.tags)) {
+            patch.tags = res.tags;
+          }
+          if (res && res.class_date !== undefined) {
+            patch.offline_class_date = res.class_date || "";
+          }
+          patch.offline_checked_in_at = "";
+          root.PotentialsLocalStore.patchOpportunity(oid, patch);
+        }
+        return res;
+      });
+    },
+    /** GD 1.2 — đồng bộ % Edubit cho Opp (lead profile đã cấp TK). */
+    syncEdubitAll: function (limit) {
+      var data = {};
+      if (limit) data.limit = limit;
+      return apiRequest("edubit_sync_all", data).then(function (res) {
+        if (!res || res.success === false) {
+          throw new Error((res && res.error) || "Đồng bộ thất bại");
+        }
+        return res;
+      });
+    },
   };
 })(window);

@@ -35,9 +35,33 @@
 <button type="button" class="mk-dash-sidebar-mobile-toggle" aria-controls="mk-dash-sidebar" aria-expanded="false" title="{vtranslate('LBL_MENU',$MODULE)}">
 	{include file="dashboards/DashboardSidebarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='MENU'}
 </button>
+<button type="button" class="mk-dash-sidebar-rail-btn mk-dash-sidebar-expand-fab" aria-controls="mk-dash-sidebar" aria-expanded="false" title="Hiện menu" aria-label="Hiện menu">
+	<span class="mk-dash-sidebar-rail-btn__glow" aria-hidden="true"></span>
+	<svg class="mk-dash-sidebar-rail-btn__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+		<path d="M4 5.5h6.5A1.5 1.5 0 0 1 12 7v10a1.5 1.5 0 0 1-1.5 1.5H4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+		<path d="M12 4v16M15.5 8.5 19 12l-3.5 3.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+	</svg>
+</button>
 <div class="mk-dash-drawer-backdrop" aria-hidden="true"></div>
+<script type="text/javascript">
+(function () {
+	try {
+		if (window.matchMedia && window.matchMedia("(min-width: 992px)").matches
+			&& window.localStorage.getItem("mk_dash_sidebar_collapsed") === "1") {
+			document.documentElement.classList.add("mk-dash-sidebar-collapsed");
+		}
+	} catch (e) { /* ignore */ }
+})();
+</script>
 
 <aside id="mk-dash-sidebar" class="mk-sidebar mk-dashboard-sidebar" aria-label="Dashboard sidebar">
+	<button type="button" class="mk-dash-sidebar-rail-btn mk-dash-sidebar-collapse-btn" aria-controls="mk-dash-sidebar" aria-expanded="true" title="Thu gọn menu" aria-label="Thu gọn menu">
+		<span class="mk-dash-sidebar-rail-btn__glow" aria-hidden="true"></span>
+		<svg class="mk-dash-sidebar-rail-btn__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+			<path d="M4 5.5h6.5A1.5 1.5 0 0 1 12 7v10a1.5 1.5 0 0 1-1.5 1.5H4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+			<path d="M12 4v16M15.5 8.5 12 12l3.5 3.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+		</svg>
+	</button>
 	<div class="mk-dash-sidebar-brand">
 		<div class="mk-dash-sidebar-logo">
 			<a href="index.php" class="company-logo mk-dash-logo-link" title="Nguyên Khoa" aria-label="Nguyên Khoa home">
@@ -235,19 +259,11 @@
 							</a>
 						{/if}
 
-						{* INVENTORY: Warehouse Management — Danh sách kho & Dashboard (localStorage prototype) *}
+						{* INVENTORY: Warehouse — chỉ Danh sách kho trên sidebar; Dashboard & Chuyển kho vào từ nút trong WhList *}
 						{if $APP_NAME eq 'INVENTORY'}
-							{assign var=_mkWhListActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && ($VIEW eq 'WhList' || $VIEW eq 'WhDetail'))}
+							{assign var=_mkWhListActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && ($VIEW eq 'WhList' || $VIEW eq 'WhDetail' || $VIEW eq 'WhDashboard' || $VIEW eq 'WhTransfer'))}
 							<a class="mk-dash-mod-link{if $_mkWhListActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=WhList&amp;app=INVENTORY">
 								<span class="mk-dash-mod-label">{vtranslate('LBL_WH_LIST','Warehouse')}</span>
-							</a>
-							{assign var=_mkWhDashActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && $VIEW eq 'WhDashboard')}
-							<a class="mk-dash-mod-link{if $_mkWhDashActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=WhDashboard&amp;app=INVENTORY">
-								<span class="mk-dash-mod-label">{vtranslate('LBL_WH_DASHBOARD','Warehouse')}</span>
-							</a>
-							{assign var=_mkWhTrfActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && $VIEW eq 'WhTransfer')}
-							<a class="mk-dash-mod-link{if $_mkWhTrfActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=WhTransfer&amp;app=INVENTORY">
-								<span class="mk-dash-mod-label">{vtranslate('LBL_WH_TRANSFER','Warehouse')}</span>
 							</a>
 							{assign var=_mkPsActive value=(!$_settingsActive && $MODULE eq 'ProductsServices')}
 							<a class="mk-dash-mod-link{if $_mkPsActive} mk-dash-mod-link--active{/if}" href="index.php?module=ProductsServices&amp;view=List&amp;app=INVENTORY">

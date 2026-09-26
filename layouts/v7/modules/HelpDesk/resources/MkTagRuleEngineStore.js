@@ -12,6 +12,7 @@
 		scenarios: [],
 		affiliate_tiers: [],
 		sheet_scoring: null,
+		screening_bank: { questions: [], levels: [] },
 		alerts: [],
 		channel_options: [],
 		assignee_options: [],
@@ -32,6 +33,7 @@
 		if (Array.isArray(next.scenarios)) state.scenarios = next.scenarios;
 		if (Array.isArray(next.affiliate_tiers)) state.affiliate_tiers = next.affiliate_tiers;
 		if (next.sheet_scoring && typeof next.sheet_scoring === 'object') state.sheet_scoring = next.sheet_scoring;
+		if (next.screening_bank && typeof next.screening_bank === 'object') state.screening_bank = next.screening_bank;
 		if (Array.isArray(next.alerts)) state.alerts = next.alerts;
 		if (Array.isArray(next.channel_options)) state.channel_options = next.channel_options;
 		if (Array.isArray(next.assignee_options)) state.assignee_options = next.assignee_options;
@@ -194,6 +196,19 @@
 		return null;
 	}
 
+	function getScreeningBank() {
+		return clone(state.screening_bank || { questions: [], levels: [] });
+	}
+
+	function saveScreeningBank(payload) {
+		var body = apiSync({ mode: 'save_screening_bank', payload: JSON.stringify(payload || {}) });
+		if (body && body.screening_bank) {
+			state.screening_bank = body.screening_bank;
+			listeners.forEach(function (cb) { try { cb(); } catch (e) {} });
+		}
+		return body && body.screening_bank ? clone(body.screening_bank) : getScreeningBank();
+	}
+
 	function getSheetScoring() {
 		ensureBootstrapped();
 		return clone(state.sheet_scoring || {});
@@ -247,24 +262,74 @@
 		return n;
 	}
 
-	function matchRules(tagIds, rules) {
+	function matchRules(tagIds, rules, facts) {
 		var set = {};
 		(tagIds || []).forEach(function (id) { set[id] = true; });
 		var matches = [];
+		var warnings = [];
 		(rules || getRules()).forEach(function (rule) {
 			if (!rule.is_active) return;
-			var need = rule.tag_ids || [];
-			if (!need.length) return;
-			var ok = true;
-			for (var i = 0; i < need.length; i++) {
-				if (!set[need[i]]) { ok = false; break; }
+			if (!tagsSatisfy(rule, set)) return;
+			var formula = evalFormula(rule, facts);
+			if (formula.skip || formula.pass) {
+				matches.push({ rule: clone(rule) });
+			} else if (formula.warning) {
+				warnings.push({ rule: clone(rule), message: formula.message });
 			}
-			if (ok) matches.push({ rule: clone(rule) });
 		});
 		matches.sort(function (a, b) {
 			return (a.rule.priority || 0) - (b.rule.priority || 0);
 		});
-		return { matches: matches };
+		return { matches: matches, warnings: warnings };
+	}
+
+	function tagsSatisfy(rule, set) {
+		var need = rule.tag_ids || [];
+		var important = rule.important_tags || [];
+		if (!need.length && !important.length) return false;
+		for (var i = 0; i < important.length; i++) {
+			if (!set[important[i]]) return false;
+		}
+		if (!need.length) return important.length > 0;
+		if (rule.condition_mode === 'OR') {
+			for (var j = 0; j < need.length; j++) {
+				if (set[need[j]]) return true;
+			}
+			return false;
+		}
+		for (var k = 0; k < need.length; k++) {
+			if (!set[need[k]]) return false;
+		}
+		return true;
+	}
+
+	function compareNum(value, op, threshold) {
+		if (op === '>') return value > threshold;
+		if (op === '=') return value === threshold;
+		if (op === '<=') return value <= threshold;
+		if (op === '<') return value < threshold;
+		return value >= threshold;
+	}
+
+	function evalFormula(rule, facts) {
+		var metric = rule.formula_metric || '';
+		if (!metric || rule.formula_value == null || rule.formula_value === '') {
+			return { skip: true, pass: false, warning: false, message: '' };
+		}
+		if (!facts) {
+			return { skip: true, pass: false, warning: false, message: '' };
+		}
+		var value = parseInt(facts[metric], 10) || 0;
+		var threshold = parseInt(rule.formula_value, 10);
+		var pass = compareNum(value, rule.formula_op || '>=', threshold);
+		var warnAt = rule.warning_value;
+		var warning = !pass && warnAt != null && warnAt !== '' && value >= parseInt(warnAt, 10);
+		return {
+			skip: false,
+			pass: pass,
+			warning: warning,
+			message: warning ? ('Cảnh báo: ' + metric + ' = ' + value) : ''
+		};
 	}
 
 	function normalizeRulePayload(payload) {
@@ -277,10 +342,33 @@
 		}
 		var scenarioId = payload.scenario_id || null;
 		if (scenarioId === '') scenarioId = null;
+		var formulaValue = payload.formula_value;
+		if (formulaValue === '' || formulaValue === undefined || formulaValue === null) {
+			formulaValue = null;
+		} else {
+			formulaValue = parseInt(formulaValue, 10);
+			if (isNaN(formulaValue)) formulaValue = null;
+		}
+		var warningValue = payload.warning_value;
+		if (warningValue === '' || warningValue === undefined || warningValue === null) {
+			warningValue = null;
+		} else {
+			warningValue = parseInt(warningValue, 10);
+			if (isNaN(warningValue)) warningValue = null;
+		}
+		var important = payload.important_tags || [];
+		if (!Array.isArray(important)) important = important ? [important] : [];
 		return {
 			status_label: payload.status_label || '',
 			name: payload.name || '',
 			tag_ids: payload.tag_ids || [],
+			important_tags: important,
+			condition_mode: payload.condition_mode === 'OR' ? 'OR' : 'AND',
+			formula_metric: payload.formula_metric || '',
+			formula_op: payload.formula_op || '>=',
+			formula_value: formulaValue,
+			warning_value: warningValue,
+			field_conditions: payload.field_conditions || [],
 			priority: parseInt(payload.priority, 10) || 0,
 			is_active: payload.is_active !== false,
 			alert_days: alertDays,
@@ -448,6 +536,8 @@
 		getAffiliateTiers: getAffiliateTiers,
 		getAffiliateTierById: getAffiliateTierById,
 		getSheetScoring: getSheetScoring,
+		getScreeningBank: getScreeningBank,
+		saveScreeningBank: saveScreeningBank,
 		getChannelOptions: getChannelOptions,
 		getAssigneeOptions: getAssigneeOptions,
 		getCustomers: getCustomers,

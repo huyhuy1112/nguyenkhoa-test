@@ -152,6 +152,31 @@
 				</div>
 			</section>
 
+			<section class="mk-td-card mk-td-card--highlight" data-section="study-path">
+				<header class="mk-td-card__head">
+					<span class="mk-td-card__num">02B</span>
+					<div>
+						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">◈</span> Hình thức học</h2>
+						<p class="mk-td-card__desc"><strong>Bắt buộc</strong> — chọn Online (GD 1.2) hoặc Offline (GD 1.1) để mở xác minh</p>
+					</div>
+				</header>
+				<div class="mk-td-card__body">
+					<div class="mk-td-choice-row mk-td-choice-row--2" role="group" aria-label="Hình thức học">
+						<button type="button" class="mk-td-choice mk-td-choice--tile" data-tag="mien_phi_online" data-group="study-path" data-value="online" id="mk-td-study-online">
+							<span class="mk-td-choice__ico">◉</span>
+							<span class="mk-td-choice__label">Học Online</span>
+							<span class="mk-td-choice__hint">GD 1.2 — xác minh 4 câu → cấp TK Edubit → KH</span>
+						</button>
+						<button type="button" class="mk-td-choice mk-td-choice--tile" data-tag="mien_phi_offline" data-group="study-path" data-value="offline" id="mk-td-study-offline">
+							<span class="mk-td-choice__ico">◎</span>
+							<span class="mk-td-choice__label">Học Offline</span>
+							<span class="mk-td-choice__hint">GD 1.1 — xác minh Bộ B → Opp</span>
+						</button>
+					</div>
+					<p class="mk-td-field-hint" id="mk-td-study-path-hint" hidden>Vui lòng chọn Học Online hoặc Học Offline.</p>
+				</div>
+			</section>
+
 			<section class="mk-td-card mk-td-card--highlight" data-section="lead-source">
 				<header class="mk-td-card__head">
 					<span class="mk-td-card__num">02</span>

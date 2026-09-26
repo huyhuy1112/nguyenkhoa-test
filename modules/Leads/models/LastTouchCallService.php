@@ -12,10 +12,20 @@ class Leads_LastTouchCallService {
 
 	const MODULE = 'Leads';
 	const MAX_CALLS = 3;
-	const GAP_HOURS = 5;
+	const GAP_HOURS = 3;
 	const RESULT_ANSWERED = 'Nghe máy';
 	const RESULT_MISSED = 'Không nghe máy';
 	const TZ = 'Asia/Ho_Chi_Minh';
+
+	public static function gapHours() {
+		try {
+			require_once 'modules/Vtiger/models/R1ReminderSettings.php';
+			$cfg = Vtiger_R1ReminderSettings::get();
+			return max(1, (int) $cfg['gap_hours']);
+		} catch (Exception $e) {
+			return self::GAP_HOURS;
+		}
+	}
 
 	public static function ensureSchema($adb = null) {
 		static $done = false;
@@ -109,8 +119,8 @@ class Leads_LastTouchCallService {
 		$lastResult = $count > 0 ? $calls[$count - 1]['result'] : '';
 		$reminderAt = '';
 		$hint = 'Last Touch chỉ dành cho Call. Gọi lần 1 → gắn Call #1; khoảng '
-			. self::GAP_HOURS . ' giờ sau gọi lần 2; lần 3 nhắc sau '
-			. self::GAP_HOURS . ' giờ (chuông Thông báo). Kết quả "Nghe máy" → chuyển Opp.';
+			. self::gapHours() . ' giờ sau gọi lần 2; lần 3 nhắc sau '
+			. self::gapHours() . ' giờ (chuông Thông báo). Kết quả "Nghe máy" → chuyển Opp.';
 
 		if ($count > 0 && $lastResult === self::RESULT_ANSWERED) {
 			$canAdd = false;
@@ -119,9 +129,9 @@ class Leads_LastTouchCallService {
 			$canAdd = false;
 			$hint = 'Đã đủ ' . self::MAX_CALLS . ' lần gọi Last Touch.';
 		} elseif ($count > 0 && $canAdd) {
-			$reminderTs = strtotime($lastAt . ' +' . self::GAP_HOURS . ' hours');
+			$reminderTs = strtotime($lastAt . ' +' . self::gapHours() . ' hours');
 			$reminderAt = date('Y-m-d H:i:s', $reminderTs);
-			$hint = 'Còn quyền gọi lần ' . $nextN . '. Sau ' . self::GAP_HOURS
+			$hint = 'Còn quyền gọi lần ' . $nextN . '. Sau ' . self::gapHours()
 				. ' giờ hệ thống báo chuông Thông báo (~ ' . self::formatStamp($reminderAt) . ').';
 		}
 
@@ -131,7 +141,7 @@ class Leads_LastTouchCallService {
 			'next_n' => $canAdd ? $nextN : 0,
 			'can_add' => $canAdd,
 			'max_calls' => self::MAX_CALLS,
-			'gap_hours' => self::GAP_HOURS,
+			'gap_hours' => self::gapHours(),
 			'last_at' => $lastAt,
 			'last_at_label' => self::formatStamp($lastAt),
 			'reminder_at' => $reminderAt,
@@ -219,23 +229,48 @@ class Leads_LastTouchCallService {
 
 		$convert = null;
 		$reminderActivityId = 0;
+		$offlineMeta = null;
+		$isOffline = false;
+		try {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			$probe = Leads_ModernService::getLead($leadId, $userId);
+			$isOffline = $probe && Leads_OfflineGd11Service::isOfflineLead($probe, isset($probe['tags']) ? $probe['tags'] : array());
+		} catch (Exception $e) {
+			$isOffline = false;
+		}
+
 		if ($result === self::RESULT_ANSWERED) {
 			self::cancelPendingNotifications($leadId);
-			// Không ghi đè "Hành động tiếp theo" — đó là ghi chú tự do của user.
-			try {
-				$convert = Leads_ConvertService::convertLead($leadId, array(
-					'create_account' => false,
-					'order_category' => 'Internal',
-				));
-			} catch (Exception $e) {
-				throw new Exception('Đã ghi Call #' . $callN . ' (Nghe máy) nhưng convert Opp lỗi: ' . $e->getMessage());
+			if ($isOffline) {
+				// GD 1.1: Opp khi đủ ĐK Bộ B, không convert chỉ vì nghe máy.
+				try {
+					$offlineMeta = Leads_OfflineGd11Service::onLastTouchAnswered($leadId, $userId);
+				} catch (Exception $e) {
+					$offlineMeta = array('error' => $e->getMessage());
+				}
+			} else {
+				try {
+					$convert = Leads_ConvertService::convertLead($leadId, array(
+						'create_account' => false,
+						'order_category' => 'Internal',
+					));
+				} catch (Exception $e) {
+					throw new Exception('Đã ghi Call #' . $callN . ' (Nghe máy) nhưng convert Opp lỗi: ' . $e->getMessage());
+				}
 			}
 		} else {
 			// Không nghe máy: log + nhắc Calendar + chuông — không đụng next_action.
+			if ($isOffline) {
+				try {
+					$offlineMeta = Leads_OfflineGd11Service::onLastTouchMissed($leadId, $userId);
+				} catch (Exception $e) {
+					$offlineMeta = array('error' => $e->getMessage());
+				}
+			}
 			if ($callN < self::MAX_CALLS) {
-				$reminderAt = self::addHours($now, self::GAP_HOURS);
+				$reminderAt = self::addHours($now, self::gapHours());
 				$nextN = $callN + 1;
-				$reminderSubject = 'Nhắc gọi Call #' . $nextN . ' (sau ' . self::GAP_HOURS . ' giờ)';
+				$reminderSubject = 'Nhắc gọi Call #' . $nextN . ' (sau ' . self::gapHours() . ' giờ)';
 				$reminderActivityId = self::createCallActivity(
 					$leadId,
 					$reminderSubject,
@@ -256,6 +291,7 @@ class Leads_LastTouchCallService {
 		$out = self::getSummary($leadId);
 		$out['lead'] = Leads_ModernService::getLead($leadId, $userId);
 		$out['convert'] = $convert;
+		$out['offline'] = $offlineMeta;
 		$out['logged'] = array(
 			'n' => $callN,
 			'called_at' => $now,
@@ -275,7 +311,7 @@ class Leads_LastTouchCallService {
 			$leadName = self::leadDisplayName($leadId);
 			$msg = 'Nhắc gọi Call #' . (int)$nextN . ' — Lead: ' . $leadName
 				. '. Không nghe máy lần ' . (int)$fromN
-				. '. Đã đủ ' . self::GAP_HOURS . ' giờ, hãy gọi lại.';
+				. '. Đã đủ ' . self::gapHours() . ' giờ, hãy gọi lại.';
 			Vtiger_NotificationSchedule::schedule(
 				(int)$userId,
 				'Leads',
@@ -327,11 +363,16 @@ class Leads_LastTouchCallService {
 
 	protected static function addHours($ymdHis, $hours) {
 		try {
-			$dt = new DateTime($ymdHis, new DateTimeZone(self::TZ));
-			$dt->modify('+' . (int)$hours . ' hours');
-			return $dt->format('Y-m-d H:i:s');
+			require_once 'modules/Vtiger/models/R1ReminderSettings.php';
+			return Vtiger_R1ReminderSettings::addGapWithinBusinessHours($ymdHis, $hours);
 		} catch (Exception $e) {
-			return date('Y-m-d H:i:s', strtotime($ymdHis . ' +' . (int)$hours . ' hours'));
+			try {
+				$dt = new DateTime($ymdHis, new DateTimeZone(self::TZ));
+				$dt->modify('+' . (int)$hours . ' hours');
+				return $dt->format('Y-m-d H:i:s');
+			} catch (Exception $e2) {
+				return date('Y-m-d H:i:s', strtotime($ymdHis . ' +' . (int)$hours . ' hours'));
+			}
 		}
 	}
 

@@ -214,9 +214,11 @@
 			var $classSel = $add.find('.mk-contact-class-panel__class-select');
 			if ($classSel.length && summary.class_options && summary.class_options.length) {
 				var current = $classSel.val() || 'mqbb';
-				$classSel.html(summary.class_options.map(function (opt) {
+				var optsHtml = summary.class_options.map(function (opt) {
 					return '<option value="' + opt.code + '">' + $('<div/>').text(opt.label).html() + '</option>';
-				}).join(''));
+				}).join('');
+				optsHtml += '<option value="combo_mqbb_pcth">Combo MQBB + PCTH</option>';
+				$classSel.html(optsHtml);
 				if ($classSel.find('option[value="' + current + '"]').length) {
 					$classSel.val(current);
 				}
@@ -254,7 +256,121 @@
 			if (summary) {
 				renderClassReg($panel, summary);
 			}
-			notifyOk(okMsg || 'Đã ghi nhận.');
+			var gift = res.gift || (summary && summary.gift) || null;
+			var msg = okMsg || 'Đã ghi nhận.';
+			if (gift && gift.hint) {
+				msg += ' ' + gift.hint;
+			} else if (gift && gift.gift_online && gift.course_ids && gift.course_ids.length) {
+				msg += ' Tặng online ID ' + gift.course_ids.join(', ') + '.';
+			}
+			notifyOk(msg);
+		});
+	}
+
+	function activateContactLane(lane) {
+		var key = lane || 'courses';
+		var root = document.querySelector('[data-mk-contact-lane-root="1"]');
+		if (!root) return;
+		root.setAttribute('data-active-lane', key);
+		document.querySelectorAll('.mk-contact-lane-tabs__btn').forEach(function (btn) {
+			var on = btn.getAttribute('data-mk-contact-lane') === key;
+			btn.classList.toggle('is-active', on);
+			btn.setAttribute('aria-selected', on ? 'true' : 'false');
+		});
+		root.querySelectorAll('[data-mk-lane-show]').forEach(function (el) {
+			var lanes = String(el.getAttribute('data-mk-lane-show') || '').split(/\s+/);
+			var show = lanes.indexOf(key) >= 0;
+			el.classList.toggle('hide', !show);
+		});
+	}
+
+	function bindLaneTabs() {
+		if (document.documentElement.getAttribute('data-mk-contact-lanes') === '1') {
+			return;
+		}
+		document.documentElement.setAttribute('data-mk-contact-lanes', '1');
+		document.addEventListener('click', function (e) {
+			var btn = e.target && e.target.closest ? e.target.closest('[data-mk-contact-lane]') : null;
+			if (!btn) return;
+			e.preventDefault();
+			activateContactLane(btn.getAttribute('data-mk-contact-lane'));
+		});
+		activateContactLane('courses');
+	}
+
+	function bindEdubitProvision() {
+		var $panel = $('.mk-contact-class-panel[data-mk-class-panel="1"]');
+		if (!$panel.length) return;
+		var recordId = parseInt($panel.attr('data-record-id'), 10) || 0;
+		if (recordId <= 0) return;
+
+		$panel.off('click.mkEdubitProv').on('click.mkEdubitProv', '[data-mk-edubit-action="provision"]', function (e) {
+			e.preventDefault();
+			var $btn = $(this);
+			var courseIds = [];
+			$panel.find('[data-mk-edubit-course]').each(function () {
+				var box = this;
+				if (box.checked && !box.disabled) {
+					courseIds.push(String(box.value || '').trim());
+				}
+			});
+			var email = String($panel.find('[data-mk-edubit="email"]').val() || '').trim();
+			if (!courseIds.length) {
+				notifyError('Chọn ít nhất một khóa chưa có trên tài khoản.');
+				return;
+			}
+			if (!email) {
+				notifyError('Nhập email học viên trước khi cấp TK.');
+				return;
+			}
+			$btn.prop('disabled', true);
+			var $status = $panel.find('[data-mk-edubit-status]');
+			apiPost({
+				module: 'Contacts',
+				action: 'ModernApi',
+				mode: 'edubit_provision',
+				record: recordId,
+				id: recordId,
+				payload: JSON.stringify({ course_ids: courseIds, email: email })
+			}, function (err, res) {
+				$btn.prop('disabled', false);
+				if (err || !res || res.success === false) {
+					var msg = (err && (err.message || err)) || (res && res.error) || 'Cấp TK thất bại.';
+					notifyError(msg);
+					if ($status.length) {
+						$status.removeAttr('hidden').text(String(msg));
+					}
+					return;
+				}
+				var ok = (res && res.message) || 'Đã cấp TK Edubit.';
+				notifyOk(ok);
+				if ($status.length) {
+					$status.removeAttr('hidden').text(ok);
+				}
+				var added = (res && res.added_course_ids) || [];
+				added.forEach(function (id) {
+					var box = $panel.find('[data-mk-edubit-course][value="' + id + '"]')[0];
+					if (!box) return;
+					box.checked = true;
+					box.disabled = true;
+					var label = box.closest ? box.closest('.mk-edubit-course') : null;
+					if (label) {
+						label.classList.add('is-owned');
+						if (!label.querySelector('em')) {
+							var mark = document.createElement('em');
+							mark.textContent = 'Đã có';
+							label.appendChild(mark);
+						}
+					}
+				});
+				var emailInput = $panel.find('[data-mk-edubit="email"]')[0];
+				if (emailInput && res && res.edubit_email) {
+					emailInput.value = res.edubit_email;
+					emailInput.readOnly = true;
+				}
+				var btnLabel = $panel.find('[data-mk-edubit-btn-label]')[0];
+				if (btnLabel) btnLabel.textContent = 'Thêm khóa học';
+			});
 		});
 	}
 
@@ -447,14 +563,18 @@
 		}
 		refreshRelatedBadges();
 		initRelatedTabsToggle();
+		bindLaneTabs();
 		bindClassPanel();
+		bindEdubitProvision();
 		injectCccdField();
 
 		if (typeof app !== 'undefined' && app.event && app.event.on) {
 			app.event.on('post.summaryview.load', function () {
 				refreshRelatedBadges();
 				initRelatedTabsToggle();
+				bindLaneTabs();
 				bindClassPanel();
+				bindEdubitProvision();
 				injectCccdField();
 			});
 			app.event.on('post.detailedview.load', function () {

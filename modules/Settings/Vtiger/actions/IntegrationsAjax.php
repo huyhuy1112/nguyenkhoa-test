@@ -103,7 +103,7 @@ class Settings_Vtiger_IntegrationsAjax_Action extends Settings_Vtiger_Basic_Acti
 		$keys = array(
 			'enabled', 'base_url', 'api_key', 'username', 'password',
 			'spreadsheet_id', 'sheet_range', 'service_account_json', 'column_map',
-			'app_id', 'oa_id', 'secret_key', 'refresh_token', 'access_token',
+			'app_id', 'oa_id', 'secret_key', 'refresh_token', 'access_token', 'follow_url',
 		);
 		foreach ($keys as $key) {
 			$val = $request->getRaw($key);
