@@ -2300,18 +2300,19 @@ class Leads_OfflineGd11Service {
 	 * @return array list of {potential_id, lead_id, offline_status, name, phone}
 	 */
 	public static function findEligibleOppsByPhone($phone) {
-		$variants = self::phoneMatchVariants($phone);
-		if (empty($variants)) {
+		$want = array();
+		foreach (self::phoneMatchVariants($phone) as $variant) {
+			$want[$variant] = true;
+		}
+		$norm = self::normalizeVnPhone($phone);
+		if ($norm !== '') {
+			$want[$norm] = true;
+		}
+		if (!$want) {
 			return array();
 		}
 		$adb = PearDatabase::getInstance();
-		$ph = implode(',', array_fill(0, count($variants), '?'));
-		$strip = function ($expr) {
-			return "REPLACE(REPLACE(REPLACE(REPLACE(IFNULL($expr,''),' ',''),'-',''),'.',''),'+','')";
-		};
-		$sql = "SELECT p.potentialid, p.potentialname,
-				COALESCE(lp.leadid, lp2.leadid) AS leadid,
-				COALESCE(NULLIF(lp.offline_status, ''), lp2.offline_status) AS offline_status,
+		$sql = "SELECT p.potentialid, p.potentialname, lp.leadid, lp.offline_status,
 				pp.phone AS pot_phone, cd.phone AS contact_phone, cd.mobile AS contact_mobile,
 				la.phone AS lead_phone, la.mobile AS lead_mobile
 			FROM vtiger_potential p
@@ -2319,70 +2320,117 @@ class Leads_OfflineGd11Service {
 			LEFT JOIN bace_potential_profile pp ON pp.potentialid = p.potentialid
 			LEFT JOIN vtiger_contactdetails cd ON cd.contactid = p.contact_id
 			LEFT JOIN bace_lead_profile lp ON lp.potential_id = p.potentialid
-			LEFT JOIN (
-				SELECT rel.relcrmid AS potentialid, rel.crmid AS leadid
-				FROM vtiger_crmentityrel rel
-				WHERE rel.module = 'Leads' AND rel.relmodule = 'Potentials'
-				UNION
-				SELECT rel.crmid AS potentialid, rel.relcrmid AS leadid
-				FROM vtiger_crmentityrel rel
-				WHERE rel.module = 'Potentials' AND rel.relmodule = 'Leads'
-			) link ON link.potentialid = p.potentialid
-			LEFT JOIN bace_lead_profile lp2 ON lp2.leadid = link.leadid
-			LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = COALESCE(lp.leadid, lp2.leadid)
+			LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = lp.leadid
 			WHERE (pp.converted_to_customer_at IS NULL OR pp.converted_to_customer_at = '' OR pp.converted_to_customer_at = '0000-00-00 00:00:00')
-			  AND COALESCE(lp.leadid, lp2.leadid) IS NOT NULL
-			  AND COALESCE(NULLIF(lp.offline_status, ''), lp2.offline_status) IN (?, ?)
-			  AND (
-				{$strip('pp.phone')} IN ($ph)
-				OR {$strip('cd.phone')} IN ($ph)
-				OR {$strip('cd.mobile')} IN ($ph)
-				OR {$strip('la.phone')} IN ($ph)
-				OR {$strip('la.mobile')} IN ($ph)
-			  )
+			  AND lp.offline_status IN (?, ?)
 			ORDER BY p.potentialid DESC";
-		$params = array_merge(
-			array(self::STATUS_DA_XN_LICH, self::STATUS_HEN_LICH_LAI),
-			$variants,
-			$variants,
-			$variants,
-			$variants,
-			$variants
-		);
-		$res = $adb->pquery($sql, $params);
+		$res = $adb->pquery($sql, array(self::STATUS_DA_XN_LICH, self::STATUS_HEN_LICH_LAI));
+		if (!$res) {
+			error_log('[MK_DESK] findEligibleOppsByPhone query failed');
+			return array();
+		}
 		$out = array();
 		$seen = array();
-		if ($res) {
-			$n = $adb->num_rows($res);
+		$n = $adb->num_rows($res);
+		for ($i = 0; $i < $n; $i++) {
+			$phones = array(
+				$adb->query_result($res, $i, 'pot_phone'),
+				$adb->query_result($res, $i, 'contact_phone'),
+				$adb->query_result($res, $i, 'contact_mobile'),
+				$adb->query_result($res, $i, 'lead_phone'),
+				$adb->query_result($res, $i, 'lead_mobile'),
+			);
+			if (!self::phoneListMatches($phones, $want)) {
+				continue;
+			}
+			$pid = (int) $adb->query_result($res, $i, 'potentialid');
+			if ($pid <= 0 || isset($seen[$pid])) {
+				continue;
+			}
+			$seen[$pid] = 1;
+			$leadId = (int) $adb->query_result($res, $i, 'leadid');
+			$display = '';
+			foreach ($phones as $raw) {
+				$display = trim((string) $raw);
+				if ($display !== '') {
+					break;
+				}
+			}
+			$out[] = array(
+				'potential_id' => $pid,
+				'lead_id' => $leadId,
+				'offline_status' => trim((string) $adb->query_result($res, $i, 'offline_status')),
+				'name' => decode_html((string) $adb->query_result($res, $i, 'potentialname')),
+				'phone' => $display,
+			);
+		}
+		$relSql = "SELECT p.potentialid, p.potentialname, lp.leadid, lp.offline_status,
+				pp.phone AS pot_phone, la.phone AS lead_phone, la.mobile AS lead_mobile
+			FROM vtiger_potential p
+			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid AND ce.deleted = 0
+			INNER JOIN vtiger_crmentityrel rel
+				ON (rel.crmid = p.potentialid AND rel.module = 'Potentials' AND rel.relmodule = 'Leads')
+				OR (rel.relcrmid = p.potentialid AND rel.relmodule = 'Potentials' AND rel.module = 'Leads')
+			INNER JOIN bace_lead_profile lp ON lp.leadid = IF(rel.module = 'Leads', rel.crmid, rel.relcrmid)
+			LEFT JOIN bace_potential_profile pp ON pp.potentialid = p.potentialid
+			LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = lp.leadid
+			WHERE lp.offline_status IN (?, ?)
+			  AND (pp.converted_to_customer_at IS NULL OR pp.converted_to_customer_at = '' OR pp.converted_to_customer_at = '0000-00-00 00:00:00')";
+		$rel = $adb->pquery($relSql, array(self::STATUS_DA_XN_LICH, self::STATUS_HEN_LICH_LAI));
+		if ($rel) {
+			$n = $adb->num_rows($rel);
 			for ($i = 0; $i < $n; $i++) {
-				$pid = (int) $adb->query_result($res, $i, 'potentialid');
+				$pid = (int) $adb->query_result($rel, $i, 'potentialid');
 				if ($pid <= 0 || isset($seen[$pid])) {
 					continue;
 				}
+				$phones = array(
+					$adb->query_result($rel, $i, 'pot_phone'),
+					$adb->query_result($rel, $i, 'lead_phone'),
+					$adb->query_result($rel, $i, 'lead_mobile'),
+				);
+				if (!self::phoneListMatches($phones, $want)) {
+					continue;
+				}
 				$seen[$pid] = 1;
-				$leadId = (int) $adb->query_result($res, $i, 'leadid');
+				$leadId = (int) $adb->query_result($rel, $i, 'leadid');
 				if ($leadId > 0) {
 					$adb->pquery(
 						'UPDATE bace_lead_profile SET potential_id = ? WHERE leadid = ? AND (potential_id IS NULL OR potential_id = 0)',
 						array($pid, $leadId)
 					);
 				}
+				$display = '';
+				foreach ($phones as $raw) {
+					$display = trim((string) $raw);
+					if ($display !== '') {
+						break;
+					}
+				}
 				$out[] = array(
 					'potential_id' => $pid,
 					'lead_id' => $leadId,
-					'offline_status' => trim((string) $adb->query_result($res, $i, 'offline_status')),
-					'name' => decode_html((string) $adb->query_result($res, $i, 'potentialname')),
-					'phone' => trim((string) (
-						$adb->query_result($res, $i, 'pot_phone')
-						?: $adb->query_result($res, $i, 'contact_phone')
-						?: $adb->query_result($res, $i, 'contact_mobile')
-						?: $adb->query_result($res, $i, 'lead_phone')
-						?: $adb->query_result($res, $i, 'lead_mobile')
-					)),
+					'offline_status' => trim((string) $adb->query_result($rel, $i, 'offline_status')),
+					'name' => decode_html((string) $adb->query_result($rel, $i, 'potentialname')),
+					'phone' => $display,
 				);
 			}
 		}
 		return $out;
+	}
+
+	protected static function phoneListMatches(array $phones, array $want) {
+		foreach ($phones as $raw) {
+			$digits = preg_replace('/\D+/', '', (string) $raw);
+			if ($digits !== '' && isset($want[$digits])) {
+				return true;
+			}
+			$norm = self::normalizeVnPhone($digits);
+			if ($norm !== '' && isset($want[$norm])) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected static function writeDeskCheckinLog($phone, $oaUserId, $result, $potentialId, $leadId, $oppName, $message) {
