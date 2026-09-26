@@ -1833,8 +1833,8 @@ class Contacts_ModernService {
 	}
 
 	/**
-	 * Cấp / kích hoạt TK Edubit trực tiếp trên Contact (khóa có phí / tặng offline).
-	 * @param array $payload course_id (required), email?, name?, phone?, password?
+	 * Cấp / kích hoạt TK Edubit trên Contact. Một email — nhiều khóa (lúc tạo hoặc học thêm sau).
+	 * @param array $payload course_ids[] hoặc course_id, email?, name?, phone?, password?
 	 */
 	public static function provisionEdubitForContact($contactId, array $payload = array(), $userId = null) {
 		global $current_user;
@@ -1845,16 +1845,21 @@ class Contacts_ModernService {
 		if ($userId === null && !empty($current_user->id)) {
 			$userId = (int) $current_user->id;
 		}
-		$courseId = isset($payload['course_id']) ? trim((string) $payload['course_id']) : '';
-		if ($courseId === '') {
-			return array('success' => false, 'error' => 'Phải chọn khóa học (course_id).');
+		$courseIds = self::normalizeProvisionCourseIds($payload);
+		if (empty($courseIds)) {
+			return array('success' => false, 'error' => 'Chọn ít nhất một khóa học.');
 		}
 		require_once 'modules/Contacts/helpers/ProductCatalog.php';
-		if (Contacts_ProductCatalog::isFreeOppCourse($courseId)) {
-			return array(
-				'success' => false,
-				'error' => 'Khóa miễn phí 27312 theo dõi trên Cơ hội — không cấp trên Khách hàng.',
-			);
+		foreach ($courseIds as $courseId) {
+			if (Contacts_ProductCatalog::isFreeOppCourse($courseId)) {
+				return array(
+					'success' => false,
+					'error' => 'Khóa miễn phí 27312 theo dõi trên Cơ hội — không cấp trên Khách hàng.',
+				);
+			}
+			if (!in_array($courseId, self::EDUBIT_PAID_MULTI_COURSE_IDS, true)) {
+				return array('success' => false, 'error' => 'Khóa ' . $courseId . ' không cấp trên Khách hàng.');
+			}
 		}
 
 		try {
@@ -1895,6 +1900,58 @@ class Contacts_ModernService {
 			return array('success' => false, 'error' => 'Cần email hợp lệ để cấp TK Edubit.');
 		}
 
+		self::ensureEdubitProgressColumns();
+		self::ensureEdubitCoursesJsonColumn();
+		$adb = PearDatabase::getInstance();
+		$exists = $adb->pquery(
+			'SELECT contactid, edubit_user_id, edubit_email, edubit_course_id, edubit_activated_at FROM vtiger_contactscf WHERE contactid = ?',
+			array($contactId)
+		);
+		if (!$exists || $adb->num_rows($exists) < 1) {
+			$adb->pquery('INSERT INTO vtiger_contactscf (contactid) VALUES (?)', array($contactId));
+			$storedUserId = '';
+			$storedEmail = '';
+			$storedCourseId = '';
+			$storedActivated = '';
+		} else {
+			$storedUserId = trim((string) $adb->query_result($exists, 0, 'edubit_user_id'));
+			$storedEmail = trim((string) $adb->query_result($exists, 0, 'edubit_email'));
+			$storedCourseId = trim((string) $adb->query_result($exists, 0, 'edubit_course_id'));
+			$storedActivated = trim((string) $adb->query_result($exists, 0, 'edubit_activated_at'));
+		}
+		$existingCourses = self::getEdubitCoursesOnContact($contactId);
+		$owned = array();
+		foreach ($existingCourses as $item) {
+			$owned[$item['course_id']] = true;
+		}
+		$hadAccount = $storedUserId !== '' || $storedActivated !== '' || !empty($existingCourses);
+		if ($hadAccount && $storedEmail !== '' && strcasecmp($storedEmail, $email) !== 0) {
+			return array(
+				'success' => false,
+				'error' => 'Tài khoản Edubit đang dùng email ' . $storedEmail . '. Thêm khóa trên đúng email này.',
+			);
+		}
+		if ($hadAccount && $storedEmail !== '') {
+			$email = $storedEmail;
+		}
+
+		$toAdd = array();
+		foreach ($courseIds as $courseId) {
+			if (empty($owned[$courseId])) {
+				$toAdd[] = $courseId;
+			}
+		}
+		if (empty($toAdd)) {
+			return array(
+				'success' => true,
+				'already' => true,
+				'contact_id' => $contactId,
+				'edubit_email' => $email,
+				'courses' => $existingCourses,
+				'message' => 'Học viên đã có các khóa này trên tài khoản.',
+			);
+		}
+
 		require_once 'modules/Vtiger/helpers/NkApiConnection.php';
 		/** @var NkApi_Edubit_Adapter $adapter */
 		$adapter = NkApiConnection::adapter('edubit');
@@ -1905,53 +1962,87 @@ class Contacts_ModernService {
 				'email' => $email,
 				'password' => $password,
 			));
-			$activated = $adapter->activateCourse(array(
-				'name' => $name,
-				'phone' => $phone,
-				'email' => $email,
-				'password' => $password,
-				'course_id' => $courseId,
-			));
 		} catch (Exception $e) {
 			return array('success' => false, 'error' => $e->getMessage());
 		}
 
-		$userIdEd = isset($created['user_id']) ? (string) $created['user_id'] : '';
-		$now = date('Y-m-d H:i:s');
-		$expiresAt = date('Y-m-d H:i:s', strtotime($now . ' +10 days'));
-		self::ensureEdubitProgressColumns();
-		self::ensureEdubitCoursesJsonColumn();
-		$adb = PearDatabase::getInstance();
-		$exists = $adb->pquery('SELECT contactid FROM vtiger_contactscf WHERE contactid = ?', array($contactId));
-		if (!$exists || $adb->num_rows($exists) < 1) {
-			$adb->pquery('INSERT INTO vtiger_contactscf (contactid) VALUES (?)', array($contactId));
+		$userIdEd = isset($created['user_id']) ? trim((string) $created['user_id']) : '';
+		if ($userIdEd === '') {
+			$userIdEd = $storedUserId;
 		}
-		$adb->pquery(
-			'UPDATE vtiger_contactscf SET
-				edubit_user_id = ?,
-				edubit_course_id = ?,
-				edubit_email = ?,
-				edubit_activated_at = ?,
-				edubit_expires_at = ?,
-				edubit_renew_count = 0,
-				edubit_progress_pct = COALESCE(edubit_progress_pct, 0),
-				online_status = ?,
-				da_cap_tai_khoan = ?
-			 WHERE contactid = ?',
-			array($userIdEd, $courseId, $email, $now, $expiresAt, 'online_dang_hoc', 'Đã cấp', $contactId)
-		);
+		$now = date('Y-m-d H:i:s');
+		$added = array();
+		$failed = array();
+		$activateStatus = '';
+		foreach ($toAdd as $courseId) {
+			try {
+				$activated = $adapter->activateCourse(array(
+					'name' => $name,
+					'phone' => $phone,
+					'email' => $email,
+					'password' => $password,
+					'course_id' => $courseId,
+				));
+				$activateStatus = isset($activated['status']) ? (string) $activated['status'] : $activateStatus;
+			} catch (Exception $e) {
+				$errText = $e->getMessage();
+				if (stripos($errText, 'COURSE_ACTIVATED') === false && stripos($errText, 'ACTIVATED') === false) {
+					$failed[] = $courseId . ': ' . $errText;
+					continue;
+				}
+			}
+			$courseInfo = Contacts_ProductCatalog::courseById($courseId);
+			self::upsertEdubitCourseOnContact($contactId, array(
+				'course_id' => $courseId,
+				'label' => $courseInfo ? $courseInfo['label'] : '',
+				'progress_pct' => 0,
+				'email' => $email,
+				'user_id' => $userIdEd,
+				'activated_at' => $now,
+				'route' => 'contact',
+			));
+			self::markEdubitProvisionTimes($contactId, $courseId, $now);
+			$added[] = $courseId;
+			$owned[$courseId] = true;
+		}
+		if (empty($added)) {
+			return array(
+				'success' => false,
+				'error' => 'Không kích hoạt được khóa. ' . implode(' ', $failed),
+				'failed' => $failed,
+			);
+		}
 
-		$courseInfo = Contacts_ProductCatalog::courseById($courseId);
-		self::upsertEdubitCourseOnContact($contactId, array(
-			'course_id' => $courseId,
-			'label' => $courseInfo ? $courseInfo['label'] : '',
-			'progress_pct' => 0,
-			'email' => $email,
-			'user_id' => $userIdEd,
-			'activated_at' => $now,
-			'route' => 'contact',
-		));
-		self::markEdubitProvisionTimes($contactId, $courseId, $now);
+		$primaryCourse = $storedCourseId !== '' ? $storedCourseId : $added[0];
+		if (!$hadAccount) {
+			$expiresAt = date('Y-m-d H:i:s', strtotime($now . ' +10 days'));
+			$adb->pquery(
+				'UPDATE vtiger_contactscf SET
+					edubit_user_id = ?,
+					edubit_course_id = ?,
+					edubit_email = ?,
+					edubit_activated_at = ?,
+					edubit_expires_at = ?,
+					edubit_renew_count = 0,
+					edubit_progress_pct = COALESCE(edubit_progress_pct, 0),
+					online_status = ?,
+					da_cap_tai_khoan = ?
+				 WHERE contactid = ?',
+				array($userIdEd, $primaryCourse, $email, $now, $expiresAt, 'online_dang_hoc', 'Đã cấp', $contactId)
+			);
+		} else {
+			$expiresAt = '';
+			$adb->pquery(
+				'UPDATE vtiger_contactscf SET
+					edubit_user_id = COALESCE(NULLIF(edubit_user_id, \'\'), ?),
+					edubit_course_id = COALESCE(NULLIF(edubit_course_id, \'\'), ?),
+					edubit_email = ?,
+					online_status = COALESCE(NULLIF(online_status, \'\'), ?),
+					da_cap_tai_khoan = ?
+				 WHERE contactid = ?',
+				array($userIdEd, $primaryCourse, $email, 'online_dang_hoc', 'Đã cấp', $contactId)
+			);
+		}
 		try {
 			$creds = self::getCredentialState($contactId);
 			$bang = isset($creds['da_cap_bang']) ? $creds['da_cap_bang'] : 'Chưa cấp';
@@ -1960,23 +2051,107 @@ class Contacts_ModernService {
 			// already set da_cap_tai_khoan in SQL
 		}
 
+		$labels = array();
+		foreach ($added as $courseId) {
+			$info = Contacts_ProductCatalog::courseById($courseId);
+			$labels[] = $info && !empty($info['label']) ? $info['label'] : $courseId;
+		}
 		$genPass = isset($created['password']) ? (string) $created['password'] : '';
+		if (!$hadAccount) {
+			$message = 'Đã cấp TK Edubit và kích hoạt ' . count($added) . ' khóa: ' . implode(', ', $labels) . '.';
+			if ($genPass !== '') {
+				$message .= ' Mật khẩu tạm: ' . $genPass . '.';
+			}
+		} else {
+			$message = 'Đã thêm ' . count($added) . ' khóa vào tài khoản ' . $email . ': ' . implode(', ', $labels) . '.';
+		}
+		if (!empty($failed)) {
+			$message .= ' Không kích hoạt được: ' . implode(' ', $failed);
+		}
 		return array(
 			'success' => true,
 			'contact_id' => $contactId,
 			'edubit_user_id' => $userIdEd,
-			'edubit_course_id' => $courseId,
+			'edubit_course_id' => $primaryCourse,
+			'added_course_ids' => $added,
+			'failed' => $failed,
 			'edubit_email' => $email,
-			'edubit_activated_at' => date('c', strtotime($now)),
-			'edubit_expires_at' => date('c', strtotime($expiresAt)),
-			'generated_password' => $genPass,
+			'edubit_activated_at' => $hadAccount ? '' : date('c', strtotime($now)),
+			'edubit_expires_at' => (!$hadAccount && !empty($expiresAt)) ? date('c', strtotime($expiresAt)) : '',
+			'generated_password' => $hadAccount ? '' : $genPass,
 			'create_status' => isset($created['status']) ? $created['status'] : '',
-			'activate_status' => isset($activated['status']) ? $activated['status'] : '',
+			'activate_status' => $activateStatus,
 			'courses' => self::getEdubitCoursesOnContact($contactId),
-			'message' => $genPass !== ''
-				? ('Đã cấp TK Edubit. Mật khẩu tạm: ' . $genPass . '.')
-				: 'Đã cấp TK / kích hoạt khóa Edubit trên Khách hàng.',
+			'message' => $message,
 		);
+	}
+
+	/**
+	 * Dữ liệu ô cấp TK: email hiện có và các khóa đã gắn (để tick sẵn, không cấp lại).
+	 */
+	public static function edubitProvisionPanel($contactId) {
+		$choices = array(
+			array('id' => '29403', 'label' => '29403 — Khai trương quán bài bản (990k)'),
+			array('id' => '29218', 'label' => '29218 — Pha chế tổng hợp'),
+			array('id' => '28108', 'label' => '28108 — Pha chế tổng hợp cơ bản'),
+		);
+		$owned = array();
+		foreach (self::getEdubitCoursesOnContact($contactId) as $item) {
+			$owned[$item['course_id']] = true;
+		}
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT edubit_email, edubit_user_id FROM vtiger_contactscf WHERE contactid = ?',
+			array((int) $contactId)
+		);
+		$email = '';
+		$userId = '';
+		if ($res && $adb->num_rows($res) > 0) {
+			$email = trim((string) $adb->query_result($res, 0, 'edubit_email'));
+			$userId = trim((string) $adb->query_result($res, 0, 'edubit_user_id'));
+		}
+		if ($email === '') {
+			try {
+				$contact = Vtiger_Record_Model::getInstanceById((int) $contactId, self::MODULE);
+				$email = trim((string) $contact->get('email'));
+			} catch (Exception $e) {
+				$email = '';
+			}
+		}
+		$courses = array();
+		foreach ($choices as $choice) {
+			$choice['owned'] = !empty($owned[$choice['id']]);
+			$courses[] = $choice;
+		}
+		return array(
+			'email' => $email,
+			'has_account' => $userId !== '' || !empty($owned),
+			'courses' => $courses,
+		);
+	}
+
+	/**
+	 * @param array $payload
+	 * @return string[]
+	 */
+	protected static function normalizeProvisionCourseIds(array $payload) {
+		$raw = array();
+		if (isset($payload['course_ids']) && is_array($payload['course_ids'])) {
+			$raw = $payload['course_ids'];
+		} elseif (isset($payload['course_ids']) && is_string($payload['course_ids']) && $payload['course_ids'] !== '') {
+			$raw = preg_split('/\s*,\s*/', $payload['course_ids']);
+		}
+		if (isset($payload['course_id']) && trim((string) $payload['course_id']) !== '') {
+			$raw[] = $payload['course_id'];
+		}
+		$out = array();
+		foreach ($raw as $id) {
+			$id = preg_replace('/\D+/', '', (string) $id);
+			if ($id !== '' && !in_array($id, $out, true)) {
+				$out[] = $id;
+			}
+		}
+		return $out;
 	}
 
 	protected static function getTagsForContactIds(array $contactIds, $userId = null) {

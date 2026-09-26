@@ -87,22 +87,29 @@
 
 		<section class="mk-contact-class-panel__section mk-contact-class-panel__edubit" aria-labelledby="mk-edubit-prov-title">
 			<h3 id="mk-edubit-prov-title" class="mk-contact-class-panel__title">Cấp TK Online (Edubit)</h3>
-			<p class="mk-contact-class-panel__hint">Khóa có phí / tặng kèm: 29403 (990k), 29218 (PCTH), 28108 (PCTH CB). Không dùng 27312 miễn phí tại đây.</p>
+			<p class="mk-contact-class-panel__hint">Chọn một hoặc nhiều khóa trên cùng một email. Học viên đã có tài khoản thì tick khóa mới để thêm sau, khóa cũ giữ nguyên.</p>
+			{assign var=EDUBIT value=$MK_EDUBIT|default:[]}
 			<div class="mk-contact-class-panel__field">
-				<label class="mk-contact-class-panel__label" for="mk-edubit-course">Khóa online</label>
-				<select id="mk-edubit-course" class="mk-contact-class-panel__select inputElement" data-mk-edubit="course_id">
-					<option value="29403">29403 — Khai trương quán bài bản (990k)</option>
-					<option value="29218">29218 — Pha chế tổng hợp</option>
-					<option value="28108">28108 — Pha chế tổng hợp cơ bản</option>
-				</select>
+				<span class="mk-contact-class-panel__label">Khóa online</span>
+				<div class="mk-edubit-courses" data-mk-edubit="courses">
+					{if !empty($EDUBIT.courses)}
+					{foreach from=$EDUBIT.courses item=COURSE}
+						<label class="mk-edubit-course{if !empty($COURSE.owned)} is-owned{/if}">
+							<input type="checkbox" value="{$COURSE.id|escape}" data-mk-edubit-course="1"{if !empty($COURSE.owned)} checked="checked" disabled="disabled"{/if} />
+							<span>{$COURSE.label|escape}</span>
+							{if !empty($COURSE.owned)}<em>Đã có</em>{/if}
+						</label>
+					{/foreach}
+					{/if}
+				</div>
 			</div>
 			<div class="mk-contact-class-panel__field">
 				<label class="mk-contact-class-panel__label" for="mk-edubit-email">Email học viên</label>
-				<input type="email" id="mk-edubit-email" class="mk-contact-class-panel__select inputElement" data-mk-edubit="email" placeholder="email@…" />
+				<input type="email" id="mk-edubit-email" class="mk-contact-class-panel__select inputElement" data-mk-edubit="email" placeholder="email@…" value="{$EDUBIT.email|default:''|escape}" {if !empty($EDUBIT.has_account)}readonly="readonly"{/if} />
 			</div>
 			<button type="button" class="mk-contact-class-panel__btn mk-contact-class-panel__btn--primary" data-mk-edubit-action="provision">
 				<i class="fa fa-user-plus" aria-hidden="true"></i>
-				<span>Cấp tài khoản</span>
+				<span data-mk-edubit-btn-label>{if !empty($EDUBIT.has_account)}Thêm khóa học{else}Cấp tài khoản{/if}</span>
 			</button>
 			<div class="mk-contact-class-panel__edubit-status" data-mk-edubit-status hidden></div>
 		</section>

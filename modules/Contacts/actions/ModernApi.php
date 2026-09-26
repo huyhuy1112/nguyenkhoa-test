@@ -269,6 +269,9 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 					if (empty($payload['course_id']) && $request->get('course_id') !== '') {
 						$payload['course_id'] = $request->get('course_id');
 					}
+					if (empty($payload['course_ids']) && $request->get('course_ids') !== '') {
+						$payload['course_ids'] = $request->get('course_ids');
+					}
 					if (empty($payload['email']) && $request->get('email') !== '') {
 						$payload['email'] = $request->get('email');
 					}

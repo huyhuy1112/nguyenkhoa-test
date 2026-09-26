@@ -2892,6 +2892,44 @@ body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-conta
 	color: #64748b;
 }
 
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-edubit-courses,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-edubit-courses {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-edubit-course,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-edubit-course {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	padding: 8px 10px;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	background: #fff;
+	font-size: 13px;
+	color: #0f172a;
+	cursor: pointer;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-edubit-course.is-owned,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-edubit-course.is-owned {
+	background: #f8fafc;
+	color: #64748b;
+	cursor: default;
+}
+
+body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-edubit-course em,
+body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-edubit-course em {
+	margin-left: auto;
+	font-style: normal;
+	font-size: 12px;
+	font-weight: 600;
+	color: #0b6e4f;
+}
+
 body[data-module="Contacts"][data-view="Detail"][data-app="SALES"] .mk-contact-class-panel__select,
 body[data-module="Contacts"][data-view="Detail"][data-app="MARKETING"] .mk-contact-class-panel__select {
 	width: 100%;

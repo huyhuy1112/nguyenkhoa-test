@@ -191,6 +191,7 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 				$viewer->assign('MK_CLASS_REG', Contacts_ModernService::getClassRegSummary($recordId));
 				$viewer->assign('MK_CREDENTIALS', Contacts_ModernService::getCredentialState($recordId));
 				$viewer->assign('MK_CONTACT_CCCD', Contacts_ModernService::getLeadCccdForContact($recordId));
+				$viewer->assign('MK_EDUBIT', Contacts_ModernService::edubitProvisionPanel($recordId));
 			} catch (Exception $e) {
 				$viewer->assign('MK_CLASS_REG', array(
 					'logs' => array(),
@@ -209,6 +210,15 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 					'tk_options' => array('Chưa cấp tài khoản', 'Đã cấp'),
 				));
 				$viewer->assign('MK_CONTACT_CCCD', '');
+				$viewer->assign('MK_EDUBIT', array(
+					'email' => '',
+					'has_account' => false,
+					'courses' => array(
+						array('id' => '29403', 'label' => '29403 — Khai trương quán bài bản (990k)', 'owned' => false),
+						array('id' => '29218', 'label' => '29218 — Pha chế tổng hợp', 'owned' => false),
+						array('id' => '28108', 'label' => '28108 — Pha chế tổng hợp cơ bản', 'owned' => false),
+					),
+				));
 			}
 		}
 	}

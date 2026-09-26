@@ -307,10 +307,16 @@
 		$panel.off('click.mkEdubitProv').on('click.mkEdubitProv', '[data-mk-edubit-action="provision"]', function (e) {
 			e.preventDefault();
 			var $btn = $(this);
-			var courseId = String($panel.find('[data-mk-edubit="course_id"]').val() || '').trim();
+			var courseIds = [];
+			$panel.find('[data-mk-edubit-course]').each(function () {
+				var box = this;
+				if (box.checked && !box.disabled) {
+					courseIds.push(String(box.value || '').trim());
+				}
+			});
 			var email = String($panel.find('[data-mk-edubit="email"]').val() || '').trim();
-			if (!courseId) {
-				notifyError('Chọn khóa online.');
+			if (!courseIds.length) {
+				notifyError('Chọn ít nhất một khóa chưa có trên tài khoản.');
 				return;
 			}
 			if (!email) {
@@ -325,7 +331,7 @@
 				mode: 'edubit_provision',
 				record: recordId,
 				id: recordId,
-				payload: JSON.stringify({ course_id: courseId, email: email })
+				payload: JSON.stringify({ course_ids: courseIds, email: email })
 			}, function (err, res) {
 				$btn.prop('disabled', false);
 				if (err || !res || res.success === false) {
@@ -341,9 +347,29 @@
 				if ($status.length) {
 					$status.removeAttr('hidden').text(ok);
 				}
-				if (res.edubit_course_id) {
-					$panel.find('[data-mk-edubit="course_id"]').val(String(res.edubit_course_id));
+				var added = (res && res.added_course_ids) || [];
+				added.forEach(function (id) {
+					var box = $panel.find('[data-mk-edubit-course][value="' + id + '"]')[0];
+					if (!box) return;
+					box.checked = true;
+					box.disabled = true;
+					var label = box.closest ? box.closest('.mk-edubit-course') : null;
+					if (label) {
+						label.classList.add('is-owned');
+						if (!label.querySelector('em')) {
+							var mark = document.createElement('em');
+							mark.textContent = 'Đã có';
+							label.appendChild(mark);
+						}
+					}
+				});
+				var emailInput = $panel.find('[data-mk-edubit="email"]')[0];
+				if (emailInput && res && res.edubit_email) {
+					emailInput.value = res.edubit_email;
+					emailInput.readOnly = true;
 				}
+				var btnLabel = $panel.find('[data-mk-edubit-btn-label]')[0];
+				if (btnLabel) btnLabel.textContent = 'Thêm khóa học';
 			});
 		});
 	}
