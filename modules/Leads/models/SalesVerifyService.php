@@ -233,6 +233,58 @@ class Leads_SalesVerifyService {
 	/**
 	 * Save verification for a lead. Keeps form_c* untouched unless empty (seed from form).
 	 */
+	/**
+	 * GD 1.4 tạm: xác minh 3 câu 990k rồi chuyển thẳng Khách hàng (không tạo Opp).
+	 */
+	public static function saveGd14ForLead($leadIdOrCacheId, array $payload, $userId = 0) {
+		require_once 'modules/Leads/models/ModernService.php';
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		Leads_ModernService::installSchema($adb);
+		$leadId = Leads_ModernService::resolveLeadRecordId($leadIdOrCacheId);
+		if (!$leadId && is_numeric($leadIdOrCacheId)) {
+			$leadId = (int) $leadIdOrCacheId;
+		}
+		if (!$leadId) {
+			throw new Exception('Lead not found.');
+		}
+		$c1 = strtolower(trim((string) (isset($payload['c1']) ? $payload['c1'] : '')));
+		$c2 = strtolower(trim((string) (isset($payload['c2']) ? $payload['c2'] : '')));
+		$c3 = strtolower(trim((string) (isset($payload['c3']) ? $payload['c3'] : '')));
+		if (!in_array($c1, array('a', 'b', 'c', 'd'), true)
+			|| !in_array($c2, array('a', 'b', 'c', 'd', 'e'), true)
+			|| !in_array($c3, array('a', 'b', 'c', 'd'), true)) {
+			throw new Exception('Chọn đủ 3 câu xác minh 990k.');
+		}
+		$res = $adb->pquery('SELECT verify_extra_json FROM bace_lead_profile WHERE leadid = ?', array($leadId));
+		$extra = array();
+		if ($res && $adb->num_rows($res) > 0) {
+			$decoded = json_decode((string) $adb->query_result($res, 0, 'verify_extra_json'), true);
+			if (is_array($decoded)) {
+				$extra = $decoded;
+			}
+		}
+		$extra['gd14_c1'] = $c1;
+		$extra['gd14_c2'] = $c2;
+		$extra['gd14_c3'] = $c3;
+		$extra['gd14_verified'] = 1;
+		$adb->pquery(
+			'UPDATE bace_lead_profile SET verify_extra_json = ?, modified_at = ? WHERE leadid = ?',
+			array(json_encode($extra, JSON_UNESCAPED_UNICODE), date('Y-m-d H:i:s'), $leadId)
+		);
+		require_once 'modules/Leads/models/ConvertService.php';
+		$converted = Leads_ConvertService::convertLeadToContactOnly($leadId, array());
+		require_once 'modules/Leads/models/ModernService.php';
+		$lead = Leads_ModernService::getLead($leadId, $userId > 0 ? $userId : null);
+		return array(
+			'success' => true,
+			'lead' => $lead,
+			'contact_id' => isset($converted['contactId']) ? (int) $converted['contactId'] : 0,
+			'convert' => $converted,
+			'message' => 'Đã xác minh 990k và chuyển xuống Khách hàng.',
+		);
+	}
+
 	public static function saveForLead($leadIdOrCacheId, array $payload, $userId = 0) {
 		require_once 'modules/Leads/models/ModernService.php';
 		require_once 'modules/Leads/models/SheetImportService.php';

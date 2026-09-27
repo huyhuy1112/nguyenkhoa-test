@@ -161,7 +161,7 @@ class Leads_ModernService {
 	protected static function verifyProfileSelectSql() {
 		return ', p.form_c1, p.form_c2, p.form_c3, p.verify_c1, p.verify_c2, p.verify_c3, p.verify_c4, p.verify_c5,
 			p.eligibility_result, p.potential_level, p.verify_score, p.verify_change_reason, p.verified_at, p.verified_by,
-			p.answers_locked_at, p.answers_locked_by,
+			p.answers_locked_at, p.answers_locked_by, p.verify_extra_json,
 			p.online_status, p.online_q1, p.online_q2, p.online_q3, p.online_q4, p.online_path, p.online_source_leadid, p.zalo_user_id,
 			p.edubit_user_id, p.edubit_course_id, p.edubit_email, p.edubit_activated_at, p.edubit_expires_at,
 			p.edubit_renew_count, p.edubit_expiry_reason, p.edubit_progress_pct, p.edubit_last_error,
@@ -1463,7 +1463,7 @@ class Leads_ModernService {
 			'needs_sales_verify' => self::computeNeedsSalesVerify($row, $tags, $verify) ? 1 : 0,
 			'products' => $products,
 			'pipeline_closed' => !empty($row['pipeline_closed']) ? 1 : 0,
-		) + $verify;
+		) + $verify + self::gd14VerifyFields(isset($row['verify_extra_json']) ? $row['verify_extra_json'] : '');
 	}
 
 	/**
@@ -1482,7 +1482,7 @@ class Leads_ModernService {
 		}
 		foreach ($tags as $tag) {
 			$t = strtolower(trim((string) $tag));
-			if ($t === 'zalo' || $t === 'mien_phi_offline' || strpos($t, 'offline_') === 0) {
+			if ($t === 'gd14_990' || $t === '990k' || $t === 'zalo' || $t === 'mien_phi_offline' || strpos($t, 'offline_') === 0) {
 				return true;
 			}
 		}
@@ -1513,6 +1513,22 @@ class Leads_ModernService {
 			}
 		}
 		return false;
+	}
+
+	protected static function gd14VerifyFields($raw) {
+		$data = array();
+		if (is_string($raw) && $raw !== '') {
+			$decoded = json_decode($raw, true);
+			if (is_array($decoded)) {
+				$data = $decoded;
+			}
+		}
+		return array(
+			'gd14_c1' => isset($data['gd14_c1']) ? (string) $data['gd14_c1'] : '',
+			'gd14_c2' => isset($data['gd14_c2']) ? (string) $data['gd14_c2'] : '',
+			'gd14_c3' => isset($data['gd14_c3']) ? (string) $data['gd14_c3'] : '',
+			'gd14_verified' => !empty($data['gd14_verified']) ? 1 : 0,
+		);
 	}
 
 	protected static function loadVerifyExtraAnswers($leadId, $detailed) {

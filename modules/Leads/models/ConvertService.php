@@ -784,6 +784,21 @@ class Leads_ConvertService {
 			if ($street !== '' || $district !== '') {
 				Potentials_ModernService::upsertProfileAddress($potentialId, $district, $street);
 			}
+			$phone = '';
+			$adb = PearDatabase::getInstance();
+			$ph = $adb->pquery(
+				'SELECT phone, mobile FROM vtiger_leadaddress WHERE leadaddressid = ?',
+				array($leadId)
+			);
+			if ($ph && $adb->num_rows($ph) > 0) {
+				$phone = self::decodeLeadField(trim((string) $adb->query_result($ph, 0, 'phone')));
+				if ($phone === '' || $phone === '--') {
+					$phone = self::decodeLeadField(trim((string) $adb->query_result($ph, 0, 'mobile')));
+				}
+			}
+			if ($phone !== '' && $phone !== '--') {
+				Potentials_ModernService::saveProfilePhone($potentialId, $phone);
+			}
 		} catch (Exception $e) {
 			// best-effort copy
 		}

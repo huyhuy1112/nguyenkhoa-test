@@ -157,6 +157,7 @@
   TAG_META_RAW["l2"] = { vi: "L2", en: "L2", cat: "other", cls: "mk-tag--l2" };
   TAG_META_RAW["chua_990k"] = { vi: "Chưa 990k", en: "Not 990k", cat: "other", cls: "mk-tag--chua-990k" };
   TAG_META_RAW["da_990k"] = { vi: "Đã 990k", en: "Paid 990k", cat: "other", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_990"] = { vi: "990k", en: "990k class", cat: "gd14", cls: "mk-tag--da-990k" };
   TAG_META_RAW["da_pcthcb"] = { vi: "Đã PCTHCB", en: "Done PCTHCB", cat: "other", cls: "mk-tag--da-pcthcb" };
   TAG_META_RAW["lop_online"] = { vi: "Lớp online", en: "Online class", cat: "other", cls: "mk-tag--lop-online" };
   TAG_META_RAW["moi_lai"] = { vi: "Mời lại", en: "Re-invite", cat: "other", cls: "mk-tag--moi-lai" };
@@ -189,6 +190,12 @@
 
   /** Tags available on Create form — used for list/inline tag editors. */
   var CREATE_TAG_GROUPS = [
+    {
+      id: "gd14",
+      labelVi: "Giai đoạn 1.4",
+      labelEn: "Stage 1.4",
+      tags: ["gd14_990"],
+    },
     {
       id: "online",
       labelVi: "Online 1.2",
@@ -312,6 +319,8 @@
   var CACHE_ONLY = true;
 
   var TAG_ALIASES = {
+    "990k": "gd14_990",
+    "990": "gd14_990",
     other_source: "other",
     ca_nhan: "individual",
     gold: "vang",

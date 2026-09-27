@@ -32,7 +32,7 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 			'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save', 'bulk_assign_owner',
 			'dedupe_leads', 'last_touch_call_log',
 			'sheet_settings_save', 'sheet_poll_now', 'merge_leads', 'restore_lead', 'purge_lead', 'soft_delete',
-			'sales_verify_save', 'online_verify_save', 'offline_gd11_apply', 'offline_gd11_step2',
+			'sales_verify_save', 'gd14_verify_save', 'online_verify_save', 'offline_gd11_apply', 'offline_gd11_step2',
 			'offline_gd11_step2_remind', 'r1_notif_action',
 			'online_gd12_transfer_from_offline', 'online_gd12_transfer_from_online',
 			'online_edubit_provision', 'online_edubit_sync_progress', 'online_edubit_renew',
@@ -314,6 +314,19 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 						'c5' => isset($payload['c5']) ? $payload['c5'] : 0,
 					));
 					$response->setResult(array('success' => true, 'result' => $result));
+					break;
+
+				case 'gd14_verify_save':
+					$payload = $this->decodePayload($request);
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					if (($id === null || $id === '') && isset($payload['id'])) {
+						$id = $payload['id'];
+					}
+					$saved = Leads_SalesVerifyService::saveGd14ForLead($id, $payload, $userId);
+					$response->setResult($saved);
 					break;
 
 				case 'sales_verify_save':

@@ -1280,6 +1280,15 @@
     return false;
   }
 
+  function isGd14Lead(l) {
+    var tags = (l && l.tags) || [];
+    for (var i = 0; i < tags.length; i++) {
+      var key = normalizeTagKey(tags[i]);
+      if (key === "gd14_990" || String(tags[i]).toLowerCase() === "gd14_990") return true;
+    }
+    return false;
+  }
+
   function isOnlineVerifyLead(l) {
     if (!l || Number(l.sheet_source) === 1) return false;
     if (l.verify_mode === "sales_b") return false;
@@ -2062,10 +2071,72 @@
     return extra;
   }
 
+  function gd14QuestionOptions() {
+    return {
+      c1: [
+        { code: "a", label: "Chuẩn bị mở quán" },
+        { code: "b", label: "Đã có quán nhưng đang gặp vấn đề" },
+        { code: "c", label: "Đã có quán muốn cập nhật kiến thức" },
+        { code: "d", label: "Học pha chế để phục vụ gia đình hoặc sở thích" },
+      ],
+      c2: [
+        { code: "a", label: "Xe đẩy vỉa hè" },
+        { code: "b", label: "Bán online" },
+        { code: "c", label: "Có mặt bằng — bán take away" },
+        { code: "d", label: "Có mặt bằng — bán ngồi lại" },
+        { code: "e", label: "Phục vụ gia đình, sở thích cá nhân" },
+      ],
+      c3: [
+        { code: "a", label: "Dưới 100 triệu" },
+        { code: "b", label: "Từ 100 triệu đến dưới 300 triệu" },
+        { code: "c", label: "Từ 300 triệu đến dưới 500 triệu" },
+        { code: "d", label: "Từ 500 triệu trở lên" },
+      ],
+    };
+  }
+
+  function fillListVerifyBodyGd14(lead) {
+    var body = document.getElementById("mk-leads-verify-body");
+    if (!body || !lead) return;
+    paintListVerifyHeader(lead, false);
+    var badge = document.getElementById("mk-leads-verify-badge");
+    var title = document.getElementById("mk-leads-verify-title");
+    if (badge) badge.textContent = "990k";
+    if (title) title.textContent = "Xác minh 990k";
+    var opts = gd14QuestionOptions();
+    body.innerHTML =
+      '<div class="mk-leads-verify-hero">' +
+      '<div class="mk-leads-verify-hero__name">' +
+      esc(lead.name || "Lead") +
+      "</div>" +
+      '<div class="mk-leads-verify-hero__meta">' +
+      (lead.phone ? '<span class="mk-leads-verify-phone">' + esc(lead.phone) + "</span>" : "") +
+      "</div></div>" +
+      '<section class="mk-leads-verify-section">' +
+      "<h4>Xác minh 990k</h4>" +
+      '<p class="mk-leads-verify-offline__meta">Ba câu của lớp Pha chế Chuyên đề 990k. Lưu xong hồ sơ chuyển thẳng xuống Khách hàng.</p>' +
+      '<label class="mk-leads-verify-field"><span>Câu 1 — Tình trạng</span>' +
+      listVerifySelectHtml("c1", opts.c1, lead.gd14_c1 || "", "— Chọn —") +
+      "</label>" +
+      '<label class="mk-leads-verify-field"><span>Câu 2 — Mô hình</span>' +
+      listVerifySelectHtml("c2", opts.c2, lead.gd14_c2 || "", "— Chọn —") +
+      "</label>" +
+      '<label class="mk-leads-verify-field"><span>Câu 3 — Khả năng tài chính tối đa</span>' +
+      listVerifySelectHtml("c3", opts.c3, lead.gd14_c3 || "", "— Chọn —") +
+      "</label></section>" +
+      '<p class="mk-leads-verify-err" data-mk-verify-err hidden></p>' +
+      '<p class="mk-leads-verify-ok" data-mk-verify-ok hidden></p>';
+  }
+
   function fillListVerifyBody(lead) {
     var body = document.getElementById("mk-leads-verify-body");
     var panel = document.getElementById("mk-leads-verify-panel");
     if (!body || !lead) return;
+    if (isGd14Lead(lead)) {
+      if (panel) panel._mkVerifyMode = "gd14_990";
+      fillListVerifyBodyGd14(lead);
+      return;
+    }
     var online = isOnlineVerifyLead(lead);
     if (panel) panel._mkVerifyMode = online ? "online_gd12" : "sales_b";
     if (online) fillListVerifyBodyOnline(lead);
@@ -2079,6 +2150,14 @@
       return el ? String(el.value || "").trim() : "";
     };
     var mode = (host && host._mkVerifyMode) || "sales_b";
+    if (mode === "gd14_990") {
+      return {
+        mode: "gd14_990",
+        c1: get("c1"),
+        c2: get("c2"),
+        c3: get("c3"),
+      };
+    }
     if (mode === "online_gd12") {
       return {
         mode: "online_gd12",
@@ -2629,7 +2708,41 @@
     var lead = panel && panel._mkLead;
     var payload = readListVerifyPayload(panel);
     var online = payload.mode === "online_gd12";
+    var gd14 = payload.mode === "gd14_990";
     setListVerifyMsg("", "");
+    if (gd14) {
+      if (!payload.c1 || !payload.c2 || !payload.c3) {
+        setListVerifyMsg("Vui lòng chọn đủ 3 câu xác minh 990k.", "");
+        return;
+      }
+      if (typeof app === "undefined" || !app.request) {
+        setListVerifyMsg("API không sẵn sàng.", "");
+        return;
+      }
+      if (btn) btn.disabled = true;
+      app.request
+        .post({
+          data: {
+            module: "Leads",
+            action: "ModernApi",
+            mode: "gd14_verify_save",
+            id: (lead && (lead.crmid || lead.id)) || "",
+            record: (lead && (lead.crmid || lead.id)) || "",
+            payload: JSON.stringify(payload),
+          },
+        })
+        .then(function (err, res) {
+          if (btn) btn.disabled = false;
+          if (err || !res || res.success === false) {
+            setListVerifyMsg((err && (err.message || err)) || (res && res.error) || "Lưu xác minh 990k thất bại.", "");
+            return;
+          }
+          setListVerifyMsg("", (res && res.message) || "Đã xác minh 990k và chuyển xuống Khách hàng.");
+          closeListVerifyPanel();
+          renderTable();
+        });
+      return;
+    }
     if (lead && Number(lead.answers_locked) === 1 && action === "save") {
       setListVerifyMsg(
         "Đáp án đã khoá sau khi thông báo kết quả. Khách muốn đổi thì đăng ký lại form sau 3 tháng.",
@@ -3562,20 +3675,26 @@
             esc(decodeHtmlEntities(l.name)) +
             "</a>" +
             screeningStatusHtml(l) +
-            (needsSalesVerify(l)
+            (needsSalesVerify(l) || isGd14Lead(l)
               ? '<button type="button" class="mk-leads-verify-btn' +
-                (l.eligibility_result || l.potential_level ? " is-done" : "") +
+                (isGd14Lead(l) ? (Number(l.gd14_verified) === 1 ? " is-done" : "") : (l.eligibility_result || l.potential_level ? " is-done" : "")) +
                 '" data-lead-id="' +
                 esc(l.id) +
                 '" title="' +
-                (isOnlineVerifyLead(l) ? "Xác minh Online (3 câu)" : "Sales xác minh (3 câu)") +
+                (isGd14Lead(l) ? "Xác minh 990k" : (isOnlineVerifyLead(l) ? "Xác minh Online (3 câu)" : "Sales xác minh (3 câu)")) +
                 '">' +
                 '<svg class="mk-leads-verify-btn__ic" width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
                 '<path d="M12 3 5 6v6c0 5 3.2 8.2 7 9.5 3.8-1.3 7-4.5 7-9.5V6l-7-3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>' +
                 '<path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
                 "</svg>" +
                 "<span>" +
-                (l.eligibility_result || l.potential_level ? "Đã xác minh" : "Xác minh") +
+                (isGd14Lead(l)
+                  ? Number(l.gd14_verified) === 1
+                    ? "Đã xác minh"
+                    : "Xác minh 990k"
+                  : l.eligibility_result || l.potential_level
+                    ? "Đã xác minh"
+                    : "Xác minh") +
                 "</span></button>"
               : "") +
             "</span></span></td>" +
