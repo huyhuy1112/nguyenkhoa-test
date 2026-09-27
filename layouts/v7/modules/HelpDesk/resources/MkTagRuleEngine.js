@@ -573,11 +573,11 @@
 
 		levelPlain: function (lv) {
 			var bits = (lv.when || []).map(function (c) {
-				var q = String(c.q || '').toUpperCase();
-				if (c.op === 'in') return q + ' là một trong ' + c.value;
-				return q + ' = ' + c.value;
+				var q = String(c.q || '').replace(/^c/i, 'Câu ');
+				if (c.op === 'in') return q + ' là ' + String(c.value || '').replace(/,/g, ' hoặc ');
+				return q + ' là ' + c.value;
 			});
-			return bits.length ? bits.join(' và ') : 'Không có điều kiện';
+			return bits.length ? bits.join(', và ') : 'Áp dụng khi chưa khớp mức nào phía trên';
 		},
 
 		renderQuestionsTab: function () {
@@ -603,7 +603,7 @@
 					+ '      <label>Tên mức<input class="mk-tre-input js-tre-lv-label" value="' + esc(lv.label || '') + '" /></label>'
 					+ '      <label>Mã<input class="mk-tre-input js-tre-lv-code" value="' + esc(lv.code || '') + '" /></label>'
 					+ '      <label>Thứ tự xét<input class="mk-tre-input js-tre-lv-prio" type="number" value="' + esc(lv.priority) + '" /></label>'
-					+ '      <label class="mk-lv__when">Khi đáp án<input class="mk-tre-input js-tre-lv-when" value="' + esc(when) + '" placeholder="c3=F hoặc c1 in A,B & c2=A" /></label>'
+					+ '      <label class="mk-lv__when">Khi khách trả lời<input class="mk-tre-input js-tre-lv-when" value="' + esc(when) + '" placeholder="c3=F hoặc c1 in A,B & c2=A" /></label>'
 					+ '    </div>'
 					+ '  </div>'
 					+ '</article>';
@@ -612,8 +612,8 @@
 				+ '<div class="mk-q-page">'
 				+ '  <section class="mk-tre-section">'
 				+ '    <div class="mk-tre-section__head"><div class="mk-tre-section__titles">'
-				+ '      <h2 class="mk-tre-section__title">Câu hỏi Sales hỏi khách</h2>'
-				+ '      <p class="mk-tre-section__sub">3 câu đầu luôn bắt buộc. Câu thêm có thể bỏ trống. Sales chọn đáp án, hệ thống tự xếp mức bên dưới.</p>'
+				+ '      <h2 class="mk-tre-section__title">Câu hỏi khi gọi khách</h2>'
+				+ '      <p class="mk-tre-section__sub">Ba câu đầu luôn phải hỏi. Câu thêm thì hỏi khi cần. Sales chọn đáp án, hệ thống tự xếp vào một mức ở dưới.</p>'
 				+ '    </div><div class="mk-tre-section__actions">'
 				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-q-add">Thêm câu</button>'
 				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--primary js-tre-q-save">Lưu</button>'
@@ -622,8 +622,8 @@
 				+ '  </section>'
 				+ '  <section class="mk-tre-section">'
 				+ '    <div class="mk-tre-section__head"><div class="mk-tre-section__titles">'
-				+ '      <h2 class="mk-tre-section__title">Xếp loại sau khi trả lời</h2>'
-				+ '      <p class="mk-tre-section__sub">Xét từ trên xuống. Mức nào khớp trước thì lấy mức đó. Không cộng điểm.</p>'
+				+ '      <h2 class="mk-tre-section__title">Trả lời xong thì thuộc nhóm nào</h2>'
+				+ '      <p class="mk-tre-section__sub">Đọc từ trên xuống. Dòng nào đúng trước thì lấy dòng đó. Không cộng điểm.</p>'
 				+ '    </div><div class="mk-tre-section__actions">'
 				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-lv-add">Thêm mức</button>'
 				+ '    </div></div>'
@@ -796,7 +796,7 @@
 					+ '  <td><div class="mk-tre-rule-name">' + esc(r.status_label) + '</div><div class="mk-tre-rule-sub">' + esc(r.name) + '</div></td>'
 					+ '  <td><div class="mk-tre-if"><span class="mk-tre-if__label">Nếu</span><div class="mk-tre-chips">' + tagHtml + '</div></div></td>'
 					+ '  <td><div class="mk-tre-then"><span class="mk-tre-then__label">Thì</span>'
-					+ '    <div class="mk-tre-then__text">' + esc(r.next_action || '—') + '</div>'
+					+ '    <div class="mk-tre-then__text">' + esc(r.next_action || '—') + (r.result_tag ? '<div class="mk-tre-rule-sub">Đổi sang tag ' + esc(tagMap[r.result_tag] ? tagMap[r.result_tag].name : r.result_tag) + '</div>' : '') + '</div>'
 					+ (thenMeta ? '<div class="mk-tre-then__meta mk-tre-chips">' + thenMeta + '</div>' : '')
 					+ '  </div></td>'
 					+ '  <td><span class="mk-tre-priority">' + esc(r.priority) + '</span></td>'
@@ -1193,7 +1193,7 @@
 			var isEdit = !!ruleId;
 			var rule = isEdit ? store.getRuleById(ruleId) : {
 				status_label: '', name: '', tag_ids: [], important_tags: [], priority: 50, is_active: true,
-				alert_days: 3, next_action: '', require_note: false, scenario_id: '',
+				alert_days: 3, next_action: '', require_note: false, scenario_id: '', result_tag: '',
 				condition_mode: 'AND', formula_metric: '', formula_op: '>=', formula_value: '', warning_value: '', action_code: ''
 			};
 			var tags = store.getTags();
@@ -1290,7 +1290,7 @@
 					+ '  <label class="mk-tre-field"><span>Trường</span><select class="mk-tre-input mk-tre-input--select" name="fc_field">' + fieldOpts + '</select></label>'
 					+ '  <label class="mk-tre-field"><span>So sánh</span><select class="mk-tre-input mk-tre-input--select" name="fc_op">' + opOptsHtml + '</select></label>'
 					+ '  <label class="mk-tre-field"><span>Giá trị</span><input class="mk-tre-input" name="fc_value" value="' + esc(row.value || '') + '" placeholder="VD: ca_phe_san_vuon hoặc 3" /></label>'
-					+ '  <label class="mk-tre-opt" style="flex:0"><span class="mk-tre-opt__text"><strong>Quan trọng</strong></span>'
+					+ '  <label class="mk-tre-opt" style="flex:0"><span class="mk-tre-opt__text"><strong>Luôn phải đúng</strong></span>'
 					+ '    <span class="mk-tre-switch"><input type="checkbox" name="fc_important"' + (row.important ? ' checked' : '') + ' /><span class="mk-tre-switch__track"></span></span></label>'
 					+ '  <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-fc-del">Xoá</button>'
 					+ '</div>';
@@ -1303,37 +1303,45 @@
 				+ '    <span class="mk-tre-flow__badge mk-tre-flow__badge--if">Nếu</span>'
 				+ '    <span class="mk-tre-flow__line"></span>'
 				+ '    <span class="mk-tre-flow__badge mk-tre-flow__badge--then">Thì</span>'
-				+ '    <p class="mk-tre-flow__text">Điều kiện (AND/OR) + tag quan trọng + công thức → hành động / cảnh báo</p>'
+				+ '    <p class="mk-tre-flow__text">Khách đang có tag này, cộng thêm điều kiện nếu cần → việc cần làm và có thể đổi sang tag khác</p>'
 				+ '  </div>'
 
 				+ '  <section class="mk-tre-form-block">'
 				+ '    <header class="mk-tre-form-block__head">'
 				+ '      <span class="mk-tre-form-block__step">01</span>'
-				+ '      <div><h3 class="mk-tre-form-block__title">Kết quả khi khớp</h3>'
-				+ '      <p class="mk-tre-form-block__sub">Nhãn trạng thái, hành động và kịch bản áp dụng cho lead</p></div>'
+				+ '      <div><h3 class="mk-tre-form-block__title">Thì làm gì</h3>'
+				+ '      <p class="mk-tre-form-block__sub">Việc Sales cần làm, và tag mới nếu muốn đổi</p></div>'
 				+ '    </header>'
 				+ '    <div class="mk-tre-form-block__body">'
 				+ '      <div class="mk-tre-form-row">'
-				+ '        <label class="mk-tre-field"><span>Mã / tên rule</span><input class="mk-tre-input" name="name" value="' + esc(rule.name) + '" placeholder="VD: R03 Miss call" autocomplete="off" /></label>'
-				+ '        <label class="mk-tre-field"><span>Trạng thái khi khớp</span><input class="mk-tre-input" name="status_label" value="' + esc(rule.status_label) + '" placeholder="VD: Không nghe máy" autocomplete="off" /></label>'
+				+ '        <label class="mk-tre-field"><span>Tên quy tắc</span><input class="mk-tre-input" name="name" value="' + esc(rule.name) + '" placeholder="VD: Không nghe máy 3 lần" autocomplete="off" /></label>'
+				+ '        <label class="mk-tre-field"><span>Tên ngắn trên danh sách</span><input class="mk-tre-input" name="status_label" value="' + esc(rule.status_label) + '" placeholder="VD: Không nghe máy" autocomplete="off" /></label>'
 				+ '      </div>'
-				+ '      <label class="mk-tre-field"><span>Hành động tiếp theo</span><input class="mk-tre-input" name="next_action" value="' + esc(rule.next_action || '') + '" placeholder="Câu sale cần làm — không đổi luồng hay chuyển Opp" autocomplete="off" /></label>'
+				+ '      <label class="mk-tre-field"><span>Việc Sales cần làm</span><input class="mk-tre-input" name="next_action" value="' + esc(rule.next_action || '') + '" placeholder="VD: Gọi lại khách vào sáng mai" autocomplete="off" /></label>'
+				+ '      <label class="mk-tre-field"><span>Đổi sang tag</span><select class="mk-tre-input mk-tre-input--select" name="result_tag">'
+				+ '        <option value="">Không đổi tag</option>'
+				+ tags.map(function (t) {
+					var sel = String(rule.result_tag || '') === String(t.id) ? ' selected' : '';
+					return '<option value="' + esc(t.id) + '"' + sel + '>' + esc(t.name) + '</option>';
+				}).join('')
+				+ '      </select></label>'
+				+ '      <p class="mk-tre-form-block__sub">Nếu chọn tag mới, CRM gỡ các tag ở mục “Khi nào” và gắn tag này. Không tự chuyển Cơ hội, không đổi giờ học, không điểm danh.</p>'
 				+ '      <div class="mk-tre-form-row">'
-				+ '        <label class="mk-tre-field"><span>Ghép các dòng điều kiện</span><select class="mk-tre-input mk-tre-input--select" name="condition_mode">'
-				+ '          <option value="AND"' + ((rule.condition_mode || 'AND') === 'AND' ? ' selected' : '') + '>AND — đủ mọi dòng</option>'
-				+ '          <option value="OR"' + (rule.condition_mode === 'OR' ? ' selected' : '') + '>OR — một trong các dòng</option>'
+				+ '        <label class="mk-tre-field"><span>Các điều kiện thêm</span><select class="mk-tre-input mk-tre-input--select" name="condition_mode">'
+				+ '          <option value="AND"' + ((rule.condition_mode || 'AND') === 'AND' ? ' selected' : '') + '>Phải đúng tất cả</option>'
+				+ '          <option value="OR"' + (rule.condition_mode === 'OR' ? ' selected' : '') + '>Chỉ cần đúng một</option>'
 				+ '        </select></label>'
-				+ '        <label class="mk-tre-field"><span>Cảnh báo từ mức</span><input class="mk-tre-input" type="number" name="warning_value" value="' + esc(rule.warning_value == null ? '' : rule.warning_value) + '" min="0" placeholder="VD: 2 — trước ngưỡng số ngày/số lần" /></label>'
+				+ '        <label class="mk-tre-field"><span>Báo sớm khi đạt số</span><input class="mk-tre-input" type="number" name="warning_value" value="' + esc(rule.warning_value == null ? '' : rule.warning_value) + '" min="0" placeholder="VD: 2 — để trống nếu không dùng" /></label>'
 				+ '      </div>'
-				+ '      <div class="mk-tre-field"><span>Điều kiện theo trường</span>'
+				+ '      <div class="mk-tre-field"><span>Thêm điều kiện (không bắt buộc)</span>'
 				+ '        <div class="js-tre-fc-list">' + fcRowsHtml + '</div>'
-				+ '        <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-fc-add" style="margin-top:8px">Thêm dòng</button>'
-				+ '        <p class="mk-tre-form-block__sub">Dòng quan trọng luôn bắt buộc. Rule chỉ ghi câu hành động và cảnh báo.</p>'
+				+ '        <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-fc-add" style="margin-top:8px">Thêm điều kiện</button>'
+				+ '        <p class="mk-tre-form-block__sub">Ví dụ: mô hình là cà phê sân vườn, hoặc chưa chăm từ 3 ngày. Dòng “Luôn phải đúng” thì không được thiếu.</p>'
 				+ '      </div>'
 				+ '      <label class="mk-tre-field"><span>Gắn kịch bản</span><select class="mk-tre-input mk-tre-input--select" name="scenario_id">' + scOpts + '</select></label>'
 				+ '      <div class="mk-tre-form-row">'
-				+ '        <label class="mk-tre-field"><span>Priority</span><input class="mk-tre-input" type="number" name="priority" value="' + esc(rule.priority) + '" min="1" /></label>'
-				+ '        <label class="mk-tre-field"><span>Cảnh báo sau (ngày)</span><input class="mk-tre-input" type="number" name="alert_days" value="' + esc(rule.alert_days == null ? '' : rule.alert_days) + '" min="0" placeholder="Trống = không cảnh báo" /></label>'
+				+ '        <label class="mk-tre-field"><span>Thứ tự (số nhỏ chạy trước)</span><input class="mk-tre-input" type="number" name="priority" value="' + esc(rule.priority) + '" min="1" /></label>'
+				+ '        <label class="mk-tre-field"><span>Nhắc sau bao nhiêu ngày</span><input class="mk-tre-input" type="number" name="alert_days" value="' + esc(rule.alert_days == null ? '' : rule.alert_days) + '" min="0" placeholder="Để trống nếu không nhắc" /></label>'
 				+ '      </div>'
 				+ '    </div>'
 				+ '  </section>'
@@ -1341,8 +1349,8 @@
 				+ '  <section class="mk-tre-form-block mk-tre-form-block--tags">'
 				+ '    <header class="mk-tre-form-block__head">'
 				+ '      <span class="mk-tre-form-block__step">02</span>'
-				+ '      <div><h3 class="mk-tre-form-block__title">Điều kiện tag</h3>'
-				+ '      <p class="mk-tre-form-block__sub">Chọn AND (đủ tag) hoặc OR (một trong các tag). Tag quan trọng luôn bắt buộc.</p></div>'
+				+ '      <div><h3 class="mk-tre-form-block__title">Khi nào — khách đang có tag</h3>'
+				+ '      <p class="mk-tre-form-block__sub">Chọn tag khách đang mang. Khớp hết các tag này thì quy tắc mới chạy. Nếu để trống thì chỉ xét điều kiện thêm.</p></div>'
 				+ '      <span class="mk-tre-tag-count js-tre-tag-count">' + selectedCount + ' đã chọn</span>'
 				+ '    </header>'
 				+ '    <div class="mk-tre-form-block__body">'
@@ -1664,7 +1672,7 @@
 					+ '<label>Tên mức<input class="mk-tre-input js-tre-lv-label" value="" /></label>'
 					+ '<label>Mã<input class="mk-tre-input js-tre-lv-code" value="" /></label>'
 					+ '<label>Thứ tự xét<input class="mk-tre-input js-tre-lv-prio" type="number" value="50" /></label>'
-					+ '<label class="mk-lv__when">Khi đáp án<input class="mk-tre-input js-tre-lv-when" placeholder="c4=A" /></label>'
+					+ '<label class="mk-lv__when">Khi khách trả lời<input class="mk-tre-input js-tre-lv-when" placeholder="c4=A" /></label>'
 					+ '</div></div></article>'
 				);
 			});

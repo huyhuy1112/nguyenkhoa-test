@@ -10,7 +10,7 @@
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.css')}?mk_v=20260827_score_opt1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/HelpDesk/resources/MkTagRuleEngineStore.js')}?mk_v=20260827_score_opt1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.js')}?mk_v=20260827_score_opt1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.js')}?mk_v=20260927_ruleplain1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/HelpDesk/resources/Rules.js')}?mk_v=20260724_alert_chip1"></script>
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-helpdesk-rules="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}

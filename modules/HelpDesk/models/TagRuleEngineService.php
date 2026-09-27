@@ -13,6 +13,9 @@ class HelpDesk_TagRuleEngineService {
 	/** Rules loaded once per request (list pages call this on every row). */
 	protected static $rulesRequestCache = array();
 
+	/** Avoid rewriting tags while a tag save is already applying a rule. */
+	protected static $applyingLeadTags = false;
+
 	const SCHEMA_VERSION = 5;
 	const CSKH_RULE_ID = 'rule-cskh';
 	const CSKH_ALERT_DAYS_DEFAULT = 7;
@@ -188,6 +191,7 @@ class HelpDesk_TagRuleEngineService {
 			'formula_value' => 'INT NULL',
 			'warning_value' => 'INT NULL',
 			'action_code' => 'VARCHAR(32) NULL',
+			'result_tag' => 'VARCHAR(64) NULL',
 			'conditions_json' => 'MEDIUMTEXT NULL',
 		);
 		$cols = array();
@@ -1855,6 +1859,7 @@ class HelpDesk_TagRuleEngineService {
 					'formula_value' => isset($row['formula_value']) && $row['formula_value'] !== null && $row['formula_value'] !== '' ? (int)$row['formula_value'] : null,
 					'warning_value' => isset($row['warning_value']) && $row['warning_value'] !== null && $row['warning_value'] !== '' ? (int)$row['warning_value'] : null,
 					'field_conditions' => self::decodeFieldConditions(isset($row['conditions_json']) ? $row['conditions_json'] : ''),
+					'result_tag' => isset($row['result_tag']) ? trim((string) $row['result_tag']) : '',
 				);
 			}
 		}
@@ -1944,18 +1949,19 @@ class HelpDesk_TagRuleEngineService {
 		}
 		$fieldConditions = self::sanitizeFieldConditions(isset($payload['field_conditions']) ? $payload['field_conditions'] : array());
 		$conditionsJson = !empty($fieldConditions) ? json_encode($fieldConditions, JSON_UNESCAPED_UNICODE) : null;
+		$resultTag = isset($payload['result_tag']) ? trim((string) $payload['result_tag']) : '';
 
 		$exists = $this->db->pquery('SELECT id FROM mk_tag_rules WHERE id = ?', array($id));
 		if ($exists && $this->db->num_rows($exists) > 0) {
 			$this->db->pquery(
-				'UPDATE mk_tag_rules SET status_label=?, name=?, priority=?, is_active=?, alert_days=?, next_action=?, require_note=?, scenario_id=?, condition_mode=?, important_tags=?, formula_metric=?, formula_op=?, formula_value=?, warning_value=?, action_code=?, conditions_json=? WHERE id=?',
-				array($statusLabel, $name, $priority, $isActive ? 1 : 0, $alertDays, $nextAction, $requireNote ? 1 : 0, $scenarioId, $conditionMode, $importantCsv !== '' ? $importantCsv : null, $metric !== '' ? $metric : null, $metric !== '' ? $op : null, $formulaValue, $warningValue, null, $conditionsJson, $id)
+				'UPDATE mk_tag_rules SET status_label=?, name=?, priority=?, is_active=?, alert_days=?, next_action=?, require_note=?, scenario_id=?, condition_mode=?, important_tags=?, formula_metric=?, formula_op=?, formula_value=?, warning_value=?, action_code=?, conditions_json=?, result_tag=? WHERE id=?',
+				array($statusLabel, $name, $priority, $isActive ? 1 : 0, $alertDays, $nextAction, $requireNote ? 1 : 0, $scenarioId, $conditionMode, $importantCsv !== '' ? $importantCsv : null, $metric !== '' ? $metric : null, $metric !== '' ? $op : null, $formulaValue, $warningValue, null, $conditionsJson, $resultTag !== '' ? $resultTag : null, $id)
 			);
 		} else {
 			$this->db->pquery(
-				'INSERT INTO mk_tag_rules (id, status_label, name, priority, is_active, alert_days, next_action, require_note, scenario_id, condition_mode, important_tags, formula_metric, formula_op, formula_value, warning_value, action_code, conditions_json)
-				 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-				array($id, $statusLabel, $name, $priority, $isActive ? 1 : 0, $alertDays, $nextAction, $requireNote ? 1 : 0, $scenarioId, $conditionMode, $importantCsv !== '' ? $importantCsv : null, $metric !== '' ? $metric : null, $metric !== '' ? $op : null, $formulaValue, $warningValue, null, $conditionsJson)
+				'INSERT INTO mk_tag_rules (id, status_label, name, priority, is_active, alert_days, next_action, require_note, scenario_id, condition_mode, important_tags, formula_metric, formula_op, formula_value, warning_value, action_code, conditions_json, result_tag)
+				 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+				array($id, $statusLabel, $name, $priority, $isActive ? 1 : 0, $alertDays, $nextAction, $requireNote ? 1 : 0, $scenarioId, $conditionMode, $importantCsv !== '' ? $importantCsv : null, $metric !== '' ? $metric : null, $metric !== '' ? $op : null, $formulaValue, $warningValue, null, $conditionsJson, $resultTag !== '' ? $resultTag : null)
 			);
 		}
 		$this->db->pquery('DELETE FROM mk_tag_rule_conditions WHERE rule_id = ?', array($id));
@@ -2308,15 +2314,116 @@ class HelpDesk_TagRuleEngineService {
 	}
 
 	/**
+	 * Gỡ các tag điều kiện của rule và gắn tag kết quả. Không gọi lại rule.
+	 * @return bool true nếu tag trên lead thay đổi
+	 */
+	protected function swapLeadTag($leadId, array $rule) {
+		$result = isset($rule['result_tag']) ? trim((string) $rule['result_tag']) : '';
+		if ($result === '') {
+			return false;
+		}
+		$from = array();
+		if (!empty($rule['tag_ids']) && is_array($rule['tag_ids'])) {
+			foreach ($rule['tag_ids'] as $tid) {
+				$tid = strtolower(trim((string) $tid));
+				if ($tid !== '') {
+					$from[$tid] = true;
+				}
+			}
+		}
+		$current = $this->getLeadTagLabels($leadId);
+		$next = array();
+		$changed = false;
+		foreach ($current as $tag) {
+			$key = strtolower(trim((string) $tag));
+			if ($key !== '' && isset($from[$key])) {
+				$changed = true;
+				continue;
+			}
+			if ($key !== '') {
+				$next[] = $tag;
+			}
+		}
+		$hasResult = false;
+		foreach ($next as $tag) {
+			if (strtolower(trim((string) $tag)) === strtolower($result)) {
+				$hasResult = true;
+				break;
+			}
+		}
+		if (!$hasResult) {
+			$next[] = $result;
+			$changed = true;
+		}
+		if (!$changed) {
+			return false;
+		}
+		global $current_user;
+		$userId = (!empty($current_user) && !empty($current_user->id)) ? (int) $current_user->id : 1;
+		require_once 'modules/Leads/models/ModernService.php';
+		self::$applyingLeadTags = true;
+		try {
+			$existing = Vtiger_Tag_Model::getAllAccessible($userId, 'Leads', $leadId);
+			$existingByName = array();
+			$existingIds = array();
+			foreach ($existing as $tagModel) {
+				$name = $tagModel->getName();
+				$existingByName[$name] = $tagModel->getId();
+				$existingIds[] = $tagModel->getId();
+			}
+			$targetIds = array();
+			foreach ($next as $name) {
+				if (isset($existingByName[$name])) {
+					$targetIds[] = $existingByName[$name];
+					continue;
+				}
+				$tagModel = Vtiger_Tag_Model::getInstanceByName($name, $userId);
+				if ($tagModel) {
+					$targetIds[] = $tagModel->getId();
+					continue;
+				}
+				$newTag = new Vtiger_Tag_Model();
+				$newTag->setName($name)->setType(Vtiger_Tag_Model::PUBLIC_TYPE);
+				$targetIds[] = $newTag->create();
+			}
+			$targetIds = array_values(array_unique($targetIds));
+			$toAdd = array_diff($targetIds, $existingIds);
+			$toRemove = array_diff($existingIds, $targetIds);
+			if (!empty($toAdd)) {
+				Vtiger_Tag_Model::saveForRecord($leadId, $toAdd, $userId, 'Leads');
+			}
+			if (!empty($toRemove)) {
+				Vtiger_Tag_Model::deleteForRecord($leadId, $toRemove, $userId, 'Leads');
+			}
+		} catch (Exception $e) {
+			$changed = false;
+		}
+		self::$applyingLeadTags = false;
+		return $changed;
+	}
+
+	/**
 	 * Ghi next_action từ rule thắng (priority cao nhất) vào bace_lead_profile.
+	 * Nếu rule có tag kết quả thì gỡ tag điều kiện và gắn tag mới.
 	 * @return string label đã ghi (có thể rỗng nếu không match)
 	 */
 	public function applyNextActionToLead($leadId) {
 		$leadId = (int)$leadId;
-		if ($leadId <= 0) {
+		if ($leadId <= 0 || self::$applyingLeadTags) {
 			return '';
 		}
-		$action = $this->getNextActionForLead($leadId);
+		$match = $this->matchRules($this->getLeadTagLabels($leadId), true, $this->loadLeadFacts($leadId));
+		$best = !empty($match['best']) ? $match['best'] : null;
+		if ($best && !empty($best['result_tag']) && $this->swapLeadTag($leadId, $best)) {
+			$match = $this->matchRules($this->getLeadTagLabels($leadId), true, $this->loadLeadFacts($leadId));
+			$best = !empty($match['best']) ? $match['best'] : null;
+		}
+		$action = '';
+		if ($best && !empty($best['next_action'])) {
+			$action = (string)$best['next_action'];
+		} elseif (!empty($match['warnings'][0]['message'])) {
+			$action = (string)$match['warnings'][0]['message'];
+		}
 		if ($action === '') {
 			return '';
 		}
