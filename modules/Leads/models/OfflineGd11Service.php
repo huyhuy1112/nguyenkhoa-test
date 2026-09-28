@@ -2602,15 +2602,66 @@ class Leads_OfflineGd11Service {
 			$hit['name'],
 			'QR khớp · Đã Có tham gia'
 		);
+		$tagNote = self::markAttendedTags((int) $hit['lead_id'], (int) $hit['potential_id'], $oaUserId);
 		return array(
 			'success' => true,
 			'result' => 'matched',
-			'message' => 'QR khớp · Đã Có tham gia',
+			'message' => 'QR khớp · Đã Có tham gia' . ($tagNote !== '' ? ' · ' . $tagNote : ''),
 			'potential_id' => (int) $hit['potential_id'],
 			'lead_id' => (int) $hit['lead_id'],
 			'opp_name' => $hit['name'],
 			'checkin' => $checkin,
 		);
+	}
+
+	/**
+	 * Điểm danh OA thành công: tag CRM "Xác nhận tham gia" và nhãn Zalo "Đã tham gia lớp".
+	 */
+	protected static function markAttendedTags($leadId, $potentialId, $oaUserId) {
+		global $current_user;
+		$userId = (!empty($current_user) && !empty($current_user->id)) ? (int) $current_user->id : 1;
+		$notes = array();
+		try {
+			$tagId = self::ensurePublicTagId('xac_nhan_tham_gia', $userId);
+			if ($tagId > 0 && $leadId > 0) {
+				Vtiger_Tag_Model::saveForRecord($leadId, array($tagId), $userId, 'Leads');
+			}
+			if ($tagId > 0 && $potentialId > 0) {
+				Vtiger_Tag_Model::saveForRecord($potentialId, array($tagId), $userId, 'Potentials');
+			}
+			$notes[] = 'CRM: Xác nhận tham gia';
+		} catch (Exception $e) {
+			$notes[] = 'CRM tag lỗi';
+		}
+		$oaUserId = trim((string) $oaUserId);
+		if ($oaUserId === '') {
+			return implode(' · ', $notes);
+		}
+		try {
+			require_once 'modules/Vtiger/helpers/NkApiConnection.php';
+			$zalo = NkApiConnection::adapter('zalo_oa');
+			if ($zalo && method_exists($zalo, 'addFollowerTag')) {
+				$tagged = $zalo->addFollowerTag($oaUserId, 'Đã tham gia lớp', $userId);
+				$notes[] = !empty($tagged['success']) ? 'Zalo: Đã tham gia lớp' : 'Zalo tag lỗi';
+			}
+		} catch (Exception $e) {
+			$notes[] = 'Zalo tag lỗi';
+		}
+		return implode(' · ', $notes);
+	}
+
+	protected static function ensurePublicTagId($name, $userId) {
+		$name = trim((string) $name);
+		if ($name === '') {
+			return 0;
+		}
+		$tagModel = Vtiger_Tag_Model::getInstanceByName($name, $userId);
+		if ($tagModel) {
+			return (int) $tagModel->getId();
+		}
+		$newTag = new Vtiger_Tag_Model();
+		$newTag->setName($name)->setType(Vtiger_Tag_Model::PUBLIC_TYPE);
+		return (int) $newTag->create();
 	}
 
 	/**
