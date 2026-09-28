@@ -66,6 +66,7 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 						'leads' => Leads_ModernService::listLeads($userId),
 						'assignable_users' => Leads_ModernService::listAssignableUsers(),
 						'product_catalog' => Leads_LeadProductsService::catalog(),
+						'gd14_questions' => Leads_SalesVerifyService::getGd14QuestionBank(),
 					));
 					break;
 

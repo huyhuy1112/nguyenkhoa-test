@@ -736,6 +736,7 @@ class HelpDesk_TagRuleEngineService {
 			'affiliate_tiers' => $this->getAffiliateTiers(),
 			'sheet_scoring' => $this->getSheetScoringConfig(),
 			'screening_bank' => $this->loadScreeningBankSafe(),
+			'gd14_questions' => $this->loadGd14QuestionsSafe(),
 			'channel_options' => $this->getScenarioChannelOptions(),
 			'assignee_options' => $this->getScenarioAssigneeOptions(),
 			'cskh_alert_days' => $this->getCskhAlertDays(),
@@ -753,6 +754,15 @@ class HelpDesk_TagRuleEngineService {
 			return Leads_SalesVerifyService::getScreeningBank();
 		} catch (Exception $e) {
 			return array('questions' => array(), 'levels' => array());
+		}
+	}
+
+	protected function loadGd14QuestionsSafe() {
+		try {
+			require_once 'modules/Leads/models/SalesVerifyService.php';
+			return Leads_SalesVerifyService::getGd14QuestionBank();
+		} catch (Exception $e) {
+			return array('questions' => array());
 		}
 	}
 

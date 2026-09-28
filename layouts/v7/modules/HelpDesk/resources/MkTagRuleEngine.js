@@ -629,7 +629,58 @@
 				+ '    </div></div>'
 				+ '    <div class="mk-tre-section__body"><div class="mk-lv-list js-tre-lv-list">' + lvRows + '</div></div>'
 				+ '  </section>'
+				+ self.renderGd14QuestionsSection()
 				+ '</div>';
+		},
+
+		renderGd14QuestionsSection: function () {
+			var self = this;
+			var bank = store.getGd14Questions ? store.getGd14Questions() : { questions: [] };
+			var questions = bank.questions || [];
+			var cards = questions.map(function (q, idx) {
+				return self.gd14CardHtml(q, idx + 1);
+			}).join('');
+			return ''
+				+ '<section class="mk-tre-section" style="margin-top:28px">'
+				+ '  <div class="mk-tre-section__head"><div class="mk-tre-section__titles">'
+				+ '    <h2 class="mk-tre-section__title">Câu hỏi 990k</h2>'
+				+ '    <p class="mk-tre-section__sub">Dùng khi xác minh lead gắn tag 990k. Sửa chữ câu và đáp án tại đây. Không dùng để xếp tiềm năng.</p>'
+				+ '  </div><div class="mk-tre-section__actions">'
+				+ '    <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-gd14-add">Thêm câu</button>'
+				+ '    <button type="button" class="mk-tre-btn mk-tre-btn--primary js-tre-gd14-save">Lưu câu 990k</button>'
+				+ '  </div></div>'
+				+ '  <div class="mk-tre-section__body"><div class="mk-q-list js-tre-gd14-list">' + cards + '</div></div>'
+				+ '</section>';
+		},
+
+		gd14CardHtml: function (q, index) {
+			var html = this.questionCardHtml({
+				id: q.id,
+				label: q.label,
+				required: false,
+				core: false,
+				options: q.options
+			}, index);
+			return html.replace('js-tre-q-card', 'js-tre-gd14-card').replace('js-tre-q-del', 'js-tre-gd14-del');
+		},
+
+		readGd14QuestionsForm: function () {
+			var questions = [];
+			$('#mk-tre-panel .js-tre-gd14-card').each(function () {
+				var $card = $(this);
+				var options = [];
+				$card.find('.js-tre-opt-row').each(function () {
+					var code = String($(this).find('.js-tre-opt-code').val() || '').trim();
+					var label = String($(this).find('.js-tre-opt-label').val() || '').trim();
+					if (!code || !label) return;
+					options.push({ code: code, label: label });
+				});
+				var id = String($card.find('.js-tre-q-id').val() || '').trim();
+				var label = String($card.find('.js-tre-q-label').val() || '').trim();
+				if (!id || !label || !options.length) return;
+				questions.push({ id: id, label: label, options: options });
+			});
+			return { questions: questions };
 		},
 
 		readQuestionsForm: function () {
@@ -1290,8 +1341,7 @@
 					+ '  <label class="mk-tre-field"><span>Trường</span><select class="mk-tre-input mk-tre-input--select" name="fc_field">' + fieldOpts + '</select></label>'
 					+ '  <label class="mk-tre-field"><span>So sánh</span><select class="mk-tre-input mk-tre-input--select" name="fc_op">' + opOptsHtml + '</select></label>'
 					+ '  <label class="mk-tre-field"><span>Giá trị</span><input class="mk-tre-input" name="fc_value" value="' + esc(row.value || '') + '" placeholder="VD: ca_phe_san_vuon hoặc 3" /></label>'
-					+ '  <label class="mk-tre-opt" style="flex:0"><span class="mk-tre-opt__text"><strong>Luôn phải đúng</strong></span>'
-					+ '    <span class="mk-tre-switch"><input type="checkbox" name="fc_important"' + (row.important ? ' checked' : '') + ' /><span class="mk-tre-switch__track"></span></span></label>'
+					+ '  <input type="checkbox" name="fc_important" hidden' + (row.important ? ' checked' : '') + ' />'
 					+ '  <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-fc-del">Xoá</button>'
 					+ '</div>';
 			}
@@ -1299,24 +1349,50 @@
 			var fcRowsHtml = fcSource.map(fcRowHtml).join('');
 			var body = ''
 				+ '<div class="mk-tre-form mk-tre-form--rule">'
-				+ '  <div class="mk-tre-flow" aria-hidden="true">'
-				+ '    <span class="mk-tre-flow__badge mk-tre-flow__badge--if">Nếu</span>'
-				+ '    <span class="mk-tre-flow__line"></span>'
-				+ '    <span class="mk-tre-flow__badge mk-tre-flow__badge--then">Thì</span>'
-				+ '    <p class="mk-tre-flow__text">Khách đang có tag này, cộng thêm điều kiện nếu cần → việc cần làm và có thể đổi sang tag khác</p>'
-				+ '  </div>'
+				+ '<input type="hidden" name="status_label" value="' + esc(rule.status_label || rule.name || '') + '" />'
+				+ '<input type="hidden" name="condition_mode" value="' + esc(rule.condition_mode || 'AND') + '" />'
+				+ '<input type="hidden" name="warning_value" value="' + esc(rule.warning_value == null ? '' : rule.warning_value) + '" />'
+				+ '<input type="hidden" name="scenario_id" value="' + esc(rule.scenario_id || '') + '" />'
+				+ '<input type="hidden" name="priority" value="' + esc(rule.priority) + '" />'
+				+ '<input type="hidden" name="alert_days" value="' + esc(rule.alert_days == null ? '' : rule.alert_days) + '" />'
+				+ '<input type="checkbox" name="require_note" hidden' + (rule.require_note ? ' checked' : '') + ' />'
+
+				+ '  <section class="mk-tre-form-block mk-tre-form-block--tags">'
+				+ '    <header class="mk-tre-form-block__head">'
+				+ '      <span class="mk-tre-form-block__step">1</span>'
+				+ '      <div><h3 class="mk-tre-form-block__title">Khi khách đang có tag nào</h3>'
+				+ '      <p class="mk-tre-form-block__sub">Chọn tag khách đang mang. Để trống nếu không cần xét tag.</p></div>'
+				+ '      <span class="mk-tre-tag-count js-tre-tag-count">' + selectedCount + ' đã chọn</span>'
+				+ '    </header>'
+				+ '    <div class="mk-tre-form-block__body">'
+				+ '      <div class="mk-tre-tag-search">'
+				+ '        <input type="search" class="mk-tre-input mk-tre-input--search-inline js-tre-tag-filter" placeholder="Tìm tag theo tên…" autocomplete="off" />'
+				+ '      </div>'
+				+ '      <div class="mk-tre-tag-picker">' + (tagGroups || '<span class="mk-tre-muted">Chưa có tag.</span>') + '</div>'
+				+ '      <p class="mk-tre-tag-empty js-tre-tag-empty" hidden>Không tìm thấy tag.</p>'
+				+ '    </div>'
+				+ '  </section>'
 
 				+ '  <section class="mk-tre-form-block">'
 				+ '    <header class="mk-tre-form-block__head">'
-				+ '      <span class="mk-tre-form-block__step">01</span>'
-				+ '      <div><h3 class="mk-tre-form-block__title">Thì làm gì</h3>'
-				+ '      <p class="mk-tre-form-block__sub">Việc Sales cần làm, và tag mới nếu muốn đổi</p></div>'
+				+ '      <span class="mk-tre-form-block__step">2</span>'
+				+ '      <div><h3 class="mk-tre-form-block__title">Và thêm điều kiện gì</h3>'
+				+ '      <p class="mk-tre-form-block__sub">Không bắt buộc. Ví dụ: chưa chăm từ 3 ngày, hoặc mô hình là cà phê sân vườn.</p></div>'
 				+ '    </header>'
 				+ '    <div class="mk-tre-form-block__body">'
-				+ '      <div class="mk-tre-form-row">'
-				+ '        <label class="mk-tre-field"><span>Tên quy tắc</span><input class="mk-tre-input" name="name" value="' + esc(rule.name) + '" placeholder="VD: Không nghe máy 3 lần" autocomplete="off" /></label>'
-				+ '        <label class="mk-tre-field"><span>Tên ngắn trên danh sách</span><input class="mk-tre-input" name="status_label" value="' + esc(rule.status_label) + '" placeholder="VD: Không nghe máy" autocomplete="off" /></label>'
-				+ '      </div>'
+				+ '      <div class="js-tre-fc-list">' + fcRowsHtml + '</div>'
+				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-fc-add" style="margin-top:8px">Thêm dòng</button>'
+				+ '    </div>'
+				+ '  </section>'
+
+				+ '  <section class="mk-tre-form-block">'
+				+ '    <header class="mk-tre-form-block__head">'
+				+ '      <span class="mk-tre-form-block__step">3</span>'
+				+ '      <div><h3 class="mk-tre-form-block__title">Thì làm gì</h3>'
+				+ '      <p class="mk-tre-form-block__sub">Việc Sales cần làm. Có thể đổi sang tag khác.</p></div>'
+				+ '    </header>'
+				+ '    <div class="mk-tre-form-block__body">'
+				+ '      <label class="mk-tre-field"><span>Tên quy tắc</span><input class="mk-tre-input" name="name" value="' + esc(rule.name) + '" placeholder="VD: Không nghe máy 3 lần" autocomplete="off" /></label>'
 				+ '      <label class="mk-tre-field"><span>Việc Sales cần làm</span><input class="mk-tre-input" name="next_action" value="' + esc(rule.next_action || '') + '" placeholder="VD: Gọi lại khách vào sáng mai" autocomplete="off" /></label>'
 				+ '      <label class="mk-tre-field"><span>Đổi sang tag</span><select class="mk-tre-input mk-tre-input--select" name="result_tag">'
 				+ '        <option value="">Không đổi tag</option>'
@@ -1325,58 +1401,10 @@
 					return '<option value="' + esc(t.id) + '"' + sel + '>' + esc(t.name) + '</option>';
 				}).join('')
 				+ '      </select></label>'
-				+ '      <p class="mk-tre-form-block__sub">Nếu chọn tag mới, CRM gỡ các tag ở mục “Khi nào” và gắn tag này. Không tự chuyển Cơ hội, không đổi giờ học, không điểm danh.</p>'
-				+ '      <div class="mk-tre-form-row">'
-				+ '        <label class="mk-tre-field"><span>Các điều kiện thêm</span><select class="mk-tre-input mk-tre-input--select" name="condition_mode">'
-				+ '          <option value="AND"' + ((rule.condition_mode || 'AND') === 'AND' ? ' selected' : '') + '>Phải đúng tất cả</option>'
-				+ '          <option value="OR"' + (rule.condition_mode === 'OR' ? ' selected' : '') + '>Chỉ cần đúng một</option>'
-				+ '        </select></label>'
-				+ '        <label class="mk-tre-field"><span>Báo sớm khi đạt số</span><input class="mk-tre-input" type="number" name="warning_value" value="' + esc(rule.warning_value == null ? '' : rule.warning_value) + '" min="0" placeholder="VD: 2 — để trống nếu không dùng" /></label>'
-				+ '      </div>'
-				+ '      <div class="mk-tre-field"><span>Thêm điều kiện (không bắt buộc)</span>'
-				+ '        <div class="js-tre-fc-list">' + fcRowsHtml + '</div>'
-				+ '        <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-fc-add" style="margin-top:8px">Thêm điều kiện</button>'
-				+ '        <p class="mk-tre-form-block__sub">Ví dụ: mô hình là cà phê sân vườn, hoặc chưa chăm từ 3 ngày. Dòng “Luôn phải đúng” thì không được thiếu.</p>'
-				+ '      </div>'
-				+ '      <label class="mk-tre-field"><span>Gắn kịch bản</span><select class="mk-tre-input mk-tre-input--select" name="scenario_id">' + scOpts + '</select></label>'
-				+ '      <div class="mk-tre-form-row">'
-				+ '        <label class="mk-tre-field"><span>Thứ tự (số nhỏ chạy trước)</span><input class="mk-tre-input" type="number" name="priority" value="' + esc(rule.priority) + '" min="1" /></label>'
-				+ '        <label class="mk-tre-field"><span>Nhắc sau bao nhiêu ngày</span><input class="mk-tre-input" type="number" name="alert_days" value="' + esc(rule.alert_days == null ? '' : rule.alert_days) + '" min="0" placeholder="Để trống nếu không nhắc" /></label>'
-				+ '      </div>'
-				+ '    </div>'
-				+ '  </section>'
-
-				+ '  <section class="mk-tre-form-block mk-tre-form-block--tags">'
-				+ '    <header class="mk-tre-form-block__head">'
-				+ '      <span class="mk-tre-form-block__step">02</span>'
-				+ '      <div><h3 class="mk-tre-form-block__title">Khi nào — khách đang có tag</h3>'
-				+ '      <p class="mk-tre-form-block__sub">Chọn tag khách đang mang. Khớp hết các tag này thì quy tắc mới chạy. Nếu để trống thì chỉ xét điều kiện thêm.</p></div>'
-				+ '      <span class="mk-tre-tag-count js-tre-tag-count">' + selectedCount + ' đã chọn</span>'
-				+ '    </header>'
-				+ '    <div class="mk-tre-form-block__body">'
-				+ '      <div class="mk-tre-tag-search">'
-				+ '        <svg class="mk-tre-tag-search__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
-				+ '        <input type="search" class="mk-tre-input mk-tre-input--search-inline js-tre-tag-filter" placeholder="Tìm tag theo tên…" autocomplete="off" />'
-				+ '      </div>'
-				+ '      <div class="mk-tre-tag-picker">' + (tagGroups || '<span class="mk-tre-muted">Chưa có tag trong catalogue.</span>') + '</div>'
-				+ '      <p class="mk-tre-tag-empty js-tre-tag-empty" hidden>Không tìm thấy tag phù hợp.</p>'
-				+ '    </div>'
-				+ '  </section>'
-
-				+ '  <section class="mk-tre-form-block mk-tre-form-block--opts">'
-				+ '    <header class="mk-tre-form-block__head">'
-				+ '      <span class="mk-tre-form-block__step">03</span>'
-				+ '      <div><h3 class="mk-tre-form-block__title">Tuỳ chọn</h3>'
-				+ '      <p class="mk-tre-form-block__sub">Bật/tắt rule và yêu cầu ghi chú</p></div>'
-				+ '    </header>'
-				+ '    <div class="mk-tre-form-block__body mk-tre-form-block__body--opts">'
+				+ '      <p class="mk-tre-form-block__sub">Chọn tag mới thì CRM gỡ các tag ở mục 1 và gắn tag này. Không chuyển Cơ hội, không đổi giờ học, không điểm danh.</p>'
 				+ '      <label class="mk-tre-opt">'
-				+ '        <span class="mk-tre-opt__text"><strong>Active</strong><small>Rule được dùng khi khớp lead</small></span>'
+				+ '        <span class="mk-tre-opt__text"><strong>Đang dùng</strong><small>Tắt thì quy tắc này không chạy</small></span>'
 				+ '        <span class="mk-tre-switch"><input type="checkbox" name="is_active"' + (rule.is_active !== false ? ' checked' : '') + ' /><span class="mk-tre-switch__track"></span></span>'
-				+ '      </label>'
-				+ '      <label class="mk-tre-opt">'
-				+ '        <span class="mk-tre-opt__text"><strong>Bắt buộc ghi chú</strong><small>Nhánh xấu — yêu cầu lý do khi áp dụng</small></span>'
-				+ '        <span class="mk-tre-switch"><input type="checkbox" name="require_note"' + (rule.require_note ? ' checked' : '') + ' /><span class="mk-tre-switch__track"></span></span>'
 				+ '      </label>'
 				+ '    </div>'
 				+ '  </section>'
@@ -1676,6 +1704,30 @@
 					+ '</div></div></article>'
 				);
 			});
+			this.$root.on('click', '.js-tre-gd14-add', function () {
+				var n = $('#mk-tre-panel .js-tre-gd14-card').length + 1;
+				$('#mk-tre-panel .js-tre-gd14-list').append(self.gd14CardHtml({
+					id: 'c' + n,
+					label: '',
+					options: [{ code: 'a', label: '' }, { code: 'b', label: '' }]
+				}, n));
+			});
+			this.$root.on('click', '.js-tre-gd14-del', function () {
+				$(this).closest('.js-tre-gd14-card').remove();
+			});
+			this.$root.on('click', '.js-tre-gd14-save', function () {
+				try {
+					var saved = store.saveGd14Questions(self.readGd14QuestionsForm());
+					if (!saved || !saved.questions || !saved.questions.length) {
+						window.alert('Cần ít nhất một câu và mỗi câu có đáp án.');
+						return;
+					}
+					self.renderPanel();
+					toast('Đã lưu câu hỏi 990k');
+				} catch (e) {
+					window.alert(e.message || 'Không lưu được câu hỏi 990k');
+				}
+			});
 			this.$root.on('click', '.js-tre-q-save', function () {
 				try {
 					store.saveScreeningBank(self.readQuestionsForm());
@@ -1911,7 +1963,7 @@
 					+ '</select></label>'
 					+ '<label class="mk-tre-field"><span>So sánh</span><select class="mk-tre-input mk-tre-input--select" name="fc_op"><option value="eq">bằng</option><option value="has">có</option><option value=">=">≥</option></select></label>'
 					+ '<label class="mk-tre-field"><span>Giá trị</span><input class="mk-tre-input" name="fc_value" placeholder="Giá trị" /></label>'
-					+ '<label class="mk-tre-opt" style="flex:0"><span class="mk-tre-opt__text"><strong>Quan trọng</strong></span><span class="mk-tre-switch"><input type="checkbox" name="fc_important" /><span class="mk-tre-switch__track"></span></span></label>'
+					+ '<input type="checkbox" name="fc_important" hidden />'
 					+ '<button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-fc-del">Xoá</button></div>'
 				);
 			});
@@ -1924,10 +1976,11 @@
 			$(document).on('click.mkTagRuleEngine', '.js-tre-rule-save', function () {
 				var id = $(this).data('id');
 				var data = self.readForm();
-				if (!data.status_label || !data.name) {
-					window.alert('Vui lòng nhập trạng thái và tên rule.');
+				if (!data.name) {
+					window.alert('Nhập tên quy tắc.');
 					return;
 				}
+				if (!data.status_label) data.status_label = data.name;
 				try {
 					if (id) store.updateRule(id, data);
 					else store.createRule(data);

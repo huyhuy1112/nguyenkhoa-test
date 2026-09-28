@@ -1523,10 +1523,22 @@ class Leads_ModernService {
 				$data = $decoded;
 			}
 		}
+		$answers = array();
+		if (!empty($data['gd14_answers']) && is_array($data['gd14_answers'])) {
+			foreach ($data['gd14_answers'] as $qid => $code) {
+				$answers[(string) $qid] = (string) $code;
+			}
+		}
+		foreach (array('c1', 'c2', 'c3') as $qid) {
+			if (!isset($answers[$qid]) && !empty($data['gd14_' . $qid])) {
+				$answers[$qid] = (string) $data['gd14_' . $qid];
+			}
+		}
 		return array(
-			'gd14_c1' => isset($data['gd14_c1']) ? (string) $data['gd14_c1'] : '',
-			'gd14_c2' => isset($data['gd14_c2']) ? (string) $data['gd14_c2'] : '',
-			'gd14_c3' => isset($data['gd14_c3']) ? (string) $data['gd14_c3'] : '',
+			'gd14_c1' => isset($answers['c1']) ? $answers['c1'] : '',
+			'gd14_c2' => isset($answers['c2']) ? $answers['c2'] : '',
+			'gd14_c3' => isset($answers['c3']) ? $answers['c3'] : '',
+			'gd14_answers' => $answers,
 			'gd14_verified' => !empty($data['gd14_verified']) ? 1 : 0,
 		);
 	}

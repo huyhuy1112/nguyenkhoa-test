@@ -2075,28 +2075,42 @@
     return extra;
   }
 
-  function gd14QuestionOptions() {
-    return {
-      c1: [
-        { code: "a", label: "Chuẩn bị mở quán" },
-        { code: "b", label: "Đã có quán nhưng đang gặp vấn đề" },
-        { code: "c", label: "Đã có quán muốn cập nhật kiến thức" },
-        { code: "d", label: "Học pha chế để phục vụ gia đình hoặc sở thích" },
-      ],
-      c2: [
-        { code: "a", label: "Xe đẩy vỉa hè" },
-        { code: "b", label: "Bán online" },
-        { code: "c", label: "Có mặt bằng — bán take away" },
-        { code: "d", label: "Có mặt bằng — bán ngồi lại" },
-        { code: "e", label: "Phục vụ gia đình, sở thích cá nhân" },
-      ],
-      c3: [
-        { code: "a", label: "Dưới 100 triệu" },
-        { code: "b", label: "Từ 100 triệu đến dưới 300 triệu" },
-        { code: "c", label: "Từ 300 triệu đến dưới 500 triệu" },
-        { code: "d", label: "Từ 500 triệu trở lên" },
-      ],
-    };
+  function gd14Questions() {
+    var bank = window.MK_GD14_QUESTIONS;
+    if (bank && Array.isArray(bank.questions) && bank.questions.length) return bank.questions;
+    return [
+      {
+        id: "c1",
+        label: "Câu 1 — Tình trạng hiện tại",
+        options: [
+          { code: "a", label: "Chuẩn bị mở quán" },
+          { code: "b", label: "Đã có quán nhưng đang gặp vấn đề" },
+          { code: "c", label: "Đã có quán muốn cập nhật kiến thức" },
+          { code: "d", label: "Học pha chế để phục vụ gia đình hoặc sở thích" },
+        ],
+      },
+      {
+        id: "c2",
+        label: "Câu 2 — Mô hình",
+        options: [
+          { code: "a", label: "Xe đẩy vỉa hè" },
+          { code: "b", label: "Bán online" },
+          { code: "c", label: "Có mặt bằng — bán take away" },
+          { code: "d", label: "Có mặt bằng — bán ngồi lại" },
+          { code: "e", label: "Phục vụ gia đình, sở thích cá nhân" },
+        ],
+      },
+      {
+        id: "c3",
+        label: "Câu 3 — Khả năng tài chính tối đa",
+        options: [
+          { code: "a", label: "Dưới 100 triệu" },
+          { code: "b", label: "Từ 100 triệu đến dưới 300 triệu" },
+          { code: "c", label: "Từ 300 triệu đến dưới 500 triệu" },
+          { code: "d", label: "Từ 500 triệu trở lên" },
+        ],
+      },
+    ];
   }
 
   function fillListVerifyBodyGd14(lead) {
@@ -2107,7 +2121,17 @@
     var title = document.getElementById("mk-leads-verify-title");
     if (badge) badge.textContent = "990k";
     if (title) title.textContent = "Xác minh 990k";
-    var opts = gd14QuestionOptions();
+    var answers = lead.gd14_answers || {};
+    var fields = gd14Questions().map(function (q) {
+      var selected = answers[q.id] || lead["gd14_" + q.id] || "";
+      return (
+        '<label class="mk-leads-verify-field"><span>' +
+        esc(q.label || q.id) +
+        "</span>" +
+        listVerifySelectHtml(q.id, q.options || [], selected, "— Chọn —") +
+        "</label>"
+      );
+    }).join("");
     body.innerHTML =
       '<div class="mk-leads-verify-hero">' +
       '<div class="mk-leads-verify-hero__name">' +
@@ -2118,16 +2142,9 @@
       "</div></div>" +
       '<section class="mk-leads-verify-section">' +
       "<h4>Xác minh 990k</h4>" +
-      '<p class="mk-leads-verify-offline__meta">Ba câu của lớp Pha chế Chuyên đề 990k. Lưu xong hồ sơ chuyển thẳng xuống Khách hàng.</p>' +
-      '<label class="mk-leads-verify-field"><span>Câu 1 — Tình trạng</span>' +
-      listVerifySelectHtml("c1", opts.c1, lead.gd14_c1 || "", "— Chọn —") +
-      "</label>" +
-      '<label class="mk-leads-verify-field"><span>Câu 2 — Mô hình</span>' +
-      listVerifySelectHtml("c2", opts.c2, lead.gd14_c2 || "", "— Chọn —") +
-      "</label>" +
-      '<label class="mk-leads-verify-field"><span>Câu 3 — Khả năng tài chính tối đa</span>' +
-      listVerifySelectHtml("c3", opts.c3, lead.gd14_c3 || "", "— Chọn —") +
-      "</label></section>" +
+      '<p class="mk-leads-verify-offline__meta">Câu hỏi lấy từ Quản lý rule. Lưu xong hồ sơ chuyển thẳng xuống Khách hàng.</p>' +
+      fields +
+      "</section>" +
       '<p class="mk-leads-verify-err" data-mk-verify-err hidden></p>' +
       '<p class="mk-leads-verify-ok" data-mk-verify-ok hidden></p>';
   }
@@ -2155,12 +2172,11 @@
     };
     var mode = (host && host._mkVerifyMode) || "sales_b";
     if (mode === "gd14_990") {
-      return {
-        mode: "gd14_990",
-        c1: get("c1"),
-        c2: get("c2"),
-        c3: get("c3"),
-      };
+      var gd14 = { mode: "gd14_990" };
+      gd14Questions().forEach(function (q) {
+        gd14[q.id] = get(q.id);
+      });
+      return gd14;
     }
     if (mode === "online_gd12") {
       return {
@@ -2718,8 +2734,11 @@
     var gd14 = payload.mode === "gd14_990";
     setListVerifyMsg("", "");
     if (gd14) {
-      if (!payload.c1 || !payload.c2 || !payload.c3) {
-        setListVerifyMsg("Vui lòng chọn đủ 3 câu xác minh 990k.", "");
+      var missingGd14 = gd14Questions().some(function (q) {
+        return !payload[q.id];
+      });
+      if (missingGd14) {
+        setListVerifyMsg("Vui lòng chọn đủ câu xác minh 990k.", "");
         return;
       }
       if (typeof app === "undefined" || !app.request) {

@@ -248,13 +248,22 @@ class Leads_SalesVerifyService {
 		if (!$leadId) {
 			throw new Exception('Lead not found.');
 		}
-		$c1 = strtolower(trim((string) (isset($payload['c1']) ? $payload['c1'] : '')));
-		$c2 = strtolower(trim((string) (isset($payload['c2']) ? $payload['c2'] : '')));
-		$c3 = strtolower(trim((string) (isset($payload['c3']) ? $payload['c3'] : '')));
-		if (!in_array($c1, array('a', 'b', 'c', 'd'), true)
-			|| !in_array($c2, array('a', 'b', 'c', 'd', 'e'), true)
-			|| !in_array($c3, array('a', 'b', 'c', 'd'), true)) {
-			throw new Exception('Chọn đủ 3 câu xác minh 990k.');
+		$bank = self::getGd14QuestionBank();
+		$answers = array();
+		foreach ($bank['questions'] as $question) {
+			$qid = $question['id'];
+			$code = strtolower(trim((string) (isset($payload[$qid]) ? $payload[$qid] : '')));
+			$allowed = array();
+			foreach ($question['options'] as $opt) {
+				$allowed[] = strtolower((string) $opt['code']);
+			}
+			if ($code === '' || !in_array($code, $allowed, true)) {
+				throw new Exception('Chọn đủ câu xác minh 990k: ' . $question['label']);
+			}
+			$answers[$qid] = $code;
+		}
+		if (empty($answers)) {
+			throw new Exception('Chưa có câu hỏi 990k.');
 		}
 		$res = $adb->pquery('SELECT verify_extra_json FROM bace_lead_profile WHERE leadid = ?', array($leadId));
 		$extra = array();
@@ -264,9 +273,10 @@ class Leads_SalesVerifyService {
 				$extra = $decoded;
 			}
 		}
-		$extra['gd14_c1'] = $c1;
-		$extra['gd14_c2'] = $c2;
-		$extra['gd14_c3'] = $c3;
+		$extra['gd14_answers'] = $answers;
+		foreach ($answers as $qid => $code) {
+			$extra['gd14_' . $qid] = $code;
+		}
 		$extra['gd14_verified'] = 1;
 		$adb->pquery(
 			'UPDATE bace_lead_profile SET verify_extra_json = ?, modified_at = ? WHERE leadid = ?',
@@ -622,6 +632,118 @@ class Leads_SalesVerifyService {
 				)),
 			),
 		);
+	}
+
+	public static function defaultGd14QuestionBank() {
+		return array(
+			'questions' => array(
+				array(
+					'id' => 'c1',
+					'label' => 'Câu 1 — Tình trạng hiện tại',
+					'options' => array(
+						array('code' => 'a', 'label' => 'Chuẩn bị mở quán'),
+						array('code' => 'b', 'label' => 'Đã có quán nhưng đang gặp vấn đề'),
+						array('code' => 'c', 'label' => 'Đã có quán muốn cập nhật kiến thức'),
+						array('code' => 'd', 'label' => 'Học pha chế để phục vụ gia đình hoặc sở thích'),
+					),
+				),
+				array(
+					'id' => 'c2',
+					'label' => 'Câu 2 — Mô hình',
+					'options' => array(
+						array('code' => 'a', 'label' => 'Xe đẩy vỉa hè'),
+						array('code' => 'b', 'label' => 'Bán online'),
+						array('code' => 'c', 'label' => 'Có mặt bằng — bán take away'),
+						array('code' => 'd', 'label' => 'Có mặt bằng — bán ngồi lại'),
+						array('code' => 'e', 'label' => 'Phục vụ gia đình, sở thích cá nhân'),
+					),
+				),
+				array(
+					'id' => 'c3',
+					'label' => 'Câu 3 — Khả năng tài chính tối đa',
+					'options' => array(
+						array('code' => 'a', 'label' => 'Dưới 100 triệu'),
+						array('code' => 'b', 'label' => 'Từ 100 triệu đến dưới 300 triệu'),
+						array('code' => 'c', 'label' => 'Từ 300 triệu đến dưới 500 triệu'),
+						array('code' => 'd', 'label' => 'Từ 500 triệu trở lên'),
+					),
+				),
+			),
+		);
+	}
+
+	public static function getGd14QuestionBank() {
+		$adb = PearDatabase::getInstance();
+		self::ensureScreeningBankTable($adb);
+		$res = $adb->pquery('SELECT config_json FROM bace_screening_bank WHERE id = 2', array());
+		if ($res && $adb->num_rows($res) > 0) {
+			$data = json_decode((string) $adb->query_result($res, 0, 'config_json'), true);
+			if (is_array($data) && !empty($data['questions'])) {
+				return self::sanitizeGd14QuestionBank($data);
+			}
+		}
+		$bank = self::defaultGd14QuestionBank();
+		self::saveGd14QuestionBank($bank);
+		return $bank;
+	}
+
+	public static function saveGd14QuestionBank(array $payload) {
+		$adb = PearDatabase::getInstance();
+		self::ensureScreeningBankTable($adb);
+		$bank = self::sanitizeGd14QuestionBank($payload);
+		$json = json_encode($bank, JSON_UNESCAPED_UNICODE);
+		$now = date('Y-m-d H:i:s');
+		$exists = $adb->pquery('SELECT id FROM bace_screening_bank WHERE id = 2', array());
+		if ($exists && $adb->num_rows($exists) > 0) {
+			$adb->pquery('UPDATE bace_screening_bank SET config_json = ?, modified_at = ? WHERE id = 2', array($json, $now));
+		} else {
+			$adb->pquery('INSERT INTO bace_screening_bank (id, config_json, modified_at) VALUES (2, ?, ?)', array($json, $now));
+		}
+		return $bank;
+	}
+
+	public static function sanitizeGd14QuestionBank(array $payload) {
+		$questions = array();
+		$seen = array();
+		$rows = isset($payload['questions']) && is_array($payload['questions']) ? $payload['questions'] : array();
+		foreach ($rows as $row) {
+			if (!is_array($row)) {
+				continue;
+			}
+			$id = strtolower(trim((string) (isset($row['id']) ? $row['id'] : '')));
+			$id = preg_replace('/[^a-z0-9_]/', '', $id);
+			if ($id === '' || isset($seen[$id])) {
+				continue;
+			}
+			$options = array();
+			if (!empty($row['options']) && is_array($row['options'])) {
+				foreach ($row['options'] as $opt) {
+					if (!is_array($opt)) {
+						continue;
+					}
+					$code = strtolower(trim((string) (isset($opt['code']) ? $opt['code'] : '')));
+					$code = preg_replace('/[^a-z0-9]/', '', $code);
+					$label = trim((string) (isset($opt['label']) ? $opt['label'] : ''));
+					if ($code === '' || $label === '') {
+						continue;
+					}
+					$options[] = array('code' => $code, 'label' => $label);
+				}
+			}
+			if (!$options) {
+				continue;
+			}
+			$seen[$id] = true;
+			$questions[] = array(
+				'id' => $id,
+				'label' => trim((string) (isset($row['label']) ? $row['label'] : $id)),
+				'options' => $options,
+			);
+		}
+		if (empty($questions)) {
+			return self::defaultGd14QuestionBank();
+		}
+		return array('questions' => $questions);
 	}
 
 	public static function getScreeningBank() {

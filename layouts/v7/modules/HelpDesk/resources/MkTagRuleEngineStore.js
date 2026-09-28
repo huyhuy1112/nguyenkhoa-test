@@ -13,6 +13,7 @@
 		affiliate_tiers: [],
 		sheet_scoring: null,
 		screening_bank: { questions: [], levels: [] },
+		gd14_questions: { questions: [] },
 		alerts: [],
 		channel_options: [],
 		assignee_options: [],
@@ -34,6 +35,7 @@
 		if (Array.isArray(next.affiliate_tiers)) state.affiliate_tiers = next.affiliate_tiers;
 		if (next.sheet_scoring && typeof next.sheet_scoring === 'object') state.sheet_scoring = next.sheet_scoring;
 		if (next.screening_bank && typeof next.screening_bank === 'object') state.screening_bank = next.screening_bank;
+		if (next.gd14_questions && typeof next.gd14_questions === 'object') state.gd14_questions = next.gd14_questions;
 		if (Array.isArray(next.alerts)) state.alerts = next.alerts;
 		if (Array.isArray(next.channel_options)) state.channel_options = next.channel_options;
 		if (Array.isArray(next.assignee_options)) state.assignee_options = next.assignee_options;
@@ -198,6 +200,18 @@
 
 	function getScreeningBank() {
 		return clone(state.screening_bank || { questions: [], levels: [] });
+	}
+
+	function getGd14Questions() {
+		return clone(state.gd14_questions || { questions: [] });
+	}
+
+	function saveGd14Questions(payload) {
+		var body = apiSync({ mode: 'save_gd14_questions', payload: JSON.stringify(payload || {}) });
+		if (body && body.gd14_questions) {
+			state.gd14_questions = body.gd14_questions;
+		}
+		return body && body.gd14_questions ? clone(body.gd14_questions) : getGd14Questions();
 	}
 
 	function saveScreeningBank(payload) {
@@ -537,6 +551,8 @@
 		getAffiliateTierById: getAffiliateTierById,
 		getSheetScoring: getSheetScoring,
 		getScreeningBank: getScreeningBank,
+		getGd14Questions: getGd14Questions,
+		saveGd14Questions: saveGd14Questions,
 		saveScreeningBank: saveScreeningBank,
 		getChannelOptions: getChannelOptions,
 		getAssigneeOptions: getAssigneeOptions,

@@ -107,6 +107,7 @@
       _memLeads = dedupeLeadsByCrmid((res.leads || []).map(normalizeLead));
       _assignableUsers = Array.isArray(res.assignable_users) ? res.assignable_users.slice() : null;
       _productCatalog = res.product_catalog || null;
+      window.MK_GD14_QUESTIONS = res.gd14_questions || null;
       _bootstrapped = true;
       return _memLeads;
     }).then(function () {
@@ -271,6 +272,9 @@
       }
       if (res.product_catalog) {
         _productCatalog = res.product_catalog;
+      }
+      if (res.gd14_questions) {
+        window.MK_GD14_QUESTIONS = res.gd14_questions;
       }
       _bootstrapped = true;
       return _memLeads;
