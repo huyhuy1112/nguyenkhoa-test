@@ -1482,7 +1482,7 @@ class Leads_ModernService {
 		}
 		foreach ($tags as $tag) {
 			$t = strtolower(trim((string) $tag));
-			if ($t === 'gd14_990' || $t === '990k' || $t === 'zalo' || $t === 'mien_phi_offline' || strpos($t, 'offline_') === 0) {
+			if ($t === 'gd14_990' || $t === '990k' || $t === '990' || strpos($t, 'gd14_') === 0 || $t === 'zalo' || $t === 'mien_phi_offline' || strpos($t, 'offline_') === 0) {
 				return true;
 			}
 		}
@@ -1534,11 +1534,24 @@ class Leads_ModernService {
 				$answers[$qid] = (string) $data['gd14_' . $qid];
 			}
 		}
+		$formAnswers = array();
+		if (!empty($data['gd14_form_answers']) && is_array($data['gd14_form_answers'])) {
+			foreach ($data['gd14_form_answers'] as $qid => $code) {
+				$formAnswers[(string) $qid] = (string) $code;
+			}
+		}
 		return array(
 			'gd14_c1' => isset($answers['c1']) ? $answers['c1'] : '',
 			'gd14_c2' => isset($answers['c2']) ? $answers['c2'] : '',
 			'gd14_c3' => isset($answers['c3']) ? $answers['c3'] : '',
 			'gd14_answers' => $answers,
+			'gd14_form_answers' => $formAnswers,
+			'gd14_form_result' => isset($data['gd14_form_result']) && is_array($data['gd14_form_result']) ? $data['gd14_form_result'] : null,
+			'gd14_result' => isset($data['gd14_result']) && is_array($data['gd14_result']) ? $data['gd14_result'] : null,
+			'gd14_goal' => isset($data['gd14_goal']) ? (string) $data['gd14_goal'] : '',
+			'gd14_course' => isset($data['gd14_course']) ? (string) $data['gd14_course'] : '',
+			'gd14_topic' => isset($data['gd14_topic']) ? (string) $data['gd14_topic'] : '',
+			'gd14_outcome' => isset($data['gd14_outcome']) ? (string) $data['gd14_outcome'] : '',
 			'gd14_verified' => !empty($data['gd14_verified']) ? 1 : 0,
 		);
 	}

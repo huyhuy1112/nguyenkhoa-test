@@ -234,13 +234,168 @@ class Leads_SalesVerifyService {
 	 * Save verification for a lead. Keeps form_c* untouched unless empty (seed from form).
 	 */
 	/**
-	 * GD 1.4 tạm: xác minh 3 câu 990k rồi chuyển thẳng Khách hàng (không tạo Opp).
+	 * 11 tag giai đoạn 1.4. Mỗi hồ sơ chỉ mang một tag.
+	 * Tag ①–⑥ và ⑪ ở KH tiềm năng. Tag ⑦ gắn lên Khách hàng khi thanh toán lớp 990k.
+	 */
+	public static function gd14TagCatalog() {
+		return array(
+			'gd14_moi_dang_ky' => '990k — Mới đăng ký',
+			'gd14_hen_goi_lai' => '990k — Hẹn gọi lại',
+			'gd14_khong_nghe_may' => '990k — Không nghe máy',
+			'gd14_sai_thong_tin' => '990k — Sai thông tin liên hệ',
+			'gd14_dang_can_nhac' => '990k — Đang cân nhắc',
+			'gd14_cho_thanh_toan' => '990k — Chờ thanh toán',
+			'gd14_chua_xep_buoi' => '990k — Chưa xếp buổi học',
+			'gd14_da_xac_nhan_lich' => '990k — Đã xác nhận lịch học',
+			'gd14_khong_tham_gia' => '990k — Không tham gia lớp học',
+			'gd14_da_tham_gia' => '990k — Đã tham gia lớp học',
+			'gd14_ngung_cham_soc' => '990k — Ngưng chăm sóc',
+		);
+	}
+
+	public static function gd14CourseCatalog() {
+		return array(
+			'lop_990k' => array('label' => 'Lớp Pha chế Chuyên đề 990k', 'tag' => 'gd14_chua_xep_buoi', 'leave' => false),
+			'pcth' => array('label' => 'Pha chế tổng hợp', 'tag' => 'da_pcth', 'leave' => true),
+			'mqbb' => array('label' => 'Mở quán bài bản', 'tag' => 'da_mqbb', 'leave' => true),
+			'combo' => array('label' => 'Combo giải pháp mở quán', 'tag' => 'combo_mo_quan', 'leave' => true),
+		);
+	}
+
+	/**
+	 * Xác minh 3 câu và ghi kết quả cuộc gọi. Hồ sơ vẫn ở KH tiềm năng.
 	 */
 	public static function saveGd14ForLead($leadIdOrCacheId, array $payload, $userId = 0) {
 		require_once 'modules/Leads/models/ModernService.php';
 		$adb = PearDatabase::getInstance();
 		self::installSchema($adb);
 		Leads_ModernService::installSchema($adb);
+		$leadId = self::resolveGd14LeadId($leadIdOrCacheId);
+		$bank = self::getGd14QuestionBank();
+		$outcome = strtolower(trim((string) (isset($payload['outcome']) ? $payload['outcome'] : '')));
+		$outcomeTags = array(
+			'hen_goi_lai' => 'gd14_hen_goi_lai',
+			'khong_nghe_may' => 'gd14_khong_nghe_may',
+			'sai_thong_tin' => 'gd14_sai_thong_tin',
+			'dang_can_nhac' => 'gd14_dang_can_nhac',
+			'chon_khoa' => 'gd14_cho_thanh_toan',
+			'khong_chon' => 'gd14_ngung_cham_soc',
+			'tu_choi' => 'gd14_ngung_cham_soc',
+		);
+		if (!isset($outcomeTags[$outcome])) {
+			throw new Exception('Chọn kết quả cuộc gọi 990k.');
+		}
+		$needsAnswers = in_array($outcome, array('dang_can_nhac', 'chon_khoa'), true);
+		$answers = self::readGd14AnswerPayload($payload, $bank, $needsAnswers);
+		$courses = self::gd14CourseCatalog();
+		$course = strtolower(trim((string) (isset($payload['course']) ? $payload['course'] : '')));
+		if ($outcome === 'chon_khoa') {
+			if (!isset($courses[$course])) {
+				throw new Exception('Chọn khoá khách đã chốt.');
+			}
+		} else {
+			$course = '';
+		}
+		$topic = strtolower(trim((string) (isset($payload['topic']) ? $payload['topic'] : '')));
+		if (!in_array($topic, array('tra_sua', 'cafe', 'chua_chon'), true)) {
+			$topic = '';
+		}
+		$extra = self::loadGd14Extra($adb, $leadId);
+		if (!empty($answers)) {
+			if (empty($extra['gd14_form_answers'])) {
+				$form = array();
+				if (!empty($payload['form_answers']) && is_array($payload['form_answers'])) {
+					$form = self::readGd14AnswerPayload($payload['form_answers'], $bank, false);
+				}
+				if (!empty($form)) {
+					$extra['gd14_form_answers'] = $form;
+					$extra['gd14_form_result'] = self::classifyGd14Answers($form, $bank);
+				}
+			}
+			$extra['gd14_answers'] = $answers;
+			foreach ($answers as $qid => $code) {
+				$extra['gd14_' . $qid] = $code;
+			}
+			$extra['gd14_verified'] = 1;
+			$extra['gd14_result'] = self::classifyGd14Answers($answers, $bank);
+		}
+		$goal = trim((string) (isset($payload['goal']) ? $payload['goal'] : ''));
+		if ($goal !== '') {
+			$extra['gd14_goal'] = $goal;
+		}
+		$extra['gd14_outcome'] = $outcome;
+		if ($course !== '') {
+			$extra['gd14_course'] = $course;
+			$extra['gd14_topic'] = ($course === 'lop_990k') ? $topic : '';
+		}
+		self::storeGd14Extra($adb, $leadId, $extra);
+		$tag = $outcomeTags[$outcome];
+		self::replaceGd14Tag($leadId, $tag, $userId);
+		$lead = Leads_ModernService::getLead($leadId, $userId > 0 ? $userId : null);
+		$labels = self::gd14TagCatalog();
+		return array(
+			'success' => true,
+			'lead' => $lead,
+			'tag' => $tag,
+			'message' => 'Đã ghi xác minh 990k. Hồ sơ vẫn ở KH tiềm năng · ' . (isset($labels[$tag]) ? $labels[$tag] : $tag),
+		);
+	}
+
+	/**
+	 * Thanh toán được xác nhận thì mới sang Khách hàng.
+	 * Lớp 990k gắn tag chưa xếp buổi. Khoá cao hơn gắn tag khoá đó và rời giai đoạn 1.4.
+	 */
+	public static function confirmGd14Payment($leadIdOrCacheId, array $payload, $userId = 0) {
+		require_once 'modules/Leads/models/ModernService.php';
+		require_once 'modules/Leads/models/ConvertService.php';
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$leadId = self::resolveGd14LeadId($leadIdOrCacheId);
+		$extra = self::loadGd14Extra($adb, $leadId);
+		$lead = Leads_ModernService::getLead($leadId, $userId > 0 ? $userId : null);
+		$tags = isset($lead['tags']) && is_array($lead['tags']) ? $lead['tags'] : array();
+		$waiting = false;
+		foreach ($tags as $tagName) {
+			if (strtolower(trim((string) $tagName)) === 'gd14_cho_thanh_toan') {
+				$waiting = true;
+				break;
+			}
+		}
+		if (!$waiting) {
+			throw new Exception('Chỉ xác nhận thanh toán khi hồ sơ đang ở tag 990k — Chờ thanh toán.');
+		}
+		$courses = self::gd14CourseCatalog();
+		$course = strtolower(trim((string) (isset($payload['course']) ? $payload['course'] : '')));
+		if ($course === '' && !empty($extra['gd14_course'])) {
+			$course = strtolower(trim((string) $extra['gd14_course']));
+		}
+		if (!isset($courses[$course])) {
+			throw new Exception('Chưa có khoá đã chọn để xác nhận thanh toán.');
+		}
+		$spec = $courses[$course];
+		$extra['gd14_course'] = $course;
+		$extra['gd14_paid_at'] = date('Y-m-d H:i:s');
+		self::storeGd14Extra($adb, $leadId, $extra);
+		$converted = Leads_ConvertService::convertLeadToContactOnly($leadId, array());
+		$contactId = isset($converted['contactId']) ? (int) $converted['contactId'] : 0;
+		if ($contactId > 0) {
+			self::markPaidContact($contactId, $spec['tag'], $userId);
+		}
+		$fresh = Leads_ModernService::getLead($leadId, $userId > 0 ? $userId : null);
+		$tail = !empty($spec['leave'])
+			? 'Đã xác nhận thanh toán ' . $spec['label'] . ' và chuyển sang Khách hàng, rời giai đoạn 1.4.'
+			: 'Đã xác nhận thanh toán lớp 990k và chuyển sang Khách hàng · 990k — Chưa xếp buổi học.';
+		return array(
+			'success' => true,
+			'lead' => $fresh,
+			'contact_id' => $contactId,
+			'convert' => $converted,
+			'message' => $tail,
+		);
+	}
+
+	protected static function resolveGd14LeadId($leadIdOrCacheId) {
+		require_once 'modules/Leads/models/ModernService.php';
 		$leadId = Leads_ModernService::resolveLeadRecordId($leadIdOrCacheId);
 		if (!$leadId && is_numeric($leadIdOrCacheId)) {
 			$leadId = (int) $leadIdOrCacheId;
@@ -248,8 +403,12 @@ class Leads_SalesVerifyService {
 		if (!$leadId) {
 			throw new Exception('Lead not found.');
 		}
-		$bank = self::getGd14QuestionBank();
+		return (int) $leadId;
+	}
+
+	protected static function readGd14AnswerPayload(array $payload, array $bank, $required) {
 		$answers = array();
+		$missing = '';
 		foreach ($bank['questions'] as $question) {
 			$qid = $question['id'];
 			$code = strtolower(trim((string) (isset($payload[$qid]) ? $payload[$qid] : '')));
@@ -258,42 +417,106 @@ class Leads_SalesVerifyService {
 				$allowed[] = strtolower((string) $opt['code']);
 			}
 			if ($code === '' || !in_array($code, $allowed, true)) {
-				throw new Exception('Chọn đủ câu xác minh 990k: ' . $question['label']);
+				$missing = (string) $question['label'];
+				continue;
 			}
 			$answers[$qid] = $code;
 		}
-		if (empty($answers)) {
-			throw new Exception('Chưa có câu hỏi 990k.');
+		if ($required && ($missing !== '' || count($answers) !== count($bank['questions']))) {
+			throw new Exception('Chọn đủ câu xác minh 990k' . ($missing !== '' ? ': ' . $missing : '.'));
 		}
-		$res = $adb->pquery('SELECT verify_extra_json FROM bace_lead_profile WHERE leadid = ?', array($leadId));
-		$extra = array();
+		if (count($answers) !== count($bank['questions'])) {
+			return array();
+		}
+		return $answers;
+	}
+
+	protected static function loadGd14Extra($adb, $leadId) {
+		$res = $adb->pquery('SELECT verify_extra_json FROM bace_lead_profile WHERE leadid = ?', array((int) $leadId));
 		if ($res && $adb->num_rows($res) > 0) {
 			$decoded = json_decode((string) $adb->query_result($res, 0, 'verify_extra_json'), true);
 			if (is_array($decoded)) {
-				$extra = $decoded;
+				return $decoded;
 			}
 		}
-		$extra['gd14_answers'] = $answers;
-		foreach ($answers as $qid => $code) {
-			$extra['gd14_' . $qid] = $code;
+		return array();
+	}
+
+	protected static function storeGd14Extra($adb, $leadId, array $extra) {
+		$json = json_encode($extra, JSON_UNESCAPED_UNICODE);
+		$now = date('Y-m-d H:i:s');
+		$exists = $adb->pquery('SELECT leadid FROM bace_lead_profile WHERE leadid = ?', array((int) $leadId));
+		if ($exists && $adb->num_rows($exists) > 0) {
+			$adb->pquery(
+				'UPDATE bace_lead_profile SET verify_extra_json = ?, modified_at = ? WHERE leadid = ?',
+				array($json, $now, (int) $leadId)
+			);
+			return;
 		}
-		$extra['gd14_verified'] = 1;
-		$extra['gd14_result'] = self::classifyGd14Answers($answers, $bank);
-		$adb->pquery(
-			'UPDATE bace_lead_profile SET verify_extra_json = ?, modified_at = ? WHERE leadid = ?',
-			array(json_encode($extra, JSON_UNESCAPED_UNICODE), date('Y-m-d H:i:s'), $leadId)
-		);
-		require_once 'modules/Leads/models/ConvertService.php';
-		$converted = Leads_ConvertService::convertLeadToContactOnly($leadId, array());
 		require_once 'modules/Leads/models/ModernService.php';
-		$lead = Leads_ModernService::getLead($leadId, $userId > 0 ? $userId : null);
-		return array(
-			'success' => true,
-			'lead' => $lead,
-			'contact_id' => isset($converted['contactId']) ? (int) $converted['contactId'] : 0,
-			'convert' => $converted,
-			'message' => 'Đã xác minh 990k và chuyển xuống Khách hàng.',
+		Leads_ModernService::installSchema($adb);
+		$adb->pquery(
+			'INSERT INTO bace_lead_profile (leadid, verify_extra_json, modified_at) VALUES (?,?,?)',
+			array((int) $leadId, $json, $now)
 		);
+	}
+
+	protected static function replaceGd14Tag($leadId, $nextTag, $userId) {
+		require_once 'modules/Leads/models/ModernService.php';
+		global $current_user;
+		if ((int) $userId <= 0) {
+			$userId = (!empty($current_user) && !empty($current_user->id)) ? (int) $current_user->id : 1;
+		}
+		$lead = Leads_ModernService::getLead($leadId, $userId);
+		$tags = isset($lead['tags']) && is_array($lead['tags']) ? $lead['tags'] : array();
+		$pool = array_keys(self::gd14TagCatalog());
+		$pool[] = 'gd14_990';
+		$pool[] = '990k';
+		$pool[] = '990';
+		$keep = array();
+		foreach ($tags as $name) {
+			$key = strtolower(trim((string) $name));
+			if ($key === '' || in_array($key, $pool, true) || strpos($key, 'gd14_') === 0) {
+				continue;
+			}
+			$keep[] = (string) $name;
+		}
+		$keep[] = $nextTag;
+		Leads_ModernService::syncTagsPublic((int) $leadId, $keep, (int) $userId);
+	}
+
+	protected static function markPaidContact($contactId, $tagName, $userId) {
+		global $current_user;
+		$contactId = (int) $contactId;
+		if ($contactId <= 0 || $tagName === '') {
+			return;
+		}
+		if ((int) $userId <= 0) {
+			$userId = (!empty($current_user) && !empty($current_user->id)) ? (int) $current_user->id : 1;
+		}
+		require_once 'modules/Vtiger/models/Tag.php';
+		$existing = Vtiger_Tag_Model::getAllAccessible($userId, 'Contacts', $contactId);
+		$remove = array();
+		foreach ($existing as $tagModel) {
+			$name = strtolower(trim((string) $tagModel->getName()));
+			if (strpos($name, 'gd14_') === 0) {
+				$remove[] = (int) $tagModel->getId();
+			}
+		}
+		if (!empty($remove)) {
+			Vtiger_Tag_Model::deleteForRecord($contactId, $remove, $userId, 'Contacts');
+		}
+		$tagModel = Vtiger_Tag_Model::getInstanceByName($tagName, $userId);
+		if ($tagModel) {
+			$tagId = (int) $tagModel->getId();
+		} else {
+			$newTag = new Vtiger_Tag_Model();
+			$newTag->setName($tagName)->setType(Vtiger_Tag_Model::PUBLIC_TYPE);
+			$tagId = (int) $newTag->create();
+		}
+		if ($tagId > 0) {
+			Vtiger_Tag_Model::saveForRecord($contactId, array($tagId), $userId, 'Contacts');
+		}
 	}
 
 	public static function saveForLead($leadIdOrCacheId, array $payload, $userId = 0) {

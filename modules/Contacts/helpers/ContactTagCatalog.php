@@ -14,7 +14,8 @@ class Contacts_ContactTagCatalog {
 		'chua_mqbh', 'da_tg_free', 'da_tg_fb1', 'thu_3',
 		'pcth', 'van_hanh', 'mkt', 'lop_khac',
 		'mien_phi_online', 'mien_phi_offline',
-		'da_mqbb', 'da_990k', 'da_pcth', 'da_pcthcb',
+		'da_mqbb', 'da_990k', 'da_pcth', 'da_pcthcb', 'combo_mo_quan',
+		'gd14_chua_xep_buoi', 'gd14_da_xac_nhan_lich', 'gd14_khong_tham_gia', 'gd14_da_tham_gia',
 		// Offline R1 status (filter con Offline)
 		'offline_hen_goi_lai', 'offline_khong_nghe_may', 'offline_sai_thong_tin',
 		'offline_hen_lich_lai', 'offline_chuyen_chuong_trinh', 'offline_ngung_cskh',

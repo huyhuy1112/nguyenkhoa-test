@@ -157,7 +157,18 @@
   TAG_META_RAW["l2"] = { vi: "L2", en: "L2", cat: "other", cls: "mk-tag--l2" };
   TAG_META_RAW["chua_990k"] = { vi: "Chưa 990k", en: "Not 990k", cat: "other", cls: "mk-tag--chua-990k" };
   TAG_META_RAW["da_990k"] = { vi: "Đã 990k", en: "Paid 990k", cat: "other", cls: "mk-tag--da-990k" };
-  TAG_META_RAW["gd14_990"] = { vi: "990k", en: "990k class", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_moi_dang_ky"] = { vi: "990k — Mới đăng ký", en: "990k — New", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_hen_goi_lai"] = { vi: "990k — Hẹn gọi lại", en: "990k — Callback", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_khong_nghe_may"] = { vi: "990k — Không nghe máy", en: "990k — No answer", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_sai_thong_tin"] = { vi: "990k — Sai thông tin liên hệ", en: "990k — Bad contact", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_dang_can_nhac"] = { vi: "990k — Đang cân nhắc", en: "990k — Considering", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_cho_thanh_toan"] = { vi: "990k — Chờ thanh toán", en: "990k — Awaiting payment", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_chua_xep_buoi"] = { vi: "990k — Chưa xếp buổi học", en: "990k — Unscheduled", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_da_xac_nhan_lich"] = { vi: "990k — Đã xác nhận lịch học", en: "990k — Class confirmed", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_khong_tham_gia"] = { vi: "990k — Không tham gia lớp học", en: "990k — Absent", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_da_tham_gia"] = { vi: "990k — Đã tham gia lớp học", en: "990k — Attended", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_ngung_cham_soc"] = { vi: "990k — Ngưng chăm sóc", en: "990k — Stopped", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_990"] = TAG_META_RAW["gd14_moi_dang_ky"];
   TAG_META_RAW["da_pcthcb"] = { vi: "Đã PCTHCB", en: "Done PCTHCB", cat: "other", cls: "mk-tag--da-pcthcb" };
   TAG_META_RAW["lop_online"] = { vi: "Lớp online", en: "Online class", cat: "other", cls: "mk-tag--lop-online" };
   TAG_META_RAW["moi_lai"] = { vi: "Mời lại", en: "Re-invite", cat: "other", cls: "mk-tag--moi-lai" };
@@ -194,7 +205,19 @@
       id: "gd14",
       labelVi: "Giai đoạn 1.4",
       labelEn: "Stage 1.4",
-      tags: ["gd14_990"],
+      tags: [
+        "gd14_moi_dang_ky",
+        "gd14_hen_goi_lai",
+        "gd14_khong_nghe_may",
+        "gd14_sai_thong_tin",
+        "gd14_dang_can_nhac",
+        "gd14_cho_thanh_toan",
+        "gd14_chua_xep_buoi",
+        "gd14_da_xac_nhan_lich",
+        "gd14_khong_tham_gia",
+        "gd14_da_tham_gia",
+        "gd14_ngung_cham_soc",
+      ],
     },
     {
       id: "online",
@@ -319,8 +342,9 @@
   var CACHE_ONLY = true;
 
   var TAG_ALIASES = {
-    "990k": "gd14_990",
-    "990": "gd14_990",
+    "990k": "gd14_moi_dang_ky",
+    "990": "gd14_moi_dang_ky",
+    "gd14_990": "gd14_moi_dang_ky",
     other_source: "other",
     ca_nhan: "individual",
     gold: "vang",
