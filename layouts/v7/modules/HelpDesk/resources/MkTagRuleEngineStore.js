@@ -199,10 +199,12 @@
 	}
 
 	function getScreeningBank() {
+		ensureBootstrapped();
 		return clone(state.screening_bank || { questions: [], levels: [] });
 	}
 
 	function getGd14Questions() {
+		ensureBootstrapped();
 		return clone(state.gd14_questions || { questions: [] });
 	}
 
