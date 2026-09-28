@@ -278,6 +278,7 @@ class Leads_SalesVerifyService {
 			$extra['gd14_' . $qid] = $code;
 		}
 		$extra['gd14_verified'] = 1;
+		$extra['gd14_result'] = self::classifyGd14Answers($answers, $bank);
 		$adb->pquery(
 			'UPDATE bace_lead_profile SET verify_extra_json = ?, modified_at = ? WHERE leadid = ?',
 			array(json_encode($extra, JSON_UNESCAPED_UNICODE), date('Y-m-d H:i:s'), $leadId)
@@ -669,7 +670,115 @@ class Leads_SalesVerifyService {
 					),
 				),
 			),
+			'results' => self::defaultGd14Results(),
 		);
+	}
+
+	public static function defaultGd14Results() {
+		return array(
+			array('group' => 'chan_moi', 'label' => 'Không mời Combo và Mở quán bài bản — xe đẩy hoặc bán online', 'priority' => 10, 'when' => array(array('q' => 'c2', 'op' => 'in', 'value' => 'a,b'))),
+			array('group' => 'chan_moi', 'label' => 'Không mời Combo và Mở quán bài bản — học vì sở thích', 'priority' => 20, 'when' => array(array('q' => 'c1', 'op' => 'eq', 'value' => 'd'))),
+			array('group' => 'chan_moi', 'label' => 'Không mời Combo và Mở quán bài bản — mô hình sở thích', 'priority' => 30, 'when' => array(array('q' => 'c2', 'op' => 'eq', 'value' => 'e'))),
+			array('group' => 'chan_moi', 'label' => 'Không mời Combo và Mở quán bài bản — ngân sách dưới 100 triệu', 'priority' => 40, 'when' => array(array('q' => 'c3', 'op' => 'eq', 'value' => 'a'))),
+			array('group' => 'loi_tu_van', 'label' => 'Lời tư vấn: Sở thích', 'priority' => 10, 'when' => array(array('q' => 'c1', 'op' => 'eq', 'value' => 'd'))),
+			array('group' => 'loi_tu_van', 'label' => 'Lời tư vấn: Sở thích', 'priority' => 20, 'when' => array(array('q' => 'c2', 'op' => 'eq', 'value' => 'e'))),
+			array('group' => 'loi_tu_van', 'label' => 'Lời tư vấn: Xe đẩy / online', 'priority' => 30, 'when' => array(array('q' => 'c2', 'op' => 'in', 'value' => 'a,b'))),
+			array('group' => 'mau_thuan', 'label' => 'Hỏi lại câu 1 và câu 2 vì một bên là sở thích, bên kia không phải', 'priority' => 10, 'when' => array(
+				array('q' => 'c1', 'op' => 'eq', 'value' => 'd'),
+				array('q' => 'c2', 'op' => 'neq', 'value' => 'e'),
+			)),
+			array('group' => 'mau_thuan', 'label' => 'Hỏi lại câu 1 và câu 2 vì một bên là sở thích, bên kia không phải', 'priority' => 20, 'when' => array(
+				array('q' => 'c1', 'op' => 'neq', 'value' => 'd'),
+				array('q' => 'c2', 'op' => 'eq', 'value' => 'e'),
+			)),
+		);
+	}
+
+	public static function classifyGd14Answers(array $answers, array $bank = null) {
+		if ($bank === null) {
+			$bank = self::getGd14QuestionBank();
+		}
+		$results = isset($bank['results']) && is_array($bank['results']) ? $bank['results'] : self::defaultGd14Results();
+		$matched = array('chan_moi' => array(), 'loi_tu_van' => array(), 'mau_thuan' => array());
+		foreach ($results as $row) {
+			if (!is_array($row)) {
+				continue;
+			}
+			$group = isset($row['group']) ? (string) $row['group'] : '';
+			if (!isset($matched[$group])) {
+				continue;
+			}
+			if (!self::gd14WhenMatches(isset($row['when']) ? $row['when'] : array(), $answers)) {
+				continue;
+			}
+			$matched[$group][] = $row;
+		}
+		$invite = empty($matched['chan_moi'])
+			? 'Được mời Combo và Mở quán bài bản. Vẫn nói Pha chế tổng hợp cùng lớp 990k.'
+			: 'Không mời Combo và Mở quán bài bản. Vẫn nói Pha chế tổng hợp cùng lớp 990k.';
+		$reasons = array();
+		foreach ($matched['chan_moi'] as $row) {
+			$reasons[] = (string) $row['label'];
+		}
+		usort($matched['loi_tu_van'], function ($a, $b) {
+			$pa = isset($a['priority']) ? (int) $a['priority'] : 100;
+			$pb = isset($b['priority']) ? (int) $b['priority'] : 100;
+			if ($pa === $pb) {
+				return 0;
+			}
+			return ($pa < $pb) ? -1 : 1;
+		});
+		$variant = !empty($matched['loi_tu_van'])
+			? (string) $matched['loi_tu_van'][0]['label']
+			: 'Lời tư vấn: Quán';
+		$conflict = empty($matched['mau_thuan'])
+			? 'Đáp án khớp nhau, không cần hỏi lại.'
+			: (string) $matched['mau_thuan'][0]['label'];
+		return array(
+			'invite' => $invite,
+			'invite_reasons' => $reasons,
+			'variant' => $variant,
+			'conflict' => $conflict,
+			'invited' => empty($matched['chan_moi']) ? 1 : 0,
+			'contradict' => empty($matched['mau_thuan']) ? 0 : 1,
+		);
+	}
+
+	protected static function gd14WhenMatches($when, array $answers) {
+		if (!is_array($when) || empty($when)) {
+			return false;
+		}
+		foreach ($when as $cond) {
+			if (!is_array($cond)) {
+				return false;
+			}
+			$q = strtolower(trim((string) (isset($cond['q']) ? $cond['q'] : '')));
+			$op = strtolower(trim((string) (isset($cond['op']) ? $cond['op'] : 'eq')));
+			$want = strtolower(trim((string) (isset($cond['value']) ? $cond['value'] : '')));
+			$got = isset($answers[$q]) ? strtolower(trim((string) $answers[$q])) : '';
+			if ($got === '') {
+				return false;
+			}
+			if ($op === 'in') {
+				$bag = array();
+				foreach (explode(',', $want) as $part) {
+					$part = trim($part);
+					if ($part !== '') {
+						$bag[] = $part;
+					}
+				}
+				if (!in_array($got, $bag, true)) {
+					return false;
+				}
+			} elseif ($op === 'neq') {
+				if ($got === $want) {
+					return false;
+				}
+			} elseif ($got !== $want) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public static function getGd14QuestionBank() {
@@ -743,7 +852,49 @@ class Leads_SalesVerifyService {
 		if (empty($questions)) {
 			return self::defaultGd14QuestionBank();
 		}
-		return array('questions' => $questions);
+		$results = array();
+		$rows = isset($payload['results']) && is_array($payload['results']) ? $payload['results'] : array();
+		foreach ($rows as $row) {
+			if (!is_array($row)) {
+				continue;
+			}
+			$group = isset($row['group']) ? (string) $row['group'] : '';
+			if (!in_array($group, array('chan_moi', 'loi_tu_van', 'mau_thuan'), true)) {
+				continue;
+			}
+			$label = trim((string) (isset($row['label']) ? $row['label'] : ''));
+			$when = array();
+			if (!empty($row['when']) && is_array($row['when'])) {
+				foreach ($row['when'] as $cond) {
+					if (!is_array($cond)) {
+						continue;
+					}
+					$q = strtolower(preg_replace('/[^a-z0-9_]/', '', (string) (isset($cond['q']) ? $cond['q'] : '')));
+					$op = strtolower(trim((string) (isset($cond['op']) ? $cond['op'] : 'eq')));
+					if (!in_array($op, array('eq', 'in', 'neq'), true)) {
+						$op = 'eq';
+					}
+					$value = strtolower(trim((string) (isset($cond['value']) ? $cond['value'] : '')));
+					if ($q === '' || $value === '') {
+						continue;
+					}
+					$when[] = array('q' => $q, 'op' => $op, 'value' => $value);
+				}
+			}
+			if ($label === '' || empty($when)) {
+				continue;
+			}
+			$results[] = array(
+				'group' => $group,
+				'label' => $label,
+				'priority' => isset($row['priority']) ? (int) $row['priority'] : 100,
+				'when' => $when,
+			);
+		}
+		if (empty($results)) {
+			$results = self::defaultGd14Results();
+		}
+		return array('questions' => $questions, 'results' => $results);
 	}
 
 	public static function getScreeningBank() {

@@ -1434,6 +1434,9 @@
       var t = e.target;
       if (t && t.getAttribute && t.getAttribute("data-mk-verify")) {
         setListVerifyMsg("", "");
+        if (wrap._mkVerifyMode === "gd14_990" || (wrap.querySelector && wrap.querySelector("[data-mk-gd14-matrix]"))) {
+          paintGd14Matrix(wrap.querySelector("#mk-leads-verify-body") || wrap);
+        }
       }
     });
     wrap.addEventListener("click", function (e) {
@@ -2144,9 +2147,69 @@
       "<h4>Xác minh 990k</h4>" +
       '<p class="mk-leads-verify-offline__meta">Câu hỏi lấy từ Quản lý rule. Lưu xong hồ sơ chuyển thẳng xuống Khách hàng.</p>' +
       fields +
+      '<div class="mk-leads-verify-result" data-mk-gd14-matrix="1"></div>' +
       "</section>" +
       '<p class="mk-leads-verify-err" data-mk-verify-err hidden></p>' +
       '<p class="mk-leads-verify-ok" data-mk-verify-ok hidden></p>';
+    paintGd14Matrix(body);
+  }
+
+  function gd14Results() {
+    var bank = window.MK_GD14_QUESTIONS;
+    if (bank && Array.isArray(bank.results) && bank.results.length) return bank.results;
+    return [];
+  }
+
+  function gd14WhenMatches(when, answers) {
+    if (!when || !when.length) return false;
+    for (var i = 0; i < when.length; i++) {
+      var cond = when[i];
+      var got = String(answers[cond.q] || "").toLowerCase();
+      var want = String(cond.value || "").toLowerCase();
+      if (!got) return false;
+      if (cond.op === "in") {
+        if (want.split(",").indexOf(got) < 0) return false;
+      } else if (cond.op === "neq") {
+        if (got === want) return false;
+      } else if (got !== want) return false;
+    }
+    return true;
+  }
+
+  function paintGd14Matrix(host) {
+    var box = host ? host.querySelector("[data-mk-gd14-matrix]") : null;
+    if (!box) return;
+    var answers = {};
+    var ready = true;
+    gd14Questions().forEach(function (q) {
+      var el = host.querySelector('[data-mk-verify="' + q.id + '"]');
+      answers[q.id] = el ? String(el.value || "").toLowerCase() : "";
+      if (!answers[q.id]) ready = false;
+    });
+    if (!ready) {
+      box.innerHTML = '<p class="mk-leads-verify-offline__meta">Chọn đủ đáp án để xem kết quả.</p>';
+      return;
+    }
+    var blocked = [];
+    var variants = [];
+    var conflicts = [];
+    gd14Results().forEach(function (row) {
+      if (!gd14WhenMatches(row.when, answers)) return;
+      if (row.group === "chan_moi") blocked.push(row);
+      else if (row.group === "loi_tu_van") variants.push(row);
+      else if (row.group === "mau_thuan") conflicts.push(row);
+    });
+    variants.sort(function (a, b) { return (Number(a.priority) || 100) - (Number(b.priority) || 100); });
+    var invite = blocked.length
+      ? "Không mời Combo và Mở quán bài bản. Vẫn nói Pha chế tổng hợp cùng lớp 990k."
+      : "Được mời Combo và Mở quán bài bản. Vẫn nói Pha chế tổng hợp cùng lớp 990k.";
+    var variant = variants.length ? variants[0].label : "Lời tư vấn: Quán";
+    var conflict = conflicts.length ? conflicts[0].label : "Đáp án khớp nhau, không cần hỏi lại.";
+    box.innerHTML =
+      '<div class="mk-leads-verify-formcards">' +
+      '<div class="mk-leads-verify-formcard"><em>Mời khóa cao</em><strong>' + esc(invite) + "</strong></div>" +
+      '<div class="mk-leads-verify-formcard"><em>Cách nói</em><strong>' + esc(variant) + "</strong></div>" +
+      '<div class="mk-leads-verify-formcard"><em>Hỏi lại</em><strong>' + esc(conflict) + "</strong></div></div>";
   }
 
   function fillListVerifyBody(lead) {

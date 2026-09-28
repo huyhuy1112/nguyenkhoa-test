@@ -650,7 +650,64 @@
 				+ '    <button type="button" class="mk-tre-btn mk-tre-btn--primary js-tre-gd14-save">Lưu câu 990k</button>'
 				+ '  </div></div>'
 				+ '  <div class="mk-tre-section__body"><div class="mk-q-list js-tre-gd14-list">' + cards + '</div></div>'
+				+ self.renderGd14ResultsSection(bank.results || [])
 				+ '</section>';
+		},
+
+		gd14GroupLabel: function (group) {
+			if (group === 'chan_moi') return 'Chặn mời khóa cao';
+			if (group === 'loi_tu_van') return 'Lời tư vấn';
+			if (group === 'mau_thuan') return 'Đáp án mâu thuẫn';
+			return group;
+		},
+
+		renderGd14ResultsSection: function (results) {
+			var self = this;
+			var rows = (results || []).map(function (row) {
+				var when = (row.when || []).map(function (c) {
+					if (c.op === 'in') return c.q + ' in ' + c.value;
+					if (c.op === 'neq') return c.q + '!=' + c.value;
+					return c.q + '=' + c.value;
+				}).join(' & ');
+				return ''
+					+ '<article class="mk-lv js-tre-gd14-result">'
+					+ '  <div class="mk-lv__main"><div class="mk-lv__edit">'
+					+ '    <label>Kết quả hiện cho Sales<input class="mk-tre-input js-tre-gd14-label" value="' + esc(row.label || '') + '" /></label>'
+					+ '    <label>Nhóm<select class="mk-tre-input mk-tre-input--select js-tre-gd14-group">'
+					+ '      <option value="chan_moi"' + (row.group === 'chan_moi' ? ' selected' : '') + '>Chặn mời Combo / Mở quán</option>'
+					+ '      <option value="loi_tu_van"' + (row.group === 'loi_tu_van' ? ' selected' : '') + '>Lời tư vấn</option>'
+					+ '      <option value="mau_thuan"' + (row.group === 'mau_thuan' ? ' selected' : '') + '>Hỏi lại vì mâu thuẫn</option>'
+					+ '    </select></label>'
+					+ '    <label>Thứ tự<input class="mk-tre-input js-tre-gd14-prio" type="number" value="' + esc(row.priority || 100) + '" /></label>'
+					+ '    <label class="mk-lv__when">Khi khách trả lời<input class="mk-tre-input js-tre-gd14-when" value="' + esc(when) + '" placeholder="c2 in a,b hoặc c1=d" /></label>'
+					+ '    <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-gd14-result-del">Xoá dòng</button>'
+					+ '  </div></div>'
+					+ '</article>';
+			}).join('');
+			return ''
+				+ '<div class="mk-tre-section__head" style="margin-top:18px"><div class="mk-tre-section__titles">'
+				+ '  <h2 class="mk-tre-section__title">Chọn đáp án thì ra kết quả nào</h2>'
+				+ '  <p class="mk-tre-section__sub">Đây là ma trận 990k. Không xếp tiềm năng. Khớp một dòng “chặn mời” thì không mời Combo và Mở quán bài bản. Không khớp dòng lời tư vấn thì dùng lời Quán. Khớp dòng mâu thuẫn thì Sales hỏi lại.</p>'
+				+ '</div><div class="mk-tre-section__actions">'
+				+ '  <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-gd14-result-add">Thêm dòng kết quả</button>'
+				+ '</div></div>'
+				+ '<div class="mk-tre-section__body"><div class="mk-lv-list js-tre-gd14-results">' + rows + '</div></div>';
+		},
+
+		renderGd14ResultBlank: function () {
+			return ''
+				+ '<article class="mk-lv js-tre-gd14-result">'
+				+ '  <div class="mk-lv__main"><div class="mk-lv__edit">'
+				+ '    <label>Kết quả hiện cho Sales<input class="mk-tre-input js-tre-gd14-label" value="" /></label>'
+				+ '    <label>Nhóm<select class="mk-tre-input mk-tre-input--select js-tre-gd14-group">'
+				+ '      <option value="chan_moi">Chặn mời Combo / Mở quán</option>'
+				+ '      <option value="loi_tu_van">Lời tư vấn</option>'
+				+ '      <option value="mau_thuan">Hỏi lại vì mâu thuẫn</option>'
+				+ '    </select></label>'
+				+ '    <label>Thứ tự<input class="mk-tre-input js-tre-gd14-prio" type="number" value="50" /></label>'
+				+ '    <label class="mk-lv__when">Khi khách trả lời<input class="mk-tre-input js-tre-gd14-when" placeholder="c2 in a,b hoặc c1=d" /></label>'
+				+ '    <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-gd14-result-del">Xoá dòng</button>'
+				+ '  </div></div></article>';
 		},
 
 		gd14CardHtml: function (q, index) {
@@ -680,7 +737,40 @@
 				if (!id || !label || !options.length) return;
 				questions.push({ id: id, label: label, options: options });
 			});
-			return { questions: questions };
+			return { questions: questions, results: self.readGd14ResultsForm() };
+		},
+
+		readGd14ResultsForm: function () {
+			var results = [];
+			$('#mk-tre-panel .js-tre-gd14-result').each(function () {
+				var $row = $(this);
+				var when = [];
+				String($row.find('.js-tre-gd14-when').val() || '').split('&').forEach(function (part) {
+					part = part.trim();
+					if (!part) return;
+					var inMatch = part.match(/^([a-zA-Z0-9_]+)\s+in\s+(.+)$/i);
+					if (inMatch) {
+						when.push({ q: inMatch[1].toLowerCase(), op: 'in', value: inMatch[2].replace(/\s/g, '').toLowerCase() });
+						return;
+					}
+					var neq = part.split('!=');
+					if (neq.length === 2) {
+						when.push({ q: neq[0].trim().toLowerCase(), op: 'neq', value: neq[1].trim().toLowerCase() });
+						return;
+					}
+					var eq = part.split('=');
+					if (eq.length >= 2) {
+						when.push({ q: eq[0].trim().toLowerCase(), op: 'eq', value: eq.slice(1).join('=').trim().toLowerCase() });
+					}
+				});
+				results.push({
+					group: $row.find('.js-tre-gd14-group').val(),
+					label: $row.find('.js-tre-gd14-label').val(),
+					priority: parseInt($row.find('.js-tre-gd14-prio').val(), 10) || 100,
+					when: when
+				});
+			});
+			return results;
 		},
 
 		readQuestionsForm: function () {
@@ -1712,8 +1802,11 @@
 					options: [{ code: 'a', label: '' }, { code: 'b', label: '' }]
 				}, n));
 			});
-			this.$root.on('click', '.js-tre-gd14-del', function () {
-				$(this).closest('.js-tre-gd14-card').remove();
+			this.$root.on('click', '.js-tre-gd14-result-add', function () {
+				$('#mk-tre-panel .js-tre-gd14-results').append(self.renderGd14ResultBlank());
+			});
+			this.$root.on('click', '.js-tre-gd14-result-del', function () {
+				$(this).closest('.js-tre-gd14-result').remove();
 			});
 			this.$root.on('click', '.js-tre-gd14-save', function () {
 				try {
