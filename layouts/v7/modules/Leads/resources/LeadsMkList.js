@@ -1770,6 +1770,10 @@
       '<input type="email" class="inputElement" data-mk-edubit="email" value="' +
       esc(lead.edubit_email || lead.email || "") +
       '" placeholder="bắt buộc" /></label>' +
+      (lead.edubit_user_id
+        ? ""
+        : '<label class="mk-leads-verify-field"><span>Mật khẩu</span>' +
+          '<input type="text" class="inputElement" data-mk-edubit="password" value="" placeholder="Để trống thì Edubit tự sinh" autocomplete="new-password" /></label>') +
       '<div class="mk-leads-verify-field"><span>Khóa học</span>' +
       '<div class="mk-leads-edubit-courses" data-mk-edubit="courses">' +
       opts +
@@ -2327,6 +2331,8 @@
     });
     var courseId = courseIds[0] || "";
     var email = emailEl ? String(emailEl.value || "").trim() : "";
+    var passEl = panel.querySelector('[data-mk-edubit="password"]');
+    var password = passEl ? String(passEl.value || "") : "";
     var mode =
       action === "sync"
         ? "online_edubit_sync_progress"
@@ -2356,6 +2362,7 @@
       course_id: courseId,
       course_ids: courseIds,
       email: email,
+      password: password,
       name: (lead && lead.name) || "",
       phone: (lead && lead.phone) || "",
     };

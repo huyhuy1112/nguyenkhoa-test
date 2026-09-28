@@ -1504,6 +1504,9 @@ class Leads_OnlineGd12Service {
 		if ($hadAccount && $storedEmail !== '') {
 			$email = $storedEmail;
 		}
+		if ($hadAccount) {
+			$password = '';
+		}
 		$owned = array();
 		if ($storedCourseId !== '') {
 			$owned[$storedCourseId] = true;

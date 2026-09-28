@@ -107,6 +107,12 @@
 				<label class="mk-contact-class-panel__label" for="mk-edubit-email">Email học viên</label>
 				<input type="email" id="mk-edubit-email" class="mk-contact-class-panel__select inputElement" data-mk-edubit="email" placeholder="email@…" value="{$EDUBIT.email|default:''|escape}" {if !empty($EDUBIT.has_account)}readonly="readonly"{/if} />
 			</div>
+			{if empty($EDUBIT.has_account)}
+			<div class="mk-contact-class-panel__field">
+				<label class="mk-contact-class-panel__label" for="mk-edubit-password">Mật khẩu</label>
+				<input type="text" id="mk-edubit-password" class="mk-contact-class-panel__select inputElement" data-mk-edubit="password" placeholder="Để trống thì Edubit tự sinh" autocomplete="new-password" />
+			</div>
+			{/if}
 			<button type="button" class="mk-contact-class-panel__btn mk-contact-class-panel__btn--primary" data-mk-edubit-action="provision">
 				<i class="fa fa-user-plus" aria-hidden="true"></i>
 				<span data-mk-edubit-btn-label>{if !empty($EDUBIT.has_account)}Thêm khóa học{else}Cấp tài khoản{/if}</span>

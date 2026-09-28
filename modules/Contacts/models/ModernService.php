@@ -1934,6 +1934,9 @@ class Contacts_ModernService {
 		if ($hadAccount && $storedEmail !== '') {
 			$email = $storedEmail;
 		}
+		if ($hadAccount) {
+			$password = '';
+		}
 
 		$toAdd = array();
 		foreach ($courseIds as $courseId) {

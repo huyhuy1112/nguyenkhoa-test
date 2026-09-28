@@ -315,6 +315,7 @@
 				}
 			});
 			var email = String($panel.find('[data-mk-edubit="email"]').val() || '').trim();
+			var password = String($panel.find('[data-mk-edubit="password"]').val() || '');
 			if (!courseIds.length) {
 				notifyError('Chọn ít nhất một khóa chưa có trên tài khoản.');
 				return;
@@ -331,7 +332,7 @@
 				mode: 'edubit_provision',
 				record: recordId,
 				id: recordId,
-				payload: JSON.stringify({ course_ids: courseIds, email: email })
+				payload: JSON.stringify({ course_ids: courseIds, email: email, password: password })
 			}, function (err, res) {
 				$btn.prop('disabled', false);
 				if (err || !res || res.success === false) {
@@ -370,6 +371,11 @@
 				}
 				var btnLabel = $panel.find('[data-mk-edubit-btn-label]')[0];
 				if (btnLabel) btnLabel.textContent = 'Thêm khóa học';
+				var passInput = $panel.find('[data-mk-edubit="password"]')[0];
+				if (passInput && passInput.parentNode) {
+					passInput.parentNode.hidden = true;
+					passInput.value = '';
+				}
 			});
 		});
 	}
