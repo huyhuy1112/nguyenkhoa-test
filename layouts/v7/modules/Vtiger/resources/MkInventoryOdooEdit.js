@@ -370,7 +370,9 @@
     shipText = shipText || "";
 
     if ($bill.length) {
-      if (billText || force) {
+      var currentBill = $.trim($bill.val() || "");
+      // Không ghi đè địa chỉ khách vừa chọn bằng chuỗi rỗng.
+      if (billText || (force && !currentBill)) {
         $bill.val(billText).trigger("change");
       }
     }
@@ -568,7 +570,12 @@
 
     var onOpp = function () {
       setTimeout(function () {
-        fillAddressFromPotential($form, { force: true });
+        var bill = $.trim($form.find('[name="bill_street"]').val() || "");
+        var rail = $.trim($("#mkQtBillStreetRail, #mkSoBillStreetRail").val() || "");
+        if (bill || rail) {
+          return;
+        }
+        fillAddressFromPotential($form, { force: false });
       }, 120);
     };
     var onAccount = function () {

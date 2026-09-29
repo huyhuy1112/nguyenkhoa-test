@@ -1226,8 +1226,9 @@
 			$f.find('[name="mk_customer_email"]').val(item.email).trigger('change');
 		}
 		var addr = $.trim(item.address || '');
-		if (addr && $f.find('[name="bill_street"]').length) {
-			$f.find('[name="bill_street"]').val(addr).trigger('change');
+		if (addr) {
+			$f.find('[name="bill_street"]').val(addr);
+			$('#mkQtBillStreetRail, #mkSoBillStreetRail').val(addr);
 		}
 	}
 
