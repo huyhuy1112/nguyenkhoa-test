@@ -2637,6 +2637,8 @@
           "mk-qt-col-phone",
           "mk-so-col-email",
           "mk-qt-col-email",
+          "mk-qt-col-address",
+          "mk-so-col-address",
           "mk-so-col-assigned",
           "mk-so-col-due",
           "mk-so-col-status",
@@ -2669,7 +2671,7 @@
       if ($empty.length) {
         $empty.before(html);
       } else {
-        $tbody.prepend(html);
+        $tbody.append(html);
       }
     } else {
       $headerRow.after(html);
@@ -2718,6 +2720,8 @@
       "mk-qt-col-phone": "11%",
       "mk-so-col-email": "13%",
       "mk-qt-col-email": "13%",
+      "mk-qt-col-address": "16%",
+      "mk-so-col-address": "16%",
       "mk-so-col-assigned": "13%",
       "mk-so-col-due": "12%",
       "mk-so-col-status": "11%",

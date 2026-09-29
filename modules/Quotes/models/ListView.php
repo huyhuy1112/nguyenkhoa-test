@@ -259,6 +259,25 @@ class Quotes_ListView_Model extends Inventory_ListView_Model {
 			}
 		}
 
+		$addressMap = array();
+		try {
+			$billRes = $db->pquery(
+				'SELECT quotebilladdressid, bill_street FROM vtiger_quotesbillads WHERE quotebilladdressid IN (' . $placeholders . ')',
+				$ids
+			);
+			if ($billRes) {
+				while ($brow = $db->fetchByAssoc($billRes)) {
+					$billId = (int) (isset($brow['quotebilladdressid']) ? $brow['quotebilladdressid'] : 0);
+					$street = trim(decode_html((string) (isset($brow['bill_street']) ? $brow['bill_street'] : '')));
+					if ($billId > 0 && $street !== '' && $street !== '-' && $street !== '--') {
+						$addressMap[$billId] = $street;
+					}
+				}
+			}
+		} catch (Exception $e) {
+			$addressMap = array();
+		}
+
 		foreach ($listViewRecordModels as $recordId => $recordModel) {
 			$qid = (int) $recordId;
 			$meta = isset($quoteMeta[$qid]) ? $quoteMeta[$qid] : array(
@@ -306,6 +325,8 @@ class Quotes_ListView_Model extends Inventory_ListView_Model {
 
 			$recordModel->set('mk_list_phone', $phone !== '' ? $phone : '—');
 			$recordModel->set('mk_list_email', $email !== '' ? $email : '—');
+			$address = isset($addressMap[$qid]) ? $addressMap[$qid] : '';
+			$recordModel->set('mk_list_address', $address !== '' ? $address : '—');
 			$listViewRecordModels[$recordId] = $recordModel;
 		}
 	}

@@ -2840,19 +2840,10 @@
 			return;
 		}
 		$info.addClass('mk-qt-block mk-qt-rail-quote-info');
-		var $addr = $rail.find('.mk-qt-address-rail, .mk-qt-rail-card--address').first();
-		if ($addr.length) {
-			var $existingInlineAddr = $info.find('.mk-qt-address-inline').first();
-			if (!$existingInlineAddr.length) {
-				var $addrGrid = $addr.find('.mk-qt-addr-grid').first();
-				if ($addrGrid.length) {
-					var $inlineAddr = $('<div class="mk-qt-address-inline"></div>');
-					$inlineAddr.append('<div class="mk-qt-address-inline__head"><span class="mk-qt-address-inline__icon" aria-hidden="true"><i class="fa fa-map-marker"></i></span><h3 class="mk-qt-address-inline__title">Địa chỉ</h3></div>');
-					$inlineAddr.append($addrGrid.detach());
-					$info.append($inlineAddr);
-				}
-			}
-			$addr.remove();
+		var $inline = $rail.find('.mk-qt-address-inline').first();
+		if ($inline.length) {
+			$info.append($inline.detach());
+			$rail.find('.mk-qt-address-rail, .mk-qt-rail-card--address').remove();
 			$rail.prepend($info);
 		} else {
 			$rail.prepend($info);

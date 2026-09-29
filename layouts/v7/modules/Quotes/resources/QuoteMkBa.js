@@ -206,14 +206,13 @@
 		var $emailField = $field($form, 'mk_customer_email');
 		var $contactBody = $(
 			'<div class="mk-qt-addr-grid mk-qt-contact-grid">' +
-				'<div class="mk-qt-addr-col"><label class="mk-qt-addr-label" for="' + prefix + 'CustomerPhoneRail">SĐT</label><input type="text" id="' + prefix + 'CustomerPhoneRail" class="mk-qt-addr-ta mk-qt-phone-input" placeholder="Số điện thoại khách" autocomplete="off" /></div>' +
-				'<div class="mk-qt-addr-col"><label class="mk-qt-addr-label" for="' + prefix + 'CustomerEmailRail">Email</label><input type="text" id="' + prefix + 'CustomerEmailRail" class="mk-qt-addr-ta mk-qt-phone-input" placeholder="Email khách" autocomplete="off" /></div>' +
+				'<div class="mk-qt-addr-col"><label class="mk-qt-addr-label" for="' + prefix + 'CustomerPhoneRail">SĐT</label><input type="text" id="' + prefix + 'CustomerPhoneRail" class="mk-qt-addr-ta mk-qt-phone-input" name="mk_customer_phone" placeholder="Số điện thoại khách" autocomplete="off" /></div>' +
+				'<div class="mk-qt-addr-col"><label class="mk-qt-addr-label" for="' + prefix + 'CustomerEmailRail">Email</label><input type="text" id="' + prefix + 'CustomerEmailRail" class="mk-qt-addr-ta mk-qt-phone-input" name="mk_customer_email" placeholder="Email khách" autocomplete="off" /></div>' +
 			'</div>'
 		);
 		var $addressBody = $(
 			'<div class="mk-qt-addr-grid">' +
-				'<div class="mk-qt-addr-col"><label class="mk-qt-addr-label" for="' + prefix + 'BillStreetRail">Địa chỉ</label><textarea id="' + prefix + 'BillStreetRail" class="mk-qt-addr-ta" rows="4" placeholder="Tự điền từ cơ hội nếu có — hoặc nhập tay"></textarea></div>' +
-				'<div class="mk-qt-addr-col"><label class="mk-qt-addr-label" for="' + prefix + 'ShipStreetRail">Địa chỉ vận chuyển</label><textarea id="' + prefix + 'ShipStreetRail" class="mk-qt-addr-ta" rows="4" placeholder="Nhập địa chỉ vận chuyển"></textarea></div>' +
+				'<div class="mk-qt-addr-col mk-qt-addr-col--full"><label class="mk-qt-addr-label" for="' + prefix + 'BillStreetRail">Địa chỉ</label><textarea id="' + prefix + 'BillStreetRail" class="mk-qt-addr-ta" rows="3" placeholder="Địa chỉ khách — tự điền khi chọn khách, hoặc nhập tay"></textarea></div>' +
 			'</div>'
 		);
 		var $addressSection = $('<div class="mk-qt-address-inline"></div>');
@@ -236,22 +235,22 @@
 		var $emailRail = $('#' + prefix + 'CustomerEmailRail');
 
 		$billRail.val($bill.val() || '');
-		$shipRail.val($ship.val() || '');
+		if ($shipRail.length) {
+			$shipRail.val($ship.val() || '');
+		}
 		$phoneRail.val($phoneField.val() || '');
 		$emailRail.val($emailField.val() || '');
+		$form.find('[name="mk_customer_phone"]').not($phoneRail).remove();
+		$form.find('[name="mk_customer_email"]').not($emailRail).remove();
 
 		$billRail.on('input', function () {
 			$bill.val($(this).val()).trigger('change');
 		});
-		$shipRail.on('input', function () {
-			$ship.val($(this).val()).trigger('change');
-		});
-		$phoneRail.on('input', function () {
-			$phoneField.val($(this).val());
-		});
-		$emailRail.on('input', function () {
-			$emailField.val($(this).val());
-		});
+		if ($shipRail.length) {
+			$shipRail.on('input', function () {
+				$ship.val($(this).val()).trigger('change');
+			});
+		}
 		$form
 			.off('change.mkQtContactRail input.mkQtContactRail', '[name="mk_customer_phone"], [name="mk_customer_email"]')
 			.on('change.mkQtContactRail input.mkQtContactRail', '[name="mk_customer_phone"], [name="mk_customer_email"]', function () {
