@@ -157,9 +157,9 @@
 								{if $MODULE eq 'Warehouse' && ($VIEW eq 'WhList' || $VIEW eq 'WhDashboard' || $VIEW eq 'WhDetail' || $VIEW eq 'WhTransfer') && $moduleName eq 'Warehouse'}
 									{assign var=_mkModActive value=false}
 								{/if}
-								{if $MODULE eq 'HelpDesk' && ($VIEW eq 'Rules' || $VIEW eq 'RuleDetail')}
+								{if $MODULE eq 'HelpDesk' && ($VIEW eq 'Rules' || $VIEW eq 'RuleDetail' || $VIEW eq 'MaterialAlerts')}
 									{if $moduleName eq 'HelpDesk'}{assign var=_mkModActive value=false}{/if}
-									{if $moduleName eq 'Rules'}{assign var=_mkModActive value=true}{/if}
+									{if $moduleName eq 'Rules' && $VIEW neq 'MaterialAlerts'}{assign var=_mkModActive value=true}{/if}
 								{/if}
 								{if $MODULE eq 'SupportFAQ' && $moduleName eq 'SupportFAQ'}
 									{assign var=_mkModActive value=true}
@@ -167,6 +167,11 @@
 								<a class="mk-dash-mod-link{if $_mkModActive} mk-dash-mod-link--active{/if}" href="{$moduleModel->getDefaultUrl()}&app={$APP_NAME}">
 									<span class="mk-dash-mod-label">{if $moduleName eq 'Rules'}Quản Lý rule{elseif $moduleName eq 'SupportFAQ'}Cảnh báo{elseif $moduleName eq 'Accounts'}Hợp đồng nhượng quyền{elseif $moduleName eq 'Contacts'}Khách hàng{elseif $moduleName eq 'ProductsServices'}Hàng hoá{elseif $moduleName eq 'ServiceContracts'}Khách hàng nhượng quyền{else}{vtranslate($moduleName, $moduleName)}{/if}</span>
 								</a>
+								{if $moduleName eq 'Rules'}
+									<a class="mk-dash-mod-link{if $MODULE eq 'HelpDesk' && $VIEW eq 'MaterialAlerts'} mk-dash-mod-link--active{/if}" href="index.php?module=HelpDesk&amp;view=MaterialAlerts&amp;app=SUPPORT">
+										<span class="mk-dash-mod-label">Cảnh báo nguyên liệu</span>
+									</a>
+								{/if}
 								{* SALES: Hóa đơn ngay dưới Đơn hàng, rồi tới Tuibao *}
 								{if $APP_NAME eq 'SALES' && $moduleName eq 'SalesOrder' && $_mkInvoiceRendered eq false}
 									{assign var=_mkInvoiceActive value=(!$_settingsActive && $MENU_SELECTED_MODULENAME eq 'Invoice')}

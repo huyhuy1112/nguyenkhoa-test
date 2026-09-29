@@ -1272,9 +1272,26 @@
 			var zone = String($(this).data('stage-panel') || 'offline');
 			$root.find('[data-stage-panel]').removeClass('is-active');
 			$(this).addClass('is-active');
-			$root.find('#mkAdminKpiOffline, #mkAdminKpiOnline, #mkAdminKpiGd14').attr('hidden', true);
-			var map = { offline: '#mkAdminKpiOffline', online: '#mkAdminKpiOnline', gd14: '#mkAdminKpiGd14' };
+			$root.find('#mkAdminKpiOffline, #mkAdminKpiOnline, #mkAdminKpiGd14, #mkAdminKpiNl').attr('hidden', true);
+			var map = { offline: '#mkAdminKpiOffline', online: '#mkAdminKpiOnline', gd14: '#mkAdminKpiGd14', nl: '#mkAdminKpiNl' };
 			$root.find(map[zone] || '#mkAdminKpiOffline').removeAttr('hidden');
+			if (zone === 'nl') {
+				app.request.post({ data: { module: 'HelpDesk', action: 'MaterialAlertsApi', mode: 'summary' } }).then(function (err, res) {
+					var box = document.getElementById('mkAdminKpiNlBody');
+					if (!box) return;
+					if (err || !res) {
+						box.textContent = 'Chưa tải được cảnh báo nguyên liệu.';
+						return;
+					}
+					var html = '<p>Việc đang mở: <strong>' + (res.total || 0) + '</strong></p>';
+					var by = res.by_code || {};
+					Object.keys(by).forEach(function (code) {
+						html += '<div>' + code + ': ' + by[code] + '</div>';
+					});
+					if (!res.total) html += '<p>Chưa có việc. Ngưỡng định lượng để trống thì không bắn cảnh báo kỳ mua.</p>';
+					box.innerHTML = html;
+				});
+			}
 		});
 		$root.on('click', '[data-stage-period]', function () {
 			state.stagePeriod = String($(this).data('stage-period') || 'month');
