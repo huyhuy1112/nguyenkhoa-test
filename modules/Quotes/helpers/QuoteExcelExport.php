@@ -396,6 +396,9 @@ class Quotes_QuoteExcelExport_Helper {
 			}
 		}
 
+		if ($receiver === '') {
+			$receiver = self::decode($focus->column_fields['subject'] ?? '');
+		}
 		if (!empty($focus->column_fields['mk_client_company'])) {
 			$accountName = self::normalizeAccountName($focus->column_fields['mk_client_company']);
 		}

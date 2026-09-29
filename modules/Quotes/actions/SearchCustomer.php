@@ -187,10 +187,13 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 			'cd.phone', 'cd.mobile', 'cd.email', 'cd.secondaryemail',
 			'acc.accountname',
 		));
-		$sql = "SELECT cd.contactid, cd.firstname, cd.lastname, cd.phone, cd.mobile, cd.email, cd.secondaryemail, acc.accountname
+		$sql = "SELECT cd.contactid, cd.firstname, cd.lastname, cd.phone, cd.mobile, cd.email, cd.secondaryemail,
+				cd.accountid, acc.accountname,
+				ca.mailingstreet, ca.mailingcity
 			FROM vtiger_contactdetails cd
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid AND ce.deleted = 0
 			LEFT JOIN vtiger_account acc ON acc.accountid = cd.accountid
+			LEFT JOIN vtiger_contactaddress ca ON ca.contactaddressid = cd.contactid
 			WHERE {$where}
 			ORDER BY ce.modifiedtime DESC
 			LIMIT " . (int) $limit;
@@ -213,7 +216,16 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 				$email = decode_html((string) $adb->query_result($res, $i, 'secondaryemail'));
 			}
 			$account = decode_html((string) $adb->query_result($res, $i, 'accountname'));
-			$parts = array_filter(array($phone, $email, $account));
+			$address = $this->firstFilled(array(
+				$adb->query_result($res, $i, 'mailingstreet'),
+			));
+			$city = $this->firstFilled(array($adb->query_result($res, $i, 'mailingcity')));
+			if ($city !== '' && $address !== '' && stripos($address, $city) === false) {
+				$address .= ', ' . $city;
+			} elseif ($address === '') {
+				$address = $city;
+			}
+			$parts = array_filter(array($phone, $email, $address, $account));
 			$rows[] = array(
 				'id' => $id,
 				'module' => 'Contacts',
@@ -222,6 +234,8 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 				'subtitle' => implode(' · ', $parts),
 				'phone' => $phone,
 				'email' => $email,
+				'address' => $address,
+				'account_id' => (int) $adb->query_result($res, $i, 'accountid'),
 				'extra' => $account,
 				'contact_id' => $id,
 				'potential_id' => 0,

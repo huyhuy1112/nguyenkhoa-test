@@ -1220,10 +1220,10 @@
 			if (window.MkPhoneFormat && typeof window.MkPhoneFormat.format === 'function') {
 				phone = window.MkPhoneFormat.format(phone) || phone;
 			}
-			$f.find('[name="mk_customer_phone"]').val(phone);
+			$f.find('[name="mk_customer_phone"]').val(phone).trigger('change');
 		}
 		if (item.email && $f.find('[name="mk_customer_email"]').length) {
-			$f.find('[name="mk_customer_email"]').val(item.email);
+			$f.find('[name="mk_customer_email"]').val(item.email).trigger('change');
 		}
 		var addr = $.trim(item.address || '');
 		if (addr && $f.find('[name="bill_street"]').length) {
@@ -1288,6 +1288,9 @@
 		} else if (item.module === 'Contacts') {
 			setHiddenRef($f, 'contact_id', item.contact_id || item.id, label);
 			setHiddenRef($f, 'potential_id', 0, '');
+			if (parseInt(item.account_id, 10) > 0) {
+				setHiddenRef($f, 'account_id', item.account_id, item.extra || '');
+			}
 			ensureServiceContractLinkFields($f, 0);
 			$f.find('[name="subject"]').val(label).trigger('change');
 			fillQuoteCustomerBits(item);

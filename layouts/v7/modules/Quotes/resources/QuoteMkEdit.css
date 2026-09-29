@@ -995,6 +995,12 @@ body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-addr-t
 	box-sizing: border-box;
 	background: #fff;
 }
+body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-phone-input,
+body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-phone-input {
+	min-height: 40px;
+	height: 40px;
+	resize: none;
+}
 
 body[data-module="Quotes"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row,
 body[data-module="SalesOrder"][data-view="Edit"][data-app="SALES"] .mk-qt-summary-list__row {
