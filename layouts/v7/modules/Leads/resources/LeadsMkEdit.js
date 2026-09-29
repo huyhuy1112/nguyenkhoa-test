@@ -696,14 +696,34 @@
     if (btn) setChoiceGroup("customer-status", btn, { force: true });
   }
 
+  function studyPathFromTags(tags) {
+    var list = tags || [];
+    var ref = window.LeadsLovableRef;
+    var norm = ref && ref.normalizeTagKey
+      ? ref.normalizeTagKey
+      : function (raw) { return String(raw || "").trim().toLowerCase(); };
+    var gd14 = null;
+    var program = null;
+    for (var i = 0; i < list.length; i++) {
+      var key = norm(list[i]);
+      if (key.indexOf("gd14_") === 0 && !gd14) gd14 = key;
+      if ((key === "mien_phi_online" || key === "mien_phi_offline") && !program) program = key;
+    }
+    return gd14 || program;
+  }
+
   function applyTagsFromLead(tags, lead) {
     activateChoice("customer-type", findTag(tags, TAG_POOLS.customerType) || "individual");
     if (lead && lead.segment) activateSegment(lead.segment);
     activateChoice("lead-source", findTag(tags, TAG_POOLS.leadSource));
-    activateChoice(
-      "study-path",
-      findTag(tags, ["mien_phi_online", "mien_phi_offline"])
-    );
+    var pathTag = studyPathFromTags(tags);
+    if (pathTag && pathTag.indexOf("gd14_") === 0) {
+      activateChoice("study-path", "gd14_moi_dang_ky");
+      state.studyPath = pathTag;
+      renderTags();
+    } else {
+      activateChoice("study-path", pathTag);
+    }
     // Purchase Status trước — không để purchase tag spill sang Nguyên liệu
     activateChoice("purchase-status", findTag(tags, TAG_POOLS.purchaseStatus));
     setSelectByTag("mk-td-district", findTag(tags, TAG_POOLS.region));
@@ -913,7 +933,7 @@
     if (!isEditMode() && !state.studyPath) {
       var studyHint = $("mk-td-study-path-hint");
       if (studyHint) studyHint.hidden = false;
-      alert("Vui lòng chọn Học Online hoặc Học Offline.");
+      alert("Vui lòng chọn Học Online, Học Offline hoặc 990k.");
       var studySec = document.querySelector('[data-section="study-path"]');
       if (studySec && studySec.scrollIntoView) studySec.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
@@ -1001,7 +1021,9 @@
             ? "Online (GD 1.2)"
             : state.studyPath === "mien_phi_offline"
               ? "Offline (GD 1.1)"
-              : "";
+              : String(state.studyPath || "").indexOf("gd14_") === 0
+                ? "990k (GD 1.4)"
+                : "";
         if (window.app && app.helper && app.helper.showSuccessNotification && pathLabel) {
           app.helper.showSuccessNotification({
             message: "Đã tạo Lead " + pathLabel + " — mở Xác minh trên danh sách Lead.",

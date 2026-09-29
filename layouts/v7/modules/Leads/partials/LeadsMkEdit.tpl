@@ -157,11 +157,11 @@
 					<span class="mk-td-card__num">02B</span>
 					<div>
 						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">◈</span> Hình thức học</h2>
-						<p class="mk-td-card__desc"><strong>Bắt buộc</strong> — chọn Online (GD 1.2) hoặc Offline (GD 1.1) để mở xác minh</p>
+						<p class="mk-td-card__desc"><strong>Bắt buộc</strong> — chọn Online (GD 1.2), Offline (GD 1.1) hoặc 990k (GD 1.4) để mở xác minh</p>
 					</div>
 				</header>
 				<div class="mk-td-card__body">
-					<div class="mk-td-choice-row mk-td-choice-row--2" role="group" aria-label="Hình thức học">
+					<div class="mk-td-choice-row mk-td-choice-row--3" role="group" aria-label="Hình thức học">
 						<button type="button" class="mk-td-choice mk-td-choice--tile" data-tag="mien_phi_online" data-group="study-path" data-value="online" id="mk-td-study-online">
 							<span class="mk-td-choice__ico">◉</span>
 							<span class="mk-td-choice__label">Học Online</span>
@@ -172,8 +172,13 @@
 							<span class="mk-td-choice__label">Học Offline</span>
 							<span class="mk-td-choice__hint">GD 1.1 — xác minh Bộ B → Opp</span>
 						</button>
+						<button type="button" class="mk-td-choice mk-td-choice--tile" data-tag="gd14_moi_dang_ky" data-group="study-path" data-value="gd14" id="mk-td-study-990k">
+							<span class="mk-td-choice__ico">◈</span>
+							<span class="mk-td-choice__label">990k</span>
+							<span class="mk-td-choice__hint">GD 1.4 — gắn tag Mới đăng ký, mở xác minh 990k</span>
+						</button>
 					</div>
-					<p class="mk-td-field-hint" id="mk-td-study-path-hint" hidden>Vui lòng chọn Học Online hoặc Học Offline.</p>
+					<p class="mk-td-field-hint" id="mk-td-study-path-hint" hidden>Vui lòng chọn Học Online, Học Offline hoặc 990k.</p>
 				</div>
 			</section>
 
