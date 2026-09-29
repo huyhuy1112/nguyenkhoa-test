@@ -258,15 +258,12 @@ class Quotes_Save_Action extends Inventory_Save_Action {
 				$address = $fromOpp['address'];
 			}
 		}
-		try {
-			if ($phone !== '') {
-				$adb->pquery('UPDATE vtiger_quotes SET mk_customer_phone = ? WHERE quoteid = ?', array($phone, $quoteId));
-			}
-			if ($email !== '') {
-				$adb->pquery('UPDATE vtiger_quotes SET mk_customer_email = ? WHERE quoteid = ?', array($email, $quoteId));
-			}
-		} catch (Exception $e) {
-			// cột tuỳ chọn
+		$this->ensureQuoteContactColumns($adb);
+		if ($phone !== '') {
+			$adb->pquery('UPDATE vtiger_quotes SET mk_customer_phone = ? WHERE quoteid = ?', array($phone, $quoteId));
+		}
+		if ($email !== '') {
+			$adb->pquery('UPDATE vtiger_quotes SET mk_customer_email = ? WHERE quoteid = ?', array($email, $quoteId));
 		}
 		if ($address === '' || $address === '-' || $address === '--') {
 			return;
@@ -274,6 +271,20 @@ class Quotes_Save_Action extends Inventory_Save_Action {
 		$exists = $adb->pquery('SELECT quotebilladdressid FROM vtiger_quotesbillads WHERE quotebilladdressid = ?', array($quoteId));
 		if ($exists && $adb->num_rows($exists) > 0) {
 			$adb->pquery('UPDATE vtiger_quotesbillads SET bill_street = ? WHERE quotebilladdressid = ?', array($address, $quoteId));
+		}
+	}
+
+	protected function ensureQuoteContactColumns($adb) {
+		$columns = array(
+			'mk_customer_phone' => 'VARCHAR(50) DEFAULT NULL',
+			'mk_customer_email' => 'VARCHAR(100) DEFAULT NULL',
+		);
+		foreach ($columns as $name => $def) {
+			$res = $adb->pquery('SHOW COLUMNS FROM vtiger_quotes LIKE ?', array($name));
+			if ($res && $adb->num_rows($res) > 0) {
+				continue;
+			}
+			$adb->pquery('ALTER TABLE vtiger_quotes ADD COLUMN ' . $name . ' ' . $def, array());
 		}
 	}
 

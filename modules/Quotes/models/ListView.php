@@ -259,6 +259,7 @@ class Quotes_ListView_Model extends Inventory_ListView_Model {
 			}
 		}
 
+		$oppContactMap = $this->loadOppContactMap($db, $quoteMeta);
 		$addressMap = array();
 		try {
 			$billRes = $db->pquery(
@@ -306,6 +307,16 @@ class Quotes_ListView_Model extends Inventory_ListView_Model {
 			if ($email === '' && $aid > 0 && isset($accountMap[$aid])) {
 				$email = $accountMap[$aid]['email'];
 			}
+			$oppId = (int) $meta['potential_id'];
+			if (($phone === '' || $email === '') && $oppId > 0 && isset($oppContactMap[$oppId])) {
+				$opp = $oppContactMap[$oppId];
+				if ($phone === '' && $opp['phone'] !== '') {
+					$phone = $opp['phone'];
+				}
+				if ($email === '' && $opp['email'] !== '') {
+					$email = $opp['email'];
+				}
+			}
 			if (($phone === '' || $email === '') && isset($qidToSc[$qid])) {
 				$scMeta = isset($scPhoneMap[$qidToSc[$qid]]) ? $scPhoneMap[$qidToSc[$qid]] : null;
 				if ($scMeta) {
@@ -336,6 +347,62 @@ class Quotes_ListView_Model extends Inventory_ListView_Model {
 	 * @param string $column
 	 * @return bool
 	 */
+	protected function loadOppContactMap(PearDatabase $db, array $quoteMeta) {
+		$map = array();
+		$ids = array();
+		foreach ($quoteMeta as $meta) {
+			$pid = isset($meta['potential_id']) ? (int) $meta['potential_id'] : 0;
+			if ($pid > 0) {
+				$ids[] = $pid;
+			}
+		}
+		$ids = array_values(array_unique($ids));
+		if (empty($ids)) {
+			return $map;
+		}
+		try {
+			$res = $db->pquery(
+				'SELECT p.potentialid,
+					pp.phone AS pot_phone,
+					cd.phone AS contact_phone, cd.mobile AS contact_mobile, cd.email AS contact_email,
+					la.phone AS lead_phone, la.mobile AS lead_mobile, ld.email AS lead_email
+				 FROM vtiger_potential p
+				 LEFT JOIN bace_potential_profile pp ON pp.potentialid = p.potentialid
+				 LEFT JOIN bace_lead_profile lp ON lp.potential_id = p.potentialid
+				 LEFT JOIN vtiger_leaddetails ld ON ld.leadid = lp.leadid
+				 LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = lp.leadid
+				 LEFT JOIN vtiger_contactdetails cd ON cd.contactid = p.contact_id
+				 WHERE p.potentialid IN (' . generateQuestionMarks($ids) . ')',
+				$ids
+			);
+		} catch (Exception $e) {
+			return $map;
+		}
+		if (!$res) {
+			return $map;
+		}
+		while ($row = $db->fetchByAssoc($res)) {
+			$pid = (int) (isset($row['potentialid']) ? $row['potentialid'] : 0);
+			if ($pid <= 0) {
+				continue;
+			}
+			$phone = '';
+			foreach (array('pot_phone', 'contact_mobile', 'contact_phone', 'lead_mobile', 'lead_phone') as $col) {
+				$value = trim(decode_html((string) (isset($row[$col]) ? $row[$col] : '')));
+				if ($value !== '' && $value !== '-' && $value !== '--') {
+					$phone = $value;
+					break;
+				}
+			}
+			$email = trim(decode_html((string) (isset($row['contact_email']) ? $row['contact_email'] : '')));
+			if ($email === '') {
+				$email = trim(decode_html((string) (isset($row['lead_email']) ? $row['lead_email'] : '')));
+			}
+			$map[$pid] = array('phone' => $phone, 'email' => $email);
+		}
+		return $map;
+	}
+
 	protected function quotesTableHasColumn($db, $column) {
 		static $cache = array();
 		$column = (string) $column;
