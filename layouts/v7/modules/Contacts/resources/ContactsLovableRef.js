@@ -93,6 +93,7 @@
     da_pcthcb: { vi: "Đã PCTHCB", en: "Done PCTHCB", cat: "classTag", cls: "mk-tag--da-pcthcb" },
     da_mqbb: { vi: "Đã MQBB", en: "Done MQBB", cat: "classTag", cls: "mk-tag--da-mqbb" },
     da_990k: { vi: "Đã 990k", en: "Paid 990k", cat: "classTag", cls: "mk-tag--da-990k" },
+    gd14_moi_dang_ky: { vi: "990k — Mới đăng ký", en: "990k — New", cat: "classTag", cls: "mk-tag--da-990k" },
     gd14_chua_xep_buoi: { vi: "990k — Chưa xếp buổi học", en: "990k — Unscheduled", cat: "classTag", cls: "mk-tag--da-990k" },
     gd14_da_xac_nhan_lich: { vi: "990k — Đã xác nhận lịch học", en: "990k — Class confirmed", cat: "classTag", cls: "mk-tag--da-990k" },
     gd14_khong_tham_gia: { vi: "990k — Không tham gia lớp học", en: "990k — Absent", cat: "classTag", cls: "mk-tag--da-990k" },
@@ -132,6 +133,7 @@
   var CLASS_TAGS = [
     "da_mqbb",
     "da_990k",
+    "gd14_moi_dang_ky",
     "gd14_chua_xep_buoi",
     "gd14_da_xac_nhan_lich",
     "gd14_khong_tham_gia",

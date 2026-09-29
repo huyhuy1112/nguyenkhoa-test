@@ -328,6 +328,9 @@ class Leads_SalesVerifyService {
 			$extra['gd14_course'] = $course;
 			$extra['gd14_topic'] = ($course === 'lop_990k') ? $topic : '';
 		}
+		if ($outcome === 'chon_khoa' && empty($extra['gd14_waiting_at'])) {
+			$extra['gd14_waiting_at'] = date('Y-m-d H:i:s');
+		}
 		self::storeGd14Extra($adb, $leadId, $extra);
 		$tag = $outcomeTags[$outcome];
 		self::replaceGd14Tag($leadId, $tag, $userId);
@@ -373,8 +376,23 @@ class Leads_SalesVerifyService {
 			throw new Exception('Chưa có khoá đã chọn để xác nhận thanh toán.');
 		}
 		$spec = $courses[$course];
+		$paidAt = date('Y-m-d H:i:s');
 		$extra['gd14_course'] = $course;
-		$extra['gd14_paid_at'] = date('Y-m-d H:i:s');
+		$extra['gd14_paid_at'] = $paidAt;
+		$giftWindow = '';
+		$retentionUntil = '';
+		if ($course === 'lop_990k') {
+			if (empty($extra['gd14_waiting_at'])) {
+				$extra['gd14_waiting_at'] = $paidAt;
+			}
+			$waitingTs = strtotime((string) $extra['gd14_waiting_at']);
+			$paidTs = strtotime($paidAt);
+			$giftWindow = ($waitingTs && $paidTs && $paidTs <= ($waitingTs + 3 * 86400)) ? 'trong_han' : 'sau_han';
+			$extra['gd14_gift_window'] = $giftWindow;
+			$retentionUntil = date('Y-m-d H:i:s', strtotime('+1 year', $paidTs ? $paidTs : time()));
+			$extra['gd14_retention_until'] = $retentionUntil;
+			$extra['gd14_retention_expired'] = 0;
+		}
 		self::storeGd14Extra($adb, $leadId, $extra);
 		$converted = Leads_ConvertService::convertLeadToContactOnly($leadId, array());
 		$contactId = isset($converted['contactId']) ? (int) $converted['contactId'] : 0;
@@ -384,14 +402,75 @@ class Leads_SalesVerifyService {
 		$fresh = Leads_ModernService::getLead($leadId, $userId > 0 ? $userId : null);
 		$tail = !empty($spec['leave'])
 			? 'Đã xác nhận thanh toán ' . $spec['label'] . ' và chuyển sang Khách hàng, rời giai đoạn 1.4.'
-			: 'Đã xác nhận thanh toán lớp 990k và chuyển sang Khách hàng · 990k — Chưa xếp buổi học.';
+			: 'Đã xác nhận thanh toán lớp 990k · 990k — Chưa xếp buổi học. '
+				. ($giftWindow === 'sau_han' ? 'Sau hạn quà.' : 'Trong hạn quà.')
+				. ($retentionUntil !== '' ? ' Hạn bảo lưu đến ' . date('d/m/Y', strtotime($retentionUntil)) . '.' : '');
 		return array(
 			'success' => true,
 			'lead' => $fresh,
 			'contact_id' => $contactId,
 			'convert' => $converted,
+			'gift_window' => $giftWindow,
+			'retention_until' => $retentionUntil,
 			'message' => $tail,
 		);
+	}
+
+	/**
+	 * Hết hạn bảo lưu 1 năm: lớp 990k quay về tag Mới đăng ký.
+	 */
+	public static function expireDueGd14Retentions($limit = 40) {
+		require_once 'modules/Leads/models/ModernService.php';
+		$adb = PearDatabase::getInstance();
+		if (!Leads_ModernService::isInstalled($adb)) {
+			return 0;
+		}
+		$limit = max(1, min(80, (int) $limit));
+		$res = $adb->pquery(
+			"SELECT leadid, verify_extra_json FROM bace_lead_profile
+			 WHERE verify_extra_json LIKE '%gd14_retention_until%'
+			   AND verify_extra_json NOT LIKE '%gd14_retention_expired\":1%'
+			   AND verify_extra_json NOT LIKE '%gd14_retention_expired\":true%'
+			 LIMIT {$limit}",
+			array()
+		);
+		if (!$res) {
+			return 0;
+		}
+		$changed = 0;
+		$now = time();
+		while ($row = $adb->fetchByAssoc($res)) {
+			$extra = json_decode((string) $row['verify_extra_json'], true);
+			if (!is_array($extra) || !empty($extra['gd14_retention_expired'])) {
+				continue;
+			}
+			if ((string) (isset($extra['gd14_course']) ? $extra['gd14_course'] : '') !== 'lop_990k') {
+				continue;
+			}
+			$until = strtotime((string) (isset($extra['gd14_retention_until']) ? $extra['gd14_retention_until'] : ''));
+			if (!$until || $until > $now) {
+				continue;
+			}
+			self::markGd14RetentionExpired($adb, (int) $row['leadid'], $extra);
+			$changed++;
+		}
+		return $changed;
+	}
+
+	protected static function markGd14RetentionExpired($adb, $leadId, array $extra) {
+		$extra['gd14_retention_expired'] = 1;
+		$extra['gd14_outcome'] = 'moi_dang_ky';
+		self::storeGd14Extra($adb, $leadId, $extra);
+		require_once 'modules/Leads/models/ConvertService.php';
+		$contactId = (int) Leads_ConvertService::getLinkedContactId($leadId, true);
+		if ($contactId > 0) {
+			self::markPaidContact($contactId, 'gd14_moi_dang_ky', 0);
+		}
+		$conv = $adb->pquery('SELECT converted FROM vtiger_leaddetails WHERE leadid = ?', array((int) $leadId));
+		$converted = ($conv && $adb->num_rows($conv) > 0) ? (int) $adb->query_result($conv, 0, 'converted') : 1;
+		if ($converted === 0) {
+			self::replaceGd14Tag($leadId, 'gd14_moi_dang_ky', 0);
+		}
 	}
 
 	protected static function resolveGd14LeadId($leadIdOrCacheId) {
@@ -424,9 +503,6 @@ class Leads_SalesVerifyService {
 		}
 		if ($required && ($missing !== '' || count($answers) !== count($bank['questions']))) {
 			throw new Exception('Chọn đủ câu xác minh 990k' . ($missing !== '' ? ': ' . $missing : '.'));
-		}
-		if (count($answers) !== count($bank['questions'])) {
-			return array();
 		}
 		return $answers;
 	}

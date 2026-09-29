@@ -188,6 +188,12 @@ class Leads_ModernService {
 			self::markSchemaWarm('leads_list');
 		}
 		self::ensureModernProfilesForAliveLeads();
+		try {
+			require_once 'modules/Leads/models/SalesVerifyService.php';
+			Leads_SalesVerifyService::expireDueGd14Retentions();
+		} catch (Exception $e) {
+			error_log('[gd14_retention] ' . $e->getMessage());
+		}
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
 				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw" . self::verifyProfileSelectSql() . ",
@@ -1553,6 +1559,11 @@ class Leads_ModernService {
 			'gd14_topic' => isset($data['gd14_topic']) ? (string) $data['gd14_topic'] : '',
 			'gd14_outcome' => isset($data['gd14_outcome']) ? (string) $data['gd14_outcome'] : '',
 			'gd14_verified' => !empty($data['gd14_verified']) ? 1 : 0,
+			'gd14_waiting_at' => isset($data['gd14_waiting_at']) ? (string) $data['gd14_waiting_at'] : '',
+			'gd14_gift_window' => isset($data['gd14_gift_window']) ? (string) $data['gd14_gift_window'] : '',
+			'gd14_paid_at' => isset($data['gd14_paid_at']) ? (string) $data['gd14_paid_at'] : '',
+			'gd14_retention_until' => isset($data['gd14_retention_until']) ? (string) $data['gd14_retention_until'] : '',
+			'gd14_retention_expired' => !empty($data['gd14_retention_expired']) ? 1 : 0,
 		);
 	}
 

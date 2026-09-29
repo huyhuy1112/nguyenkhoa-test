@@ -991,6 +991,85 @@ body.mk-leads-verify-open {
 	font-weight: 600;
 	color: #475569;
 }
+.mk-gd14 {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+.mk-gd14-card {
+	margin: 0;
+	padding: 14px 14px 12px;
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	background: #fff;
+}
+.mk-gd14-note {
+	margin: 8px 0 0;
+	font-size: 12px;
+	line-height: 1.45;
+	color: #64748b;
+}
+.mk-gd14-formlines {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.mk-gd14-formline {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 8px 10px;
+	border-radius: 10px;
+	background: #f8fafc;
+	font-size: 13px;
+	color: #334155;
+}
+.mk-gd14-formline strong {
+	text-align: right;
+	color: #0f172a;
+}
+.mk-gd14-deadline {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+}
+.mk-gd14-deadline__item {
+	padding: 10px 12px;
+	border-radius: 12px;
+	background: #eff6ff;
+	border: 1px solid #dbeafe;
+}
+.mk-gd14-deadline__item em {
+	display: block;
+	font-style: normal;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #1d4ed8;
+}
+.mk-gd14-deadline__item strong {
+	display: block;
+	margin-top: 4px;
+	font-size: 13px;
+	color: #0f172a;
+}
+.mk-gd14-deadline__item span {
+	display: block;
+	margin-top: 2px;
+	font-size: 12px;
+	color: #475569;
+}
+.mk-gd14-advice {
+	margin-top: 10px;
+}
+.mk-gd14 .mk-leads-verify-panel__btn {
+	margin-top: 10px;
+	width: 100%;
+}
+@media (max-width: 720px) {
+	.mk-gd14-deadline { grid-template-columns: 1fr; }
+}
 .mk-leads-verify-section h4 {
 	margin: 0 0 10px;
 	font-size: 12px;
