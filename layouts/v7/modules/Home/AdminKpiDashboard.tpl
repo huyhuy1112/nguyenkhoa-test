@@ -51,6 +51,11 @@
 
 		<div class="mk-admin-kpi-panel-head">
 			<h2 class="mk-admin-kpi-panel-title">Chỉ số ba giai đoạn</h2>
+			<div class="mk-admin-kpi-chart-filters" id="mkAdminKpiStagePick">
+				<button type="button" class="mk-admin-kpi-mode-btn is-active" data-stage-panel="offline">Offline</button>
+				<button type="button" class="mk-admin-kpi-mode-btn" data-stage-panel="online">Online</button>
+				<button type="button" class="mk-admin-kpi-mode-btn" data-stage-panel="gd14">990k</button>
+			</div>
 			<div class="mk-admin-kpi-chart-filters" id="mkAdminKpiStagePeriod">
 				<button type="button" class="mk-admin-kpi-mode-btn is-active" data-stage-period="month">Tháng</button>
 				<button type="button" class="mk-admin-kpi-mode-btn" data-stage-period="quarter">Quý</button>
@@ -71,7 +76,7 @@
 		</section>
 
 		{* Online GD 1.2 *}
-		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--online" id="mkAdminKpiOnline">
+		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--online" id="mkAdminKpiOnline" hidden>
 			<div class="mk-admin-kpi-panel-head">
 				<h2 class="mk-admin-kpi-panel-title">Online Zalo OA (GD 1.2)</h2>
 				<div class="mk-admin-kpi-pills">
@@ -85,7 +90,7 @@
 			<section class="mk-admin-kpi-drill" id="mkAdminKpiOnlineDrill" hidden aria-live="polite"></section>
 		</section>
 
-		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--gd14" id="mkAdminKpiGd14">
+		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--gd14" id="mkAdminKpiGd14" hidden>
 			<div class="mk-admin-kpi-panel-head">
 				<h2 class="mk-admin-kpi-panel-title">Lớp 990k (GD 1.4)</h2>
 				<span class="mk-admin-kpi-pill" id="mkAdminKpiGd14Period">Tháng này · SỐ TẠM</span>

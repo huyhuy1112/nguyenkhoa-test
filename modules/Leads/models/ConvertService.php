@@ -62,6 +62,7 @@ class Leads_ConvertService {
 
 		self::relateRecords($leadId, self::MODULE, $potentialId, 'Potentials');
 		self::storePotentialId($leadId, $potentialId);
+		self::copyVerifyBestEffort($leadId, 'Potentials', $potentialId);
 		return $potentialId;
 	}
 
@@ -261,11 +262,13 @@ class Leads_ConvertService {
 		}
 		if ($potentialId) {
 			self::storePotentialId($leadId, $potentialId);
+			self::copyVerifyBestEffort($leadId, 'Potentials', $potentialId);
 		}
 		if ($contactId) {
 			self::relateRecords($leadId, self::MODULE, $contactId, 'Contacts');
 			self::storeContactId($leadId, $contactId);
 			self::syncLeadSegmentTagToContact($leadId, $contactId, (int)$current_user->id);
+			self::copyVerifyBestEffort($leadId, 'Contacts', $contactId);
 		}
 		self::transferLeadTags($leadId, array(
 			'Potentials' => $potentialId,
@@ -360,6 +363,7 @@ class Leads_ConvertService {
 
 		self::relateRecords($leadId, self::MODULE, $potentialId, 'Potentials');
 		self::storePotentialId($leadId, $potentialId);
+		self::copyVerifyBestEffort($leadId, 'Potentials', $potentialId);
 		self::transferLeadTags($leadId, array('Potentials' => $potentialId), $assignId > 0 ? $assignId : (int) $current_user->id);
 		try {
 			require_once 'modules/Leads/models/LeadProductsService.php';
@@ -405,6 +409,12 @@ class Leads_ConvertService {
 			$adb = PearDatabase::getInstance();
 			$adb->pquery('UPDATE vtiger_leaddetails SET converted = 1 WHERE leadid = ?', array($leadId));
 			self::syncLeadProfileExtrasToContact($leadId, (int) $existing);
+			try {
+				require_once 'modules/Leads/models/SalesVerifyService.php';
+				Leads_SalesVerifyService::copyLeadVerifyOnto($leadId, 'Contacts', (int) $existing);
+			} catch (Exception $e) {
+				// best-effort
+			}
 			return array(
 				'success' => true,
 				'contactId' => $existing,
@@ -475,6 +485,12 @@ class Leads_ConvertService {
 		self::syncLeadSegmentTagToContact($leadId, $contactId, $assignId > 0 ? $assignId : (int) $current_user->id);
 		self::transferLeadTags($leadId, array('Contacts' => $contactId), $assignId > 0 ? $assignId : (int) $current_user->id);
 		self::syncLeadProfileExtrasToContact($leadId, $contactId, $addr);
+		try {
+			require_once 'modules/Leads/models/SalesVerifyService.php';
+			Leads_SalesVerifyService::copyLeadVerifyOnto($leadId, 'Contacts', $contactId);
+		} catch (Exception $e) {
+			// best-effort
+		}
 
 		$adb = PearDatabase::getInstance();
 		$adb->pquery('UPDATE vtiger_leaddetails SET converted = 1 WHERE leadid = ?', array($leadId));
@@ -749,6 +765,15 @@ class Leads_ConvertService {
 			"UPDATE vtiger_leaddetails SET converted = 0 WHERE leadid = ? AND converted = 1",
 			array((int)$leadId)
 		);
+	}
+
+	protected static function copyVerifyBestEffort($leadId, $module, $recordId) {
+		try {
+			require_once 'modules/Leads/models/SalesVerifyService.php';
+			Leads_SalesVerifyService::copyLeadVerifyOnto($leadId, $module, $recordId);
+		} catch (Exception $e) {
+			// best-effort
+		}
 	}
 
 	public static function storePotentialId($leadId, $potentialId) {

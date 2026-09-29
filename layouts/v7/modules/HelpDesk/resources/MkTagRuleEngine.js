@@ -1440,7 +1440,7 @@
 			var body = ''
 				+ '<div class="mk-tre-form mk-tre-form--rule">'
 				+ '<input type="hidden" name="status_label" value="' + esc(rule.status_label || rule.name || '') + '" />'
-				+ '<input type="hidden" name="condition_mode" value="' + esc(rule.condition_mode || 'AND') + '" />'
+				+ ''
 				+ '<input type="hidden" name="warning_value" value="' + esc(rule.warning_value == null ? '' : rule.warning_value) + '" />'
 				+ '<input type="hidden" name="scenario_id" value="' + esc(rule.scenario_id || '') + '" />'
 				+ '<input type="hidden" name="priority" value="' + esc(rule.priority) + '" />'
@@ -1460,6 +1460,16 @@
 				+ '      </div>'
 				+ '      <div class="mk-tre-tag-picker">' + (tagGroups || '<span class="mk-tre-muted">Chưa có tag.</span>') + '</div>'
 				+ '      <p class="mk-tre-tag-empty js-tre-tag-empty" hidden>Không tìm thấy tag.</p>'
+				+ '      <div class="mk-tre-form-row" style="margin-top:12px;align-items:end">'
+				+ '        <label class="mk-tre-field"><span>Ghép điều kiện</span>'
+				+ '          <select class="mk-tre-input mk-tre-input--select" name="condition_mode">'
+				+ '            <option value="AND"' + ((rule.condition_mode || 'AND') !== 'OR' ? ' selected' : '') + '>Và — phải đủ mọi tag và điều kiện</option>'
+				+ '            <option value="OR"' + (rule.condition_mode === 'OR' ? ' selected' : '') + '>Hoặc — khớp một tag hoặc một điều kiện</option>'
+				+ '          </select></label>'
+				+ '        <label class="mk-tre-field"><span>Bắt đầu chạy</span><input class="mk-tre-input" type="date" name="active_from" value="' + esc(rule.active_from || '') + '" /></label>'
+				+ '        <label class="mk-tre-field"><span>Ngừng chạy</span><input class="mk-tre-input" type="date" name="active_until" value="' + esc(rule.active_until || '') + '" /></label>'
+				+ '      </div>'
+				+ '      <p class="mk-tre-form-block__sub">Để trống ngày thì rule chạy mọi lúc, chừng nào còn bật.</p>'
 				+ '    </div>'
 				+ '  </section>'
 
@@ -1605,6 +1615,11 @@
 					return;
 				}
 				if ($el.attr('name') && String($el.attr('name')).indexOf('fc_') === 0) {
+					return;
+				}
+				if ($el.attr('type') === 'radio') {
+					if (!$el.prop('checked')) return;
+					data[name] = $el.val();
 					return;
 				}
 				if ($el.attr('type') === 'checkbox') {

@@ -1359,4 +1359,196 @@ class Leads_SalesVerifyService {
 		}
 		return null;
 	}
+
+	/**
+	 * Đem đáp án xác minh từ Lead sang Opp hoặc Khách hàng để đối chiếu sau.
+	 */
+	public static function copyLeadVerifyOnto($leadId, $targetModule, $targetId) {
+		$leadId = (int) $leadId;
+		$targetId = (int) $targetId;
+		if ($leadId <= 0 || $targetId <= 0) {
+			return;
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$res = $adb->pquery(
+			'SELECT verify_extra_json, eligibility_result, screening_result, form_c1, form_c2, form_c3
+			 FROM bace_lead_profile WHERE leadid = ?',
+			array($leadId)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return;
+		}
+		$extraRaw = (string) $adb->query_result($res, 0, 'verify_extra_json');
+		$pack = array(
+			'copied_at' => date('Y-m-d H:i:s'),
+			'lead_id' => $leadId,
+			'eligibility_result' => (string) $adb->query_result($res, 0, 'eligibility_result'),
+			'screening_result' => (string) $adb->query_result($res, 0, 'screening_result'),
+			'form_c1' => (string) $adb->query_result($res, 0, 'form_c1'),
+			'form_c2' => (string) $adb->query_result($res, 0, 'form_c2'),
+			'form_c3' => (string) $adb->query_result($res, 0, 'form_c3'),
+			'extra' => json_decode($extraRaw, true),
+		);
+		if (!is_array($pack['extra'])) {
+			$pack['extra'] = array();
+		}
+		$json = json_encode($pack, JSON_UNESCAPED_UNICODE);
+		if ($targetModule === 'Potentials') {
+			require_once 'modules/Potentials/models/ModernService.php';
+			Potentials_ModernService::ensureProfileSchema($adb);
+			self::storeVerifyJson($adb, 'bace_potential_profile', 'potentialid', $targetId, $json);
+			return;
+		}
+		if ($targetModule === 'Contacts') {
+			require_once 'modules/Contacts/models/ModernService.php';
+			Contacts_ModernService::ensureBusinessModelSchema($adb);
+			self::storeVerifyJson($adb, 'bace_contact_profile', 'contactid', $targetId, $json);
+		}
+	}
+
+	public static function verificationLines($module, $recordId) {
+		$recordId = (int) $recordId;
+		if ($recordId <= 0) {
+			return array();
+		}
+		$adb = PearDatabase::getInstance();
+		$raw = '';
+		if ($module === 'Potentials') {
+			$raw = self::readVerifyJson($adb, 'bace_potential_profile', 'potentialid', $recordId);
+			if ($raw === '') {
+				$lead = $adb->pquery('SELECT leadid, verify_extra_json, eligibility_result, screening_result, form_c1, form_c2, form_c3 FROM bace_lead_profile WHERE potential_id = ? ORDER BY leadid DESC LIMIT 1', array($recordId));
+				return self::linesFromLeadRow($adb, $lead);
+			}
+		} elseif ($module === 'Contacts') {
+			require_once 'modules/Contacts/models/ModernService.php';
+			Contacts_ModernService::ensureBusinessModelSchema($adb);
+			$raw = self::readVerifyJson($adb, 'bace_contact_profile', 'contactid', $recordId);
+			if ($raw === '') {
+				$lead = $adb->pquery('SELECT leadid, verify_extra_json, eligibility_result, screening_result, form_c1, form_c2, form_c3 FROM bace_lead_profile WHERE contact_id = ? ORDER BY leadid DESC LIMIT 1', array($recordId));
+				return self::linesFromLeadRow($adb, $lead);
+			}
+		}
+		$pack = json_decode($raw, true);
+		if (!is_array($pack)) {
+			return array();
+		}
+		return self::linesFromPack($pack);
+	}
+
+	protected static function linesFromLeadRow($adb, $lead) {
+		if (!$lead || $adb->num_rows($lead) < 1) {
+			return array();
+		}
+		$extra = json_decode((string) $adb->query_result($lead, 0, 'verify_extra_json'), true);
+		return self::linesFromPack(array(
+			'eligibility_result' => (string) $adb->query_result($lead, 0, 'eligibility_result'),
+			'screening_result' => (string) $adb->query_result($lead, 0, 'screening_result'),
+			'form_c1' => (string) $adb->query_result($lead, 0, 'form_c1'),
+			'form_c2' => (string) $adb->query_result($lead, 0, 'form_c2'),
+			'form_c3' => (string) $adb->query_result($lead, 0, 'form_c3'),
+			'extra' => is_array($extra) ? $extra : array(),
+		));
+	}
+
+	protected static function linesFromPack(array $pack) {
+		$lines = array();
+		$extra = isset($pack['extra']) && is_array($pack['extra']) ? $pack['extra'] : array();
+		$bank = self::defaultGd14QuestionBank();
+		$questions = isset($bank['questions']) ? $bank['questions'] : array();
+		$form = isset($extra['gd14_form_answers']) && is_array($extra['gd14_form_answers']) ? $extra['gd14_form_answers'] : array();
+		$verified = isset($extra['gd14_answers']) && is_array($extra['gd14_answers']) ? $extra['gd14_answers'] : array();
+		foreach ($questions as $q) {
+			$qid = $q['id'];
+			if (!empty($form[$qid])) {
+				$lines[] = array('label' => 'Form · ' . $q['label'], 'value' => self::gd14OptionText($q, $form[$qid]));
+			}
+			if (!empty($verified[$qid])) {
+				$lines[] = array('label' => 'Xác minh · ' . $q['label'], 'value' => self::gd14OptionText($q, $verified[$qid]));
+			}
+		}
+		if (empty($verified) && empty($form)) {
+			foreach (array('c1' => 'Câu 1', 'c2' => 'Câu 2', 'c3' => 'Câu 3') as $qid => $label) {
+				$code = isset($pack['form_' . $qid]) ? trim((string) $pack['form_' . $qid]) : '';
+				if ($code !== '') {
+					$lines[] = array('label' => $label, 'value' => $code);
+				}
+			}
+		}
+		if (!empty($extra['gd14_goal'])) {
+			$lines[] = array('label' => 'Mục tiêu khách nêu', 'value' => (string) $extra['gd14_goal']);
+		}
+		if (!empty($extra['gd14_course'])) {
+			$courses = self::gd14CourseCatalog();
+			$course = (string) $extra['gd14_course'];
+			$lines[] = array(
+				'label' => 'Khoá đã chọn',
+				'value' => isset($courses[$course]['label']) ? $courses[$course]['label'] : $course,
+			);
+		}
+		if (!empty($pack['eligibility_result'])) {
+			$lines[] = array('label' => 'Điều kiện', 'value' => self::eligibilityLabel($pack['eligibility_result']));
+		}
+		if (!empty($pack['screening_result'])) {
+			$lines[] = array('label' => 'Mức tiềm năng', 'value' => self::potentialLabel($pack['screening_result']));
+		}
+		return $lines;
+	}
+
+	protected static function gd14OptionText(array $question, $code) {
+		$want = strtolower(trim((string) $code));
+		foreach ($question['options'] as $opt) {
+			if (strtolower((string) $opt['code']) === $want) {
+				return (string) $opt['label'];
+			}
+		}
+		return (string) $code;
+	}
+
+	protected static function storeVerifyJson($adb, $table, $pk, $recordId, $json) {
+		$existsTable = $adb->pquery('SHOW TABLES LIKE ?', array($table));
+		if (!$existsTable || $adb->num_rows($existsTable) < 1) {
+			return;
+		}
+		$col = $adb->pquery('SHOW COLUMNS FROM ' . $table . " LIKE 'verify_json'", array());
+		if (!$col || $adb->num_rows($col) < 1) {
+			$adb->pquery('ALTER TABLE ' . $table . ' ADD COLUMN verify_json MEDIUMTEXT NULL', array());
+		}
+		$now = date('Y-m-d H:i:s');
+		$exists = $adb->pquery('SELECT ' . $pk . ' FROM ' . $table . ' WHERE ' . $pk . ' = ?', array((int) $recordId));
+		if ($exists && $adb->num_rows($exists) > 0) {
+			$adb->pquery(
+				'UPDATE ' . $table . ' SET verify_json = ? WHERE ' . $pk . ' = ?',
+				array($json, (int) $recordId)
+			);
+			return;
+		}
+		if ($table === 'bace_potential_profile') {
+			$adb->pquery(
+				'INSERT INTO bace_potential_profile (potentialid, verify_json, modified_at) VALUES (?,?,?)',
+				array((int) $recordId, $json, $now)
+			);
+			return;
+		}
+		$adb->pquery(
+			'INSERT INTO bace_contact_profile (contactid, verify_json, modified_at) VALUES (?,?,?)',
+			array((int) $recordId, $json, $now)
+		);
+	}
+
+	protected static function readVerifyJson($adb, $table, $pk, $recordId) {
+		$existsTable = $adb->pquery('SHOW TABLES LIKE ?', array($table));
+		if (!$existsTable || $adb->num_rows($existsTable) < 1) {
+			return '';
+		}
+		$col = $adb->pquery('SHOW COLUMNS FROM ' . $table . " LIKE 'verify_json'", array());
+		if (!$col || $adb->num_rows($col) < 1) {
+			return '';
+		}
+		$res = $adb->pquery('SELECT verify_json FROM ' . $table . ' WHERE ' . $pk . ' = ?', array((int) $recordId));
+		if (!$res || $adb->num_rows($res) < 1) {
+			return '';
+		}
+		return (string) $adb->query_result($res, 0, 'verify_json');
+	}
 }

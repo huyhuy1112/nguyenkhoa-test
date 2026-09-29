@@ -344,6 +344,12 @@ class Potentials_Detail_View extends Vtiger_Detail_View {
 		$viewer->assign('INLINE_NEXT_ACTION_ALERT_DAYS', $nextActionAlertDays);
 		$viewer->assign('INLINE_LAST_TOUCH', $lastTouch);
 		$viewer->assign('INLINE_ATTENDANCE', $attendance);
+		try {
+			require_once 'modules/Leads/models/SalesVerifyService.php';
+			$viewer->assign('MK_VERIFY_LINES', Leads_SalesVerifyService::verificationLines('Potentials', $recordId));
+		} catch (Exception $e) {
+			$viewer->assign('MK_VERIFY_LINES', array());
+		}
 		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}
 

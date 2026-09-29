@@ -193,6 +193,8 @@ class HelpDesk_TagRuleEngineService {
 			'action_code' => 'VARCHAR(32) NULL',
 			'result_tag' => 'VARCHAR(64) NULL',
 			'conditions_json' => 'MEDIUMTEXT NULL',
+			'active_from' => 'DATE NULL',
+			'active_until' => 'DATE NULL',
 		);
 		$cols = array();
 		try {
@@ -1870,6 +1872,8 @@ class HelpDesk_TagRuleEngineService {
 					'warning_value' => isset($row['warning_value']) && $row['warning_value'] !== null && $row['warning_value'] !== '' ? (int)$row['warning_value'] : null,
 					'field_conditions' => self::decodeFieldConditions(isset($row['conditions_json']) ? $row['conditions_json'] : ''),
 					'result_tag' => isset($row['result_tag']) ? trim((string) $row['result_tag']) : '',
+					'active_from' => isset($row['active_from']) ? trim((string) $row['active_from']) : '',
+					'active_until' => isset($row['active_until']) ? trim((string) $row['active_until']) : '',
 				);
 			}
 		}
@@ -1960,18 +1964,20 @@ class HelpDesk_TagRuleEngineService {
 		$fieldConditions = self::sanitizeFieldConditions(isset($payload['field_conditions']) ? $payload['field_conditions'] : array());
 		$conditionsJson = !empty($fieldConditions) ? json_encode($fieldConditions, JSON_UNESCAPED_UNICODE) : null;
 		$resultTag = isset($payload['result_tag']) ? trim((string) $payload['result_tag']) : '';
+		$activeFrom = self::normalizeRuleDate(isset($payload['active_from']) ? $payload['active_from'] : '');
+		$activeUntil = self::normalizeRuleDate(isset($payload['active_until']) ? $payload['active_until'] : '');
 
 		$exists = $this->db->pquery('SELECT id FROM mk_tag_rules WHERE id = ?', array($id));
 		if ($exists && $this->db->num_rows($exists) > 0) {
 			$this->db->pquery(
-				'UPDATE mk_tag_rules SET status_label=?, name=?, priority=?, is_active=?, alert_days=?, next_action=?, require_note=?, scenario_id=?, condition_mode=?, important_tags=?, formula_metric=?, formula_op=?, formula_value=?, warning_value=?, action_code=?, conditions_json=?, result_tag=? WHERE id=?',
-				array($statusLabel, $name, $priority, $isActive ? 1 : 0, $alertDays, $nextAction, $requireNote ? 1 : 0, $scenarioId, $conditionMode, $importantCsv !== '' ? $importantCsv : null, $metric !== '' ? $metric : null, $metric !== '' ? $op : null, $formulaValue, $warningValue, null, $conditionsJson, $resultTag !== '' ? $resultTag : null, $id)
+				'UPDATE mk_tag_rules SET status_label=?, name=?, priority=?, is_active=?, alert_days=?, next_action=?, require_note=?, scenario_id=?, condition_mode=?, important_tags=?, formula_metric=?, formula_op=?, formula_value=?, warning_value=?, action_code=?, conditions_json=?, result_tag=?, active_from=?, active_until=? WHERE id=?',
+				array($statusLabel, $name, $priority, $isActive ? 1 : 0, $alertDays, $nextAction, $requireNote ? 1 : 0, $scenarioId, $conditionMode, $importantCsv !== '' ? $importantCsv : null, $metric !== '' ? $metric : null, $metric !== '' ? $op : null, $formulaValue, $warningValue, null, $conditionsJson, $resultTag !== '' ? $resultTag : null, $activeFrom, $activeUntil, $id)
 			);
 		} else {
 			$this->db->pquery(
-				'INSERT INTO mk_tag_rules (id, status_label, name, priority, is_active, alert_days, next_action, require_note, scenario_id, condition_mode, important_tags, formula_metric, formula_op, formula_value, warning_value, action_code, conditions_json, result_tag)
-				 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-				array($id, $statusLabel, $name, $priority, $isActive ? 1 : 0, $alertDays, $nextAction, $requireNote ? 1 : 0, $scenarioId, $conditionMode, $importantCsv !== '' ? $importantCsv : null, $metric !== '' ? $metric : null, $metric !== '' ? $op : null, $formulaValue, $warningValue, null, $conditionsJson, $resultTag !== '' ? $resultTag : null)
+				'INSERT INTO mk_tag_rules (id, status_label, name, priority, is_active, alert_days, next_action, require_note, scenario_id, condition_mode, important_tags, formula_metric, formula_op, formula_value, warning_value, action_code, conditions_json, result_tag, active_from, active_until)
+				 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+				array($id, $statusLabel, $name, $priority, $isActive ? 1 : 0, $alertDays, $nextAction, $requireNote ? 1 : 0, $scenarioId, $conditionMode, $importantCsv !== '' ? $importantCsv : null, $metric !== '' ? $metric : null, $metric !== '' ? $op : null, $formulaValue, $warningValue, null, $conditionsJson, $resultTag !== '' ? $resultTag : null, $activeFrom, $activeUntil)
 			);
 		}
 		$this->db->pquery('DELETE FROM mk_tag_rule_conditions WHERE rule_id = ?', array($id));
@@ -1998,6 +2004,34 @@ class HelpDesk_TagRuleEngineService {
 		return true;
 	}
 
+	protected static function normalizeRuleDate($raw) {
+		$raw = trim((string) $raw);
+		if ($raw === '') {
+			return null;
+		}
+		if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw)) {
+			return null;
+		}
+		$ts = strtotime($raw . ' 00:00:00');
+		if (!$ts) {
+			return null;
+		}
+		return date('Y-m-d', $ts);
+	}
+
+	protected static function ruleIsInsideWindow(array $rule) {
+		$today = date('Y-m-d');
+		$from = isset($rule['active_from']) ? trim((string) $rule['active_from']) : '';
+		$until = isset($rule['active_until']) ? trim((string) $rule['active_until']) : '';
+		if ($from !== '' && $from !== '0000-00-00' && $today < $from) {
+			return false;
+		}
+		if ($until !== '' && $until !== '0000-00-00' && $today > $until) {
+			return false;
+		}
+		return true;
+	}
+
 	protected static function splitTagIds($csv) {
 		$out = array();
 		foreach (explode(',', (string)$csv) as $part) {
@@ -2018,6 +2052,9 @@ class HelpDesk_TagRuleEngineService {
 		$matches = array();
 		$warnings = array();
 		foreach ($this->getRules($activeOnly) as $rule) {
+			if (!self::ruleIsInsideWindow($rule)) {
+				continue;
+			}
 			$hasTags = !empty($rule['tag_ids']) || !empty($rule['important_tags']);
 			$hasRows = !empty($rule['field_conditions']);
 			if ($hasTags && !$this->tagsSatisfyRule($rule, $set)) {

@@ -1268,6 +1268,14 @@
 			loadDrilldown(type, key, id, year, zone);
 		});
 
+		$root.on('click', '[data-stage-panel]', function () {
+			var zone = String($(this).data('stage-panel') || 'offline');
+			$root.find('[data-stage-panel]').removeClass('is-active');
+			$(this).addClass('is-active');
+			$root.find('#mkAdminKpiOffline, #mkAdminKpiOnline, #mkAdminKpiGd14').attr('hidden', true);
+			var map = { offline: '#mkAdminKpiOffline', online: '#mkAdminKpiOnline', gd14: '#mkAdminKpiGd14' };
+			$root.find(map[zone] || '#mkAdminKpiOffline').removeAttr('hidden');
+		});
 		$root.on('click', '[data-stage-period]', function () {
 			state.stagePeriod = String($(this).data('stage-period') || 'month');
 			$root.find('[data-stage-period]').removeClass('is-active');

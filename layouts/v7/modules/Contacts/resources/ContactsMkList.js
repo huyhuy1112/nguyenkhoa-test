@@ -570,8 +570,14 @@
       if (f.lane !== ANY) {
         var hasFranchise = !!cats.franchise;
         var hasMaterial = !!cats.material;
+        var courseClass = false;
+        (c.tags || []).forEach(function (tg) {
+          var key = ref.normalizeTag(tg);
+          if (!key || key.indexOf("gd14_") === 0) return;
+          if (COURSE_COUNT_TAGS.indexOf(key) >= 0) courseClass = true;
+        });
         var hasCourse =
-          !!cats.classTag ||
+          courseClass ||
           !!(c.edubit_user_id || c.edubit_course_id) ||
           (Array.isArray(c.edubit_courses) && c.edubit_courses.length > 0) ||
           !!(c.thoigian_dangky || c.thoigian_pcth || c.thoigian_mqbb || c.thoigian_pcthcb);
@@ -1572,8 +1578,12 @@
       if (idx >= 0) state.filters.classTags.splice(idx, 1);
       else state.filters.classTags.push(tag);
       state.filters.classTag = ANY;
+      state.filters.lane = ANY;
+      state.filters.courseCount = ANY;
       state.productTab = "all";
-      state.activeSegment = state.filters.classTags.length ? segId : null;
+      state.activeSegment = state.filters.classTags.length
+        ? state.filters.classTags[state.filters.classTags.length - 1]
+        : null;
       state.page = 1;
       renderAll();
       return;

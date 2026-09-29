@@ -155,6 +155,12 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 		// Class-reg + bằng/tài khoản chỉ trên Detail — không hiện trong dropdown list.
 		$viewer->assign('INLINE_SHOW_CLASS_REG', false);
 		$viewer->assign('INLINE_LAST_TOUCH', $lastTouch);
+		try {
+			require_once 'modules/Leads/models/SalesVerifyService.php';
+			$viewer->assign('MK_VERIFY_LINES', Leads_SalesVerifyService::verificationLines('Contacts', $recordId));
+		} catch (Exception $e) {
+			$viewer->assign('MK_VERIFY_LINES', array());
+		}
 		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}
 

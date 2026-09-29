@@ -19,6 +19,17 @@
 		</div>
 	</div>
 
+	{if !empty($MK_VERIFY_LINES)}
+		<div class="mk-so-inline-detail__notes">
+			<div class="mk-so-inline-detail__notes-label">Xác minh từ Lead</div>
+			<ul class="mk-so-inline-detail__verify-lines" style="list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;">
+				{foreach from=$MK_VERIFY_LINES item=MK_VERIFY_LINE}
+					<li style="display:flex;justify-content:space-between;gap:12px;font-size:13px;"><span>{$MK_VERIFY_LINE.label|escape}</span><strong>{$MK_VERIFY_LINE.value|escape}</strong></li>
+				{/foreach}
+			</ul>
+		</div>
+	{/if}
+
 	{if isset($INLINE_INFO_FIELDS) && $INLINE_INFO_FIELDS|@count gt 0}
 		<div class="mk-so-inline-detail__fields">
 			<h3 class="mk-so-inline-detail__sec-title">Thông tin</h3>
