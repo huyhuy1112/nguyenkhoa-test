@@ -1210,6 +1210,27 @@
 		}
 	}
 
+	function fillQuoteCustomerBits(item) {
+		var $f = $form();
+		if (!item) {
+			return;
+		}
+		if (item.phone && $f.find('[name="mk_customer_phone"]').length) {
+			var phone = item.phone;
+			if (window.MkPhoneFormat && typeof window.MkPhoneFormat.format === 'function') {
+				phone = window.MkPhoneFormat.format(phone) || phone;
+			}
+			$f.find('[name="mk_customer_phone"]').val(phone);
+		}
+		if (item.email && $f.find('[name="mk_customer_email"]').length) {
+			$f.find('[name="mk_customer_email"]').val(item.email);
+		}
+		var addr = $.trim(item.address || '');
+		if (addr && $f.find('[name="bill_street"]').length) {
+			$f.find('[name="bill_street"]').val(addr).trigger('change');
+		}
+	}
+
 	function applyUnifiedCustomerSelection(item) {
 		var $f = $form();
 		if (!item || !item.module) {
@@ -1269,6 +1290,7 @@
 			setHiddenRef($f, 'potential_id', 0, '');
 			ensureServiceContractLinkFields($f, 0);
 			$f.find('[name="subject"]').val(label).trigger('change');
+			fillQuoteCustomerBits(item);
 			applyQuotePriceChannel('retail', { clearSc: true });
 		} else if (item.module === 'Potentials') {
 			setHiddenRef($f, 'potential_id', item.potential_id || item.id, label);
@@ -1282,6 +1304,7 @@
 			ensureServiceContractLinkFields($f, 0);
 			$f.find('[name="subject"]').val(label).trigger('change');
 			$f.find('[name="potential_id"]').trigger('change');
+			fillQuoteCustomerBits(item);
 			applyQuotePriceChannel('retail', { clearSc: true });
 		} else if (item.module === 'Leads') {
 			setHiddenRef($f, 'potential_id', 0, '');
@@ -1289,6 +1312,7 @@
 			ensureServiceContractLinkFields($f, 0);
 			$display.val(label);
 			$f.find('[name="subject"]').val(label).trigger('change');
+			fillQuoteCustomerBits(item);
 			applyQuotePriceChannel('retail', { clearSc: true });
 		}
 

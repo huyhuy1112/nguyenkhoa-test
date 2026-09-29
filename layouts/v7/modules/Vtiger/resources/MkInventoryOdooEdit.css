@@ -3925,14 +3925,31 @@ body[data-view="Edit"][data-app="SALES"] .mk-inv-form-odoo .mk-inv-luxury-lines 
 	padding: 0 !important;
 }
 .mk-inv-lineitems-odoo .mk-inv-discount-wrap--combo .mk-inv-discount-suffix {
-	display: inline-flex !important;
-	align-items: center;
-	justify-content: center;
-	flex: 0 0 22px;
+	display: none !important;
+}
+.mk-inv-lineitems-odoo .mk-inv-discount-modes {
+	display: inline-flex;
+	flex: 0 0 auto;
+	gap: 2px;
+	padding-right: 4px;
+}
+.mk-inv-lineitems-odoo .mk-inv-discount-mode {
+	border: 1px solid #cbd5e1;
+	background: #fff;
+	color: #475569;
+	border-radius: 6px;
+	min-width: 26px;
+	height: 22px;
+	padding: 0 6px;
 	font-size: 12px;
 	font-weight: 700;
-	color: #64748b;
-	padding-right: 6px;
+	line-height: 20px;
+	cursor: pointer;
+}
+.mk-inv-lineitems-odoo .mk-inv-discount-mode.is-on {
+	background: #0f766e;
+	border-color: #0f766e;
+	color: #fff;
 }
 
 /* Legacy split (if any) + generic select */

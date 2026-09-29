@@ -313,7 +313,7 @@ html,body{margin:0!important;padding:8mm!important;height:auto!important}
 			. '<div class="info">'
 			. '<div class="info-col">'
 			. '<p class="info-row"><b>Khách Hàng:</b> <span>' . $h($data['customer']) . '</span></p>'
-			. '<p class="info-row"><b>SĐT:</b> <span>' . $h($data['sales_phone'] !== '' ? $data['sales_phone'] : '—') . '</span></p>'
+			. '<p class="info-row"><b>SĐT:</b> <span>' . $h($data['customer_phone'] !== '' ? $data['customer_phone'] : '—') . '</span></p>'
 			. '<p class="info-row"><b>Địa chỉ:</b> <span>' . $h($data['customer_address'] !== '' ? $data['customer_address'] : '—') . '</span></p>'
 			. '</div><div class="info-col">'
 			. '<p class="info-row"><b>Chi nhánh:</b> <span>' . $h($data['branch']) . '</span></p>'
@@ -461,7 +461,7 @@ html,body{margin:0!important;padding:8mm!important;height:auto!important}
 
 		$pdf->SetFont(self::FONT, '', 10);
 		self::writeLabelValue($pdf, $pageW, 'Khách hàng:', $customer !== '' ? $customer : '—');
-		self::writeLabelValue($pdf, $pageW, 'SĐT:', $salesPhone !== '' ? $salesPhone : '—');
+		self::writeLabelValue($pdf, $pageW, 'SĐT:', $customerPhone !== '' ? $customerPhone : '—');
 		self::writeLabelValue($pdf, $pageW, 'Địa chỉ:', $customerAddress !== '' ? $customerAddress : '—');
 		$pdf->Ln(3);
 
@@ -645,7 +645,7 @@ html,body{margin:0!important;padding:8mm!important;height:auto!important}
 		/* Trái: KH / SĐT / Địa chỉ — Phải: Chi nhánh / NVBH / Ghi chú (không dòng trắng) */
 		$leftLines = array(
 			array('Khách Hàng:', $customer !== '' ? $customer : '—'),
-			array('SĐT:', $salesPhone !== '' ? $salesPhone : '—'),
+			array('SĐT:', $customerPhone !== '' && $customerPhone !== '—' ? $customerPhone : '—'),
 			array('Địa chỉ:', $customerAddress !== '' ? $customerAddress : '—'),
 		);
 		$rightLines = array(

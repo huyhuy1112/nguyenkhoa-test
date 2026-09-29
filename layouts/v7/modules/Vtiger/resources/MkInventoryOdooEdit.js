@@ -3004,10 +3004,12 @@
       .css({ display: "", visibility: "" })
       .prop("disabled", false)
       .prop("readonly", false);
+    var $modeBtns = $row.find(".mk-inv-discount-mode");
+    $modeBtns.removeClass("is-on");
+    $modeBtns.filter('[data-mode="' + mode + '"]').addClass("is-on");
     $suffix
-      .css({ display: "", visibility: "", cursor: "pointer" })
-      .attr("title", "Bấm để đổi % / đ")
-      .text(mode === "amount" ? "đ" : "%");
+      .css({ display: "none", visibility: "hidden" })
+      .attr("title", "");
     $row.toggleClass("mk-inv-discount--amount", mode === "amount");
     if (mode === "amount") {
       var amount = value != null ? parseMoney(value) : getRowDiscountAmount($row);
@@ -3188,7 +3190,11 @@
         '<button type="button" class="mk-inv-discount-caret" tabindex="-1" title="Chọn % nhanh" aria-label="Chọn % nhanh">' +
         '<i class="fa fa-caret-down" aria-hidden="true"></i></button>' +
         '<select class="mk-inv-discount-select inputElement mk-inv-hide-legacy" title="Chọn % chiết khấu" tabindex="-1" aria-hidden="true"></select>' +
-        '<span class="mk-inv-discount-suffix" title="Bấm để đổi % / đ">%</span>' +
+        '<span class="mk-inv-discount-modes">' +
+        '<button type="button" class="mk-inv-discount-mode" data-mode="percentage" title="Chiết khấu theo phần trăm">%</button>' +
+        '<button type="button" class="mk-inv-discount-mode" data-mode="amount" title="Chiết khấu theo số tiền">đ</button>' +
+        '</span>' +
+        '<span class="mk-inv-discount-suffix" hidden>%</span>' +
         "</div>",
     );
     var $sel = $wrap.find(".mk-inv-discount-select");
@@ -3300,19 +3306,15 @@
         commitRowDiscount($row, $form, value, mode);
       },
     );
-    $suffix.on("mousedown.mkInvDisc click.mkInvDisc", function (e) {
+    $wrap.on("click.mkInvDisc", ".mk-inv-discount-mode", function (e) {
       e.preventDefault();
       e.stopPropagation();
-      var base = calcLineRowTotal($row, $form);
-      var mode = getDiscountMode($row);
-      if (mode === "percentage") {
-        var pct = getRowDiscountPercent($row);
-        commitRowDiscount($row, $form, Math.round((base * pct) / 100), "amount");
-      } else {
-        var amt = getRowDiscountAmount($row);
-        var nextPct = base > 0 ? (amt / base) * 100 : 0;
-        commitRowDiscount($row, $form, clampDiscountPercent(nextPct), "percentage");
+      var nextMode = String($(this).attr("data-mode") || "percentage");
+      if (nextMode !== "amount" && nextMode !== "percentage") {
+        nextMode = "percentage";
       }
+      var raw = $.trim(String($custom.val() || "0"));
+      commitRowDiscount($row, $form, raw, nextMode);
     });
 
     $taxTd
