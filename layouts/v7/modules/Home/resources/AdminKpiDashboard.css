@@ -785,6 +785,73 @@ tr.is-clickable-row:hover {
 	border: 1px solid var(--mk-kpi-line);
 	border-radius: 12px;
 	padding: 10px 12px;
+	text-align: left;
+	font: inherit;
+	color: inherit;
+	width: 100%;
+}
+
+button.mk-admin-kpi-stage-hit {
+	cursor: pointer;
+}
+
+button.mk-admin-kpi-stage-hit:hover,
+button.mk-admin-kpi-stage-hit.is-open {
+	border-color: #0f766e;
+	box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.15);
+}
+
+.mk-admin-kpi-offline-stat.is-soon {
+	background: #f8fafc;
+	cursor: default;
+}
+
+.mk-admin-kpi-offline-stat.is-soon strong {
+	color: #94a3b8;
+	font-size: 13px;
+}
+
+.mk-admin-kpi-rate-row,
+.mk-admin-kpi-soon {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 14px;
+}
+
+.mk-admin-kpi-rate-row .mk-admin-kpi-offline-stat {
+	width: auto;
+	min-width: 160px;
+	flex: 1 1 160px;
+}
+
+.mk-admin-kpi-split-title {
+	margin: 16px 0 8px;
+	font-size: 13px;
+	font-weight: 700;
+	color: #334155;
+}
+
+.mk-admin-kpi-soon {
+	margin-top: 14px;
+	align-items: center;
+}
+
+.mk-admin-kpi-soon-label,
+.mk-admin-kpi-soon-chip {
+	display: inline-flex;
+	align-items: center;
+	padding: 4px 10px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 700;
+	background: #f1f5f9;
+	color: #64748b;
+}
+
+.mk-admin-kpi-soon-label {
+	background: #e2e8f0;
+	color: #475569;
 }
 
 .mk-admin-kpi-offline-stat strong {

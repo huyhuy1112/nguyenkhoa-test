@@ -177,6 +177,7 @@
 				renderPerf($root, (data && data.performance) || {});
 				renderOffline($root, (data && data.offline_gd11) || {});
 				renderOnline($root, (data && data.online_gd12) || {});
+				renderGd14($root, (data && data.gd14) || {});
 			})
 			.fail(function (msg) {
 				setError($root.find('#mkAdminKpiFunnelBody'), msg);
@@ -184,6 +185,7 @@
 				setError($root.find('#mkAdminKpiPerfBody'), msg);
 				setError($root.find('#mkAdminKpiOfflineBody'), msg);
 				setError($root.find('#mkAdminKpiOnlineBody'), msg);
+				setError($root.find('#mkAdminKpiGd14Body'), msg);
 			});
 	}
 
@@ -439,78 +441,102 @@
 		);
 	}
 
+	function stageHit(item, zone) {
+		var label = safeLabel(item.label);
+		var value = item.value != null ? String(item.value) : num(item.count);
+		if (item.soon) {
+			return (
+				'<div class="mk-admin-kpi-offline-stat is-soon"><span>' +
+				label +
+				'</span><strong>Coming soon</strong></div>'
+			);
+		}
+		var drill = item.drill || {};
+		return (
+			'<button type="button" class="mk-admin-kpi-offline-stat mk-admin-kpi-stage-hit" data-drill-zone="' +
+			escapeHtml(zone) +
+			'" data-drill-type="' +
+			escapeHtml(drill.type || 'stage_people') +
+			'" data-drill-key="' +
+			escapeHtml(drill.key || '') +
+			'"><span>' +
+			label +
+			'</span><strong style="color:' +
+			escapeHtml(item.color || '#0f172a') +
+			'">' +
+			escapeHtml(value) +
+			'</strong></button>'
+		);
+	}
+
+	function renderStageBoard(data, zone) {
+		data = data || {};
+		var rates = data.rates || [];
+		var stages = data.stages || [];
+		var splits = data.splits || [];
+		var soon = data.soon || [];
+		if (!stages.length && !rates.length) {
+			return '<div class="mk-admin-kpi-placeholder">Chưa có hồ sơ trong tháng này</div>' + renderSoon(soon);
+		}
+		var donutItems = stages.filter(function (s) {
+			return Number(s.count) > 0 && String((s.drill && s.drill.key) || '').indexOf(':all') < 0;
+		});
+		var html = '';
+		if (rates.length) {
+			html += '<div class="mk-admin-kpi-rate-row">';
+			rates.forEach(function (item) {
+				html += stageHit(item, zone);
+			});
+			html += '</div>';
+		}
+		html += '<div class="mk-admin-kpi-offline-grid">';
+		html += renderDonut(donutItems.length ? donutItems : stages, OFFLINE_COLORS);
+		html += '<div class="mk-admin-kpi-offline-stats">';
+		stages.forEach(function (item) {
+			html += stageHit(item, zone);
+		});
+		html += '</div></div>';
+		splits.forEach(function (group) {
+			html += '<h3 class="mk-admin-kpi-split-title">' + safeLabel(group.title) + '</h3>';
+			html += '<div class="mk-admin-kpi-offline-stats">';
+			(group.items || []).forEach(function (item) {
+				html += stageHit(item, zone);
+			});
+			html += '</div>';
+		});
+		html += renderSoon(soon);
+		return html;
+	}
+
+	function renderSoon(items) {
+		if (!items || !items.length) return '';
+		var html = '<div class="mk-admin-kpi-soon"><span class="mk-admin-kpi-soon-label">Coming soon</span>';
+		items.forEach(function (label) {
+			html += '<span class="mk-admin-kpi-soon-chip">' + safeLabel(label) + '</span>';
+		});
+		html += '</div>';
+		return html;
+	}
+
 	function renderOffline($root, data) {
 		data = data || {};
-		var stages = data.stages || [];
-		$root.find('#mkAdminKpiOfflineRate').text(
-			'Tỷ lệ tham gia: ' + (data.attend_rate != null ? data.attend_rate + '%' : '—')
-		);
-		if (!stages.length && !(data.total > 0)) {
-			$root
-				.find('#mkAdminKpiOfflineBody')
-				.html('<div class="mk-admin-kpi-placeholder">Chưa có lead Offline GD 1.1</div>');
-			return;
-		}
-		var stats = '';
-		stages.forEach(function (s) {
-			stats +=
-				'<div class="mk-admin-kpi-offline-stat">' +
-				'<span>' +
-				safeLabel(s.label) +
-				'</span><strong style="color:' +
-				escapeHtml(s.color || '#0f172a') +
-				'">' +
-				num(s.count) +
-				'</strong></div>';
-		});
-		var html =
-			'<div class="mk-admin-kpi-offline-grid">' +
-			renderDonut(stages, OFFLINE_COLORS) +
-			'<div class="mk-admin-kpi-offline-stats">' +
-			stats +
-			'</div></div>';
-		$root.find('#mkAdminKpiOfflineBody').html(html);
+		$root.find('#mkAdminKpiOfflineRate').text(data.period_label || 'Tháng này · SỐ TẠM');
+		$root.find('#mkAdminKpiOfflineBody').html(renderStageBoard(data, 'offline'));
 	}
 
 	function renderOnline($root, data) {
 		data = data || {};
-		var stages = data.stages || [];
-		$root.find('#mkAdminKpiOnlineFormRate').text(
-			'Điền form: ' + (data.form_rate != null ? data.form_rate + '%' : '—')
-		);
+		$root.find('#mkAdminKpiOnlineFormRate').text(data.period_label || 'Tháng này · SỐ TẠM');
 		$root.find('#mkAdminKpiOnlineQualifyRate').text(
 			'Đủ ĐK: ' + (data.qualify_rate != null ? data.qualify_rate + '%' : '—')
 		);
-		if (!stages.length && !(data.total > 0)) {
-			$root
-				.find('#mkAdminKpiOnlineBody')
-				.html('<div class="mk-admin-kpi-placeholder">Chưa có lead Online GD 1.2</div>');
-			return;
-		}
-		// Donut: exclusive statuses only (avoid double-count form_filled / total / EduBit zeros).
-		var donutKeys = { pending_form: 1, qualified: 1, not_qualified: 1, stopped: 1 };
-		var donutStages = stages.filter(function (s) {
-			return donutKeys[s.key];
-		});
-		var stats = '';
-		stages.forEach(function (s) {
-			stats +=
-				'<div class="mk-admin-kpi-offline-stat">' +
-				'<span>' +
-				safeLabel(s.label) +
-				'</span><strong style="color:' +
-				escapeHtml(s.color || '#0f172a') +
-				'">' +
-				num(s.count) +
-				'</strong></div>';
-		});
-		var html =
-			'<div class="mk-admin-kpi-offline-grid">' +
-			renderDonut(donutStages, ONLINE_COLORS) +
-			'<div class="mk-admin-kpi-offline-stats">' +
-			stats +
-			'</div></div>';
-		$root.find('#mkAdminKpiOnlineBody').html(html);
+		$root.find('#mkAdminKpiOnlineBody').html(renderStageBoard(data, 'online'));
+	}
+
+	function renderGd14($root, data) {
+		data = data || {};
+		$root.find('#mkAdminKpiGd14Period').text(data.period_label || 'Tháng này · SỐ TẠM');
+		$root.find('#mkAdminKpiGd14Body').html(renderStageBoard(data, 'gd14'));
 	}
 
 	function renderFunnel($root, funnel) {
@@ -718,13 +744,16 @@
 	}
 
 	function drillTargetSel(zone, type) {
+		if (zone === 'offline') return '#mkAdminKpiOfflineDrill';
+		if (zone === 'online') return '#mkAdminKpiOnlineDrill';
+		if (zone === 'gd14') return '#mkAdminKpiGd14Drill';
 		if (zone === 'alert') return '#mkAdminKpiAlertDrill';
 		if (zone === 'chart' || isChartDrillType(type)) return '#mkAdminKpiChartDrill';
 		return '#mkAdminKpiDrill';
 	}
 
 	function clearDrillActive($root) {
-		$root.find('.mk-admin-kpi-alert.is-open, .mk-admin-kpi-stat.is-open, .mk-admin-kpi-vbar.is-open').removeClass('is-open');
+		$root.find('.mk-admin-kpi-alert.is-open, .mk-admin-kpi-stat.is-open, .mk-admin-kpi-vbar.is-open, .mk-admin-kpi-stage-hit.is-open').removeClass('is-open');
 	}
 
 	function loadDrilldown(type, key, id, year, zone) {
@@ -732,7 +761,7 @@
 		zone = zone || (isChartDrillType(type) ? 'chart' : 'detail');
 		var sel = drillTargetSel(zone, type);
 		var $drill = $root.find(sel);
-		$root.find('#mkAdminKpiDrill, #mkAdminKpiChartDrill, #mkAdminKpiAlertDrill').not(sel).attr('hidden', true).empty();
+		$root.find('#mkAdminKpiDrill, #mkAdminKpiChartDrill, #mkAdminKpiAlertDrill, #mkAdminKpiOfflineDrill, #mkAdminKpiOnlineDrill, #mkAdminKpiGd14Drill').not(sel).attr('hidden', true).empty();
 		// Không auto-scroll — bảng hiện ngay dưới vùng vừa bấm
 		$drill.removeAttr('hidden').html('<div class="mk-admin-kpi-detail-loading">Đang tải danh sách…</div>');
 		var params = {
@@ -753,7 +782,7 @@
 
 	function hideDrilldown($root) {
 		$root = $root || $(ROOT_SEL);
-		$root.find('#mkAdminKpiDrill, #mkAdminKpiChartDrill, #mkAdminKpiAlertDrill').attr('hidden', true).empty();
+		$root.find('#mkAdminKpiDrill, #mkAdminKpiChartDrill, #mkAdminKpiAlertDrill, #mkAdminKpiOfflineDrill, #mkAdminKpiOnlineDrill, #mkAdminKpiGd14Drill').attr('hidden', true).empty();
 		state.openDrillSig = '';
 		clearDrillActive($root);
 	}
@@ -852,6 +881,25 @@
 					return [
 						safeLabel(r.name),
 						safeLabel(r.source || '—'),
+						safeLabel(r.status || '—'),
+						'<a class="mk-admin-kpi-row-link" href="' +
+							escapeHtml(r.detail_url || '#') +
+							'" target="_blank" rel="noopener">Chi tiết</a>',
+					];
+				})
+			);
+		} else if (module === 'StageRoster') {
+			html += renderTable(
+				[
+					{ label: 'Tên' },
+					{ label: 'SĐT' },
+					{ label: 'Trạng thái' },
+					{ label: 'Thao tác' },
+				],
+				rows.map(function (r) {
+					return [
+						safeLabel(r.name),
+						safeLabel(r.phone || '—'),
 						safeLabel(r.status || '—'),
 						'<a class="mk-admin-kpi-row-link" href="' +
 							escapeHtml(r.detail_url || '#') +

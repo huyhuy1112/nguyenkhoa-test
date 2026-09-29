@@ -58,6 +58,7 @@
 			<div class="mk-admin-kpi-offline" id="mkAdminKpiOfflineBody">
 				<div class="mk-admin-kpi-detail-loading">Đang tải…</div>
 			</div>
+			<section class="mk-admin-kpi-drill" id="mkAdminKpiOfflineDrill" hidden aria-live="polite"></section>
 		</section>
 
 		{* Online GD 1.2 *}
@@ -72,6 +73,18 @@
 			<div class="mk-admin-kpi-offline" id="mkAdminKpiOnlineBody">
 				<div class="mk-admin-kpi-detail-loading">Đang tải…</div>
 			</div>
+			<section class="mk-admin-kpi-drill" id="mkAdminKpiOnlineDrill" hidden aria-live="polite"></section>
+		</section>
+
+		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--gd14" id="mkAdminKpiGd14">
+			<div class="mk-admin-kpi-panel-head">
+				<h2 class="mk-admin-kpi-panel-title">Lớp 990k (GD 1.4)</h2>
+				<span class="mk-admin-kpi-pill" id="mkAdminKpiGd14Period">Tháng này · SỐ TẠM</span>
+			</div>
+			<div class="mk-admin-kpi-offline" id="mkAdminKpiGd14Body">
+				<div class="mk-admin-kpi-detail-loading">Đang tải…</div>
+			</div>
+			<section class="mk-admin-kpi-drill" id="mkAdminKpiGd14Drill" hidden aria-live="polite"></section>
 		</section>
 
 		<div class="mk-admin-kpi-stages">

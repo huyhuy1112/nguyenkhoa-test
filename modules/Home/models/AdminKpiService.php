@@ -1000,161 +1000,617 @@ class Home_AdminKpiService {
 			'alerts' => self::getAlerts(),
 			'offline_gd11' => self::getOfflineGd11(),
 			'online_gd12' => self::getOnlineGd12(),
+			'gd14' => self::getGd14(),
 		);
 	}
 
 	/**
-	 * GD 1.1 Offline funnel counters (lead profile statuses).
+	 * GD 1.1: tỷ lệ và trạng thái của hồ sơ tạo trong tháng này. Bấm số ra đúng danh sách.
 	 * @return array
 	 */
 	public static function getOfflineGd11() {
 		$db = PearDatabase::getInstance();
-		$empty = array(
-			'total' => 0,
-			'confirmed' => 0,
-			'attended' => 0,
-			'noshow' => 0,
-			'stopped' => 0,
-			'schedule_pending' => 0,
-			'attend_rate' => 0,
-			'stages' => array(),
+		$soon = array(
+			'Chốt sản phẩm có phí trong 30 ngày sau lớp',
+			'Mua nguyên liệu trong 30 ngày sau lớp',
+			'Độ khớp form với kết luận sau gọi',
 		);
 		if (!self::tableExists($db, 'bace_lead_profile')) {
-			return $empty;
+			return self::emptyStageBoard($soon);
 		}
-		$hasCol = $db->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE 'offline_status'", array());
-		if (!$hasCol || $db->num_rows($hasCol) < 1) {
-			return $empty;
-		}
-		$r = $db->pquery(
-			"SELECT
-				SUM(CASE WHEN offline_status IS NOT NULL AND offline_status <> '' THEN 1 ELSE 0 END) AS total,
-				SUM(CASE WHEN offline_status = 'offline_da_xac_nhan_lich' THEN 1 ELSE 0 END) AS confirmed,
-				SUM(CASE WHEN offline_status = 'offline_chua_xac_nhan_lich' OR offline_status = 'offline_hen_lich_lai' THEN 1 ELSE 0 END) AS schedule_pending,
-				SUM(CASE WHEN offline_status = 'offline_da_tham_gia' THEN 1 ELSE 0 END) AS attended,
-				SUM(CASE WHEN offline_status = 'offline_khong_tham_gia' THEN 1 ELSE 0 END) AS noshow,
-				SUM(CASE WHEN offline_status = 'offline_ngung_cskh' THEN 1 ELSE 0 END) AS stopped
-			 FROM bace_lead_profile",
-			array()
+		$rows = self::fetchMonthLeadRows($db, " AND p.offline_status IS NOT NULL AND p.offline_status <> ''");
+		$labels = array(
+			'offline_hen_goi_lai' => 'Hẹn gọi lại',
+			'offline_khong_nghe_may' => 'Không nghe máy',
+			'offline_sai_thong_tin' => 'Sai thông tin',
+			'offline_chua_xac_nhan_lich' => 'Chưa xác nhận lịch',
+			'offline_hen_lich_lai' => 'Hẹn lịch lại',
+			'offline_da_xac_nhan_lich' => 'Đã xác nhận lịch',
+			'offline_da_tham_gia' => 'Đã tham gia',
+			'offline_khong_tham_gia' => 'Không tham gia',
+			'offline_ngung_cskh' => 'Ngưng CSKH',
 		);
-		$total = $r ? (int) $db->query_result($r, 0, 'total') : 0;
-		$confirmed = $r ? (int) $db->query_result($r, 0, 'confirmed') : 0;
-		$schedulePending = $r ? (int) $db->query_result($r, 0, 'schedule_pending') : 0;
-		$attended = $r ? (int) $db->query_result($r, 0, 'attended') : 0;
-		$noshow = $r ? (int) $db->query_result($r, 0, 'noshow') : 0;
-		$stopped = $r ? (int) $db->query_result($r, 0, 'stopped') : 0;
-		$checked = $attended + $noshow;
-		$attendRate = $checked > 0 ? round(($attended / $checked) * 100, 1) : 0;
+		$miss = array('offline_hen_goi_lai' => 1, 'offline_khong_nghe_may' => 1, 'offline_sai_thong_tin' => 1);
+		$counts = array();
+		$levels = array('sieu_tiem_nang' => 0, 'tiem_nang' => 0, 'binh_thuong' => 0);
+		$regions = array('kv1' => 0, 'kv2' => 0, 'kv3' => 0);
+		$total = 0;
+		$contacted = 0;
+		$eligible = 0;
+		$attended = 0;
+		$dated = 0;
+		foreach ($rows as $row) {
+			$status = strtolower(trim((string) $row['offline_status']));
+			$total++;
+			if (!isset($counts[$status])) {
+				$counts[$status] = 0;
+			}
+			$counts[$status]++;
+			if (!isset($miss[$status])) {
+				$contacted++;
+				if ((string) $row['eligibility_result'] === 'du_dk') {
+					$eligible++;
+				}
+			}
+			if ($status === 'offline_da_tham_gia') {
+				$attended++;
+			}
+			if (in_array($status, array('offline_da_xac_nhan_lich', 'offline_da_tham_gia', 'offline_khong_tham_gia'), true)) {
+				$dated++;
+			}
+			$level = strtolower(trim((string) $row['potential_level']));
+			if (isset($levels[$level])) {
+				$levels[$level]++;
+			}
+			$region = self::stageRegionKey($row['area'], $row['district']);
+			if (isset($regions[$region])) {
+				$regions[$region]++;
+			}
+		}
+		$colors = array(
+			'offline_hen_goi_lai' => '#f59e0b',
+			'offline_khong_nghe_may' => '#fb7185',
+			'offline_sai_thong_tin' => '#e11d48',
+			'offline_chua_xac_nhan_lich' => '#f59e0b',
+			'offline_hen_lich_lai' => '#d97706',
+			'offline_da_xac_nhan_lich' => '#06b6d4',
+			'offline_da_tham_gia' => '#10b981',
+			'offline_khong_tham_gia' => '#f43f5e',
+			'offline_ngung_cskh' => '#64748b',
+		);
 		$stages = array(
-			array('key' => 'total', 'label' => 'Trong luồng Offline', 'count' => $total, 'color' => '#2563eb'),
-			array('key' => 'schedule_pending', 'label' => 'Chưa / hẹn lịch lại', 'count' => $schedulePending, 'color' => '#f59e0b'),
-			array('key' => 'confirmed', 'label' => 'Đã xác nhận lịch', 'count' => $confirmed, 'color' => '#06b6d4'),
-			array('key' => 'attended', 'label' => 'Đã tham gia', 'count' => $attended, 'color' => '#10b981'),
-			array('key' => 'noshow', 'label' => 'Không tham gia', 'count' => $noshow, 'color' => '#f43f5e'),
-			array('key' => 'stopped', 'label' => 'Ngưng CSKH', 'count' => $stopped, 'color' => '#64748b'),
+			self::stageCountCard('Trong luồng Offline', $total, 'gd11:all', '#2563eb'),
+		);
+		foreach ($labels as $key => $label) {
+			$stages[] = self::stageCountCard($label, isset($counts[$key]) ? $counts[$key] : 0, 'gd11:status:' . $key, $colors[$key]);
+		}
+		$levelLabels = array(
+			'sieu_tiem_nang' => 'Siêu tiềm năng',
+			'tiem_nang' => 'Tiềm năng',
+			'binh_thuong' => 'Bình thường',
+		);
+		$levelItems = array();
+		foreach ($levelLabels as $key => $label) {
+			$levelItems[] = self::stageCountCard($label, $levels[$key], 'gd11:level:' . $key, '#2563eb');
+		}
+		$regionItems = array(
+			self::stageCountCard('Khu vực 1', $regions['kv1'], 'gd11:region:kv1', '#2563eb'),
+			self::stageCountCard('Khu vực 2', $regions['kv2'], 'gd11:region:kv2', '#06b6d4'),
+			self::stageCountCard('Khu vực 3', $regions['kv3'], 'gd11:region:kv3', '#8b5cf6'),
 		);
 		return array(
-			'total' => $total,
-			'confirmed' => $confirmed,
-			'schedule_pending' => $schedulePending,
-			'attended' => $attended,
-			'noshow' => $noshow,
-			'stopped' => $stopped,
-			'attend_rate' => $attendRate,
+			'period_label' => 'Tháng này · theo ngày tạo hồ sơ · SỐ TẠM',
+			'rates' => array(
+				self::stageRateCard('Liên hệ được', $contacted, $total, 'gd11:contacted'),
+				self::stageRateCard('Giữ đủ điều kiện', $eligible, $contacted, 'gd11:eligible'),
+				self::stageRateCard('Tham gia / đã chốt ngày', $attended, $dated, 'gd11:attended'),
+			),
 			'stages' => $stages,
+			'splits' => array(
+				array('title' => 'Theo mức tiềm năng', 'items' => $levelItems),
+				array('title' => 'Theo khu vực', 'items' => $regionItems),
+			),
+			'soon' => $soon,
+			'total' => $total,
+			'attend_rate' => $dated > 0 ? round(($attended / $dated) * 100, 1) : 0,
 		);
 	}
 
 	/**
-	 * GD 1.2 Online funnel counters (lead profile online_status).
-	 * KPI 1–2 đo được ngay; KPI kích hoạt / 80% chờ EduBit (trả 0).
+	 * GD 1.2: phễu tháng này, kèm tiến độ EduBit. Bấm số ra danh sách.
 	 * @return array
 	 */
 	public static function getOnlineGd12() {
 		$db = PearDatabase::getInstance();
-		$empty = array(
-			'total' => 0,
-			'pending_form' => 0,
-			'form_filled' => 0,
-			'qualified' => 0,
-			'not_qualified' => 0,
-			'stopped' => 0,
-			'activated' => 0,
-			'reached_80' => 0,
-			'form_rate' => 0,
-			'qualify_rate' => 0,
-			'activate_rate' => 0,
-			'reach_80_rate' => 0,
-			'stages' => array(),
+		$soon = array(
+			'Chọn sản phẩm khác',
+			'Hồ sơ đủ một trong bốn đầu ra',
+			'Chốt sản phẩm có phí trong 30 ngày sau bàn giao',
+			'Mua nguyên liệu trong 30 ngày',
+			'Hiệu quả từng lần nhắc và gia hạn',
+			'Số lượng theo khu vực ở bốn mốc',
 		);
 		if (!self::tableExists($db, 'bace_lead_profile')) {
-			return $empty;
+			return self::emptyStageBoard($soon);
 		}
-		$hasCol = $db->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE 'online_status'", array());
-		if (!$hasCol || $db->num_rows($hasCol) < 1) {
-			return $empty;
+		$rows = self::fetchMonthLeadRows($db, " AND p.online_status IS NOT NULL AND p.online_status <> ''");
+		$total = 0;
+		$pending = 0;
+		$qualified = 0;
+		$notQualified = 0;
+		$stopped = 0;
+		$activated = 0;
+		$reached80 = 0;
+		$complete = 0;
+		foreach ($rows as $row) {
+			$status = strtolower(trim((string) $row['online_status']));
+			$total++;
+			$progress = (float) $row['edubit_progress_pct'];
+			$hasAccount = self::stageHasTimestamp($row['edubit_activated_at'])
+				|| in_array($status, array('online_dang_hoc', 'online_dat_80'), true);
+			$hit80 = $status === 'online_dat_80' || $progress >= 80;
+			$hit100 = $progress >= 100;
+			if ($status === 'online_chua_dien_form') {
+				$pending++;
+			} elseif ($status === 'online_khong_du_dk') {
+				$notQualified++;
+			} elseif ($status === 'online_ngung_cskh') {
+				$stopped++;
+			} elseif ($status === 'online_chua_dk_tk') {
+				$qualified++;
+			}
+			if ($hasAccount) {
+				$activated++;
+			}
+			if ($hit80) {
+				$reached80++;
+			}
+			if ($hit100) {
+				$complete++;
+			}
 		}
-		$hasEdubitCol = $db->pquery("SHOW COLUMNS FROM bace_lead_profile LIKE 'edubit_activated_at'", array());
-		$edubitOn = ($hasEdubitCol && $db->num_rows($hasEdubitCol) > 0);
-		$activatedExpr = $edubitOn
-			? "SUM(CASE WHEN online_status IN ('online_dang_hoc','online_dat_80')
-					OR (edubit_activated_at IS NOT NULL AND edubit_activated_at <> '' AND edubit_activated_at <> '0000-00-00 00:00:00')
-					THEN 1 ELSE 0 END) AS activated,
-				SUM(CASE WHEN online_status = 'online_dat_80'
-					OR (edubit_progress_pct IS NOT NULL AND edubit_progress_pct >= 80)
-					THEN 1 ELSE 0 END) AS reached_80"
-			: "SUM(CASE WHEN online_status IN ('online_dang_hoc','online_dat_80') THEN 1 ELSE 0 END) AS activated,
-				SUM(CASE WHEN online_status = 'online_dat_80' THEN 1 ELSE 0 END) AS reached_80";
-		$r = $db->pquery(
-			"SELECT
-				SUM(CASE WHEN online_status IS NOT NULL AND online_status <> '' THEN 1 ELSE 0 END) AS total,
-				SUM(CASE WHEN online_status = 'online_chua_dien_form' THEN 1 ELSE 0 END) AS pending_form,
-				SUM(CASE WHEN online_status = 'online_chua_dk_tk' THEN 1 ELSE 0 END) AS qualified,
-				SUM(CASE WHEN online_status = 'online_khong_du_dk' THEN 1 ELSE 0 END) AS not_qualified,
-				SUM(CASE WHEN online_status = 'online_ngung_cskh' THEN 1 ELSE 0 END) AS stopped,
-				{$activatedExpr}
-			 FROM bace_lead_profile",
-			array()
-		);
-		$total = $r ? (int) $db->query_result($r, 0, 'total') : 0;
-		$pendingForm = $r ? (int) $db->query_result($r, 0, 'pending_form') : 0;
-		$qualified = $r ? (int) $db->query_result($r, 0, 'qualified') : 0;
-		$notQualified = $r ? (int) $db->query_result($r, 0, 'not_qualified') : 0;
-		$stopped = $r ? (int) $db->query_result($r, 0, 'stopped') : 0;
-		$activated = $r ? (int) $db->query_result($r, 0, 'activated') : 0;
-		$reached80 = $r ? (int) $db->query_result($r, 0, 'reached_80') : 0;
-		$formFilled = $qualified + $notQualified + $activated;
-		$formRate = $total > 0 ? round(($formFilled / $total) * 100, 1) : 0;
-		$qualifyRate = $formFilled > 0 ? round((($qualified + $activated) / $formFilled) * 100, 1) : 0;
-		$activateRate = ($qualified + $activated) > 0
-			? round(($activated / ($qualified + $activated)) * 100, 1)
-			: 0;
-		$reach80Rate = $activated > 0 ? round(($reached80 / $activated) * 100, 1) : 0;
+		$formFilled = max(0, $total - $pending);
+		$passed = $qualified + $activated;
 		$stages = array(
-			array('key' => 'total', 'label' => 'Vào Zalo OA', 'count' => $total, 'color' => '#2563eb'),
-			array('key' => 'pending_form', 'label' => 'Chưa điền form', 'count' => $pendingForm, 'color' => '#f59e0b'),
-			array('key' => 'form_filled', 'label' => 'Đã điền form', 'count' => $formFilled, 'color' => '#06b6d4'),
-			array('key' => 'qualified', 'label' => 'Đủ ĐK (chờ TK)', 'count' => $qualified, 'color' => '#10b981'),
-			array('key' => 'not_qualified', 'label' => 'Không đủ ĐK', 'count' => $notQualified, 'color' => '#f43f5e'),
-			array('key' => 'stopped', 'label' => 'Ngưng CSKH', 'count' => $stopped, 'color' => '#64748b'),
-			array('key' => 'activated', 'label' => 'Đã kích hoạt (EduBit)', 'count' => $activated, 'color' => '#8b5cf6'),
-			array('key' => 'reached_80', 'label' => 'Đạt 80% (EduBit)', 'count' => $reached80, 'color' => '#a855f7'),
+			self::stageCountCard('Vào Zalo OA', $total, 'gd12:all', '#2563eb'),
+			self::stageCountCard('Chưa điền form', $pending, 'gd12:bucket:pending', '#f59e0b'),
+			self::stageCountCard('Đã điền form', $formFilled, 'gd12:bucket:form', '#06b6d4'),
+			self::stageCountCard('Đủ điều kiện, chờ tài khoản', $qualified, 'gd12:bucket:qualified', '#10b981'),
+			self::stageCountCard('Không đủ điều kiện', $notQualified, 'gd12:bucket:blocked', '#f43f5e'),
+			self::stageCountCard('Ngưng CSKH', $stopped, 'gd12:bucket:stopped', '#64748b'),
+			self::stageCountCard('Đã kích hoạt EduBit', $activated, 'gd12:bucket:activated', '#8b5cf6'),
+			self::stageCountCard('Đạt 80%', $reached80, 'gd12:bucket:p80', '#a855f7'),
+			self::stageCountCard('Học hết 100%', $complete, 'gd12:bucket:p100', '#7c3aed'),
 		);
 		return array(
-			'total' => $total,
-			'pending_form' => $pendingForm,
-			'form_filled' => $formFilled,
-			'qualified' => $qualified,
-			'not_qualified' => $notQualified,
-			'stopped' => $stopped,
-			'activated' => $activated,
-			'reached_80' => $reached80,
-			'form_rate' => $formRate,
-			'qualify_rate' => $qualifyRate,
-			'activate_rate' => $activateRate,
-			'reach_80_rate' => $reach80Rate,
+			'period_label' => 'Tháng này · theo ngày tạo hồ sơ · SỐ TẠM',
+			'rates' => array(
+				self::stageRateCard('Điền form', $formFilled, $total, 'gd12:bucket:form'),
+				self::stageRateCard('Đủ điều kiện', $passed, $formFilled, 'gd12:bucket:passed'),
+				self::stageRateCard('Kích hoạt', $activated, $passed, 'gd12:bucket:activated'),
+				self::stageRateCard('Đạt 80%', $reached80, $activated, 'gd12:bucket:p80'),
+				self::stageRateCard('Học hết 100%', $complete, $activated, 'gd12:bucket:p100'),
+			),
 			'stages' => $stages,
+			'splits' => array(),
+			'soon' => $soon,
+			'total' => $total,
+			'form_rate' => $total > 0 ? round(($formFilled / $total) * 100, 1) : 0,
+			'qualify_rate' => $formFilled > 0 ? round(($passed / $formFilled) * 100, 1) : 0,
 		);
+	}
+
+	/**
+	 * GD 1.4: tag 990k, xác minh và khoá đã thanh toán trong tháng này.
+	 * @return array
+	 */
+	public static function getGd14() {
+		$soon = array(
+			'Liên hệ đúng hạn 30 phút',
+			'Tham gia lớp trong 30 / 60 / 90 ngày',
+			'Doanh thu và giá trị đơn',
+			'Tỷ lệ huỷ hoặc xin hoàn phí',
+		);
+		$db = PearDatabase::getInstance();
+		if (!self::tableExists($db, 'bace_lead_profile') || !self::tableExists($db, 'vtiger_freetags')) {
+			return self::emptyStageBoard($soon);
+		}
+		$catalog = array(
+			'gd14_moi_dang_ky' => '990k — Mới đăng ký',
+			'gd14_hen_goi_lai' => '990k — Hẹn gọi lại',
+			'gd14_khong_nghe_may' => '990k — Không nghe máy',
+			'gd14_sai_thong_tin' => '990k — Sai thông tin liên hệ',
+			'gd14_dang_can_nhac' => '990k — Đang cân nhắc',
+			'gd14_cho_thanh_toan' => '990k — Chờ thanh toán',
+			'gd14_chua_xep_buoi' => '990k — Chưa xếp buổi học',
+			'gd14_da_xac_nhan_lich' => '990k — Đã xác nhận lịch học',
+			'gd14_khong_tham_gia' => '990k — Không tham gia lớp học',
+			'gd14_da_tham_gia' => '990k — Đã tham gia lớp học',
+			'gd14_ngung_cham_soc' => '990k — Ngưng chăm sóc',
+		);
+		$packed = self::fetchGd14MonthRows($db);
+		$tagCounts = array();
+		foreach (array_keys($catalog) as $slug) {
+			$tagCounts[$slug] = 0;
+		}
+		$verified = 0;
+		$invited = 0;
+		$blocked = 0;
+		$courses = array('lop_990k' => 0, 'pcth' => 0, 'mqbb' => 0, 'combo' => 0);
+		foreach ($packed as $row) {
+			$tag = $row['tag'];
+			if (isset($tagCounts[$tag])) {
+				$tagCounts[$tag]++;
+			}
+			if (!empty($row['verified'])) {
+				$verified++;
+			}
+			if ($row['invite'] === 1) {
+				$invited++;
+			} elseif ($row['invite'] === 0) {
+				$blocked++;
+			}
+			if ($row['course'] !== '' && isset($courses[$row['course']])) {
+				$courses[$row['course']]++;
+			}
+		}
+		$total = count($packed);
+		$stages = array(self::stageCountCard('Hồ sơ 990k trong tháng', $total, 'gd14:all', '#2563eb'));
+		foreach ($catalog as $slug => $label) {
+			$stages[] = self::stageCountCard($label, $tagCounts[$slug], 'gd14:tag:' . $slug, '#0f766e');
+		}
+		$courseItems = array(
+			self::stageCountCard('Lớp 990k đã thanh toán', $courses['lop_990k'], 'gd14:course:lop_990k', '#10b981'),
+			self::stageCountCard('Pha chế tổng hợp', $courses['pcth'], 'gd14:course:pcth', '#2563eb'),
+			self::stageCountCard('Mở quán bài bản', $courses['mqbb'], 'gd14:course:mqbb', '#7c3aed'),
+			self::stageCountCard('Combo mở quán', $courses['combo'], 'gd14:course:combo', '#b45309'),
+		);
+		$classified = $invited + $blocked;
+		return array(
+			'period_label' => 'Tháng này · theo ngày tạo hồ sơ · SỐ TẠM',
+			'rates' => array(
+				self::stageRateCard('Đã xác minh', $verified, $total, 'gd14:verified'),
+				self::stageRateCard('Được mời Combo / Mở quán', $invited, $classified, 'gd14:invited'),
+				self::stageRateCard('Bị chặn Combo / Mở quán', $blocked, $classified, 'gd14:blocked'),
+			),
+			'stages' => $stages,
+			'splits' => array(
+				array('title' => 'Đã xác nhận thanh toán', 'items' => $courseItems),
+			),
+			'soon' => $soon,
+			'total' => $total,
+		);
+	}
+
+	protected static function emptyStageBoard(array $soon) {
+		return array(
+			'period_label' => 'Tháng này · theo ngày tạo hồ sơ · SỐ TẠM',
+			'rates' => array(),
+			'stages' => array(),
+			'splits' => array(),
+			'soon' => $soon,
+			'total' => 0,
+		);
+	}
+
+	protected static function stageCountCard($label, $count, $drillKey, $color) {
+		return array(
+			'label' => $label,
+			'value' => (string) (int) $count,
+			'count' => (int) $count,
+			'color' => $color,
+			'drill' => array('type' => 'stage_people', 'key' => $drillKey),
+		);
+	}
+
+	protected static function stageRateCard($label, $num, $den, $drillKey) {
+		$num = (int) $num;
+		$den = (int) $den;
+		$pct = $den > 0 ? round(($num / $den) * 100, 1) : 0;
+		return array(
+			'label' => $label . ' · ' . $num . '/' . $den,
+			'value' => $pct . '%',
+			'count' => $num,
+			'color' => '#047857',
+			'drill' => array('type' => 'stage_people', 'key' => $drillKey),
+		);
+	}
+
+	protected static function stageMonthBounds() {
+		return array(date('Y-m-01 00:00:00'), date('Y-m-t 23:59:59'));
+	}
+
+	protected static function fetchMonthLeadRows(PearDatabase $db, $extraWhere) {
+		list($from, $to) = self::stageMonthBounds();
+		$r = $db->pquery(
+			"SELECT ld.leadid AS id,
+				TRIM(CONCAT(COALESCE(ld.firstname,''), ' ', COALESCE(ld.lastname,''))) AS name,
+				COALESCE(NULLIF(la.mobile, ''), NULLIF(la.phone, ''), '') AS phone,
+				p.offline_status, p.online_status, p.eligibility_result, p.potential_level,
+				p.area, p.district, p.edubit_progress_pct, p.edubit_activated_at, p.verify_extra_json
+			 FROM vtiger_leaddetails ld
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ld.leadid AND ce.deleted = 0
+			 LEFT JOIN bace_lead_profile p ON p.leadid = ld.leadid
+			 LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = ld.leadid
+			 WHERE ce.createdtime >= ? AND ce.createdtime <= ?
+			 {$extraWhere}",
+			array($from, $to)
+		);
+		$rows = array();
+		if ($r) {
+			while ($row = $db->fetchByAssoc($r)) {
+				$rows[] = $row;
+			}
+		}
+		return $rows;
+	}
+
+	protected static function fetchGd14MonthRows(PearDatabase $db) {
+		list($from, $to) = self::stageMonthBounds();
+		$r = $db->pquery(
+			"SELECT ld.leadid AS id,
+				TRIM(CONCAT(COALESCE(ld.firstname,''), ' ', COALESCE(ld.lastname,''))) AS name,
+				COALESCE(NULLIF(la.mobile, ''), NULLIF(la.phone, ''), '') AS phone,
+				t.tag AS tag_name, p.verify_extra_json
+			 FROM vtiger_leaddetails ld
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ld.leadid AND ce.deleted = 0
+			 INNER JOIN vtiger_freetagged_objects fo ON fo.object_id = ld.leadid AND fo.module = 'Leads'
+			 INNER JOIN vtiger_freetags t ON t.id = fo.tag_id
+			 LEFT JOIN bace_lead_profile p ON p.leadid = ld.leadid
+			 LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = ld.leadid
+			 WHERE ce.createdtime >= ? AND ce.createdtime <= ?
+			 AND (t.tag LIKE 'gd14\\_%' OR t.tag IN ('990k','990','gd14_990'))",
+			array($from, $to)
+		);
+		$byId = array();
+		$order = array_keys(array(
+			'gd14_moi_dang_ky' => 1,
+			'gd14_hen_goi_lai' => 1,
+			'gd14_khong_nghe_may' => 1,
+			'gd14_sai_thong_tin' => 1,
+			'gd14_dang_can_nhac' => 1,
+			'gd14_cho_thanh_toan' => 1,
+			'gd14_chua_xep_buoi' => 1,
+			'gd14_da_xac_nhan_lich' => 1,
+			'gd14_khong_tham_gia' => 1,
+			'gd14_da_tham_gia' => 1,
+			'gd14_ngung_cham_soc' => 1,
+		));
+		if ($r) {
+			while ($row = $db->fetchByAssoc($r)) {
+				$id = (int) $row['id'];
+				$tag = self::normalizeGd14Tag($row['tag_name']);
+				if ($tag === '') {
+					continue;
+				}
+				$extra = self::decodeGd14Extra($row['verify_extra_json']);
+				$rank = array_search($tag, $order, true);
+				if (!isset($byId[$id]) || $rank > $byId[$id]['rank']) {
+					$byId[$id] = array(
+						'id' => $id,
+						'name' => $row['name'],
+						'phone' => $row['phone'],
+						'tag' => $tag,
+						'rank' => $rank === false ? -1 : $rank,
+						'verified' => !empty($extra['gd14_verified']) ? 1 : 0,
+						'invite' => self::gd14InviteFlag($extra),
+						'course' => !empty($extra['gd14_paid_at']) ? strtolower(trim((string) (isset($extra['gd14_course']) ? $extra['gd14_course'] : ''))) : '',
+						'status' => $tag,
+					);
+				}
+			}
+		}
+		return array_values($byId);
+	}
+
+	protected static function normalizeGd14Tag($tag) {
+		$tag = strtolower(trim((string) $tag));
+		if ($tag === '990k' || $tag === '990' || $tag === 'gd14_990') {
+			return 'gd14_moi_dang_ky';
+		}
+		if (strpos($tag, 'gd14_') === 0) {
+			return $tag;
+		}
+		return '';
+	}
+
+	protected static function decodeGd14Extra($raw) {
+		$data = json_decode((string) $raw, true);
+		return is_array($data) ? $data : array();
+	}
+
+	protected static function gd14InviteFlag(array $extra) {
+		if (empty($extra['gd14_result']) || !is_array($extra['gd14_result'])) {
+			return null;
+		}
+		if (!isset($extra['gd14_result']['invited'])) {
+			return null;
+		}
+		return !empty($extra['gd14_result']['invited']) ? 1 : 0;
+	}
+
+	protected static function stageRegionKey($area, $district) {
+		$s = mb_strtolower(trim((string) $area . ' ' . (string) $district), 'UTF-8');
+		if (strpos($s, 'kv1') !== false || strpos($s, 'khu vực 1') !== false || strpos($s, 'khu vuc 1') !== false) {
+			return 'kv1';
+		}
+		if (strpos($s, 'kv2') !== false || strpos($s, 'khu vực 2') !== false || strpos($s, 'khu vuc 2') !== false) {
+			return 'kv2';
+		}
+		if (strpos($s, 'kv3') !== false || strpos($s, 'khu vực 3') !== false || strpos($s, 'khu vuc 3') !== false) {
+			return 'kv3';
+		}
+		return '';
+	}
+
+	protected static function stageHasTimestamp($value) {
+		$value = trim((string) $value);
+		return $value !== '' && $value !== '0000-00-00 00:00:00';
+	}
+
+	protected static function drillStagePeople(PearDatabase $db, $key) {
+		$parts = explode(':', (string) $key);
+		$stage = isset($parts[0]) ? $parts[0] : '';
+		$kind = isset($parts[1]) ? $parts[1] : '';
+		$arg = isset($parts[2]) ? $parts[2] : '';
+		$rows = array();
+		$title = 'Danh sách';
+		if ($stage === 'gd11') {
+			$all = self::fetchMonthLeadRows($db, " AND p.offline_status IS NOT NULL AND p.offline_status <> ''");
+			$picked = array();
+			foreach ($all as $row) {
+				if (self::gd11RowMatches($row, $kind, $arg)) {
+					$picked[] = $row;
+				}
+			}
+			$title = self::gd11DrillTitle($kind, $arg);
+			$rows = self::mapStagePeople($picked, 'offline_status');
+		} elseif ($stage === 'gd12') {
+			$all = self::fetchMonthLeadRows($db, " AND p.online_status IS NOT NULL AND p.online_status <> ''");
+			$picked = array();
+			foreach ($all as $row) {
+				if (self::gd12RowMatches($row, $kind, $arg)) {
+					$picked[] = $row;
+				}
+			}
+			$title = 'Online 1.2 — ' . $arg;
+			$rows = self::mapStagePeople($picked, 'online_status');
+		} elseif ($stage === 'gd14') {
+			$all = self::fetchGd14MonthRows($db);
+			$picked = array();
+			foreach ($all as $row) {
+				if (self::gd14RowMatches($row, $kind, $arg)) {
+					$picked[] = $row;
+				}
+			}
+			$title = '990k — ' . ($arg !== '' ? $arg : $kind);
+			$rows = self::mapStagePeople($picked, 'status');
+		}
+		if (count($rows) > 200) {
+			$rows = array_slice($rows, 0, 200);
+		}
+		return array(
+			'title' => $title . ' · tháng này (' . count($rows) . ')',
+			'module' => 'StageRoster',
+			'hint' => 'Bấm Chi tiết để mở hồ sơ. Đây là đúng những người tạo nên con số vừa bấm.',
+			'columns' => array('name', 'phone', 'status', 'actions'),
+			'rows' => $rows,
+		);
+	}
+
+	protected static function gd11RowMatches(array $row, $kind, $arg) {
+		$status = strtolower(trim((string) $row['offline_status']));
+		$miss = array('offline_hen_goi_lai', 'offline_khong_nghe_may', 'offline_sai_thong_tin');
+		if ($kind === 'all') {
+			return true;
+		}
+		if ($kind === 'status') {
+			return $status === $arg;
+		}
+		if ($kind === 'contacted') {
+			return !in_array($status, $miss, true);
+		}
+		if ($kind === 'eligible') {
+			return !in_array($status, $miss, true) && (string) $row['eligibility_result'] === 'du_dk';
+		}
+		if ($kind === 'attended') {
+			return $status === 'offline_da_tham_gia';
+		}
+		if ($kind === 'level') {
+			return strtolower(trim((string) $row['potential_level'])) === $arg;
+		}
+		if ($kind === 'region') {
+			return self::stageRegionKey($row['area'], $row['district']) === $arg;
+		}
+		return false;
+	}
+
+	protected static function gd11DrillTitle($kind, $arg) {
+		$names = array(
+			'all' => 'Offline 1.1 — trong luồng',
+			'contacted' => 'Offline 1.1 — đã liên hệ được',
+			'eligible' => 'Offline 1.1 — giữ đủ điều kiện',
+			'attended' => 'Offline 1.1 — đã tham gia',
+			'status' => 'Offline 1.1 — ' . $arg,
+			'level' => 'Offline 1.1 — ' . $arg,
+			'region' => 'Offline 1.1 — ' . $arg,
+		);
+		return isset($names[$kind]) ? $names[$kind] : 'Offline 1.1';
+	}
+
+	protected static function gd12RowMatches(array $row, $kind, $bucket) {
+		if ($kind === 'all') {
+			return true;
+		}
+		$status = strtolower(trim((string) $row['online_status']));
+		$progress = (float) $row['edubit_progress_pct'];
+		$activated = self::stageHasTimestamp($row['edubit_activated_at'])
+			|| in_array($status, array('online_dang_hoc', 'online_dat_80'), true);
+		if ($bucket === 'pending') {
+			return $status === 'online_chua_dien_form';
+		}
+		if ($bucket === 'form') {
+			return $status !== 'online_chua_dien_form';
+		}
+		if ($bucket === 'qualified') {
+			return $status === 'online_chua_dk_tk';
+		}
+		if ($bucket === 'blocked') {
+			return $status === 'online_khong_du_dk';
+		}
+		if ($bucket === 'stopped') {
+			return $status === 'online_ngung_cskh';
+		}
+		if ($bucket === 'passed') {
+			return $status === 'online_chua_dk_tk' || $activated;
+		}
+		if ($bucket === 'activated') {
+			return $activated;
+		}
+		if ($bucket === 'p80') {
+			return $status === 'online_dat_80' || $progress >= 80;
+		}
+		if ($bucket === 'p100') {
+			return $progress >= 100;
+		}
+		return false;
+	}
+
+	protected static function gd14RowMatches(array $row, $kind, $arg) {
+		if ($kind === 'all') {
+			return true;
+		}
+		if ($kind === 'tag') {
+			return $row['tag'] === $arg;
+		}
+		if ($kind === 'verified') {
+			return !empty($row['verified']);
+		}
+		if ($kind === 'invited') {
+			return $row['invite'] === 1;
+		}
+		if ($kind === 'blocked') {
+			return $row['invite'] === 0;
+		}
+		if ($kind === 'course') {
+			return $row['course'] === $arg;
+		}
+		return false;
+	}
+
+	protected static function mapStagePeople(array $rows, $statusField) {
+		$out = array();
+		foreach ($rows as $row) {
+			$id = (int) $row['id'];
+			$out[] = array(
+				'id' => $id,
+				'name' => self::decodeText(isset($row['name']) ? $row['name'] : '') ?: ('#' . $id),
+				'phone' => self::decodeText(isset($row['phone']) ? $row['phone'] : ''),
+				'status' => isset($row[$statusField]) ? (string) $row[$statusField] : '',
+				'detail_url' => 'index.php?module=Leads&view=Detail&record=' . $id . '&app=SALES',
+			);
+		}
+		return $out;
 	}
 
 	/** Stage 2 — Sales Funnel */
@@ -1877,6 +2333,8 @@ class Home_AdminKpiService {
 				return self::drillSalesOrdersByContact($db, $id);
 			case 'customers':
 				return self::drillContacts($db, $key);
+			case 'stage_people':
+				return self::drillStagePeople($db, $key);
 			case 'leads_period':
 				return self::drillLeadsByPeriod($db, $key !== '' ? $key : 'today');
 			case 'leads_urgency':
