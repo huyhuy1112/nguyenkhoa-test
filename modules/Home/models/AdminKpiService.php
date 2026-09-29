@@ -993,6 +993,7 @@ class Home_AdminKpiService {
 	 * @return array
 	 */
 	public static function getWidgets(array $chartOpts = array()) {
+		self::setStagePeriod(isset($chartOpts['stage_period']) ? $chartOpts['stage_period'] : 'month');
 		return array(
 			'funnel' => self::getSalesFunnel(),
 			'revenue_chart' => self::getRevenueChart($chartOpts),
@@ -1028,12 +1029,17 @@ class Home_AdminKpiService {
 			'offline_da_xac_nhan_lich' => 'Đã xác nhận lịch',
 			'offline_da_tham_gia' => 'Đã tham gia',
 			'offline_khong_tham_gia' => 'Không tham gia',
+			'offline_chuyen_chuong_trinh' => 'Chuyển chương trình',
+			'offline_ngung_cskh_tam' => 'Ngưng chăm sóc tạm',
 			'offline_ngung_cskh' => 'Ngưng CSKH',
 		);
 		$miss = array('offline_hen_goi_lai' => 1, 'offline_khong_nghe_may' => 1, 'offline_sai_thong_tin' => 1);
 		$counts = array();
 		$levels = array('sieu_tiem_nang' => 0, 'tiem_nang' => 0, 'binh_thuong' => 0);
-		$regions = array('kv1' => 0, 'kv2' => 0, 'kv3' => 0);
+		$levelDated = array('sieu_tiem_nang' => 0, 'tiem_nang' => 0, 'binh_thuong' => 0);
+		$levelAttend = array('sieu_tiem_nang' => 0, 'tiem_nang' => 0, 'binh_thuong' => 0);
+		$regionDated = array('kv1' => 0, 'kv2' => 0, 'kv3' => 0);
+		$regionAttend = array('kv1' => 0, 'kv2' => 0, 'kv3' => 0);
 		$total = 0;
 		$contacted = 0;
 		$eligible = 0;
@@ -1059,12 +1065,24 @@ class Home_AdminKpiService {
 				$dated++;
 			}
 			$level = strtolower(trim((string) $row['potential_level']));
+			$isDated = self::gd11DatedStatus($status);
 			if (isset($levels[$level])) {
 				$levels[$level]++;
+				if ($isDated) {
+					$levelDated[$level]++;
+				}
+				if ($status === 'offline_da_tham_gia') {
+					$levelAttend[$level]++;
+				}
 			}
 			$region = self::stageRegionKey($row['area'], $row['district']);
-			if (isset($regions[$region])) {
-				$regions[$region]++;
+			if ($region !== '') {
+				if ($isDated) {
+					$regionDated[$region]++;
+				}
+				if ($status === 'offline_da_tham_gia') {
+					$regionAttend[$region]++;
+				}
 			}
 		}
 		$colors = array(
@@ -1076,6 +1094,8 @@ class Home_AdminKpiService {
 			'offline_da_xac_nhan_lich' => '#06b6d4',
 			'offline_da_tham_gia' => '#10b981',
 			'offline_khong_tham_gia' => '#f43f5e',
+			'offline_chuyen_chuong_trinh' => '#7c3aed',
+			'offline_ngung_cskh_tam' => '#94a3b8',
 			'offline_ngung_cskh' => '#64748b',
 		);
 		$stages = array(
@@ -1091,24 +1111,28 @@ class Home_AdminKpiService {
 		);
 		$levelItems = array();
 		foreach ($levelLabels as $key => $label) {
-			$levelItems[] = self::stageCountCard($label, $levels[$key], 'gd11:level:' . $key, '#2563eb');
+			$levelItems[] = self::stageRateCard($label, $levelAttend[$key], $levelDated[$key], 'gd11:level-attend:' . $key);
 		}
-		$regionItems = array(
-			self::stageCountCard('Khu vực 1', $regions['kv1'], 'gd11:region:kv1', '#2563eb'),
-			self::stageCountCard('Khu vực 2', $regions['kv2'], 'gd11:region:kv2', '#06b6d4'),
-			self::stageCountCard('Khu vực 3', $regions['kv3'], 'gd11:region:kv3', '#8b5cf6'),
-		);
+		$datedRegion = array();
+		$attendRegion = array();
+		foreach (array('kv1' => 'Khu vực 1', 'kv2' => 'Khu vực 2', 'kv3' => 'Khu vực 3') as $key => $label) {
+			$datedRegion[] = self::stageCountCard($label, $regionDated[$key], 'gd11:region-dated:' . $key, '#2563eb');
+			$attendRegion[] = self::stageCountCard($label, $regionAttend[$key], 'gd11:region-attend:' . $key, '#10b981');
+		}
 		return array(
-			'period_label' => 'Tháng này · theo ngày tạo hồ sơ · SỐ TẠM',
+			'period_label' => self::stagePeriodCaption(),
 			'rates' => array(
 				self::stageRateCard('Liên hệ được', $contacted, $total, 'gd11:contacted'),
 				self::stageRateCard('Giữ đủ điều kiện', $eligible, $contacted, 'gd11:eligible'),
+				self::stageRateCard('Chốt được ngày học', $dated, $eligible, 'gd11:dated'),
 				self::stageRateCard('Tham gia / đã chốt ngày', $attended, $dated, 'gd11:attended'),
+				self::stageRateCard('Chuyển đổi cả phễu', $attended, $total, 'gd11:funnel'),
 			),
 			'stages' => $stages,
 			'splits' => array(
-				array('title' => 'Theo mức tiềm năng', 'items' => $levelItems),
-				array('title' => 'Theo khu vực', 'items' => $regionItems),
+				array('title' => 'Tỷ lệ tham gia theo mức tiềm năng', 'items' => $levelItems),
+				array('title' => 'Đã chốt ngày theo khu vực', 'items' => $datedRegion),
+				array('title' => 'Có mặt theo khu vực', 'items' => $attendRegion),
 			),
 			'soon' => $soon,
 			'total' => $total,
@@ -1142,6 +1166,10 @@ class Home_AdminKpiService {
 		$activated = 0;
 		$reached80 = 0;
 		$complete = 0;
+		$levelKeys = array('sieu_tiem_nang', 'tiem_nang', 'binh_thuong');
+		$levelOn = array('sieu_tiem_nang' => 0, 'tiem_nang' => 0, 'binh_thuong' => 0);
+		$levelAct = array('sieu_tiem_nang' => 0, 'tiem_nang' => 0, 'binh_thuong' => 0);
+		$level80 = array('sieu_tiem_nang' => 0, 'tiem_nang' => 0, 'binh_thuong' => 0);
 		foreach ($rows as $row) {
 			$status = strtolower(trim((string) $row['online_status']));
 			$total++;
@@ -1168,6 +1196,16 @@ class Home_AdminKpiService {
 			if ($hit100) {
 				$complete++;
 			}
+			$level = strtolower(trim((string) $row['potential_level']));
+			if (in_array($level, $levelKeys, true)) {
+				$levelOn[$level]++;
+				if ($hasAccount) {
+					$levelAct[$level]++;
+				}
+				if ($hit80) {
+					$level80[$level]++;
+				}
+			}
 		}
 		$formFilled = max(0, $total - $pending);
 		$passed = $qualified + $activated;
@@ -1182,17 +1220,29 @@ class Home_AdminKpiService {
 			self::stageCountCard('Đạt 80%', $reached80, 'gd12:bucket:p80', '#a855f7'),
 			self::stageCountCard('Học hết 100%', $complete, 'gd12:bucket:p100', '#7c3aed'),
 		);
+		$levelLabels = array(
+			'sieu_tiem_nang' => 'Siêu tiềm năng',
+			'tiem_nang' => 'Tiềm năng',
+			'binh_thuong' => 'Bình thường',
+		);
+		$levelItems = array();
+		foreach ($levelLabels as $key => $label) {
+			$levelItems[] = self::stageRateCard($label . ' đạt 80%', $level80[$key], $levelAct[$key], 'gd12:level80:' . $key);
+		}
 		return array(
-			'period_label' => 'Tháng này · theo ngày tạo hồ sơ · SỐ TẠM',
+			'period_label' => self::stagePeriodCaption(),
 			'rates' => array(
 				self::stageRateCard('Điền form', $formFilled, $total, 'gd12:bucket:form'),
 				self::stageRateCard('Đủ điều kiện', $passed, $formFilled, 'gd12:bucket:passed'),
 				self::stageRateCard('Kích hoạt', $activated, $passed, 'gd12:bucket:activated'),
 				self::stageRateCard('Đạt 80%', $reached80, $activated, 'gd12:bucket:p80'),
 				self::stageRateCard('Học hết 100%', $complete, $activated, 'gd12:bucket:p100'),
+				self::stageRateCard('Cả phễu đạt 80%', $reached80, $total, 'gd12:bucket:p80'),
 			),
 			'stages' => $stages,
-			'splits' => array(),
+			'splits' => array(
+				array('title' => 'Đạt 80% theo mức tiềm năng', 'items' => $levelItems),
+			),
 			'soon' => $soon,
 			'total' => $total,
 			'form_rate' => $total > 0 ? round(($formFilled / $total) * 100, 1) : 0,
@@ -1236,7 +1286,17 @@ class Home_AdminKpiService {
 		$verified = 0;
 		$invited = 0;
 		$blocked = 0;
+		$contacted = 0;
+		$advised = 0;
+		$chose = 0;
+		$closed = 0;
+		$hasForm = 0;
+		$formChanged = 0;
+		$contradict = 0;
+		$sources = array();
 		$courses = array('lop_990k' => 0, 'pcth' => 0, 'mqbb' => 0, 'combo' => 0);
+		$miss = array('gd14_moi_dang_ky' => 1, 'gd14_hen_goi_lai' => 1, 'gd14_khong_nghe_may' => 1, 'gd14_sai_thong_tin' => 1);
+		$choseTags = array('gd14_cho_thanh_toan' => 1, 'gd14_chua_xep_buoi' => 1, 'gd14_da_xac_nhan_lich' => 1, 'gd14_khong_tham_gia' => 1, 'gd14_da_tham_gia' => 1);
 		foreach ($packed as $row) {
 			$tag = $row['tag'];
 			if (isset($tagCounts[$tag])) {
@@ -1253,9 +1313,38 @@ class Home_AdminKpiService {
 			if ($row['course'] !== '' && isset($courses[$row['course']])) {
 				$courses[$row['course']]++;
 			}
+			if (!isset($miss[$tag])) {
+				$contacted++;
+			}
+			if (!empty($row['advised'])) {
+				$advised++;
+			}
+			$didChoose = isset($choseTags[$tag]) || $row['course'] !== '';
+			if ($didChoose) {
+				$chose++;
+			}
+			if ($row['course'] !== '') {
+				$closed++;
+			}
+			if (!empty($row['has_form'])) {
+				$hasForm++;
+				if (!empty($row['form_changed'])) {
+					$formChanged++;
+				}
+			}
+			if (!empty($row['contradict'])) {
+				$contradict++;
+			}
+			if ($tag === 'gd14_sai_thong_tin') {
+				$src = $row['source'] !== '' ? $row['source'] : 'Chưa ghi nguồn';
+				if (!isset($sources[$src])) {
+					$sources[$src] = 0;
+				}
+				$sources[$src]++;
+			}
 		}
 		$total = count($packed);
-		$stages = array(self::stageCountCard('Hồ sơ 990k trong tháng', $total, 'gd14:all', '#2563eb'));
+		$stages = array(self::stageCountCard('Hồ sơ 990k trong kỳ', $total, 'gd14:all', '#2563eb'));
 		foreach ($catalog as $slug => $label) {
 			$stages[] = self::stageCountCard($label, $tagCounts[$slug], 'gd14:tag:' . $slug, '#0f766e');
 		}
@@ -1266,17 +1355,31 @@ class Home_AdminKpiService {
 			self::stageCountCard('Combo mở quán', $courses['combo'], 'gd14:course:combo', '#b45309'),
 		);
 		$classified = $invited + $blocked;
+		$sourceItems = array();
+		foreach ($sources as $src => $count) {
+			$sourceItems[] = self::stageCountCard($src, $count, 'gd14:source:' . $src, '#e11d48');
+		}
+		$splits = array(
+			array('title' => 'Đã xác nhận thanh toán', 'items' => $courseItems),
+		);
+		if (!empty($sourceItems)) {
+			$splits[] = array('title' => 'Sai thông tin theo nguồn', 'items' => $sourceItems);
+		}
 		return array(
-			'period_label' => 'Tháng này · theo ngày tạo hồ sơ · SỐ TẠM',
+			'period_label' => self::stagePeriodCaption(),
 			'rates' => array(
+				self::stageRateCard('Liên hệ được', $contacted, $total, 'gd14:contacted'),
+				self::stageRateCard('Tư vấn đủ', $advised, $contacted, 'gd14:advised'),
+				self::stageRateCard('Chọn khoá', $chose, $advised > 0 ? $advised : $contacted, 'gd14:chose'),
+				self::stageRateCard('Chốt đơn', $closed, $chose, 'gd14:closed'),
 				self::stageRateCard('Đã xác minh', $verified, $total, 'gd14:verified'),
 				self::stageRateCard('Được mời Combo / Mở quán', $invited, $classified, 'gd14:invited'),
 				self::stageRateCard('Bị chặn Combo / Mở quán', $blocked, $classified, 'gd14:blocked'),
+				self::stageRateCard('Đổi đáp án so với form', $formChanged, $hasForm, 'gd14:form_changed'),
+				self::stageRateCard('Cờ đáp án mâu thuẫn', $contradict, $verified, 'gd14:contradict'),
 			),
 			'stages' => $stages,
-			'splits' => array(
-				array('title' => 'Đã xác nhận thanh toán', 'items' => $courseItems),
-			),
+			'splits' => $splits,
 			'soon' => $soon,
 			'total' => $total,
 		);
@@ -1284,7 +1387,7 @@ class Home_AdminKpiService {
 
 	protected static function emptyStageBoard(array $soon) {
 		return array(
-			'period_label' => 'Tháng này · theo ngày tạo hồ sơ · SỐ TẠM',
+			'period_label' => self::stagePeriodCaption(),
 			'rates' => array(),
 			'stages' => array(),
 			'splits' => array(),
@@ -1316,8 +1419,49 @@ class Home_AdminKpiService {
 		);
 	}
 
+	protected static $stagePeriod = 'month';
+
+	protected static function setStagePeriod($period) {
+		$period = strtolower(trim((string) $period));
+		self::$stagePeriod = in_array($period, array('month', 'quarter', 'year'), true) ? $period : 'month';
+	}
+
 	protected static function stageMonthBounds() {
+		$year = date('Y');
+		if (self::$stagePeriod === 'year') {
+			return array($year . '-01-01 00:00:00', $year . '-12-31 23:59:59');
+		}
+		if (self::$stagePeriod === 'quarter') {
+			$q = (int) ceil(((int) date('n')) / 3);
+			$start = ($q - 1) * 3 + 1;
+			$from = $year . '-' . sprintf('%02d', $start) . '-01 00:00:00';
+			$end = strtotime($year . '-' . sprintf('%02d', $start + 2) . '-01');
+			return array($from, date('Y-m-t 23:59:59', $end));
+		}
 		return array(date('Y-m-01 00:00:00'), date('Y-m-t 23:59:59'));
+	}
+
+	protected static function stagePeriodCaption() {
+		$year = date('Y');
+		if (self::$stagePeriod === 'year') {
+			$name = 'Năm ' . $year;
+		} elseif (self::$stagePeriod === 'quarter') {
+			$q = (int) ceil(((int) date('n')) / 3);
+			$name = 'Quý ' . $q . '/' . $year;
+		} else {
+			$name = 'Tháng ' . date('m/Y');
+		}
+		return $name . ' · theo ngày tạo hồ sơ · SỐ TẠM';
+	}
+
+	protected static function stagePeriodShort() {
+		if (self::$stagePeriod === 'year') {
+			return 'năm nay';
+		}
+		if (self::$stagePeriod === 'quarter') {
+			return 'quý này';
+		}
+		return 'tháng này';
 	}
 
 	protected static function fetchMonthLeadRows(PearDatabase $db, $extraWhere) {
@@ -1351,7 +1495,7 @@ class Home_AdminKpiService {
 			"SELECT ld.leadid AS id,
 				TRIM(CONCAT(COALESCE(ld.firstname,''), ' ', COALESCE(ld.lastname,''))) AS name,
 				COALESCE(NULLIF(la.mobile, ''), NULLIF(la.phone, ''), '') AS phone,
-				t.tag AS tag_name, p.verify_extra_json
+				ld.leadsource AS source, t.tag AS tag_name, p.verify_extra_json
 			 FROM vtiger_leaddetails ld
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ld.leadid AND ce.deleted = 0
 			 INNER JOIN vtiger_freetagged_objects fo ON fo.object_id = ld.leadid AND fo.module = 'Leads'
@@ -1395,6 +1539,11 @@ class Home_AdminKpiService {
 						'verified' => !empty($extra['gd14_verified']) ? 1 : 0,
 						'invite' => self::gd14InviteFlag($extra),
 						'course' => !empty($extra['gd14_paid_at']) ? strtolower(trim((string) (isset($extra['gd14_course']) ? $extra['gd14_course'] : ''))) : '',
+						'advised' => (!empty($extra['gd14_verified']) && trim((string) (isset($extra['gd14_goal']) ? $extra['gd14_goal'] : '')) !== '') ? 1 : 0,
+						'has_form' => self::gd14HasForm($extra) ? 1 : 0,
+						'form_changed' => self::gd14FormChanged($extra) ? 1 : 0,
+						'contradict' => self::gd14Contradict($extra) ? 1 : 0,
+						'source' => trim((string) $row['source']),
 						'status' => $tag,
 					);
 				}
@@ -1429,6 +1578,31 @@ class Home_AdminKpiService {
 		return !empty($extra['gd14_result']['invited']) ? 1 : 0;
 	}
 
+	protected static function gd11DatedStatus($status) {
+		return in_array($status, array('offline_da_xac_nhan_lich', 'offline_da_tham_gia', 'offline_khong_tham_gia'), true);
+	}
+
+	protected static function gd14HasForm(array $extra) {
+		return !empty($extra['gd14_form_answers']) && is_array($extra['gd14_form_answers']);
+	}
+
+	protected static function gd14FormChanged(array $extra) {
+		if (!self::gd14HasForm($extra) || empty($extra['gd14_answers']) || !is_array($extra['gd14_answers'])) {
+			return false;
+		}
+		foreach ($extra['gd14_form_answers'] as $qid => $code) {
+			$got = isset($extra['gd14_answers'][$qid]) ? strtolower(trim((string) $extra['gd14_answers'][$qid])) : '';
+			if ($got !== '' && $got !== strtolower(trim((string) $code))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected static function gd14Contradict(array $extra) {
+		return !empty($extra['gd14_result']) && is_array($extra['gd14_result']) && !empty($extra['gd14_result']['contradict']);
+	}
+
 	protected static function stageRegionKey($area, $district) {
 		$s = mb_strtolower(trim((string) $area . ' ' . (string) $district), 'UTF-8');
 		if (strpos($s, 'kv1') !== false || strpos($s, 'khu vực 1') !== false || strpos($s, 'khu vuc 1') !== false) {
@@ -1449,7 +1623,7 @@ class Home_AdminKpiService {
 	}
 
 	protected static function drillStagePeople(PearDatabase $db, $key) {
-		$parts = explode(':', (string) $key);
+		$parts = explode(':', (string) $key, 3);
 		$stage = isset($parts[0]) ? $parts[0] : '';
 		$kind = isset($parts[1]) ? $parts[1] : '';
 		$arg = isset($parts[2]) ? $parts[2] : '';
@@ -1469,7 +1643,10 @@ class Home_AdminKpiService {
 			$all = self::fetchMonthLeadRows($db, " AND p.online_status IS NOT NULL AND p.online_status <> ''");
 			$picked = array();
 			foreach ($all as $row) {
-				if (self::gd12RowMatches($row, $kind, $arg)) {
+				$ok = ($kind === 'level80')
+					? self::gd12LevelMatches($row, $kind, $arg)
+					: self::gd12RowMatches($row, $kind, $arg);
+				if ($ok) {
 					$picked[] = $row;
 				}
 			}
@@ -1490,7 +1667,7 @@ class Home_AdminKpiService {
 			$rows = array_slice($rows, 0, 200);
 		}
 		return array(
-			'title' => $title . ' · tháng này (' . count($rows) . ')',
+			'title' => $title . ' · ' . self::stagePeriodShort() . ' (' . count($rows) . ')',
 			'module' => 'StageRoster',
 			'hint' => 'Bấm Chi tiết để mở hồ sơ. Đây là đúng những người tạo nên con số vừa bấm.',
 			'columns' => array('name', 'phone', 'status', 'actions'),
@@ -1513,8 +1690,20 @@ class Home_AdminKpiService {
 		if ($kind === 'eligible') {
 			return !in_array($status, $miss, true) && (string) $row['eligibility_result'] === 'du_dk';
 		}
-		if ($kind === 'attended') {
+		if ($kind === 'attended' || $kind === 'funnel') {
 			return $status === 'offline_da_tham_gia';
+		}
+		if ($kind === 'dated') {
+			return self::gd11DatedStatus($status);
+		}
+		if ($kind === 'level-attend') {
+			return $status === 'offline_da_tham_gia' && strtolower(trim((string) $row['potential_level'])) === $arg;
+		}
+		if ($kind === 'region-dated') {
+			return self::gd11DatedStatus($status) && self::stageRegionKey($row['area'], $row['district']) === $arg;
+		}
+		if ($kind === 'region-attend') {
+			return $status === 'offline_da_tham_gia' && self::stageRegionKey($row['area'], $row['district']) === $arg;
 		}
 		if ($kind === 'level') {
 			return strtolower(trim((string) $row['potential_level'])) === $arg;
@@ -1576,6 +1765,21 @@ class Home_AdminKpiService {
 		return false;
 	}
 
+	protected static function gd12LevelMatches(array $row, $kind, $arg) {
+		$level = strtolower(trim((string) $row['potential_level']));
+		if ($level !== $arg) {
+			return false;
+		}
+		$status = strtolower(trim((string) $row['online_status']));
+		$progress = (float) $row['edubit_progress_pct'];
+		$activated = self::stageHasTimestamp($row['edubit_activated_at'])
+			|| in_array($status, array('online_dang_hoc', 'online_dat_80'), true);
+		if ($kind === 'level80') {
+			return $status === 'online_dat_80' || $progress >= 80;
+		}
+		return false;
+	}
+
 	protected static function gd14RowMatches(array $row, $kind, $arg) {
 		if ($kind === 'all') {
 			return true;
@@ -1594,6 +1798,28 @@ class Home_AdminKpiService {
 		}
 		if ($kind === 'course') {
 			return $row['course'] === $arg;
+		}
+		if ($kind === 'contacted') {
+			return !in_array($row['tag'], array('gd14_moi_dang_ky', 'gd14_hen_goi_lai', 'gd14_khong_nghe_may', 'gd14_sai_thong_tin'), true);
+		}
+		if ($kind === 'advised') {
+			return !empty($row['advised']);
+		}
+		if ($kind === 'chose') {
+			return in_array($row['tag'], array('gd14_cho_thanh_toan', 'gd14_chua_xep_buoi', 'gd14_da_xac_nhan_lich', 'gd14_khong_tham_gia', 'gd14_da_tham_gia'), true) || $row['course'] !== '';
+		}
+		if ($kind === 'closed') {
+			return $row['course'] !== '';
+		}
+		if ($kind === 'form_changed') {
+			return !empty($row['form_changed']);
+		}
+		if ($kind === 'contradict') {
+			return !empty($row['contradict']);
+		}
+		if ($kind === 'source') {
+			$src = $row['source'] !== '' ? $row['source'] : 'Chưa ghi nguồn';
+			return $row['tag'] === 'gd14_sai_thong_tin' && $src === $arg;
 		}
 		return false;
 	}
@@ -2299,6 +2525,7 @@ class Home_AdminKpiService {
 	 * @return array
 	 */
 	public static function getDrilldown($type, array $opts = array()) {
+		self::setStagePeriod(isset($opts['stage_period']) ? $opts['stage_period'] : 'month');
 		$type = strtolower(trim((string) $type));
 		$key = isset($opts['key']) ? (string) $opts['key'] : '';
 		$id = isset($opts['id']) ? (int) $opts['id'] : 0;

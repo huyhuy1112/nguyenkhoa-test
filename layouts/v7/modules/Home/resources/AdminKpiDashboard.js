@@ -12,6 +12,7 @@
 		chartDimension: 'none',
 		chartYear: new Date().getFullYear(),
 		openDrillSig: '',
+		stagePeriod: 'month',
 	};
 
 	function money(n) {
@@ -164,6 +165,7 @@
 			group: state.chartDimension === 'none' ? state.chartGroup : state.chartGroup,
 			dimension: state.chartDimension,
 			year: state.chartYear,
+			stage_period: state.stagePeriod,
 		};
 		if (state.chartDimension !== 'none') {
 			params.group = state.chartDimension;
@@ -771,6 +773,7 @@
 			id: id || 0,
 		};
 		if (year) params.year = year;
+		params.stage_period = state.stagePeriod;
 		return api(params)
 			.done(function (data) {
 				$drill.html(renderDrillPanel((data && data.drilldown) || {}));
@@ -1263,6 +1266,14 @@
 			$btn.addClass('is-open');
 			state.openDrillSig = sig;
 			loadDrilldown(type, key, id, year, zone);
+		});
+
+		$root.on('click', '[data-stage-period]', function () {
+			state.stagePeriod = String($(this).data('stage-period') || 'month');
+			$root.find('[data-stage-period]').removeClass('is-active');
+			$(this).addClass('is-active');
+			hideDrilldown($root);
+			loadWidgets($root);
 		});
 
 		$root.on('click', '[data-close-drill]', function () {

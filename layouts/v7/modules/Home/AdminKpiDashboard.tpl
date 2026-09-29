@@ -49,6 +49,15 @@
 
 		<section class="mk-admin-kpi-drill" id="mkAdminKpiDrill" hidden aria-live="polite"></section>
 
+		<div class="mk-admin-kpi-panel-head">
+			<h2 class="mk-admin-kpi-panel-title">Chỉ số ba giai đoạn</h2>
+			<div class="mk-admin-kpi-chart-filters" id="mkAdminKpiStagePeriod">
+				<button type="button" class="mk-admin-kpi-mode-btn is-active" data-stage-period="month">Tháng</button>
+				<button type="button" class="mk-admin-kpi-mode-btn" data-stage-period="quarter">Quý</button>
+				<button type="button" class="mk-admin-kpi-mode-btn" data-stage-period="year">Năm</button>
+			</div>
+		</div>
+
 		{* Offline GD 1.1 *}
 		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--offline" id="mkAdminKpiOffline">
 			<div class="mk-admin-kpi-panel-head">
