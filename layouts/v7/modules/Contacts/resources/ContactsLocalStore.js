@@ -46,6 +46,12 @@
         if (Array.isArray(res.assignable_users)) {
           root.MK_CONTACTS_ASSIGNABLE_USERS = res.assignable_users;
         }
+        if (Array.isArray(res.offline_classes)) {
+          root.MK_OFFLINE_CLASSES = res.offline_classes;
+        }
+        if (res && res.is_admin != null) {
+          root.MK_CONTACTS_IS_ADMIN = Number(res.is_admin) === 1;
+        }
         return _contacts;
       })
       .catch(function () {

@@ -22,7 +22,7 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields', 'save_offline_attend', 'last_touch_call_log', 'edubit_renew', 'edubit_sync_progress', 'edubit_sync_all', 'edubit_provision'), true)) {
+		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields', 'save_offline_attend', 'last_touch_call_log', 'edubit_renew', 'edubit_sync_progress', 'edubit_sync_all', 'edubit_provision', 'offline_class_add', 'offline_class_delete'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -43,6 +43,8 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 						'success' => true,
 						'contacts' => Contacts_ModernService::listContacts($userId),
 						'assignable_users' => Contacts_ModernService::listAssignableUsers(),
+						'offline_classes' => Contacts_ModernService::listOfflineClasses(),
+						'is_admin' => Users_Record_Model::getCurrentUserModel()->isAdminUser() ? 1 : 0,
 					));
 					break;
 				case 'class_reg_list':
@@ -162,6 +164,18 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 						$recordId,
 						$request->get('class_code'),
 						$request->get('datetime')
+					));
+					break;
+				case 'offline_class_add':
+					$response->setResult(array(
+						'success' => true,
+						'offline_classes' => Contacts_ModernService::addOfflineClass($request->get('label')),
+					));
+					break;
+				case 'offline_class_delete':
+					$response->setResult(array(
+						'success' => true,
+						'offline_classes' => Contacts_ModernService::deleteOfflineClass($request->get('code')),
 					));
 					break;
 				case 'delete':

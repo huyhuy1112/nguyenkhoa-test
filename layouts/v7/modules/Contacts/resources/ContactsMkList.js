@@ -215,6 +215,7 @@
     owner: ANY,
     offlineStatus: ANY,
     progress: ANY,
+    gd14Tag: ANY,
     courseCount: ANY,
     hasTag: false,
     hasAccount: false,
@@ -564,6 +565,7 @@
       if (f.material !== ANY && (!cats.material || ref.normalizeTag(cats.material) !== f.material)) return false;
       if (f.franchise !== ANY && (!cats.franchise || ref.normalizeTag(cats.franchise) !== f.franchise)) return false;
       if (f.tier !== ANY && (!cats.tier || ref.normalizeTag(cats.tier) !== f.tier)) return false;
+      if (f.gd14Tag && f.gd14Tag !== ANY && !hasNormalizedTag(c.tags, f.gd14Tag)) return false;
       if (f.anyTag !== ANY && !hasNormalizedTag(c.tags, f.anyTag)) return false;
       if (f.staleOnly && !isStale(c)) return false;
       if (f.owner !== ANY && c.owner !== f.owner) return false;
@@ -822,6 +824,19 @@
       fieldSelect(t("JS_MK_FILTER_TIER", "Hạng khách hàng"), "tier", ref.TIER_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_CUSTOMER_RANK", "Loại khách"), "customerRank", ref.CUSTOMER_RANK_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_CLASS", "Tag lớp học"), "classTag", ref.CLASS_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect("Trạng thái 990k", "gd14Tag", [
+        ["gd14_moi_dang_ky", "990k — Mới đăng ký"],
+        ["gd14_hen_goi_lai", "990k — Hẹn gọi lại"],
+        ["gd14_khong_nghe_may", "990k — Không nghe máy"],
+        ["gd14_sai_thong_tin", "990k — Sai thông tin liên hệ"],
+        ["gd14_dang_can_nhac", "990k — Đang cân nhắc"],
+        ["gd14_cho_thanh_toan", "990k — Chờ thanh toán"],
+        ["gd14_chua_xep_buoi", "990k — Chưa xếp buổi học"],
+        ["gd14_da_xac_nhan_lich", "990k — Đã xác nhận lịch học"],
+        ["gd14_khong_tham_gia", "990k — Không tham gia lớp học"],
+        ["gd14_da_tham_gia", "990k — Đã tham gia lớp học"],
+        ["gd14_ngung_cham_soc", "990k — Ngừng chăm sóc"],
+      ]) +
       fieldSelect(t("JS_MK_FILTER_MATERIAL", "Tag nguyên liệu"), "material", ref.MATERIAL_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_FRANCHISE", "Tag nhượng quyền"), "franchise", ref.FRANCHISE_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_PROGRESS", "Tiến trình"), "progress", [
@@ -1136,32 +1151,47 @@
     );
   }
 
+  function offlineClassOptions() {
+    var rows = window.MK_OFFLINE_CLASSES;
+    if (!Array.isArray(rows) || !rows.length) {
+      return [
+        ["mqbb", "MQBB"],
+        ["pcth", "PCTH"],
+        ["pcth_cb", "PCTHCB"],
+      ];
+    }
+    return rows.map(function (row) {
+      return [row.code, row.label];
+    });
+  }
+
   function offlineAttendCellHtml(contact) {
     var id = contact.crmid || contact.id;
-    var map = {
+    var attend = contact.offline_attend && typeof contact.offline_attend === "object" ? contact.offline_attend : {};
+    var legacy = {
       mqbb: contact.thoigian_mqbb || "",
       pcth: contact.thoigian_pcth || "",
       pcth_cb: contact.thoigian_pcthcb || "",
     };
-    var curClass = "mqbb";
-    if (map.pcth_cb) curClass = "pcth_cb";
-    else if (map.pcth) curClass = "pcth";
-    else if (map.mqbb) curClass = "mqbb";
-    var opts = [
-      ["mqbb", "MQBB"],
-      ["pcth", "PCTH"],
-      ["pcth_cb", "PCTHCB"],
-    ];
+    var opts = offlineClassOptions();
+    var curClass = opts[0] ? opts[0][0] : "mqbb";
+    opts.forEach(function (o) {
+      if (attend[o[0]] || legacy[o[0]]) curClass = o[0];
+    });
+    var dataAttrs = opts.map(function (o) {
+      var iso = attend[o[0]] || legacy[o[0]] || "";
+      return ' data-at-' + esc(o[0]) + '="' + esc(toDatetimeLocalValue(iso)) + '"';
+    }).join("");
+    var currentIso = attend[curClass] || legacy[curClass] || "";
+    var admin = window.MK_CONTACTS_IS_ADMIN
+      ? '<button type="button" class="mk-contacts-class-add" title="Thêm lớp">+</button><button type="button" class="mk-contacts-class-del" title="Xóa lớp đang chọn">×</button>'
+      : "";
     return (
       '<div class="mk-contacts-offline-attend" data-contact-id="' +
       esc(id) +
-      '" data-mqbb="' +
-      esc(toDatetimeLocalValue(map.mqbb)) +
-      '" data-pcth="' +
-      esc(toDatetimeLocalValue(map.pcth)) +
-      '" data-pcth_cb="' +
-      esc(toDatetimeLocalValue(map.pcth_cb)) +
-      '">' +
+      '"' +
+      dataAttrs +
+      ">" +
       '<select class="mk-leads-region-select mk-contacts-offline-class" title="Lớp Offline">' +
       opts
         .map(function (o) {
@@ -1177,8 +1207,9 @@
         })
         .join("") +
       "</select>" +
+      admin +
       '<input type="datetime-local" class="mk-leads-inline-input mk-contacts-offline-dt" value="' +
-      esc(toDatetimeLocalValue(map[curClass] || "")) +
+      esc(toDatetimeLocalValue(currentIso)) +
       '" title="Thời gian tham gia Offline" />' +
       "</div>"
     );
@@ -1889,7 +1920,7 @@
       if (!contactId || !store || !store.saveOfflineAttend) return;
       var classCode = classSel ? classSel.value : "mqbb";
       if (isClass && dt) {
-        dt.value = wrap.getAttribute("data-" + classCode) || "";
+        dt.value = wrap.getAttribute("data-at-" + classCode) || "";
         return;
       }
       var datetime = dt ? dt.value : "";
@@ -1897,7 +1928,7 @@
         .saveOfflineAttend(contactId, classCode, datetime)
         .then(function (res) {
           var iso = (res && res.datetime) || "";
-          wrap.setAttribute("data-" + classCode, toDatetimeLocalValue(iso));
+          wrap.setAttribute("data-at-" + classCode, toDatetimeLocalValue(iso));
           if (store.refresh) return store.refresh();
         })
         .then(function () {
@@ -1906,6 +1937,36 @@
         .catch(function () {
           notifyUser("error", "Không lưu được thời gian tham gia Offline.");
         });
+    });
+
+    document.addEventListener("click", function (e) {
+      var addBtn = e.target && e.target.closest ? e.target.closest(".mk-contacts-class-add") : null;
+      var delBtn = e.target && e.target.closest ? e.target.closest(".mk-contacts-class-del") : null;
+      if (!addBtn && !delBtn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (!window.MK_CONTACTS_IS_ADMIN) return;
+      var wrap = (addBtn || delBtn).closest(".mk-contacts-offline-attend");
+      var sel = wrap ? wrap.querySelector(".mk-contacts-offline-class") : null;
+      var mode = addBtn ? "offline_class_add" : "offline_class_delete";
+      var payload = { module: "Contacts", action: "ModernApi", mode: mode };
+      if (addBtn) {
+        var name = window.prompt("Tên lớp mới");
+        if (!name || !name.trim()) return;
+        payload.label = name.trim();
+      } else {
+        if (!sel || !sel.value) return;
+        if (!window.confirm("Xóa lớp này khỏi danh sách dùng chung?")) return;
+        payload.code = sel.value;
+      }
+      app.request.post({ data: payload }).then(function (err, res) {
+        if (err || !res || res.success === false) {
+          window.alert((err && err.message) || (res && res.error) || "Không lưu được lớp.");
+          return;
+        }
+        window.MK_OFFLINE_CLASSES = res.offline_classes || [];
+        renderAll();
+      });
     });
 
     document.addEventListener(

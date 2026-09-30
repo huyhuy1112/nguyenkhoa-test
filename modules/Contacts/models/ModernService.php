@@ -20,10 +20,12 @@ class Contacts_ModernService {
 			$userId = (int)$current_user->id;
 		}
 		$adb = PearDatabase::getInstance();
+		self::ensureOfflineClassCatalog($adb);
 		require_once 'modules/Leads/models/ModernService.php';
 		if (!Leads_ModernService::schemaWarm('contacts_list')) {
 			self::ensureEventTimeColumns($adb);
 			self::ensureBusinessModelSchema($adb);
+			self::ensureOfflineClassCatalog($adb);
 			self::ensureCredentialFields();
 			self::ensureEdubitProgressColumns($adb);
 			self::ensureEdubitCoursesJsonColumn($adb);
@@ -38,7 +40,8 @@ class Contacts_ModernService {
 				cf.edubit_progress_pct, cf.edubit_course_id, cf.edubit_email, cf.edubit_user_id,
 				cf.edubit_activated_at, cf.edubit_expires_at, cf.edubit_renew_count, cf.edubit_expiry_reason, cf.online_status,
 				cf.edubit_courses_json,
-				cp.business_model AS contact_business_model
+				cp.business_model AS contact_business_model,
+				cp.offline_attend_json
 			FROM vtiger_contactdetails cd
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid AND ce.deleted = 0
 			LEFT JOIN vtiger_account acc ON acc.accountid = cd.accountid
@@ -1010,6 +1013,7 @@ class Contacts_ModernService {
 			'thoigian_pcth' => self::toIsoDateTime(isset($row['thoigian_pcth']) ? $row['thoigian_pcth'] : ''),
 			'thoigian_mqbb' => self::toIsoDateTime(isset($row['thoigian_mqbb']) ? $row['thoigian_mqbb'] : ''),
 			'thoigian_pcthcb' => self::toIsoDateTime(isset($row['thoigian_pcthcb']) ? $row['thoigian_pcthcb'] : ''),
+			'offline_attend' => self::decodeOfflineAttend(isset($row['offline_attend_json']) ? $row['offline_attend_json'] : ''),
 			'da_cap_bang' => self::normalizeCredentialPick(
 				self::decodeCredentialText(isset($row['da_cap_bang']) ? $row['da_cap_bang'] : ''),
 				array('Chưa cấp', 'Đã cấp'),
@@ -1131,30 +1135,121 @@ class Contacts_ModernService {
 	}
 
 	public static function normalizeClassRegCode($raw, $strict = true) {
-		$code = strtolower(trim((string)$raw));
+		$code = strtolower(trim((string) $raw));
 		if ($code === '') {
 			$code = 'mqbb';
+		}
+		foreach (self::listOfflineClasses() as $row) {
+			if (strtolower($row['code']) === $code) {
+				return $row['code'];
+			}
 		}
 		if (isset(self::CLASS_REG_CODES[$code])) {
 			return $code;
 		}
 		if ($strict) {
-			throw new Exception('Lớp học không hợp lệ. Chọn MQBB, PCTH hoặc PCTH Cơ bản.');
+			throw new Exception('Lớp học không hợp lệ.');
 		}
 		return 'mqbb';
 	}
 
 	public static function getClassRegCodeLabel($code) {
-		$code = self::normalizeClassRegCode($code, false);
-		return self::CLASS_REG_CODES[$code];
+		foreach (self::listOfflineClasses() as $row) {
+			if ($row['code'] === $code) {
+				return $row['label'];
+			}
+		}
+		return isset(self::CLASS_REG_CODES[$code]) ? self::CLASS_REG_CODES[$code] : $code;
 	}
 
 	public static function getClassRegOptions() {
 		$out = array();
-		foreach (self::CLASS_REG_CODES as $code => $label) {
-			$out[] = array('code' => $code, 'label' => $label);
+		foreach (self::listOfflineClasses() as $row) {
+			$out[] = array('code' => $row['code'], 'label' => $row['label']);
 		}
 		return $out;
+	}
+
+	public static function ensureOfflineClassCatalog($adb = null) {
+		if ($adb === null) {
+			$adb = PearDatabase::getInstance();
+		}
+		self::ensureBusinessModelSchema($adb);
+		$adb->pquery(
+			'CREATE TABLE IF NOT EXISTS bace_offline_class (
+				code VARCHAR(32) NOT NULL PRIMARY KEY,
+				label VARCHAR(80) NOT NULL,
+				sort_order INT NOT NULL DEFAULT 0
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+			array()
+		);
+		$profileCol = $adb->pquery("SHOW COLUMNS FROM bace_contact_profile LIKE 'offline_attend_json'", array());
+		if ($profileCol && $adb->num_rows($profileCol) === 0) {
+			$adb->pquery('ALTER TABLE bace_contact_profile ADD COLUMN offline_attend_json TEXT NULL', array());
+		}
+		$count = $adb->pquery('SELECT COUNT(*) AS n FROM bace_offline_class', array());
+		$n = ($count && $adb->num_rows($count) > 0) ? (int) $adb->query_result($count, 0, 'n') : 0;
+		if ($n === 0) {
+			$seed = array(
+				array('mqbb', 'MQBB', 1),
+				array('pcth', 'PCTH', 2),
+				array('pcth_cb', 'PCTHCB', 3),
+			);
+			foreach ($seed as $row) {
+				$adb->pquery('INSERT INTO bace_offline_class (code, label, sort_order) VALUES (?,?,?)', $row);
+			}
+		}
+	}
+
+	public static function listOfflineClasses() {
+		$adb = PearDatabase::getInstance();
+		self::ensureBusinessModelSchema($adb);
+		self::ensureOfflineClassCatalog($adb);
+		$res = $adb->pquery('SELECT code, label FROM bace_offline_class ORDER BY sort_order ASC, label ASC', array());
+		$rows = array();
+		if ($res) {
+			while ($row = $adb->fetchByAssoc($res)) {
+				$rows[] = array('code' => $row['code'], 'label' => decode_html($row['label']));
+			}
+		}
+		return $rows;
+	}
+
+	public static function addOfflineClass($label) {
+		self::assertAdmin();
+		$label = trim((string) $label);
+		if ($label === '') {
+			throw new Exception('Nhập tên lớp.');
+		}
+		$adb = PearDatabase::getInstance();
+		self::ensureOfflineClassCatalog($adb);
+		$count = $adb->pquery('SELECT COUNT(*) AS n FROM bace_offline_class', array());
+		$n = ($count && $adb->num_rows($count) > 0) ? (int) $adb->query_result($count, 0, 'n') : 0;
+		if ($n >= 10) {
+			throw new Exception('Tối đa 10 lớp.');
+		}
+		$code = 'c' . substr(md5($label . microtime(true)), 0, 10);
+		$adb->pquery(
+			'INSERT INTO bace_offline_class (code, label, sort_order) VALUES (?,?,?)',
+			array($code, $label, $n + 1)
+		);
+		return self::listOfflineClasses();
+	}
+
+	public static function deleteOfflineClass($code) {
+		self::assertAdmin();
+		$code = trim((string) $code);
+		$adb = PearDatabase::getInstance();
+		self::ensureOfflineClassCatalog($adb);
+		$adb->pquery('DELETE FROM bace_offline_class WHERE code = ?', array($code));
+		return self::listOfflineClasses();
+	}
+
+	protected static function assertAdmin() {
+		$user = Users_Record_Model::getCurrentUserModel();
+		if (!$user || !$user->isAdminUser()) {
+			throw new Exception('Chỉ admin được thêm hoặc xóa lớp.');
+		}
 	}
 
 	protected static function fetchClassRegRawRows($contactId, $classCode = null) {
@@ -2283,6 +2378,11 @@ class Contacts_ModernService {
 	 * Lưu thời gian tham gia lớp Offline trên list (MQBB / PCTH / PCTHCB).
 	 * @return array
 	 */
+	protected static function decodeOfflineAttend($raw) {
+		$data = json_decode((string) $raw, true);
+		return is_array($data) ? $data : array();
+	}
+
 	public static function saveOfflineAttend($contactId, $classCode, $datetime) {
 		$contactId = (int) $contactId;
 		if ($contactId <= 0) {
@@ -2298,9 +2398,6 @@ class Contacts_ModernService {
 			'pcth_cb' => 'thoigian_pcthcb',
 		);
 		$col = isset($colMap[$classCode]) ? $colMap[$classCode] : '';
-		if ($col === '') {
-			throw new Exception('Lớp học không hợp lệ.');
-		}
 		self::ensureEventTimeColumns();
 		$raw = trim((string) $datetime);
 		$value = null;
@@ -2312,17 +2409,40 @@ class Contacts_ModernService {
 			$value = date('Y-m-d H:i:s', $ts);
 		}
 		$adb = PearDatabase::getInstance();
-		$exists = $adb->pquery('SELECT contactid FROM vtiger_contactscf WHERE contactid = ?', array($contactId));
-		if ($exists && $adb->num_rows($exists) > 0) {
-			$adb->pquery(
-				"UPDATE vtiger_contactscf SET {$col} = ? WHERE contactid = ?",
-				array($value, $contactId)
-			);
+		if ($col !== '') {
+			$exists = $adb->pquery('SELECT contactid FROM vtiger_contactscf WHERE contactid = ?', array($contactId));
+			if ($exists && $adb->num_rows($exists) > 0) {
+				$adb->pquery(
+					"UPDATE vtiger_contactscf SET {$col} = ? WHERE contactid = ?",
+					array($value, $contactId)
+				);
+			} else {
+				$adb->pquery(
+					"INSERT INTO vtiger_contactscf (contactid, {$col}) VALUES (?,?)",
+					array($contactId, $value)
+				);
+			}
+		}
+		self::ensureBusinessModelSchema($adb);
+		self::ensureOfflineClassCatalog($adb);
+		$jsonRes = $adb->pquery('SELECT offline_attend_json FROM bace_contact_profile WHERE contactid = ?', array($contactId));
+		$map = array();
+		if ($jsonRes && $adb->num_rows($jsonRes) > 0) {
+			$decoded = json_decode((string) $adb->query_result($jsonRes, 0, 'offline_attend_json'), true);
+			if (is_array($decoded)) {
+				$map = $decoded;
+			}
+		}
+		if ($value === null) {
+			unset($map[$classCode]);
 		} else {
-			$adb->pquery(
-				"INSERT INTO vtiger_contactscf (contactid, {$col}) VALUES (?,?)",
-				array($contactId, $value)
-			);
+			$map[$classCode] = self::toIsoDateTime($value);
+		}
+		$json = json_encode($map, JSON_UNESCAPED_UNICODE);
+		if ($jsonRes && $adb->num_rows($jsonRes) > 0) {
+			$adb->pquery('UPDATE bace_contact_profile SET offline_attend_json = ?, modified_at = ? WHERE contactid = ?', array($json, date('Y-m-d H:i:s'), $contactId));
+		} else {
+			$adb->pquery('INSERT INTO bace_contact_profile (contactid, offline_attend_json, modified_at) VALUES (?,?,?)', array($contactId, $json, date('Y-m-d H:i:s')));
 		}
 		// Gắn tag lớp tương ứng khi có thời gian.
 		if ($value !== null) {
