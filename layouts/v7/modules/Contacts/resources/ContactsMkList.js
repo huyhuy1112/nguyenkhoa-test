@@ -1183,12 +1183,14 @@
       return ' data-at-' + esc(o[0]) + '="' + esc(toDatetimeLocalValue(iso)) + '"';
     }).join("");
     var currentIso = attend[curClass] || legacy[curClass] || "";
-    var admin = window.MK_CONTACTS_IS_ADMIN
-      ? '<button type="button" class="mk-contacts-class-add" title="Thêm lớp">+</button><button type="button" class="mk-contacts-class-del" title="Xóa lớp đang chọn">×</button>'
+    var adminOpts = window.MK_CONTACTS_IS_ADMIN
+      ? '<option value="__add__">＋ Thêm lớp…</option><option value="__del__">× Xóa lớp này</option>'
       : "";
     return (
       '<div class="mk-contacts-offline-attend" data-contact-id="' +
       esc(id) +
+      '" data-class="' +
+      esc(curClass) +
       '"' +
       dataAttrs +
       ">" +
@@ -1206,8 +1208,8 @@
           );
         })
         .join("") +
+      adminOpts +
       "</select>" +
-      admin +
       '<input type="datetime-local" class="mk-leads-inline-input mk-contacts-offline-dt" value="' +
       esc(toDatetimeLocalValue(currentIso)) +
       '" title="Thời gian tham gia Offline" />' +
@@ -1919,6 +1921,32 @@
       var dt = wrap.querySelector(".mk-contacts-offline-dt");
       if (!contactId || !store || !store.saveOfflineAttend) return;
       var classCode = classSel ? classSel.value : "mqbb";
+      if (classCode === "__add__" || classCode === "__del__") {
+        var prev = wrap.getAttribute("data-class") || "";
+        if (classSel && prev) classSel.value = prev;
+        var payload = { module: "Contacts", action: "ModernApi" };
+        if (classCode === "__add__") {
+          var name = window.prompt("Tên lớp mới");
+          if (!name || !String(name).trim()) return;
+          payload.mode = "offline_class_add";
+          payload.label = String(name).trim();
+        } else {
+          if (!prev) return;
+          if (!window.confirm("Xóa lớp này khỏi danh sách dùng chung?")) return;
+          payload.mode = "offline_class_delete";
+          payload.code = prev;
+        }
+        app.request.post({ data: payload }).then(function (err, res) {
+          if (err || !res || res.success === false) {
+            window.alert((err && err.message) || (res && res.error) || "Không lưu được lớp.");
+            return;
+          }
+          window.MK_OFFLINE_CLASSES = res.offline_classes || [];
+          renderAll();
+        });
+        return;
+      }
+      if (isClass) wrap.setAttribute("data-class", classCode);
       if (isClass && dt) {
         dt.value = wrap.getAttribute("data-at-" + classCode) || "";
         return;
@@ -1937,36 +1965,6 @@
         .catch(function () {
           notifyUser("error", "Không lưu được thời gian tham gia Offline.");
         });
-    });
-
-    document.addEventListener("click", function (e) {
-      var addBtn = e.target && e.target.closest ? e.target.closest(".mk-contacts-class-add") : null;
-      var delBtn = e.target && e.target.closest ? e.target.closest(".mk-contacts-class-del") : null;
-      if (!addBtn && !delBtn) return;
-      e.preventDefault();
-      e.stopPropagation();
-      if (!window.MK_CONTACTS_IS_ADMIN) return;
-      var wrap = (addBtn || delBtn).closest(".mk-contacts-offline-attend");
-      var sel = wrap ? wrap.querySelector(".mk-contacts-offline-class") : null;
-      var mode = addBtn ? "offline_class_add" : "offline_class_delete";
-      var payload = { module: "Contacts", action: "ModernApi", mode: mode };
-      if (addBtn) {
-        var name = window.prompt("Tên lớp mới");
-        if (!name || !name.trim()) return;
-        payload.label = name.trim();
-      } else {
-        if (!sel || !sel.value) return;
-        if (!window.confirm("Xóa lớp này khỏi danh sách dùng chung?")) return;
-        payload.code = sel.value;
-      }
-      app.request.post({ data: payload }).then(function (err, res) {
-        if (err || !res || res.success === false) {
-          window.alert((err && err.message) || (res && res.error) || "Không lưu được lớp.");
-          return;
-        }
-        window.MK_OFFLINE_CLASSES = res.offline_classes || [];
-        renderAll();
-      });
     });
 
     document.addEventListener(
