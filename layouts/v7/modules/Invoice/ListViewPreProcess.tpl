@@ -65,7 +65,7 @@ window.__mkSalesPosInlineConfig = {
 };
 </script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260820_sheet1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceList.js')}?mk_v=20260820_panel2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceList.js')}?mk_v=20260930_misa1"></script>
 {else}
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Invoice/resources/ListSupportBoot.js')}?mk_v=20260605_inv_search1"></script>
 {/if}

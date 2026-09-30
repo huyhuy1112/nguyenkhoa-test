@@ -237,6 +237,10 @@ class Invoice_List_View extends Inventory_List_View {
 	}
 
 	public function initializeListViewContents(Vtiger_Request $request, Vtiger_Viewer $viewer) {
+		if ($this->isMkInvoiceListApp($request->get('app'))) {
+			require_once 'modules/Invoice/models/MisaSyncService.php';
+			Invoice_MisaSyncService::refreshPending();
+		}
 		if ($this->isSalesListContext($request)) {
 			$posMeta = $this->applyInvoiceSalesListPosDefaults($request);
 			$this->assignInvoiceSalesListPosTemplateVars($viewer, $posMeta);

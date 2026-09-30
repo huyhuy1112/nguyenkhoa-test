@@ -211,6 +211,9 @@
     "Đã thanh toán": "Đã thanh toán",
     "Đã hủy": "Đã hủy",
     "Từ chối": "Từ chối",
+    "Chờ kế toán": "Chờ kế toán",
+    "Kế toán đã duyệt": "Kế toán đã duyệt",
+    "Kế toán từ chối": "Kế toán từ chối",
   };
 
   var POS_COL_CLASS_BY_FIELD = {

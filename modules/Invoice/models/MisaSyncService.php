@@ -1,0 +1,752 @@
+<?php
+/*+***********************************************************************************
+ * Đơn hàng → đề nghị hóa đơn MISA. Menu Hóa đơn hiện trạng thái kế toán.
+ * Chờ kế toán · Kế toán đã duyệt · Kế toán từ chối
+ *************************************************************************************/
+
+class Invoice_MisaSyncService {
+
+	const STATUS_WAIT = 'Chờ kế toán';
+	const STATUS_OK = 'Kế toán đã duyệt';
+	const STATUS_NO = 'Kế toán từ chối';
+
+	public static function install(PearDatabase $adb = null) {
+		if (!$adb) {
+			$adb = PearDatabase::getInstance();
+		}
+		$adb->pquery(
+			'CREATE TABLE IF NOT EXISTS mk_misa_voucher (
+				salesorderid INT NOT NULL,
+				invoiceid INT NOT NULL,
+				org_refid VARCHAR(64) NOT NULL,
+				status VARCHAR(32) NOT NULL,
+				message TEXT NULL,
+				misa_refno VARCHAR(64) NULL,
+				updated_at DATETIME NULL,
+				PRIMARY KEY (salesorderid),
+				KEY mk_misa_invoice (invoiceid),
+				KEY mk_misa_org (org_refid)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8',
+			array()
+		);
+	}
+
+	/**
+	 * @param NkApi_Misa_Adapter $api
+	 * @param Vtiger_Record_Model $soModel
+	 * @return array
+	 */
+	public static function push($api, $soModel) {
+		$adb = PearDatabase::getInstance();
+		self::install($adb);
+		self::ensureStatuses();
+
+		$soId = (int) $soModel->getId();
+		if ($soId <= 0) {
+			return array('error' => 'Không có đơn hàng.');
+		}
+		$orderNo = trim((string) $soModel->get('salesorder_no'));
+		if ($orderNo === '') {
+			$orderNo = 'SO' . $soId;
+		}
+
+		$existing = self::findBySalesOrder($soId);
+		if ($existing && $existing['status'] === 'approved') {
+			$no = trim((string) $existing['misa_refno']);
+			return array(
+				'success' => true,
+				'message' => 'Hóa đơn của đơn ' . $orderNo . ' đã được kế toán duyệt'
+					. ($no !== '' ? (' (' . $no . ')') : '') . '.',
+				'invoiceid' => (int) $existing['invoiceid'],
+			);
+		}
+
+		$lines = self::linesFor($soId);
+		if (!$lines) {
+			return array('error' => 'Đơn ' . $orderNo . ' chưa có dòng hàng để lập hóa đơn.');
+		}
+
+		$orgRefid = $existing ? $existing['org_refid'] : self::guidFrom('so-' . $soId);
+		$built = self::buildVoucher($api, $soModel, $lines, $orgRefid, $orderNo);
+		$api->saveVoucher($built['voucher'], $built['dictionary']);
+
+		$invoiceId = $existing ? (int) $existing['invoiceid'] : self::createInvoice($soModel, $orderNo);
+		self::setInvoiceStatus($invoiceId, self::STATUS_WAIT);
+		self::saveLink($soId, $invoiceId, $orgRefid, 'pending', 'Đã gửi đề nghị, chờ kế toán sinh chứng từ trên MISA.', '');
+
+		$invoiceNo = self::invoiceNo($invoiceId);
+		return array(
+			'success' => true,
+			'message' => 'Đã gửi đề nghị hóa đơn ' . ($invoiceNo !== '' ? $invoiceNo : ('#' . $invoiceId))
+				. ' sang MISA. Trạng thái: Chờ kế toán.',
+			'invoiceid' => $invoiceId,
+		);
+	}
+
+	public static function refreshPending($api = null) {
+		try {
+			$adb = PearDatabase::getInstance();
+			self::install($adb);
+			if (!$api) {
+				require_once 'modules/Vtiger/helpers/NkApiConnection.php';
+				$api = NkApiConnection::adapter('misa');
+			}
+			if (!$api || !method_exists($api, 'prepareConnection')) {
+				return;
+			}
+			$api->prepareConnection();
+			if (!$api->isEnabled() || $api->accessCode() === '') {
+				return;
+			}
+			$res = $adb->pquery(
+				"SELECT salesorderid FROM mk_misa_voucher WHERE status = ? LIMIT 1",
+				array('pending')
+			);
+			if (!$res || $adb->num_rows($res) < 1) {
+				return;
+			}
+			$row = NkApiConnection::getRow('misa');
+			$extra = isset($row['extra']) && is_array($row['extra']) ? $row['extra'] : array();
+			$last = isset($extra['last_status_poll']) ? (int) $extra['last_status_poll'] : 0;
+			if ($last > time() - 45) {
+				return;
+			}
+			$extra['last_status_poll'] = time();
+			NkApiConnection::saveRow('misa', array('extra' => $extra), 0);
+
+			$items = $api->fetchCallbackResults(date('Y-m-d', time() - 30 * 86400), date('Y-m-d'));
+			foreach ($items as $item) {
+				if (is_array($item)) {
+					self::applyResult($item);
+				}
+			}
+		} catch (Exception $e) {
+			// Danh sách hóa đơn vẫn mở được khi MISA không trả trạng thái.
+		}
+	}
+
+	/**
+	 * Payload callback MISA gọi vào CRM.
+	 * @param array $payload
+	 * @return array
+	 */
+	public static function applyCallback(array $payload) {
+		$adb = PearDatabase::getInstance();
+		self::install($adb);
+		require_once 'modules/Vtiger/helpers/NkApiConnection.php';
+		$api = NkApiConnection::adapter('misa');
+		if ($api && method_exists($api, 'prepareConnection')) {
+			$api->prepareConnection();
+		}
+		$appId = isset($payload['app_id']) ? (string) $payload['app_id'] : '';
+		if ($api && $appId !== '' && $appId !== $api->appId()) {
+			return array('Success' => false, 'ErrorMessage' => 'Sai App ID.');
+		}
+		if (!self::signatureOk($payload, $api)) {
+			return array('Success' => false, 'ErrorMessage' => 'Sai chữ ký.');
+		}
+		$data = isset($payload['data']) ? $payload['data'] : array();
+		if (is_string($data) && $api && method_exists($api, 'decodeData')) {
+			$decoded = $api->decodeData($data);
+			$data = $decoded ? $decoded : $data;
+		}
+		self::applyResult($payload);
+		if (is_array($data)) {
+			self::walkResults($data);
+		}
+		return array('Success' => true, 'ErrorMessage' => '');
+	}
+
+	protected static function signatureOk(array $payload, $api) {
+		if (empty($payload['signature']) || !$api) {
+			return true;
+		}
+		$data = isset($payload['data']) ? $payload['data'] : '';
+		if (is_array($data)) {
+			$data = json_encode($data, JSON_UNESCAPED_UNICODE);
+		}
+		$given = strtolower(trim((string) $payload['signature']));
+		$calc = hash_hmac('sha256', (string) $data, $api->appId());
+		return function_exists('hash_equals') ? hash_equals($calc, $given) : ($calc === $given);
+	}
+
+	protected static function walkResults($node) {
+		if (!is_array($node)) {
+			return;
+		}
+		if (isset($node['org_refid']) || isset($node['success']) || isset($node['Success'])) {
+			self::applyResult($node);
+		}
+		foreach ($node as $child) {
+			if (is_array($child)) {
+				self::walkResults($child);
+			}
+		}
+	}
+
+	public static function applyResult(array $item) {
+		$orgRefid = isset($item['org_refid']) ? trim((string) $item['org_refid']) : '';
+		if ($orgRefid === '' && isset($item['voucher']) && is_array($item['voucher'])) {
+			foreach ($item['voucher'] as $voucher) {
+				if (is_array($voucher)) {
+					self::applyResult($voucher);
+				}
+			}
+			return;
+		}
+		if ($orgRefid === '') {
+			return;
+		}
+		$link = self::findByOrgRefid($orgRefid);
+		if (!$link) {
+			return;
+		}
+
+		$errorCode = isset($item['error_code']) ? (string) $item['error_code'] : (isset($item['ErrorCode']) ? (string) $item['ErrorCode'] : '');
+		$errorMessage = isset($item['error_message']) ? (string) $item['error_message'] : (isset($item['ErrorMessage']) ? (string) $item['ErrorMessage'] : '');
+		$success = array_key_exists('success', $item) ? !empty($item['success']) : (array_key_exists('Success', $item) ? !empty($item['Success']) : true);
+
+		if ($errorCode === '99' || stripos($errorMessage, 'callback') !== false) {
+			return;
+		}
+		if ($errorCode === 'IsCreatedVoucher') {
+			self::mark((int) $link['salesorderid'], (int) $link['invoiceid'], $orgRefid, 'approved', self::STATUS_OK, 'Kế toán đã sinh chứng từ.', self::refnoFrom($item));
+			return;
+		}
+		$refno = self::refnoFrom($item);
+		if ($success && $refno !== '') {
+			self::mark((int) $link['salesorderid'], (int) $link['invoiceid'], $orgRefid, 'approved', self::STATUS_OK, 'Kế toán đã xuất hóa đơn.', $refno);
+			return;
+		}
+		if (!$success && $errorMessage !== '') {
+			self::mark((int) $link['salesorderid'], (int) $link['invoiceid'], $orgRefid, 'rejected', self::STATUS_NO, $errorMessage, '');
+		}
+	}
+
+	protected static function refnoFrom(array $item) {
+		foreach (array('refno_finance', 'inv_no', 'misa_refno') as $key) {
+			if (!empty($item[$key])) {
+				return trim((string) $item[$key]);
+			}
+		}
+		return '';
+	}
+
+	protected static function mark($soId, $invoiceId, $orgRefid, $status, $invoiceStatus, $message, $refno) {
+		self::setInvoiceStatus($invoiceId, $invoiceStatus);
+		self::saveLink($soId, $invoiceId, $orgRefid, $status, $message, $refno);
+	}
+
+	protected static function createInvoice($soModel, $orderNo) {
+		$soId = (int) $soModel->getId();
+		$user = Users_Record_Model::getCurrentUserModel();
+		$owner = $user ? (int) $user->getId() : (int) $soModel->get('assigned_user_id');
+		if ($owner <= 0) {
+			$owner = 1;
+		}
+
+		$invoiceId = 0;
+		$prev = array(
+			'action' => isset($_REQUEST['action']) ? $_REQUEST['action'] : '',
+			'module' => isset($_REQUEST['module']) ? $_REQUEST['module'] : '',
+			'ajxaction' => isset($_REQUEST['ajxaction']) ? $_REQUEST['ajxaction'] : '',
+		);
+		$_REQUEST['action'] = 'SaveAjax';
+		$_REQUEST['module'] = 'Invoice';
+		$_REQUEST['ajxaction'] = 'DETAILVIEW';
+
+		try {
+			$focus = CRMEntity::getInstance('Invoice');
+			$focus->mode = '';
+			$copy = array(
+				'subject', 'account_id', 'contact_id', 'currency_id', 'conversion_rate',
+				'bill_street', 'bill_city', 'bill_state', 'bill_code', 'bill_country', 'bill_pobox',
+				'ship_street', 'ship_city', 'ship_state', 'ship_code', 'ship_country', 'ship_pobox',
+				'terms_conditions', 'description',
+			);
+			foreach ($copy as $name) {
+				$value = $soModel->get($name);
+				if ($value !== null && $value !== '') {
+					$focus->column_fields[$name] = $value;
+				}
+			}
+			$subject = trim((string) $soModel->get('subject'));
+			$focus->column_fields['subject'] = $subject !== '' ? $subject : ('Hóa đơn ' . $orderNo);
+			$focus->column_fields['salesorder_id'] = $soId;
+			$focus->column_fields['invoicestatus'] = self::STATUS_WAIT;
+			$focus->column_fields['invoicedate'] = date('Y-m-d');
+			$due = trim((string) $soModel->get('duedate'));
+			$focus->column_fields['duedate'] = $due !== '' ? $due : date('Y-m-d');
+			$focus->column_fields['assigned_user_id'] = $owner;
+			if (empty($focus->column_fields['currency_id'])) {
+				$focus->column_fields['currency_id'] = $soModel->get('currency_id');
+			}
+			if ($focus->column_fields['currency_id'] === '' || $focus->column_fields['currency_id'] === null) {
+				$focus->column_fields['currency_id'] = 1;
+			}
+			if ($focus->column_fields['conversion_rate'] === '' || $focus->column_fields['conversion_rate'] === null) {
+				$focus->column_fields['conversion_rate'] = 1;
+			}
+			$focus->save('Invoice');
+			$invoiceId = (int) $focus->id;
+		} finally {
+			foreach ($prev as $key => $value) {
+				$_REQUEST[$key] = $value;
+			}
+		}
+
+		if ($invoiceId <= 0) {
+			throw new Exception('CRM không tạo được hóa đơn cho đơn ' . $orderNo . '.');
+		}
+		self::copyLines($soId, $invoiceId);
+		self::copyTotals($soModel, $invoiceId);
+		return $invoiceId;
+	}
+
+	protected static function copyLines($soId, $invoiceId) {
+		$adb = PearDatabase::getInstance();
+		$adb->pquery('DELETE FROM vtiger_inventoryproductrel WHERE id = ?', array($invoiceId));
+		$res = $adb->pquery(
+			'SELECT * FROM vtiger_inventoryproductrel WHERE id = ? ORDER BY sequence_no ASC',
+			array($soId)
+		);
+		if (!$res) {
+			return;
+		}
+		$count = $adb->num_rows($res);
+		$fields = $adb->getFieldsArray($res);
+		$used = array();
+		$columns = array();
+		foreach ($fields as $field) {
+			$key = strtolower((string) $field);
+			if ($key === 'lineitem_id' || isset($used[$key])) {
+				continue;
+			}
+			$used[$key] = 1;
+			$columns[] = $key;
+		}
+		for ($i = 0; $i < $count; $i++) {
+			$vals = array();
+			$names = array();
+			foreach ($columns as $column) {
+				$names[] = $column;
+				$vals[] = ($column === 'id') ? $invoiceId : $adb->query_result($res, $i, $column);
+			}
+			if (!$names) {
+				continue;
+			}
+			$sql = 'INSERT INTO vtiger_inventoryproductrel (' . implode(',', $names) . ') VALUES (' . generateQuestionMarks($vals) . ')';
+			$adb->pquery($sql, $vals);
+		}
+	}
+
+	protected static function copyTotals($soModel, $invoiceId) {
+		$adb = PearDatabase::getInstance();
+		$total = self::money($soModel->get('hdnGrandTotal'));
+		if ($total == 0.0) {
+			$total = self::money($soModel->get('total'));
+		}
+		$sub = self::money($soModel->get('hdnSubTotal'));
+		if ($sub == 0.0) {
+			$sub = self::money($soModel->get('subtotal'));
+		}
+		$adb->pquery(
+			'UPDATE vtiger_invoice SET subtotal = ?, total = ?, balance = ?, invoicestatus = ? WHERE invoiceid = ?',
+			array($sub, $total, $total, self::STATUS_WAIT, $invoiceId)
+		);
+	}
+
+	protected static function linesFor($soId) {
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT r.sequence_no, r.quantity, r.listprice, r.discount_percent, r.discount_amount, r.comment, r.productid
+			 FROM vtiger_inventoryproductrel r
+			 WHERE r.id = ?
+			 ORDER BY r.sequence_no ASC',
+			array($soId)
+		);
+		$lines = array();
+		if (!$res) {
+			return $lines;
+		}
+		$count = $adb->num_rows($res);
+		for ($i = 0; $i < $count; $i++) {
+			$productId = (int) $adb->query_result($res, $i, 'productid');
+			if ($productId <= 0) {
+				continue;
+			}
+			$name = '';
+			$code = '';
+			$prod = $adb->pquery('SELECT productname, productcode FROM vtiger_products WHERE productid = ?', array($productId));
+			if ($prod && $adb->num_rows($prod) > 0) {
+				$name = decode_html($adb->query_result($prod, 0, 'productname'));
+				$code = decode_html($adb->query_result($prod, 0, 'productcode'));
+			} else {
+				$svc = $adb->pquery('SELECT servicename, service_no FROM vtiger_service WHERE serviceid = ?', array($productId));
+				if ($svc && $adb->num_rows($svc) > 0) {
+					$name = decode_html($adb->query_result($svc, 0, 'servicename'));
+					$code = decode_html($adb->query_result($svc, 0, 'service_no'));
+				}
+			}
+			if ($code === '') {
+				$code = 'SP' . $productId;
+			}
+			if ($name === '') {
+				$name = $code;
+			}
+			$qty = self::money($adb->query_result($res, $i, 'quantity'));
+			$price = self::money($adb->query_result($res, $i, 'listprice'));
+			$amount = $qty * $price;
+			$discPct = self::money($adb->query_result($res, $i, 'discount_percent'));
+			$discAmt = self::money($adb->query_result($res, $i, 'discount_amount'));
+			if ($discPct > 0) {
+				$discAmt = $amount * $discPct / 100;
+			}
+			$amount = $amount - $discAmt;
+			if ($amount < 0) {
+				$amount = 0;
+			}
+			$rate = self::taxRate($soId, $productId, (int) $adb->query_result($res, $i, 'sequence_no'));
+			$vat = round($amount * $rate / 100, 2);
+			$lines[] = array(
+				'seq' => (int) $adb->query_result($res, $i, 'sequence_no'),
+				'product_id' => $productId,
+				'code' => $code,
+				'name' => $name,
+				'qty' => $qty,
+				'price' => $price,
+				'amount' => round($amount, 2),
+				'discount' => round($discAmt, 2),
+				'discount_rate' => $discPct,
+				'vat_rate' => $rate,
+				'vat' => $vat,
+				'comment' => decode_html($adb->query_result($res, $i, 'comment')),
+			);
+		}
+		return $lines;
+	}
+
+	protected static function taxRate($soId, $productId, $sequence) {
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT * FROM vtiger_inventoryproductrel WHERE id = ? AND productid = ? AND sequence_no = ? LIMIT 1',
+			array($soId, $productId, $sequence)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return 0;
+		}
+		$row = $adb->query_result_rowdata($res, 0);
+		$rate = 0;
+		$seen = array();
+		foreach ($row as $key => $value) {
+			if (!is_string($key)) {
+				continue;
+			}
+			$lk = strtolower($key);
+			if (isset($seen[$lk]) || !preg_match('/^tax\d+$/', $lk)) {
+				continue;
+			}
+			$seen[$lk] = 1;
+			$rate += (float) $value;
+		}
+		return $rate;
+	}
+
+	protected static function buildVoucher($api, $soModel, array $lines, $orgRefid, $orderNo) {
+		$soId = (int) $soModel->getId();
+		$party = self::party($soModel);
+		$partyId = self::guidFrom('party-' . $party['key']);
+		$today = date('Y-m-d');
+		$now = date('Y-m-d\TH:i:s.000P');
+		$sub = 0;
+		$vat = 0;
+		$discount = 0;
+		$details = array();
+		$dictionary = array();
+		$dictionary[] = array(
+			'dictionary_type' => 1,
+			'account_object_id' => $partyId,
+			'account_object_type' => 0,
+			'is_customer' => true,
+			'is_vendor' => false,
+			'is_employee' => false,
+			'inactive' => false,
+			'account_object_code' => $party['code'],
+			'account_object_name' => $party['name'],
+			'address' => $party['address'],
+			'company_tax_code' => $party['tax'],
+			'country' => 'Việt Nam',
+		);
+
+		foreach ($lines as $line) {
+			$sub += $line['amount'];
+			$vat += $line['vat'];
+			$discount += $line['discount'];
+			$itemId = self::guidFrom('item-' . $line['product_id']);
+			$detailId = self::guidFrom('line-' . $soId . '-' . $line['seq']);
+			$details[] = array(
+				'ref_detail_id' => $detailId,
+				'refid' => $orgRefid,
+				'inventory_item_id' => $itemId,
+				'inventory_item_code' => $line['code'],
+				'inventory_item_name' => $line['name'],
+				'description' => $line['name'],
+				'sort_order' => $line['seq'] > 0 ? $line['seq'] : 1,
+				'quantity' => $line['qty'],
+				'main_quantity' => $line['qty'],
+				'unit_price' => $line['price'],
+				'main_unit_price' => $line['price'],
+				'amount_oc' => $line['amount'],
+				'amount' => $line['amount'],
+				'discount_rate' => $line['discount_rate'],
+				'discount_amount_oc' => $line['discount'],
+				'discount_amount' => $line['discount'],
+				'vat_rate' => $line['vat_rate'],
+				'vat_amount_oc' => $line['vat'],
+				'vat_amount' => $line['vat'],
+				'account_object_id' => $partyId,
+				'account_object_code' => $party['code'],
+				'account_object_name' => $party['name'],
+				'account_object_address' => $party['address'],
+				'main_convert_rate' => 1,
+				'is_promotion' => false,
+				'state' => 0,
+			);
+			$dictionary[] = array(
+				'dictionary_type' => 3,
+				'inventory_item_id' => $itemId,
+				'inventory_item_code' => $line['code'],
+				'inventory_item_name' => $line['name'],
+				'inventory_item_type' => 0,
+				'unit_name' => 'Cái',
+				'inactive' => false,
+			);
+		}
+
+		$grand = round($sub + $vat, 2);
+		$voucher = array(
+			'voucher_type' => 13,
+			'org_refid' => $orgRefid,
+			'org_refno' => $orderNo,
+			'org_reftype' => 3530,
+			'org_reftype_name' => 'Đơn hàng CRM',
+			'reftype' => 3530,
+			'refdate' => $today,
+			'posted_date' => $today,
+			'inv_date' => $today,
+			'include_invoice' => 1,
+			'is_invoice_exported' => true,
+			'is_paid' => false,
+			'currency_id' => 'VND',
+			'exchange_rate' => 1,
+			'account_object_id' => $partyId,
+			'account_object_code' => $party['code'],
+			'account_object_name' => $party['name'],
+			'account_object_address' => $party['address'],
+			'account_object_tax_code' => $party['tax'],
+			'journal_memo' => 'Đề nghị hóa đơn cho đơn ' . $orderNo,
+			'total_sale_amount_oc' => round($sub, 2),
+			'total_sale_amount' => round($sub, 2),
+			'total_discount_amount_oc' => round($discount, 2),
+			'total_discount_amount' => round($discount, 2),
+			'total_vat_amount_oc' => round($vat, 2),
+			'total_vat_amount' => round($vat, 2),
+			'total_amount_oc' => $grand,
+			'total_amount' => $grand,
+			'publish_status' => 0,
+			'discount_type' => 0,
+			'paid_type' => 0,
+			'created_date' => $now,
+			'modified_date' => $now,
+			'detail' => $details,
+			'sa_invoice' => array(
+				'voucher_type' => 11,
+				'is_get_new_id' => true,
+				'refid' => self::guidFrom('inv-' . $soId),
+				'account_object_id' => $partyId,
+				'account_object_code' => $party['code'],
+				'account_object_name' => $party['name'],
+				'account_object_address' => $party['address'],
+				'account_object_tax_code' => $party['tax'],
+				'inv_date' => $today,
+				'include_invoice' => 1,
+				'currency_id' => 'VND',
+				'exchange_rate' => 1,
+				'publish_status' => 0,
+				'total_sale_amount_oc' => round($sub, 2),
+				'total_sale_amount' => round($sub, 2),
+				'total_discount_amount_oc' => round($discount, 2),
+				'total_discount_amount' => round($discount, 2),
+				'total_vat_amount_oc' => round($vat, 2),
+				'total_vat_amount' => round($vat, 2),
+				'total_amount_oc' => $grand,
+				'total_amount' => $grand,
+				'payment_method' => 'TM/CK',
+				'reftype' => 3560,
+			),
+		);
+		return array('voucher' => $voucher, 'dictionary' => $dictionary);
+	}
+
+	protected static function party($soModel) {
+		$accountId = (int) $soModel->get('account_id');
+		$contactId = (int) $soModel->get('contact_id');
+		$name = '';
+		$tax = '';
+		$address = trim(implode(', ', array_filter(array(
+			trim((string) $soModel->get('bill_street')),
+			trim((string) $soModel->get('bill_city')),
+			trim((string) $soModel->get('bill_state')),
+		))));
+		if ($accountId > 0) {
+			$account = Vtiger_Record_Model::getInstanceById($accountId, 'Accounts');
+			if ($account) {
+				$name = trim((string) $account->get('accountname'));
+			}
+			$adb = PearDatabase::getInstance();
+			$res = $adb->pquery('SELECT siccode FROM vtiger_account WHERE accountid = ?', array($accountId));
+			if ($res && $adb->num_rows($res) > 0) {
+				$tax = trim((string) decode_html($adb->query_result($res, 0, 'siccode')));
+			}
+		}
+		if ($name === '' && $contactId > 0) {
+			$contact = Vtiger_Record_Model::getInstanceById($contactId, 'Contacts');
+			if ($contact) {
+				$name = trim($contact->get('firstname') . ' ' . $contact->get('lastname'));
+			}
+		}
+		if ($name === '') {
+			$name = trim((string) $soModel->get('subject'));
+		}
+		if ($name === '') {
+			$name = 'Khách hàng';
+		}
+		$key = $accountId > 0 ? ('a' . $accountId) : ('c' . $contactId);
+		$code = $accountId > 0 ? ('KH' . $accountId) : ('KH' . ($contactId > 0 ? $contactId : $soModel->getId()));
+		return array(
+			'key' => $key,
+			'code' => $code,
+			'name' => $name,
+			'address' => $address,
+			'tax' => $tax,
+		);
+	}
+
+	protected static function ensureStatuses() {
+		$module = Vtiger_Module_Model::getInstance('Invoice');
+		$field = $module ? Vtiger_Field_Model::getInstance('invoicestatus', $module) : null;
+		if (!$field) {
+			return;
+		}
+		$existing = $field->getPicklistValues();
+		$need = array(self::STATUS_WAIT, self::STATUS_OK, self::STATUS_NO);
+		$missing = array();
+		foreach ($need as $label) {
+			$found = false;
+			if (is_array($existing)) {
+				foreach ($existing as $key => $value) {
+					if ((string) $key === $label || (string) $value === $label) {
+						$found = true;
+						break;
+					}
+				}
+			}
+			if (!$found) {
+				$missing[] = $label;
+			}
+		}
+		if (!$missing) {
+			return;
+		}
+		try {
+			require_once 'modules/Settings/Picklist/models/Module.php';
+			require_once 'modules/Settings/Picklist/models/Field.php';
+			$settings = Settings_Picklist_Module_Model::getInstance('Invoice');
+			$fieldModel = Settings_Picklist_Field_Model::getInstanceFromFieldObject($field);
+			$roles = array();
+			$adb = PearDatabase::getInstance();
+			$res = $adb->pquery('SELECT roleid FROM vtiger_role', array());
+			if ($res) {
+				for ($i = 0; $i < $adb->num_rows($res); $i++) {
+					$roles[] = $adb->query_result($res, $i, 'roleid');
+				}
+			}
+			foreach ($missing as $label) {
+				$settings->addPickListValues($fieldModel, $label, $roles, '');
+			}
+		} catch (Exception $e) {
+			// Trạng thái vẫn được ghi trên hóa đơn nếu picklist chưa nhận giá trị mới.
+		}
+	}
+
+	protected static function setInvoiceStatus($invoiceId, $status) {
+		$invoiceId = (int) $invoiceId;
+		if ($invoiceId <= 0) {
+			return;
+		}
+		PearDatabase::getInstance()->pquery(
+			'UPDATE vtiger_invoice SET invoicestatus = ? WHERE invoiceid = ?',
+			array($status, $invoiceId)
+		);
+	}
+
+	protected static function saveLink($soId, $invoiceId, $orgRefid, $status, $message, $refno) {
+		$adb = PearDatabase::getInstance();
+		self::install($adb);
+		$now = date('Y-m-d H:i:s');
+		$found = $adb->pquery('SELECT salesorderid FROM mk_misa_voucher WHERE salesorderid = ?', array($soId));
+		if ($found && $adb->num_rows($found) > 0) {
+			$adb->pquery(
+				'UPDATE mk_misa_voucher SET invoiceid = ?, org_refid = ?, status = ?, message = ?, misa_refno = ?, updated_at = ? WHERE salesorderid = ?',
+				array($invoiceId, $orgRefid, $status, $message, $refno, $now, $soId)
+			);
+			return;
+		}
+		$adb->pquery(
+			'INSERT INTO mk_misa_voucher (salesorderid, invoiceid, org_refid, status, message, misa_refno, updated_at) VALUES (?,?,?,?,?,?,?)',
+			array($soId, $invoiceId, $orgRefid, $status, $message, $refno, $now)
+		);
+	}
+
+	protected static function findBySalesOrder($soId) {
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery('SELECT * FROM mk_misa_voucher WHERE salesorderid = ?', array($soId));
+		if (!$res || $adb->num_rows($res) < 1) {
+			return null;
+		}
+		return $adb->query_result_rowdata($res, 0);
+	}
+
+	protected static function findByOrgRefid($orgRefid) {
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery('SELECT * FROM mk_misa_voucher WHERE org_refid = ? LIMIT 1', array($orgRefid));
+		if (!$res || $adb->num_rows($res) < 1) {
+			return null;
+		}
+		return $adb->query_result_rowdata($res, 0);
+	}
+
+	protected static function invoiceNo($invoiceId) {
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery('SELECT invoice_no FROM vtiger_invoice WHERE invoiceid = ?', array($invoiceId));
+		if (!$res || $adb->num_rows($res) < 1) {
+			return '';
+		}
+		return trim((string) decode_html($adb->query_result($res, 0, 'invoice_no')));
+	}
+
+	public static function guidFrom($seed) {
+		$h = md5('nk-misa-act-' . $seed);
+		$h[12] = '4';
+		$variant = hexdec($h[16]);
+		$h[16] = dechex(($variant & 0x3) | 0x8);
+		return substr($h, 0, 8) . '-' . substr($h, 8, 4) . '-' . substr($h, 12, 4) . '-' . substr($h, 16, 4) . '-' . substr($h, 20, 12);
+	}
+
+	protected static function money($value) {
+		if (is_string($value)) {
+			$value = str_replace(array(' ', ','), array('', ''), $value);
+		}
+		return (float) $value;
+	}
+}
