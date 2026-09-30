@@ -1924,25 +1924,50 @@
       if (classCode === "__add__" || classCode === "__del__") {
         var prev = wrap.getAttribute("data-class") || "";
         if (classSel && prev) classSel.value = prev;
-        var payload = { module: "Contacts", action: "ModernApi" };
+        var helper = window.app && app.helper ? app.helper : null;
         if (classCode === "__add__") {
-          var name = window.prompt("Tên lớp mới");
-          if (!name || !String(name).trim()) return;
-          payload.mode = "offline_class_add";
-          payload.label = String(name).trim();
-        } else {
-          if (!prev) return;
-          if (!window.confirm("Xóa lớp này khỏi danh sách dùng chung?")) return;
-          payload.mode = "offline_class_delete";
-          payload.code = prev;
+          var ask = helper && helper.showPromptBox
+            ? helper.showPromptBox({
+                title: "Thêm lớp",
+                message: "Tên lớp mới",
+                placeholder: "Ví dụ: Lớp A",
+                confirmLabel: "Thêm",
+              })
+            : Promise.reject();
+          ask.then(function (name) {
+            name = String(name || "").trim();
+            if (!name) return;
+            app.request.post({
+              data: { module: "Contacts", action: "ModernApi", mode: "offline_class_add", label: name },
+            }).then(function (err, res) {
+              if (err || !res || res.success === false) {
+                notifyUser("error", (err && err.message) || (res && res.error) || "Không lưu được lớp.");
+                return;
+              }
+              window.MK_OFFLINE_CLASSES = res.offline_classes || [];
+              renderAll();
+            });
+          }, function () {});
+          return;
         }
-        app.request.post({ data: payload }).then(function (err, res) {
-          if (err || !res || res.success === false) {
-            window.alert((err && err.message) || (res && res.error) || "Không lưu được lớp.");
-            return;
-          }
-          window.MK_OFFLINE_CLASSES = res.offline_classes || [];
-          renderAll();
+        confirmAction({
+          title: "Xóa lớp",
+          question: "Xóa lớp này khỏi danh sách dùng chung?",
+          hint: "Khách đã chọn lớp này vẫn giữ ngày đã lưu.",
+          tone: "danger",
+          confirmLabel: "Xóa",
+        }).then(function (ok) {
+          if (!ok || !prev) return;
+          app.request.post({
+            data: { module: "Contacts", action: "ModernApi", mode: "offline_class_delete", code: prev },
+          }).then(function (err, res) {
+            if (err || !res || res.success === false) {
+              notifyUser("error", (err && err.message) || (res && res.error) || "Không xóa được lớp.");
+              return;
+            }
+            window.MK_OFFLINE_CLASSES = res.offline_classes || [];
+            renderAll();
+          });
         });
         return;
       }

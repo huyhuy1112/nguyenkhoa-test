@@ -368,17 +368,28 @@
       if (!item) return;
       e.preventDefault();
       var group = item.getAttribute("data-group");
-      var name = window.prompt("Tên sản phẩm cụ thể (mô tả, có thể để trống)", "") || "";
       closeProductPopover();
       if (!store || !store.productUpsert) return;
-      store
-        .productUpsert(leadCrmId(lead) || lead.id, group, name)
-        .then(function () {
-          refreshListBody();
-        })
-        .catch(function (err) {
-          window.alert(typeof err === "string" ? err : (err && err.message) || "Không gắn được sản phẩm.");
-        });
+      var helper = window.app && app.helper ? app.helper : null;
+      var ask = helper && helper.showPromptBox
+        ? helper.showPromptBox({
+            title: "Sản phẩm",
+            message: "Tên sản phẩm cụ thể",
+            placeholder: "Có thể để trống",
+            confirmLabel: "Gắn",
+          })
+        : Promise.resolve("");
+      ask.then(function (name) {
+        store
+          .productUpsert(leadCrmId(lead) || lead.id, group, name || "")
+          .then(function () {
+            refreshListBody();
+          })
+          .catch(function (err) {
+            var msg = typeof err === "string" ? err : (err && err.message) || "Không gắn được sản phẩm.";
+            if (helper && helper.showErrorNotification) helper.showErrorNotification({ message: msg });
+          });
+      });
     });
   }
 

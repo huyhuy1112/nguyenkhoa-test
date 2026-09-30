@@ -3943,14 +3943,28 @@
       if (this.value !== "__search__") {
         return;
       }
-      var custom = window.prompt("Nhập đơn vị:", "Đơn vị");
-      if (custom && String(custom).trim()) {
-        custom = String(custom).trim();
-        ensureUnitOptionOnSelect($sel, custom);
-        $sel.val(custom);
-      } else {
-        $sel.val("");
+      var $unitSelect = $sel;
+      var helper = window.app && app.helper ? app.helper : null;
+      if (!helper || !helper.showPromptBox) {
+        $unitSelect.val("");
+        return;
       }
+      helper.showPromptBox({
+        title: "Đơn vị",
+        message: "Nhập đơn vị",
+        placeholder: "Đơn vị",
+        confirmLabel: "Dùng",
+      }).then(function (custom) {
+        custom = String(custom || "").trim();
+        if (custom) {
+          ensureUnitOptionOnSelect($unitSelect, custom);
+          $unitSelect.val(custom);
+        } else {
+          $unitSelect.val("");
+        }
+      }, function () {
+        $unitSelect.val("");
+      });
     });
   }
 
