@@ -710,6 +710,49 @@ tr.is-clickable-row:hover {
 
 
 
+.mk-admin-kpi-stagebar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-top: 18px;
+	padding: 8px;
+	background: #fff;
+	border: 1px solid var(--mk-kpi-line);
+	border-bottom: 0;
+	border-radius: 16px 16px 0 0;
+}
+.mk-admin-kpi-stagebar__tabs,
+.mk-admin-kpi-stagebar__period {
+	display: flex;
+	gap: 2px;
+	padding: 3px;
+	background: #f1f5f9;
+	border-radius: 12px;
+}
+.mk-admin-kpi-stagebar .mk-admin-kpi-mode-btn {
+	border: 0;
+	background: transparent;
+	border-radius: 9px;
+	padding: 7px 14px;
+	color: #475569;
+}
+.mk-admin-kpi-stagebar .mk-admin-kpi-mode-btn.is-active {
+	background: #fff;
+	color: #0f172a;
+	border-color: transparent;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+.mk-admin-kpi-stage-stack {
+	margin-bottom: 16px;
+}
+.mk-admin-kpi-stage-stack > .mk-admin-kpi-panel {
+	margin-top: 0;
+	border-top: 0;
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+}
+
 /* Offline GD1.1 / Online GD1.2 + chart polish */
 .mk-admin-kpi-panel--offline {
 	margin-top: 14px;

@@ -49,19 +49,20 @@
 
 		<section class="mk-admin-kpi-drill" id="mkAdminKpiDrill" hidden aria-live="polite"></section>
 
-		<div class="mk-admin-kpi-panel-head">
-			<h2 class="mk-admin-kpi-panel-title">Chỉ số ba giai đoạn</h2>
-			<div class="mk-admin-kpi-chart-filters" id="mkAdminKpiStagePick">
+		<div class="mk-admin-kpi-stagebar">
+			<div class="mk-admin-kpi-stagebar__tabs" id="mkAdminKpiStagePick">
 				<button type="button" class="mk-admin-kpi-mode-btn is-active" data-stage-panel="offline">Offline</button>
 				<button type="button" class="mk-admin-kpi-mode-btn" data-stage-panel="online">Online</button>
+				<button type="button" class="mk-admin-kpi-mode-btn" data-stage-panel="gd14">990k</button>
 				<button type="button" class="mk-admin-kpi-mode-btn" data-stage-panel="nl">Nguyên liệu</button>
 			</div>
-			<div class="mk-admin-kpi-chart-filters" id="mkAdminKpiStagePeriod">
+			<div class="mk-admin-kpi-stagebar__period" id="mkAdminKpiStagePeriod">
 				<button type="button" class="mk-admin-kpi-mode-btn is-active" data-stage-period="month">Tháng</button>
 				<button type="button" class="mk-admin-kpi-mode-btn" data-stage-period="quarter">Quý</button>
 				<button type="button" class="mk-admin-kpi-mode-btn" data-stage-period="year">Năm</button>
 			</div>
 		</div>
+		<div class="mk-admin-kpi-stage-stack">
 
 		{* Offline GD 1.1 *}
 		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--offline" id="mkAdminKpiOffline">
@@ -108,6 +109,7 @@
 			</div>
 			<div id="mkAdminKpiNlBody"><div class="mk-admin-kpi-detail-loading">Đang tải…</div></div>
 		</section>
+		</div>
 
 		<div class="mk-admin-kpi-stages">
 			<section class="mk-admin-kpi-panel" id="mkAdminKpiFunnel">
