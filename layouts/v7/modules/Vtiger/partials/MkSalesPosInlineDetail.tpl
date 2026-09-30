@@ -138,6 +138,22 @@
 	{/if}
 
 	{if $MODULE eq 'Leads' || $MODULE eq 'ServiceContracts' || $MODULE eq 'Potentials' || $MODULE eq 'Contacts'}
+		{if $MODULE eq 'Contacts' && $NL_METRICS}
+			<div class="mk-so-inline-detail__notes">
+				<h3 class="mk-so-inline-detail__sec-title">Chỉ số nguyên liệu</h3>
+				<ul style="list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;">
+					<li>Tổng đã mua <strong>{$NL_METRICS.ct01|escape}</strong></li>
+					<li>Mua 90 ngày <strong>{$NL_METRICS.ct02|escape}</strong></li>
+					<li>Số đơn <strong>{$NL_METRICS.ct03|escape}</strong></li>
+					<li>Đơn trung bình <strong>{$NL_METRICS.ct04|escape}</strong></li>
+					<li>Mua gần nhất <strong>{$NL_METRICS.ct05|escape}</strong></li>
+					<li>Kỳ mua lại <strong>{$NL_METRICS.ct07|escape}</strong></li>
+					<li>Chưa giao xong <strong>{$NL_METRICS.ct08|escape}</strong></li>
+					<li>Vòng đời <strong>{$NL_METRICS.ct09_life|escape}</strong></li>
+					<li>Hạng <strong>{$NL_METRICS.ct09_tier|escape}</strong></li>
+				</ul>
+			</div>
+		{/if}
 		{if ($MODULE eq 'Leads' || $MODULE eq 'Contacts') && !empty($MK_CARE_LOG)}
 			<div class="mk-so-inline-detail__notes">
 				<h3 class="mk-so-inline-detail__sec-title">Lịch sử chăm sóc</h3>

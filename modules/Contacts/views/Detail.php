@@ -162,6 +162,12 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 			$viewer->assign('MK_CARE_LOG', array());
 		}
 		try {
+			require_once 'modules/HelpDesk/models/MaterialAlertService.php';
+			$viewer->assign('NL_METRICS', HelpDesk_MaterialAlertService::contactMetrics($recordId));
+		} catch (Exception $e) {
+			$viewer->assign('NL_METRICS', null);
+		}
+		try {
 			require_once 'modules/Leads/models/SalesVerifyService.php';
 			$viewer->assign('MK_VERIFY_LINES', Leads_SalesVerifyService::verificationLines('Contacts', $recordId));
 		} catch (Exception $e) {

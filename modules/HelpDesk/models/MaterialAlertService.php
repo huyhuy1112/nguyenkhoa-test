@@ -209,7 +209,246 @@ class HelpDesk_MaterialAlertService {
 				}
 			}
 		}
+		$opened += self::scanTasksAndOpps($adb);
+		$opened += self::scanFirstContact($adb, $settings);
+		$opened += self::scanStudiedNotBought($adb, $settings);
+		$opened += self::scanReorderAndDrop($adb, $settings);
 		return array('opened' => $opened);
+	}
+
+	protected static function scanTasksAndOpps($adb) {
+		$opened = 0;
+		try {
+			$tasks = $adb->pquery(
+				"SELECT rel.contactid, act.subject, act.date_start
+				 FROM vtiger_activity act
+				 INNER JOIN vtiger_crmentity ce ON ce.crmid = act.activityid AND ce.deleted = 0
+				 INNER JOIN vtiger_cntactivityrel rel ON rel.activityid = act.activityid
+				 WHERE rel.contactid > 0 AND act.date_start < CURDATE()
+				   AND (act.eventstatus IS NULL OR act.eventstatus NOT IN ('Held','Cancelled'))
+				   AND (act.status IS NULL OR act.status NOT IN ('Completed','Cancelled'))
+				 LIMIT 60",
+				array()
+			);
+			if ($tasks) {
+				while ($row = $adb->fetchByAssoc($tasks)) {
+					if (self::openAlert((int) $row['contactid'], 'NL03', 'Nhiệm vụ quá hạn', $row['subject'] . ' · ' . $row['date_start'])) {
+						$opened++;
+					}
+				}
+			}
+		} catch (Exception $e) {
+			// bảng lịch chưa đủ
+		}
+		try {
+			$opps = $adb->pquery(
+				"SELECT p.potentialid, p.potentialname, p.contact_id
+				 FROM vtiger_potential p
+				 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid AND ce.deleted = 0
+				 WHERE p.contact_id > 0
+				   AND p.sales_stage NOT IN ('Closed Won','Closed Lost')
+				   AND NOT EXISTS (
+						SELECT 1 FROM vtiger_seactivityrel sr
+						INNER JOIN vtiger_activity a ON a.activityid = sr.activityid
+						INNER JOIN vtiger_crmentity ace ON ace.crmid = a.activityid AND ace.deleted = 0
+						WHERE sr.crmid = p.potentialid
+						  AND (a.eventstatus IS NULL OR a.eventstatus NOT IN ('Held','Cancelled'))
+						  AND (a.status IS NULL OR a.status NOT IN ('Completed','Cancelled'))
+				   )
+				 LIMIT 40",
+				array()
+			);
+			if ($opps) {
+				while ($row = $adb->fetchByAssoc($opps)) {
+					if (self::openAlert((int) $row['contact_id'], 'NL04', 'Cơ hội đang mở, chưa có bước tiếp', $row['potentialname'])) {
+						$opened++;
+					}
+				}
+			}
+		} catch (Exception $e) {
+			// cơ hội chưa đủ bảng
+		}
+		return $opened;
+	}
+
+	protected static function scanFirstContact($adb, array $settings) {
+		$hours = self::numSetting($settings, 'sla_first_contact_hours');
+		if ($hours === null) {
+			return 0;
+		}
+		$opened = 0;
+		$res = $adb->pquery(
+			"SELECT cd.contactid, ce.createdtime
+			 FROM vtiger_contactdetails cd
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid AND ce.deleted = 0 AND ce.setype = 'Contacts'
+			 WHERE ce.createdtime < DATE_SUB(NOW(), INTERVAL " . (int) $hours . " HOUR)
+			   AND NOT EXISTS (
+					SELECT 1 FROM vtiger_cntactivityrel rel
+					INNER JOIN vtiger_activity act ON act.activityid = rel.activityid
+					INNER JOIN vtiger_crmentity ace ON ace.crmid = act.activityid AND ace.deleted = 0
+					WHERE rel.contactid = cd.contactid AND act.activitytype = 'Call'
+			   )
+			 ORDER BY ce.createdtime DESC
+			 LIMIT 40",
+			array()
+		);
+		if ($res) {
+			while ($row = $adb->fetchByAssoc($res)) {
+				if (self::openAlert((int) $row['contactid'], 'NL01', 'Khách mới chưa được liên hệ', 'Tạo hồ sơ ' . $row['createdtime'])) {
+					$opened++;
+				}
+			}
+		}
+		return $opened;
+	}
+
+	protected static function scanStudiedNotBought($adb, array $settings) {
+		$days = self::numSetting($settings, 'follow_after_class_days');
+		if ($days === null) {
+			return 0;
+		}
+		$opened = 0;
+		$res = $adb->pquery(
+			"SELECT fo.object_id AS contactid, ce.createdtime
+			 FROM vtiger_freetagged_objects fo
+			 INNER JOIN vtiger_freetags t ON t.id = fo.tag_id
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = fo.object_id AND ce.deleted = 0 AND ce.setype = 'Contacts'
+			 WHERE LOWER(t.tag) IN ('da_tham_gia','mien_phi_offline','mien_phi_online','offline_da_tham_gia','gd14_da_tham_gia')
+			   AND ce.createdtime < DATE_SUB(NOW(), INTERVAL " . (int) $days . " DAY)
+			 LIMIT 40",
+			array()
+		);
+		if ($res) {
+			while ($row = $adb->fetchByAssoc($res)) {
+				$metrics = self::contactMetrics((int) $row['contactid']);
+				if ((int) $metrics['valid_orders'] > 0) {
+					continue;
+				}
+				if (self::openAlert((int) $row['contactid'], 'NL02', 'Đã học nhưng chưa mua nguyên liệu', 'Chưa có đơn giao xong')) {
+					$opened++;
+				}
+			}
+		}
+		return $opened;
+	}
+
+	protected static function scanReorderAndDrop($adb, array $settings) {
+		$lead = self::numSetting($settings, 'reorder_lead_days');
+		$grace = self::numSetting($settings, 'reorder_grace_days');
+		$drop = self::numSetting($settings, 'drop_ratio');
+		if ($lead === null && $grace === null && $drop === null) {
+			return 0;
+		}
+		$opened = 0;
+		$res = $adb->pquery(
+			"SELECT so.contactid, COUNT(*) AS n
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 WHERE so.contactid > 0 AND so.sostatus = 'Delivered'
+			 GROUP BY so.contactid
+			 HAVING n >= 2
+			 LIMIT 40",
+			array()
+		);
+		if (!$res) {
+			return 0;
+		}
+		while ($row = $adb->fetchByAssoc($res)) {
+			$contactId = (int) $row['contactid'];
+			$orders = self::ordersForContact($contactId);
+			$valid = array();
+			foreach ($orders as $order) {
+				if (self::isDelivered(strtolower($order['status']))) {
+					$valid[] = $order;
+				}
+			}
+			if (count($valid) === 2) {
+				self::logOnce('Contacts', $contactId, 'KD01', 'Mua lần hai', 'Đã có đơn giao xong thứ hai');
+			}
+			$gap = self::medianGap($valid);
+			if ($gap !== null && !empty($valid)) {
+				$age = (int) floor((time() - $valid[0]['ts']) / 86400);
+				if ($grace !== null && $age > $gap + $grace) {
+					if (self::openAlert($contactId, 'NL09', 'Quá kỳ mua lại', 'Cách lần mua trước ' . $age . ' ngày, kỳ điển hình ' . $gap . ' ngày')) {
+						$opened++;
+					}
+				} elseif ($lead !== null && $age >= max(0, $gap - $lead)) {
+					if (self::openAlert($contactId, 'NL08', 'Sắp đến kỳ mua lại', 'Cách lần mua trước ' . $age . ' ngày, kỳ điển hình ' . $gap . ' ngày')) {
+						$opened++;
+					}
+				}
+			}
+			if ($drop !== null && count($valid) >= 4) {
+				$now = time();
+				$recent = self::sumSince($valid, $now - 90 * 86400);
+				$prior = 0;
+				foreach ($valid as $order) {
+					if ($order['ts'] < $now - 90 * 86400 && $order['ts'] >= $now - 180 * 86400) {
+						$prior += $order['total'];
+					}
+				}
+				if ($prior > 0 && ($prior - $recent) / $prior >= $drop) {
+					if (self::openAlert($contactId, 'NL10', 'Doanh thu mua giảm bất thường', '90 ngày này ' . self::money($recent) . ', 90 ngày trước ' . self::money($prior))) {
+						$opened++;
+					}
+				}
+				$opened += self::scanSkuDrop($adb, $contactId, $drop);
+			}
+		}
+		return $opened;
+	}
+
+	protected static function scanSkuDrop($adb, $contactId, $drop) {
+		$res = $adb->pquery(
+			"SELECT ipr.productid, ipr.quantity, ce.createdtime
+			 FROM vtiger_inventoryproductrel ipr
+			 INNER JOIN vtiger_salesorder so ON so.salesorderid = ipr.id
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 WHERE so.contactid = ? AND so.sostatus = 'Delivered'",
+			array($contactId)
+		);
+		if (!$res) {
+			return 0;
+		}
+		$now = time();
+		$recent = array();
+		$prior = array();
+		while ($row = $adb->fetchByAssoc($res)) {
+			$ts = strtotime((string) $row['createdtime']);
+			$pid = (int) $row['productid'];
+			$qty = (float) $row['quantity'];
+			if ($ts >= $now - 90 * 86400) {
+				$recent[$pid] = (isset($recent[$pid]) ? $recent[$pid] : 0) + $qty;
+			} elseif ($ts >= $now - 180 * 86400) {
+				$prior[$pid] = (isset($prior[$pid]) ? $prior[$pid] : 0) + $qty;
+			}
+		}
+		foreach ($prior as $pid => $oldQty) {
+			if ($oldQty <= 0) {
+				continue;
+			}
+			$newQty = isset($recent[$pid]) ? $recent[$pid] : 0;
+			if (($oldQty - $newQty) / $oldQty >= $drop) {
+				if (self::openAlert($contactId, 'NL11', 'Một mặt hàng mua ít đi', 'Sản phẩm #' . $pid)) {
+					return 1;
+				}
+			}
+		}
+		return 0;
+	}
+
+	protected static function logOnce($module, $recordId, $step, $result, $note) {
+		require_once 'modules/Vtiger/models/CareActivityService.php';
+		Vtiger_CareActivityService::install();
+		$adb = PearDatabase::getInstance();
+		$exists = $adb->pquery(
+			'SELECT id FROM mk_care_activity WHERE module = ? AND record_id = ? AND step_code = ? LIMIT 1',
+			array($module, (int) $recordId, $step)
+		);
+		if ($exists && $adb->num_rows($exists) > 0) {
+			return;
+		}
+		Vtiger_CareActivityService::log($module, $recordId, $step, $result, $note);
 	}
 
 	public static function listAlerts($status = '') {
