@@ -222,6 +222,12 @@ class Leads_LastTouchCallService {
 			 VALUES (?,?,?,?,?,?,?,?)',
 			array($leadId, $callN, $now, $result, $note !== '' ? $note : null, $activityId, (int)$userId, $now)
 		);
+		try {
+			require_once 'modules/Vtiger/models/CareActivityService.php';
+			Vtiger_CareActivityService::log('Leads', $leadId, 'Last Touch', 'Call #' . $callN . ' · ' . $result, $note, $userId);
+		} catch (Exception $e) {
+			// ignore
+		}
 		$logId = (int)$adb->getLastInsertID();
 
 		self::bumpLastTouch($leadId, $now);

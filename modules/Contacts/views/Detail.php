@@ -156,6 +156,12 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 		$viewer->assign('INLINE_SHOW_CLASS_REG', false);
 		$viewer->assign('INLINE_LAST_TOUCH', $lastTouch);
 		try {
+			require_once 'modules/Vtiger/models/CareActivityService.php';
+			$viewer->assign('MK_CARE_LOG', Vtiger_CareActivityService::listFor('Contacts', $recordId));
+		} catch (Exception $e) {
+			$viewer->assign('MK_CARE_LOG', array());
+		}
+		try {
 			require_once 'modules/Leads/models/SalesVerifyService.php';
 			$viewer->assign('MK_VERIFY_LINES', Leads_SalesVerifyService::verificationLines('Contacts', $recordId));
 		} catch (Exception $e) {

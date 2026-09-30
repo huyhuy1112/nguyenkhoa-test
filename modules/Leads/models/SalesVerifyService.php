@@ -334,8 +334,21 @@ class Leads_SalesVerifyService {
 		self::storeGd14Extra($adb, $leadId, $extra);
 		$tag = $outcomeTags[$outcome];
 		self::replaceGd14Tag($leadId, $tag, $userId);
-		$lead = Leads_ModernService::getLead($leadId, $userId > 0 ? $userId : null);
 		$labels = self::gd14TagCatalog();
+		try {
+			require_once 'modules/Vtiger/models/CareActivityService.php';
+			Vtiger_CareActivityService::log(
+				'Leads',
+				$leadId,
+				'990k',
+				isset($labels[$tag]) ? $labels[$tag] : $tag,
+				'',
+				$userId
+			);
+		} catch (Exception $e) {
+			// ignore
+		}
+		$lead = Leads_ModernService::getLead($leadId, $userId > 0 ? $userId : null);
 		return array(
 			'success' => true,
 			'lead' => $lead,

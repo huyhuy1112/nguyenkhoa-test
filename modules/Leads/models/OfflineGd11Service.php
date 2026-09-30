@@ -855,6 +855,19 @@ class Leads_OfflineGd11Service {
 
 		$lead = Leads_ModernService::getLead((string) $leadId, $userId);
 		$labels = self::statusLabels();
+		try {
+			require_once 'modules/Vtiger/models/CareActivityService.php';
+			Vtiger_CareActivityService::log(
+				'Leads',
+				$leadId,
+				$drop !== '' ? $drop : $status,
+				isset($labels[$status]) ? $labels[$status] : $status,
+				$classDate !== '' ? 'Lịch: ' . $classDate : '',
+				$userId
+			);
+		} catch (Exception $e) {
+			// lịch sử không được chặn thao tác chăm sóc
+		}
 		$out = array(
 			'success' => true,
 			'status' => $status,
@@ -1212,13 +1225,16 @@ class Leads_OfflineGd11Service {
 			return array('success' => false, 'error' => 'Thiếu lead id');
 		}
 		require_once 'modules/Vtiger/models/NotificationSchedule.php';
-		Vtiger_NotificationSchedule::cancelBySourcePrefix('r1_lead_' . $leadId);
+		require_once 'modules/Vtiger/models/CareActivityService.php';
 
 		if ($action === 'hen_goi_lai' || $action === 'callback') {
-			return self::applyAction($leadId, 'hen_goi_lai', array(), $userId);
+			$saved = self::applyAction($leadId, 'hen_goi_lai', array(), $userId);
+			if (!empty($saved['success'])) {
+				Vtiger_NotificationSchedule::cancelBySourcePrefix('r1_lead_' . $leadId);
+			}
+			return $saved;
 		}
 		if ($action === 'da_xac_nhan' || $action === 'confirmed' || $action === 'answered') {
-			// Thoát vòng R1: gắn hint next action, không + counter.
 			require_once 'modules/Leads/models/ModernService.php';
 			try {
 				Leads_ModernService::updateNextAction($leadId, 'Đã nhận máy — xác minh 3 câu / xếp lịch R2');
@@ -1229,6 +1245,8 @@ class Leads_OfflineGd11Service {
 					array('Đã nhận máy — xác minh 3 câu / xếp lịch R2', date('Y-m-d H:i:s'), $leadId)
 				);
 			}
+			Vtiger_CareActivityService::log('Leads', $leadId, 'R1', 'Đã xác nhận đã gọi / nhận máy', '', $userId);
+			Vtiger_NotificationSchedule::cancelBySourcePrefix('r1_lead_' . $leadId);
 			$lead = Leads_ModernService::getLead((string) $leadId, $userId);
 			return array(
 				'success' => true,

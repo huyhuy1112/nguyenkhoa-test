@@ -138,6 +138,20 @@
 	{/if}
 
 	{if $MODULE eq 'Leads' || $MODULE eq 'ServiceContracts' || $MODULE eq 'Potentials' || $MODULE eq 'Contacts'}
+		{if ($MODULE eq 'Leads' || $MODULE eq 'Contacts') && !empty($MK_CARE_LOG)}
+			<div class="mk-so-inline-detail__notes">
+				<h3 class="mk-so-inline-detail__sec-title">Lịch sử chăm sóc</h3>
+				<ul style="list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;">
+					{foreach from=$MK_CARE_LOG item=CARE}
+						<li style="background:#f8fafc;border-radius:8px;padding:8px 10px;font-size:13px;">
+							<strong>{$CARE.result|escape}</strong>
+							<span style="color:#64748b;"> · {$CARE.step|escape} · {$CARE.user|escape} · {$CARE.at|escape}</span>
+							{if $CARE.note neq ''}<div>{$CARE.note|escape}</div>{/if}
+						</li>
+					{/foreach}
+				</ul>
+			</div>
+		{/if}
 		{assign var=LT value=$INLINE_LAST_TOUCH|default:[]}
 		{assign var=LT_CAN_ADD value=true}
 		{if isset($LT.can_add) && empty($LT.can_add)}{assign var=LT_CAN_ADD value=false}{/if}

@@ -271,12 +271,30 @@ class HelpDesk_MaterialAlertService {
 			throw new Exception('Không áp dụng cần lý do.');
 		}
 		$closed = in_array($next, array('done', 'na'), true) ? date('Y-m-d H:i:s') : null;
+		$row = $adb->pquery('SELECT code, contact_id, title FROM mk_nl_alerts WHERE id = ?', array($id));
 		$adb->pquery(
 			'UPDATE mk_nl_alerts
 			 SET status = ?, result_note = ?, evidence_ref = ?, next_task = ?, next_due = ?, snooze_until = ?, closed_at = ?
 			 WHERE id = ?',
 			array($next, $note, $evidence, $task, $due !== '' ? $due : null, $snooze !== '' ? $snooze : null, $closed, $id)
 		);
+		if ($row && $adb->num_rows($row) > 0) {
+			require_once 'modules/Vtiger/models/CareActivityService.php';
+			$labels = array(
+				'accepted' => 'Đã nhận việc',
+				'working' => 'Đang xử lý',
+				'done' => 'Hoàn thành',
+				'snoozed' => 'Tạm hoãn',
+				'na' => 'Không áp dụng',
+			);
+			Vtiger_CareActivityService::log(
+				'Contacts',
+				(int) $adb->query_result($row, 0, 'contact_id'),
+				(string) $adb->query_result($row, 0, 'code'),
+				isset($labels[$next]) ? $labels[$next] : $next,
+				trim($note . ($evidence !== '' ? ' · ' . $evidence : ''))
+			);
+		}
 		return true;
 	}
 
