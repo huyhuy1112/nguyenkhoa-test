@@ -2666,6 +2666,64 @@
     }
   }
 
+  function closeMisaFloatMenu() {
+    $(".mk-so-inline-detail__confirm-menu.is-floating").each(function () {
+      var $menu = $(this);
+      var $home = $menu.data("mkHome");
+      $menu.removeClass("is-floating").removeAttr("style");
+      if (
+        $home &&
+        $home.length &&
+        !$home.children(".mk-so-inline-detail__confirm-menu").length
+      ) {
+        $home.append($menu);
+      }
+      if ($home && $home.length) {
+        $home.removeClass("open");
+      }
+    });
+  }
+
+  function openMisaFloatMenu($btn) {
+    var $split = $btn.closest(".mk-so-inline-detail__confirm-split");
+    var $menu = $split.children(".mk-so-inline-detail__confirm-menu");
+    if (!$menu.length || !$btn.length || !$btn[0].getBoundingClientRect) {
+      return;
+    }
+    if ($menu.hasClass("is-floating")) {
+      closeMisaFloatMenu();
+      return;
+    }
+    closeMisaFloatMenu();
+    var rect = $btn[0].getBoundingClientRect();
+    $menu.data("mkHome", $split);
+    $(document.body).append($menu);
+    $menu.addClass("is-floating").css({
+      display: "block",
+      position: "fixed",
+      visibility: "hidden",
+      top: 0,
+      left: 0,
+      margin: 0,
+      zIndex: 20000,
+    });
+    var width = $menu.outerWidth() || 240;
+    var height = $menu.outerHeight() || 44;
+    var left = rect.left;
+    if (left + width > window.innerWidth - 8) {
+      left = Math.max(8, rect.right - width);
+    }
+    var top = rect.top - height - 8;
+    if (top < 8) {
+      top = rect.bottom + 8;
+    }
+    $menu.css({
+      visibility: "visible",
+      top: top,
+      left: left,
+    });
+  }
+
   function bindPosInlineDetailCapture() {
     if (
       document.documentElement.getAttribute("data-mk-so-inline-detail-bound")
@@ -2729,10 +2787,39 @@
       );
 
     $(document)
+      .off(
+        "click.mkSoMisaMenu",
+        ".mk-so-inline-detail__confirm-caret, .mk-so-inline-detail__misa-standalone-btn",
+      )
+      .on(
+        "click.mkSoMisaMenu",
+        ".mk-so-inline-detail__confirm-caret, .mk-so-inline-detail__misa-standalone-btn",
+        function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          openMisaFloatMenu($(this));
+        },
+      );
+
+    $(document)
+      .off("click.mkSoMisaMenuClose")
+      .on("click.mkSoMisaMenuClose", function (e) {
+        if (
+          $(e.target).closest(
+            ".mk-so-inline-detail__confirm-menu, .mk-so-inline-detail__confirm-caret, .mk-so-inline-detail__misa-standalone-btn",
+          ).length
+        ) {
+          return;
+        }
+        closeMisaFloatMenu();
+      });
+
+    $(document)
       .off("click.mkSoMisa", ".mk-so-inline-detail__misa-btn")
       .on("click.mkSoMisa", ".mk-so-inline-detail__misa-btn", function (e) {
         e.preventDefault();
         e.stopPropagation();
+        closeMisaFloatMenu();
         var $link = $(this);
         var $panel = $link.closest(".mk-so-inline-detail");
         var recordId =
