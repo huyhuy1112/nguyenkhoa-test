@@ -2631,6 +2631,21 @@ body[data-view="List"][data-app="SALES"] .bootbox.mk-quote-convert-modal .modal-
 #mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__confirm-split {
 	order: -20;
 	flex: 1 1 100%;
+	position: relative;
+	overflow: visible;
+	z-index: 8;
+}
+#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__confirm-split.open {
+	z-index: 40;
+}
+#mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__confirm-split.open > .mk-so-inline-detail__confirm-menu {
+	display: block;
+	top: auto;
+	bottom: calc(100% + 6px);
+	left: 0;
+	right: auto;
+	margin: 0;
+	z-index: 41;
 }
 
 #mk-crm-inline-drawer .mk-so-inline-detail--drawer .mk-so-inline-detail__cancel-order-btn,

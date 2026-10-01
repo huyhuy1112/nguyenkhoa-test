@@ -65,7 +65,7 @@ window.__mkSoToolsListConfig.statusHeaderLabel = window.__mkSoSalesListConfig.st
 {if $MK_SO_IS_TOOLS}
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/SalesOrder/resources/ListToolsBoot.js')}?mk_v=20260605_so_tools2"></script>
 {else}
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260821_panel1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20261001_misamenu1" />
 <script type="text/javascript">
 window.__mkSalesPosInlineConfig = {
 	module: 'SalesOrder',
