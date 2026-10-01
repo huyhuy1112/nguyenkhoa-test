@@ -1768,7 +1768,64 @@
         "&app=SALES";
     });
 
-    /* Confirm order: handled by document delegation in bindPosInlineDetailCapture */
+    $panel[0].addEventListener(
+      "click",
+      function (ev) {
+        var btn =
+          ev.target && ev.target.closest
+            ? ev.target.closest(
+                ".mk-so-inline-detail__confirm-order-btn, .mk-so-inline-detail__cancel-order-btn, .mk-so-inline-detail__misa-btn",
+              )
+            : null;
+        if (!btn || !$panel[0].contains(btn)) {
+          return;
+        }
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (ev.stopImmediatePropagation) {
+          ev.stopImmediatePropagation();
+        }
+        var $btn = $(btn);
+        if ($btn.data("mkBusy")) {
+          return;
+        }
+        var id = String(
+          recordId ||
+            $panel.attr("data-record-id") ||
+            $btn.attr("data-record-id") ||
+            "",
+        );
+        if (!id) {
+          showOrderActionConfirm({
+            title: "Không mở được",
+            question: "Không tìm thấy mã đơn hàng.",
+            hint: "Đóng panel rồi mở lại đơn.",
+            icon: "fa-exclamation-circle",
+          });
+          return;
+        }
+        if ($btn.hasClass("mk-so-inline-detail__confirm-order-btn")) {
+          showOrderActionConfirm({
+            title: "Xác nhận đơn hàng",
+            question: "Xác nhận đơn hàng này?",
+            hint: "Sau khi xác nhận, chọn kho để tạo phiếu xuất kho.",
+            icon: "fa-check",
+          }).then(
+            function () {
+              confirmSalesOrderWithWarehouse($panel, id, $btn);
+            },
+            function () {},
+          );
+          return;
+        }
+        if ($btn.hasClass("mk-so-inline-detail__cancel-order-btn")) {
+          cancelSalesOrder($panel, id, $btn);
+          return;
+        }
+        transferSalesOrderToMisa(id, $btn);
+      },
+      true,
+    );
 
     $panel.on("click", ".mk-so-inline-detail__cancel-edit", function (e) {
       e.preventDefault();
