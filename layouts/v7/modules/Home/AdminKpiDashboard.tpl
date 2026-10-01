@@ -62,13 +62,6 @@
 			<div class="mk-admin-kpi-grid" id="mkAdminKpiCourse" role="list">
 				<div class="mk-admin-kpi-detail-loading">Đang tải…</div>
 			</div>
-			<h3 class="mk-admin-kpi-panel-title">Mở báo cáo chi tiết</h3>
-			<div class="mk-admin-kpi-stagebar__tabs">
-				<button type="button" class="mk-admin-kpi-card" data-stage-panel="offline" data-tone="emerald"><span class="mk-admin-kpi-card-label">Offline miễn phí</span></button>
-				<button type="button" class="mk-admin-kpi-card" data-stage-panel="online" data-tone="blue"><span class="mk-admin-kpi-card-label">Online</span></button>
-				<button type="button" class="mk-admin-kpi-card" data-stage-panel="gd14" data-tone="violet"><span class="mk-admin-kpi-card-label">990k</span></button>
-				<button type="button" class="mk-admin-kpi-card" data-stage-panel="nl" data-tone="amber"><span class="mk-admin-kpi-card-label">Nguyên liệu</span></button>
-			</div>
 		</section>
 
 		<div class="mk-admin-kpi-stagebar">

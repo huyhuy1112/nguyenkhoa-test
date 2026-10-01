@@ -213,7 +213,7 @@ class Home_AdminKpiService {
 		);
 	}
 
-	public static function getCompanyOverview() {
+	public static function getCompanyOverview(array $offline = array(), array $online = array(), array $gd14 = array()) {
 		$db = PearDatabase::getInstance();
 		$cal = self::businessCalendar($db);
 		$revenue = self::sumSoRevenueBetween($db, $cal['month_start'], $cal['month_end']);
@@ -222,29 +222,64 @@ class Home_AdminKpiService {
 		$previous = self::sumSoRevenueBetween($db, $prevStart, $prevEnd);
 		$delta = $previous > 0
 			? round((($revenue - $previous) / $previous) * 100, 1) . '%'
-			: 'Chưa đủ dữ liệu';
+			: '0%';
+		$split = self::revenueByProduct('month');
+		$byKey = array();
+		foreach ((isset($split['items']) ? $split['items'] : array()) as $item) {
+			$byKey[$item['key']] = isset($item['amount']) ? (float) $item['amount'] : 0;
+		}
+		$payers = self::countPayingCustomers($cal['month_start'], $cal['month_end']);
+		$avg = $payers > 0 ? self::formatMoney($revenue / $payers) : '0';
 		return array(
 			'business' => array(
 				self::reportCard('Tổng giá trị bán trong tháng', self::formatMoney($revenue), 'Đơn chưa hủy'),
 				self::reportCard('Biến động so với tháng trước', $delta),
-				self::reportCard('Giá trị khóa học có phí', 'Chưa đủ dữ liệu'),
-				self::reportCard('Nguyên liệu đã giao xong', 'Chưa đủ dữ liệu'),
-				self::reportCard('Giá trị nhượng quyền', 'Chưa đủ dữ liệu', 'Không cộng lại đơn nguyên liệu'),
+				self::reportCard('Giá trị khóa học có phí', self::formatMoney(isset($byKey['course']) ? $byKey['course'] : 0)),
+				self::reportCard('Giá trị nguyên liệu', self::formatMoney(isset($byKey['ingredient']) ? $byKey['ingredient'] : 0)),
+				self::reportCard('Giá trị nhượng quyền', self::formatMoney(isset($byKey['franchise']) ? $byKey['franchise'] : 0)),
 				self::reportCard('Hợp đồng nhượng quyền', (string) self::countServiceContracts($db)),
-				self::reportCard('Đã thu tiền, chưa giao xong', 'Chưa đủ dữ liệu'),
-				self::reportCard('Số khách trả tiền', 'Chưa đủ dữ liệu'),
-				self::reportCard('Giá trị bình quân / khách', 'Chưa đủ dữ liệu'),
-				self::reportCard('Mức đạt mục tiêu', 'Chưa đủ dữ liệu'),
+				self::reportCard('Đơn đang xử lý', (string) self::countOrdersProcessing($db)),
+				self::reportCard('Số khách trả tiền', (string) $payers),
+				self::reportCard('Giá trị bình quân / khách', $avg),
+				self::reportCard('Mức đạt mục tiêu', 'Chưa đủ dữ liệu', 'Chưa có mục tiêu được duyệt trên CRM'),
 			),
 			'courses' => array(
-				self::reportCard('Khách đăng ký lớp miễn phí', 'Xem bảng Offline'),
-				self::reportCard('Khách đủ điều kiện', 'Xem bảng Offline / 990k'),
-				self::reportCard('Khách được xếp lịch', 'Xem bảng Offline'),
-				self::reportCard('Khách tham gia học', 'Xem bảng Offline'),
-				self::reportCard('Khách mua khóa có phí', 'Chưa đủ dữ liệu'),
-				self::reportCard('Chuyển từ học sang mua nguyên liệu', 'Chưa đủ dữ liệu'),
+				self::reportCard('Khách trong luồng Offline', (string) self::boardCount($offline, 'Trong luồng Offline')),
+				self::reportCard('Đã xác nhận lịch Offline', (string) self::boardCount($offline, 'Đã xác nhận lịch')),
+				self::reportCard('Đã tham gia Offline', (string) self::boardCount($offline, 'Đã tham gia')),
+				self::reportCard('Khách Online trong kỳ', (string) self::boardCount($online, 'Vào Zalo OA')),
+				self::reportCard('Online đã điền form', (string) self::boardCount($online, 'Đã điền form')),
+				self::reportCard('Hồ sơ 990k trong kỳ', (string) self::boardCount($gd14, 'Hồ sơ 990k trong kỳ')),
 			),
 		);
+	}
+
+	protected static function boardCount(array $board, $label) {
+		if (empty($board['stages']) || !is_array($board['stages'])) {
+			return 0;
+		}
+		foreach ($board['stages'] as $stage) {
+			if (isset($stage['label']) && $stage['label'] === $label) {
+				return isset($stage['count']) ? (int) $stage['count'] : 0;
+			}
+		}
+		return 0;
+	}
+
+	protected static function countPayingCustomers($from, $to) {
+		$db = PearDatabase::getInstance();
+		list($notCancelSql, $excluded) = self::soNotCancelledSql('so');
+		$params = array_merge($excluded, array($from, $to));
+		$r = $db->pquery(
+			"SELECT COUNT(DISTINCT IF(so.contactid > 0, CONCAT('c', so.contactid), CONCAT('a', so.accountid))) AS c
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 WHERE $notCancelSql
+			 AND ce.createdtime >= ? AND ce.createdtime <= ?
+			 AND (so.contactid > 0 OR so.accountid > 0)",
+			$params
+		);
+		return $r ? (int) $db->query_result($r, 0, 'c') : 0;
 	}
 
 	public static function getRoleBoards($persona, $userId = 0) {
@@ -1122,10 +1157,10 @@ class Home_AdminKpiService {
 			'revenue_chart' => self::getRevenueChart($chartOpts),
 			'performance' => self::getPerformance(),
 			'alerts' => self::getAlerts(),
-			'offline_gd11' => self::getOfflineGd11(),
-			'online_gd12' => self::getOnlineGd12(),
-			'gd14' => self::getGd14(),
-			'company_report' => self::getCompanyOverview(),
+			'offline_gd11' => $offline = self::getOfflineGd11(),
+			'online_gd12' => $online = self::getOnlineGd12(),
+			'gd14' => $gd14 = self::getGd14(),
+			'company_report' => self::getCompanyOverview($offline, $online, $gd14),
 		);
 	}
 

@@ -82,10 +82,11 @@
 			<div id="mkRoleReportsBody"><div class="mk-admin-kpi-detail-loading">Đang tải…</div></div>
 		</section>
 		<script type="text/javascript">
+		{literal}
 		(function () {
 			function esc(s) {
 				return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-					return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+					return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
 				});
 			}
 			function paint(boards) {
@@ -121,6 +122,7 @@
 				paint(res.boards || {});
 			});
 		})();
+		{/literal}
 		</script>
 
 		<section class="mk-mkt-enterprise" aria-label="MKT SALE báo cáo">
