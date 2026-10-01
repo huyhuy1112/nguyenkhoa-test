@@ -213,6 +213,129 @@ class Home_AdminKpiService {
 		);
 	}
 
+	public static function getCompanyOverview() {
+		$db = PearDatabase::getInstance();
+		$cal = self::businessCalendar($db);
+		$revenue = self::sumSoRevenueBetween($db, $cal['month_start'], $cal['month_end']);
+		$prevStart = date('Y-m-d 00:00:00', strtotime($cal['month_start'] . ' -1 month'));
+		$prevEnd = date('Y-m-d 23:59:59', strtotime($cal['month_start'] . ' -1 second'));
+		$previous = self::sumSoRevenueBetween($db, $prevStart, $prevEnd);
+		$delta = $previous > 0
+			? round((($revenue - $previous) / $previous) * 100, 1) . '%'
+			: 'Chưa đủ dữ liệu';
+		return array(
+			'business' => array(
+				self::reportCard('Tổng giá trị bán trong tháng', self::formatMoney($revenue), 'Đơn chưa hủy'),
+				self::reportCard('Biến động so với tháng trước', $delta),
+				self::reportCard('Giá trị khóa học có phí', 'Chưa đủ dữ liệu'),
+				self::reportCard('Nguyên liệu đã giao xong', 'Chưa đủ dữ liệu'),
+				self::reportCard('Giá trị nhượng quyền', 'Chưa đủ dữ liệu', 'Không cộng lại đơn nguyên liệu'),
+				self::reportCard('Hợp đồng nhượng quyền', (string) self::countServiceContracts($db)),
+				self::reportCard('Đã thu tiền, chưa giao xong', 'Chưa đủ dữ liệu'),
+				self::reportCard('Số khách trả tiền', 'Chưa đủ dữ liệu'),
+				self::reportCard('Giá trị bình quân / khách', 'Chưa đủ dữ liệu'),
+				self::reportCard('Mức đạt mục tiêu', 'Chưa đủ dữ liệu'),
+			),
+			'courses' => array(
+				self::reportCard('Khách đăng ký lớp miễn phí', 'Xem bảng Offline'),
+				self::reportCard('Khách đủ điều kiện', 'Xem bảng Offline / 990k'),
+				self::reportCard('Khách được xếp lịch', 'Xem bảng Offline'),
+				self::reportCard('Khách tham gia học', 'Xem bảng Offline'),
+				self::reportCard('Khách mua khóa có phí', 'Chưa đủ dữ liệu'),
+				self::reportCard('Chuyển từ học sang mua nguyên liệu', 'Chưa đủ dữ liệu'),
+			),
+		);
+	}
+
+	public static function getRoleBoards($persona, $userId = 0) {
+		$persona = (string) $persona;
+		$userId = (int) $userId;
+		$ownOrders = $userId > 0 ? self::countOwnedOrders($userId) : 0;
+		$boards = array(
+			'sale' => array(
+				'title' => 'Sale',
+				'cards' => array(
+					self::reportCard('Đơn của tôi trong tháng', (string) $ownOrders),
+					self::reportCard('Khách tôi phụ trách mua nguyên liệu', 'Chưa đủ dữ liệu'),
+					self::reportCard('Cảnh báo cần xử lý', 'Chưa đủ dữ liệu'),
+					self::reportCard('Chuyển từ học sang mua nguyên liệu', 'Chưa đủ dữ liệu'),
+					self::reportCard('Ngưỡng Đồng / Bạc / Vàng', 'Chưa đủ dữ liệu', 'Chờ Nguyên Khoa duyệt ngưỡng'),
+					self::reportCard('VAT', 'Chưa đủ dữ liệu', 'Chờ đối chiếu kế toán'),
+					self::reportCard('Giá vốn', 'Chưa đủ dữ liệu'),
+					self::reportCard('Bán chéo', 'Chưa đủ dữ liệu'),
+				),
+			),
+			'manager' => array(
+				'title' => 'Quản lý',
+				'cards' => array(
+					self::reportCard('Kết quả theo nhân viên', 'Chưa đủ dữ liệu'),
+					self::reportCard('Nhiệm vụ quá hạn theo nhân viên', 'Chưa đủ dữ liệu'),
+					self::reportCard('Khách lớn có rủi ro', 'Chưa đủ dữ liệu'),
+					self::reportCard('Khách / mặt hàng biến động nhiều nhất', 'Chưa đủ dữ liệu'),
+				),
+			),
+			'accountant' => array(
+				'title' => 'Kế toán',
+				'cards' => array(
+					self::reportCard('Đơn đã thu, chưa giao xong', 'Chưa đủ dữ liệu'),
+					self::reportCard('Chứng từ chưa hoàn tất', 'Chưa đủ dữ liệu'),
+					self::reportCard('Chiết khấu đơn hàng', 'Chưa đủ dữ liệu'),
+					self::reportCard('Quà theo hạng', 'Chưa đủ dữ liệu'),
+				),
+			),
+			'warehouse' => array(
+				'title' => 'Kho',
+				'cards' => array(
+					self::reportCard('Giao đúng hạn', 'Chưa đủ dữ liệu'),
+					self::reportCard('Đơn giao trễ', 'Chưa đủ dữ liệu'),
+					self::reportCard('Giao thiếu / sai / hư', 'Chưa đủ dữ liệu'),
+					self::reportCard('Khiếu nại liên quan giao hàng', 'Chưa đủ dữ liệu'),
+				),
+			),
+		);
+		if ($persona === 'admin' || $persona === 'ceo') {
+			return $boards;
+		}
+		$map = array(
+			'supervisor' => 'manager',
+			'sale' => 'sale',
+			'accountant' => 'accountant',
+			'warehouse' => 'warehouse',
+		);
+		$key = isset($map[$persona]) ? $map[$persona] : '';
+		if ($key === '' || !isset($boards[$key])) {
+			return array();
+		}
+		return array($key => $boards[$key]);
+	}
+
+	protected static function reportCard($label, $value, $hint = '') {
+		return array(
+			'label' => $label,
+			'value' => (string) $value,
+			'hint' => $hint,
+		);
+	}
+
+	protected static function formatMoney($amount) {
+		return number_format((float) $amount, 0, ',', '.');
+	}
+
+	protected static function countOwnedOrders($userId) {
+		$db = PearDatabase::getInstance();
+		$cal = self::businessCalendar($db);
+		list($notCancelSql, $excluded) = self::soNotCancelledSql('so');
+		$params = array_merge(array((int) $userId), $excluded, array($cal['month_start'], $cal['month_end']));
+		$r = $db->pquery(
+			"SELECT COUNT(*) AS c FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 WHERE ce.smownerid = ? AND $notCancelSql
+			 AND ce.createdtime >= ? AND ce.createdtime <= ?",
+			$params
+		);
+		return $r ? (int) $db->query_result($r, 0, 'c') : 0;
+	}
+
 	/**
 	 * @param string $section customers|leads|revenue|quotes|orders|franchise
 	 * @param array $opts
@@ -1002,6 +1125,7 @@ class Home_AdminKpiService {
 			'offline_gd11' => self::getOfflineGd11(),
 			'online_gd12' => self::getOnlineGd12(),
 			'gd14' => self::getGd14(),
+			'company_report' => self::getCompanyOverview(),
 		);
 	}
 

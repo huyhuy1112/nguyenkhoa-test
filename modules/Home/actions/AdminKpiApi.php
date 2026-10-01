@@ -79,6 +79,16 @@ class Home_AdminKpiApi_Action extends Vtiger_Action_Controller {
 					));
 					break;
 
+				case 'role_boards':
+					$user = Users_Record_Model::getCurrentUserModel();
+					$persona = Home_AdminKpiAccess_Helper::getPersona($user);
+					$response->setResult(array(
+						'success' => true,
+						'persona' => $persona,
+						'boards' => Home_AdminKpiService::getRoleBoards($persona, (int) $user->getId()),
+					));
+					break;
+
 				case 'widgets':
 				case 'funnel':
 				case 'revenue_chart':

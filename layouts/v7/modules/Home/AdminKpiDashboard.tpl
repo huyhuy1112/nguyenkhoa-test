@@ -49,6 +49,28 @@
 
 		<section class="mk-admin-kpi-drill" id="mkAdminKpiDrill" hidden aria-live="polite"></section>
 
+		<section class="mk-admin-kpi-panel" id="mkAdminKpiCompany">
+			<div class="mk-admin-kpi-panel-head">
+				<h2 class="mk-admin-kpi-panel-title">Báo cáo chung</h2>
+				<span class="mk-admin-kpi-pill">Tháng này</span>
+			</div>
+			<h3 class="mk-admin-kpi-panel-title">Kết quả kinh doanh</h3>
+			<div class="mk-admin-kpi-grid" id="mkAdminKpiBiz" role="list">
+				<div class="mk-admin-kpi-detail-loading">Đang tải…</div>
+			</div>
+			<h3 class="mk-admin-kpi-panel-title">Kết quả khóa học</h3>
+			<div class="mk-admin-kpi-grid" id="mkAdminKpiCourse" role="list">
+				<div class="mk-admin-kpi-detail-loading">Đang tải…</div>
+			</div>
+			<h3 class="mk-admin-kpi-panel-title">Mở báo cáo chi tiết</h3>
+			<div class="mk-admin-kpi-stagebar__tabs">
+				<button type="button" class="mk-admin-kpi-card" data-stage-panel="offline" data-tone="emerald"><span class="mk-admin-kpi-card-label">Offline miễn phí</span></button>
+				<button type="button" class="mk-admin-kpi-card" data-stage-panel="online" data-tone="blue"><span class="mk-admin-kpi-card-label">Online</span></button>
+				<button type="button" class="mk-admin-kpi-card" data-stage-panel="gd14" data-tone="violet"><span class="mk-admin-kpi-card-label">990k</span></button>
+				<button type="button" class="mk-admin-kpi-card" data-stage-panel="nl" data-tone="amber"><span class="mk-admin-kpi-card-label">Nguyên liệu</span></button>
+			</div>
+		</section>
+
 		<div class="mk-admin-kpi-stagebar">
 			<div class="mk-admin-kpi-stagebar__tabs" id="mkAdminKpiStagePick">
 				<button type="button" class="mk-admin-kpi-mode-btn is-active" data-stage-panel="offline">Offline</button>

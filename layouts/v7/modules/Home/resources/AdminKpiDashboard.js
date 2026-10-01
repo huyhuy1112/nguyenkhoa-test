@@ -180,6 +180,7 @@
 				renderOffline($root, (data && data.offline_gd11) || {});
 				renderOnline($root, (data && data.online_gd12) || {});
 				renderGd14($root, (data && data.gd14) || {});
+				renderCompany($root, (data && data.company_report) || {});
 			})
 			.fail(function (msg) {
 				setError($root.find('#mkAdminKpiFunnelBody'), msg);
@@ -517,6 +518,28 @@
 			html += '<span class="mk-admin-kpi-soon-chip">' + safeLabel(label) + '</span>';
 		});
 		html += '</div>';
+		return html;
+	}
+
+	function renderCompany($root, data) {
+		$root.find('#mkAdminKpiBiz').html(renderPlainCards(data.business));
+		$root.find('#mkAdminKpiCourse').html(renderPlainCards(data.courses));
+	}
+
+	function renderPlainCards(items) {
+		items = items || [];
+		if (!items.length) {
+			return '<div class="mk-admin-kpi-detail-loading">Chưa đủ dữ liệu</div>';
+		}
+		var html = '';
+		items.forEach(function (item) {
+			html +=
+				'<div class="mk-admin-kpi-card" role="listitem">' +
+				'<span class="mk-admin-kpi-card-label">' + escapeHtml(item.label || '') + '</span>' +
+				'<span class="mk-admin-kpi-card-value">' + escapeHtml(item.value || '—') + '</span>' +
+				(item.hint ? '<span class="mk-admin-kpi-card-label">' + escapeHtml(item.hint) + '</span>' : '') +
+				'</div>';
+		});
 		return html;
 	}
 
@@ -1275,6 +1298,10 @@
 			$root.find('#mkAdminKpiOffline, #mkAdminKpiOnline, #mkAdminKpiGd14, #mkAdminKpiNl').attr('hidden', true);
 			var map = { offline: '#mkAdminKpiOffline', online: '#mkAdminKpiOnline', gd14: '#mkAdminKpiGd14', nl: '#mkAdminKpiNl' };
 			$root.find(map[zone] || '#mkAdminKpiOffline').removeAttr('hidden');
+			var board = $root.find(map[zone] || '#mkAdminKpiOffline').get(0);
+			if (board && board.scrollIntoView) {
+				board.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			}
 			if (zone === 'nl') {
 				app.request.post({ data: { module: 'HelpDesk', action: 'MaterialAlertsApi', mode: 'summary' } }).then(function (err, res) {
 					var box = document.getElementById('mkAdminKpiNlBody');
