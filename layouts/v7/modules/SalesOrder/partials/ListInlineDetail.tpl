@@ -154,31 +154,16 @@
 				&& $INLINE_SOSTATUS neq 'Hoàn thành' && $INLINE_SOSTATUS neq 'Cancelled' && $INLINE_SOSTATUS neq 'Đã hủy'
 				&& $INLINE_SOSTATUS neq 'Đã huỷ'
 			)}
-			<div class="mk-so-inline-detail__confirm-split btn-group">
-				{if !$SO_ALREADY_CONFIRMED}
-				<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__confirm-order-btn" title="Xác nhận đơn hàng và tạo phiếu xuất kho">
-					<i class="fa fa-check" aria-hidden="true"></i>
-					<span>Xác nhận đơn hàng</span>
-				</button>
-				<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__confirm-caret dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Thêm thao tác" aria-label="Thêm thao tác">
-					<span class="caret" aria-hidden="true"></span>
-				</button>
-				{else}
-				<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__misa-standalone-btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Thao tác kế toán">
-					<i class="fa fa-share-square-o" aria-hidden="true"></i>
-					<span>Kế toán</span>
-					<span class="caret" aria-hidden="true"></span>
-				</button>
-				{/if}
-				<ul class="dropdown-menu dropdown-menu-right mk-so-inline-detail__confirm-menu" role="menu">
-					<li role="presentation">
-						<a href="#" role="menuitem" class="mk-so-inline-detail__misa-btn" data-record-id="{$RECORD->getId()}" title="Chuyển đơn hàng sang kế toán MISA">
-							<i class="fa fa-share-square-o" aria-hidden="true"></i>
-							<span>Chuyển đến kế toán MISA</span>
-						</a>
-					</li>
-				</ul>
-			</div>
+			{if !$SO_ALREADY_CONFIRMED}
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__confirm-order-btn" title="Xác nhận đơn hàng và tạo phiếu xuất kho">
+				<i class="fa fa-check" aria-hidden="true"></i>
+				<span>Xác nhận đơn hàng</span>
+			</button>
+			{/if}
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__misa-btn" data-record-id="{$RECORD->getId()}" title="Chuyển đơn hàng sang kế toán MISA">
+				<i class="fa fa-share-square-o" aria-hidden="true"></i>
+				<span>Chuyển qua MISA</span>
+			</button>
 			{if $SO_CAN_CANCEL}
 			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__cancel-order-btn" title="Huỷ đơn và hoàn kho (nếu đã trừ tồn)">
 				<i class="fa fa-ban" aria-hidden="true"></i>

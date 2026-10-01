@@ -2787,7 +2787,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline
 	display: none;
 	position: fixed;
 	inset: 0;
-	z-index: 10060;
+	z-index: 110040;
 	background: rgba(15, 23, 42, 0.45);
 	padding: 24px;
 }
@@ -3152,7 +3152,7 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline
 	display: none;
 	position: fixed;
 	inset: 0;
-	z-index: 10070;
+	z-index: 110040;
 	background: rgba(15, 23, 42, 0.45);
 	padding: 24px;
 }
