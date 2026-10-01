@@ -2761,7 +2761,17 @@
           if (!recordId) {
             return;
           }
-          confirmSalesOrderWithWarehouse($panel, recordId, $btn);
+          showOrderActionConfirm({
+            title: "Xác nhận đơn hàng",
+            question: "Xác nhận đơn hàng này?",
+            hint: "Sau khi xác nhận, chọn kho để tạo phiếu xuất kho.",
+            icon: "fa-check",
+          }).then(
+            function () {
+              confirmSalesOrderWithWarehouse($panel, recordId, $btn);
+            },
+            function () {},
+          );
         },
       );
 
@@ -2830,6 +2840,79 @@
         }
         transferSalesOrderToMisa(recordId, $link);
       });
+  }
+
+  function showOrderActionConfirm(opts) {
+    opts = opts || {};
+    var deferred = $.Deferred();
+    var title = opts.title || "Xác nhận";
+    var icon = opts.icon || "fa-check";
+    var message =
+      '<div class="mk-quote-convert-modal__body">' +
+      '<div class="mk-quote-convert-modal__icon" aria-hidden="true"><i class="fa ' +
+      icon +
+      '"></i></div>' +
+      '<p class="mk-quote-convert-modal__title">' +
+      (opts.question || "") +
+      "</p>" +
+      (opts.hint
+        ? '<p class="mk-quote-convert-modal__hint">' + opts.hint + "</p>"
+        : "") +
+      "</div>";
+    function lift(dlg) {
+      var $dlg = dlg ? $(dlg) : $(".bootbox.mk-quote-convert-modal").last();
+      if (!$dlg.length) {
+        return;
+      }
+      $dlg.css("z-index", 110050);
+      window.setTimeout(function () {
+        $(".modal-backdrop").last().css({
+          "z-index": 110040,
+          "pointer-events": "auto",
+        });
+        $dlg.css("z-index", 110050);
+      }, 0);
+    }
+    if (typeof bootbox !== "undefined" && bootbox.dialog) {
+      var dlg = bootbox.dialog({
+        title: title,
+        message: message,
+        className: "mk-quote-convert-modal",
+        closeButton: true,
+        buttons: {
+          cancel: {
+            label: "Hủy",
+            className:
+              "btn mk-quote-convert-modal__btn mk-quote-convert-modal__btn--ghost",
+            callback: function () {
+              deferred.reject();
+            },
+          },
+          confirm: {
+            label: "Xác nhận",
+            className:
+              "btn mk-quote-convert-modal__btn mk-quote-convert-modal__btn--primary",
+            callback: function () {
+              deferred.resolve();
+            },
+          },
+        },
+        onEscape: function () {
+          deferred.reject();
+        },
+      });
+      if (dlg) {
+        $(dlg).addClass("mk-quote-convert-modal");
+      }
+      lift(dlg);
+      return deferred.promise();
+    }
+    if (window.confirm(opts.question || title)) {
+      deferred.resolve();
+    } else {
+      deferred.reject();
+    }
+    return deferred.promise();
   }
 
   function cancelSalesOrder($panel, recordId, $btn) {
@@ -2952,15 +3035,12 @@
           });
       }
     };
-    if (app.helper && app.helper.showConfirmationBox) {
-      app.helper
-        .showConfirmationBox({ message: message })
-        .then(function () {
-          run();
-        });
-    } else if (window.confirm(message)) {
-      run();
-    }
+    showOrderActionConfirm({
+      title: "Huỷ đơn hàng",
+      question: "Huỷ đơn hàng này?",
+      hint: "Hệ thống sẽ hoàn kho nếu đơn đã trừ tồn.",
+      icon: "fa-ban",
+    }).then(run, function () {});
   }
 
   function transferSalesOrderToMisa(recordId, $trigger) {
@@ -2971,8 +3051,6 @@
     if ($trigger && $trigger.data("mkBusy")) {
       return;
     }
-    var message =
-      "Chuyển đơn hàng #" + recordId + " đến kế toán MISA?";
     var run = function () {
       if ($trigger && $trigger.length) {
         $trigger.data("mkBusy", 1);
@@ -3036,11 +3114,12 @@
         }
       });
     };
-    if (app.helper && app.helper.showConfirmationBox) {
-      app.helper.showConfirmationBox({ message: message }).then(run);
-    } else if (window.confirm(message)) {
-      run();
-    }
+    showOrderActionConfirm({
+      title: "Chuyển qua MISA",
+      question: "Gửi đề nghị hóa đơn sang MISA?",
+      hint: "Kế toán xuất hóa đơn trên MISA. Nhân viên xem trạng thái ở menu Hóa đơn.",
+      icon: "fa-share-square-o",
+    }).then(run, function () {});
   }
 
   function paidFieldName() {
