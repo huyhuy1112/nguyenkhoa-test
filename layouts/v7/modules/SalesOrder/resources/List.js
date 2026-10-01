@@ -2845,73 +2845,62 @@
   function showOrderActionConfirm(opts) {
     opts = opts || {};
     var deferred = $.Deferred();
-    var title = opts.title || "Xác nhận";
-    var icon = opts.icon || "fa-check";
-    var message =
-      '<div class="mk-quote-convert-modal__body">' +
-      '<div class="mk-quote-convert-modal__icon" aria-hidden="true"><i class="fa ' +
-      icon +
-      '"></i></div>' +
-      '<p class="mk-quote-convert-modal__title">' +
-      (opts.question || "") +
-      "</p>" +
-      (opts.hint
-        ? '<p class="mk-quote-convert-modal__hint">' + opts.hint + "</p>"
-        : "") +
-      "</div>";
-    function lift(dlg) {
-      var $dlg = dlg ? $(dlg) : $(".bootbox.mk-quote-convert-modal").last();
-      if (!$dlg.length) {
-        return;
-      }
-      $dlg.css("z-index", 110050);
-      window.setTimeout(function () {
-        $(".modal-backdrop").last().css({
-          "z-index": 110040,
-          "pointer-events": "auto",
-        });
-        $dlg.css("z-index", 110050);
-      }, 0);
-    }
-    if (typeof bootbox !== "undefined" && bootbox.dialog) {
-      var dlg = bootbox.dialog({
-        title: title,
-        message: message,
-        className: "mk-quote-convert-modal",
-        closeButton: true,
-        buttons: {
-          cancel: {
-            label: "Hủy",
-            className:
-              "btn mk-quote-convert-modal__btn mk-quote-convert-modal__btn--ghost",
-            callback: function () {
-              deferred.reject();
-            },
-          },
-          confirm: {
-            label: "Xác nhận",
-            className:
-              "btn mk-quote-convert-modal__btn mk-quote-convert-modal__btn--primary",
-            callback: function () {
-              deferred.resolve();
-            },
-          },
-        },
-        onEscape: function () {
-          deferred.reject();
-        },
-      });
-      if (dlg) {
-        $(dlg).addClass("mk-quote-convert-modal");
-      }
-      lift(dlg);
-      return deferred.promise();
-    }
-    if (window.confirm(opts.question || title)) {
-      deferred.resolve();
+    var icon = String(opts.icon || "fa-check").replace(/[^a-z0-9\-]/gi, "");
+    var $pop = $(
+      '<div class="mk-so-action-pop" role="dialog" aria-modal="true">' +
+        '<div class="mk-so-action-pop__backdrop" data-mk-pop-close="1"></div>' +
+        '<div class="mk-so-action-pop__card">' +
+          '<div class="mk-so-action-pop__head">' +
+            '<span class="mk-so-action-pop__title"></span>' +
+            '<button type="button" class="mk-so-action-pop__x" data-mk-pop-close="1" aria-label="Đóng">&times;</button>' +
+          "</div>" +
+          '<div class="mk-so-action-pop__body">' +
+            '<div class="mk-so-action-pop__icon" aria-hidden="true"><i class="fa ' +
+            icon +
+            '"></i></div>' +
+            '<p class="mk-so-action-pop__question"></p>' +
+            '<p class="mk-so-action-pop__hint"></p>' +
+          "</div>" +
+          '<div class="mk-so-action-pop__foot">' +
+            '<button type="button" class="mk-so-action-pop__btn mk-so-action-pop__btn--ghost" data-mk-pop-close="1">Hủy</button>' +
+            '<button type="button" class="mk-so-action-pop__btn mk-so-action-pop__btn--ok">Xác nhận</button>' +
+          "</div>" +
+        "</div>" +
+      "</div>",
+    );
+    $pop.find(".mk-so-action-pop__title").text(opts.title || "Xác nhận");
+    $pop.find(".mk-so-action-pop__question").text(opts.question || "");
+    if (opts.hint) {
+      $pop.find(".mk-so-action-pop__hint").text(opts.hint);
     } else {
-      deferred.reject();
+      $pop.find(".mk-so-action-pop__hint").remove();
     }
+    function close(ok) {
+      $pop.remove();
+      $(document).off("keydown.mkSoActionPop");
+      if (ok) {
+        deferred.resolve();
+      } else {
+        deferred.reject();
+      }
+    }
+    $pop.on("click", ".mk-so-action-pop__btn--ok", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      close(true);
+    });
+    $pop.on("click", "[data-mk-pop-close]", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      close(false);
+    });
+    $(document).on("keydown.mkSoActionPop", function (e) {
+      if (e.key === "Escape" || e.keyCode === 27) {
+        close(false);
+      }
+    });
+    $(".mk-so-action-pop").remove();
+    $(document.body).append($pop);
     return deferred.promise();
   }
 
