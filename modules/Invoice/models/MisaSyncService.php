@@ -99,8 +99,8 @@ class Invoice_MisaSyncService {
 				return;
 			}
 			$res = $adb->pquery(
-				"SELECT salesorderid FROM mk_misa_voucher WHERE status = ? LIMIT 1",
-				array('pending')
+				"SELECT salesorderid FROM mk_misa_voucher WHERE status IN ('pending','active') LIMIT 1",
+				array()
 			);
 			if (!$res || $adb->num_rows($res) < 1) {
 				return;
@@ -201,6 +201,13 @@ class Invoice_MisaSyncService {
 		if (!$link) {
 			return;
 		}
+		if (isset($item['sa_invoice']) && is_array($item['sa_invoice'])) {
+			foreach (array('publish_status', 'inv_no', 'is_invoice_deleted', 'is_invoice_cancel', 'refno_finance') as $key) {
+				if ((!isset($item[$key]) || $item[$key] === '' || $item[$key] === null) && isset($item['sa_invoice'][$key])) {
+					$item[$key] = $item['sa_invoice'][$key];
+				}
+			}
+		}
 
 		$errorCode = isset($item['error_code']) ? (string) $item['error_code'] : (isset($item['ErrorCode']) ? (string) $item['ErrorCode'] : '');
 		$errorMessage = isset($item['error_message']) ? (string) $item['error_message'] : (isset($item['ErrorMessage']) ? (string) $item['ErrorMessage'] : '');
@@ -209,18 +216,64 @@ class Invoice_MisaSyncService {
 		if ($errorCode === '99' || stripos($errorMessage, 'callback') !== false) {
 			return;
 		}
+		if (!$thisCreated = self::voucherWasCreated($item, $errorCode)) {
+			if (!$success && $errorMessage !== '') {
+				self::mark((int) $link['salesorderid'], (int) $link['invoiceid'], $orgRefid, 'rejected', self::STATUS_NO, $errorMessage, '');
+			}
+			return;
+		}
+		$label = self::misaStatusLabel($item);
+		$bucket = self::statusBucket($label);
+		self::mark((int) $link['salesorderid'], (int) $link['invoiceid'], $orgRefid, $bucket, $label, $label, self::refnoFrom($item));
+	}
+
+	protected static function voucherWasCreated(array $item, $errorCode) {
 		if ($errorCode === 'IsCreatedVoucher') {
-			self::mark((int) $link['salesorderid'], (int) $link['invoiceid'], $orgRefid, 'approved', self::STATUS_OK, 'Kế toán đã sinh chứng từ.', self::refnoFrom($item));
-			return;
+			return true;
 		}
-		$refno = self::refnoFrom($item);
-		if ($success && $refno !== '') {
-			self::mark((int) $link['salesorderid'], (int) $link['invoiceid'], $orgRefid, 'approved', self::STATUS_OK, 'Kế toán đã xuất hóa đơn.', $refno);
-			return;
+		if (!empty($item['is_created_savoucher'])) {
+			return true;
 		}
-		if (!$success && $errorMessage !== '') {
-			self::mark((int) $link['salesorderid'], (int) $link['invoiceid'], $orgRefid, 'rejected', self::STATUS_NO, $errorMessage, '');
+		if (self::refnoFrom($item) !== '') {
+			return true;
 		}
+		if (isset($item['publish_status']) && $item['publish_status'] !== '' && $item['publish_status'] !== null && (int) $item['publish_status'] > 0) {
+			return true;
+		}
+		return false;
+	}
+
+	protected static function misaStatusLabel(array $item) {
+		if (!empty($item['is_invoice_deleted']) || !empty($item['is_invoice_cancel'])) {
+			return 'Hóa đơn đã hủy';
+		}
+		$publish = null;
+		if (isset($item['publish_status']) && $item['publish_status'] !== '' && $item['publish_status'] !== null) {
+			$publish = (int) $item['publish_status'];
+		}
+		if ($publish === 4) {
+			return 'Phát hành lỗi';
+		}
+		if ($publish === 3 || ($publish === null && self::refnoFrom($item) !== '' && !empty($item['inv_no']))) {
+			return 'Đã phát hành';
+		}
+		if ($publish === 2) {
+			return 'Đang gửi';
+		}
+		if ($publish === 1) {
+			return 'Đợi gửi';
+		}
+		return 'Hóa đơn mới';
+	}
+
+	protected static function statusBucket($label) {
+		if ($label === 'Đã phát hành') {
+			return 'published';
+		}
+		if ($label === 'Hóa đơn đã hủy' || $label === 'Phát hành lỗi' || $label === self::STATUS_NO) {
+			return 'rejected';
+		}
+		return 'active';
 	}
 
 	protected static function refnoFrom(array $item) {
@@ -233,6 +286,7 @@ class Invoice_MisaSyncService {
 	}
 
 	protected static function mark($soId, $invoiceId, $orgRefid, $status, $invoiceStatus, $message, $refno) {
+		self::ensureStatuses();
 		self::setInvoiceStatus($invoiceId, $invoiceStatus);
 		self::saveLink($soId, $invoiceId, $orgRefid, $status, $message, $refno);
 	}
@@ -639,7 +693,17 @@ class Invoice_MisaSyncService {
 			return;
 		}
 		$existing = $field->getPicklistValues();
-		$need = array(self::STATUS_WAIT, self::STATUS_OK, self::STATUS_NO);
+		$need = array(
+			self::STATUS_WAIT,
+			self::STATUS_OK,
+			self::STATUS_NO,
+			'Hóa đơn mới',
+			'Đã phát hành',
+			'Đợi gửi',
+			'Đang gửi',
+			'Phát hành lỗi',
+			'Hóa đơn đã hủy',
+		);
 		$missing = array();
 		foreach ($need as $label) {
 			$found = false;
