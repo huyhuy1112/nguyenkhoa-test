@@ -81,49 +81,7 @@
 			</div>
 			<div id="mkRoleReportsBody"><div class="mk-admin-kpi-detail-loading">Đang tải…</div></div>
 		</section>
-		<script type="text/javascript">
-		{literal}
-		(function () {
-			function esc(s) {
-				return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-					return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
-				});
-			}
-			function paint(boards) {
-				var box = document.getElementById('mkRoleReportsBody');
-				if (!box) return;
-				var keys = boards ? Object.keys(boards) : [];
-				if (!keys.length) {
-					box.innerHTML = '<div class="mk-admin-kpi-detail-loading">Chưa có báo cáo cho vai này.</div>';
-					return;
-				}
-				var html = '';
-				keys.forEach(function (key) {
-					var board = boards[key] || {};
-					html += '<h3 class="mk-admin-kpi-panel-title">' + esc(board.title || key) + '</h3>';
-					html += '<div class="mk-admin-kpi-grid" role="list">';
-					(board.cards || []).forEach(function (card) {
-						html += '<div class="mk-admin-kpi-card" role="listitem">'
-							+ '<span class="mk-admin-kpi-card-label">' + esc(card.label) + '</span>'
-							+ '<span class="mk-admin-kpi-card-value">' + esc(card.value) + '</span>'
-							+ (card.hint ? '<span class="mk-admin-kpi-card-label">' + esc(card.hint) + '</span>' : '')
-							+ '</div>';
-					});
-					html += '</div>';
-				});
-				box.innerHTML = html;
-			}
-			if (typeof app === 'undefined' || !app.request) return;
-			app.request.post({ data: { module: 'Home', action: 'AdminKpiApi', mode: 'role_boards' } }).then(function (err, res) {
-				if (err || !res) {
-					paint(null);
-					return;
-				}
-				paint(res.boards || {});
-			});
-		})();
-		{/literal}
-		</script>
+		<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Reports/resources/RoleBoards.js')}?mk_v=20261001_role2"></script>
 
 		<section class="mk-mkt-enterprise" aria-label="MKT SALE báo cáo">
 

@@ -232,24 +232,24 @@ class Home_AdminKpiService {
 		$avg = $payers > 0 ? self::formatMoney($revenue / $payers) : '0';
 		return array(
 			'business' => array(
-				self::reportCard('Tổng giá trị bán trong tháng', self::formatMoney($revenue), 'Đơn chưa hủy'),
-				self::reportCard('Biến động so với tháng trước', $delta),
-				self::reportCard('Giá trị khóa học có phí', self::formatMoney(isset($byKey['course']) ? $byKey['course'] : 0)),
-				self::reportCard('Giá trị nguyên liệu', self::formatMoney(isset($byKey['ingredient']) ? $byKey['ingredient'] : 0)),
-				self::reportCard('Giá trị nhượng quyền', self::formatMoney(isset($byKey['franchise']) ? $byKey['franchise'] : 0)),
-				self::reportCard('Hợp đồng nhượng quyền', (string) self::countServiceContracts($db)),
-				self::reportCard('Đơn đang xử lý', (string) self::countOrdersProcessing($db)),
-				self::reportCard('Số khách trả tiền', (string) $payers),
-				self::reportCard('Giá trị bình quân / khách', $avg),
-				self::reportCard('Mức đạt mục tiêu', 'Chưa đủ dữ liệu', 'Chưa có mục tiêu được duyệt trên CRM'),
+				self::reportCard('Tổng giá trị bán trong tháng', self::formatMoney($revenue), 'Đơn chưa hủy', 'violet'),
+				self::reportCard('Biến động so với tháng trước', $delta, '', 'emerald'),
+				self::reportCard('Giá trị khóa học có phí', self::formatMoney(isset($byKey['course']) ? $byKey['course'] : 0), '', 'blue'),
+				self::reportCard('Giá trị nguyên liệu', self::formatMoney(isset($byKey['ingredient']) ? $byKey['ingredient'] : 0), '', 'amber'),
+				self::reportCard('Giá trị nhượng quyền', self::formatMoney(isset($byKey['franchise']) ? $byKey['franchise'] : 0), '', 'rose'),
+				self::reportCard('Hợp đồng nhượng quyền', (string) self::countServiceContracts($db), '', 'rose'),
+				self::reportCard('Đơn đang xử lý', (string) self::countOrdersProcessing($db), '', 'cyan'),
+				self::reportCard('Số khách trả tiền', (string) $payers, '', 'emerald'),
+				self::reportCard('Giá trị bình quân / khách', $avg, '', 'blue'),
+				self::reportCard('Mức đạt mục tiêu', 'Chưa đủ dữ liệu', 'Chưa có mục tiêu được duyệt trên CRM', 'amber'),
 			),
 			'courses' => array(
-				self::reportCard('Khách trong luồng Offline', (string) self::boardCount($offline, 'Trong luồng Offline')),
-				self::reportCard('Đã xác nhận lịch Offline', (string) self::boardCount($offline, 'Đã xác nhận lịch')),
-				self::reportCard('Đã tham gia Offline', (string) self::boardCount($offline, 'Đã tham gia')),
-				self::reportCard('Khách Online trong kỳ', (string) self::boardCount($online, 'Vào Zalo OA')),
-				self::reportCard('Online đã điền form', (string) self::boardCount($online, 'Đã điền form')),
-				self::reportCard('Hồ sơ 990k trong kỳ', (string) self::boardCount($gd14, 'Hồ sơ 990k trong kỳ')),
+				self::reportCard('Khách trong luồng Offline', (string) self::boardCount($offline, 'Trong luồng Offline'), '', 'blue'),
+				self::reportCard('Đã xác nhận lịch Offline', (string) self::boardCount($offline, 'Đã xác nhận lịch'), '', 'cyan'),
+				self::reportCard('Đã tham gia Offline', (string) self::boardCount($offline, 'Đã tham gia'), '', 'emerald'),
+				self::reportCard('Khách Online trong kỳ', (string) self::boardCount($online, 'Vào Zalo OA'), '', 'blue'),
+				self::reportCard('Online đã điền form', (string) self::boardCount($online, 'Đã điền form'), '', 'cyan'),
+				self::reportCard('Hồ sơ 990k trong kỳ', (string) self::boardCount($gd14, 'Hồ sơ 990k trong kỳ'), '', 'violet'),
 			),
 		);
 	}
@@ -290,41 +290,41 @@ class Home_AdminKpiService {
 			'sale' => array(
 				'title' => 'Sale',
 				'cards' => array(
-					self::reportCard('Đơn của tôi trong tháng', (string) $ownOrders),
-					self::reportCard('Khách tôi phụ trách mua nguyên liệu', 'Chưa đủ dữ liệu'),
-					self::reportCard('Cảnh báo cần xử lý', 'Chưa đủ dữ liệu'),
-					self::reportCard('Chuyển từ học sang mua nguyên liệu', 'Chưa đủ dữ liệu'),
-					self::reportCard('Ngưỡng Đồng / Bạc / Vàng', 'Chưa đủ dữ liệu', 'Chờ Nguyên Khoa duyệt ngưỡng'),
-					self::reportCard('VAT', 'Chưa đủ dữ liệu', 'Chờ đối chiếu kế toán'),
-					self::reportCard('Giá vốn', 'Chưa đủ dữ liệu'),
-					self::reportCard('Bán chéo', 'Chưa đủ dữ liệu'),
+					self::reportCard('Đơn của tôi trong tháng', (string) $ownOrders, '', 'blue'),
+					self::reportCard('Khách tôi phụ trách mua nguyên liệu', 'Chưa đủ dữ liệu', '', 'emerald'),
+					self::reportCard('Cảnh báo cần xử lý', 'Chưa đủ dữ liệu', '', 'amber'),
+					self::reportCard('Chuyển từ học sang mua nguyên liệu', 'Chưa đủ dữ liệu', '', 'cyan'),
+					self::reportCard('Ngưỡng Đồng / Bạc / Vàng', 'Chưa đủ dữ liệu', 'Chờ Nguyên Khoa duyệt ngưỡng', 'violet'),
+					self::reportCard('VAT', 'Chưa đủ dữ liệu', 'Chờ đối chiếu kế toán', 'rose'),
+					self::reportCard('Giá vốn', 'Chưa đủ dữ liệu', '', 'amber'),
+					self::reportCard('Bán chéo', 'Chưa đủ dữ liệu', '', 'blue'),
 				),
 			),
 			'manager' => array(
 				'title' => 'Quản lý',
 				'cards' => array(
-					self::reportCard('Kết quả theo nhân viên', 'Chưa đủ dữ liệu'),
-					self::reportCard('Nhiệm vụ quá hạn theo nhân viên', 'Chưa đủ dữ liệu'),
-					self::reportCard('Khách lớn có rủi ro', 'Chưa đủ dữ liệu'),
-					self::reportCard('Khách / mặt hàng biến động nhiều nhất', 'Chưa đủ dữ liệu'),
+					self::reportCard('Kết quả theo nhân viên', 'Chưa đủ dữ liệu', '', 'blue'),
+					self::reportCard('Nhiệm vụ quá hạn theo nhân viên', 'Chưa đủ dữ liệu', '', 'amber'),
+					self::reportCard('Khách lớn có rủi ro', 'Chưa đủ dữ liệu', '', 'rose'),
+					self::reportCard('Khách / mặt hàng biến động nhiều nhất', 'Chưa đủ dữ liệu', '', 'violet'),
 				),
 			),
 			'accountant' => array(
 				'title' => 'Kế toán',
 				'cards' => array(
-					self::reportCard('Đơn đã thu, chưa giao xong', 'Chưa đủ dữ liệu'),
-					self::reportCard('Chứng từ chưa hoàn tất', 'Chưa đủ dữ liệu'),
-					self::reportCard('Chiết khấu đơn hàng', 'Chưa đủ dữ liệu'),
-					self::reportCard('Quà theo hạng', 'Chưa đủ dữ liệu'),
+					self::reportCard('Đơn đã thu, chưa giao xong', 'Chưa đủ dữ liệu', '', 'emerald'),
+					self::reportCard('Chứng từ chưa hoàn tất', 'Chưa đủ dữ liệu', '', 'amber'),
+					self::reportCard('Chiết khấu đơn hàng', 'Chưa đủ dữ liệu', '', 'violet'),
+					self::reportCard('Quà theo hạng', 'Chưa đủ dữ liệu', '', 'rose'),
 				),
 			),
 			'warehouse' => array(
 				'title' => 'Kho',
 				'cards' => array(
-					self::reportCard('Giao đúng hạn', 'Chưa đủ dữ liệu'),
-					self::reportCard('Đơn giao trễ', 'Chưa đủ dữ liệu'),
-					self::reportCard('Giao thiếu / sai / hư', 'Chưa đủ dữ liệu'),
-					self::reportCard('Khiếu nại liên quan giao hàng', 'Chưa đủ dữ liệu'),
+					self::reportCard('Giao đúng hạn', 'Chưa đủ dữ liệu', '', 'emerald'),
+					self::reportCard('Đơn giao trễ', 'Chưa đủ dữ liệu', '', 'amber'),
+					self::reportCard('Giao thiếu / sai / hư', 'Chưa đủ dữ liệu', '', 'rose'),
+					self::reportCard('Khiếu nại liên quan giao hàng', 'Chưa đủ dữ liệu', '', 'violet'),
 				),
 			),
 		);
@@ -344,11 +344,14 @@ class Home_AdminKpiService {
 		return array($key => $boards[$key]);
 	}
 
-	protected static function reportCard($label, $value, $hint = '') {
+	protected static function reportCard($label, $value, $hint = '', $tone = '') {
+		$value = (string) $value;
 		return array(
 			'label' => $label,
-			'value' => (string) $value,
+			'value' => $value,
 			'hint' => $hint,
+			'tone' => $tone,
+			'missing' => ($value === 'Chưa đủ dữ liệu'),
 		);
 	}
 

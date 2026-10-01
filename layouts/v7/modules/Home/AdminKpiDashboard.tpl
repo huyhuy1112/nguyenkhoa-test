@@ -54,11 +54,11 @@
 				<h2 class="mk-admin-kpi-panel-title">Báo cáo chung</h2>
 				<span class="mk-admin-kpi-pill">Tháng này</span>
 			</div>
-			<h3 class="mk-admin-kpi-panel-title">Kết quả kinh doanh</h3>
+			<h3 class="mk-admin-kpi-subtitle">Kết quả kinh doanh</h3>
 			<div class="mk-admin-kpi-grid" id="mkAdminKpiBiz" role="list">
 				<div class="mk-admin-kpi-detail-loading">Đang tải…</div>
 			</div>
-			<h3 class="mk-admin-kpi-panel-title">Kết quả khóa học</h3>
+			<h3 class="mk-admin-kpi-subtitle">Kết quả khóa học</h3>
 			<div class="mk-admin-kpi-grid" id="mkAdminKpiCourse" role="list">
 				<div class="mk-admin-kpi-detail-loading">Đang tải…</div>
 			</div>

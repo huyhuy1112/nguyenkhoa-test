@@ -531,12 +531,17 @@
 		if (!items.length) {
 			return '<div class="mk-admin-kpi-detail-loading">Chưa đủ dữ liệu</div>';
 		}
+		var tones = ['violet', 'emerald', 'blue', 'amber', 'rose', 'cyan'];
 		var html = '';
-		items.forEach(function (item) {
+		items.forEach(function (item, index) {
+			var missing = item.missing || item.value === 'Chưa đủ dữ liệu';
+			var tone = item.tone || tones[index % tones.length];
 			html +=
-				'<div class="mk-admin-kpi-card" role="listitem">' +
+				'<div class="mk-admin-kpi-card mk-admin-kpi-card--static' + (missing ? ' is-missing' : '') + '" data-tone="' + escapeHtml(tone) + '" role="listitem">' +
 				'<span class="mk-admin-kpi-card-label">' + escapeHtml(item.label || '') + '</span>' +
-				'<span class="mk-admin-kpi-card-value">' + escapeHtml(item.value || '—') + '</span>' +
+				(missing
+					? '<span class="mk-admin-kpi-card-empty">Chưa đủ dữ liệu</span>'
+					: '<span class="mk-admin-kpi-card-value">' + escapeHtml(item.value || '—') + '</span>') +
 				(item.hint ? '<span class="mk-admin-kpi-card-label">' + escapeHtml(item.hint) + '</span>' : '') +
 				'</div>';
 		});

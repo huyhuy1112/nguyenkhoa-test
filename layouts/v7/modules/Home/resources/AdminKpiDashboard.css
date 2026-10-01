@@ -1,5 +1,6 @@
 /* Admin KPI Dashboard — multi-tone redesign */
-.mk-admin-kpi-page {
+.mk-admin-kpi-page,
+#mkRoleReports {
 	--mk-kpi-ink: #0f172a;
 	--mk-kpi-muted: #64748b;
 	--mk-kpi-line: #e2e8f0;
@@ -12,6 +13,9 @@
 	--mk-kpi-amber: #f59e0b;
 	--mk-kpi-cyan: #06b6d4;
 	--mk-kpi-rose: #f43f5e;
+}
+
+.mk-admin-kpi-page {
 	padding: 8px 4px 32px;
 	background: linear-gradient(180deg, #f1f5f9 0%, #f8fafc 48%, #fff 100%);
 	border-radius: 16px;
@@ -108,6 +112,41 @@
 	border-color: #cbd5e1;
 	box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
 	transform: translateY(-1px);
+}
+
+.mk-admin-kpi-card--static {
+	cursor: default;
+}
+
+.mk-admin-kpi-card--static:hover {
+	border-color: var(--mk-kpi-line);
+	box-shadow: none;
+	transform: none;
+}
+
+.mk-admin-kpi-card.is-missing {
+	background: var(--mk-kpi-soft);
+}
+
+.mk-admin-kpi-card-empty {
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1.35;
+	color: #94a3b8;
+	padding-left: 6px;
+}
+
+.mk-admin-kpi-subtitle {
+	margin: 8px 0 10px;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--mk-kpi-muted);
+}
+
+#mkRoleReports .mk-admin-kpi-grid:last-child {
+	margin-bottom: 0;
 }
 
 .mk-admin-kpi-card.is-active {
