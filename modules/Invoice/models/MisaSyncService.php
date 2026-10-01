@@ -51,14 +51,14 @@ class Invoice_MisaSyncService {
 		}
 
 		$existing = self::findBySalesOrder($soId);
-		if ($existing && $existing['status'] === 'approved') {
-			$no = trim((string) $existing['misa_refno']);
-			return array(
-				'success' => true,
-				'message' => 'Hóa đơn của đơn ' . $orderNo . ' đã được kế toán duyệt'
-					. ($no !== '' ? (' (' . $no . ')') : '') . '.',
-				'invoiceid' => (int) $existing['invoiceid'],
-			);
+		if ($existing) {
+			$issuedLabel = self::invoiceStatusOf((int) $existing['invoiceid']);
+			if ($existing['status'] === 'published' || $issuedLabel === 'Đã phát hành' || $existing['status'] === 'approved') {
+				return array(
+					'error' => 'Đơn hàng này đã phát hành. Vui lòng kiểm tra hóa đơn.',
+					'invoiceid' => (int) $existing['invoiceid'],
+				);
+			}
 		}
 
 		$lines = self::linesFor($soId);
@@ -772,6 +772,18 @@ class Invoice_MisaSyncService {
 		);
 	}
 
+	public static function invoiceLabelForSalesOrder($soId) {
+		self::install();
+		$row = self::findBySalesOrder((int) $soId);
+		if (!$row) {
+			return '';
+		}
+		if ($row['status'] === 'published') {
+			return 'Đã phát hành';
+		}
+		return self::invoiceStatusOf((int) $row['invoiceid']);
+	}
+
 	protected static function findBySalesOrder($soId) {
 		$adb = PearDatabase::getInstance();
 		$res = $adb->pquery('SELECT * FROM mk_misa_voucher WHERE salesorderid = ?', array($soId));
@@ -779,6 +791,19 @@ class Invoice_MisaSyncService {
 			return null;
 		}
 		return $adb->query_result_rowdata($res, 0);
+	}
+
+	protected static function invoiceStatusOf($invoiceId) {
+		$invoiceId = (int) $invoiceId;
+		if ($invoiceId <= 0) {
+			return '';
+		}
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery('SELECT invoicestatus FROM vtiger_invoice WHERE invoiceid = ?', array($invoiceId));
+		if (!$res || $adb->num_rows($res) < 1) {
+			return '';
+		}
+		return trim((string) decode_html($adb->query_result($res, 0, 'invoicestatus')));
 	}
 
 	protected static function findByOrgRefid($orgRefid) {

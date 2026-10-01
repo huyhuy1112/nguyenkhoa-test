@@ -1822,6 +1822,16 @@
           cancelSalesOrder($panel, id, $btn);
           return;
         }
+        var misaStatus = String($panel.attr("data-misa-status") || "");
+        if (misaStatus === "Đã phát hành") {
+          showOrderActionConfirm({
+            title: "Đã phát hành",
+            question: "Đơn hàng này đã phát hành.",
+            hint: "Vui lòng kiểm tra hóa đơn.",
+            icon: "fa-exclamation-circle",
+          });
+          return;
+        }
         transferSalesOrderToMisa(id, $btn);
       },
       true,
