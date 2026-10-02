@@ -49,6 +49,12 @@
         if (Array.isArray(res.offline_classes)) {
           root.MK_OFFLINE_CLASSES = res.offline_classes;
         }
+        if (Array.isArray(res.gd14_questions)) {
+          root.MK_GD14_QUESTIONS = { questions: res.gd14_questions };
+        }
+        if (Array.isArray(res.gd14_courses)) {
+          root.MK_GD14_COURSES = res.gd14_courses;
+        }
         if (res && res.is_admin != null) {
           root.MK_CONTACTS_IS_ADMIN = Number(res.is_admin) === 1;
         }
@@ -129,6 +135,20 @@
         return res;
       });
     },
+    saveGd14Answers: function (id, payload) {
+      var oid = String(id || "");
+      return apiRequest("gd14_answers", {
+        record: oid,
+        payload: JSON.stringify(payload || {}),
+      }).then(function (res) {
+        var patch = {};
+        if (res && res.gd14) patch.gd14 = res.gd14;
+        if (res && res.compare) patch.compare = res.compare;
+        if (res && res.verify_lines) patch.verify_lines = res.verify_lines;
+        root.ContactsLocalStore.patchContact(oid, patch);
+        return res;
+      });
+    },
     gd14ClassStep: function (id, step, fields) {
       var oid = String(id || "");
       var data = Object.assign({ record: oid, step: step || "" }, fields || {});
@@ -136,6 +156,7 @@
         var patch = {};
         if (res && res.gd14) patch.gd14 = res.gd14;
         if (res && res.verify_lines) patch.verify_lines = res.verify_lines;
+        if (res && res.compare) patch.compare = res.compare;
         if (res && res.tag) {
           var current = null;
           for (var i = 0; i < _contacts.length; i++) {

@@ -7,7 +7,7 @@
   var ref = window.ContactsLovableRef;
   var store = window.ContactsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 19;
+  var COL_COUNT = 18;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -1368,23 +1368,56 @@
     });
   }
 
-  function verifyCompareHtml(row) {
+  function gd14Questions() {
+    var bank = window.MK_GD14_QUESTIONS;
+    return bank && Array.isArray(bank.questions) ? bank.questions : [];
+  }
+
+  function gd14Courses() {
+    return Array.isArray(window.MK_GD14_COURSES) ? window.MK_GD14_COURSES : [];
+  }
+
+  function gd14OptionLabel(question, code) {
+    var want = String(code || "").toLowerCase();
+    var options = (question && question.options) || [];
+    for (var i = 0; i < options.length; i++) {
+      if (String(options[i].code || "").toLowerCase() === want) return options[i].label || want;
+    }
+    return want;
+  }
+
+  function gd14CourseLabel(code) {
+    var want = String(code || "").toLowerCase();
+    var rows = gd14Courses();
+    for (var i = 0; i < rows.length; i++) {
+      if (String(rows[i].code || "").toLowerCase() === want) return rows[i].label || want;
+    }
+    return want;
+  }
+
+  function findContact(id) {
+    var want = String(id || "");
+    var rows = getContacts();
+    for (var i = 0; i < rows.length; i++) {
+      if (String(rows[i].id) === want || String(rows[i].crmid || "") === want) return rows[i];
+    }
+    return null;
+  }
+
+  function verifyOpenHtml(row) {
     var lines = row && Array.isArray(row.verify_lines) ? row.verify_lines : [];
-    if (!lines.length) return '<span class="mk-leads-muted">—</span>';
+    var compare = row && row.compare && typeof row.compare === "object" ? row.compare : {};
+    var hasGd14 = contactHasGd14(row);
+    if (!lines.length && !hasGd14 && !Number(compare.editable)) return '<span class="mk-leads-muted">—</span>';
+    var g = row.gd14 && typeof row.gd14 === "object" ? row.gd14 : {};
+    var hint = compare.course ? gd14CourseLabel(compare.course) : hasGd14 ? "Lớp 990k" : "Xem đáp án";
+    if (g.class_date) hint += " · " + g.class_date;
     return (
-      '<div class="mk-gd14-compare">' +
-      lines
-        .map(function (line) {
-          return (
-            '<div class="mk-gd14-compare__row"><span>' +
-            esc(line.label || "") +
-            "</span><strong>" +
-            esc(line.value || "") +
-            "</strong></div>"
-          );
-        })
-        .join("") +
-      "</div>"
+      '<button type="button" class="mk-gd14-open" data-mk-gd14-open="' +
+      esc(row.crmid || row.id) +
+      '"><strong>Đối chiếu</strong><span>' +
+      esc(hint) +
+      "</span></button>"
     );
   }
 
@@ -1493,6 +1526,119 @@
     host.hidden = false;
   }
 
+  function compareSelectHtml(name, options, selected, placeholder) {
+    var html = '<select class="mk-gd14-panel__select" data-mk-gd14-field="' + esc(name) + '">';
+    html += '<option value="">' + esc(placeholder || "— Chọn —") + "</option>";
+    (options || []).forEach(function (opt) {
+      var code = String(opt.code || "");
+      html +=
+        '<option value="' +
+        esc(code) +
+        '"' +
+        (String(selected || "").toLowerCase() === code.toLowerCase() ? " selected" : "") +
+        ">" +
+        esc(opt.label || code) +
+        "</option>";
+    });
+    return html + "</select>";
+  }
+
+  function comparePanelHtml(contact) {
+    var compare = contact.compare && typeof contact.compare === "object" ? contact.compare : {};
+    var form = compare.form || {};
+    var answers = compare.answers || {};
+    var questions = gd14Questions();
+    var formRows = questions
+      .map(function (q) {
+        var code = form[q.id] || "";
+        return (
+          '<div class="mk-gd14-panel__line"><span>' +
+          esc(q.label || q.id) +
+          "</span><strong>" +
+          esc(code ? gd14OptionLabel(q, code) : "Chưa có") +
+          "</strong></div>"
+        );
+      })
+      .join("");
+    var answerRows = questions
+      .map(function (q) {
+        return (
+          '<label class="mk-gd14-panel__field"><span>' +
+          esc(q.label || q.id) +
+          "</span>" +
+          compareSelectHtml(q.id, q.options || [], answers[q.id] || form[q.id] || "", "— Chọn —") +
+          "</label>"
+        );
+      })
+      .join("");
+    var editable = Number(compare.editable) === 1 || contactHasGd14(contact);
+    var editBlock = editable
+      ? '<section class="mk-gd14-panel__card"><h3>Sau đối chiếu</h3><p>Đáp án này sales sửa được khi khách đổi ý.</p>' +
+        answerRows +
+        '<label class="mk-gd14-panel__field"><span>Mục tiêu khách nêu</span><input class="mk-gd14-panel__select" data-mk-gd14-field="goal" value="' +
+        esc(compare.goal || "") +
+        '" /></label>' +
+        '<label class="mk-gd14-panel__field"><span>Khoá đã chọn</span>' +
+        compareSelectHtml("course", gd14Courses(), compare.course || "", "— Chưa chọn —") +
+        "</label>" +
+        '<button type="button" class="mk-gd14-class__btn mk-gd14-class__btn--ok" data-mk-gd14-save="' +
+        esc(contact.crmid || contact.id) +
+        '">Lưu đối chiếu</button></section>'
+      : "";
+    var staticLines =
+      !editable && Array.isArray(contact.verify_lines) && contact.verify_lines.length
+        ? '<section class="mk-gd14-panel__card"><h3>Đã ghi</h3>' +
+          contact.verify_lines
+            .map(function (line) {
+              return (
+                '<div class="mk-gd14-panel__line"><span>' +
+                esc(line.label || "") +
+                "</span><strong>" +
+                esc(line.value || "") +
+                "</strong></div>"
+              );
+            })
+            .join("") +
+          "</section>"
+        : "";
+    return (
+      '<div class="mk-gd14-panel__cardhead"><div><p>Khách hàng</p><h2>' +
+      esc(contact.name || "Khách hàng") +
+      '</h2></div><button type="button" class="mk-gd14-panel__close" data-mk-gd14-close aria-label="Đóng">×</button></div>' +
+      '<section class="mk-gd14-panel__card"><h3>Đáp án form</h3><p>Khách tự khai, không sửa ở đây.</p>' +
+      (formRows || '<p class="mk-gd14-panel__empty">Chưa có đáp án form.</p>') +
+      "</section>" +
+      editBlock +
+      staticLines +
+      (contactHasGd14(contact)
+        ? '<section class="mk-gd14-panel__card"><h3>Lớp 990k</h3>' + gd14ClassCellHtml(contact) + "</section>"
+        : "")
+    );
+  }
+
+  function openComparePanel(id) {
+    var contact = findContact(id);
+    if (!contact) return;
+    var host = document.getElementById("mk-contacts-gd14-panel");
+    if (!host) {
+      host = document.createElement("div");
+      host.id = "mk-contacts-gd14-panel";
+      host.className = "mk-gd14-panel";
+      host.innerHTML = '<div class="mk-gd14-panel__sheet" data-mk-gd14-sheet></div>';
+      document.body.appendChild(host);
+    }
+    host.hidden = false;
+    host.setAttribute("data-contact-id", String(contact.crmid || contact.id));
+    var sheet = host.querySelector("[data-mk-gd14-sheet]");
+    if (sheet) sheet.innerHTML = comparePanelHtml(contact);
+  }
+
+  function refreshComparePanel() {
+    var host = document.getElementById("mk-contacts-gd14-panel");
+    if (!host || host.hidden) return;
+    openComparePanel(host.getAttribute("data-contact-id"));
+  }
+
   function renderTable() {
     var all = getContacts();
     var rows = sortContacts(filterContacts(all));
@@ -1552,8 +1698,7 @@
             '" title="Sửa thẻ">' +
             stackedContactTags(c) +
             "</button></td>" +
-            '<td class="mk-leads-td mk-leads-td--verify">' + verifyCompareHtml(c) + "</td>" +
-            '<td class="mk-leads-td mk-leads-td--gd14">' + gd14ClassCellHtml(c) + "</td>" +
+            '<td class="mk-leads-td mk-leads-td--verify">' + verifyOpenHtml(c) + "</td>" +
             '<td class="mk-leads-td">' + progressCellHtml(c) + "</td>" +
             '<td class="mk-leads-td">' + bangCellHtml(c) + "</td>" +
             '<td class="mk-leads-td">' + credentialSelectHtml(c, "tk") + "</td>" +
@@ -1874,6 +2019,43 @@
     });
 
     document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-mk-gd14-close]")) {
+        var panel = document.getElementById("mk-contacts-gd14-panel");
+        if (panel) panel.hidden = true;
+        return;
+      }
+      var openBtn = e.target.closest && e.target.closest("[data-mk-gd14-open]");
+      if (openBtn) {
+        e.preventDefault();
+        openComparePanel(openBtn.getAttribute("data-mk-gd14-open"));
+        return;
+      }
+      var saveBtn = e.target.closest && e.target.closest("[data-mk-gd14-save]");
+      if (saveBtn) {
+        e.preventDefault();
+        var sid = saveBtn.getAttribute("data-mk-gd14-save");
+        var sheet = saveBtn.closest ? saveBtn.closest("[data-mk-gd14-sheet]") : null;
+        var payload = {};
+        if (sheet) {
+          sheet.querySelectorAll("[data-mk-gd14-field]").forEach(function (el) {
+            payload[el.getAttribute("data-mk-gd14-field")] = el.value || "";
+          });
+        }
+        if (!store || !store.saveGd14Answers) return;
+        saveBtn.disabled = true;
+        store
+          .saveGd14Answers(sid, payload)
+          .then(function (res) {
+            notifyUser("success", (res && res.message) || "Đã cập nhật đối chiếu.");
+            renderTable();
+            refreshComparePanel();
+          })
+          .catch(function (err) {
+            notifyUser("error", (err && (err.message || err)) || "Không lưu được đối chiếu.");
+            saveBtn.disabled = false;
+          });
+        return;
+      }
       if (e.target.closest && e.target.closest("[data-mk-gd14-qr-close]")) {
         var qrHost = document.getElementById("mk-contacts-gd14-qr");
         if (qrHost) qrHost.hidden = true;
@@ -1903,6 +2085,7 @@
           .then(function (res) {
             notifyUser("success", (res && res.message) || "Đã cập nhật lớp 990k.");
             renderTable();
+            refreshComparePanel();
           })
           .catch(function (err) {
             notifyUser("error", (err && (err.message || err)) || "Không cập nhật được lớp 990k.");

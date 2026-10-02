@@ -95,9 +95,11 @@ class Contacts_ModernService {
 			if (isset($gd14ByContact[$contactId])) {
 				$item['verify_lines'] = $gd14ByContact[$contactId]['lines'];
 				$item['gd14'] = $gd14ByContact[$contactId]['gd14'];
+				$item['compare'] = $gd14ByContact[$contactId]['compare'];
 			} else {
 				$item['verify_lines'] = array();
 				$item['gd14'] = array();
+				$item['compare'] = array();
 			}
 			$out[] = $item;
 		}

@@ -1707,9 +1707,82 @@ class Leads_SalesVerifyService {
 			$out[$cid] = array(
 				'lines' => self::linesForLeadColumns($row),
 				'gd14' => self::gd14PublicState($extra),
+				'compare' => self::gd14CompareState($extra, $row),
 			);
 		}
 		return $out;
+	}
+
+	public static function gd14CompareState(array $extra, array $row = array()) {
+		$form = isset($extra['gd14_form_answers']) && is_array($extra['gd14_form_answers']) ? $extra['gd14_form_answers'] : array();
+		$answers = isset($extra['gd14_answers']) && is_array($extra['gd14_answers']) ? $extra['gd14_answers'] : array();
+		foreach (array('c1', 'c2', 'c3') as $qid) {
+			if (empty($form[$qid]) && !empty($row['form_' . $qid])) {
+				$form[$qid] = strtolower(trim((string) $row['form_' . $qid]));
+			}
+		}
+		$editable = !empty($answers) || !empty($extra['gd14_outcome']) || !empty($extra['gd14_course']) || !empty($extra['gd14_verified']);
+		return array(
+			'form' => $form,
+			'answers' => $answers,
+			'goal' => isset($extra['gd14_goal']) ? (string) $extra['gd14_goal'] : '',
+			'course' => isset($extra['gd14_course']) ? (string) $extra['gd14_course'] : '',
+			'editable' => $editable ? 1 : 0,
+		);
+	}
+
+	/**
+	 * Sales sửa đáp án sau đối chiếu trên Khách hàng. Đáp án form khách đã khai giữ nguyên.
+	 */
+	public static function saveGd14ContactAnswers($contactId, array $payload, $userId = 0) {
+		require_once 'modules/Leads/models/ModernService.php';
+		$contactId = (int) $contactId;
+		if ($contactId <= 0) {
+			throw new Exception('Không tìm thấy khách hàng.');
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		Leads_ModernService::installSchema($adb);
+		$res = $adb->pquery(
+			'SELECT leadid, verify_extra_json FROM bace_lead_profile WHERE contact_id = ? ORDER BY leadid DESC LIMIT 1',
+			array($contactId)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			throw new Exception('Không tìm thấy hồ sơ đối chiếu của khách này.');
+		}
+		$leadId = (int) $adb->query_result($res, 0, 'leadid');
+		$extra = self::decodeStoredJson($adb->query_result($res, 0, 'verify_extra_json'));
+		$bank = self::getGd14QuestionBank();
+		$answers = self::readGd14AnswerPayload($payload, $bank, false);
+		if (!empty($answers)) {
+			$extra['gd14_answers'] = $answers;
+			foreach ($answers as $qid => $code) {
+				$extra['gd14_' . $qid] = $code;
+			}
+			$extra['gd14_verified'] = 1;
+			$extra['gd14_result'] = self::classifyGd14Answers($answers, $bank);
+		}
+		if (array_key_exists('goal', $payload)) {
+			$extra['gd14_goal'] = trim((string) $payload['goal']);
+		}
+		$courses = self::gd14CourseCatalog();
+		$course = strtolower(trim((string) (isset($payload['course']) ? $payload['course'] : '')));
+		if ($course !== '' && isset($courses[$course])) {
+			$extra['gd14_course'] = $course;
+		}
+		self::storeGd14Extra($adb, $leadId, $extra);
+		try {
+			self::copyLeadVerifyOnto($leadId, 'Contacts', $contactId);
+		} catch (Exception $e) {
+			// best-effort
+		}
+		return array(
+			'success' => true,
+			'compare' => self::gd14CompareState($extra),
+			'gd14' => self::gd14PublicState($extra),
+			'verify_lines' => self::linesFromPack(array('extra' => $extra)),
+			'message' => 'Đã cập nhật đáp án sau đối chiếu.',
+		);
 	}
 
 	/**
@@ -1799,6 +1872,7 @@ class Leads_SalesVerifyService {
 			'tag' => $tag,
 			'tag_label' => ($tag !== '' && isset($labels[$tag])) ? $labels[$tag] : '',
 			'gd14' => self::gd14PublicState($extra),
+			'compare' => self::gd14CompareState($extra),
 			'verify_lines' => self::linesFromPack(array('extra' => $extra)),
 			'message' => $note !== '' ? $note : 'Đã cập nhật lớp 990k.',
 		);

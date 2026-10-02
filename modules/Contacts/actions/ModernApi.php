@@ -22,7 +22,7 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields', 'save_offline_attend', 'last_touch_call_log', 'edubit_renew', 'edubit_sync_progress', 'edubit_sync_all', 'edubit_provision', 'offline_class_add', 'offline_class_delete', 'gd14_class'), true)) {
+		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields', 'save_offline_attend', 'last_touch_call_log', 'edubit_renew', 'edubit_sync_progress', 'edubit_sync_all', 'edubit_provision', 'offline_class_add', 'offline_class_delete', 'gd14_class', 'gd14_answers'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -39,13 +39,34 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 		try {
 			switch ($mode) {
 				case 'list':
+					require_once 'modules/Leads/models/SalesVerifyService.php';
+					$bank = Leads_SalesVerifyService::getGd14QuestionBank();
+					$courses = array();
+					foreach (Leads_SalesVerifyService::gd14CourseCatalog() as $code => $spec) {
+						$courses[] = array('code' => $code, 'label' => $spec['label']);
+					}
 					$response->setResult(array(
 						'success' => true,
 						'contacts' => Contacts_ModernService::listContacts($userId),
 						'assignable_users' => Contacts_ModernService::listAssignableUsers(),
 						'offline_classes' => Contacts_ModernService::listOfflineClasses(),
+						'gd14_questions' => isset($bank['questions']) ? $bank['questions'] : array(),
+						'gd14_courses' => $courses,
 						'is_admin' => Users_Record_Model::getCurrentUserModel()->isAdminUser() ? 1 : 0,
 					));
+					break;
+				case 'gd14_answers':
+					require_once 'modules/Leads/models/SalesVerifyService.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$raw = $request->get('payload');
+					$payload = is_array($raw) ? $raw : json_decode((string) $raw, true);
+					if (!is_array($payload)) {
+						$payload = array();
+					}
+					$response->setResult(Leads_SalesVerifyService::saveGd14ContactAnswers($recordId, $payload, $userId));
 					break;
 				case 'gd14_class':
 					require_once 'modules/Leads/models/SalesVerifyService.php';
