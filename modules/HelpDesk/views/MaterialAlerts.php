@@ -32,7 +32,7 @@ class HelpDesk_MaterialAlerts_View extends Vtiger_Index_View {
 		$viewer = $this->getViewer($request);
 		$contactId = (int) $request->get('contact_id');
 		$viewer->assign('NL_FIELDS', HelpDesk_MaterialAlertService::settingFields());
-		$viewer->assign('NL_SETTINGS', HelpDesk_MaterialAlertService::getSettings());
+		$viewer->assign('NL_SETTINGS', HelpDesk_MaterialAlertService::formSettings());
 		$viewer->assign('NL_ALERTS', HelpDesk_MaterialAlertService::listAlerts());
 		$viewer->assign('NL_METRICS', $contactId > 0 ? HelpDesk_MaterialAlertService::contactMetrics($contactId) : null);
 		$viewer->assign('NL_CONTACT_ID', $contactId);

@@ -17,22 +17,29 @@
 		</div>
 	</div>
 
-	<p class="mk-nl__sub">Ngưỡng để trống thì cảnh báo định lượng không chạy. Thiếu đơn hợp lệ thì hồ sơ ghi chưa đủ dữ liệu.</p>
+	<p class="mk-nl__sub">Điền số vào ô muốn bật. Ô để trống thì việc đó không báo. Bấm Lưu ngưỡng sau khi chỉnh.</p>
 
 	<form class="mk-nl__card" id="mk-nl-settings">
 		<div class="mk-nl__card-head">
-			<h2>Ngưỡng</h2>
+			<h2>Chọn khi nào thì báo</h2>
 			<button type="submit">Lưu ngưỡng</button>
 		</div>
-		<div class="mk-nl__grid">
-			{foreach from=$NL_FIELDS item=FIELD}
-				<label class="mk-nl__field">
-					<span>{$FIELD.label|escape}</span>
-					<small>{$FIELD.hint|escape}</small>
-					<input type="text" name="{$FIELD.key|escape}" value="{$NL_SETTINGS[$FIELD.key]|escape}" placeholder="Để trống" />
-				</label>
-			{/foreach}
-		</div>
+		{assign var=NL_GROUP value=''}
+		{foreach from=$NL_FIELDS item=FIELD}
+			{if $FIELD.group neq $NL_GROUP}
+				{if $NL_GROUP neq ''}</div></section>{/if}
+				{assign var=NL_GROUP value=$FIELD.group}
+				<section class="mk-nl__group">
+					<h3>{$FIELD.group|escape}</h3>
+					<div class="mk-nl__grid">
+			{/if}
+			<label class="mk-nl__field">
+				<span>{$FIELD.label|escape}</span>
+				<small>{$FIELD.hint|escape}</small>
+				<input type="text" name="{$FIELD.key|escape}" value="{$NL_SETTINGS[$FIELD.key]|escape}" placeholder="{$FIELD.placeholder|escape}" />
+			</label>
+		{/foreach}
+		{if $NL_GROUP neq ''}</div></section>{/if}
 		<p class="mk-nl__msg" data-nl-msg hidden></p>
 	</form>
 
@@ -110,7 +117,9 @@
 .mk-nl__card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
 .mk-nl__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .mk-nl__field { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-size: 14px; font-weight: 650; color: #0f172a; }
-.mk-nl__field small { font-weight: 700; color: #08a045; letter-spacing: .04em; }
+.mk-nl__group { margin-top: 8px; }
+.mk-nl__group h3 { margin: 18px 0 10px; font-size: 15px; color: #0b6e4f; }
+.mk-nl__field small { font-weight: 500; color: #64748b; letter-spacing: 0; line-height: 1.4; }
 .mk-nl__field--id { max-width: 280px; }
 .mk-nl input { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px 12px; font-weight: 500; background: #fff; }
 .mk-nl__card-head button, .mk-nl__close button, .mk-nl__actions button, .mk-nl__lookup button { border: 0; border-radius: 10px; padding: 8px 14px; font-weight: 700; cursor: pointer; }

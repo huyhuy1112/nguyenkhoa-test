@@ -42,16 +42,16 @@ class HelpDesk_MaterialAlertService {
 
 	public static function settingFields() {
 		return array(
-			array('key' => 'sla_first_contact_hours', 'label' => 'Hạn liên hệ khách mới (giờ)', 'hint' => 'NL01'),
-			array('key' => 'follow_after_class_days', 'label' => 'Hạn theo dõi sau học, chưa mua (ngày)', 'hint' => 'NL02'),
-			array('key' => 'quote_remind_days', 'label' => 'Nhắc trước khi báo giá hết hạn (ngày)', 'hint' => 'NL05'),
-			array('key' => 'second_purchase_days', 'label' => 'Kỳ dự kiến mua lần hai (ngày)', 'hint' => 'NL07'),
-			array('key' => 'reorder_lead_days', 'label' => 'Nhắc trước kỳ mua lại (ngày)', 'hint' => 'NL08'),
-			array('key' => 'reorder_grace_days', 'label' => 'Dung sai quá kỳ mua lại (ngày)', 'hint' => 'NL09'),
-			array('key' => 'drop_ratio', 'label' => 'Ngưỡng giảm sản lượng/doanh thu (0–1)', 'hint' => 'NL10'),
-			array('key' => 'repeat_incident_count', 'label' => 'Số sự cố giao lặp để báo quản lý', 'hint' => 'NL18'),
-			array('key' => 'tier_silver', 'label' => 'Ngưỡng hạng Bạc (giá trị mua trong kỳ)', 'hint' => 'CT09'),
-			array('key' => 'tier_gold', 'label' => 'Ngưỡng hạng Vàng (giá trị mua trong kỳ)', 'hint' => 'CT09'),
+			array('group' => 'Chăm khách mới', 'key' => 'sla_first_contact_hours', 'label' => 'Bao lâu phải gọi khách mới', 'hint' => 'Điền số giờ. Ví dụ 24. Để trống thì không nhắc khách mới chưa được gọi.', 'placeholder' => 'Ví dụ 24'),
+			array('group' => 'Chăm khách mới', 'key' => 'follow_after_class_days', 'label' => 'Sau buổi học, bao nhiêu ngày chưa mua thì nhắc', 'hint' => 'Điền số ngày. Ví dụ 14. Để trống thì không theo dõi khách đã học nhưng chưa mua nguyên liệu.', 'placeholder' => 'Ví dụ 14'),
+			array('group' => 'Chăm khách mới', 'key' => 'quote_remind_days', 'label' => 'Nhắc trước khi báo giá hết hạn', 'hint' => 'Điền số ngày. Ví dụ 3. Để trống thì chỉ báo khi báo giá đã quá hạn.', 'placeholder' => 'Ví dụ 3'),
+			array('group' => 'Mua lại', 'key' => 'second_purchase_days', 'label' => 'Bao nhiêu ngày sau đơn đầu mà chưa có đơn thứ hai thì nhắc', 'hint' => 'Điền số ngày. Ví dụ 30. Để trống thì không nhắc đơn thứ hai.', 'placeholder' => 'Ví dụ 30'),
+			array('group' => 'Mua lại', 'key' => 'reorder_lead_days', 'label' => 'Nhắc trước kỳ mua lại bao nhiêu ngày', 'hint' => 'Điền số ngày. Ví dụ 5. Kỳ mua lấy từ lịch sử đơn của chính khách. Để trống thì không nhắc sắp đến kỳ.', 'placeholder' => 'Ví dụ 5'),
+			array('group' => 'Mua lại', 'key' => 'reorder_grace_days', 'label' => 'Quá kỳ mua lại thêm bao nhiêu ngày thì coi là trễ', 'hint' => 'Điền số ngày. Ví dụ 7. Để trống thì không báo quá kỳ mua lại.', 'placeholder' => 'Ví dụ 7'),
+			array('group' => 'Mua lại', 'key' => 'drop_ratio', 'label' => 'Báo khi doanh thu giảm từ bao nhiêu phần trăm', 'hint' => 'Điền 30 nếu muốn báo khi 90 ngày này giảm 30% so với 90 ngày trước. Để trống thì không báo giảm mua.', 'placeholder' => 'Ví dụ 30'),
+			array('group' => 'Giao hàng và hạng khách', 'key' => 'repeat_incident_count', 'label' => 'Bao nhiêu đơn giao trễ thì báo quản lý', 'hint' => 'Điền số đơn. Ví dụ 3. Để trống thì không gom thành việc sự cố lặp.', 'placeholder' => 'Ví dụ 3'),
+			array('group' => 'Giao hàng và hạng khách', 'key' => 'tier_silver', 'label' => 'Mua từ bao nhiêu tiền trong 90 ngày thì xếp hạng Bạc', 'hint' => 'Điền số tiền. Ví dụ 20000000. Để trống thì chưa xếp Bạc, Vàng và không báo khách lớn rủi ro.', 'placeholder' => 'Ví dụ 20000000'),
+			array('group' => 'Giao hàng và hạng khách', 'key' => 'tier_gold', 'label' => 'Mua từ bao nhiêu tiền trong 90 ngày thì xếp hạng Vàng', 'hint' => 'Điền số tiền cao hơn hạng Bạc. Ví dụ 50000000. Để trống thì chưa có hạng Vàng.', 'placeholder' => 'Ví dụ 50000000'),
 		);
 	}
 
@@ -84,7 +84,17 @@ class HelpDesk_MaterialAlertService {
 			}
 			$value = trim((string) $value);
 			if ($value !== '' && !is_numeric(str_replace(',', '.', $value))) {
-				throw new Exception('Ngưỡng phải là số hoặc để trống.');
+				throw new Exception('Mỗi ô phải là số hoặc để trống.');
+			}
+			if ($key === 'drop_ratio' && $value !== '') {
+				$percent = (float) str_replace(',', '.', $value);
+				if ($percent < 0 || $percent > 100) {
+					throw new Exception('Phần trăm giảm phải từ 0 đến 100.');
+				}
+				$value = rtrim(rtrim(number_format($percent / 100, 4, '.', ''), '0'), '.');
+				if ($value === '') {
+					$value = '0';
+				}
 			}
 			$adb->pquery(
 				'INSERT INTO mk_nl_settings (setting_key, setting_value) VALUES (?,?)
@@ -93,6 +103,15 @@ class HelpDesk_MaterialAlertService {
 			);
 		}
 		return self::getSettings();
+	}
+
+	public static function formSettings() {
+		$settings = self::getSettings();
+		if (isset($settings['drop_ratio']) && $settings['drop_ratio'] !== '') {
+			$percent = ((float) str_replace(',', '.', $settings['drop_ratio'])) * 100;
+			$settings['drop_ratio'] = rtrim(rtrim(number_format($percent, 2, '.', ''), '0'), '.');
+		}
+		return $settings;
 	}
 
 	protected static function numSetting(array $settings, $key) {
