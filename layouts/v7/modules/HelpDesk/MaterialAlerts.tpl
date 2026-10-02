@@ -38,24 +38,33 @@
 
 	<form class="mk-nl__card" id="mk-nl-metrics">
 		<div class="mk-nl__card-head">
-			<h2>Chỉ số một khách</h2>
-			<button type="submit">Xem CT01–CT09</button>
+			<div>
+				<h2>Chỉ số một khách</h2>
+				<p class="mk-nl__sub" style="margin:4px 0 0;">CT01–CT09 trên hồ sơ khách nguyên liệu. Nhập mã để xem thử.</p>
+			</div>
 		</div>
-		<label class="mk-nl__field mk-nl__field--id">Mã khách hàng
-			<input type="number" name="contact_id" min="1" value="{if $NL_CONTACT_ID}{$NL_CONTACT_ID|escape}{/if}" placeholder="Nhập mã khách" />
-		</label>
+		<div class="mk-nl__lookup">
+			<label class="mk-nl__field mk-nl__field--id">Mã khách hàng
+				<input type="number" name="contact_id" min="1" value="{if $NL_CONTACT_ID}{$NL_CONTACT_ID|escape}{/if}" placeholder="Nhập mã khách" />
+			</label>
+			<button type="submit">Xem chỉ số</button>
+		</div>
 		{if $NL_METRICS}
-			<ul class="mk-nl__metrics">
-				<li>CT01 Tổng đã mua <strong>{$NL_METRICS.ct01|escape}</strong></li>
-				<li>CT02 Mua 90 ngày <strong>{$NL_METRICS.ct02|escape}</strong></li>
-				<li>CT03 Số đơn <strong>{$NL_METRICS.ct03|escape}</strong></li>
-				<li>CT04 Đơn trung bình <strong>{$NL_METRICS.ct04|escape}</strong></li>
-				<li>CT05 Ngày mua gần nhất <strong>{$NL_METRICS.ct05|escape}</strong></li>
-				<li>CT07 Khoảng cách mua <strong>{$NL_METRICS.ct07|escape}</strong></li>
-				<li>CT08 Chờ giao / chưa xong <strong>{$NL_METRICS.ct08|escape}</strong></li>
-				<li>CT09 Vòng đời <strong>{$NL_METRICS.ct09_life|escape}</strong></li>
-				<li>CT09 Hạng <strong>{$NL_METRICS.ct09_tier|escape}</strong></li>
-			</ul>
+			<div class="mk-nl-board">
+				<div class="mk-nl-board__status">
+					<div><em>Vòng đời</em><strong>{$NL_METRICS.ct09_life|escape}</strong></div>
+					<div><em>Hạng</em><strong>{$NL_METRICS.ct09_tier|escape}</strong></div>
+				</div>
+				<div class="mk-nl-board__grid">
+					<article class="mk-nl-tile"><small>CT01</small><span>Tổng đã mua</span><strong>{$NL_METRICS.ct01|escape}</strong></article>
+					<article class="mk-nl-tile{if $NL_METRICS.ct02 eq 'chưa đủ dữ liệu'} is-empty{/if}"><small>CT02</small><span>Mua 90 ngày</span><strong>{$NL_METRICS.ct02|escape}</strong></article>
+					<article class="mk-nl-tile{if $NL_METRICS.ct03 eq 'chưa đủ dữ liệu'} is-empty{/if}"><small>CT03</small><span>Số đơn</span><strong>{$NL_METRICS.ct03|escape}</strong></article>
+					<article class="mk-nl-tile{if $NL_METRICS.ct04 eq 'chưa đủ dữ liệu'} is-empty{/if}"><small>CT04</small><span>Đơn trung bình</span><strong>{$NL_METRICS.ct04|escape}</strong></article>
+					<article class="mk-nl-tile{if $NL_METRICS.ct05 eq 'chưa đủ dữ liệu'} is-empty{/if}"><small>CT05</small><span>Mua gần nhất</span><strong>{$NL_METRICS.ct05|escape}</strong></article>
+					<article class="mk-nl-tile{if $NL_METRICS.ct07 eq 'chưa đủ dữ liệu'} is-empty{/if}"><small>CT07</small><span>Khoảng cách mua</span><strong>{$NL_METRICS.ct07|escape}</strong></article>
+					<article class="mk-nl-tile"><small>CT08</small><span>Chờ giao</span><strong>{$NL_METRICS.ct08|escape}</strong></article>
+				</div>
+			</div>
 		{/if}
 	</form>
 
@@ -101,20 +110,31 @@
 .mk-nl__field small { font-weight: 700; color: #08a045; letter-spacing: .04em; }
 .mk-nl__field--id { max-width: 280px; }
 .mk-nl input { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px 12px; font-weight: 500; background: #fff; }
-.mk-nl__card-head button, .mk-nl__close button, .mk-nl__actions button { border: 0; border-radius: 10px; padding: 8px 14px; font-weight: 700; cursor: pointer; }
-.mk-nl__card-head button, .mk-nl__close button { background: #08a045; color: #fff; }
+.mk-nl__card-head button, .mk-nl__close button, .mk-nl__actions button, .mk-nl__lookup button { border: 0; border-radius: 10px; padding: 8px 14px; font-weight: 700; cursor: pointer; }
+.mk-nl__card-head button, .mk-nl__close button, .mk-nl__lookup button { background: #08a045; color: #fff; }
 .mk-nl__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .mk-nl__actions button { background: #f1f5f9; color: #0f172a; }
 .mk-nl__alert { border-top: 1px solid #e8edf3; padding: 14px 0; }
 .mk-nl__alert header { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .mk-nl__alert em { font-style: normal; background: #ecfdf3; color: #0b6e4f; border-radius: 999px; padding: 2px 8px; font-size: 12px; font-weight: 700; }
-.mk-nl__metrics { margin: 14px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.mk-nl__metrics li { background: #f8fafc; border-radius: 10px; padding: 10px 12px; }
+.mk-nl__lookup { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+.mk-nl__lookup button { height: 42px; }
+.mk-nl-board { margin-top: 16px; }
+.mk-nl-board__status { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.mk-nl-board__status div { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px 14px; }
+.mk-nl-board__status em { display: block; font-style: normal; font-size: 12px; font-weight: 700; color: #166534; letter-spacing: .04em; text-transform: uppercase; }
+.mk-nl-board__status strong { display: block; margin-top: 4px; font-size: 16px; color: #14532d; }
+.mk-nl-board__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.mk-nl-tile { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; min-width: 0; }
+.mk-nl-tile small { display: block; font-size: 11px; font-weight: 800; color: #08a045; letter-spacing: .06em; }
+.mk-nl-tile span { display: block; margin-top: 4px; font-size: 12px; color: #64748b; }
+.mk-nl-tile strong { display: block; margin-top: 6px; font-size: 16px; color: #0f172a; word-break: break-word; }
+.mk-nl-tile.is-empty strong { font-size: 13px; font-weight: 650; color: #94a3b8; }
 .mk-nl__empty { color: #64748b; }
 .mk-nl__msg { margin: 10px 0 0; color: #0b6e4f; font-weight: 700; }
 .mk-nl__close { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-top: 10px; align-items: center; }
 @media (max-width: 800px) {
-	.mk-nl__grid, .mk-nl__metrics, .mk-nl__close { grid-template-columns: 1fr; }
+	.mk-nl__grid, .mk-nl__close, .mk-nl-board__grid, .mk-nl-board__status { grid-template-columns: 1fr; }
 }
 </style>
 <script>
