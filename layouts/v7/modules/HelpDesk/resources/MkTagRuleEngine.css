@@ -38,8 +38,31 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-hd-rules-main {
 	min-height: calc(100vh - 56px);
 }
 
-body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
+body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main,
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-dash-main.mk-hd-rules-main {
 	background: linear-gradient(165deg, #f0fdf4 0%, #f8fafc 38%, var(--tre-bg) 100%) !important;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-hd-rules-main {
+	padding: 28px 32px 48px !important;
+	min-height: calc(100vh - 56px);
+	min-width: 0;
+	overflow: auto;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-hd-rules-content,
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] #listViewContent {
+	width: 100%;
+	max-width: 100%;
+	overflow: visible;
+	box-sizing: border-box;
+}
+
+a.mk-tre-tab {
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .mk-tre-page {

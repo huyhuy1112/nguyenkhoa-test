@@ -372,6 +372,7 @@
 				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'scenarios' ? ' is-active' : '') + '" data-tab="scenarios">Kịch bản</button>'
 				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'affiliate' ? ' is-active' : '') + '" data-tab="affiliate">Mã giới thiệu</button>'
 				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'questions' ? ' is-active' : '') + '" data-tab="questions">Câu hỏi</button>'
+				+ '      <a class="mk-tre-tab" href="index.php?module=HelpDesk&view=MaterialAlerts&app=SUPPORT">Cảnh báo nguyên liệu</a>'
 				+ '    </div>'
 				+ '  </div>'
 				+ '  <div class="mk-tre-panel" id="mk-tre-panel"></div>'
@@ -1670,7 +1671,11 @@
 		bindEvents: function () {
 			var self = this;
 
-			this.$root.on('click', '.mk-tre-tabs > .mk-tre-tab', function () {
+			this.$root.on('click', '.mk-tre-tabs > .mk-tre-tab', function (e) {
+				if (this.tagName === 'A') {
+					return;
+				}
+				e.preventDefault();
 				self.setActiveTab($(this).data('tab'));
 			});
 

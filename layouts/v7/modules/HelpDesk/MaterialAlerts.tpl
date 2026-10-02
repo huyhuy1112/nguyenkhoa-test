@@ -1,29 +1,49 @@
 {strip}
-<div class="mk-nl">
-	<h1 class="mk-nl__title">Cảnh báo nguyên liệu</h1>
+<div class="mk-tre-page mk-nl-page" lang="vi">
+	<header class="mk-tre-hero">
+		<div class="mk-tre-hero__copy">
+			<p class="mk-tre-eyebrow">Tag Rule Engine · Hỗ trợ</p>
+			<h1 class="mk-tre-title">Quản lý</h1>
+		</div>
+	</header>
+	<div class="mk-tre-toolbar-bar">
+		<div class="mk-tre-tabs" role="tablist">
+			<a class="mk-tre-tab" href="index.php?module=HelpDesk&amp;view=Rules&amp;app=SUPPORT#tab=rules">Rule</a>
+			<a class="mk-tre-tab" href="index.php?module=HelpDesk&amp;view=Rules&amp;app=SUPPORT#tab=tags">Tag</a>
+			<a class="mk-tre-tab" href="index.php?module=HelpDesk&amp;view=Rules&amp;app=SUPPORT#tab=scenarios">Kịch bản</a>
+			<a class="mk-tre-tab" href="index.php?module=HelpDesk&amp;view=Rules&amp;app=SUPPORT#tab=affiliate">Mã giới thiệu</a>
+			<a class="mk-tre-tab" href="index.php?module=HelpDesk&amp;view=Rules&amp;app=SUPPORT#tab=questions">Câu hỏi</a>
+			<a class="mk-tre-tab is-active" href="index.php?module=HelpDesk&amp;view=MaterialAlerts&amp;app=SUPPORT" aria-current="page">Cảnh báo nguyên liệu</a>
+		</div>
+	</div>
+
 	<p class="mk-nl__sub">Ngưỡng để trống thì cảnh báo định lượng không chạy. Thiếu đơn hợp lệ thì hồ sơ ghi chưa đủ dữ liệu.</p>
 
 	<form class="mk-nl__card" id="mk-nl-settings">
-		<h2>Ngưỡng</h2>
+		<div class="mk-nl__card-head">
+			<h2>Ngưỡng</h2>
+			<button type="submit">Lưu ngưỡng</button>
+		</div>
 		<div class="mk-nl__grid">
 			{foreach from=$NL_FIELDS item=FIELD}
-				<label>
+				<label class="mk-nl__field">
 					<span>{$FIELD.label|escape}</span>
 					<small>{$FIELD.hint|escape}</small>
 					<input type="text" name="{$FIELD.key|escape}" value="{$NL_SETTINGS[$FIELD.key]|escape}" placeholder="Để trống" />
 				</label>
 			{/foreach}
 		</div>
-		<button type="submit">Lưu ngưỡng</button>
 		<p class="mk-nl__msg" data-nl-msg hidden></p>
 	</form>
 
 	<form class="mk-nl__card" id="mk-nl-metrics">
-		<h2>Chỉ số một khách</h2>
-		<label>Mã khách hàng
-			<input type="number" name="contact_id" min="1" value="{if $NL_CONTACT_ID}{$NL_CONTACT_ID|escape}{/if}" placeholder="contact id" />
+		<div class="mk-nl__card-head">
+			<h2>Chỉ số một khách</h2>
+			<button type="submit">Xem CT01–CT09</button>
+		</div>
+		<label class="mk-nl__field mk-nl__field--id">Mã khách hàng
+			<input type="number" name="contact_id" min="1" value="{if $NL_CONTACT_ID}{$NL_CONTACT_ID|escape}{/if}" placeholder="Nhập mã khách" />
 		</label>
-		<button type="submit">Xem CT01–CT09</button>
 		{if $NL_METRICS}
 			<ul class="mk-nl__metrics">
 				<li>CT01 Tổng đã mua <strong>{$NL_METRICS.ct01|escape}</strong></li>
@@ -42,7 +62,7 @@
 	<section class="mk-nl__card">
 		<h2>Việc đang mở</h2>
 		{if $NL_ALERTS|@count eq 0}
-			<p>Chưa có việc. Báo giá quá hạn và đơn quá hạn thanh toán sẽ hiện khi có dữ liệu. Kỳ mua lại chỉ hiện sau khi nhập ngưỡng.</p>
+			<p class="mk-nl__empty">Chưa có việc. Báo giá quá hạn và đơn quá hạn thanh toán sẽ hiện khi có dữ liệu. Kỳ mua lại chỉ hiện sau khi nhập ngưỡng.</p>
 		{/if}
 		{foreach from=$NL_ALERTS item=ALERT}
 			<article class="mk-nl__alert" data-id="{$ALERT.id}">
@@ -71,19 +91,31 @@
 	</section>
 </div>
 <style>
-.mk-nl { max-width: 980px; display: flex; flex-direction: column; gap: 16px; }
-.mk-nl__title { margin: 0; font-size: 22px; }
-.mk-nl__sub, .mk-nl__card small { color: #64748b; }
-.mk-nl__card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; }
-.mk-nl__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.mk-nl__grid label, .mk-nl__card > label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 650; }
-.mk-nl input { border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 10px; font-weight: 500; }
-.mk-nl button { margin-top: 10px; border: 0; border-radius: 8px; background: #15803d; color: #fff; padding: 8px 12px; font-weight: 700; cursor: pointer; }
-.mk-nl__actions button { background: #e2e8f0; color: #0f172a; margin-right: 6px; }
-.mk-nl__alert { border-top: 1px solid #e2e8f0; padding: 12px 0; }
-.mk-nl__alert header { display: flex; gap: 10px; align-items: center; }
-.mk-nl__metrics { margin: 12px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.mk-nl__metrics li { background: #f8fafc; border-radius: 8px; padding: 8px 10px; }
+.mk-nl-page { width: 100%; max-width: 1120px; }
+.mk-nl__sub { margin: 8px 0 18px; color: #64748b; font-size: 15px; }
+.mk-nl__card { background: #fff; border: 1px solid #dde4ec; border-radius: 16px; padding: 18px 20px 20px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(15,23,42,.05); }
+.mk-nl__card h2 { margin: 0; font-size: 18px; }
+.mk-nl__card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.mk-nl__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.mk-nl__field { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-size: 14px; font-weight: 650; color: #0f172a; }
+.mk-nl__field small { font-weight: 700; color: #08a045; letter-spacing: .04em; }
+.mk-nl__field--id { max-width: 280px; }
+.mk-nl input { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px 12px; font-weight: 500; background: #fff; }
+.mk-nl__card-head button, .mk-nl__close button, .mk-nl__actions button { border: 0; border-radius: 10px; padding: 8px 14px; font-weight: 700; cursor: pointer; }
+.mk-nl__card-head button, .mk-nl__close button { background: #08a045; color: #fff; }
+.mk-nl__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.mk-nl__actions button { background: #f1f5f9; color: #0f172a; }
+.mk-nl__alert { border-top: 1px solid #e8edf3; padding: 14px 0; }
+.mk-nl__alert header { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.mk-nl__alert em { font-style: normal; background: #ecfdf3; color: #0b6e4f; border-radius: 999px; padding: 2px 8px; font-size: 12px; font-weight: 700; }
+.mk-nl__metrics { margin: 14px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.mk-nl__metrics li { background: #f8fafc; border-radius: 10px; padding: 10px 12px; }
+.mk-nl__empty { color: #64748b; }
+.mk-nl__msg { margin: 10px 0 0; color: #0b6e4f; font-weight: 700; }
+.mk-nl__close { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-top: 10px; align-items: center; }
+@media (max-width: 800px) {
+	.mk-nl__grid, .mk-nl__metrics, .mk-nl__close { grid-template-columns: 1fr; }
+}
 </style>
 <script>
 (function () {
