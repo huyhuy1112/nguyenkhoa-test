@@ -27,6 +27,7 @@ class HelpDesk_MaterialAlertsApi_Action extends Vtiger_Action_Controller {
 					'result_note' => $request->get('result_note'),
 					'evidence_ref' => $request->get('evidence_ref'),
 					'next_task' => $request->get('next_task'),
+					'next_owner' => $request->get('next_owner'),
 					'next_due' => $request->get('next_due'),
 					'snooze_until' => $request->get('snooze_until'),
 				));

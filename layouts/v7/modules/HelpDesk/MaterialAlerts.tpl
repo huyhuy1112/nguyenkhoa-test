@@ -92,7 +92,10 @@
 				<div class="mk-nl__close" hidden>
 					<input type="text" data-field="result_note" placeholder="Kết quả / lý do" />
 					<input type="text" data-field="evidence_ref" placeholder="Bằng chứng: đơn, cuộc gọi, chứng từ" />
-					<input type="date" data-field="snooze_until" />
+					<input type="text" data-field="next_task" placeholder="Việc tiếp theo" />
+					<input type="text" data-field="next_owner" placeholder="Người phụ trách" />
+					<input type="date" data-field="next_due" title="Hạn việc tiếp theo" />
+					<input type="date" data-field="snooze_until" title="Ngày kiểm tra lại nếu tạm hoãn" />
 					<button type="button" data-send="1">Ghi</button>
 				</div>
 			</article>
@@ -132,7 +135,8 @@
 .mk-nl-tile.is-empty strong { font-size: 13px; font-weight: 650; color: #94a3b8; }
 .mk-nl__empty { color: #64748b; }
 .mk-nl__msg { margin: 10px 0 0; color: #0b6e4f; font-weight: 700; }
-.mk-nl__close { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-top: 10px; align-items: center; }
+.mk-nl__close { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; align-items: center; }
+.mk-nl__close button { grid-column: 1 / -1; justify-self: start; }
 @media (max-width: 800px) {
 	.mk-nl__grid, .mk-nl__close, .mk-nl-board__grid, .mk-nl-board__status { grid-template-columns: 1fr; }
 }
