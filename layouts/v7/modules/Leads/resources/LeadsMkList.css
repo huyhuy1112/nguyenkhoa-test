@@ -1067,6 +1067,19 @@ body.mk-leads-verify-open {
 	margin-top: 10px;
 	width: 100%;
 }
+.mk-gd14-drop {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+.mk-gd14-drop__item {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	font-size: 13px;
+	color: #475569;
+}
+.mk-gd14-drop__item strong { color: #0f172a; }
 @media (max-width: 720px) {
 	.mk-gd14-deadline { grid-template-columns: 1fr; }
 }

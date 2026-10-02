@@ -323,6 +323,9 @@ class Leads_SalesVerifyService {
 		if ($goal !== '') {
 			$extra['gd14_goal'] = $goal;
 		}
+		if (!empty($extra['gd14_drop'])) {
+			throw new Exception('Hồ sơ đã ngưng chăm sóc tại ' . $extra['gd14_drop'] . '.');
+		}
 		$extra['gd14_outcome'] = $outcome;
 		if ($course !== '') {
 			$extra['gd14_course'] = $course;
@@ -331,8 +334,15 @@ class Leads_SalesVerifyService {
 		if ($outcome === 'chon_khoa' && empty($extra['gd14_waiting_at'])) {
 			$extra['gd14_waiting_at'] = date('Y-m-d H:i:s');
 		}
+		$drop = self::bumpGd14Drop($extra, $outcome);
+		$tag = !empty($drop['stopped']) ? 'gd14_ngung_cham_soc' : $outcomeTags[$outcome];
+		if ($tag === 'gd14_ngung_cham_soc' && empty($extra['gd14_drop'])) {
+			$extra['gd14_drop'] = 'Ngưng';
+			$extra['gd14_drop_reason'] = $outcome === 'tu_choi' ? 'Từ chối trao đổi' : 'Không chọn khoá';
+			$drop['reason'] = $extra['gd14_drop_reason'];
+			$drop['stopped'] = true;
+		}
 		self::storeGd14Extra($adb, $leadId, $extra);
-		$tag = $outcomeTags[$outcome];
 		self::replaceGd14Tag($leadId, $tag, $userId);
 		$labels = self::gd14TagCatalog();
 		try {
@@ -349,11 +359,18 @@ class Leads_SalesVerifyService {
 			// ignore
 		}
 		$lead = Leads_ModernService::getLead($leadId, $userId > 0 ? $userId : null);
+		$message = 'Đã ghi xác minh 990k. Hồ sơ vẫn ở KH tiềm năng · ' . (isset($labels[$tag]) ? $labels[$tag] : $tag);
+		if (!empty($drop['code'])) {
+			$message .= ' · ' . $drop['code'] . ' ' . (int) $drop['count'] . '/3';
+		}
+		if (!empty($drop['stopped'])) {
+			$message .= ' · Ngưng chăm sóc: ' . $drop['reason'];
+		}
 		return array(
 			'success' => true,
 			'lead' => $lead,
 			'tag' => $tag,
-			'message' => 'Đã ghi xác minh 990k. Hồ sơ vẫn ở KH tiềm năng · ' . (isset($labels[$tag]) ? $labels[$tag] : $tag),
+			'message' => $message,
 		);
 	}
 
@@ -520,13 +537,67 @@ class Leads_SalesVerifyService {
 		return $answers;
 	}
 
+	public static function decodeStoredJson($raw) {
+		if (is_array($raw)) {
+			return $raw;
+		}
+		$text = trim((string) $raw);
+		if ($text === '') {
+			return array();
+		}
+		if (function_exists('decode_html')) {
+			$text = decode_html($text);
+		} else {
+			$prev = $text;
+			for ($i = 0; $i < 3; $i++) {
+				$decoded = html_entity_decode($prev, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+				if ($decoded === $prev) {
+					break;
+				}
+				$prev = $decoded;
+			}
+			$text = $prev;
+		}
+		$data = json_decode($text, true);
+		return is_array($data) ? $data : array();
+	}
+
+	/**
+	 * R1 liên hệ không thành, R2 đã chọn khoá chưa thanh toán, R3 đã tư vấn chưa chọn khoá. Đủ 3 lần thì ngưng.
+	 */
+	protected static function bumpGd14Drop(array &$extra, $outcome) {
+		$map = array(
+			'hen_goi_lai' => array('field' => 'gd14_r1', 'code' => 'R1', 'reason' => 'Liên hệ không thành quá 3 lần'),
+			'khong_nghe_may' => array('field' => 'gd14_r1', 'code' => 'R1', 'reason' => 'Liên hệ không thành quá 3 lần'),
+			'sai_thong_tin' => array('field' => 'gd14_r1', 'code' => 'R1', 'reason' => 'Liên hệ không thành quá 3 lần'),
+			'chon_khoa' => array('field' => 'gd14_r2', 'code' => 'R2', 'reason' => 'Không thanh toán'),
+			'dang_can_nhac' => array('field' => 'gd14_r3', 'code' => 'R3', 'reason' => 'Đã tư vấn nhưng không chọn khoá quá 3 lần'),
+		);
+		if (!isset($map[$outcome])) {
+			return array('stopped' => false, 'code' => '', 'reason' => '', 'count' => 0);
+		}
+		$spec = $map[$outcome];
+		$count = isset($extra[$spec['field']]) ? (int) $extra[$spec['field']] : 0;
+		$count = min(3, $count + 1);
+		$extra[$spec['field']] = $count;
+		$stopped = $count >= 3;
+		if ($stopped) {
+			$extra['gd14_drop'] = $spec['code'];
+			$extra['gd14_drop_reason'] = $spec['reason'];
+			$extra['gd14_outcome'] = 'ngung';
+		}
+		return array(
+			'stopped' => $stopped,
+			'code' => $spec['code'],
+			'reason' => $spec['reason'],
+			'count' => $count,
+		);
+	}
+
 	protected static function loadGd14Extra($adb, $leadId) {
 		$res = $adb->pquery('SELECT verify_extra_json FROM bace_lead_profile WHERE leadid = ?', array((int) $leadId));
 		if ($res && $adb->num_rows($res) > 0) {
-			$decoded = json_decode((string) $adb->query_result($res, 0, 'verify_extra_json'), true);
-			if (is_array($decoded)) {
-				return $decoded;
-			}
+			return self::decodeStoredJson($adb->query_result($res, 0, 'verify_extra_json'));
 		}
 		return array();
 	}
@@ -1392,7 +1463,6 @@ class Leads_SalesVerifyService {
 		if (!$res || $adb->num_rows($res) < 1) {
 			return;
 		}
-		$extraRaw = (string) $adb->query_result($res, 0, 'verify_extra_json');
 		$pack = array(
 			'copied_at' => date('Y-m-d H:i:s'),
 			'lead_id' => $leadId,
@@ -1401,11 +1471,8 @@ class Leads_SalesVerifyService {
 			'form_c1' => (string) $adb->query_result($res, 0, 'form_c1'),
 			'form_c2' => (string) $adb->query_result($res, 0, 'form_c2'),
 			'form_c3' => (string) $adb->query_result($res, 0, 'form_c3'),
-			'extra' => json_decode($extraRaw, true),
+			'extra' => self::decodeStoredJson($adb->query_result($res, 0, 'verify_extra_json')),
 		);
-		if (!is_array($pack['extra'])) {
-			$pack['extra'] = array();
-		}
 		$json = json_encode($pack, JSON_UNESCAPED_UNICODE);
 		if ($targetModule === 'Potentials') {
 			require_once 'modules/Potentials/models/ModernService.php';
@@ -1442,25 +1509,37 @@ class Leads_SalesVerifyService {
 				return self::linesFromLeadRow($adb, $lead);
 			}
 		}
-		$pack = json_decode($raw, true);
-		if (!is_array($pack)) {
-			return array();
+		$pack = self::decodeStoredJson($raw);
+		if (!self::packHasGd14($pack)) {
+			if ($module === 'Potentials') {
+				$lead = $adb->pquery('SELECT leadid, verify_extra_json, eligibility_result, screening_result, form_c1, form_c2, form_c3 FROM bace_lead_profile WHERE potential_id = ? ORDER BY leadid DESC LIMIT 1', array($recordId));
+				return self::linesFromLeadRow($adb, $lead);
+			}
+			if ($module === 'Contacts') {
+				$lead = $adb->pquery('SELECT leadid, verify_extra_json, eligibility_result, screening_result, form_c1, form_c2, form_c3 FROM bace_lead_profile WHERE contact_id = ? ORDER BY leadid DESC LIMIT 1', array($recordId));
+				return self::linesFromLeadRow($adb, $lead);
+			}
 		}
 		return self::linesFromPack($pack);
+	}
+
+	protected static function packHasGd14(array $pack) {
+		$extra = isset($pack['extra']) && is_array($pack['extra']) ? $pack['extra'] : $pack;
+		return !empty($extra['gd14_answers']) || !empty($extra['gd14_form_answers']) || !empty($extra['gd14_outcome'])
+			|| !empty($pack['form_c1']) || !empty($pack['form_c2']) || !empty($pack['form_c3']);
 	}
 
 	protected static function linesFromLeadRow($adb, $lead) {
 		if (!$lead || $adb->num_rows($lead) < 1) {
 			return array();
 		}
-		$extra = json_decode((string) $adb->query_result($lead, 0, 'verify_extra_json'), true);
 		return self::linesFromPack(array(
 			'eligibility_result' => (string) $adb->query_result($lead, 0, 'eligibility_result'),
 			'screening_result' => (string) $adb->query_result($lead, 0, 'screening_result'),
 			'form_c1' => (string) $adb->query_result($lead, 0, 'form_c1'),
 			'form_c2' => (string) $adb->query_result($lead, 0, 'form_c2'),
 			'form_c3' => (string) $adb->query_result($lead, 0, 'form_c3'),
-			'extra' => is_array($extra) ? $extra : array(),
+			'extra' => self::decodeStoredJson($adb->query_result($lead, 0, 'verify_extra_json')),
 		));
 	}
 
@@ -1563,5 +1642,165 @@ class Leads_SalesVerifyService {
 			return '';
 		}
 		return (string) $adb->query_result($res, 0, 'verify_json');
+	}
+
+	public static function gd14PublicState(array $extra) {
+		return array(
+			'class_date' => isset($extra['gd14_class_date']) ? (string) $extra['gd14_class_date'] : '',
+			'class_time' => isset($extra['gd14_class_time']) ? (string) $extra['gd14_class_time'] : '',
+			'class_place' => isset($extra['gd14_class_place']) ? (string) $extra['gd14_class_place'] : '',
+			'preclass' => !empty($extra['gd14_preclass_confirm']) ? 1 : 0,
+			'checked_in_at' => isset($extra['gd14_checked_in_at']) ? (string) $extra['gd14_checked_in_at'] : '',
+			'r1' => isset($extra['gd14_r1']) ? (int) $extra['gd14_r1'] : 0,
+			'r2' => isset($extra['gd14_r2']) ? (int) $extra['gd14_r2'] : 0,
+			'r3' => isset($extra['gd14_r3']) ? (int) $extra['gd14_r3'] : 0,
+			'r4' => isset($extra['gd14_r4']) ? (int) $extra['gd14_r4'] : 0,
+			'drop' => isset($extra['gd14_drop']) ? (string) $extra['gd14_drop'] : '',
+			'drop_reason' => isset($extra['gd14_drop_reason']) ? (string) $extra['gd14_drop_reason'] : '',
+			'course' => isset($extra['gd14_course']) ? (string) $extra['gd14_course'] : '',
+			'outcome' => isset($extra['gd14_outcome']) ? (string) $extra['gd14_outcome'] : '',
+		);
+	}
+
+	public static function linesForLeadColumns(array $row) {
+		return self::linesFromPack(array(
+			'eligibility_result' => isset($row['eligibility_result']) ? (string) $row['eligibility_result'] : '',
+			'screening_result' => isset($row['screening_result']) ? (string) $row['screening_result'] : '',
+			'form_c1' => isset($row['form_c1']) ? (string) $row['form_c1'] : '',
+			'form_c2' => isset($row['form_c2']) ? (string) $row['form_c2'] : '',
+			'form_c3' => isset($row['form_c3']) ? (string) $row['form_c3'] : '',
+			'extra' => self::decodeStoredJson(isset($row['verify_extra_json']) ? $row['verify_extra_json'] : ''),
+		));
+	}
+
+	public static function gd14SnapshotsForContacts(array $contactIds) {
+		$contactIds = array_values(array_unique(array_filter(array_map('intval', $contactIds))));
+		if (empty($contactIds)) {
+			return array();
+		}
+		require_once 'modules/Leads/models/ModernService.php';
+		$adb = PearDatabase::getInstance();
+		if (!Leads_ModernService::isInstalled($adb)) {
+			return array();
+		}
+		$res = $adb->pquery(
+			'SELECT contact_id, verify_extra_json, eligibility_result, screening_result, form_c1, form_c2, form_c3
+			 FROM bace_lead_profile
+			 WHERE contact_id IN (' . generateQuestionMarks($contactIds) . ')
+			 ORDER BY leadid DESC',
+			$contactIds
+		);
+		$out = array();
+		if (!$res) {
+			return $out;
+		}
+		for ($i = 0; $i < $adb->num_rows($res); $i++) {
+			$row = $adb->raw_query_result_rowdata($res, $i);
+			if (!is_array($row)) {
+				continue;
+			}
+			$cid = isset($row['contact_id']) ? (int) $row['contact_id'] : 0;
+			if ($cid <= 0 || isset($out[$cid])) {
+				continue;
+			}
+			$extra = self::decodeStoredJson(isset($row['verify_extra_json']) ? $row['verify_extra_json'] : '');
+			$out[$cid] = array(
+				'lines' => self::linesForLeadColumns($row),
+				'gd14' => self::gd14PublicState($extra),
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * Lớp 990k, chăm sóc trước buổi và điểm danh QR nằm trên Khách hàng sau khi đã thanh toán.
+	 */
+	public static function applyGd14ContactStep($contactId, $action, array $payload, $userId = 0) {
+		require_once 'modules/Leads/models/ModernService.php';
+		$contactId = (int) $contactId;
+		$action = strtolower(trim((string) $action));
+		if ($contactId <= 0) {
+			throw new Exception('Không tìm thấy khách hàng.');
+		}
+		$allowed = array('schedule', 'preclass_yes', 'preclass_no', 'da_tham_gia', 'khong_tham_gia');
+		if (!in_array($action, $allowed, true)) {
+			throw new Exception('Thao tác lớp 990k không hợp lệ.');
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		Leads_ModernService::installSchema($adb);
+		$res = $adb->pquery(
+			'SELECT leadid, verify_extra_json FROM bace_lead_profile WHERE contact_id = ? ORDER BY leadid DESC LIMIT 1',
+			array($contactId)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			throw new Exception('Không tìm thấy hồ sơ 990k của khách này.');
+		}
+		$leadId = (int) $adb->query_result($res, 0, 'leadid');
+		$extra = self::decodeStoredJson($adb->query_result($res, 0, 'verify_extra_json'));
+		if (!empty($extra['gd14_drop']) && $extra['gd14_drop'] !== 'R4') {
+			throw new Exception('Hồ sơ đã ngưng chăm sóc tại ' . $extra['gd14_drop'] . '.');
+		}
+		$tag = '';
+		$note = '';
+		if ($action === 'schedule') {
+			$date = trim((string) (isset($payload['class_date']) ? $payload['class_date'] : ''));
+			$time = trim((string) (isset($payload['class_time']) ? $payload['class_time'] : ''));
+			$place = trim((string) (isset($payload['class_place']) ? $payload['class_place'] : ''));
+			if ($date === '') {
+				throw new Exception('Chọn ngày lớp 990k.');
+			}
+			$extra['gd14_class_date'] = $date;
+			$extra['gd14_class_time'] = $time;
+			$extra['gd14_class_place'] = $place;
+			$tag = 'gd14_da_xac_nhan_lich';
+			$note = 'Đã xếp lớp 990k ' . $date . ($time !== '' ? ' ' . $time : '');
+		} elseif ($action === 'preclass_yes' || $action === 'preclass_no') {
+			$extra['gd14_preclass_confirm'] = $action === 'preclass_yes' ? 1 : 0;
+			$note = $action === 'preclass_yes' ? 'Khách xác nhận sẽ đến lớp 990k' : 'Khách chưa chắc sẽ đến lớp 990k';
+		} elseif ($action === 'da_tham_gia') {
+			$extra['gd14_checked_in_at'] = date('Y-m-d H:i:s');
+			$tag = 'gd14_da_tham_gia';
+			$note = 'Đã điểm danh lớp 990k';
+		} else {
+			$count = isset($extra['gd14_r4']) ? (int) $extra['gd14_r4'] : 0;
+			$count = min(3, $count + 1);
+			$extra['gd14_r4'] = $count;
+			if ($count >= 3) {
+				$extra['gd14_drop'] = 'R4';
+				$extra['gd14_drop_reason'] = 'Đã thanh toán nhưng không tham gia quá 3 lần';
+				$tag = 'gd14_ngung_cham_soc';
+				$note = 'R4 3/3 · Ngưng chăm sóc: không tham gia lớp';
+			} else {
+				$tag = 'gd14_khong_tham_gia';
+				$note = 'Không tham gia lớp 990k · R4 ' . $count . '/3. Có thể xếp lịch lại.';
+			}
+		}
+		self::storeGd14Extra($adb, $leadId, $extra);
+		if ($tag !== '') {
+			self::markPaidContact($contactId, $tag, $userId);
+		}
+		try {
+			self::copyLeadVerifyOnto($leadId, 'Contacts', $contactId);
+		} catch (Exception $e) {
+			// best-effort
+		}
+		if ($note !== '') {
+			try {
+				require_once 'modules/Vtiger/models/CareActivityService.php';
+				Vtiger_CareActivityService::log('Contacts', $contactId, '990k', $note, '', $userId);
+			} catch (Exception $e) {
+				// ignore
+			}
+		}
+		$labels = self::gd14TagCatalog();
+		return array(
+			'success' => true,
+			'tag' => $tag,
+			'tag_label' => ($tag !== '' && isset($labels[$tag])) ? $labels[$tag] : '',
+			'gd14' => self::gd14PublicState($extra),
+			'verify_lines' => self::linesFromPack(array('extra' => $extra)),
+			'message' => $note !== '' ? $note : 'Đã cập nhật lớp 990k.',
+		);
 	}
 }

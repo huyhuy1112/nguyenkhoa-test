@@ -67,6 +67,13 @@ class Contacts_ModernService {
 		} catch (Exception $e) {
 			$ltById = array();
 		}
+		$gd14ByContact = array();
+		try {
+			require_once 'modules/Leads/models/SalesVerifyService.php';
+			$gd14ByContact = Leads_SalesVerifyService::gd14SnapshotsForContacts($contactIds);
+		} catch (Exception $e) {
+			$gd14ByContact = array();
+		}
 		$out = array();
 		require_once 'modules/Contacts/helpers/ContactTagCatalog.php';
 		foreach ($rows as $row) {
@@ -80,11 +87,19 @@ class Contacts_ModernService {
 			if (empty($row['contact_business_model']) && isset($bizByContact[$contactId])) {
 				$row['lead_business_model'] = $bizByContact[$contactId];
 			}
-			$out[] = self::composeCacheRow(
+			$item = self::composeCacheRow(
 				$row,
 				$tags,
 				isset($ltById[$contactId]) ? $ltById[$contactId] : null
 			);
+			if (isset($gd14ByContact[$contactId])) {
+				$item['verify_lines'] = $gd14ByContact[$contactId]['lines'];
+				$item['gd14'] = $gd14ByContact[$contactId]['gd14'];
+			} else {
+				$item['verify_lines'] = array();
+				$item['gd14'] = array();
+			}
+			$out[] = $item;
 		}
 		return $out;
 	}

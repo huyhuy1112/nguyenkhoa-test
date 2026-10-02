@@ -2205,6 +2205,32 @@
     return '<div class="mk-gd14-deadline">' + cards.join("") + "</div>";
   }
 
+  function gd14DropHtml(lead) {
+    var rows = [
+      ["R1", "Liên hệ không thành", lead.gd14_r1],
+      ["R2", "Đã chọn khoá, chưa thanh toán", lead.gd14_r2],
+      ["R3", "Đã tư vấn, chưa chọn khoá", lead.gd14_r3],
+    ];
+    var items = rows
+      .map(function (row) {
+        var n = Math.max(0, Math.min(3, Number(row[2]) || 0));
+        return (
+          '<div class="mk-gd14-drop__item"><span>' +
+          esc(row[0]) +
+          " · " +
+          esc(row[1]) +
+          '</span><strong>' +
+          n +
+          "/3</strong></div>"
+        );
+      })
+      .join("");
+    var reason = lead.gd14_drop
+      ? '<p class="mk-gd14-note">Đã dừng tại ' + esc(lead.gd14_drop) + (lead.gd14_drop_reason ? " · " + esc(lead.gd14_drop_reason) : "") + "</p>"
+      : "";
+    return '<section class="mk-leads-verify-section mk-gd14-card"><h4>Điểm rơi R1–R3</h4><div class="mk-gd14-drop">' + items + "</div>" + reason + "</section>";
+  }
+
   function fillListVerifyBodyGd14(lead) {
     var body = document.getElementById("mk-leads-verify-body");
     if (!body || !lead) return;
@@ -2247,6 +2273,7 @@
       (lead.phone ? '<span class="mk-leads-verify-phone">' + esc(lead.phone) + "</span>" : "") +
       "</div></div>" +
       gd14DeadlineHtml(lead) +
+      gd14DropHtml(lead) +
       '<section class="mk-leads-verify-section mk-gd14-card">' +
       "<h4>1 · Đáp án form</h4>" +
       (hasForm

@@ -295,6 +295,93 @@ html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-ap
 .mk-tag--da-pcthcb { background: #ecfdf5; color: #047857; }
 .mk-tag--mien-phi-offline { background: #fff7ed; color: #c2410c; }
 .mk-tag--mien-phi-online { background: #eff6ff; color: #1d4ed8; }
+
+.mk-gd14-compare {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 180px;
+	max-width: 260px;
+}
+.mk-gd14-compare__row {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+	font-size: 12px;
+	line-height: 1.35;
+	color: #475569;
+}
+.mk-gd14-compare__row strong {
+	color: #0f172a;
+	font-weight: 600;
+	text-align: right;
+}
+.mk-gd14-class {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 220px;
+}
+.mk-gd14-class__meta,
+.mk-gd14-class__note {
+	font-size: 12px;
+	color: #475569;
+	line-height: 1.35;
+}
+.mk-gd14-class__form,
+.mk-gd14-class__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+.mk-gd14-class__input {
+	height: 28px;
+	border: 1px solid #cbd5e1;
+	border-radius: 6px;
+	padding: 0 6px;
+	font-size: 12px;
+	background: #fff;
+}
+.mk-gd14-class__btn {
+	border: 1px solid #cbd5e1;
+	background: #fff;
+	border-radius: 6px;
+	padding: 4px 8px;
+	font-size: 12px;
+	cursor: pointer;
+}
+.mk-gd14-class__btn--ok { color: #047857; border-color: #86efac; }
+.mk-gd14-class__btn--no { color: #b91c1c; border-color: #fecaca; }
+.mk-gd14-qr {
+	position: fixed;
+	inset: 0;
+	z-index: 200000;
+	background: rgba(15, 23, 42, 0.45);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+}
+.mk-gd14-qr[hidden] { display: none; }
+.mk-gd14-qr__card {
+	width: min(420px, 100%);
+	background: #fff;
+	border-radius: 16px;
+	padding: 20px 20px 16px;
+	position: relative;
+	text-align: center;
+}
+.mk-gd14-qr__card img { width: 220px; height: auto; }
+.mk-gd14-qr__card p { color: #475569; font-size: 13px; }
+.mk-gd14-qr__close {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	border: 0;
+	background: transparent;
+	font-size: 22px;
+	cursor: pointer;
+}
 .mk-tag--bac { background: #f1f5f9; color: #475569; }
 .mk-tag--dong { background: #fff7ed; color: #9a3412; }
 .mk-tag--offline { background: #ffedd5; color: #9a3412; }

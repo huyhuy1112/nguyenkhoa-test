@@ -129,6 +129,32 @@
         return res;
       });
     },
+    gd14ClassStep: function (id, step, fields) {
+      var oid = String(id || "");
+      var data = Object.assign({ record: oid, step: step || "" }, fields || {});
+      return apiRequest("gd14_class", data).then(function (res) {
+        var patch = {};
+        if (res && res.gd14) patch.gd14 = res.gd14;
+        if (res && res.verify_lines) patch.verify_lines = res.verify_lines;
+        if (res && res.tag) {
+          var current = null;
+          for (var i = 0; i < _contacts.length; i++) {
+            var row = _contacts[i];
+            if (String(row.id) === oid || String(row.crmid || "") === oid) {
+              current = row;
+              break;
+            }
+          }
+          var tags = ((current && current.tags) || []).filter(function (tag) {
+            return String(tag).toLowerCase().indexOf("gd14_") !== 0;
+          });
+          tags.push(res.tag);
+          patch.tags = tags;
+        }
+        root.ContactsLocalStore.patchContact(oid, patch);
+        return res;
+      });
+    },
     saveOfflineAttend: function (id, classCode, datetime) {
       var oid = String(id || "");
       return apiRequest("save_offline_attend", {

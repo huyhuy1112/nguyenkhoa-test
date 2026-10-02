@@ -90,7 +90,7 @@ class Potentials_ModernService {
 				lp.offline_preclass_confirm, lp.offline_class_date, lp.offline_checked_in_at,
 				lp.offline_class_time, lp.offline_class_place, lp.zalo_user_id,
 				lp.offline_oa_scanned_at, lp.offline_oa_scan_note,
-				lp.online_status, lp.eligibility_result,
+				lp.online_status, lp.eligibility_result, lp.form_c1, lp.form_c2, lp.form_c3, lp.verify_extra_json,
 				lp.edubit_user_id, lp.edubit_course_id, lp.edubit_email, lp.edubit_progress_pct, lp.edubit_last_error,
 				ld.email AS lead_email, ld.firstname AS lead_firstname, ld.lastname AS lead_lastname,
 				cd.email AS contact_email,
@@ -304,6 +304,13 @@ class Potentials_ModernService {
 			'can_edubit_provision' => $canEdubit ? 1 : 0,
 			'is_online_gd12' => $isOnline ? 1 : 0,
 		);
+		$verifyLines = array();
+		try {
+			require_once 'modules/Leads/models/SalesVerifyService.php';
+			$verifyLines = Leads_SalesVerifyService::linesForLeadColumns($row);
+		} catch (Exception $e) {
+			$verifyLines = array();
+		}
 
 		return array(
 			'id' => (string)$potentialId,
@@ -339,6 +346,7 @@ class Potentials_ModernService {
 			'next_action_days_overdue' => $ruleMeta['next_action_days_overdue'],
 			'next_action_timeframe' => $ruleMeta['timeframe_label'],
 			'linked_leadid' => !empty($row['linked_leadid']) ? (int) $row['linked_leadid'] : 0,
+			'verify_lines' => $verifyLines,
 			'da_cap_bang' => self::normalizeOppCredential(
 				isset($row['contact_da_cap_bang']) ? $row['contact_da_cap_bang'] : '',
 				'bang'

@@ -7,7 +7,7 @@
   var ref = window.ContactsLovableRef;
   var store = window.ContactsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 17;
+  var COL_COUNT = 19;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -1368,6 +1368,131 @@
     });
   }
 
+  function verifyCompareHtml(row) {
+    var lines = row && Array.isArray(row.verify_lines) ? row.verify_lines : [];
+    if (!lines.length) return '<span class="mk-leads-muted">—</span>';
+    return (
+      '<div class="mk-gd14-compare">' +
+      lines
+        .map(function (line) {
+          return (
+            '<div class="mk-gd14-compare__row"><span>' +
+            esc(line.label || "") +
+            "</span><strong>" +
+            esc(line.value || "") +
+            "</strong></div>"
+          );
+        })
+        .join("") +
+      "</div>"
+    );
+  }
+
+  function contactHasGd14(contact) {
+    var tags = (contact && contact.tags) || [];
+    for (var i = 0; i < tags.length; i++) {
+      if (String(tags[i]).toLowerCase().indexOf("gd14_") === 0) return true;
+    }
+    return false;
+  }
+
+  function gd14ClassCellHtml(contact) {
+    if (!contactHasGd14(contact)) return '<span class="mk-leads-muted">—</span>';
+    var id = contact.crmid || contact.id;
+    var g = contact.gd14 && typeof contact.gd14 === "object" ? contact.gd14 : {};
+    var tags = (contact.tags || []).map(function (tag) {
+      return String(tag).toLowerCase();
+    });
+    var stopped = tags.indexOf("gd14_ngung_cham_soc") >= 0 || !!g.drop;
+    var attended = tags.indexOf("gd14_da_tham_gia") >= 0;
+    var fresh = tags.indexOf("gd14_moi_dang_ky") >= 0;
+    var meta =
+      '<div class="mk-gd14-class__meta">R4 không tham gia <strong>' +
+      esc(String(g.r4 || 0)) +
+      "/3</strong>" +
+      (g.class_date
+        ? " · " + esc(g.class_date) + (g.class_time ? " " + esc(g.class_time) : "")
+        : "") +
+      (g.class_place ? " · " + esc(g.class_place) : "") +
+      (Number(g.preclass) === 1 ? " · Sẽ đến" : "") +
+      "</div>";
+    if (fresh) {
+      return '<div class="mk-gd14-class">' + meta + '<div class="mk-gd14-class__note">Hết bảo lưu, về tag Mới đăng ký.</div></div>';
+    }
+    if (stopped && !attended) {
+      return (
+        '<div class="mk-gd14-class">' +
+        meta +
+        '<div class="mk-gd14-class__note">' +
+        esc(g.drop_reason || "Đã ngưng chăm sóc") +
+        "</div></div>"
+      );
+    }
+    if (attended) {
+      return (
+        '<div class="mk-gd14-class">' +
+        meta +
+        '<div class="mk-gd14-class__note">Đã điểm danh' +
+        (g.checked_in_at ? " · " + esc(g.checked_in_at) : "") +
+        "</div>" +
+        '<button type="button" class="mk-gd14-class__btn" data-mk-gd14-qr="1">Mã QR</button></div>'
+      );
+    }
+    return (
+      '<div class="mk-gd14-class" data-contact-id="' +
+      esc(id) +
+      '">' +
+      meta +
+      '<div class="mk-gd14-class__form">' +
+      '<input type="date" class="mk-gd14-class__input" data-mk-gd14-date value="' +
+      esc(g.class_date || "") +
+      '" />' +
+      '<input type="time" class="mk-gd14-class__input" data-mk-gd14-time value="' +
+      esc(g.class_time || "") +
+      '" />' +
+      '<input type="text" class="mk-gd14-class__input" data-mk-gd14-place value="' +
+      esc(g.class_place || "") +
+      '" placeholder="Địa điểm" />' +
+      "</div>" +
+      '<div class="mk-gd14-class__actions">' +
+      '<button type="button" class="mk-gd14-class__btn" data-mk-gd14-step="schedule" data-contact-id="' +
+      esc(id) +
+      '">Lưu lớp</button>' +
+      '<button type="button" class="mk-gd14-class__btn" data-mk-gd14-step="preclass_yes" data-contact-id="' +
+      esc(id) +
+      '">Sẽ đến</button>' +
+      '<button type="button" class="mk-gd14-class__btn" data-mk-gd14-step="preclass_no" data-contact-id="' +
+      esc(id) +
+      '">Chưa chắc</button>' +
+      '<button type="button" class="mk-gd14-class__btn" data-mk-gd14-qr="1">Mã QR</button>' +
+      '<button type="button" class="mk-gd14-class__btn mk-gd14-class__btn--ok" data-mk-gd14-step="da_tham_gia" data-contact-id="' +
+      esc(id) +
+      '">Đã tham gia</button>' +
+      '<button type="button" class="mk-gd14-class__btn mk-gd14-class__btn--no" data-mk-gd14-step="khong_tham_gia" data-contact-id="' +
+      esc(id) +
+      '">Không tham gia</button>' +
+      "</div></div>"
+    );
+  }
+
+  function openGd14QrModal() {
+    var host = document.getElementById("mk-contacts-gd14-qr");
+    if (!host) {
+      host = document.createElement("div");
+      host.id = "mk-contacts-gd14-qr";
+      host.className = "mk-gd14-qr";
+      host.innerHTML =
+        '<div class="mk-gd14-qr__card" role="dialog" aria-label="Mã QR điểm danh 990k">' +
+        '<button type="button" class="mk-gd14-qr__close" data-mk-gd14-qr-close aria-label="Đóng">×</button>' +
+        "<h3>Điểm danh lớp 990k</h3>" +
+        '<img src="layouts/v7/modules/Potentials/resources/offline-oa-form-qr.png?mk_v=20261002_gd14flow1" alt="Mã QR điểm danh" />' +
+        "<p>Khách quét mã tại quầy. Sales ghi Đã tham gia hoặc Không tham gia trên dòng khách.</p>" +
+        "</div>";
+      document.body.appendChild(host);
+    }
+    host.hidden = false;
+  }
+
   function renderTable() {
     var all = getContacts();
     var rows = sortContacts(filterContacts(all));
@@ -1427,6 +1552,8 @@
             '" title="Sửa thẻ">' +
             stackedContactTags(c) +
             "</button></td>" +
+            '<td class="mk-leads-td mk-leads-td--verify">' + verifyCompareHtml(c) + "</td>" +
+            '<td class="mk-leads-td mk-leads-td--gd14">' + gd14ClassCellHtml(c) + "</td>" +
             '<td class="mk-leads-td">' + progressCellHtml(c) + "</td>" +
             '<td class="mk-leads-td">' + bangCellHtml(c) + "</td>" +
             '<td class="mk-leads-td">' + credentialSelectHtml(c, "tk") + "</td>" +
@@ -1747,6 +1874,42 @@
     });
 
     document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-mk-gd14-qr-close]")) {
+        var qrHost = document.getElementById("mk-contacts-gd14-qr");
+        if (qrHost) qrHost.hidden = true;
+        return;
+      }
+      if (e.target.closest && e.target.closest("[data-mk-gd14-qr]")) {
+        e.preventDefault();
+        openGd14QrModal();
+        return;
+      }
+      var gd14Btn = e.target.closest && e.target.closest("[data-mk-gd14-step][data-contact-id]");
+      if (gd14Btn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var step = gd14Btn.getAttribute("data-mk-gd14-step");
+        var cid = gd14Btn.getAttribute("data-contact-id");
+        var box = gd14Btn.closest ? gd14Btn.closest(".mk-gd14-class") : null;
+        var fields = {
+          class_date: box && box.querySelector("[data-mk-gd14-date]") ? box.querySelector("[data-mk-gd14-date]").value : "",
+          class_time: box && box.querySelector("[data-mk-gd14-time]") ? box.querySelector("[data-mk-gd14-time]").value : "",
+          class_place: box && box.querySelector("[data-mk-gd14-place]") ? box.querySelector("[data-mk-gd14-place]").value : "",
+        };
+        if (!store || !store.gd14ClassStep) return;
+        gd14Btn.disabled = true;
+        store
+          .gd14ClassStep(cid, step, fields)
+          .then(function (res) {
+            notifyUser("success", (res && res.message) || "Đã cập nhật lớp 990k.");
+            renderTable();
+          })
+          .catch(function (err) {
+            notifyUser("error", (err && (err.message || err)) || "Không cập nhật được lớp 990k.");
+            gd14Btn.disabled = false;
+          });
+        return;
+      }
       var renewBtn =
         e.target && e.target.closest ? e.target.closest("[data-mk-edubit-renew]") : null;
       if (renewBtn) {

@@ -22,7 +22,7 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields', 'save_offline_attend', 'last_touch_call_log', 'edubit_renew', 'edubit_sync_progress', 'edubit_sync_all', 'edubit_provision', 'offline_class_add', 'offline_class_delete'), true)) {
+		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields', 'save_offline_attend', 'last_touch_call_log', 'edubit_renew', 'edubit_sync_progress', 'edubit_sync_all', 'edubit_provision', 'offline_class_add', 'offline_class_delete', 'gd14_class'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -45,6 +45,24 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 						'assignable_users' => Contacts_ModernService::listAssignableUsers(),
 						'offline_classes' => Contacts_ModernService::listOfflineClasses(),
 						'is_admin' => Users_Record_Model::getCurrentUserModel()->isAdminUser() ? 1 : 0,
+					));
+					break;
+				case 'gd14_class':
+					require_once 'modules/Leads/models/SalesVerifyService.php';
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$payload = array(
+						'class_date' => $request->get('class_date'),
+						'class_time' => $request->get('class_time'),
+						'class_place' => $request->get('class_place'),
+					);
+					$response->setResult(Leads_SalesVerifyService::applyGd14ContactStep(
+						$recordId,
+						(string) $request->get('step'),
+						$payload,
+						$userId
 					));
 					break;
 				case 'class_reg_list':

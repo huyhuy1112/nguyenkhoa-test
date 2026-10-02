@@ -1158,3 +1158,19 @@
 	border-color: #86efac;
 	color: #14532d;
 }
+.mk-gd14-compare {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin-top: 6px;
+	max-width: 280px;
+}
+.mk-gd14-compare__row {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+	font-size: 12px;
+	line-height: 1.35;
+	color: #475569;
+}
+.mk-gd14-compare__row strong { color: #0f172a; font-weight: 600; text-align: right; }

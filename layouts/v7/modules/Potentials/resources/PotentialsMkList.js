@@ -2161,6 +2161,21 @@
             (customerName ? esc(customerName) : '<span class="mk-leads-muted">—</span>') +
             "</a>" +
             preclassCarePillHtml(o) +
+            (Array.isArray(o.verify_lines) && o.verify_lines.length
+              ? '<div class="mk-gd14-compare">' +
+                o.verify_lines
+                  .map(function (line) {
+                    return (
+                      '<div class="mk-gd14-compare__row"><span>' +
+                      esc(line.label || "") +
+                      "</span><strong>" +
+                      esc(line.value || "") +
+                      "</strong></div>"
+                    );
+                  })
+                  .join("") +
+                "</div>"
+              : "") +
             "</span></span></td>" +
             '<td class="mk-leads-td" data-col="phone">' +
             editableCellHtml("phone", o.phone, o.crmid || o.id, "Nhập SĐT") +

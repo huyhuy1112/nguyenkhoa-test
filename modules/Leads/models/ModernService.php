@@ -1523,8 +1523,10 @@ class Leads_ModernService {
 
 	protected static function gd14VerifyFields($raw) {
 		$data = array();
-		if (is_string($raw) && $raw !== '') {
-			$decoded = json_decode($raw, true);
+		if (is_array($raw)) {
+			$data = $raw;
+		} elseif (is_string($raw) && $raw !== '') {
+			$decoded = json_decode(self::decodeText($raw), true);
 			if (is_array($decoded)) {
 				$data = $decoded;
 			}
@@ -1564,6 +1566,17 @@ class Leads_ModernService {
 			'gd14_paid_at' => isset($data['gd14_paid_at']) ? (string) $data['gd14_paid_at'] : '',
 			'gd14_retention_until' => isset($data['gd14_retention_until']) ? (string) $data['gd14_retention_until'] : '',
 			'gd14_retention_expired' => !empty($data['gd14_retention_expired']) ? 1 : 0,
+			'gd14_r1' => isset($data['gd14_r1']) ? (int) $data['gd14_r1'] : 0,
+			'gd14_r2' => isset($data['gd14_r2']) ? (int) $data['gd14_r2'] : 0,
+			'gd14_r3' => isset($data['gd14_r3']) ? (int) $data['gd14_r3'] : 0,
+			'gd14_r4' => isset($data['gd14_r4']) ? (int) $data['gd14_r4'] : 0,
+			'gd14_drop' => isset($data['gd14_drop']) ? (string) $data['gd14_drop'] : '',
+			'gd14_drop_reason' => isset($data['gd14_drop_reason']) ? (string) $data['gd14_drop_reason'] : '',
+			'gd14_class_date' => isset($data['gd14_class_date']) ? (string) $data['gd14_class_date'] : '',
+			'gd14_class_time' => isset($data['gd14_class_time']) ? (string) $data['gd14_class_time'] : '',
+			'gd14_class_place' => isset($data['gd14_class_place']) ? (string) $data['gd14_class_place'] : '',
+			'gd14_preclass_confirm' => !empty($data['gd14_preclass_confirm']) ? 1 : 0,
+			'gd14_checked_in_at' => isset($data['gd14_checked_in_at']) ? (string) $data['gd14_checked_in_at'] : '',
 		);
 	}
 
@@ -1579,8 +1592,8 @@ class Leads_ModernService {
 			if (!$res || $adb->num_rows($res) < 1) {
 				return array();
 			}
-			$data = json_decode((string) $adb->query_result($res, 0, 'verify_extra_json'), true);
-			return is_array($data) ? $data : array();
+			require_once 'modules/Leads/models/SalesVerifyService.php';
+			return Leads_SalesVerifyService::decodeStoredJson($adb->query_result($res, 0, 'verify_extra_json'));
 		} catch (Exception $e) {
 			return array();
 		}
