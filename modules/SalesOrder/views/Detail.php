@@ -335,6 +335,7 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		$displayProducts[1]['final_details']['hdnSubTotal'] = $formatMoney($subTotal);
 		$displayProducts[1]['final_details']['discountTotal_final'] = $formatMoney($discount);
 		$displayProducts[1]['final_details']['discount_amount_final'] = $formatMoney($discountAmountFinal);
+		$displayProducts[1]['final_details']['discount_percentage_final'] = (float) ($rawFinal['discount_percentage_final'] ?? 0);
 		$displayProducts[1]['final_details']['tax_totalamount'] = $formatMoney($tax);
 		$displayProducts[1]['final_details']['shipping_handling_charge'] = $formatMoney($shipping);
 		$displayProducts[1]['final_details']['adjustment'] = $formatMoney($adjustment);

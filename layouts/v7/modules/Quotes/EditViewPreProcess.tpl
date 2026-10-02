@@ -5,7 +5,6 @@
 <script type="text/javascript">{literal}
 document.documentElement.classList.add('mk-quote-create-ready', 'mk-inv-odoo-active');
 (function(){var b=document.body;if(b&&!b.getAttribute('data-app')){b.setAttribute('data-app','SALES');}})();
-setTimeout(function(){document.documentElement.classList.add('mk-inv-ui-ready','mk-quote-create-enhanced');}, 220);
 {/literal}</script>
 <style type="text/css">
 	/* Anti-FOUC: hide form shell until Odoo enhancer paints (no body attr required) */
