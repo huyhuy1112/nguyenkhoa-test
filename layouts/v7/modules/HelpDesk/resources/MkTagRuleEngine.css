@@ -43,19 +43,93 @@ body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-dash-main.mk-hd-rul
 	background: linear-gradient(165deg, #f0fdf4 0%, #f8fafc 38%, var(--tre-bg) 100%) !important;
 }
 
-body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-hd-rules-main {
-	padding: 28px 32px 48px !important;
-	min-height: calc(100vh - 56px);
-	min-width: 0;
-	overflow: auto;
+/* Cảnh báo nguyên liệu dùng cùng vỏ menu với Quản lý rule. */
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] {
+	--mk-dash-sidebar-w: 256px;
+	--mk-dash-topbar-h: 64px;
 }
 
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] #page,
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] #page.container-fluid {
+	padding-top: 0 !important;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] #page > .container-fluid.app-nav {
+	display: none !important;
+	height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	overflow: hidden !important;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] #mk-dash-split-root.mk-dash-split-root {
+	position: relative;
+	display: block;
+	min-height: 0;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-app-shell {
+	margin-left: var(--mk-dash-sidebar-w);
+	width: calc(100% - var(--mk-dash-sidebar-w));
+	max-width: calc(100% - var(--mk-dash-sidebar-w));
+	min-height: 100vh;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-topbar {
+	height: 0;
+	margin: 0;
+	padding: 0;
+	overflow: visible;
+	flex-shrink: 0;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-topbar .mk-dash-app-topbar {
+	position: fixed;
+	top: 0;
+	left: var(--mk-dash-sidebar-w);
+	right: 0;
+	width: auto;
+	min-height: var(--mk-dash-topbar-h);
+	height: var(--mk-dash-topbar-h);
+	z-index: 1030;
+	box-sizing: border-box;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-dashboard-sidebar {
+	top: 0;
+	height: 100vh;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-hd-rules-main {
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: calc(100vh - var(--mk-dash-topbar-h));
+	padding: 28px 32px 48px !important;
+	overflow: auto;
+	box-sizing: border-box;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .main-container.mk-hd-rules-page,
 body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-hd-rules-content,
 body[data-module="HelpDesk"][data-view="MaterialAlerts"] #listViewContent {
-	width: 100%;
-	max-width: 100%;
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	left: auto !important;
+	position: relative !important;
 	overflow: visible;
 	box-sizing: border-box;
+	background: transparent !important;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-hd-hide-legacy,
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .module-action-bar {
+	display: none !important;
 }
 
 a.mk-tre-tab {

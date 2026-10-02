@@ -91,7 +91,7 @@
 	</section>
 </div>
 <style>
-.mk-nl-page { width: 100%; max-width: 1120px; }
+.mk-nl-page { width: 100%; max-width: none; box-sizing: border-box; }
 .mk-nl__sub { margin: 8px 0 18px; color: #64748b; font-size: 15px; }
 .mk-nl__card { background: #fff; border: 1px solid #dde4ec; border-radius: 16px; padding: 18px 20px 20px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(15,23,42,.05); }
 .mk-nl__card h2 { margin: 0; font-size: 18px; }
