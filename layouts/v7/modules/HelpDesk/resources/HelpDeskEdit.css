@@ -637,3 +637,51 @@ body[data-module="HelpDesk"][data-view="Edit"] .tickets-edit-wrapper.container-f
 	margin: 0;
 	max-width: none;
 }
+
+.mk-hd-people { display: flex; flex-direction: column; gap: 10px; }
+.mk-hd-people__chips { display: flex; flex-wrap: wrap; gap: 8px; min-height: 36px; }
+.mk-hd-people__empty { color: #94a3b8; font-size: 13px; align-self: center; }
+.mk-hd-people__chip {
+	border: 0;
+	background: #ecfdf3;
+	color: #047857;
+	border-radius: 999px;
+	padding: 6px 12px;
+	font-weight: 700;
+	cursor: pointer;
+}
+.mk-hd-people__chip::after { content: "  ×"; color: #0b6e4f; }
+.mk-hd-people__list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	max-height: 220px;
+	overflow: auto;
+	padding-right: 4px;
+}
+.mk-hd-people__row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0;
+	padding: 8px 10px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	background: #fff;
+	cursor: pointer;
+}
+.mk-hd-people__row:hover { border-color: #86efac; background: #f8fafc; }
+.mk-hd-people__avatar {
+	width: 32px;
+	height: 32px;
+	border-radius: 999px;
+	background: #0b6e4f;
+	color: #fff;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 800;
+	flex: 0 0 auto;
+}
+.mk-hd-people__name { font-weight: 650; color: #0f172a; }
+.mk-hd-people__row input { width: 16px; height: 16px; accent-color: #08a045; }

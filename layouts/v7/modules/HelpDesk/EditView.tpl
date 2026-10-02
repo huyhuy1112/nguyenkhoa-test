@@ -118,16 +118,23 @@
 										<p class="mk-hd-edit-hint">Giao bù, đổi hàng hoặc hoàn tiền thì tắt cảnh báo giao thiếu. Đã phản hồi khách thì tắt khiếu nại quá hạn.</p>
 									</div>
 									<div class="mk-hd-edit-field mk-hd-edit-field--wide">
-										<label class="mk-hd-edit-field__label" for="mkHdTicketAssignees">Người xử lý</label>
-										<select name="assigned_users_ids[]" id="mkHdTicketAssignees" class="mk-hd-edit-input mk-hd-edit-input--multi" multiple="multiple">
-											{foreach from=$USERS item=U}
-												<option value="{$U.id}"
-													{if in_array($U.id, $ASSIGNED_USER_IDS)}selected="selected"{/if}>
-													{$U.first_name} {$U.last_name} (ID: {$U.id})
-												</option>
-											{/foreach}
-										</select>
-										<p class="mk-hd-edit-hint">Giữ Ctrl / Cmd để chọn nhiều người xử lý.</p>
+										<label class="mk-hd-edit-field__label" for="mkHdPeopleSearch">Người xử lý</label>
+										<div class="mk-hd-people" id="mkHdPeople">
+											<div class="mk-hd-people__chips" data-mk-people-chips>
+												<span class="mk-hd-people__empty" data-mk-people-empty>Chưa chọn ai</span>
+											</div>
+											<input type="search" id="mkHdPeopleSearch" class="mk-hd-edit-input" placeholder="Gõ tên để tìm Sales hoặc kho" autocomplete="off" />
+											<div class="mk-hd-people__list">
+												{foreach from=$USERS item=U}
+													{assign var=UNAME value=$U.first_name|cat:' '|cat:$U.last_name}
+													<label class="mk-hd-people__row" data-name="{$UNAME|escape}">
+														<input type="checkbox" name="assigned_users_ids[]" value="{$U.id}" {if in_array($U.id, $ASSIGNED_USER_IDS)}checked="checked"{/if} />
+														<span class="mk-hd-people__avatar">{$UNAME|truncate:1:"":true|escape}</span>
+														<span class="mk-hd-people__name">{$UNAME|escape}</span>
+													</label>
+												{/foreach}
+											</div>
+										</div>
 									</div>
 
 									<div class="mk-hd-edit-field mk-hd-edit-field--wide">
@@ -136,6 +143,46 @@
 										<p class="mk-hd-edit-hint">Hỗ trợ jpg, png, pdf, docx, xlsx, zip, ...</p>
 									</div>
 								</div>
+								{literal}
+								<script>
+								(function () {
+									var root = document.getElementById("mkHdPeople");
+									if (!root) return;
+									var chips = root.querySelector("[data-mk-people-chips]");
+									var empty = root.querySelector("[data-mk-people-empty]");
+									var search = document.getElementById("mkHdPeopleSearch");
+									function paint() {
+										chips.querySelectorAll("[data-chip]").forEach(function (node) { node.remove(); });
+										var chosen = root.querySelectorAll("input[type=checkbox]:checked");
+										empty.hidden = chosen.length > 0;
+										chosen.forEach(function (box) {
+											var row = box.closest(".mk-hd-people__row");
+											var chip = document.createElement("button");
+											chip.type = "button";
+											chip.className = "mk-hd-people__chip";
+											chip.setAttribute("data-chip", box.value);
+											chip.textContent = row ? row.getAttribute("data-name") : box.value;
+											chip.addEventListener("click", function () {
+												box.checked = false;
+												paint();
+											});
+											chips.appendChild(chip);
+										});
+									}
+									root.addEventListener("change", paint);
+									if (search) {
+										search.addEventListener("input", function () {
+											var q = search.value.toLowerCase();
+											root.querySelectorAll(".mk-hd-people__row").forEach(function (row) {
+												var name = (row.getAttribute("data-name") || "").toLowerCase();
+												row.hidden = q !== "" && name.indexOf(q) < 0;
+											});
+										});
+									}
+									paint();
+								})();
+								</script>
+								{/literal}
 
 								<div class="mk-hd-edit-actions">
 									<button type="submit" class="mk-hd-btn mk-hd-btn--primary">
