@@ -15,30 +15,40 @@
 					<input type="hidden" name="view" value="List" />
 					<input type="hidden" name="app" value="SUPPORT" />
 					<label class="mk-hd-field">
-						<span class="mk-hd-field__label">Status</span>
-						<select name="status" class="mk-hd-input mk-hd-select">
-							<option value="">All</option>
-							{foreach from=['Open','In Progress','Resolved','Closed'] item=STATUS}
-								<option value="{$STATUS}" {if $FILTER_STATUS eq $STATUS}selected="selected"{/if}>{$STATUS}</option>
+						<span class="mk-hd-field__label">Loại việc</span>
+						<select name="issue_type" class="mk-hd-input mk-hd-select">
+							<option value="">Tất cả</option>
+							{foreach from=$ISSUE_TYPES key=CODE item=LABEL}
+								<option value="{$CODE}" {if $FILTER_ISSUE eq $CODE}selected="selected"{/if}>{$LABEL|escape}</option>
 							{/foreach}
 						</select>
 					</label>
 					<label class="mk-hd-field">
-						<span class="mk-hd-field__label">Priority</span>
+						<span class="mk-hd-field__label">Trạng thái</span>
+						<select name="status" class="mk-hd-input mk-hd-select">
+							<option value="">Tất cả</option>
+							<option value="Open" {if $FILTER_STATUS eq 'Open'}selected="selected"{/if}>Mới</option>
+							<option value="In Progress" {if $FILTER_STATUS eq 'In Progress'}selected="selected"{/if}>Đang xử lý</option>
+							<option value="Resolved" {if $FILTER_STATUS eq 'Resolved'}selected="selected"{/if}>Đã xử lý</option>
+							<option value="Closed" {if $FILTER_STATUS eq 'Closed'}selected="selected"{/if}>Đã đóng</option>
+						</select>
+					</label>
+					<label class="mk-hd-field">
+						<span class="mk-hd-field__label">Mức ưu tiên</span>
 						<select name="priority" class="mk-hd-input mk-hd-select">
-							<option value="">All</option>
+							<option value="">Tất cả</option>
 							{foreach from=['Critical','High','Medium','Low'] item=PRIO}
 								<option value="{$PRIO}" {if $FILTER_PRIORITY eq $PRIO}selected="selected"{/if}>{$PRIO}</option>
 							{/foreach}
 						</select>
 					</label>
 					<label class="mk-hd-field">
-						<span class="mk-hd-field__label">Search</span>
-						<input type="text" name="search" class="mk-hd-input" placeholder="Code or subject" value="{$FILTER_SEARCH|escape:'html'}" />
+						<span class="mk-hd-field__label">Tìm phiếu</span>
+						<input type="text" name="search" class="mk-hd-input" placeholder="Mã hoặc tiêu đề" value="{$FILTER_SEARCH|escape:'html'}" />
 					</label>
 					<button type="submit" class="mk-hd-btn mk-hd-btn--filter">
 						<span class="mk-hd-btn__ic" aria-hidden="true">{include file="partials/TicketListSvgIcon.tpl"|vtemplate_path:$MODULE ICON='FILTER'}</span>
-						<span class="mk-hd-btn__txt">Apply Filters</span>
+						<span class="mk-hd-btn__txt">Lọc</span>
 					</button>
 				</form>
 			</aside>
@@ -100,6 +110,7 @@
 					<colgroup>
 						<col class="mk-hd-col mk-hd-col--code" />
 						<col class="mk-hd-col mk-hd-col--customer" />
+						<col class="mk-hd-col mk-hd-col--type" />
 						<col class="mk-hd-col mk-hd-col--subject" />
 						<col class="mk-hd-col mk-hd-col--priority" />
 						<col class="mk-hd-col mk-hd-col--status" />
@@ -108,13 +119,14 @@
 					</colgroup>
 					<thead>
 						<tr>
-							<th scope="col">Code</th>
-							<th scope="col">Customer</th>
-							<th scope="col">Subject</th>
-							<th scope="col">Priority</th>
-							<th scope="col">Status</th>
-							<th scope="col">SLA</th>
-							<th scope="col">Assigned To</th>
+							<th scope="col">Mã</th>
+							<th scope="col">Khách</th>
+							<th scope="col">Loại việc</th>
+							<th scope="col">Nội dung</th>
+							<th scope="col">Ưu tiên</th>
+							<th scope="col">Trạng thái</th>
+							<th scope="col">Hạn</th>
+							<th scope="col">Người xử lý</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -124,6 +136,10 @@
 									<a href="index.php?module=HelpDesk&amp;view=TicketDetail&amp;record={$T.id}&amp;app=SUPPORT" class="mk-hd-code-link">{$T.ticket_code|escape:'html'}</a>
 								</td>
 								<td class="mk-hd-table__customer">{$T.customer_name|escape:'html'}</td>
+								<td>
+									{assign var=ISSUE value=$T.issue_type|default:'ho_tro'}
+									<span class="mk-hd-issue mk-hd-issue--{$ISSUE|escape}">{$ISSUE_TYPES[$ISSUE]|default:'Hỗ trợ thường'|escape}</span>
+								</td>
 								<td class="mk-hd-table__subject" title="{$T.subject|escape:'html'}">{$T.subject|escape:'html'}</td>
 								<td class="mk-hd-table__priority">
 									<span class="mk-hd-badge mk-hd-badge--priority mk-hd-badge--priority-{$T.priority|lower}">{$T.priority}</span>
@@ -150,13 +166,13 @@
 											<span class="mk-hd-assignee__name" title="{$T.assigned_users|escape:'html'}">{$T.assigned_users|escape:'html'}</span>
 										</span>
 									{else}
-										<span class="mk-hd-muted">Unassigned</span>
+										<span class="mk-hd-muted">Chưa giao</span>
 									{/if}
 								</td>
 							</tr>
 						{foreachelse}
 							<tr>
-								<td colspan="7" class="mk-hd-table__empty">No tickets found.</td>
+								<td colspan="8" class="mk-hd-table__empty">Chưa có phiếu.</td>
 							</tr>
 						{/foreach}
 					</tbody>
@@ -168,18 +184,18 @@
 					<ul class="mk-hd-pagination__list">
 						{if $CURRENT_PAGE gt 1}
 							<li>
-								<a class="mk-hd-pagination__btn mk-hd-pagination__btn--arrow" href="index.php?module=HelpDesk&amp;view=List&amp;app=SUPPORT&amp;page={$CURRENT_PAGE-1}&amp;status={$FILTER_STATUS|escape:'url'}&amp;priority={$FILTER_PRIORITY|escape:'url'}&amp;search={$FILTER_SEARCH|escape:'url'}" aria-label="Previous page">&lsaquo;</a>
+								<a class="mk-hd-pagination__btn mk-hd-pagination__btn--arrow" href="index.php?module=HelpDesk&amp;view=List&amp;app=SUPPORT&amp;page={$CURRENT_PAGE-1}&amp;status={$FILTER_STATUS|escape:'url'}&amp;priority={$FILTER_PRIORITY|escape:'url'}&amp;issue_type={$FILTER_ISSUE|escape:'url'}&amp;search={$FILTER_SEARCH|escape:'url'}" aria-label="Previous page">&lsaquo;</a>
 							</li>
 						{/if}
 						{section name=page start=1 loop=$PAGE_COUNT+1}
 							{assign var=p value=$smarty.section.page.index}
 							<li>
-								<a class="mk-hd-pagination__btn{if $p eq $CURRENT_PAGE} is-active{/if}" href="index.php?module=HelpDesk&amp;view=List&amp;app=SUPPORT&amp;page={$p}&amp;status={$FILTER_STATUS|escape:'url'}&amp;priority={$FILTER_PRIORITY|escape:'url'}&amp;search={$FILTER_SEARCH|escape:'url'}"{if $p eq $CURRENT_PAGE} aria-current="page"{/if}>{$p}</a>
+								<a class="mk-hd-pagination__btn{if $p eq $CURRENT_PAGE} is-active{/if}" href="index.php?module=HelpDesk&amp;view=List&amp;app=SUPPORT&amp;page={$p}&amp;status={$FILTER_STATUS|escape:'url'}&amp;priority={$FILTER_PRIORITY|escape:'url'}&amp;issue_type={$FILTER_ISSUE|escape:'url'}&amp;search={$FILTER_SEARCH|escape:'url'}"{if $p eq $CURRENT_PAGE} aria-current="page"{/if}>{$p}</a>
 							</li>
 						{/section}
 						{if $CURRENT_PAGE lt $PAGE_COUNT}
 							<li>
-								<a class="mk-hd-pagination__btn mk-hd-pagination__btn--arrow" href="index.php?module=HelpDesk&amp;view=List&amp;app=SUPPORT&amp;page={$CURRENT_PAGE+1}&amp;status={$FILTER_STATUS|escape:'url'}&amp;priority={$FILTER_PRIORITY|escape:'url'}&amp;search={$FILTER_SEARCH|escape:'url'}" aria-label="Next page">&rsaquo;</a>
+								<a class="mk-hd-pagination__btn mk-hd-pagination__btn--arrow" href="index.php?module=HelpDesk&amp;view=List&amp;app=SUPPORT&amp;page={$CURRENT_PAGE+1}&amp;status={$FILTER_STATUS|escape:'url'}&amp;priority={$FILTER_PRIORITY|escape:'url'}&amp;issue_type={$FILTER_ISSUE|escape:'url'}&amp;search={$FILTER_SEARCH|escape:'url'}" aria-label="Next page">&rsaquo;</a>
 							</li>
 						{/if}
 					</ul>

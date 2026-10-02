@@ -83,8 +83,11 @@ class HelpDesk_SaveTicket_Action extends Vtiger_Action_Controller {
 			$data = [
 				'customer_id' => $request->get('customer_id'),
 				'project_id'  => $request->get('project_id'),
+				'salesorder_id' => $request->get('salesorder_id'),
 				'subject'     => $request->get('subject'),
 				'description' => $request->get('description'),
+				'issue_type'  => $request->get('issue_type'),
+				'resolution'  => $request->get('resolution'),
 				'priority'    => $request->get('priority'),
 				'status'      => $request->get('status'),
 			];

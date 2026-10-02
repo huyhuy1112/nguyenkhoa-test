@@ -52,6 +52,7 @@ class HelpDesk_MaterialAlertService {
 			array('group' => 'Giao hàng và hạng khách', 'key' => 'repeat_incident_count', 'label' => 'Bao nhiêu đơn giao trễ thì báo quản lý', 'hint' => 'Điền số đơn. Ví dụ 3. Để trống thì không gom thành việc sự cố lặp.', 'placeholder' => 'Ví dụ 3'),
 			array('group' => 'Giao hàng và hạng khách', 'key' => 'tier_silver', 'label' => 'Mua từ bao nhiêu tiền trong 90 ngày thì xếp hạng Bạc', 'hint' => 'Điền số tiền. Ví dụ 20000000. Để trống thì chưa xếp Bạc, Vàng và không báo khách lớn rủi ro.', 'placeholder' => 'Ví dụ 20000000'),
 			array('group' => 'Giao hàng và hạng khách', 'key' => 'tier_gold', 'label' => 'Mua từ bao nhiêu tiền trong 90 ngày thì xếp hạng Vàng', 'hint' => 'Điền số tiền cao hơn hạng Bạc. Ví dụ 50000000. Để trống thì chưa có hạng Vàng.', 'placeholder' => 'Ví dụ 50000000'),
+			array('group' => 'Giao hàng và hạng khách', 'key' => 'complaint_reply_hours', 'label' => 'Khiếu nại quá bao nhiêu giờ chưa phản hồi thì báo', 'hint' => 'Điền số giờ. Ví dụ 24. Để trống thì có phiếu khiếu nại nhưng chưa báo quá hạn.', 'placeholder' => 'Ví dụ 24'),
 		);
 	}
 
@@ -240,6 +241,7 @@ class HelpDesk_MaterialAlertService {
 		$opened += self::scanReorderAndDrop($adb, $settings);
 		$opened += self::scanLateDelivery($adb, $settings);
 		$opened += self::scanLargeCustomerRisk($adb, $settings);
+		$opened += self::scanIncidentTickets($adb, $settings);
 		return array('opened' => $opened);
 	}
 
@@ -787,6 +789,109 @@ class HelpDesk_MaterialAlertService {
 			while ($row = $adb->fetchByAssoc($counts)) {
 				if (self::openAlert((int) $row['contactid'], 'NL18', 'Sự cố giao lặp lại', (int) $row['n'] . ' đơn giao trễ')) {
 					$opened++;
+				}
+			}
+		}
+		return $opened;
+	}
+
+	protected static function scanIncidentTickets($adb, array $settings) {
+		if (!self::hasTable('tickets') || !self::hasColumn('tickets', 'issue_type')) {
+			return 0;
+		}
+		$opened = 0;
+		$incidents = $adb->pquery(
+			"SELECT customer_id, subject, issue_type
+			 FROM tickets
+			 WHERE issue_type IN ('hang_loi','giao_thieu','giao_sai','hang_hu','tra_hang')
+			   AND status NOT IN ('Closed')
+			   AND customer_id > 0
+			 LIMIT 80",
+			array()
+		);
+		$seen = array();
+		if ($incidents) {
+			while ($row = $adb->fetchByAssoc($incidents)) {
+				$contactId = (int) $row['customer_id'];
+				if (isset($seen[$contactId])) {
+					continue;
+				}
+				$seen[$contactId] = true;
+				if (self::openAlert($contactId, 'NL17', 'Có sự cố hàng hoặc giao hàng', (string) $row['subject'])) {
+					$opened++;
+				}
+			}
+		}
+		$openIncidents = $adb->pquery(
+			"SELECT DISTINCT contact_id FROM mk_nl_alerts WHERE code = 'NL17' AND status NOT IN ('done','na')",
+			array()
+		);
+		if ($openIncidents) {
+			while ($row = $adb->fetchByAssoc($openIncidents)) {
+				$contactId = (int) $row['contact_id'];
+				$still = $adb->pquery(
+					"SELECT id FROM tickets
+					 WHERE customer_id = ? AND issue_type IN ('hang_loi','giao_thieu','giao_sai','hang_hu','tra_hang')
+					   AND status NOT IN ('Closed')
+					 LIMIT 1",
+					array($contactId)
+				);
+				if ($still && $adb->num_rows($still) > 0) {
+					continue;
+				}
+				$done = $adb->pquery(
+					"SELECT id FROM tickets
+					 WHERE customer_id = ? AND issue_type IN ('hang_loi','giao_thieu','giao_sai','hang_hu','tra_hang')
+					   AND status = 'Closed' AND resolution IN ('giao_bu','doi_hang','hoan_tien')
+					 LIMIT 1",
+					array($contactId)
+				);
+				if ($done && $adb->num_rows($done) > 0) {
+					self::closeOpen('NL17', $contactId, 'Phiếu đã đóng: giao bù, đổi hàng hoặc hoàn tiền.');
+				}
+			}
+		}
+		$hours = self::numSetting($settings, 'complaint_reply_hours');
+		if ($hours === null || $hours <= 0) {
+			return $opened;
+		}
+		$complaints = $adb->pquery(
+			"SELECT customer_id, subject, created_at
+			 FROM tickets
+			 WHERE issue_type = 'khieu_nai' AND status NOT IN ('Closed') AND customer_id > 0
+			 LIMIT 80",
+			array()
+		);
+		if ($complaints) {
+			while ($row = $adb->fetchByAssoc($complaints)) {
+				$created = strtotime((string) $row['created_at']);
+				if (!$created || (time() - $created) < ($hours * 3600)) {
+					continue;
+				}
+				if (self::openAlert((int) $row['customer_id'], 'NL19', 'Khiếu nại quá hạn phản hồi', (string) $row['subject'])) {
+					$opened++;
+				}
+			}
+		}
+		$openComplaints = $adb->pquery(
+			"SELECT DISTINCT contact_id FROM mk_nl_alerts WHERE code = 'NL19' AND status NOT IN ('done','na')",
+			array()
+		);
+		if ($openComplaints) {
+			while ($row = $adb->fetchByAssoc($openComplaints)) {
+				$contactId = (int) $row['contact_id'];
+				$replied = $adb->pquery(
+					"SELECT id FROM tickets
+					 WHERE customer_id = ? AND issue_type = 'khieu_nai' AND status = 'Closed' AND resolution = 'da_phan_hoi'
+					 LIMIT 1",
+					array($contactId)
+				);
+				$waiting = $adb->pquery(
+					"SELECT id FROM tickets WHERE customer_id = ? AND issue_type = 'khieu_nai' AND status NOT IN ('Closed') LIMIT 1",
+					array($contactId)
+				);
+				if ($replied && $adb->num_rows($replied) > 0 && (!$waiting || $adb->num_rows($waiting) < 1)) {
+					self::closeOpen('NL19', $contactId, 'Phiếu khiếu nại đã đóng và đã phản hồi khách.');
 				}
 			}
 		}

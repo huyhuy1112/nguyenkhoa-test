@@ -25,7 +25,7 @@
 				<div class="mk-hd-edit-main-col">
 					<div class="mk-hd-detail-card">
 						<div class="mk-hd-detail-card__head">
-							<h2 class="mk-hd-detail-card__title">Ticket details</h2>
+							<h2 class="mk-hd-detail-card__title">Phiếu xử lý</h2>
 						</div>
 						<div class="mk-hd-detail-card__body">
 							<form method="post" action="index.php" enctype="multipart/form-data" class="mk-hd-edit-form" id="mkHdTicketForm">
@@ -37,7 +37,7 @@
 
 								<div class="mk-hd-edit-fields">
 									<div class="mk-hd-edit-field mk-hd-edit-field--wide">
-										<label class="mk-hd-edit-field__label" for="TicketsCustomerSelect">Customer (Contact) <span class="mk-hd-req">*</span></label>
+										<label class="mk-hd-edit-field__label" for="TicketsCustomerSelect">Khách hàng <span class="mk-hd-req">*</span></label>
 										<select name="customer_id" id="TicketsCustomerSelect" class="mk-hd-edit-input" required>
 											<option value="">-- Chọn contact --</option>
 											{foreach from=$CONTACTS item=C}
@@ -56,19 +56,39 @@
 										<p class="mk-hd-edit-hint">Tự động lấy theo Organization của Contact đã chọn.</p>
 									</div>
 
+									<div class="mk-hd-edit-field">
+										<label class="mk-hd-edit-field__label" for="mkHdTicketIssue">Loại việc</label>
+										{assign var=issue value=$TICKET.issue_type|default:'ho_tro'}
+										<select name="issue_type" id="mkHdTicketIssue" class="mk-hd-edit-input">
+											{foreach from=$ISSUE_TYPES key=CODE item=LABEL}
+												<option value="{$CODE}" {if $issue eq $CODE}selected="selected"{/if}>{$LABEL|escape}</option>
+											{/foreach}
+										</select>
+										<p class="mk-hd-edit-hint">Hàng lỗi và khiếu nại là phía khách. Giao thiếu, sai, hư, trả hàng là phía Sales và kho, cùng một phiếu.</p>
+									</div>
+									<div class="mk-hd-edit-field">
+										<label class="mk-hd-edit-field__label" for="mkHdTicketOrder">Đơn hàng</label>
+										{assign var=orderId value=$TICKET.salesorder_id|default:0}
+										<select name="salesorder_id" id="mkHdTicketOrder" class="mk-hd-edit-input">
+											<option value="">Không gắn đơn</option>
+											{foreach from=$ORDERS item=O}
+												<option value="{$O.salesorderid}" {if $orderId eq $O.salesorderid}selected="selected"{/if}>{$O.salesorder_no|escape}</option>
+											{/foreach}
+										</select>
+									</div>
 									<div class="mk-hd-edit-field mk-hd-edit-field--wide">
-										<label class="mk-hd-edit-field__label" for="mkHdTicketSubject">Subject <span class="mk-hd-req">*</span></label>
+										<label class="mk-hd-edit-field__label" for="mkHdTicketSubject">Tiêu đề <span class="mk-hd-req">*</span></label>
 										<input type="text" name="subject" id="mkHdTicketSubject" class="mk-hd-edit-input"
 											   value="{$TICKET.subject|default:''|escape}" required />
 									</div>
 
 									<div class="mk-hd-edit-field mk-hd-edit-field--wide">
-										<label class="mk-hd-edit-field__label" for="mkHdTicketDescription">Description</label>
+										<label class="mk-hd-edit-field__label" for="mkHdTicketDescription">Nội dung</label>
 										<textarea name="description" id="mkHdTicketDescription" class="mk-hd-edit-input mk-hd-edit-input--textarea" rows="4">{$TICKET.description|default:''}</textarea>
 									</div>
 
 									<div class="mk-hd-edit-field">
-										<label class="mk-hd-edit-field__label" for="mkHdTicketPriority">Priority</label>
+										<label class="mk-hd-edit-field__label" for="mkHdTicketPriority">Mức ưu tiên</label>
 										{assign var=prio value=$TICKET.priority|default:'Medium'}
 										<select name="priority" id="mkHdTicketPriority" class="mk-hd-edit-input">
 											{foreach from=['Critical','High','Medium','Low'] item=P}
@@ -78,7 +98,7 @@
 									</div>
 
 									<div class="mk-hd-edit-field">
-										<label class="mk-hd-edit-field__label" for="mkHdTicketStatus">Status</label>
+										<label class="mk-hd-edit-field__label" for="mkHdTicketStatus">Trạng thái</label>
 										{assign var=st value=$TICKET.status|default:'Open'}
 										<select name="status" id="mkHdTicketStatus" class="mk-hd-edit-input">
 											{foreach from=['Open','In Progress','Resolved','Closed'] item=S}
@@ -88,7 +108,17 @@
 									</div>
 
 									<div class="mk-hd-edit-field mk-hd-edit-field--wide">
-										<label class="mk-hd-edit-field__label" for="mkHdTicketAssignees">Assigned To</label>
+										<label class="mk-hd-edit-field__label" for="mkHdTicketResolution">Kết quả xử lý</label>
+										{assign var=resolution value=$TICKET.resolution|default:''}
+										<select name="resolution" id="mkHdTicketResolution" class="mk-hd-edit-input">
+											{foreach from=$RESOLUTIONS key=CODE item=LABEL}
+												<option value="{$CODE}" {if $resolution eq $CODE}selected="selected"{/if}>{$LABEL|escape}</option>
+											{/foreach}
+										</select>
+										<p class="mk-hd-edit-hint">Giao bù, đổi hàng hoặc hoàn tiền thì tắt cảnh báo giao thiếu. Đã phản hồi khách thì tắt khiếu nại quá hạn.</p>
+									</div>
+									<div class="mk-hd-edit-field mk-hd-edit-field--wide">
+										<label class="mk-hd-edit-field__label" for="mkHdTicketAssignees">Người xử lý</label>
 										<select name="assigned_users_ids[]" id="mkHdTicketAssignees" class="mk-hd-edit-input mk-hd-edit-input--multi" multiple="multiple">
 											{foreach from=$USERS item=U}
 												<option value="{$U.id}"
