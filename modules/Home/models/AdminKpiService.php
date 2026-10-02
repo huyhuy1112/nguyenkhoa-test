@@ -1709,6 +1709,8 @@ class Home_AdminKpiService {
 			$datedRegion[] = self::stageCountCard($label, $regionDated[$key], 'gd11:region-dated:' . $key, '#2563eb');
 			$attendRegion[] = self::stageCountCard($label, $regionAttend[$key], 'gd11:region-attend:' . $key, '#10b981');
 		}
+		$follow = self::countFollowOrders($db, self::classAnchors($rows, 'offline_da_tham_gia', 'offline_class_date'));
+		$form = self::formMatchCounts($rows);
 		return array(
 			'period_label' => self::stagePeriodCaption(),
 			'rates' => array(
@@ -1717,6 +1719,9 @@ class Home_AdminKpiService {
 				self::stageRateCard('Chốt được ngày học', $dated, $eligible, 'gd11:dated'),
 				self::stageRateCard('Tham gia / đã chốt ngày', $attended, $dated, 'gd11:attended'),
 				self::stageRateCard('Chuyển đổi cả phễu', $attended, $total, 'gd11:funnel'),
+				self::stageRateCard('Khớp form với kết luận sau gọi', $form['matched'], $form['compared'], 'gd11:form_match'),
+				self::stageRateCard('Chốt khóa có phí trong 30 ngày sau lớp', $follow['course'], $attended, 'gd11:paid30'),
+				self::stageRateCard('Mua nguyên liệu trong 30 ngày sau lớp', $follow['ingredient'], $attended, 'gd11:mat30'),
 			),
 			'stages' => $stages,
 			'splits' => array(
@@ -1724,7 +1729,7 @@ class Home_AdminKpiService {
 				array('title' => 'Đã chốt ngày theo khu vực', 'items' => $datedRegion),
 				array('title' => 'Có mặt theo khu vực', 'items' => $attendRegion),
 			),
-			'soon' => $soon,
+			'soon' => array(),
 			'total' => $total,
 			'attend_rate' => $dated > 0 ? round(($attended / $dated) * 100, 1) : 0,
 		);
@@ -1760,6 +1765,16 @@ class Home_AdminKpiService {
 		$levelOn = array('sieu_tiem_nang' => 0, 'tiem_nang' => 0, 'binh_thuong' => 0);
 		$levelAct = array('sieu_tiem_nang' => 0, 'tiem_nang' => 0, 'binh_thuong' => 0);
 		$level80 = array('sieu_tiem_nang' => 0, 'tiem_nang' => 0, 'binh_thuong' => 0);
+		$regionMile = array();
+		foreach (array('form', 'qualified', 'activated', 'done') as $mile) {
+			$regionMile[$mile] = array('kv1' => 0, 'kv2' => 0, 'kv3' => 0);
+		}
+		$terminal = 0;
+		$reminded = 0;
+		$remindedMoved = 0;
+		$renewed = 0;
+		$renewedMoved = 0;
+		$blockedRows = array();
 		foreach ($rows as $row) {
 			$status = strtolower(trim((string) $row['online_status']));
 			$total++;
@@ -1785,6 +1800,41 @@ class Home_AdminKpiService {
 			}
 			if ($hit100) {
 				$complete++;
+			}
+			$region = self::stageRegionKey($row['area'], $row['district']);
+			if ($region !== '' && isset($regionMile['form'][$region])) {
+				if ($status !== 'online_chua_dien_form') {
+					$regionMile['form'][$region]++;
+				}
+				if ($status === 'online_chua_dk_tk' || $hasAccount) {
+					$regionMile['qualified'][$region]++;
+				}
+				if ($hasAccount) {
+					$regionMile['activated'][$region]++;
+				}
+				if ($hit100) {
+					$regionMile['done'][$region]++;
+				}
+			}
+			if ($hit100 || in_array($status, array('online_hoan_thanh', 'online_dat_80', 'online_het_han', 'online_khong_du_dk'), true)) {
+				$terminal++;
+			}
+			$remindCount = isset($row['online_reminder_count']) ? (int) $row['online_reminder_count'] : 0;
+			if ($remindCount > 0) {
+				$reminded++;
+				if ($status !== 'online_chua_dien_form' || $hasAccount) {
+					$remindedMoved++;
+				}
+			}
+			$renewCount = isset($row['edubit_renew_count']) ? (int) $row['edubit_renew_count'] : 0;
+			if ($renewCount > 0) {
+				$renewed++;
+				if ($hit80 || $hit100) {
+					$renewedMoved++;
+				}
+			}
+			if ($status === 'online_khong_du_dk') {
+				$blockedRows[] = $row;
 			}
 			$level = strtolower(trim((string) $row['potential_level']));
 			if (in_array($level, $levelKeys, true)) {
@@ -1819,6 +1869,26 @@ class Home_AdminKpiService {
 		foreach ($levelLabels as $key => $label) {
 			$levelItems[] = self::stageRateCard($label . ' đạt 80%', $level80[$key], $levelAct[$key], 'gd12:level80:' . $key);
 		}
+		$regionItems = array();
+		$regionNames = array('kv1' => 'KV1', 'kv2' => 'KV2', 'kv3' => 'KV3');
+		$mileLabels = array(
+			'form' => 'Đã điền form',
+			'qualified' => 'Đủ điều kiện',
+			'activated' => 'Đã kích hoạt',
+			'done' => 'Học hết 100%',
+		);
+		foreach ($mileLabels as $mile => $mileLabel) {
+			foreach ($regionNames as $key => $regionLabel) {
+				$regionItems[] = self::stageCountCard(
+					$mileLabel . ' · ' . $regionLabel,
+					$regionMile[$mile][$key],
+					'gd12:region:' . $mile . ':' . $key,
+					'#2563eb'
+				);
+			}
+		}
+		$paidAfter = self::countFollowOrders($db, self::classAnchors($rows, '', 'edubit_activated_at'));
+		$choseOther = self::countFollowOrders($db, self::classAnchors($blockedRows, '', 'created_fallback'));
 		return array(
 			'period_label' => self::stagePeriodCaption(),
 			'rates' => array(
@@ -1828,12 +1898,19 @@ class Home_AdminKpiService {
 				self::stageRateCard('Đạt 80%', $reached80, $activated, 'gd12:bucket:p80'),
 				self::stageRateCard('Học hết 100%', $complete, $activated, 'gd12:bucket:p100'),
 				self::stageRateCard('Cả phễu đạt 80%', $reached80, $total, 'gd12:bucket:p80'),
+				self::stageRateCard('Đủ một trong bốn đầu ra', $terminal, $total, 'gd12:terminal'),
+				self::stageRateCard('Chọn sản phẩm khác', $choseOther['course'], $notQualified, 'gd12:other_product'),
+				self::stageRateCard('Chốt khóa có phí trong 30 ngày sau bàn giao', $paidAfter['course'], $activated, 'gd12:paid30'),
+				self::stageRateCard('Mua nguyên liệu trong 30 ngày', $paidAfter['ingredient'], $activated, 'gd12:mat30'),
+				self::stageRateCard('Nhắc rồi đi tiếp', $remindedMoved, $reminded, 'gd12:remind'),
+				self::stageRateCard('Gia hạn rồi đạt 80%', $renewedMoved, $renewed, 'gd12:renew'),
 			),
 			'stages' => $stages,
 			'splits' => array(
 				array('title' => 'Đạt 80% theo mức tiềm năng', 'items' => $levelItems),
+				array('title' => 'Bốn mốc theo khu vực', 'items' => $regionItems),
 			),
-			'soon' => $soon,
+			'soon' => array(),
 			'total' => $total,
 			'form_rate' => $total > 0 ? round(($formFilled / $total) * 100, 1) : 0,
 			'qualify_rate' => $formFilled > 0 ? round(($passed / $formFilled) * 100, 1) : 0,
@@ -1955,24 +2032,323 @@ class Home_AdminKpiService {
 		if (!empty($sourceItems)) {
 			$splits[] = array('title' => 'Sai thông tin theo nguồn', 'items' => $sourceItems);
 		}
+		$onTime = 0;
+		$attend30 = 0;
+		$attend60 = 0;
+		$attend90 = 0;
+		$attended990 = 0;
+		foreach ($packed as $row) {
+			$created = isset($row['createdtime']) ? strtotime((string) $row['createdtime']) : false;
+			$touch = isset($row['last_touch']) ? strtotime((string) $row['last_touch']) : false;
+			if ($created && $touch && $touch >= $created && ($touch - $created) <= 1800) {
+				$onTime++;
+			}
+			if ($row['tag'] !== 'gd14_da_tham_gia') {
+				continue;
+			}
+			$attended990++;
+			$stamp = isset($row['modified_at']) ? strtotime((string) $row['modified_at']) : false;
+			if (!$created || !$stamp || $stamp < $created) {
+				continue;
+			}
+			$days = (int) floor(($stamp - $created) / 86400);
+			if ($days <= 30) {
+				$attend30++;
+			}
+			if ($days <= 60) {
+				$attend60++;
+			}
+			if ($days <= 90) {
+				$attend90++;
+			}
+		}
+		$money = self::cohortOrderMoney($db, $packed);
+		$rates = array(
+			self::stageRateCard('Liên hệ được', $contacted, $total, 'gd14:contacted'),
+			self::stageRateCard('Tư vấn đủ', $advised, $contacted, 'gd14:advised'),
+			self::stageRateCard('Chọn khoá', $chose, $advised > 0 ? $advised : $contacted, 'gd14:chose'),
+			self::stageRateCard('Chốt đơn', $closed, $chose, 'gd14:closed'),
+			self::stageRateCard('Đã xác minh', $verified, $total, 'gd14:verified'),
+			self::stageRateCard('Được mời Combo / Mở quán', $invited, $classified, 'gd14:invited'),
+			self::stageRateCard('Bị chặn Combo / Mở quán', $blocked, $classified, 'gd14:blocked'),
+			self::stageRateCard('Đổi đáp án so với form', $formChanged, $hasForm, 'gd14:form_changed'),
+			self::stageRateCard('Cờ đáp án mâu thuẫn', $contradict, $verified, 'gd14:contradict'),
+			self::stageRateCard('Liên hệ đúng hạn 30 phút', $onTime, $total, 'gd14:sla30'),
+			self::stageRateCard('Tham gia trong 30 ngày', $attend30, $total, 'gd14:attend30'),
+			self::stageRateCard('Tham gia trong 60 ngày', $attend60, $total, 'gd14:attend60'),
+			self::stageRateCard('Tham gia trong 90 ngày', $attend90, $total, 'gd14:attend90'),
+			self::stageRateCard('Hủy hoặc xin hoàn', $money['cancelled'], $money['orders'], 'gd14:cancel'),
+		);
+		$splits[] = array('title' => 'Doanh thu và giá trị đơn', 'items' => array(
+			array_merge(self::stageCountCard('Giá trị đơn chưa hủy', 0, 'gd14:revenue', '#10b981'), array('value' => self::formatMoney($money['amount']))),
+			self::stageCountCard('Số đơn chưa hủy', $money['kept'], 'gd14:orders', '#2563eb'),
+			self::stageCountCard('Đã tham gia lớp', $attended990, 'gd14:tag:gd14_da_tham_gia', '#0f766e'),
+		));
 		return array(
 			'period_label' => self::stagePeriodCaption(),
-			'rates' => array(
-				self::stageRateCard('Liên hệ được', $contacted, $total, 'gd14:contacted'),
-				self::stageRateCard('Tư vấn đủ', $advised, $contacted, 'gd14:advised'),
-				self::stageRateCard('Chọn khoá', $chose, $advised > 0 ? $advised : $contacted, 'gd14:chose'),
-				self::stageRateCard('Chốt đơn', $closed, $chose, 'gd14:closed'),
-				self::stageRateCard('Đã xác minh', $verified, $total, 'gd14:verified'),
-				self::stageRateCard('Được mời Combo / Mở quán', $invited, $classified, 'gd14:invited'),
-				self::stageRateCard('Bị chặn Combo / Mở quán', $blocked, $classified, 'gd14:blocked'),
-				self::stageRateCard('Đổi đáp án so với form', $formChanged, $hasForm, 'gd14:form_changed'),
-				self::stageRateCard('Cờ đáp án mâu thuẫn', $contradict, $verified, 'gd14:contradict'),
-			),
+			'rates' => $rates,
 			'stages' => $stages,
 			'splits' => $splits,
-			'soon' => $soon,
+			'soon' => array(),
 			'total' => $total,
 		);
+	}
+
+	protected static function profileSelectExtra(PearDatabase $db) {
+		$sql = '';
+		foreach (array(
+			'form_c1', 'form_c2', 'form_c3', 'verify_c1', 'verify_c2', 'verify_c3',
+			'contact_id', 'offline_class_date', 'online_reminder_count', 'edubit_renew_count',
+			'last_touch', 'modified_at',
+		) as $col) {
+			if (self::columnExists($db, 'bace_lead_profile', $col)) {
+				$sql .= ', p.`' . $col . '`';
+			}
+		}
+		return $sql;
+	}
+
+	protected static function formMatchCounts(array $rows) {
+		$compared = 0;
+		$matched = 0;
+		foreach ($rows as $row) {
+			$filled = true;
+			$same = true;
+			foreach (array('c1', 'c2', 'c3') as $part) {
+				$form = isset($row['form_' . $part]) ? strtoupper(trim((string) $row['form_' . $part])) : '';
+				$verify = isset($row['verify_' . $part]) ? strtoupper(trim((string) $row['verify_' . $part])) : '';
+				if ($form === '' || $verify === '') {
+					$filled = false;
+					break;
+				}
+				if ($form !== $verify) {
+					$same = false;
+				}
+			}
+			if (!$filled) {
+				continue;
+			}
+			$compared++;
+			if ($same) {
+				$matched++;
+			}
+		}
+		return array('compared' => $compared, 'matched' => $matched);
+	}
+
+	protected static function classAnchors(array $rows, $statusEquals, $dateField) {
+		$out = array();
+		foreach ($rows as $row) {
+			if ($statusEquals !== '') {
+				$status = strtolower(trim((string) (isset($row['offline_status']) ? $row['offline_status'] : '')));
+				if ($status !== $statusEquals) {
+					continue;
+				}
+			}
+			$raw = '';
+			if ($dateField === 'createdtime' || $dateField === 'created_fallback') {
+				$raw = isset($row['createdtime']) ? trim((string) $row['createdtime']) : '';
+			} elseif ($dateField !== '' && isset($row[$dateField])) {
+				$raw = trim((string) $row[$dateField]);
+			}
+			if ($raw === '' || $raw === '0000-00-00' || $raw === '0000-00-00 00:00:00') {
+				if ($statusEquals !== '' && isset($row['createdtime'])) {
+					$raw = trim((string) $row['createdtime']);
+				} else {
+					continue;
+				}
+			}
+			if ($raw === '' || $raw === '0000-00-00' || $raw === '0000-00-00 00:00:00') {
+				continue;
+			}
+			$ts = $raw !== '' ? strtotime($raw) : false;
+			if (!$ts) {
+				continue;
+			}
+			$out[] = array(
+				'contact' => isset($row['contact_id']) ? (int) $row['contact_id'] : 0,
+				'phone' => isset($row['phone']) ? (string) $row['phone'] : '',
+				'start' => $ts,
+			);
+		}
+		return $out;
+	}
+
+	protected static function resolveAnchorContacts(PearDatabase $db, array $anchors) {
+		$phones = array();
+		foreach ($anchors as $i => $anchor) {
+			if (!empty($anchor['contact'])) {
+				continue;
+			}
+			$digits = preg_replace('/\D+/', '', isset($anchor['phone']) ? $anchor['phone'] : '');
+			if (strlen($digits) >= 9) {
+				$phones[$i] = substr($digits, -9);
+			}
+		}
+		if (!$phones || !self::tableExists($db, 'vtiger_contactdetails')) {
+			return $anchors;
+		}
+		$r = $db->pquery(
+			'SELECT contactid, mobile, phone FROM vtiger_contactdetails cd
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid AND ce.deleted = 0',
+			array()
+		);
+		$map = array();
+		if ($r) {
+			while ($row = $db->fetchByAssoc($r)) {
+				foreach (array('mobile', 'phone') as $field) {
+					$digits = preg_replace('/\D+/', '', (string) $row[$field]);
+					if (strlen($digits) >= 9) {
+						$map[substr($digits, -9)] = (int) $row['contactid'];
+					}
+				}
+			}
+		}
+		foreach ($phones as $i => $tail) {
+			if (isset($map[$tail])) {
+				$anchors[$i]['contact'] = $map[$tail];
+			}
+		}
+		return $anchors;
+	}
+
+	protected static function countFollowOrders(PearDatabase $db, array $anchors) {
+		$empty = array('course' => 0, 'ingredient' => 0);
+		if (!$anchors) {
+			return $empty;
+		}
+		$anchors = self::resolveAnchorContacts($db, $anchors);
+		$byContact = array();
+		$min = null;
+		$max = null;
+		foreach ($anchors as $anchor) {
+			if ($anchor['contact'] <= 0) {
+				continue;
+			}
+			$byContact[$anchor['contact']][] = $anchor['start'];
+			$end = $anchor['start'] + (30 * 86400);
+			if ($min === null || $anchor['start'] < $min) {
+				$min = $anchor['start'];
+			}
+			if ($max === null || $end > $max) {
+				$max = $end;
+			}
+		}
+		if (!$byContact || $min === null) {
+			return $empty;
+		}
+		list($notCancelSql, $excluded) = self::soNotCancelledSql('so');
+		$ids = array_keys($byContact);
+		$ph = implode(',', array_fill(0, count($ids), '?'));
+		$params = array_merge($excluded, $ids, array(date('Y-m-d H:i:s', $min), date('Y-m-d H:i:s', $max)));
+		$r = $db->pquery(
+			"SELECT so.contactid, ce.createdtime AS createdtime,
+				COALESCE(pr.productname, sv.servicename, '') AS pname,
+				COALESCE(pr.productcategory, '') AS pcat,
+				COALESCE(sv.servicecategory, '') AS scat
+			 FROM vtiger_inventoryproductrel ip
+			 INNER JOIN vtiger_salesorder so ON so.salesorderid = ip.id
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 LEFT JOIN vtiger_products pr ON pr.productid = ip.productid
+			 LEFT JOIN vtiger_service sv ON sv.serviceid = ip.productid
+			 WHERE $notCancelSql AND so.contactid IN ($ph)
+			 AND ce.createdtime >= ? AND ce.createdtime <= ?",
+			$params
+		);
+		$hit = array();
+		if ($r) {
+			while ($row = $db->fetchByAssoc($r)) {
+				$contact = (int) $row['contactid'];
+				$when = strtotime((string) $row['createdtime']);
+				if (!$when || empty($byContact[$contact])) {
+					continue;
+				}
+				$inside = false;
+				foreach ($byContact[$contact] as $start) {
+					if ($when >= $start && $when <= ($start + 30 * 86400)) {
+						$inside = true;
+						break;
+					}
+				}
+				if (!$inside) {
+					continue;
+				}
+				$bucket = self::classifyProductBucket((string) $row['pname'], (string) $row['pcat'], (string) $row['scat']);
+				if ($bucket === 'course' || $bucket === 'ingredient') {
+					$hit[$contact][$bucket] = true;
+				}
+			}
+		}
+		$course = 0;
+		$ingredient = 0;
+		foreach ($hit as $flags) {
+			if (!empty($flags['course'])) {
+				$course++;
+			}
+			if (!empty($flags['ingredient'])) {
+				$ingredient++;
+			}
+		}
+		return array('course' => $course, 'ingredient' => $ingredient);
+	}
+
+	protected static function cohortOrderMoney(PearDatabase $db, array $packed) {
+		$out = array('amount' => 0, 'kept' => 0, 'orders' => 0, 'cancelled' => 0);
+		$contacts = array();
+		foreach ($packed as $row) {
+			if (!empty($row['contact_id'])) {
+				$contacts[(int) $row['contact_id']] = true;
+			}
+		}
+		if (!$contacts) {
+			$anchors = array();
+			foreach ($packed as $row) {
+				$anchors[] = array(
+					'contact' => isset($row['contact_id']) ? (int) $row['contact_id'] : 0,
+					'phone' => isset($row['phone']) ? $row['phone'] : '',
+					'start' => 1,
+				);
+			}
+			foreach (self::resolveAnchorContacts($db, $anchors) as $anchor) {
+				if ($anchor['contact'] > 0) {
+					$contacts[$anchor['contact']] = true;
+				}
+			}
+		}
+		if (!$contacts) {
+			return $out;
+		}
+		$ids = array_keys($contacts);
+		$ph = implode(',', array_fill(0, count($ids), '?'));
+		list($from, $to) = self::stageMonthBounds();
+		$r = $db->pquery(
+			"SELECT so.salesorderid, so.sostatus, COALESCE(so.total, 0) AS total
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 WHERE so.contactid IN ($ph)
+			 AND ce.createdtime >= ? AND ce.createdtime <= ?",
+			array_merge($ids, array($from, $to))
+		);
+		$seen = array();
+		if ($r) {
+			while ($row = $db->fetchByAssoc($r)) {
+				$id = (int) $row['salesorderid'];
+				if (isset($seen[$id])) {
+					continue;
+				}
+				$seen[$id] = true;
+				$out['orders']++;
+				$status = strtolower(trim((string) $row['sostatus']));
+				$cancelled = strpos($status, 'cancel') !== false || strpos($status, 'hủy') !== false || strpos($status, 'huy') !== false || $status === 'rejected' || $status === 'từ chối';
+				if ($cancelled) {
+					$out['cancelled']++;
+				} else {
+					$out['kept']++;
+					$out['amount'] += (float) $row['total'];
+				}
+			}
+		}
+		return $out;
 	}
 
 	protected static function emptyStageBoard(array $soon) {
@@ -2060,8 +2436,10 @@ class Home_AdminKpiService {
 			"SELECT ld.leadid AS id,
 				TRIM(CONCAT(COALESCE(ld.firstname,''), ' ', COALESCE(ld.lastname,''))) AS name,
 				COALESCE(NULLIF(la.mobile, ''), NULLIF(la.phone, ''), '') AS phone,
+				ce.createdtime AS createdtime,
 				p.offline_status, p.online_status, p.eligibility_result, p.potential_level,
 				p.area, p.district, p.edubit_progress_pct, p.edubit_activated_at, p.verify_extra_json
+				" . self::profileSelectExtra($db) . "
 			 FROM vtiger_leaddetails ld
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ld.leadid AND ce.deleted = 0
 			 LEFT JOIN bace_lead_profile p ON p.leadid = ld.leadid
@@ -2085,7 +2463,8 @@ class Home_AdminKpiService {
 			"SELECT ld.leadid AS id,
 				TRIM(CONCAT(COALESCE(ld.firstname,''), ' ', COALESCE(ld.lastname,''))) AS name,
 				COALESCE(NULLIF(la.mobile, ''), NULLIF(la.phone, ''), '') AS phone,
-				ld.leadsource AS source, t.tag AS tag_name, p.verify_extra_json
+				ld.leadsource AS source, t.tag AS tag_name, p.verify_extra_json, ce.createdtime AS createdtime
+				" . self::profileSelectExtra($db) . "
 			 FROM vtiger_leaddetails ld
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ld.leadid AND ce.deleted = 0
 			 INNER JOIN vtiger_freetagged_objects fo ON fo.object_id = ld.leadid AND fo.module = 'Leads'
@@ -2135,6 +2514,10 @@ class Home_AdminKpiService {
 						'contradict' => self::gd14Contradict($extra) ? 1 : 0,
 						'source' => trim((string) $row['source']),
 						'status' => $tag,
+						'createdtime' => isset($row['createdtime']) ? (string) $row['createdtime'] : '',
+						'last_touch' => isset($row['last_touch']) ? (string) $row['last_touch'] : '',
+						'modified_at' => isset($row['modified_at']) ? (string) $row['modified_at'] : '',
+						'contact_id' => isset($row['contact_id']) ? (int) $row['contact_id'] : 0,
 					);
 				}
 			}
