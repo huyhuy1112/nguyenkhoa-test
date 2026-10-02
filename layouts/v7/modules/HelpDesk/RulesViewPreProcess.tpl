@@ -7,7 +7,7 @@
 <script type="text/javascript">document.documentElement.classList.add('mk-hd-ui-ready', 'mk-tre-ui-ready');</script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/HelpDesk/resources/HelpDeskRulesList.css')}?mk_v=20260810_tag_ui1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.css')}?mk_v=20261002_nlalign1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.css')}?mk_v=20261002_nlbar1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/HelpDesk/resources/MkTagRuleEngineStore.js')}?mk_v=20260929_rulewin1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.js')}?mk_v=20261002_nltab1"></script>
