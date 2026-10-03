@@ -57,6 +57,7 @@
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_OFFLINE_ATTEND', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('Assigned To', 'Vtiger')}</th>
 							<th class="mk-leads-th" scope="col">Tương tác gần đây</th>
+							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_NEXT_ACTION', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_NOTES', 'Contacts')}</th>
 						</tr>
 					</thead>

@@ -7,7 +7,7 @@
   var ref = window.ContactsLovableRef;
   var store = window.ContactsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 17;
+  var COL_COUNT = 18;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -220,6 +220,7 @@
     courseCount: ANY,
     hasTag: false,
     hasAccount: false,
+    hasNextAction: false,
     staleOnly: false,
   };
 
@@ -564,6 +565,7 @@
       }
       if (f.hasTag && !(c.tags || []).length) return false;
       if (f.hasAccount && !c.account) return false;
+      if (f.hasNextAction && !String(c.next_action || "").trim()) return false;
       if (f.customerRank !== ANY && (!cats.customerRank || ref.normalizeTag(cats.customerRank) !== f.customerRank)) return false;
       var needClass = [];
       if (f.classTag !== ANY && f.classTag) {
@@ -711,13 +713,14 @@
     if (!host) return;
     var rows = getContacts();
     var allOn = !state.activeSegment && state.productTab === "all" ? " is-active" : "";
-    var html =
+
+    var courseHtml =
       '<button type="button" class="mk-leads-segment-btn' +
       allOn +
       '" data-seg="__all__">' +
       esc(t("JS_MK_FILTER_ALL", "Tất cả")) +
       "</button>";
-    html += getPresetSegments()
+    courseHtml += getPresetSegments()
       .map(function (seg) {
         var active =
           state.activeSegment === seg.id ||
@@ -738,105 +741,11 @@
         );
       })
       .join("");
-    html += productTabItemsHtml(rows);
-    if (state.productTab === "offline") {
-      html += '<span class="mk-leads-offline-filters" role="group" aria-label="Lọc trạng thái Offline">';
-      var fos = (state.filters && state.filters.offlineStatus) || ANY;
-      html +=
-        '<button type="button" class="mk-leads-offline-filter' +
-        (fos === ANY ? " is-active" : "") +
-        '" data-offline-status="' +
-        ANY +
-        '">Tất cả Offline</button>';
-      OFFLINE_STATUS_FILTERS.forEach(function (it) {
-        html +=
-          '<button type="button" class="mk-leads-offline-filter' +
-          (fos === it.key ? " is-active" : "") +
-          '" data-offline-status="' +
-          esc(it.key) +
-          '">' +
-          esc(it.label) +
-          "</button>";
-      });
-      html += "</span>";
-    }
-    if (state.productTab === "online") {
-      html += '<span class="mk-leads-offline-filters mk-leads-offline-filters--online" role="group" aria-label="Lọc trạng thái Online">';
-      var fosOn = (state.filters && state.filters.onlineStatus) || ANY;
-      html +=
-        '<button type="button" class="mk-leads-offline-filter' +
-        (fosOn === ANY ? " is-active" : "") +
-        '" data-online-status="' +
-        ANY +
-        '">Tất cả Online</button>';
-      ONLINE_STATUS_FILTERS.forEach(function (it) {
-        html +=
-          '<button type="button" class="mk-leads-offline-filter' +
-          (fosOn === it.key ? " is-active" : "") +
-          '" data-online-status="' +
-          esc(it.key) +
-          '">' +
-          esc(it.label) +
-          "</button>";
-      });
-      html += "</span>";
-    }
-    if (state.productTab === "pcth" || state.productTab === "mqbb") {
-      var tone = state.productTab === "pcth" ? " mk-leads-offline-filters--pcth" : " mk-leads-offline-filters--mqbb";
-      var allProg = state.productTab === "pcth" ? "Tất cả PCTH" : "Tất cả MQBB";
-      html +=
-        '<span class="mk-leads-offline-filters' +
-        tone +
-        '" role="group" aria-label="Lọc điểm rơi ' +
-        esc(state.productTab.toUpperCase()) +
-        '">';
-      var fosProg = (state.filters && state.filters.offlineStatus) || ANY;
-      html +=
-        '<button type="button" class="mk-leads-offline-filter' +
-        (fosProg === ANY ? " is-active" : "") +
-        '" data-offline-status="' +
-        ANY +
-        '">' +
-        esc(allProg) +
-        "</button>";
-      OFFLINE_STATUS_FILTERS.forEach(function (it) {
-        html +=
-          '<button type="button" class="mk-leads-offline-filter' +
-          (fosProg === it.key ? " is-active" : "") +
-          '" data-offline-status="' +
-          esc(it.key) +
-          '">' +
-          esc(it.label) +
-          "</button>";
-      });
-      html += "</span>";
-    }
-    if (state.productTab === "nvl") {
-      html += '<span class="mk-leads-offline-filters" role="group" aria-label="Lọc NVL">';
-      var fnvl = state.nvlSubFilter || ANY;
-      html +=
-        '<button type="button" class="mk-leads-offline-filter' +
-        (fnvl === ANY ? " is-active" : "") +
-        '" data-nvl-sub="' +
-        ANY +
-        '">Tất cả NVL</button>';
-      NVL_SUB_FILTERS.forEach(function (it) {
-        html +=
-          '<button type="button" class="mk-leads-offline-filter' +
-          (fnvl === it.id ? " is-active" : "") +
-          '" data-nvl-sub="' +
-          esc(it.id) +
-          '">' +
-          esc(it.label) +
-          "</button>";
-      });
-      html += "</span>";
-    }
     if (state.activeSegment === "lane_courses" || state.filters.lane === "courses") {
-      html += '<span class="mk-leads-offline-filters" role="group" aria-label="Số khóa học theo tag">';
+      courseHtml += '<span class="mk-leads-offline-filters" role="group" aria-label="Số khóa học theo tag">';
       var fcc = (state.filters && state.filters.courseCount) || ANY;
       var buckets = countCourseTagBuckets(rows);
-      html +=
+      courseHtml +=
         '<button type="button" class="mk-leads-offline-filter' +
         (fcc === ANY ? " is-active" : "") +
         '" data-course-count="' +
@@ -844,7 +753,7 @@
         '">Tất cả khóa</button>';
       COURSE_COUNT_CHIPS.forEach(function (it) {
         var n = buckets[it.n] || 0;
-        html +=
+        courseHtml +=
           '<button type="button" class="mk-leads-offline-filter' +
           (String(fcc) === String(it.n) ? " is-active" : "") +
           '" data-course-count="' +
@@ -855,9 +764,117 @@
           n +
           ")</span></button>";
       });
-      html += "</span>";
+      courseHtml += "</span>";
     }
-    host.innerHTML = html;
+
+    var productHtml = productTabItemsHtml(rows);
+    if (state.productTab === "offline") {
+      productHtml += '<span class="mk-leads-offline-filters" role="group" aria-label="Lọc trạng thái Offline">';
+      var fos = (state.filters && state.filters.offlineStatus) || ANY;
+      productHtml +=
+        '<button type="button" class="mk-leads-offline-filter' +
+        (fos === ANY ? " is-active" : "") +
+        '" data-offline-status="' +
+        ANY +
+        '">Tất cả Offline</button>';
+      OFFLINE_STATUS_FILTERS.forEach(function (it) {
+        productHtml +=
+          '<button type="button" class="mk-leads-offline-filter' +
+          (fos === it.key ? " is-active" : "") +
+          '" data-offline-status="' +
+          esc(it.key) +
+          '">' +
+          esc(it.label) +
+          "</button>";
+      });
+      productHtml += "</span>";
+    }
+    if (state.productTab === "online") {
+      productHtml +=
+        '<span class="mk-leads-offline-filters mk-leads-offline-filters--online" role="group" aria-label="Lọc trạng thái Online">';
+      var fosOn = (state.filters && state.filters.onlineStatus) || ANY;
+      productHtml +=
+        '<button type="button" class="mk-leads-offline-filter' +
+        (fosOn === ANY ? " is-active" : "") +
+        '" data-online-status="' +
+        ANY +
+        '">Tất cả Online</button>';
+      ONLINE_STATUS_FILTERS.forEach(function (it) {
+        productHtml +=
+          '<button type="button" class="mk-leads-offline-filter' +
+          (fosOn === it.key ? " is-active" : "") +
+          '" data-online-status="' +
+          esc(it.key) +
+          '">' +
+          esc(it.label) +
+          "</button>";
+      });
+      productHtml += "</span>";
+    }
+    if (state.productTab === "pcth" || state.productTab === "mqbb") {
+      var tone = state.productTab === "pcth" ? " mk-leads-offline-filters--pcth" : " mk-leads-offline-filters--mqbb";
+      var allProg = state.productTab === "pcth" ? "Tất cả PCTH" : "Tất cả MQBB";
+      productHtml +=
+        '<span class="mk-leads-offline-filters' +
+        tone +
+        '" role="group" aria-label="Lọc điểm rơi ' +
+        esc(state.productTab.toUpperCase()) +
+        '">';
+      var fosProg = (state.filters && state.filters.offlineStatus) || ANY;
+      productHtml +=
+        '<button type="button" class="mk-leads-offline-filter' +
+        (fosProg === ANY ? " is-active" : "") +
+        '" data-offline-status="' +
+        ANY +
+        '">' +
+        esc(allProg) +
+        "</button>";
+      OFFLINE_STATUS_FILTERS.forEach(function (it) {
+        productHtml +=
+          '<button type="button" class="mk-leads-offline-filter' +
+          (fosProg === it.key ? " is-active" : "") +
+          '" data-offline-status="' +
+          esc(it.key) +
+          '">' +
+          esc(it.label) +
+          "</button>";
+      });
+      productHtml += "</span>";
+    }
+    if (state.productTab === "nvl") {
+      productHtml += '<span class="mk-leads-offline-filters" role="group" aria-label="Lọc NVL">';
+      var fnvl = state.nvlSubFilter || ANY;
+      productHtml +=
+        '<button type="button" class="mk-leads-offline-filter' +
+        (fnvl === ANY ? " is-active" : "") +
+        '" data-nvl-sub="' +
+        ANY +
+        '">Tất cả NVL</button>';
+      NVL_SUB_FILTERS.forEach(function (it) {
+        productHtml +=
+          '<button type="button" class="mk-leads-offline-filter' +
+          (fnvl === it.id ? " is-active" : "") +
+          '" data-nvl-sub="' +
+          esc(it.id) +
+          '">' +
+          esc(it.label) +
+          "</button>";
+      });
+      productHtml += "</span>";
+    }
+
+    host.innerHTML =
+      '<div class="mk-contacts-seg-rows">' +
+      '<div class="mk-contacts-seg-row" data-seg-group="course">' +
+      '<span class="mk-contacts-seg-row__label">Lớp học</span>' +
+      '<div class="mk-contacts-seg-row__chips mk-leads-segments">' +
+      courseHtml +
+      "</div></div>" +
+      '<div class="mk-contacts-seg-row" data-seg-group="product">' +
+      '<span class="mk-contacts-seg-row__label">Sản phẩm</span>' +
+      '<div class="mk-contacts-seg-row__chips mk-leads-segments">' +
+      productHtml +
+      "</div></div></div>";
   }
 
   function selectOptions(pairs) {
@@ -896,6 +913,7 @@
         ["done", "Hoàn thành 100%"],
       ]) +
       fieldSelect(t("JS_MK_FILTER_OWNER", "Phụ trách"), "owner", owners.map(function (o) { return [o, o]; })) +
+      toggleField(t("JS_MK_FILTER_HAS_NEXT", "Có hành động tiếp"), "hasNextAction", !!state.filters.hasNextAction, false) +
       "</div>";
     host.hidden = !state.filtersOpen;
     syncFilterControls();
@@ -913,11 +931,26 @@
     );
   }
 
+  function toggleField(label, key, on, warn) {
+    return (
+      '<label class="mk-leads-toggle-field' +
+      (warn ? " mk-leads-toggle-field--warn" : "") +
+      '"><span class="mk-leads-toggle-field__label">' +
+      esc(label) +
+      '</span><input type="checkbox" class="mk-leads-toggle-field__input" data-fkey="' +
+      key +
+      '"' +
+      (on ? " checked" : "") +
+      " /></label>"
+    );
+  }
+
   function syncFilterControls() {
     var f = state.filters;
     document.querySelectorAll("#mk-contacts-filters-panel [data-fkey]").forEach(function (el) {
       var key = el.getAttribute("data-fkey");
-      if (f[key] !== undefined) el.value = f[key];
+      if (el.type === "checkbox") el.checked = !!f[key];
+      else if (f[key] !== undefined) el.value = f[key];
     });
   }
 
@@ -1137,6 +1170,22 @@
 
   function bangCellHtml(contact) {
     return credentialSelectHtml(contact, "bang");
+  }
+
+  function nextActionCellHtml(contact) {
+    var id = contact.crmid || contact.id;
+    var val = String(contact.next_action || "").trim();
+    return (
+      '<input type="text" class="mk-contacts-next-action" data-mk-next-action="' +
+      esc(id) +
+      '" data-prev="' +
+      esc(val) +
+      '" value="' +
+      esc(val) +
+      '" placeholder="Ghi hành động tiếp…" title="' +
+      esc(val || "Hành động tiếp theo") +
+      '" />'
+    );
   }
 
   function progressCellHtml(contact) {
@@ -1998,6 +2047,9 @@
               ? window.MkLastTouchCall.lastTouchCallLogHtml(c, esc)
               : '<span class="mk-leads-muted">Chưa có cuộc gọi</span>') +
             "</td>" +
+            '<td class="mk-leads-td mk-leads-td--next" data-col="next_action">' +
+            nextActionCellHtml(c) +
+            "</td>" +
             '<td class="mk-leads-td" data-col="notes">' +
             (function () {
               var n = String(c.notes || "").trim();
@@ -2234,6 +2286,29 @@
         commitBusinessModelChange(el);
         return;
       }
+      if (el.classList && el.classList.contains("mk-contacts-next-action")) {
+        e.stopPropagation();
+        var nid = el.getAttribute("data-mk-next-action");
+        if (!nid || !store || !store.saveNextAction) return;
+        var prev = el.getAttribute("data-prev") || "";
+        var nextVal = String(el.value || "").trim();
+        if (nextVal === prev) return;
+        el.disabled = true;
+        store
+          .saveNextAction(nid, nextVal)
+          .then(function () {
+            el.setAttribute("data-prev", nextVal);
+            el.disabled = false;
+            el.title = nextVal || "Hành động tiếp theo";
+            renderTable();
+          })
+          .catch(function (err) {
+            notifyUser("error", (err && err.message) || "Không lưu được hành động tiếp.");
+            el.value = prev;
+            el.disabled = false;
+          });
+        return;
+      }
       if (el.classList && el.classList.contains("mk-contacts-cred-select")) {
         var contactId = el.getAttribute("data-contact-id");
         var field = el.getAttribute("data-cred-field");
@@ -2295,9 +2370,13 @@
       if (!el.getAttribute || !el.closest("#mk-contacts-filters-panel")) return;
       var key = el.getAttribute("data-fkey");
       if (!key) return;
-      state.filters[key] = el.value;
-      if (key === "classTag") {
-        state.filters.classTags = el.value && el.value !== ANY ? [el.value] : [];
+      if (el.type === "checkbox") {
+        state.filters[key] = !!el.checked;
+      } else {
+        state.filters[key] = el.value;
+        if (key === "classTag") {
+          state.filters.classTags = el.value && el.value !== ANY ? [el.value] : [];
+        }
       }
       state.activeSegment = null;
       state.page = 1;

@@ -198,6 +198,17 @@
         return res;
       });
     },
+    saveNextAction: function (id, nextAction) {
+      var oid = String(id || "");
+      return apiRequest("save_next_action", {
+        record: oid,
+        next_action: nextAction || "",
+      }).then(function (res) {
+        var next = res && res.next_action != null ? res.next_action : nextAction || "";
+        root.ContactsLocalStore.patchContact(oid, { next_action: next });
+        return next;
+      });
+    },
     saveCredentials: function (id, daCapBang, daCapTaiKhoan) {
       var oid = String(id || "");
       return apiRequest("credential_save", {

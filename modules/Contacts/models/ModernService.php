@@ -41,6 +41,7 @@ class Contacts_ModernService {
 				cf.edubit_activated_at, cf.edubit_expires_at, cf.edubit_renew_count, cf.edubit_expiry_reason, cf.online_status,
 				cf.edubit_courses_json,
 				cp.business_model AS contact_business_model,
+				cp.next_action AS contact_next_action,
 				cp.offline_attend_json
 			FROM vtiger_contactdetails cd
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid AND ce.deleted = 0
@@ -204,10 +205,45 @@ class Contacts_ModernService {
 			"CREATE TABLE IF NOT EXISTS bace_contact_profile (
 				contactid INT UNSIGNED NOT NULL PRIMARY KEY,
 				business_model VARCHAR(80) DEFAULT NULL,
+				next_action VARCHAR(255) DEFAULT NULL,
 				modified_at DATETIME NULL
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 			array()
 		);
+		$col = $adb->pquery("SHOW COLUMNS FROM bace_contact_profile LIKE 'next_action'", array());
+		if (!$col || $adb->num_rows($col) < 1) {
+			$adb->pquery('ALTER TABLE bace_contact_profile ADD COLUMN `next_action` VARCHAR(255) DEFAULT NULL', array());
+		}
+	}
+
+	/**
+	 * Ghi chú hành động tiếp theo (next_action) trên Khách hàng — giống Lead.
+	 */
+	public static function saveNextAction($contactId, $nextAction) {
+		$contactId = (int) $contactId;
+		if ($contactId <= 0) {
+			throw new Exception('Không tìm thấy khách hàng.');
+		}
+		$nextAction = trim((string) $nextAction);
+		if (mb_strlen($nextAction) > 255) {
+			$nextAction = mb_substr($nextAction, 0, 255);
+		}
+		$adb = PearDatabase::getInstance();
+		self::ensureBusinessModelSchema($adb);
+		$now = date('Y-m-d H:i:s');
+		$exists = $adb->pquery('SELECT contactid FROM bace_contact_profile WHERE contactid = ?', array($contactId));
+		if ($exists && $adb->num_rows($exists) > 0) {
+			$adb->pquery(
+				'UPDATE bace_contact_profile SET next_action = ?, modified_at = ? WHERE contactid = ?',
+				array($nextAction !== '' ? $nextAction : null, $now, $contactId)
+			);
+		} else {
+			$adb->pquery(
+				'INSERT INTO bace_contact_profile (contactid, next_action, modified_at) VALUES (?,?,?)',
+				array($contactId, $nextAction !== '' ? $nextAction : null, $now)
+			);
+		}
+		return $nextAction;
 	}
 
 	/**
@@ -1021,6 +1057,7 @@ class Contacts_ModernService {
 			'account' => ($accountName === '' || $accountName === '-') ? '' : $accountName,
 			'address' => $address,
 			'business_model' => $businessModel,
+			'next_action' => decode_html(trim((string) (isset($row['contact_next_action']) ? $row['contact_next_action'] : ''))),
 			'converted_at' => $convertedAt,
 			'owner' => self::getOwnerLabel((int)$row['smownerid']),
 			'tags' => array_values($tags),

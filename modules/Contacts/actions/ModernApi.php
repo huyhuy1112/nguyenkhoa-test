@@ -22,7 +22,7 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields', 'save_offline_attend', 'last_touch_call_log', 'edubit_renew', 'edubit_sync_progress', 'edubit_sync_all', 'edubit_provision', 'offline_class_add', 'offline_class_delete', 'gd14_class', 'gd14_answers'), true)) {
+		if (in_array($mode, array('delete', 'class_reg_add', 'credential_save', 'save_tags', 'save_inline_fields', 'save_offline_attend', 'save_next_action', 'last_touch_call_log', 'edubit_renew', 'edubit_sync_progress', 'edubit_sync_all', 'edubit_provision', 'offline_class_add', 'offline_class_delete', 'gd14_class', 'gd14_answers'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -206,6 +206,17 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 						$recordId,
 						$request->get('class_code'),
 						$request->get('datetime')
+					));
+					break;
+				case 'save_next_action':
+					$recordId = (int) $request->get('record');
+					if ($recordId <= 0) {
+						$recordId = (int) $request->get('id');
+					}
+					$saved = Contacts_ModernService::saveNextAction($recordId, (string) $request->get('next_action'));
+					$response->setResult(array(
+						'success' => true,
+						'next_action' => $saved,
 					));
 					break;
 				case 'offline_class_add':
