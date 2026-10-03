@@ -2472,6 +2472,58 @@ html.mk-tre-ui-ready body[data-module="HelpDesk"][data-view="Rules"] #listViewCo
 	margin-top: 8px;
 }
 
+.mk-tre-alert-filters {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 12px 14px;
+	margin: 8px 0 4px;
+	padding: 14px 16px;
+	background: #fff;
+	border: 1px solid var(--tre-border, #e2e8f0);
+	border-radius: 14px;
+}
+
+.mk-tre-alert-filters label {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin: 0;
+	font-weight: 500;
+	font-size: 12px;
+	color: #64748b;
+}
+
+.mk-tre-alert-filters__search {
+	flex: 1 1 220px;
+	min-width: 180px;
+}
+
+.mk-tre-alert-filters__sort {
+	flex: 0 1 160px;
+}
+
+.mk-tre-alert-filters__date {
+	flex: 0 1 150px;
+}
+
+.mk-tre-alert-filters .mk-tre-input {
+	min-height: 36px;
+	font-size: 13px;
+}
+
+.mk-tre-alert-filters .js-tre-alert-clear {
+	margin-bottom: 1px;
+}
+
+@media (max-width: 720px) {
+	.mk-tre-alert-filters__search,
+	.mk-tre-alert-filters__sort,
+	.mk-tre-alert-filters__date {
+		flex: 1 1 100%;
+	}
+}
+
 .mk-tre-alert-card {
 	background: #fff;
 	border: 1px solid var(--tre-border, #e2e8f0);

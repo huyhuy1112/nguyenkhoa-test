@@ -2535,6 +2535,19 @@ class HelpDesk_TagRuleEngineService {
 		return false;
 	}
 
+	/** YYYY-MM-DD from last_touch / modifiedtime for alert date filters. */
+	protected static function normalizeAlertTouchDate($raw) {
+		$raw = trim((string) $raw);
+		if ($raw === '' || strpos($raw, '0000-00-00') === 0) {
+			return '';
+		}
+		$ts = strtotime($raw);
+		if ($ts === false) {
+			return '';
+		}
+		return date('Y-m-d', $ts);
+	}
+
 	protected function buildAlertRow($lid, array $lead, array $labels, array $slugs, array $rule, $days) {
 		$firstname = decode_html(isset($lead['firstname']) ? $lead['firstname'] : '');
 		$lastname = decode_html(isset($lead['lastname']) ? $lead['lastname'] : '');
@@ -2557,6 +2570,7 @@ class HelpDesk_TagRuleEngineService {
 			'tag_slugs' => $slugs,
 			'rule' => $rule,
 			'days_idle' => (int)$days,
+			'last_touch' => self::normalizeAlertTouchDate(isset($lead['last_touch_at']) ? $lead['last_touch_at'] : ''),
 			'next_action' => isset($rule['next_action']) ? $rule['next_action'] : '',
 			'detail_url' => 'index.php?module=Leads&view=Detail&record=' . (int)$lid . '&app=SALES',
 		);
@@ -2607,6 +2621,7 @@ class HelpDesk_TagRuleEngineService {
 		$leadRes = $this->db->pquery(
 			"SELECT ld.leadid, ld.firstname, ld.lastname, ld.company,
 			        la.phone AS phone, la.mobile AS mobile,
+			        COALESCE(p.last_touch, ce.modifiedtime, ce.createdtime) AS last_touch_at,
 			        DATEDIFF(
 			          NOW(),
 			          COALESCE(p.last_touch, ce.modifiedtime, ce.createdtime)
