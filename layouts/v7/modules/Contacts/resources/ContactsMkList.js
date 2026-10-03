@@ -248,7 +248,6 @@
     { id: "pcth", label: "PCTH" },
     { id: "mqbb", label: "MQBB" },
     { id: "nvl", label: "NVL" },
-    { id: "franchise", label: "Nhượng quyền" },
   ];
 
   var state = {
@@ -676,7 +675,6 @@
       var tg = categorize(c.tags).tier;
       return tg && ref.normalizeTag(tg) === "vang";
     }).length;
-    var franchise = rows.filter(function (c) { return categorize(c.tags).franchise; }).length;
     return [
       { key: "total", label: t("JS_MK_KPI_TOTAL_CONTACT", "Tổng khách hàng"), value: rows.length, icon: "users", tone: "blue" },
       { key: "tagged", label: t("JS_MK_KPI_TAGGED", "Có tag"), value: withTags, icon: "crown", tone: "violet" },
@@ -684,7 +682,6 @@
       { key: "phone", label: t("JS_MK_KPI_PHONE", "Có SĐT"), value: withPhone, icon: "clock", tone: "cyan" },
       { key: "cap_bang", label: t("JS_MK_KPI_CAP_BANG", "Cấp bằng"), value: withCapBang, icon: "repeat", tone: "amber" },
       { key: "gold", label: t("JS_MK_KPI_GOLD", "Hạng Vàng"), value: gold, icon: "crown", tone: "rose" },
-      { key: "franchise", label: t("JS_MK_KPI_FRANCHISE", "Nhượng quyền"), value: franchise, icon: "trend", tone: "indigo" },
     ];
   }
 
@@ -886,13 +883,11 @@
       fieldSelect("Phân khu", "lane", [
         ["courses", "Khóa học"],
         ["materials", "Nguyên liệu"],
-        ["franchise", "Nhượng quyền"],
       ]) +
       fieldSelect(t("JS_MK_FILTER_TIER", "Hạng khách hàng"), "tier", ref.TIER_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_CUSTOMER_RANK", "Loại khách"), "customerRank", ref.CUSTOMER_RANK_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_CLASS", "Tag lớp học"), "classTag", ref.CLASS_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_MATERIAL", "Tag nguyên liệu"), "material", ref.MATERIAL_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
-      fieldSelect(t("JS_MK_FILTER_FRANCHISE", "Tag nhượng quyền"), "franchise", ref.FRANCHISE_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_PROGRESS", "Tiến trình"), "progress", [
         ["none", "Chưa có tiến độ"],
         ["lt50", "Dưới 50%"],
@@ -1151,7 +1146,7 @@
 
   function productChipsFromTags(contact) {
     var groups = productGroupsFromTags(contact && contact.tags);
-    var labels = { online: "Online", offline: "Offline", nvl: "NVL", franchise: "Nhượng quyền" };
+    var labels = { online: "Online", offline: "Offline", nvl: "NVL", pcth: "PCTH", mqbb: "MQBB" };
     if (!groups.length) {
       return '<span class="mk-leads-muted">—</span>';
     }

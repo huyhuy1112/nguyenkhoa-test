@@ -14,7 +14,7 @@
   }
 
   var SOURCE_TAGS = ["facebook", "tiktok", "website", "zalo", "other"];
-  var PROGRAM_TAGS = ["mien_phi_online", "mien_phi_offline", "pcth", "mqbb", "van_hanh", "mkt", "lop_khac", "nhuong_quyen"];
+  var PROGRAM_TAGS = ["mien_phi_online", "mien_phi_offline", "pcth", "mqbb", "van_hanh", "mkt", "lop_khac"];
   var PURCHASE_TAGS = ["mua_lan_dau", "mua_lai", "khong_mua", "ngung_mua"];
   var TIER_TAGS = ["vang", "bac", "dong"];
   var CUSTOMER_TAGS = ["individual", "company", "ca_nhan", "co_quan", "chuan_bi_mo", "gia_dinh"];
@@ -103,7 +103,7 @@
     filtersOpen: false,
     listMode: "active", // active | trash
     trashCache: null,
-    productTab: "all", // all | unclassified | online | offline | nvl | franchise | pcth | mqbb
+    productTab: "all", // all | unclassified | online | offline | nvl | pcth | mqbb
   };
 
   var FALLBACK_PRODUCT_CATALOG = {
@@ -143,17 +143,6 @@
           { code: "khong_mua", label: "Không mua" },
         ],
       },
-      {
-        code: "franchise",
-        label: "Nhượng quyền",
-        stages: [
-          { code: "moi", label: "Mới" },
-          { code: "dang_tu_van", label: "Đang tư vấn" },
-          { code: "da_bao_gia", label: "Đã báo giá" },
-          { code: "da_chot", label: "Đã chốt" },
-          { code: "khong_mua", label: "Không mua" },
-        ],
-      },
     ],
     stage_labels: {
       moi: "Mới",
@@ -176,7 +165,9 @@
   }
 
   function productGroups() {
-    return productCatalog().groups || [];
+    return (productCatalog().groups || []).filter(function (g) {
+      return g && g.code && g.code !== "franchise";
+    });
   }
 
   function stageLabelOf(code) {

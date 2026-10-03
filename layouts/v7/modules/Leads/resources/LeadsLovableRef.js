@@ -83,7 +83,7 @@
   }
 
   var SOURCE_TAGS = ["facebook", "tiktok", "website", "zalo", "other"];
-  var PROGRAM_TAGS = ["mien_phi_online", "mien_phi_offline", "pcth", "mqbb", "van_hanh", "mkt", "lop_khac", "nhuong_quyen"];
+  var PROGRAM_TAGS = ["mien_phi_online", "mien_phi_offline", "pcth", "mqbb", "van_hanh", "mkt", "lop_khac"];
   var PURCHASE_TAGS = ["mua_lan_dau", "mua_lai", "khong_mua", "ngung_mua"];
   var TIER_TAGS = ["vang", "bac", "dong"];
 

@@ -67,7 +67,7 @@
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernProfileDropdown.css')}" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}&mk_v=20260921_sidebar_collapse1" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkDetailNoComments.css')}?mk_v=20260804_nocomment1" media="screen" />
-		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkCrmResponsive.css')}?mk_v=20260730_kpi_fit1" media="screen" />
+		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkCrmResponsive.css')}?mk_v=20261003_responsive_all1" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkQuickPreview.css')}&mk_v=20260625_quick_preview_v5" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeTokens.css')}?mk_v=dark_global_v34" media="screen" />
 		<link type="text/css" rel="stylesheet" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkThemeDark.css')}?mk_v=dark_global_v35" media="screen" />

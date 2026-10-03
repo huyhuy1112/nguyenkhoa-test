@@ -65,8 +65,6 @@
       { id: "prospecting", name: pick("Tiềm năng", "Prospecting"), filters: { sales_stage: "Prospecting" } },
       { id: "confirmed", name: pick("Xác nhận tham gia", "Confirmed"), filters: { confirm: "xac_nhan_tham_gia" } },
       { id: "first_buy", name: pick("Mua lần đầu", "First purchase"), filters: { material: "mua_lan_dau" } },
-      { id: "franchise", name: pick("Nhượng quyền", "Franchise"), filters: { franchise: "nhuong_quyen" } },
-      { id: "deposit", name: pick("Đã ký quỹ", "Deposited"), filters: { franchise: "da_ky_quy" } },
     ];
   }
 
@@ -93,7 +91,6 @@
     { id: "online", label: "Online" },
     { id: "offline", label: "Offline" },
     { id: "nvl", label: "NVL" },
-    { id: "franchise", label: "Nhượng quyền" },
   ];
 
   var state = {
@@ -1864,7 +1861,6 @@
     var total = rows.length;
     var prospecting = rows.filter(function (o) { return o.sales_stage === "Prospecting"; }).length;
     var withTags = rows.filter(function (o) { return (o.tags || []).length > 0; }).length;
-    var franchise = rows.filter(function (o) { return categorize(o.tags).franchise; }).length;
     var confirmed = rows.filter(function (o) {
       var c = categorize(o.tags).confirm;
       return c && ref.normalizeTag(c) === "xac_nhan_tham_gia";
@@ -1879,7 +1875,6 @@
       { key: "prospecting", label: pick("Tiềm năng", "Prospecting"), value: prospecting, icon: "check", tone: "emerald" },
       { key: "confirmed", label: pick("Xác nhận tham gia", "Confirmed"), value: confirmed, icon: "bookmark", tone: "cyan" },
       { key: "tagged", label: t("JS_MK_KPI_TAGGED", "Có tag"), value: withTags, icon: "crown", tone: "amber" },
-      { key: "franchise", label: t("JS_MK_KPI_FRANCHISE", "Nhượng quyền"), value: franchise, icon: "repeat", tone: "rose" },
       { key: "closing", label: t("JS_MK_KPI_CLOSING", "Đóng trong 30 ngày"), value: closingSoon, icon: "clock", tone: "indigo" },
     ];
   }
@@ -1987,7 +1982,6 @@
       fieldSelect(t("JS_MK_FILTER_CUSTOMER", "Dạng khách hàng"), "customer", ref.CUSTOMER_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_CLASS", "Tag lớp học"), "classTag", ref.CLASS_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_MATERIAL", "Tag nguyên liệu"), "material", ref.MATERIAL_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
-      fieldSelect(t("JS_MK_FILTER_FRANCHISE", "Tag nhượng quyền"), "franchise", ref.FRANCHISE_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_CONFIRM", "Xác nhận tham gia"), "confirm", ref.CONFIRM_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_OWNER", "Phụ trách"), "owner", owners.map(function (o) { return [o, o]; })) +
       fieldSelect("Tiến trình", "progress", [

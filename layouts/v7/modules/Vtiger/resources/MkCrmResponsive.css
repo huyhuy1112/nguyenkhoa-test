@@ -694,3 +694,310 @@
 		font-size: 12px;
 	}
 }
+
+/* ========== Cross-app shell (MARKETING / SUPPORT / INVENTORY / all devices) ========== */
+@media (max-width: 991px) {
+	body[data-app="MARKETING"] .mk-dash-sidebar-mobile-toggle,
+	body[data-app="SUPPORT"] .mk-dash-sidebar-mobile-toggle,
+	body[data-app="INVENTORY"] .mk-dash-sidebar-mobile-toggle,
+	body[data-app="TOOLS"] .mk-dash-sidebar-mobile-toggle {
+		display: flex !important;
+	}
+}
+
+@media (max-width: 767px) {
+	html,
+	body {
+		overflow-x: hidden;
+	}
+
+	body[data-app="MARKETING"] .mk-dash-main,
+	body[data-app="SUPPORT"] .mk-dash-main,
+	body[data-app="INVENTORY"] .mk-dash-main,
+	body[data-app="TOOLS"] .mk-dash-main,
+	body[data-app="MARKETING"] .mk-content,
+	body[data-app="SUPPORT"] .mk-content,
+	body[data-app="INVENTORY"] .mk-content {
+		margin-left: 0 !important;
+		width: 100% !important;
+		max-width: 100% !important;
+		padding-left: 10px !important;
+		padding-right: 10px !important;
+	}
+
+	body[data-app="MARKETING"] .mk-dashboard-sidebar,
+	body[data-app="SUPPORT"] .mk-dashboard-sidebar,
+	body[data-app="INVENTORY"] .mk-dashboard-sidebar,
+	body[data-app="TOOLS"] .mk-dashboard-sidebar {
+		transform: translateX(-105%) !important;
+		z-index: 1100;
+	}
+
+	body[data-app="MARKETING"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
+	body[data-app="SUPPORT"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
+	body[data-app="INVENTORY"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open,
+	body[data-app="TOOLS"] .mk-dashboard-sidebar.mk-dashboard-sidebar--drawer-open {
+		transform: translateX(0) !important;
+		width: min(280px, 86vw);
+	}
+
+	/* Action headers: stack on phone */
+	body .mk-leads-action-header,
+	body .mk-org-action-header,
+	body .mk-opportunity-action-header,
+	body .mk-sc-page-head,
+	body .mk-so-page-head {
+		flex-direction: column !important;
+		align-items: stretch !important;
+		gap: 12px !important;
+	}
+
+	body .mk-leads-action-header__actions,
+	body .mk-org-action-header__actions,
+	body .mk-opportunity-action-header__actions,
+	body .mk-leads-page-head__actions {
+		display: flex !important;
+		flex-wrap: wrap !important;
+		width: 100% !important;
+		gap: 8px !important;
+	}
+
+	body .mk-leads-action-header__actions .mk-leads-btn,
+	body .mk-org-action-header__actions .mk-org-btn,
+	body .mk-opportunity-action-header__actions .mk-opportunity-btn,
+	body .mk-leads-page-head__actions .mk-leads-btn {
+		flex: 1 1 calc(50% - 8px);
+		min-height: 40px;
+		justify-content: center;
+	}
+
+	body .mk-leads-action-header__title,
+	body .mk-org-action-header__title,
+	body .mk-opportunity-action-header__title {
+		font-size: 20px !important;
+		line-height: 1.25 !important;
+	}
+
+	body .mk-leads-action-header__subtitle,
+	body .mk-org-action-header__subtitle,
+	body .mk-opportunity-action-header__subtitle {
+		font-size: 13px !important;
+	}
+
+	/* KPI: 2 cột trên phone cho đỡ dài trang */
+	body[data-app="SALES"] .mk-leads-kpi-grid,
+	body .mk-contacts-page .mk-leads-kpi-grid,
+	body .mk-opps-page .mk-leads-kpi-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+		gap: 8px !important;
+	}
+
+	body .mk-leads-filters-top {
+		flex-direction: column !important;
+		align-items: stretch !important;
+		gap: 8px !important;
+	}
+
+	body .mk-leads-filters-top .mk-leads-search {
+		width: 100% !important;
+		max-width: none !important;
+	}
+
+	body .mk-leads-filters-top .mk-leads-btn,
+	body .mk-leads-filters-toggle {
+		width: 100%;
+		justify-content: center;
+		min-height: 40px;
+	}
+
+	body .mk-leads-offline-filters {
+		gap: 6px !important;
+		padding: 8px !important;
+	}
+
+	body .mk-leads-offline-filter {
+		min-height: 34px;
+		padding: 0 10px !important;
+		font-size: 11.5px !important;
+	}
+
+	body .mk-leads-segments {
+		gap: 6px !important;
+	}
+
+	body .mk-leads-segment-btn,
+	body .mk-leads-ptab {
+		min-height: 34px;
+	}
+
+	/* Tables: keep horizontal scroll + sticky feel */
+	body .mk-leads-table-scroll,
+	body .mk-contacts-table-card .mk-leads-table-scroll,
+	body .mk-opps-page .mk-leads-table-scroll {
+		overflow-x: auto !important;
+		-webkit-overflow-scrolling: touch;
+		overscroll-behavior-x: contain;
+	}
+
+	body .mk-leads-table {
+		min-width: 720px;
+	}
+
+	body .mk-leads-pagination {
+		flex-wrap: wrap;
+		gap: 8px;
+		justify-content: center;
+	}
+
+	/* Verify / compare side panels → full sheet on phone */
+	body .mk-leads-verify-panel__sheet,
+	body .mk-gd14-panel__sheet {
+		width: 100% !important;
+		max-width: 100% !important;
+		border-radius: 16px 16px 0 0;
+	}
+
+	body .mk-leads-verify-panel,
+	body .mk-gd14-panel {
+		align-items: flex-end !important;
+	}
+
+	body .mk-leads-verify-formcards,
+	body .mk-leads-verify-c45 {
+		grid-template-columns: 1fr !important;
+	}
+
+	/* Import overlay fills usable viewport */
+	body #overlayPageContent.fade.in.mk-import-overlay-open,
+	body #overlayPageContent.fade.in:has(.mk-import-modern) {
+		left: 0 !important;
+		top: var(--mk-dash-topbar-h, 56px) !important;
+		padding: 8px !important;
+	}
+
+	body .mk-import-modern.fc-overlay-modal,
+	body .mk-import-modern.modal-content {
+		max-width: 100% !important;
+		width: 100% !important;
+		margin: 0 !important;
+		max-height: calc(100vh - var(--mk-dash-topbar-h, 56px) - 16px) !important;
+		border-radius: 14px !important;
+	}
+
+	body .mk-import-modern .mk-import-dropzone {
+		padding: 20px 12px !important;
+	}
+
+	body .mk-import-modern .mk-import-option-card {
+		grid-template-columns: 1fr !important;
+	}
+
+	body .mk-import-modern .modal-overlay-footer .mk-import-footer-actions {
+		flex-wrap: wrap;
+		gap: 8px;
+		justify-content: center;
+	}
+
+	body .mk-import-modern .mk-import-btn-primary,
+	body .mk-import-modern .mk-import-btn-secondary,
+	body .mk-import-modern .mk-import-cancel-btn {
+		min-height: 42px;
+	}
+
+	/* Detail / edit common */
+	body[data-view="Detail"] .relatedContents,
+	body[data-view="Edit"] .relatedContents,
+	body[data-view="Detail"] .fieldBlockContainer,
+	body[data-view="Edit"] .fieldBlockContainer {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	body[data-view="Detail"] .detailview-header,
+	body[data-view="Detail"] .detailViewButtoncontainer {
+		flex-wrap: wrap !important;
+		gap: 8px !important;
+	}
+
+	body[data-view="Edit"] .content-area,
+	body[data-view="Detail"] .content-area {
+		padding-left: 8px !important;
+		padding-right: 8px !important;
+	}
+
+	/* Modals / quick create */
+	body .modal-dialog,
+	body .fc-overlay-modal {
+		width: calc(100vw - 16px) !important;
+		max-width: calc(100vw - 16px) !important;
+		margin: 8px auto !important;
+	}
+
+	body .mk-qc-modal,
+	body .mk-sales-qc {
+		max-width: 100% !important;
+	}
+
+	/* Touch-friendly controls */
+	body .btn,
+	body .mk-leads-btn,
+	body .mk-org-btn,
+	body .mk-opportunity-btn,
+	body .mk-leads-verify-btn,
+	body .mk-leads-filter-field__select,
+	body select.inputElement,
+	body input.inputElement {
+		min-height: 36px;
+	}
+
+	body input,
+	body select,
+	body textarea {
+		font-size: 16px !important; /* avoid iOS zoom */
+	}
+}
+
+@media (max-width: 480px) {
+	body[data-app="SALES"] .mk-leads-kpi-grid,
+	body .mk-contacts-page .mk-leads-kpi-grid,
+	body .mk-opps-page .mk-leads-kpi-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+	}
+
+	body .mk-leads-action-header__actions .mk-leads-btn,
+	body .mk-org-action-header__actions .mk-org-btn,
+	body .mk-opportunity-action-header__actions .mk-opportunity-btn {
+		flex: 1 1 100%;
+	}
+
+	body .mk-leads-table {
+		min-width: 640px;
+		font-size: 12px;
+	}
+
+	body .mk-leads-verify-btn {
+		font-size: 11px;
+		padding: 6px 8px;
+	}
+}
+
+/* Tablet landscape: keep filters usable */
+@media (max-width: 1100px) and (min-width: 768px) {
+	body .mk-leads-action-header {
+		flex-wrap: wrap;
+		gap: 12px;
+	}
+
+	body .mk-leads-action-header__actions {
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	body .mk-leads-filters-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+	}
+
+	body .mk-leads-offline-filters {
+		flex-wrap: wrap !important;
+	}
+}
