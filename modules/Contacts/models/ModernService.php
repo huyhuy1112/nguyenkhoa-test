@@ -31,6 +31,7 @@ class Contacts_ModernService {
 			self::ensureEdubitCoursesJsonColumn($adb);
 			Leads_ModernService::markSchemaWarm('contacts_list');
 		}
+		list($ownerSql, $ownerParams) = Leads_ModernService::ownerFilterSql('ce', $userId);
 		$sql = "SELECT cd.contactid, cd.firstname, cd.lastname, cd.title, cd.email, cd.phone, cd.mobile,
 				cd.accountid, ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description,
 				acc.accountname,
@@ -49,8 +50,10 @@ class Contacts_ModernService {
 			LEFT JOIN vtiger_contactaddress ca ON ca.contactaddressid = cd.contactid
 			LEFT JOIN vtiger_contactscf cf ON cf.contactid = cd.contactid
 			LEFT JOIN bace_contact_profile cp ON cp.contactid = cd.contactid
+			WHERE 1=1
+			  {$ownerSql}
 			ORDER BY ce.modifiedtime DESC, cd.contactid DESC";
-		$res = $adb->pquery($sql, array());
+		$res = $adb->pquery($sql, $ownerParams);
 		$rows = array();
 		$contactIds = array();
 		for ($i = 0; $i < $adb->num_rows($res); $i++) {

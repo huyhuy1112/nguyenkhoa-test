@@ -71,6 +71,7 @@ class Potentials_ModernService {
 			}
 			Leads_ModernService::markSchemaWarm('opps_list');
 		}
+		list($ownerSql, $ownerParams) = Leads_ModernService::ownerFilterSql('ce', $userId);
 		$sql = "SELECT p.potentialid, p.potentialname, p.sales_stage, p.closingdate, p.amount,
 				p.leadsource, p.order_category, p.related_to, p.contact_id,
 				ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description,
@@ -105,8 +106,9 @@ class Potentials_ModernService {
 			LEFT JOIN vtiger_leaddetails ld ON ld.leadid = lp.leadid
 			LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = lp.leadid
 			WHERE pp.converted_to_customer_at IS NULL
+			  {$ownerSql}
 			ORDER BY ce.modifiedtime DESC, p.potentialid DESC";
-		$res = $adb->pquery($sql, array());
+		$res = $adb->pquery($sql, $ownerParams);
 		$rows = array();
 		$potentialIds = array();
 		for ($i = 0; $i < $adb->num_rows($res); $i++) {

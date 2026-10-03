@@ -2601,6 +2601,9 @@ class HelpDesk_TagRuleEngineService {
 
 		// Phone lives on vtiger_leadaddress (not leaddetails).
 		// Avoid NULLIF(... '0000-00-00') — MySQL 8 strict mode rejects zero-dates.
+		// Non-admin: chỉ lead mình phụ trách (smownerid).
+		require_once 'modules/Leads/models/ModernService.php';
+		list($ownerSql, $ownerParams) = Leads_ModernService::ownerFilterSql('ce', $userId);
 		$leadRes = $this->db->pquery(
 			"SELECT ld.leadid, ld.firstname, ld.lastname, ld.company,
 			        la.phone AS phone, la.mobile AS mobile,
@@ -2612,9 +2615,11 @@ class HelpDesk_TagRuleEngineService {
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ld.leadid AND ce.deleted = 0 AND ce.setype = 'Leads'
 			 LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = ld.leadid
 			 LEFT JOIN bace_lead_profile p ON p.leadid = ld.leadid
+			 WHERE 1=1
+			   {$ownerSql}
 			 ORDER BY days_idle DESC, ce.modifiedtime DESC
 			 LIMIT 500",
-			array()
+			$ownerParams
 		);
 		$leads = array();
 		$leadIds = array();

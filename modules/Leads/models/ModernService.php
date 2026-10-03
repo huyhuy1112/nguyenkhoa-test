@@ -178,9 +178,13 @@ class Leads_ModernService {
 	}
 
 	public static function listLeads($userId = null) {
+		global $current_user;
 		$adb = PearDatabase::getInstance();
 		if (!self::isInstalled($adb)) {
 			return array();
+		}
+		if ($userId === null && !empty($current_user->id)) {
+			$userId = (int) $current_user->id;
 		}
 		self::$composeDetailed = false;
 		if (!self::schemaWarm('leads_list')) {
@@ -194,6 +198,7 @@ class Leads_ModernService {
 		} catch (Exception $e) {
 			error_log('[gd14_retention] ' . $e->getMessage());
 		}
+		list($ownerSql, $ownerParams) = self::ownerFilterSql('ce', $userId);
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
 				p.screening_result, p.sheet_source, p.sheet_row_key, p.sheet_source_id, p.sheet_source_name, p.qa_raw" . self::verifyProfileSelectSql() . ",
@@ -206,8 +211,9 @@ class Leads_ModernService {
 			WHERE p.is_modern = 1
 			  AND (p.potential_id IS NULL OR p.potential_id = 0)
 			  AND IFNULL(ld.converted, 0) = 0
+			  {$ownerSql}
 			ORDER BY p.last_touch DESC, p.leadid DESC";
-		$res = $adb->pquery($sql, array());
+		$res = $adb->pquery($sql, $ownerParams);
 		$rows = array();
 		$leadIds = array();
 		if ($res) {
@@ -253,12 +259,17 @@ class Leads_ModernService {
 	 * Soft-deleted modern leads (thùng rác Leads).
 	 */
 	public static function listTrashLeads($userId = null) {
+		global $current_user;
 		$adb = PearDatabase::getInstance();
 		if (!self::isInstalled($adb)) {
 			return array();
 		}
+		if ($userId === null && !empty($current_user->id)) {
+			$userId = (int) $current_user->id;
+		}
 		self::$composeDetailed = false;
 		self::installSchema($adb);
+		list($ownerSql, $ownerParams) = self::ownerFilterSql('ce', $userId);
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
 				p.screening_result, p.sheet_source, p.sheet_row_key, p.sheet_source_id, p.sheet_source_name, p.qa_raw" . self::verifyProfileSelectSql() . ",
@@ -269,8 +280,9 @@ class Leads_ModernService {
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 1 AND ce.setype = 'Leads'
 			LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = p.leadid
 			WHERE p.is_modern = 1
+			  {$ownerSql}
 			ORDER BY ce.modifiedtime DESC, p.leadid DESC";
-		$res = $adb->pquery($sql, array());
+		$res = $adb->pquery($sql, $ownerParams);
 		$rows = array();
 		$leadIds = array();
 		if ($res) {
@@ -2188,6 +2200,58 @@ class Leads_ModernService {
 			return self::vtigerLeadExists($leadId) ? $leadId : null;
 		}
 		return null;
+	}
+
+	/**
+	 * Admin xem mọi phụ trách; user thường chỉ thấy record smownerid = mình.
+	 */
+	public static function userSeesAllOwners($userId = null) {
+		global $current_user;
+		if ($userId === null && !empty($current_user->id)) {
+			$userId = (int) $current_user->id;
+		}
+		$userId = (int) $userId;
+		if ($userId <= 0) {
+			return false;
+		}
+		if (!empty($current_user) && (int) $current_user->id === $userId) {
+			if (function_exists('is_admin') && is_admin($current_user)) {
+				return true;
+			}
+			if (method_exists($current_user, 'isAdminUser') && $current_user->isAdminUser()) {
+				return true;
+			}
+			if (!empty($current_user->is_admin) && ($current_user->is_admin === 'on' || $current_user->is_admin === 1 || $current_user->is_admin === '1')) {
+				return true;
+			}
+		}
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery('SELECT is_admin FROM vtiger_users WHERE id = ? AND deleted = 0', array($userId));
+		if ($res && $adb->num_rows($res) > 0) {
+			$flag = strtolower(trim((string) $adb->query_result($res, 0, 'is_admin')));
+			return ($flag === 'on' || $flag === '1');
+		}
+		return false;
+	}
+
+	/**
+	 * SQL fragment + params để lọc theo phụ trách (smownerid).
+	 * @return array{0:string,1:array}
+	 */
+	public static function ownerFilterSql($tableAlias = 'ce', $userId = null) {
+		global $current_user;
+		if ($userId === null && !empty($current_user->id)) {
+			$userId = (int) $current_user->id;
+		}
+		$userId = (int) $userId;
+		if ($userId <= 0 || self::userSeesAllOwners($userId)) {
+			return array('', array());
+		}
+		$alias = preg_replace('/[^a-zA-Z0-9_]/', '', (string) $tableAlias);
+		if ($alias === '') {
+			$alias = 'ce';
+		}
+		return array(' AND ' . $alias . '.smownerid = ?', array($userId));
 	}
 
 	/**
