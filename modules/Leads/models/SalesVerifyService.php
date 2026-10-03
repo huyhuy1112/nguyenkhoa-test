@@ -1728,6 +1728,7 @@ class Leads_SalesVerifyService {
 			'goal' => isset($extra['gd14_goal']) ? (string) $extra['gd14_goal'] : '',
 			'course' => isset($extra['gd14_course']) ? (string) $extra['gd14_course'] : '',
 			'editable' => $editable ? 1 : 0,
+			'eligibility_result' => isset($row['eligibility_result']) ? strtolower(trim((string) $row['eligibility_result'])) : '',
 		);
 	}
 

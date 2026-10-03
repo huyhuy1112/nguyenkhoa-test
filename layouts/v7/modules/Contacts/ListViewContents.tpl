@@ -50,7 +50,6 @@
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_PRODUCTS', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_CUSTOMER_RANK', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_TAGS', 'Contacts')}</th>
-							<th class="mk-leads-th" scope="col">Đối chiếu / lớp 990k</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_PROGRESS', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('da_cap_bang', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('da_cap_tai_khoan', 'Contacts')}</th>

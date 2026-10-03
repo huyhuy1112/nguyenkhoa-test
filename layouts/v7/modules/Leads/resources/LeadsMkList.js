@@ -14,7 +14,7 @@
   }
 
   var SOURCE_TAGS = ["facebook", "tiktok", "website", "zalo", "other"];
-  var PROGRAM_TAGS = ["mien_phi_online", "mien_phi_offline", "pcth", "van_hanh", "mkt", "lop_khac", "nhuong_quyen"];
+  var PROGRAM_TAGS = ["mien_phi_online", "mien_phi_offline", "pcth", "mqbb", "van_hanh", "mkt", "lop_khac", "nhuong_quyen"];
   var PURCHASE_TAGS = ["mua_lan_dau", "mua_lai", "khong_mua", "ngung_mua"];
   var TIER_TAGS = ["vang", "bac", "dong"];
   var CUSTOMER_TAGS = ["individual", "company", "ca_nhan", "co_quan", "chuan_bi_mo", "gia_dinh"];
@@ -59,6 +59,7 @@
     area: ANY,
     segment: ANY,
     offlineStatus: ANY,
+    onlineStatus: ANY,
     touchRange: "any",
     staleOnly: false,
     hasNextAction: false,
@@ -75,6 +76,23 @@
     { key: "offline_ngung_cskh", label: "Ngưng CSKH" },
   ];
 
+  var ONLINE_STATUS_FILTERS = [
+    { key: "online_chua_dien_form", label: "Chưa điền form" },
+    { key: "online_chua_dk_tk", label: "Chưa ĐK tài khoản" },
+    { key: "online_khong_du_dk", label: "Không đủ ĐK" },
+    { key: "offline_hen_goi_lai", label: "Hẹn gọi lại" },
+    { key: "offline_khong_nghe_may", label: "Không nghe máy" },
+    { key: "offline_sai_thong_tin", label: "Sai thông tin" },
+    { key: "online_ngung_cskh", label: "Ngưng CSKH" },
+  ];
+
+  var PROGRAM_EXTRA_TABS = [
+    { id: "pcth", label: "PCTH" },
+    { id: "mqbb", label: "MQBB" },
+  ];
+
+  var PROGRAM_DROP_FILTERS = OFFLINE_STATUS_FILTERS.slice();
+
   var state = {
     filters: Object.assign({}, EMPTY),
     sortKey: "last_touch",
@@ -85,7 +103,7 @@
     filtersOpen: false,
     listMode: "active", // active | trash
     trashCache: null,
-    productTab: "all", // all | unclassified | online | offline | nvl | franchise
+    productTab: "all", // all | unclassified | online | offline | nvl | franchise | pcth | mqbb
   };
 
   var FALLBACK_PRODUCT_CATALOG = {
@@ -177,8 +195,39 @@
   }
 
   function leadHasProductGroup(lead, group) {
+    if (group === "pcth" || group === "mqbb") {
+      return leadMatchesProgramTab(lead, group);
+    }
     return leadProducts(lead).some(function (p) {
       return p.group === group;
+    });
+  }
+
+  function leadMatchesProgramTab(lead, tab) {
+    var tags = (lead && lead.tags) || [];
+    var re = tab === "mqbb" ? /(mqbb|combo_mo_quan)/i : /pcth/i;
+    for (var i = 0; i < tags.length; i++) {
+      if (re.test(String(tags[i] || ""))) return true;
+    }
+    var products = leadProducts(lead);
+    for (var j = 0; j < products.length; j++) {
+      var p = products[j] || {};
+      var blob = [p.group, p.name, p.code, p.label].join(" ");
+      if (re.test(blob)) return true;
+    }
+    if (tab === "pcth" && (lead.program === "pcth" || lead.entry === "pcth")) return true;
+    if (tab === "mqbb" && (lead.program === "mqbb" || lead.entry === "mqbb")) return true;
+    return false;
+  }
+
+  function leadStatusTagHit(lead, statusKey) {
+    if (!statusKey || statusKey === ANY) return true;
+    var ost = String((lead && lead.offline_status) || "").trim();
+    var onst = String((lead && lead.online_status) || "").trim();
+    var tags = (lead && lead.tags) || [];
+    if (ost === statusKey || onst === statusKey) return true;
+    return tags.some(function (tg) {
+      return String(tg).toLowerCase() === String(statusKey).toLowerCase();
     });
   }
 
@@ -406,6 +455,7 @@
       productGroups().map(function (g) {
         return { id: g.code, label: g.label };
       }),
+      PROGRAM_EXTRA_TABS,
     );
     return items
       .map(function (it) {
@@ -423,6 +473,68 @@
         );
       })
       .join("");
+  }
+
+  function childStatusFiltersHtml(tab) {
+    var items;
+    var allLabel;
+    var aria;
+    var attr;
+    var active;
+    var tone = "";
+    if (tab === "offline") {
+      items = OFFLINE_STATUS_FILTERS;
+      allLabel = "Tất cả Offline";
+      aria = "Lọc trạng thái Offline";
+      attr = "data-offline-status";
+      active = (state.filters && state.filters.offlineStatus) || ANY;
+      tone = "";
+    } else if (tab === "online") {
+      items = ONLINE_STATUS_FILTERS;
+      allLabel = "Tất cả Online";
+      aria = "Lọc trạng thái Online";
+      attr = "data-online-status";
+      active = (state.filters && state.filters.onlineStatus) || ANY;
+      tone = " mk-leads-offline-filters--online";
+    } else if (tab === "pcth" || tab === "mqbb") {
+      items = PROGRAM_DROP_FILTERS;
+      allLabel = tab === "pcth" ? "Tất cả PCTH" : "Tất cả MQBB";
+      aria = "Lọc điểm rơi " + (tab === "pcth" ? "PCTH" : "MQBB");
+      attr = "data-offline-status";
+      active = (state.filters && state.filters.offlineStatus) || ANY;
+      tone = tab === "pcth" ? " mk-leads-offline-filters--pcth" : " mk-leads-offline-filters--mqbb";
+    } else {
+      return "";
+    }
+    var html =
+      '<span class="mk-leads-offline-filters' +
+      tone +
+      '" role="group" aria-label="' +
+      esc(aria) +
+      '">' +
+      '<button type="button" class="mk-leads-offline-filter' +
+      (active === ANY ? " is-active" : "") +
+      '" ' +
+      attr +
+      '="' +
+      ANY +
+      '">' +
+      esc(allLabel) +
+      "</button>";
+    items.forEach(function (it) {
+      html +=
+        '<button type="button" class="mk-leads-offline-filter' +
+        (active === it.key ? " is-active" : "") +
+        '" ' +
+        attr +
+        '="' +
+        esc(it.key) +
+        '">' +
+        esc(it.label) +
+        "</button>";
+    });
+    html += "</span>";
+    return html;
   }
 
   function refreshListBody() {
@@ -3343,15 +3455,10 @@
       if (f.area !== ANY && (l.area || "") !== f.area) return false;
       if (f.segment !== ANY && (l.segment || "") !== f.segment) return false;
       if (f.offlineStatus && f.offlineStatus !== ANY) {
-        var ost = (l.offline_status || "").trim();
-        var tags = l.tags || [];
-        var hit =
-          ost === f.offlineStatus ||
-          tags.indexOf(f.offlineStatus) >= 0 ||
-          tags.some(function (tg) {
-            return String(tg).toLowerCase() === f.offlineStatus;
-          });
-        if (!hit) return false;
+        if (!leadStatusTagHit(l, f.offlineStatus)) return false;
+      }
+      if (f.onlineStatus && f.onlineStatus !== ANY) {
+        if (!leadStatusTagHit(l, f.onlineStatus)) return false;
       }
       if (!inTouchWindow(l.last_touch, f.touchRange)) return false;
       if (f.staleOnly && !d.stale) return false;
@@ -3464,6 +3571,7 @@
     if (f.area !== ANY) n++;
     if (f.segment !== ANY) n++;
     if (f.offlineStatus && f.offlineStatus !== ANY) n++;
+    if (f.onlineStatus && f.onlineStatus !== ANY) n++;
     if (f.touchRange !== "any") n++;
     if (f.staleOnly) n++;
     if (f.hasNextAction) n++;
@@ -3599,26 +3707,8 @@
       );
     }).join("");
     html += productTabItemsHtml(getLeads());
-    if (state.productTab === "offline" && state.listMode !== "trash") {
-      html += '<span class="mk-leads-offline-filters" role="group" aria-label="Lọc trạng thái Offline">';
-      var fos = (state.filters && state.filters.offlineStatus) || ANY;
-      html +=
-        '<button type="button" class="mk-leads-offline-filter' +
-        (fos === ANY ? " is-active" : "") +
-        '" data-offline-status="' +
-        ANY +
-        '">Tất cả Offline</button>';
-      OFFLINE_STATUS_FILTERS.forEach(function (it) {
-        html +=
-          '<button type="button" class="mk-leads-offline-filter' +
-          (fos === it.key ? " is-active" : "") +
-          '" data-offline-status="' +
-          esc(it.key) +
-          '">' +
-          esc(it.label) +
-          "</button>";
-      });
-      html += "</span>";
+    if (state.listMode !== "trash") {
+      html += childStatusFiltersHtml(state.productTab);
     }
     html += saved
       .map(function (s) {
@@ -3684,6 +3774,14 @@
         "offlineStatus",
         f.offlineStatus || ANY,
         OFFLINE_STATUS_FILTERS.map(function (it) {
+          return [it.key, it.label];
+        })
+      ) +
+      fieldSelect(
+        "Trạng thái Online",
+        "onlineStatus",
+        f.onlineStatus || ANY,
+        ONLINE_STATUS_FILTERS.map(function (it) {
           return [it.key, it.label];
         })
       ) +
@@ -4357,8 +4455,13 @@
         state.listMode = "active";
         state.trashCache = null;
         state.productTab = ptab.getAttribute("data-product-tab") || "all";
-        if (state.productTab !== "offline" && state.filters) {
-          state.filters.offlineStatus = ANY;
+        if (state.filters) {
+          if (state.productTab !== "offline" && state.productTab !== "pcth" && state.productTab !== "mqbb") {
+            state.filters.offlineStatus = ANY;
+          }
+          if (state.productTab !== "online") {
+            state.filters.onlineStatus = ANY;
+          }
         }
         state.page = 1;
         refreshListBody();
@@ -4368,6 +4471,14 @@
       if (offStatusBtn) {
         e.preventDefault();
         state.filters.offlineStatus = offStatusBtn.getAttribute("data-offline-status") || ANY;
+        state.page = 1;
+        refreshListBody();
+        return;
+      }
+      var onStatusBtn = e.target.closest && e.target.closest("[data-online-status]");
+      if (onStatusBtn) {
+        e.preventDefault();
+        state.filters.onlineStatus = onStatusBtn.getAttribute("data-online-status") || ANY;
         state.page = 1;
         refreshListBody();
         return;

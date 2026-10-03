@@ -7,7 +7,7 @@
   var ref = window.ContactsLovableRef;
   var store = window.ContactsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 18;
+  var COL_COUNT = 17;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -214,6 +214,7 @@
     anyTag: ANY,
     owner: ANY,
     offlineStatus: ANY,
+    onlineStatus: ANY,
     progress: ANY,
     gd14Tag: ANY,
     courseCount: ANY,
@@ -222,13 +223,6 @@
     staleOnly: false,
   };
 
-  var PRODUCT_TABS = [
-    { id: "online", label: "Online" },
-    { id: "offline", label: "Offline" },
-    { id: "nvl", label: "NVL" },
-    { id: "franchise", label: "Nhượng quyền" },
-  ];
-
   var OFFLINE_STATUS_FILTERS = [
     { key: "offline_hen_goi_lai", label: "Hẹn gọi lại" },
     { key: "offline_khong_nghe_may", label: "Không nghe máy" },
@@ -236,6 +230,25 @@
     { key: "offline_hen_lich_lai", label: "Hẹn lịch lại" },
     { key: "offline_chuyen_chuong_trinh", label: "Chuyển CT" },
     { key: "offline_ngung_cskh", label: "Ngưng CSKH" },
+  ];
+
+  var ONLINE_STATUS_FILTERS = [
+    { key: "online_chua_dien_form", label: "Chưa điền form" },
+    { key: "online_chua_dk_tk", label: "Chưa ĐK tài khoản" },
+    { key: "online_khong_du_dk", label: "Không đủ ĐK" },
+    { key: "offline_hen_goi_lai", label: "Hẹn gọi lại" },
+    { key: "offline_khong_nghe_may", label: "Không nghe máy" },
+    { key: "offline_sai_thong_tin", label: "Sai thông tin" },
+    { key: "online_ngung_cskh", label: "Ngưng CSKH" },
+  ];
+
+  var PRODUCT_TABS = [
+    { id: "online", label: "Online" },
+    { id: "offline", label: "Offline" },
+    { id: "pcth", label: "PCTH" },
+    { id: "mqbb", label: "MQBB" },
+    { id: "nvl", label: "NVL" },
+    { id: "franchise", label: "Nhượng quyền" },
   ];
 
   var state = {
@@ -452,15 +465,15 @@
         set.online = 1;
       } else if (
         k === "mien_phi_offline" ||
-        k === "da_mqbb" ||
-        k === "da_pcth" ||
-        k === "da_pcthcb" ||
         k === "da_tg_free" ||
         k === "da_tg_fb1" ||
         k.indexOf("offline_") === 0
       ) {
         set.offline = 1;
-      } else if (k === "nhuong_quyen" || k === "da_ky_quy" || k === "dang_tu_van") {
+      }
+      if (/pcth/i.test(k)) set.pcth = 1;
+      if (/mqbb/i.test(k) || k === "combo_mo_quan") set.mqbb = 1;
+      if (k === "nhuong_quyen" || k === "da_ky_quy" || k === "dang_tu_van") {
         set.franchise = 1;
       } else if (
         k === "mua_lan_dau" ||
@@ -516,6 +529,9 @@
       }
       if (f.offlineStatus && f.offlineStatus !== ANY) {
         if (!hasNormalizedTag(c.tags, f.offlineStatus)) return false;
+      }
+      if (f.onlineStatus && f.onlineStatus !== ANY) {
+        if (!hasNormalizedTag(c.tags, f.onlineStatus)) return false;
       }
       if (f.progress && f.progress !== ANY) {
         var pct =
@@ -747,6 +763,57 @@
       });
       html += "</span>";
     }
+    if (state.productTab === "online") {
+      html += '<span class="mk-leads-offline-filters mk-leads-offline-filters--online" role="group" aria-label="Lọc trạng thái Online">';
+      var fosOn = (state.filters && state.filters.onlineStatus) || ANY;
+      html +=
+        '<button type="button" class="mk-leads-offline-filter' +
+        (fosOn === ANY ? " is-active" : "") +
+        '" data-online-status="' +
+        ANY +
+        '">Tất cả Online</button>';
+      ONLINE_STATUS_FILTERS.forEach(function (it) {
+        html +=
+          '<button type="button" class="mk-leads-offline-filter' +
+          (fosOn === it.key ? " is-active" : "") +
+          '" data-online-status="' +
+          esc(it.key) +
+          '">' +
+          esc(it.label) +
+          "</button>";
+      });
+      html += "</span>";
+    }
+    if (state.productTab === "pcth" || state.productTab === "mqbb") {
+      var tone = state.productTab === "pcth" ? " mk-leads-offline-filters--pcth" : " mk-leads-offline-filters--mqbb";
+      var allProg = state.productTab === "pcth" ? "Tất cả PCTH" : "Tất cả MQBB";
+      html +=
+        '<span class="mk-leads-offline-filters' +
+        tone +
+        '" role="group" aria-label="Lọc điểm rơi ' +
+        esc(state.productTab.toUpperCase()) +
+        '">';
+      var fosProg = (state.filters && state.filters.offlineStatus) || ANY;
+      html +=
+        '<button type="button" class="mk-leads-offline-filter' +
+        (fosProg === ANY ? " is-active" : "") +
+        '" data-offline-status="' +
+        ANY +
+        '">' +
+        esc(allProg) +
+        "</button>";
+      OFFLINE_STATUS_FILTERS.forEach(function (it) {
+        html +=
+          '<button type="button" class="mk-leads-offline-filter' +
+          (fosProg === it.key ? " is-active" : "") +
+          '" data-offline-status="' +
+          esc(it.key) +
+          '">' +
+          esc(it.label) +
+          "</button>";
+      });
+      html += "</span>";
+    }
     if (state.productTab === "nvl") {
       html += '<span class="mk-leads-offline-filters" role="group" aria-label="Lọc NVL">';
       var fnvl = state.nvlSubFilter || ANY;
@@ -824,19 +891,6 @@
       fieldSelect(t("JS_MK_FILTER_TIER", "Hạng khách hàng"), "tier", ref.TIER_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_CUSTOMER_RANK", "Loại khách"), "customerRank", ref.CUSTOMER_RANK_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_CLASS", "Tag lớp học"), "classTag", ref.CLASS_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
-      fieldSelect("Trạng thái 990k", "gd14Tag", [
-        ["gd14_moi_dang_ky", "990k — Mới đăng ký"],
-        ["gd14_hen_goi_lai", "990k — Hẹn gọi lại"],
-        ["gd14_khong_nghe_may", "990k — Không nghe máy"],
-        ["gd14_sai_thong_tin", "990k — Sai thông tin liên hệ"],
-        ["gd14_dang_can_nhac", "990k — Đang cân nhắc"],
-        ["gd14_cho_thanh_toan", "990k — Chờ thanh toán"],
-        ["gd14_chua_xep_buoi", "990k — Chưa xếp buổi học"],
-        ["gd14_da_xac_nhan_lich", "990k — Đã xác nhận lịch học"],
-        ["gd14_khong_tham_gia", "990k — Không tham gia lớp học"],
-        ["gd14_da_tham_gia", "990k — Đã tham gia lớp học"],
-        ["gd14_ngung_cham_soc", "990k — Ngừng chăm sóc"],
-      ]) +
       fieldSelect(t("JS_MK_FILTER_MATERIAL", "Tag nguyên liệu"), "material", ref.MATERIAL_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_FRANCHISE", "Tag nhượng quyền"), "franchise", ref.FRANCHISE_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_PROGRESS", "Tiến trình"), "progress", [
@@ -1408,15 +1462,37 @@
     var lines = row && Array.isArray(row.verify_lines) ? row.verify_lines : [];
     var compare = row && row.compare && typeof row.compare === "object" ? row.compare : {};
     var hasGd14 = contactHasGd14(row);
-    if (!lines.length && !hasGd14 && !Number(compare.editable)) return '<span class="mk-leads-muted">—</span>';
-    var g = row.gd14 && typeof row.gd14 === "object" ? row.gd14 : {};
-    var hint = compare.course ? gd14CourseLabel(compare.course) : hasGd14 ? "Lớp 990k" : "Xem đáp án";
-    if (g.class_date) hint += " · " + g.class_date;
+    if (!lines.length && !hasGd14 && !Number(compare.editable)) return "";
+    var elig = String(compare.eligibility_result || "").toLowerCase();
+    if (!elig && lines.length) {
+      for (var i = 0; i < lines.length; i++) {
+        var lab = String((lines[i] && lines[i].label) || "");
+        var val = String((lines[i] && lines[i].value) || "").toLowerCase();
+        if (lab.indexOf("Điều kiện") >= 0 || lab.indexOf("ieu kien") >= 0) {
+          if (val.indexOf("không đủ") >= 0 || val.indexOf("khong du") >= 0) elig = "khong_du_dk";
+          else if (val.indexOf("đủ") >= 0 || val.indexOf("du ") >= 0) elig = "du_dk";
+        }
+      }
+    }
+    var done = Number(compare.editable) === 1 || elig === "du_dk" || !!(compare.course || (compare.answers && Object.keys(compare.answers).length));
+    var fail = elig === "khong_du_dk";
+    var label = fail ? "Không đủ điều kiện" : done ? "Đã xác minh" : hasGd14 ? "Xác minh 990k" : "Xác minh";
+    var title = fail ? "Không đủ điều kiện 990k" : done ? "Đã xác minh — mở để chỉnh đáp án" : "Xác minh / đối chiếu 990k";
+    var cls =
+      "mk-leads-verify-btn" + (fail ? " is-fail" : done ? " is-done" : "");
     return (
-      '<button type="button" class="mk-gd14-open" data-mk-gd14-open="' +
+      '<button type="button" class="' +
+      cls +
+      '" data-mk-gd14-open="' +
       esc(row.crmid || row.id) +
-      '"><strong>Đối chiếu</strong><span>' +
-      esc(hint) +
+      '" title="' +
+      esc(title) +
+      '">' +
+      '<svg class="mk-leads-verify-btn__ic" width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<path d="M12 3 5 6v6c0 5 3.2 8.2 7 9.5 3.8-1.3 7-4.5 7-9.5V6l-7-3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>' +
+      '<path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+      "</svg><span>" +
+      esc(label) +
       "</span></button>"
     );
   }
@@ -1677,6 +1753,7 @@
             ic("user") +
             '<span class="mk-leads-lead-text"><a class="mk-leads-name" href="' + detailUrl(c.crmid || c.id) + '">' + esc(c.name) + "</a>" +
             (c.title ? '<div class="mk-leads-sub">' + esc(c.title) + "</div>" : "") +
+            verifyOpenHtml(c) +
             "</span></span></td>" +
             '<td class="mk-leads-td">' +
             editableCellHtml("phone", c.phone, c.crmid || c.id, "Nhập SĐT") +
@@ -1698,7 +1775,6 @@
             '" title="Sửa thẻ">' +
             stackedContactTags(c) +
             "</button></td>" +
-            '<td class="mk-leads-td mk-leads-td--verify">' + verifyOpenHtml(c) + "</td>" +
             '<td class="mk-leads-td">' + progressCellHtml(c) + "</td>" +
             '<td class="mk-leads-td">' + bangCellHtml(c) + "</td>" +
             '<td class="mk-leads-td">' + credentialSelectHtml(c, "tk") + "</td>" +
@@ -2191,7 +2267,20 @@
         var offlineBtn = e.target.closest("[data-offline-status]");
         if (offlineBtn) {
           state.filters.offlineStatus = offlineBtn.getAttribute("data-offline-status") || ANY;
-          state.productTab = "offline";
+          if (state.productTab !== "pcth" && state.productTab !== "mqbb" && state.productTab !== "offline") {
+            state.productTab = "offline";
+          }
+          state.activeSegment = null;
+          clearNvlSubFilters();
+          clearCourseCountFilter();
+          state.page = 1;
+          renderAll();
+          return;
+        }
+        var onlineBtn = e.target.closest("[data-online-status]");
+        if (onlineBtn) {
+          state.filters.onlineStatus = onlineBtn.getAttribute("data-online-status") || ANY;
+          state.productTab = "online";
           state.activeSegment = null;
           clearNvlSubFilters();
           clearCourseCountFilter();
@@ -2212,8 +2301,11 @@
         var ptab = e.target.closest("[data-product-tab]");
         if (ptab) {
           var nextTab = ptab.getAttribute("data-product-tab") || "all";
-          if (nextTab !== "offline") {
+          if (nextTab !== "offline" && nextTab !== "pcth" && nextTab !== "mqbb") {
             state.filters.offlineStatus = ANY;
+          }
+          if (nextTab !== "online") {
+            state.filters.onlineStatus = ANY;
           }
           if (nextTab !== "nvl") {
             clearNvlSubFilters();

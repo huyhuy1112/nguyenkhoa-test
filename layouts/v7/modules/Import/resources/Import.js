@@ -359,6 +359,9 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 				Vtiger_Import_Js.customizeSimpleImportUi();
 			} catch (eCsrf) {}
 			try {
+				Vtiger_Import_Js.registerModernDropzone();
+			} catch (eDrop) {}
+			try {
 				var $root = jQuery('.mk-import-modern');
 				if (!$root.length) {
 					return;
@@ -1438,15 +1441,59 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
         },
         checkFileType: function(e) {
             var filePath = jQuery('#import_file').val();
+            var details = jQuery('#importFileDetails');
             if (filePath != '') {
                 var fileExtension = filePath.split('.').pop();
                 jQuery('#type').val(fileExtension);
-                var fileName = e['target']['files'][0]['name'];
-                jQuery('#importFileDetails').text(fileName);
+                var file = e && e.target && e.target.files && e.target.files[0] ? e.target.files[0] : null;
+                var fileName = file && file.name ? file.name : (filePath.split(/[/\\]/).pop() || '');
+                var sizeHint = '';
+                if (file && file.size) {
+                    var mb = file.size / (1024 * 1024);
+                    sizeHint = mb >= 1 ? (' · ' + mb.toFixed(1) + ' MB') : (' · ' + Math.max(1, Math.round(file.size / 1024)) + ' KB');
+                }
+                details.text(fileName + sizeHint).addClass('has-file');
                 Vtiger_Import_Js.handleFileTypeChange();
             } else {
-                jQuery('#importFileDetails').text('');
+                details.text('Chưa chọn file — CSV hoặc Excel (.xlsx, .xls)').removeClass('has-file');
             }
+        },
+        registerModernDropzone: function() {
+            var zone = document.getElementById('mk-import-dropzone');
+            var input = document.getElementById('import_file');
+            if (!zone || !input || zone.getAttribute('data-mk-drop-bound') === '1') return;
+            zone.setAttribute('data-mk-drop-bound', '1');
+            var clearDrag = function () { zone.classList.remove('is-dragover'); };
+            ['dragenter', 'dragover'].forEach(function (evt) {
+                zone.addEventListener(evt, function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    zone.classList.add('is-dragover');
+                });
+            });
+            ['dragleave', 'drop'].forEach(function (evt) {
+                zone.addEventListener(evt, function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (evt === 'drop') {
+                        clearDrag();
+                        var files = e.dataTransfer && e.dataTransfer.files;
+                        if (files && files.length) {
+                            try {
+                                var dt = new DataTransfer();
+                                dt.items.add(files[0]);
+                                input.files = dt.files;
+                            } catch (errAssign) {
+                                return;
+                            }
+                            var fakeEvt = { target: input };
+                            Vtiger_Import_Js.checkFileType(fakeEvt);
+                        }
+                    } else {
+                        clearDrag();
+                    }
+                });
+            });
         },
         handleFileTypeChange: function() {
             var fileType = jQuery('#type').val();
@@ -1813,11 +1860,13 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
     }
     jQuery(document).ready(function() {
 		try { Vtiger_Import_Js.applyImportPageShell(); } catch (eShell) {}
+		try { Vtiger_Import_Js.registerModernDropzone(); } catch (eDrop) {}
 		try { console.log('[IMPORT DEBUG] Import.js loaded', new Date().toISOString()); } catch (e0) {}
         Vtiger_Import_Js.loadDefaultValueWidgetForMappedFields();
 		// Campaigns: enforce deterministic mapping on Step 3 initial render.
 		try { Vtiger_Import_Js.scheduleCampaignsAutoMap(); } catch (e1) {}
 		try { Vtiger_Import_Js.scheduleSalesImportAutoMap(); } catch (e2) {}
+		try { setTimeout(function () { Vtiger_Import_Js.registerModernDropzone(); }, 400); } catch (eDrop2) {}
 		// Cancel should never show success/result flow; clear stale flags and return cleanly.
 		jQuery(document).off('click.ImportCancel', '.fc-overlay-modal .cancelLink')
 			.on('click.ImportCancel', '.fc-overlay-modal .cancelLink', function (e) {

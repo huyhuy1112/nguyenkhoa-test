@@ -55,6 +55,7 @@
     offline_ngung_cskh_tam: { vi: "Dừng CSKH tạm thời", en: "Temp stop care", cat: "offline", cls: "mk-tag--offline-status-temp" },
     mien_phi_offline: { vi: "Miễn phí Offline", en: "Free Offline", cat: "program", cls: "mk-tag--free-offline" },
     pcth: { vi: "PCTH", en: "PCTH", cat: "program", cls: "mk-tag--pcth" },
+    mqbb: { vi: "MQBB", en: "MQBB", cat: "program", cls: "mk-tag--da-mqbb" },
     van_hanh: { vi: "Vận hành", en: "Operations", cat: "program", cls: "mk-tag--van-hanh" },
     mkt: { vi: "Marketing", en: "Marketing", cat: "program", cls: "mk-tag--mkt" },
     lop_khac: { vi: "Lớp khác", en: "Other class", cat: "program", cls: "mk-tag--lop-khac" },
@@ -82,7 +83,7 @@
   }
 
   var SOURCE_TAGS = ["facebook", "tiktok", "website", "zalo", "other"];
-  var PROGRAM_TAGS = ["mien_phi_online", "mien_phi_offline", "pcth", "van_hanh", "mkt", "lop_khac", "nhuong_quyen"];
+  var PROGRAM_TAGS = ["mien_phi_online", "mien_phi_offline", "pcth", "mqbb", "van_hanh", "mkt", "lop_khac", "nhuong_quyen"];
   var PURCHASE_TAGS = ["mua_lan_dau", "mua_lai", "khong_mua", "ngung_mua"];
   var TIER_TAGS = ["vang", "bac", "dong"];
 
