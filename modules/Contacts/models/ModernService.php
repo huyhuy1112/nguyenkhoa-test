@@ -247,6 +247,72 @@ class Contacts_ModernService {
 	}
 
 	/**
+	 * Bỏ next_action auto từ Last Touch / Calendar (giữ ghi chú tay).
+	 */
+	protected static function sanitizeManualNextAction($text) {
+		$text = trim((string) $text);
+		if ($text === '') {
+			return '';
+		}
+		if (preg_match('/^(Nhắc gọi Call\s*#|Đã nghe máy|Đã đủ 3 lần gọi|Gọi:\s*Nhắc gọi)/iu', $text)) {
+			return '';
+		}
+		return $text;
+	}
+
+	/**
+	 * Kịch bản tiếp theo + khung thời gian (alert_days) từ Tag Rule khớp thẻ — giống Leads.
+	 *
+	 * @return array{next_action:string,rule_id:?string,rule_name:?string,rule_alert_days:?int,next_action_due_at:?string,next_action_overdue:bool,next_action_days_remaining:?int,next_action_days_overdue:?int}
+	 */
+	protected static function resolveRuleNextActionMeta(array $tags, $lastTouchRaw, $manualNextAction) {
+		$meta = array(
+			'next_action' => (string) $manualNextAction,
+			'rule_id' => null,
+			'rule_name' => null,
+			'rule_alert_days' => null,
+			'next_action_due_at' => null,
+			'next_action_overdue' => false,
+			'next_action_days_remaining' => null,
+			'next_action_days_overdue' => null,
+		);
+		try {
+			require_once 'modules/HelpDesk/models/TagRuleEngineService.php';
+			$ruleMatch = HelpDesk_TagRuleEngineService::getInstance()->matchRules($tags, true);
+			$best = !empty($ruleMatch['best']) ? $ruleMatch['best'] : null;
+			if (!$best) {
+				return $meta;
+			}
+			$meta['rule_id'] = isset($best['id']) ? (string) $best['id'] : null;
+			$meta['rule_name'] = isset($best['name']) ? (string) $best['name'] : null;
+			if ($meta['next_action'] === '' && !empty($best['next_action'])) {
+				$meta['next_action'] = (string) $best['next_action'];
+			}
+			if ($best['alert_days'] === null || (int) $best['alert_days'] <= 0) {
+				return $meta;
+			}
+			$alertDays = (int) $best['alert_days'];
+			$meta['rule_alert_days'] = $alertDays;
+			$lastTs = $lastTouchRaw ? strtotime((string) $lastTouchRaw) : false;
+			if (!$lastTs) {
+				return $meta;
+			}
+			$meta['next_action_due_at'] = date('c', strtotime('+' . $alertDays . ' days', $lastTs));
+			$daysIdle = max(0, (int) floor((time() - $lastTs) / 86400));
+			$remaining = $alertDays - $daysIdle;
+			if ($remaining < 0) {
+				$meta['next_action_overdue'] = true;
+				$meta['next_action_days_overdue'] = -$remaining;
+			} else {
+				$meta['next_action_days_remaining'] = $remaining;
+			}
+		} catch (Exception $e) {
+			// ignore — rule metadata is best-effort
+		}
+		return $meta;
+	}
+
+	/**
 	 * Dedicated picklist: Mô hình kinh doanh (not a tag).
 	 */
 	public static function upsertBusinessModel($contactId, $businessModel) {
@@ -1045,6 +1111,10 @@ class Contacts_ModernService {
 				: (isset($row['lead_business_model']) ? $row['lead_business_model'] : '')
 		);
 
+		$storedNext = decode_html(trim((string) (isset($row['contact_next_action']) ? $row['contact_next_action'] : '')));
+		$lastTouchRaw = $ltLastAt !== '' ? $ltLastAt : (isset($row['modifiedtime']) ? $row['modifiedtime'] : null);
+		$ruleMeta = self::resolveRuleNextActionMeta($tags, $lastTouchRaw, self::sanitizeManualNextAction($storedNext));
+
 		return array(
 			'id' => (string)$contactId,
 			'crmid' => $contactId,
@@ -1057,7 +1127,14 @@ class Contacts_ModernService {
 			'account' => ($accountName === '' || $accountName === '-') ? '' : $accountName,
 			'address' => $address,
 			'business_model' => $businessModel,
-			'next_action' => decode_html(trim((string) (isset($row['contact_next_action']) ? $row['contact_next_action'] : ''))),
+			'next_action' => $ruleMeta['next_action'],
+			'rule_id' => $ruleMeta['rule_id'],
+			'rule_name' => $ruleMeta['rule_name'],
+			'rule_alert_days' => $ruleMeta['rule_alert_days'],
+			'next_action_due_at' => $ruleMeta['next_action_due_at'],
+			'next_action_overdue' => $ruleMeta['next_action_overdue'] ? true : false,
+			'next_action_days_remaining' => $ruleMeta['next_action_days_remaining'],
+			'next_action_days_overdue' => $ruleMeta['next_action_days_overdue'],
 			'converted_at' => $convertedAt,
 			'owner' => self::getOwnerLabel((int)$row['smownerid']),
 			'tags' => array_values($tags),

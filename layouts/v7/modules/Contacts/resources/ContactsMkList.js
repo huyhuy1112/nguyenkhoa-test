@@ -565,7 +565,7 @@
       }
       if (f.hasTag && !(c.tags || []).length) return false;
       if (f.hasAccount && !c.account) return false;
-      if (f.hasNextAction && !String(c.next_action || "").trim()) return false;
+      if (f.hasNextAction && !deriveNextAction(c)) return false;
       if (f.customerRank !== ANY && (!cats.customerRank || ref.normalizeTag(cats.customerRank) !== f.customerRank)) return false;
       var needClass = [];
       if (f.classTag !== ANY && f.classTag) {
@@ -1172,20 +1172,80 @@
     return credentialSelectHtml(contact, "bang");
   }
 
+  function deriveNextAction(contact) {
+    var stored = String((contact && contact.next_action) || "").trim();
+    if (/^(Nhắc gọi Call\s*#|Đã nghe máy|Đã đủ 3 lần gọi|Gọi:\s*Nhắc gọi)/i.test(stored)) {
+      return "";
+    }
+    return stored;
+  }
+
+  function daysSinceIso(iso) {
+    if (!iso) return 0;
+    var ts = new Date(iso).getTime();
+    if (isNaN(ts)) return 0;
+    return Math.max(0, Math.floor((Date.now() - ts) / 86400000));
+  }
+
+  function nextActionTimeframeMeta(contact) {
+    var alertDays = contact && contact.rule_alert_days;
+    if (alertDays == null || alertDays <= 0) return null;
+    if (contact.next_action_overdue) {
+      return {
+        kind: "overdue",
+        days: contact.next_action_days_overdue || 0,
+        alertDays: alertDays,
+      };
+    }
+    if (contact.next_action_days_remaining != null) {
+      return {
+        kind: "remaining",
+        days: contact.next_action_days_remaining,
+        alertDays: alertDays,
+      };
+    }
+    var idle = daysSinceIso(contact.last_touch);
+    var rem = alertDays - idle;
+    if (rem < 0) {
+      return { kind: "overdue", days: -rem, alertDays: alertDays };
+    }
+    return { kind: "remaining", days: rem, alertDays: alertDays };
+  }
+
+  function nextActionTimeframeLabel(contact) {
+    var meta = nextActionTimeframeMeta(contact);
+    if (!meta) return "";
+    if (meta.kind === "overdue") {
+      return "Quá hạn " + meta.days + " ngày";
+    }
+    if (meta.days === 0) {
+      return "Hôm nay";
+    }
+    if (meta.kind === "remaining") {
+      return "Còn " + meta.days + " ngày";
+    }
+    return "Còn " + meta.alertDays + " ngày";
+  }
+
   function nextActionCellHtml(contact) {
-    var id = contact.crmid || contact.id;
-    var val = String(contact.next_action || "").trim();
-    return (
-      '<input type="text" class="mk-contacts-next-action" data-mk-next-action="' +
-      esc(id) +
-      '" data-prev="' +
-      esc(val) +
-      '" value="' +
-      esc(val) +
-      '" placeholder="Ghi hành động tiếp…" title="' +
-      esc(val || "Hành động tiếp theo") +
-      '" />'
-    );
+    var next = deriveNextAction(contact);
+    var tf = nextActionTimeframeLabel(contact);
+    if (!next && !tf) {
+      return '<span class="mk-leads-muted">—</span>';
+    }
+    var html = "";
+    if (next) {
+      html += '<span class="mk-leads-next-action__text">' + esc(next) + "</span>";
+    }
+    if (tf) {
+      var meta = nextActionTimeframeMeta(contact);
+      var cls = "mk-leads-next-action__time";
+      if (meta && meta.kind === "overdue") {
+        cls += " mk-leads-next-action__time--overdue";
+      }
+      html += '<span class="' + cls + '">' + esc(tf) + "</span>";
+    }
+    return '<div class="mk-leads-next-action">' + html + "</div>";
   }
 
   function progressCellHtml(contact) {
@@ -2284,29 +2344,6 @@
       if (el.classList && el.classList.contains("mk-leads-biz-select")) {
         e.stopPropagation();
         commitBusinessModelChange(el);
-        return;
-      }
-      if (el.classList && el.classList.contains("mk-contacts-next-action")) {
-        e.stopPropagation();
-        var nid = el.getAttribute("data-mk-next-action");
-        if (!nid || !store || !store.saveNextAction) return;
-        var prev = el.getAttribute("data-prev") || "";
-        var nextVal = String(el.value || "").trim();
-        if (nextVal === prev) return;
-        el.disabled = true;
-        store
-          .saveNextAction(nid, nextVal)
-          .then(function () {
-            el.setAttribute("data-prev", nextVal);
-            el.disabled = false;
-            el.title = nextVal || "Hành động tiếp theo";
-            renderTable();
-          })
-          .catch(function (err) {
-            notifyUser("error", (err && err.message) || "Không lưu được hành động tiếp.");
-            el.value = prev;
-            el.disabled = false;
-          });
         return;
       }
       if (el.classList && el.classList.contains("mk-contacts-cred-select")) {

@@ -89,6 +89,35 @@ html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"][data-ap
 	border-color: #34d399;
 	box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.18);
 }
+.mk-contacts-page .mk-leads-next-action {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 4px;
+	min-width: 0;
+	max-width: 260px;
+}
+.mk-contacts-page .mk-leads-next-action__text {
+	font-size: 12px;
+	line-height: 1.35;
+	color: #334155;
+}
+.mk-contacts-page .mk-leads-next-action__time {
+	display: inline-flex;
+	align-items: center;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.2;
+	padding: 2px 8px;
+	border-radius: 999px;
+	background: #e0f2fe;
+	color: #0369a1;
+	white-space: nowrap;
+}
+.mk-contacts-page .mk-leads-next-action__time--overdue {
+	background: #fee2e2;
+	color: #b91c1c;
+}
 @media (max-width: 720px) {
 	.mk-contacts-seg-row {
 		flex-direction: column;
