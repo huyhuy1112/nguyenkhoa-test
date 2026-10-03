@@ -475,9 +475,40 @@
     });
   }
 
-  function pollSheetNow() {
+  function saveSheetSource(source) {
+    if (!useApi()) return Promise.resolve(null);
+    return apiRequest("sheet_source_save", {
+      payload: JSON.stringify(source || {}),
+    }).then(function (res) {
+      return res;
+    });
+  }
+
+  function deleteSheetSource(id) {
+    if (!useApi()) return Promise.resolve(null);
+    return apiRequest("sheet_source_delete", {
+      payload: JSON.stringify({ id: id }),
+    }).then(function (res) {
+      return res;
+    });
+  }
+
+  function testSheetSource(id) {
     if (!useApi()) return Promise.resolve({});
-    return apiRequest("sheet_poll_now").then(function (res) {
+    return apiRequest("sheet_source_test", {
+      payload: JSON.stringify({ id: id || 0 }),
+    }).then(function (res) {
+      return res;
+    });
+  }
+
+  function pollSheetNow(sourceId) {
+    if (!useApi()) return Promise.resolve({});
+    var payload = {};
+    if (sourceId) payload.source_id = sourceId;
+    return apiRequest("sheet_poll_now", {
+      payload: JSON.stringify(payload),
+    }).then(function (res) {
       return res;
     });
   }
@@ -595,6 +626,9 @@
     mergeLeads: mergeLeads,
     getSheetSettings: getSheetSettings,
     saveSheetSettings: saveSheetSettings,
+    saveSheetSource: saveSheetSource,
+    deleteSheetSource: deleteSheetSource,
+    testSheetSource: testSheetSource,
     pollSheetNow: pollSheetNow,
     sheetPollStatus: sheetPollStatus,
     getSegments: getSegments,

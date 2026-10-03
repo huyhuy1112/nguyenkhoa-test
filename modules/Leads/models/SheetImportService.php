@@ -1,6 +1,6 @@
 <?php
 /*+***********************************************************************************
- * Google Sheet → Leads realtime import (poll 1 phút, 1 nguồn, config, force-create).
+ * Google Sheet → Leads realtime import (poll 1 phút, nhiều nguồn, force-create).
  *************************************************************************************/
 
 require_once 'modules/Leads/models/ModernService.php';
@@ -8,6 +8,7 @@ require_once 'modules/Leads/models/ModernService.php';
 class Leads_SheetImportService {
 
 	const TABLE_SETTINGS = 'bace_lead_sheet_settings';
+	const TABLE_SOURCES = 'bace_lead_sheet_sources';
 	const TABLE_IMPORT = 'bace_lead_sheet_import';
 	const TABLE_MERGE_LOG = 'bace_lead_merge_log';
 
@@ -33,6 +34,28 @@ class Leads_SheetImportService {
 		);
 
 		$adb->pquery(
+			"CREATE TABLE IF NOT EXISTS " . self::TABLE_SOURCES . " (
+				id INT(11) NOT NULL AUTO_INCREMENT,
+				name VARCHAR(128) NOT NULL DEFAULT '',
+				spreadsheet_id VARCHAR(128) NOT NULL DEFAULT '',
+				sheet_range VARCHAR(128) NOT NULL DEFAULT 'Sheet1',
+				column_map MEDIUMTEXT,
+				source_tag VARCHAR(64) DEFAULT '',
+				enabled TINYINT(1) NOT NULL DEFAULT 1,
+				sort_order INT(11) NOT NULL DEFAULT 0,
+				last_poll_at DATETIME DEFAULT NULL,
+				last_error TEXT,
+				last_result VARCHAR(512) DEFAULT NULL,
+				created_at DATETIME DEFAULT NULL,
+				modified_at DATETIME DEFAULT NULL,
+				PRIMARY KEY (id),
+				KEY idx_enabled_sort (enabled, sort_order, id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+			array()
+		);
+		self::ensureSourcesColumn($adb, 'target_module', "VARCHAR(32) NOT NULL DEFAULT 'leads'");
+
+		$adb->pquery(
 			"CREATE TABLE IF NOT EXISTS " . self::TABLE_IMPORT . " (
 				id INT(11) NOT NULL AUTO_INCREMENT,
 				sheet_row_key VARCHAR(191) NOT NULL,
@@ -45,6 +68,11 @@ class Leads_SheetImportService {
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8",
 			array()
 		);
+		self::ensureImportColumn($adb, 'source_id', "INT(11) DEFAULT NULL");
+		self::ensureImportIndex($adb, 'idx_source', 'source_id');
+
+		require_once 'modules/Accounts/helpers/SheetIngestService.php';
+		Accounts_SheetIngestService_Helper::installSchema($adb);
 
 		$adb->pquery(
 			"CREATE TABLE IF NOT EXISTS " . self::TABLE_MERGE_LOG . " (
@@ -66,7 +94,109 @@ class Leads_SheetImportService {
 			self::ensureProfileColumn($adb, 'sheet_source', "TINYINT(1) DEFAULT 0");
 			self::ensureProfileColumn($adb, 'sheet_row_key', "VARCHAR(191) DEFAULT NULL");
 			self::ensureProfileColumn($adb, 'qa_raw', "MEDIUMTEXT DEFAULT NULL");
+			self::ensureProfileColumn($adb, 'sheet_source_id', "INT(11) DEFAULT NULL");
+			self::ensureProfileColumn($adb, 'sheet_source_name', "VARCHAR(128) DEFAULT NULL");
 		}
+
+		self::migrateLegacySingleSource($adb);
+	}
+
+	protected static function ensureImportColumn(PearDatabase $adb, $column, $definition) {
+		$colRes = $adb->pquery('SHOW COLUMNS FROM ' . self::TABLE_IMPORT . ' LIKE ?', array($column));
+		if (!$colRes || $adb->num_rows($colRes) < 1) {
+			$adb->pquery('ALTER TABLE ' . self::TABLE_IMPORT . ' ADD COLUMN ' . $column . ' ' . $definition, array());
+		}
+	}
+
+	protected static function ensureSourcesColumn(PearDatabase $adb, $column, $definition) {
+		$colRes = $adb->pquery('SHOW COLUMNS FROM ' . self::TABLE_SOURCES . ' LIKE ?', array($column));
+		if (!$colRes || $adb->num_rows($colRes) < 1) {
+			$adb->pquery('ALTER TABLE ' . self::TABLE_SOURCES . ' ADD COLUMN ' . $column . ' ' . $definition, array());
+		}
+	}
+
+	protected static function ensureImportIndex(PearDatabase $adb, $indexName, $column) {
+		$idx = $adb->pquery('SHOW INDEX FROM ' . self::TABLE_IMPORT . ' WHERE Key_name = ?', array($indexName));
+		if (!$idx || $adb->num_rows($idx) < 1) {
+			$adb->pquery('ALTER TABLE ' . self::TABLE_IMPORT . ' ADD KEY ' . $indexName . ' (' . $column . ')', array());
+		}
+	}
+
+	/**
+	 * Read setting without installSchema (safe inside installSchema / migrate).
+	 */
+	protected static function readSettingRaw(PearDatabase $adb, $key, $default = '') {
+		$key = trim((string) $key);
+		if ($key === '') {
+			return $default;
+		}
+		$res = $adb->pquery(
+			'SELECT setting_value FROM ' . self::TABLE_SETTINGS . ' WHERE setting_key = ? LIMIT 1',
+			array($key)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return $default;
+		}
+		$val = $adb->query_result($res, 0, 'setting_value');
+		if ($val === null) {
+			return $default;
+		}
+		$val = (string) $val;
+		if (function_exists('decode_html')) {
+			$val = decode_html($val);
+		} else {
+			$val = html_entity_decode($val, ENT_QUOTES, 'UTF-8');
+		}
+		return $val;
+	}
+
+	/**
+	 * One-time: copy legacy single spreadsheet_* settings into sources table.
+	 */
+	protected static function migrateLegacySingleSource(PearDatabase $adb) {
+		$countRes = $adb->pquery('SELECT COUNT(*) AS c FROM ' . self::TABLE_SOURCES, array());
+		$count = ($countRes && $adb->num_rows($countRes) > 0) ? (int) $adb->query_result($countRes, 0, 'c') : 0;
+		if ($count > 0) {
+			return;
+		}
+		$spreadsheetId = trim((string) self::readSettingRaw($adb, 'spreadsheet_id', ''));
+		if ($spreadsheetId === '') {
+			return;
+		}
+		$range = trim((string) self::readSettingRaw($adb, 'sheet_range', 'Sheet1'));
+		if ($range === '') {
+			$range = 'Sheet1';
+		}
+		$mapRaw = self::readSettingRaw($adb, 'column_map', '{}');
+		$map = json_decode($mapRaw, true);
+		if (!is_array($map) || empty($map)) {
+			$map = self::defaultColumnMap();
+		}
+		$enabled = self::readSettingRaw($adb, 'enabled', '0') === '1' ? 1 : 0;
+		$now = date('Y-m-d H:i:s');
+		$lastPoll = trim((string) self::readSettingRaw($adb, 'last_poll_at', ''));
+		$lastError = trim((string) self::readSettingRaw($adb, 'last_error', ''));
+		$lastResult = trim((string) self::readSettingRaw($adb, 'last_result', ''));
+		$adb->pquery(
+			'INSERT INTO ' . self::TABLE_SOURCES . '
+				(name, spreadsheet_id, sheet_range, column_map, source_tag, enabled, sort_order,
+				 last_poll_at, last_error, last_result, created_at, modified_at)
+			 VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+			array(
+				'Nguồn mặc định',
+				$spreadsheetId,
+				$range,
+				json_encode($map, JSON_UNESCAPED_UNICODE),
+				'',
+				$enabled,
+				0,
+				$lastPoll !== '' ? $lastPoll : null,
+				$lastError !== '' ? $lastError : null,
+				$lastResult !== '' ? $lastResult : null,
+				$now,
+				$now,
+			)
+		);
 	}
 
 	protected static function ensureProfileColumn(PearDatabase $adb, $column, $definition) {
@@ -135,20 +265,46 @@ class Leads_SheetImportService {
 	 * @return array
 	 */
 	public static function getSettings() {
-		$mapRaw = self::getSetting('column_map', '{}');
-		$map = json_decode($mapRaw, true);
-		if (!is_array($map) || empty($map)) {
-			$map = self::defaultColumnMap();
+		$sources = self::listSources();
+		$primary = !empty($sources[0]) ? $sources[0] : null;
+		$map = $primary && !empty($primary['column_map']) && is_array($primary['column_map'])
+			? $primary['column_map']
+			: self::defaultColumnMap();
+		$lastPoll = '';
+		$lastError = '';
+		$lastResult = '';
+		foreach ($sources as $src) {
+			if (!empty($src['last_poll_at']) && ($lastPoll === '' || strcmp((string) $src['last_poll_at'], $lastPoll) > 0)) {
+				$lastPoll = (string) $src['last_poll_at'];
+			}
+			if ($lastError === '' && !empty($src['last_error'])) {
+				$lastError = (string) $src['last_error'];
+			}
+			if ($lastResult === '' && !empty($src['last_result'])) {
+				$lastResult = (string) $src['last_result'];
+			}
+		}
+		if ($lastPoll === '') {
+			$lastPoll = self::getSetting('last_poll_at', '');
+		}
+		if ($lastError === '') {
+			$lastError = self::getSetting('last_error', '');
+		}
+		if ($lastResult === '') {
+			$lastResult = self::getSetting('last_result', '');
 		}
 		return array(
 			'enabled' => self::getSetting('enabled', '0') === '1',
-			'spreadsheet_id' => self::getSetting('spreadsheet_id', ''),
-			'sheet_range' => self::getSetting('sheet_range', 'Sheet1'),
+			'spreadsheet_id' => $primary ? (string) $primary['spreadsheet_id'] : self::getSetting('spreadsheet_id', ''),
+			'sheet_range' => $primary ? (string) $primary['sheet_range'] : self::getSetting('sheet_range', 'Sheet1'),
 			'column_map' => $map,
 			'service_account_json' => self::getSetting('service_account_json', ''),
-			'last_poll_at' => self::getSetting('last_poll_at', ''),
-			'last_error' => self::getSetting('last_error', ''),
-			'last_result' => self::getSetting('last_result', ''),
+			'last_poll_at' => $lastPoll,
+			'last_error' => $lastError,
+			'last_result' => $lastResult,
+			'sources' => $sources,
+			'sources_count' => count($sources),
+			'enabled_sources_count' => self::countEnabledSources($sources),
 		);
 	}
 
@@ -162,27 +318,6 @@ class Leads_SheetImportService {
 			$en = $payload['enabled'];
 			self::setSetting('enabled', ($en === true || $en === 1 || $en === '1' || $en === 'true') ? '1' : '0', $userId);
 		}
-		if (array_key_exists('spreadsheet_id', $payload)) {
-			self::setSetting('spreadsheet_id', trim((string) $payload['spreadsheet_id']), $userId);
-		}
-		if (array_key_exists('sheet_range', $payload)) {
-			$range = trim((string) $payload['sheet_range']);
-			if ($range === '') {
-				$range = 'Sheet1';
-			}
-			self::setSetting('sheet_range', $range, $userId);
-		}
-		if (array_key_exists('column_map', $payload)) {
-			$map = $payload['column_map'];
-			if (is_string($map)) {
-				$decoded = json_decode($map, true);
-				$map = is_array($decoded) ? $decoded : self::defaultColumnMap();
-			}
-			if (!is_array($map)) {
-				$map = self::defaultColumnMap();
-			}
-			self::setSetting('column_map', json_encode($map, JSON_UNESCAPED_UNICODE), $userId);
-		}
 		if (array_key_exists('service_account_json', $payload)) {
 			$json = trim((string) $payload['service_account_json']);
 			// Prefer storing file path (avoids to_html corruption of PEM/JSON in DB).
@@ -194,7 +329,331 @@ class Leads_SheetImportService {
 			}
 			self::setSetting('service_account_json', $json, $userId);
 		}
+
+		// Multi-source bulk replace / upsert list
+		if (array_key_exists('sources', $payload) && is_array($payload['sources'])) {
+			self::replaceSourcesFromPayload($payload['sources'], $userId);
+		} elseif (
+			array_key_exists('spreadsheet_id', $payload)
+			|| array_key_exists('sheet_range', $payload)
+			|| array_key_exists('column_map', $payload)
+			|| array_key_exists('source_name', $payload)
+			|| array_key_exists('source_tag', $payload)
+			|| array_key_exists('source_id', $payload)
+		) {
+			// Backward-compatible single-source save → upsert one source
+			$sourcePayload = array();
+			if (array_key_exists('source_id', $payload)) {
+				$sourcePayload['id'] = (int) $payload['source_id'];
+			}
+			if (array_key_exists('source_name', $payload)) {
+				$sourcePayload['name'] = $payload['source_name'];
+			} elseif (array_key_exists('name', $payload) && !isset($payload['sources'])) {
+				$sourcePayload['name'] = $payload['name'];
+			}
+			if (array_key_exists('spreadsheet_id', $payload)) {
+				$sourcePayload['spreadsheet_id'] = self::parseSpreadsheetId($payload['spreadsheet_id']);
+			}
+			if (array_key_exists('sheet_range', $payload)) {
+				$sourcePayload['sheet_range'] = $payload['sheet_range'];
+			}
+			if (array_key_exists('column_map', $payload)) {
+				$sourcePayload['column_map'] = $payload['column_map'];
+			}
+			if (array_key_exists('source_tag', $payload)) {
+				$sourcePayload['source_tag'] = $payload['source_tag'];
+			}
+			if (array_key_exists('source_enabled', $payload)) {
+				$sourcePayload['enabled'] = $payload['source_enabled'];
+			} elseif (array_key_exists('enabled', $payload) && empty($payload['sources'])) {
+				// When editing the only/primary source from legacy UI, mirror master enabled onto that source.
+				$sources = self::listSources();
+				if (count($sources) <= 1) {
+					$sourcePayload['enabled'] = $payload['enabled'];
+				}
+			}
+			if (!empty($sourcePayload['spreadsheet_id']) || !empty($sourcePayload['id']) || count(self::listSources()) === 0) {
+				if (empty($sourcePayload['name'])) {
+					$sourcePayload['name'] = 'Nguồn mặc định';
+				}
+				self::saveSource($sourcePayload, $userId);
+			}
+			// Keep legacy keys in sync for anything still reading them
+			$primary = self::getPrimarySource();
+			if ($primary) {
+				self::setSetting('spreadsheet_id', $primary['spreadsheet_id'], $userId);
+				self::setSetting('sheet_range', $primary['sheet_range'], $userId);
+				self::setSetting('column_map', json_encode($primary['column_map'], JSON_UNESCAPED_UNICODE), $userId);
+			}
+		}
+
 		return self::getSettings();
+	}
+
+	public static function parseSpreadsheetId($input) {
+		$s = trim((string) $input);
+		if ($s === '') {
+			return '';
+		}
+		if (preg_match('#/spreadsheets/d/([a-zA-Z0-9-_]+)#', $s, $m)) {
+			return $m[1];
+		}
+		return trim(preg_replace('/[?#].*$/', '', $s));
+	}
+
+	protected static function countEnabledSources(array $sources) {
+		$n = 0;
+		foreach ($sources as $src) {
+			if (!empty($src['enabled'])) {
+				$n++;
+			}
+		}
+		return $n;
+	}
+
+	/**
+	 * @return array|null
+	 */
+	public static function getPrimarySource() {
+		$sources = self::listSources();
+		return !empty($sources[0]) ? $sources[0] : null;
+	}
+
+	/**
+	 * @return array[]
+	 */
+	public static function listSources() {
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$res = $adb->pquery(
+			'SELECT * FROM ' . self::TABLE_SOURCES . ' ORDER BY sort_order ASC, id ASC',
+			array()
+		);
+		$out = array();
+		if ($res) {
+			$rows = $adb->num_rows($res);
+			for ($i = 0; $i < $rows; $i++) {
+				$out[] = self::hydrateSourceRow($adb, $res, $i);
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * @param int $id
+	 * @return array|null
+	 */
+	public static function getSource($id) {
+		$id = (int) $id;
+		if ($id <= 0) {
+			return null;
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$res = $adb->pquery('SELECT * FROM ' . self::TABLE_SOURCES . ' WHERE id = ? LIMIT 1', array($id));
+		if (!$res || $adb->num_rows($res) < 1) {
+			return null;
+		}
+		return self::hydrateSourceRow($adb, $res, 0);
+	}
+
+	protected static function hydrateSourceRow(PearDatabase $adb, $res, $i) {
+		$row = $adb->query_result_rowdata($res, $i);
+		$mapRaw = isset($row['column_map']) ? (string) $row['column_map'] : '';
+		$target = self::normalizeTargetModule(isset($row['target_module']) ? $row['target_module'] : 'leads');
+		$map = json_decode($mapRaw, true);
+		if (!is_array($map) || empty($map)) {
+			$map = self::defaultColumnMapForTarget($target);
+		}
+		return array(
+			'id' => isset($row['id']) ? (int) $row['id'] : 0,
+			'name' => isset($row['name']) ? (string) $row['name'] : '',
+			'spreadsheet_id' => isset($row['spreadsheet_id']) ? (string) $row['spreadsheet_id'] : '',
+			'sheet_range' => isset($row['sheet_range']) ? (string) $row['sheet_range'] : 'Sheet1',
+			'column_map' => $map,
+			'source_tag' => isset($row['source_tag']) ? (string) $row['source_tag'] : '',
+			'target_module' => $target,
+			'enabled' => !empty($row['enabled']),
+			'sort_order' => isset($row['sort_order']) ? (int) $row['sort_order'] : 0,
+			'last_poll_at' => isset($row['last_poll_at']) ? (string) $row['last_poll_at'] : '',
+			'last_error' => isset($row['last_error']) ? (string) $row['last_error'] : '',
+			'last_result' => isset($row['last_result']) ? (string) $row['last_result'] : '',
+		);
+	}
+
+	/**
+	 * @param array $payload
+	 * @param int $userId
+	 * @return array
+	 */
+	public static function saveSource(array $payload, $userId = 0) {
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$id = isset($payload['id']) ? (int) $payload['id'] : 0;
+		$name = trim((string) (isset($payload['name']) ? $payload['name'] : ''));
+		$spreadsheetId = self::parseSpreadsheetId(isset($payload['spreadsheet_id']) ? $payload['spreadsheet_id'] : '');
+		$range = trim((string) (isset($payload['sheet_range']) ? $payload['sheet_range'] : 'Sheet1'));
+		if ($range === '') {
+			$range = 'Sheet1';
+		}
+		$targetModule = self::normalizeTargetModule(
+			isset($payload['target_module']) ? $payload['target_module'] : 'leads'
+		);
+		$map = isset($payload['column_map']) ? $payload['column_map'] : null;
+		if (is_string($map)) {
+			$decoded = json_decode($map, true);
+			$map = is_array($decoded) ? $decoded : self::defaultColumnMapForTarget($targetModule);
+		}
+		if (!is_array($map) || empty($map)) {
+			$map = self::defaultColumnMapForTarget($targetModule);
+		}
+		$sourceTag = trim((string) (isset($payload['source_tag']) ? $payload['source_tag'] : ''));
+		$enabled = 1;
+		if (array_key_exists('enabled', $payload)) {
+			$en = $payload['enabled'];
+			$enabled = ($en === true || $en === 1 || $en === '1' || $en === 'true') ? 1 : 0;
+		}
+		$sortOrder = isset($payload['sort_order']) ? (int) $payload['sort_order'] : 0;
+		$now = date('Y-m-d H:i:s');
+		$mapJson = json_encode($map, JSON_UNESCAPED_UNICODE);
+
+		if ($id > 0) {
+			$existing = self::getSource($id);
+			if (!$existing) {
+				throw new Exception('Không tìm thấy nguồn Google Sheet #' . $id);
+			}
+			if ($name === '') {
+				$name = $existing['name'] !== '' ? $existing['name'] : ('Nguồn #' . $id);
+			}
+			if ($spreadsheetId === '') {
+				$spreadsheetId = $existing['spreadsheet_id'];
+			}
+			if (!array_key_exists('target_module', $payload) && !empty($existing['target_module'])) {
+				$targetModule = self::normalizeTargetModule($existing['target_module']);
+			}
+			if ($sortOrder === 0 && isset($existing['sort_order'])) {
+				$sortOrder = (int) $existing['sort_order'];
+			}
+			$adb->pquery(
+				'UPDATE ' . self::TABLE_SOURCES . ' SET
+					name=?, spreadsheet_id=?, sheet_range=?, column_map=?, source_tag=?,
+					target_module=?, enabled=?, sort_order=?, modified_at=?
+				 WHERE id=?',
+				array(
+					$name, $spreadsheetId, $range, $mapJson, $sourceTag,
+					$targetModule, $enabled, $sortOrder, $now, $id,
+				)
+			);
+		} else {
+			if ($name === '') {
+				$name = ($targetModule === 'accounts' ? 'Tuibao ' : 'Nguồn ')
+					. (count(self::listSources()) + 1);
+			}
+			if ($spreadsheetId === '') {
+				throw new Exception('Thiếu Spreadsheet ID / link cho nguồn mới.');
+			}
+			if ($sortOrder === 0) {
+				$maxRes = $adb->pquery('SELECT MAX(sort_order) AS m FROM ' . self::TABLE_SOURCES, array());
+				$sortOrder = ($maxRes && $adb->num_rows($maxRes) > 0)
+					? ((int) $adb->query_result($maxRes, 0, 'm') + 10)
+					: 10;
+			}
+			$adb->pquery(
+				'INSERT INTO ' . self::TABLE_SOURCES . '
+					(name, spreadsheet_id, sheet_range, column_map, source_tag, target_module, enabled, sort_order, created_at, modified_at)
+				 VALUES (?,?,?,?,?,?,?,?,?,?)',
+				array(
+					$name, $spreadsheetId, $range, $mapJson, $sourceTag,
+					$targetModule, $enabled, $sortOrder, $now, $now,
+				)
+			);
+			$id = (int) $adb->getLastInsertID();
+			if ($id <= 0) {
+				$find = $adb->pquery(
+					'SELECT id FROM ' . self::TABLE_SOURCES . ' WHERE spreadsheet_id = ? AND sheet_range = ? ORDER BY id DESC LIMIT 1',
+					array($spreadsheetId, $range)
+				);
+				if ($find && $adb->num_rows($find) > 0) {
+					$id = (int) $adb->query_result($find, 0, 'id');
+				}
+			}
+		}
+
+		$saved = self::getSource($id);
+		if (!$saved) {
+			throw new Exception('Lưu nguồn Google Sheet thất bại.');
+		}
+		return $saved;
+	}
+
+	/**
+	 * @param int $id
+	 * @return bool
+	 */
+	public static function deleteSource($id) {
+		$id = (int) $id;
+		if ($id <= 0) {
+			return false;
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$adb->pquery('DELETE FROM ' . self::TABLE_SOURCES . ' WHERE id = ?', array($id));
+		return true;
+	}
+
+	/**
+	 * Replace-all style save used by Settings when posting full sources[].
+	 * Existing IDs are updated; missing IDs are deleted; rows without id are inserted.
+	 *
+	 * @param array $rows
+	 * @param int $userId
+	 */
+	protected static function replaceSourcesFromPayload(array $rows, $userId = 0) {
+		if (empty($rows)) {
+			// Empty list = no-op (avoid accidental wipe from partial payload).
+			return;
+		}
+		$keepIds = array();
+		$sort = 0;
+		foreach ($rows as $row) {
+			if (!is_array($row)) {
+				continue;
+			}
+			$sort += 10;
+			$row['sort_order'] = isset($row['sort_order']) ? (int) $row['sort_order'] : $sort;
+			$saved = self::saveSource($row, $userId);
+			if (!empty($saved['id'])) {
+				$keepIds[] = (int) $saved['id'];
+			}
+		}
+		if (empty($keepIds)) {
+			return;
+		}
+		$existing = self::listSources();
+		foreach ($existing as $src) {
+			$sid = (int) $src['id'];
+			if ($sid > 0 && !in_array($sid, $keepIds, true)) {
+				self::deleteSource($sid);
+			}
+		}
+	}
+
+	protected static function updateSourcePollMeta($sourceId, $lastError, $lastResult) {
+		$adb = PearDatabase::getInstance();
+		$now = date('Y-m-d H:i:s');
+		$adb->pquery(
+			'UPDATE ' . self::TABLE_SOURCES . ' SET last_poll_at=?, last_error=?, last_result=?, modified_at=? WHERE id=?',
+			array(
+				$now,
+				$lastError !== '' ? $lastError : null,
+				$lastResult !== '' ? $lastResult : null,
+				$now,
+				(int) $sourceId,
+			)
+		);
+		self::setSetting('last_poll_at', $now);
+		self::setSetting('last_error', $lastError);
+		self::setSetting('last_result', $lastResult);
 	}
 
 	/**
@@ -268,6 +727,23 @@ class Leads_SheetImportService {
 			'region' => '',
 			'screening' => '',
 		);
+	}
+
+	public static function defaultColumnMapForTarget($targetModule) {
+		$targetModule = self::normalizeTargetModule($targetModule);
+		if ($targetModule === 'accounts') {
+			require_once 'modules/Accounts/helpers/SheetIngestService.php';
+			return Accounts_SheetIngestService_Helper::defaultColumnMap();
+		}
+		return self::defaultColumnMap();
+	}
+
+	public static function normalizeTargetModule($target) {
+		$t = strtolower(trim((string) $target));
+		if ($t === 'accounts' || $t === 'account' || $t === 'tuibao' || $t === 'franchise') {
+			return 'accounts';
+		}
+		return 'leads';
 	}
 
 	/**
@@ -371,27 +847,39 @@ class Leads_SheetImportService {
 
 	/**
 	 * Connectivity check (no lead import). Used by Settings → Tích hợp hệ thống.
+	 * @param int|null $sourceId optional specific source
 	 * @return array
 	 */
-	public static function testConnection() {
+	public static function testConnection($sourceId = null) {
 		$settings = self::getSettings();
-		if ($settings['spreadsheet_id'] === '') {
-			return array('success' => false, 'error' => 'Thiếu Spreadsheet ID / link.');
-		}
 		if (trim((string) $settings['service_account_json']) === '') {
 			return array('success' => false, 'error' => 'Chưa có Service Account JSON.');
 		}
+		$source = null;
+		if ($sourceId !== null && (int) $sourceId > 0) {
+			$source = self::getSource((int) $sourceId);
+			if (!$source) {
+				return array('success' => false, 'error' => 'Không tìm thấy nguồn #' . (int) $sourceId);
+			}
+		} else {
+			$source = self::getPrimarySource();
+		}
+		if (!$source || $source['spreadsheet_id'] === '') {
+			return array('success' => false, 'error' => 'Thiếu Spreadsheet ID / link.');
+		}
 		try {
 			$rows = self::fetchSheetValues(
-				$settings['spreadsheet_id'],
-				$settings['sheet_range'],
+				$source['spreadsheet_id'],
+				$source['sheet_range'],
 				$settings['service_account_json']
 			);
 			$n = is_array($rows) ? count($rows) : 0;
+			$label = !empty($source['name']) ? $source['name'] : ('#' . $source['id']);
 			return array(
 				'success' => true,
-				'message' => 'Kết nối Google Sheet thành công. Đọc được ' . $n . ' dòng (gồm header).',
+				'message' => 'Kết nối "' . $label . '" thành công. Đọc được ' . $n . ' dòng (gồm header).',
 				'rows' => $n,
+				'source_id' => (int) $source['id'],
 			);
 		} catch (Exception $e) {
 			return array('success' => false, 'error' => $e->getMessage());
@@ -399,12 +887,18 @@ class Leads_SheetImportService {
 	}
 
 	/**
-	 * Poll sheet once; only new rows create leads.
+	 * Poll all enabled sources (master enabled must be on).
 	 * @return array
 	 */
 	public static function pollOnce() {
+		return self::pollAllSources();
+	}
+
+	/**
+	 * @return array
+	 */
+	public static function pollAllSources() {
 		global $current_user;
-		// CRMEntity::save requires a valid user (cron / sheet_poll_now without session).
 		if (empty($current_user) || empty($current_user->id)) {
 			$current_user = Users::getActiveAdminUser();
 		}
@@ -415,43 +909,174 @@ class Leads_SheetImportService {
 		if (empty($settings['enabled'])) {
 			return array('success' => true, 'skipped' => true, 'reason' => 'disabled', 'imported' => 0);
 		}
-		if ($settings['spreadsheet_id'] === '') {
-			$msg = 'Thiếu spreadsheet_id.';
+		if (trim((string) $settings['service_account_json']) === '') {
+			$msg = 'Chưa có Service Account JSON.';
 			self::setSetting('last_error', $msg);
 			return array('success' => false, 'error' => $msg, 'imported' => 0);
 		}
 
-		try {
-			$rows = self::fetchSheetValues($settings['spreadsheet_id'], $settings['sheet_range'], $settings['service_account_json']);
-		} catch (Exception $e) {
-			$msg = $e->getMessage();
+		$sources = self::listSources();
+		$enabled = array();
+		foreach ($sources as $src) {
+			if (!empty($src['enabled']) && $src['spreadsheet_id'] !== '') {
+				$enabled[] = $src;
+			}
+		}
+		if (empty($enabled)) {
+			$msg = 'Chưa có nguồn Google Sheet nào được bật.';
 			self::setSetting('last_error', $msg);
 			self::setSetting('last_poll_at', date('Y-m-d H:i:s'));
-			return array('success' => false, 'error' => $msg, 'imported' => 0);
+			return array('success' => false, 'error' => $msg, 'imported' => 0, 'sources' => array());
+		}
+
+		$totalImported = 0;
+		$totalSkipped = 0;
+		$allErrors = array();
+		$perSource = array();
+		$ok = true;
+		foreach ($enabled as $src) {
+			$result = self::pollSource($src, $settings['service_account_json']);
+			$perSource[] = array(
+				'source_id' => (int) $src['id'],
+				'name' => $src['name'],
+				'target_module' => isset($src['target_module']) ? $src['target_module'] : 'leads',
+				'imported' => isset($result['imported']) ? (int) $result['imported'] : 0,
+				'skipped_existing' => isset($result['skipped_existing']) ? (int) $result['skipped_existing'] : 0,
+				'error' => isset($result['error']) ? $result['error'] : '',
+				'summary' => isset($result['summary']) ? $result['summary'] : '',
+			);
+			$totalImported += isset($result['imported']) ? (int) $result['imported'] : 0;
+			$totalSkipped += isset($result['skipped_existing']) ? (int) $result['skipped_existing'] : 0;
+			if (!empty($result['error'])) {
+				$ok = false;
+				$allErrors[] = $src['name'] . ': ' . $result['error'];
+			} elseif (!empty($result['errors']) && is_array($result['errors'])) {
+				foreach (array_slice($result['errors'], 0, 3) as $err) {
+					$allErrors[] = $src['name'] . ': ' . $err;
+				}
+			}
+		}
+
+		$summary = 'sources=' . count($enabled) . '; imported=' . $totalImported
+			. '; skipped_existing=' . $totalSkipped . '; errors=' . count($allErrors);
+		$errText = count($allErrors) ? implode(' | ', array_slice($allErrors, 0, 8)) : '';
+		self::setSetting('last_error', $errText);
+		self::setSetting('last_poll_at', date('Y-m-d H:i:s'));
+		self::setSetting('last_result', $summary);
+
+		return array(
+			'success' => $ok || $totalImported > 0 || empty($allErrors),
+			'imported' => $totalImported,
+			'skipped_existing' => $totalSkipped,
+			'errors' => $allErrors,
+			'summary' => $summary,
+			'sources' => $perSource,
+		);
+	}
+
+	/**
+	 * Poll one source by id (respects master enabled).
+	 * @param int $sourceId
+	 * @return array
+	 */
+	public static function pollSourceById($sourceId) {
+		global $current_user;
+		if (empty($current_user) || empty($current_user->id)) {
+			$current_user = Users::getActiveAdminUser();
+		}
+		$settings = self::getSettings();
+		if (empty($settings['enabled'])) {
+			return array('success' => true, 'skipped' => true, 'reason' => 'disabled', 'imported' => 0);
+		}
+		$source = self::getSource((int) $sourceId);
+		if (!$source) {
+			return array('success' => false, 'error' => 'Không tìm thấy nguồn #' . (int) $sourceId, 'imported' => 0);
+		}
+		if (empty($source['enabled'])) {
+			return array('success' => true, 'skipped' => true, 'reason' => 'source_disabled', 'imported' => 0);
+		}
+		if (trim((string) $settings['service_account_json']) === '') {
+			return array('success' => false, 'error' => 'Chưa có Service Account JSON.', 'imported' => 0);
+		}
+		return self::pollSource($source, $settings['service_account_json']);
+	}
+
+	/**
+	 * @param array $source
+	 * @param string $serviceAccountJsonOrPath
+	 * @return array
+	 */
+	protected static function pollSource(array $source, $serviceAccountJsonOrPath) {
+		$target = self::normalizeTargetModule(isset($source['target_module']) ? $source['target_module'] : 'leads');
+		if ($target === 'accounts') {
+			require_once 'modules/Accounts/helpers/SheetIngestService.php';
+			return Accounts_SheetIngestService_Helper::pollSource(
+				$source,
+				$serviceAccountJsonOrPath,
+				array(__CLASS__, 'fetchSheetValues'),
+				array(__CLASS__, 'makeRowKey'),
+				array(__CLASS__, 'updateSourcePollMetaPublic')
+			);
+		}
+		return self::pollLeadsSource($source, $serviceAccountJsonOrPath);
+	}
+
+	/**
+	 * Public wrapper for Accounts ingest callback.
+	 */
+	public static function updateSourcePollMetaPublic($sourceId, $lastError, $lastResult) {
+		self::updateSourcePollMeta($sourceId, $lastError, $lastResult);
+	}
+
+	/**
+	 * @param array $source
+	 * @param string $serviceAccountJsonOrPath
+	 * @return array
+	 */
+	protected static function pollLeadsSource(array $source, $serviceAccountJsonOrPath) {
+		$sourceId = (int) $source['id'];
+		$spreadsheetId = trim((string) $source['spreadsheet_id']);
+		$range = trim((string) $source['sheet_range']);
+		if ($range === '') {
+			$range = 'Sheet1';
+		}
+		$colMap = isset($source['column_map']) && is_array($source['column_map'])
+			? $source['column_map']
+			: self::defaultColumnMap();
+
+		try {
+			$rows = self::fetchSheetValues($spreadsheetId, $range, $serviceAccountJsonOrPath);
+		} catch (Exception $e) {
+			$msg = $e->getMessage();
+			self::updateSourcePollMeta($sourceId, $msg, '');
+			return array('success' => false, 'error' => $msg, 'imported' => 0, 'source_id' => $sourceId);
 		}
 
 		if (count($rows) < 2) {
-			self::setSetting('last_error', '');
-			self::setSetting('last_poll_at', date('Y-m-d H:i:s'));
-			self::setSetting('last_result', '0 rows (header only or empty)');
-			return array('success' => true, 'imported' => 0, 'skipped_existing' => 0, 'errors' => array());
+			$summary = '0 rows (header only or empty)';
+			self::updateSourcePollMeta($sourceId, '', $summary);
+			return array(
+				'success' => true,
+				'imported' => 0,
+				'skipped_existing' => 0,
+				'errors' => array(),
+				'summary' => $summary,
+				'source_id' => $sourceId,
+			);
 		}
 
 		$header = self::normalizeHeaderRow($rows[0]);
-		$colMap = $settings['column_map'];
 		$imported = 0;
 		$skippedExisting = 0;
 		$errors = array();
-		$spreadsheetId = $settings['spreadsheet_id'];
 
 		for ($i = 1; $i < count($rows); $i++) {
 			$row = $rows[$i];
 			if (!is_array($row)) {
 				continue;
 			}
-			// Row index in sheet is 1-based; data starts at sheet row 2
 			$sheetRowNum = $i + 1;
-			$rowKey = self::makeRowKey($spreadsheetId, $settings['sheet_range'], $sheetRowNum);
+			$rowKey = self::makeRowKey($spreadsheetId, $range, $sheetRowNum);
 			if (self::importKeyExists($rowKey)) {
 				$skippedExisting++;
 				continue;
@@ -461,7 +1086,7 @@ class Leads_SheetImportService {
 				continue;
 			}
 			try {
-				$payload = self::mapRowToLeadPayload($assoc, $colMap, $rowKey);
+				$payload = self::mapRowToLeadPayload($assoc, $colMap, $rowKey, $source);
 				if ($payload['phone'] === '' || $payload['name'] === '') {
 					$errors[] = "Row {$sheetRowNum}: thiếu tên hoặc SĐT";
 					continue;
@@ -479,7 +1104,7 @@ class Leads_SheetImportService {
 					isset($payload['_form_c2']) ? $payload['_form_c2'] : '',
 					isset($payload['_form_c3']) ? $payload['_form_c3'] : ''
 				);
-				self::recordImport($rowKey, $leadId, $assoc);
+				self::recordImport($rowKey, $leadId, $assoc, $sourceId);
 				$imported++;
 			} catch (Exception $ex) {
 				$errors[] = "Row {$sheetRowNum}: " . $ex->getMessage();
@@ -487,9 +1112,8 @@ class Leads_SheetImportService {
 		}
 
 		$summary = "imported={$imported}; skipped_existing={$skippedExisting}; errors=" . count($errors);
-		self::setSetting('last_error', count($errors) ? implode(' | ', array_slice($errors, 0, 5)) : '');
-		self::setSetting('last_poll_at', date('Y-m-d H:i:s'));
-		self::setSetting('last_result', $summary);
+		$errText = count($errors) ? implode(' | ', array_slice($errors, 0, 5)) : '';
+		self::updateSourcePollMeta($sourceId, $errText, $summary);
 
 		return array(
 			'success' => true,
@@ -497,6 +1121,8 @@ class Leads_SheetImportService {
 			'skipped_existing' => $skippedExisting,
 			'errors' => $errors,
 			'summary' => $summary,
+			'source_id' => $sourceId,
+			'target_module' => 'leads',
 		);
 	}
 
@@ -513,11 +1139,17 @@ class Leads_SheetImportService {
 		return ($res && $adb->num_rows($res) > 0);
 	}
 
-	protected static function recordImport($rowKey, $leadId, array $assoc) {
+	protected static function recordImport($rowKey, $leadId, array $assoc, $sourceId = 0) {
 		$adb = PearDatabase::getInstance();
 		$adb->pquery(
-			'INSERT INTO ' . self::TABLE_IMPORT . ' (sheet_row_key, leadid, raw_json, imported_at) VALUES (?,?,?,?)',
-			array($rowKey, (int) $leadId, json_encode($assoc, JSON_UNESCAPED_UNICODE), date('Y-m-d H:i:s'))
+			'INSERT INTO ' . self::TABLE_IMPORT . ' (sheet_row_key, leadid, raw_json, imported_at, source_id) VALUES (?,?,?,?,?)',
+			array(
+				$rowKey,
+				(int) $leadId,
+				json_encode($assoc, JSON_UNESCAPED_UNICODE),
+				date('Y-m-d H:i:s'),
+				$sourceId > 0 ? (int) $sourceId : null,
+			)
 		);
 	}
 
@@ -553,9 +1185,10 @@ class Leads_SheetImportService {
 	 * @param array $assoc header=>value
 	 * @param array $colMap
 	 * @param string $rowKey
+	 * @param array|null $source optional source meta
 	 * @return array lead payload
 	 */
-	public static function mapRowToLeadPayload(array $assoc, array $colMap, $rowKey) {
+	public static function mapRowToLeadPayload(array $assoc, array $colMap, $rowKey, $source = null) {
 		$name = self::getMappedCell($assoc, $colMap, 'name');
 		$phone = preg_replace('/\D+/', '', self::getMappedCell($assoc, $colMap, 'phone'));
 		if (strlen($phone) === 9 && preg_match('/^[3-9]/', $phone)) {
@@ -619,6 +1252,19 @@ class Leads_SheetImportService {
 		require_once 'modules/Leads/models/OfflineGd11Service.php';
 		$tags = Leads_OfflineGd11Service::ensureProgramTag($tags);
 
+		$sourceId = 0;
+		$sourceName = '';
+		if (is_array($source)) {
+			$sourceId = isset($source['id']) ? (int) $source['id'] : 0;
+			$sourceName = isset($source['name']) ? trim((string) $source['name']) : '';
+			if ($sourceName !== '') {
+				$qa['_sheet_source'] = $sourceName;
+			}
+			if (!empty($source['source_tag'])) {
+				$qa['_sheet_source_tag'] = trim((string) $source['source_tag']);
+			}
+		}
+
 		return array(
 			'name' => $name !== '' ? $name : ('KH ' . $phone),
 			'phone' => $phone,
@@ -630,6 +1276,8 @@ class Leads_SheetImportService {
 			'screening_result' => $screening,
 			'sheet_source' => 1,
 			'sheet_row_key' => $rowKey,
+			'sheet_source_id' => $sourceId,
+			'sheet_source_name' => $sourceName,
 			'qa_raw' => $qa,
 			'_form_c1' => $c1,
 			'_form_c2' => $c2,
@@ -1117,6 +1765,6 @@ class Leads_SheetImportService {
 		if ($existing) {
 			return;
 		}
-		Vtiger_Cron::register($name, $handler, 60, 'Leads', 1, 0, 'Poll Google Sheet into modern Leads');
+		Vtiger_Cron::register($name, $handler, 60, 'Leads', 1, 0, 'Poll Google Sheets (multi-source) into modern Leads');
 	}
 }

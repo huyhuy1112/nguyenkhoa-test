@@ -225,6 +225,64 @@
 		return body && body.screening_bank ? clone(body.screening_bank) : getScreeningBank();
 	}
 
+	/**
+	 * Upload Excel bộ tiêu chuẩn → screening / gd14.
+	 * @param {File} file
+	 * @param {string} bankType ''|screening|gd14|gd12
+	 * @returns {Promise}
+	 */
+	function importQuestionBank(file, bankType) {
+		var def = $.Deferred();
+		if (!file) {
+			def.reject({ message: 'Chưa chọn file.' });
+			return def.promise();
+		}
+		var fd = new FormData();
+		fd.append('module', 'HelpDesk');
+		fd.append('action', 'TagRulesApi');
+		fd.append('mode', 'import_question_bank');
+		fd.append('apply', '1');
+		if (bankType) {
+			fd.append('bank_type', bankType);
+		}
+		fd.append('import_file', file);
+		$.ajax({
+			url: 'index.php',
+			method: 'POST',
+			data: fd,
+			processData: false,
+			contentType: false,
+			dataType: 'json',
+		}).done(function (res) {
+			var body = unwrap(res);
+			if (!body || body.success === false) {
+				var msg = (body && body.error) ? body.error : (body && body.message) ? body.message : 'Import thất bại';
+				if (msg && typeof msg === 'object' && msg.message) msg = msg.message;
+				def.reject({ message: String(msg) });
+				return;
+			}
+			if (body.state) {
+				applyState(body.state);
+			}
+			if (body.screening_bank) {
+				state.screening_bank = body.screening_bank;
+			}
+			if (body.gd14_questions) {
+				state.gd14_questions = body.gd14_questions;
+			}
+			listeners.forEach(function (cb) { try { cb(); } catch (e) {} });
+			def.resolve(body);
+		}).fail(function (xhr) {
+			var msg = 'Không kết nối được máy chủ.';
+			try {
+				var j = xhr.responseJSON;
+				if (j && j.error) msg = typeof j.error === 'object' ? (j.error.message || msg) : j.error;
+			} catch (e0) { /* ignore */ }
+			def.reject({ message: msg });
+		});
+		return def.promise();
+	}
+
 	function getSheetScoring() {
 		ensureBootstrapped();
 		return clone(state.sheet_scoring || {});
@@ -559,6 +617,7 @@
 		getGd14Questions: getGd14Questions,
 		saveGd14Questions: saveGd14Questions,
 		saveScreeningBank: saveScreeningBank,
+		importQuestionBank: importQuestionBank,
 		getChannelOptions: getChannelOptions,
 		getAssigneeOptions: getAssigneeOptions,
 		getCustomers: getCustomers,

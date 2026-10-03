@@ -749,6 +749,114 @@ body[data-module="Leads"][data-view="List"][data-app="SALES"] .mk-so-page.mk-lea
 	padding: 12px 18px 16px;
 	border-top: 1px solid #e2e8f0;
 }
+.mk-leads-sheet-modal__panel--wide {
+	width: min(720px, 100%);
+	max-height: min(92vh, 900px);
+}
+.mk-leads-sheet-sources-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin: 12px 0 8px;
+}
+.mk-leads-sheet-sources-head strong {
+	font-size: 13px;
+	color: #0f172a;
+}
+.mk-leads-sheet-sources {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-bottom: 10px;
+}
+.mk-leads-sheet-sources__empty {
+	margin: 0;
+	padding: 12px;
+	border-radius: 8px;
+	background: #f8fafc;
+	color: #64748b;
+	font-size: 13px;
+}
+.mk-leads-sheet-source {
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+	justify-content: space-between;
+	padding: 10px 12px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	background: #fff;
+}
+.mk-leads-sheet-source.is-on {
+	border-color: #bbf7d0;
+	background: #f0fdf4;
+}
+.mk-leads-sheet-source.is-accounts {
+	border-color: #fde68a;
+	background: #fffbeb;
+}
+.mk-leads-sheet-source.is-on.is-accounts {
+	border-color: #fbbf24;
+	background: #fffbeb;
+}
+.mk-leads-sheet-select {
+	width: 100%;
+	padding: 8px 10px;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	font-size: 13px;
+	background: #fff;
+}
+.mk-leads-sheet-source__main {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+.mk-leads-sheet-source__main strong {
+	font-size: 13px;
+	color: #0f172a;
+}
+.mk-leads-sheet-source__id {
+	font-size: 11px;
+	color: #64748b;
+	word-break: break-all;
+}
+.mk-leads-sheet-source__meta {
+	font-size: 11px;
+	color: #475569;
+}
+.mk-leads-sheet-source__acts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	flex-shrink: 0;
+}
+.mk-leads-btn--sm {
+	padding: 4px 8px;
+	font-size: 12px;
+	line-height: 1.2;
+}
+.mk-leads-sheet-editor {
+	margin: 8px 0 12px;
+	padding: 12px;
+	border: 1px solid #cbd5e1;
+	border-radius: 12px;
+	background: #f8fafc;
+}
+.mk-leads-sheet-editor__title {
+	margin: 0 0 10px;
+	font-size: 14px;
+	color: #0f172a;
+}
+.mk-leads-sheet-editor__actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 10px;
+}
 
 /* Merge leads modal */
 .mk-leads-merge-modal__panel {

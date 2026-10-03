@@ -2899,3 +2899,22 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-lv__edit label {
 	body[data-module="HelpDesk"][data-view="Rules"] .mk-lv__edit { display: flex; flex-direction: column; }
 }
 
+body[data-module="HelpDesk"][data-view="Rules"] .mk-tre-file {
+	cursor: pointer;
+	margin: 0;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-tre-import-status {
+	margin: 0;
+	padding: 10px 12px;
+	border-radius: 8px;
+	background: #f1f5f9;
+	color: #334155;
+	font-size: 13px;
+	line-height: 1.4;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-tre-import-status.is-error {
+	background: #fef2f2;
+	color: #b91c1c;
+	border: 1px solid #fecaca;
+}
+

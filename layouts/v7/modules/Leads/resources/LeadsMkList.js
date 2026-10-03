@@ -4987,6 +4987,54 @@
     );
   }
 
+  function sheetMapFieldsForTarget(target) {
+    if (target === "accounts") {
+      return [
+        ["accountname", "Tên công ty / KH"],
+        ["phone", "SĐT chính"],
+        ["email", "Email"],
+        ["tb_party_b_name", "Họ tên Bên B"],
+        ["tb_party_b_phone", "SĐT Bên B"],
+        ["tb_party_b_email", "Email Bên B"],
+        ["tb_party_b_cccd", "CCCD"],
+        ["tb_store_address", "Địa chỉ cửa hàng"],
+        ["tb_contract_no", "Số hợp đồng"],
+        ["bill_street", "Địa chỉ billing"],
+        ["account_no", "Mã KH"],
+      ];
+    }
+    return [
+      ["name", "Tên khách"],
+      ["phone", "Số điện thoại"],
+      ["email", "Email"],
+      ["address", "Địa chỉ"],
+      ["q1", "Câu 1 – Tình trạng"],
+      ["q2", "Câu 2 – Mô hình"],
+      ["q3", "Câu 3 – Ngân sách"],
+      ["region", "Khu vực (1 / 2 / 3)"],
+    ];
+  }
+
+  function rebuildSheetMapGui(target, mapObj) {
+    var gui = document.getElementById("mk-sheet-map-gui");
+    var hint = document.getElementById("mk-sheet-map-hint");
+    if (!gui) return;
+    var fields = sheetMapFieldsForTarget(target);
+    gui.innerHTML = fields
+      .map(function (pair) {
+        return mapFieldRowHtml(pair[0], pair[1]);
+      })
+      .join("");
+    if (hint) {
+      hint.innerHTML =
+        target === "accounts"
+          ? "Map cột Tuibao → <strong>Accounts</strong>. Trùng SĐT sẽ bỏ qua (không tạo Account trùng)."
+          : "Map cột lõi + 3 câu Form → <strong>Leads</strong>. CRM tự tính kết quả sơ lược. Trùng SĐT vẫn tạo lead mới.";
+    }
+    applySheetMapGuiFromObject(mapObj || {});
+    syncSheetMapJsonFromGui();
+  }
+
   function parseSheetMapRaw(raw) {
     try {
       var o = JSON.parse(String(raw || "{}").trim() || "{}");
@@ -5046,47 +5094,65 @@
     root.hidden = true;
     root.innerHTML =
       '<div class="mk-leads-sheet-modal__backdrop" data-sheet-close="1"></div>' +
-      '<div class="mk-leads-sheet-modal__panel" role="dialog" aria-modal="true" aria-labelledby="mk-sheet-title">' +
+      '<div class="mk-leads-sheet-modal__panel mk-leads-sheet-modal__panel--wide" role="dialog" aria-modal="true" aria-labelledby="mk-sheet-title">' +
       '  <header class="mk-leads-sheet-modal__head">' +
-      '    <h2 id="mk-sheet-title">Google Sheet → Lead</h2>' +
+      '    <h2 id="mk-sheet-title">Google Sheet → Lead / Accounts</h2>' +
       '    <button type="button" class="mk-leads-sheet-modal__x" data-sheet-close="1" aria-label="Đóng">×</button>' +
       "  </header>" +
       '  <div class="mk-leads-sheet-modal__body">' +
-      '    <p class="mk-leads-sheet-modal__hint">Share sheet với email service account (Viewer), dán Spreadsheet URL/ID + Service Account JSON. Poll mỗi 1 phút.</p>' +
-      '    <label class="mk-leads-sheet-field"><span>Link hoặc Spreadsheet ID</span>' +
-      '      <input type="text" id="mk-sheet-spreadsheet" placeholder="https://docs.google.com/spreadsheets/d/.../edit hoặc ID" autocomplete="off" />' +
-      "    </label>" +
-      '    <label class="mk-leads-sheet-field"><span>Tên tab / range</span>' +
-      '      <input type="text" id="mk-sheet-range" placeholder="Sheet1 hoặc Form!A:Z" />' +
-      "    </label>" +
+      '    <p class="mk-leads-sheet-modal__hint">Landing/ads → <strong>Leads</strong>. Sheet Tuibao nhượng quyền → <strong>Accounts</strong>. Share sheet với email service account (Viewer). Poll mỗi 1 phút lần lượt các nguồn đang bật.</p>' +
       '    <label class="mk-leads-sheet-field"><span>Service Account JSON <em id="mk-sheet-sa-status"></em></span>' +
-      '      <textarea id="mk-sheet-sa" rows="6" placeholder="Dán toàn bộ JSON (type service_account…). Để trống nếu đã cấu hình và không đổi."></textarea>' +
+      '      <textarea id="mk-sheet-sa" rows="4" placeholder="Dán JSON lần đầu (dùng chung mọi nguồn). Để trống nếu đã cấu hình."></textarea>' +
       "    </label>" +
-      '    <details class="mk-leads-sheet-advanced" open>' +
-      "      <summary>Ánh xạ cột — map header Google Sheet sang field CRM</summary>" +
-      '      <p class="mk-leads-sheet-map-hint">Map cột lõi + 3 câu Form. CRM tự tính <strong>Kết quả sơ lược</strong> và điền <strong>Mô hình kinh doanh</strong>. Trùng SĐT vẫn tạo lead mới (badge nhóm). Khu vực 1/2/3 điền nếu Sheet có cột khu vực.</p>' +
-      '      <div class="mk-leads-sheet-map-gui" id="mk-sheet-map-gui">' +
-      mapFieldRowHtml("name", "Tên khách") +
-      mapFieldRowHtml("phone", "Số điện thoại") +
-      mapFieldRowHtml("email", "Email") +
-      mapFieldRowHtml("address", "Địa chỉ") +
-      mapFieldRowHtml("q1", "Câu 1 – Tình trạng") +
-      mapFieldRowHtml("q2", "Câu 2 – Mô hình") +
-      mapFieldRowHtml("q3", "Câu 3 – Ngân sách") +
-      mapFieldRowHtml("region", "Khu vực (1 / 2 / 3)") +
-      "      </div>" +
-      '      <details class="mk-leads-sheet-map-json">' +
-      "        <summary>JSON nâng cao (tuỳ chọn)</summary>" +
-      '        <textarea id="mk-sheet-map" rows="6" spellcheck="false"></textarea>' +
+      '    <label class="mk-leads-sheet-check"><input type="checkbox" id="mk-sheet-enabled" /> Bật poll tự động (master) mỗi 1 phút</label>' +
+      '    <div class="mk-leads-sheet-sources-head">' +
+      "      <strong>Danh sách nguồn</strong>" +
+      '      <button type="button" class="mk-leads-btn mk-leads-btn--outline mk-leads-btn--sm" id="mk-sheet-add-source">+ Thêm nguồn</button>' +
+      "    </div>" +
+      '    <div class="mk-leads-sheet-sources" id="mk-sheet-sources"></div>' +
+      '    <div class="mk-leads-sheet-editor" id="mk-sheet-editor" hidden>' +
+      '      <h3 class="mk-leads-sheet-editor__title" id="mk-sheet-editor-title">Chỉnh nguồn</h3>' +
+      '      <input type="hidden" id="mk-sheet-edit-id" value="" />' +
+      '      <label class="mk-leads-sheet-field"><span>Tên nguồn (landing / ads)</span>' +
+      '        <input type="text" id="mk-sheet-edit-name" placeholder="VD: Landing Facebook Ads — Tháng 10" autocomplete="off" />' +
+      "      </label>" +
+      '      <label class="mk-leads-sheet-field"><span>Tag ngắn (tuỳ chọn)</span>' +
+      '        <input type="text" id="mk-sheet-edit-tag" placeholder="VD: fb_ads, landing_a, tuibao" autocomplete="off" />' +
+      "      </label>" +
+      '      <label class="mk-leads-sheet-field"><span>Đích import</span>' +
+      '        <select id="mk-sheet-edit-target" class="mk-leads-sheet-select">' +
+      '          <option value="leads">Leads (landing / ads)</option>' +
+      '          <option value="accounts">Accounts — Tuibao nhượng quyền</option>' +
+      "        </select>" +
+      "      </label>" +
+      '      <label class="mk-leads-sheet-field"><span>Link hoặc Spreadsheet ID</span>' +
+      '        <input type="text" id="mk-sheet-spreadsheet" placeholder="https://docs.google.com/spreadsheets/d/.../edit hoặc ID" autocomplete="off" />' +
+      "      </label>" +
+      '      <label class="mk-leads-sheet-field"><span>Tên tab / range</span>' +
+      '        <input type="text" id="mk-sheet-range" placeholder="Sheet1 hoặc Form!A:Z" />' +
+      "      </label>" +
+      '      <label class="mk-leads-sheet-check"><input type="checkbox" id="mk-sheet-source-enabled" checked /> Bật nguồn này</label>' +
+      '      <details class="mk-leads-sheet-advanced" open>' +
+      "        <summary>Ánh xạ cột — map header Google Sheet sang field CRM</summary>" +
+      '        <p class="mk-leads-sheet-map-hint" id="mk-sheet-map-hint">Map cột theo đích đã chọn.</p>' +
+      '        <div class="mk-leads-sheet-map-gui" id="mk-sheet-map-gui"></div>' +
+      '        <details class="mk-leads-sheet-map-json">' +
+      "          <summary>JSON nâng cao (tuỳ chọn)</summary>" +
+      '          <textarea id="mk-sheet-map" rows="6" spellcheck="false"></textarea>' +
+      "        </details>" +
       "      </details>" +
-      "    </details>" +
-      '    <label class="mk-leads-sheet-check"><input type="checkbox" id="mk-sheet-enabled" /> Bật poll tự động mỗi 1 phút</label>' +
+      '      <div class="mk-leads-sheet-editor__actions">' +
+      '        <button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-sheet-editor-cancel">Huỷ chỉnh</button>' +
+      '        <button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-sheet-editor-test">Test nguồn</button>' +
+      '        <button type="button" class="mk-leads-btn mk-leads-btn--primary" id="mk-sheet-editor-save">Lưu nguồn</button>' +
+      "      </div>" +
+      "    </div>" +
       '    <div class="mk-leads-sheet-status" id="mk-sheet-status" hidden></div>' +
       "  </div>" +
       '  <footer class="mk-leads-sheet-modal__foot">' +
-      '    <button type="button" class="mk-leads-btn mk-leads-btn--outline" data-sheet-close="1">Huỷ</button>' +
-      '    <button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-sheet-poll">Lưu &amp; đồng bộ ngay</button>' +
-      '    <button type="button" class="mk-leads-btn mk-leads-btn--primary" id="mk-sheet-save">Lưu</button>' +
+      '    <button type="button" class="mk-leads-btn mk-leads-btn--outline" data-sheet-close="1">Đóng</button>' +
+      '    <button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-sheet-poll">Đồng bộ tất cả ngay</button>' +
+      '    <button type="button" class="mk-leads-btn mk-leads-btn--primary" id="mk-sheet-save">Lưu master + SA</button>' +
       "  </footer>" +
       "</div>";
     document.body.appendChild(root);
@@ -5132,23 +5198,143 @@
     box.classList.toggle("is-error", !!isErr);
   }
 
-  function collectSheetPayload(requireSaIfMissing, settings) {
-    var id = parseSpreadsheetId(document.getElementById("mk-sheet-spreadsheet").value);
+  function renderSheetSourcesList(settings) {
+    var box = document.getElementById("mk-sheet-sources");
+    if (!box) return;
+    var sources = (settings && settings.sources) || [];
+    if (!sources.length) {
+      box.innerHTML =
+        '<p class="mk-leads-sheet-sources__empty">Chưa có nguồn. Bấm “+ Thêm nguồn” để gắn sheet đầu tiên.</p>';
+      return;
+    }
+    box.innerHTML = sources
+      .map(function (src) {
+        var meta = [
+          src.target_module === "accounts" ? "→ Accounts (Tuibao)" : "→ Leads",
+          src.enabled ? "Đang bật" : "Tắt",
+          src.sheet_range || "Sheet1",
+          src.last_poll_at ? "Poll: " + src.last_poll_at : "",
+          src.last_error ? "Lỗi: " + src.last_error : src.last_result || "",
+        ]
+          .filter(Boolean)
+          .join(" · ");
+        return (
+          '<article class="mk-leads-sheet-source' +
+          (src.enabled ? " is-on" : "") +
+          (src.target_module === "accounts" ? " is-accounts" : "") +
+          '" data-source-id="' +
+          src.id +
+          '">' +
+          '<div class="mk-leads-sheet-source__main">' +
+          "<strong>" +
+          escapeHtml(src.name || "Nguồn #" + src.id) +
+          "</strong>" +
+          '<span class="mk-leads-sheet-source__id">' +
+          escapeHtml(src.spreadsheet_id || "") +
+          "</span>" +
+          '<span class="mk-leads-sheet-source__meta">' +
+          escapeHtml(meta) +
+          "</span>" +
+          "</div>" +
+          '<div class="mk-leads-sheet-source__acts">' +
+          '<button type="button" class="mk-leads-btn mk-leads-btn--outline mk-leads-btn--sm" data-sheet-src-edit="' +
+          src.id +
+          '">Sửa</button>' +
+          '<button type="button" class="mk-leads-btn mk-leads-btn--outline mk-leads-btn--sm" data-sheet-src-poll="' +
+          src.id +
+          '">Sync</button>' +
+          '<button type="button" class="mk-leads-btn mk-leads-btn--outline mk-leads-btn--sm" data-sheet-src-del="' +
+          src.id +
+          '">Xoá</button>' +
+          "</div></article>"
+        );
+      })
+      .join("");
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function showSheetEditor(source) {
+    var ed = document.getElementById("mk-sheet-editor");
+    if (!ed) return;
+    ed.hidden = false;
+    var isNew = !source || !source.id;
+    document.getElementById("mk-sheet-editor-title").textContent = isNew
+      ? "Thêm nguồn mới"
+      : "Chỉnh nguồn #" + source.id;
+    document.getElementById("mk-sheet-edit-id").value = source && source.id ? String(source.id) : "";
+    document.getElementById("mk-sheet-edit-name").value = (source && source.name) || "";
+    document.getElementById("mk-sheet-edit-tag").value = (source && source.source_tag) || "";
+    var target =
+      source && source.target_module === "accounts" ? "accounts" : "leads";
+    var targetEl = document.getElementById("mk-sheet-edit-target");
+    if (targetEl) targetEl.value = target;
+    document.getElementById("mk-sheet-spreadsheet").value = (source && source.spreadsheet_id) || "";
+    document.getElementById("mk-sheet-range").value = (source && source.sheet_range) || "Sheet1";
+    document.getElementById("mk-sheet-source-enabled").checked =
+      !source || source.enabled == null ? true : !!source.enabled;
+    var mapObj =
+      source && typeof source.column_map === "object" && source.column_map
+        ? source.column_map
+        : {};
+    document.getElementById("mk-sheet-map").value = JSON.stringify(mapObj, null, 2);
+    rebuildSheetMapGui(target, mapObj);
+    if (targetEl && !targetEl._mkBound) {
+      targetEl._mkBound = true;
+      targetEl.addEventListener("change", function () {
+        rebuildSheetMapGui(targetEl.value === "accounts" ? "accounts" : "leads", {});
+      });
+    }
+    ed.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function hideSheetEditor() {
+    var ed = document.getElementById("mk-sheet-editor");
+    if (ed) ed.hidden = true;
+  }
+
+  function collectSourceEditorPayload() {
+    var idRaw = (document.getElementById("mk-sheet-edit-id").value || "").trim();
+    var id = idRaw ? parseInt(idRaw, 10) : 0;
+    var name = (document.getElementById("mk-sheet-edit-name").value || "").trim();
+    var tag = (document.getElementById("mk-sheet-edit-tag").value || "").trim();
+    var targetEl = document.getElementById("mk-sheet-edit-target");
+    var target = targetEl && targetEl.value === "accounts" ? "accounts" : "leads";
+    var spreadsheet = parseSpreadsheetId(document.getElementById("mk-sheet-spreadsheet").value);
     var range = (document.getElementById("mk-sheet-range").value || "").trim() || "Sheet1";
-    var sa = (document.getElementById("mk-sheet-sa").value || "").trim();
-    var en = document.getElementById("mk-sheet-enabled").checked;
-    if (!id) {
+    var enabled = document.getElementById("mk-sheet-source-enabled").checked ? 1 : 0;
+    if (!spreadsheet) {
       throw new Error("Thiếu Spreadsheet ID / link.");
     }
-    // GUI is source of truth; push into JSON text for advanced view.
+    if (!name) {
+      name =
+        (target === "accounts" ? "Tuibao " : "Nguồn ") + spreadsheet.slice(0, 8);
+    }
     var map = buildSheetMapFromGui();
     syncSheetMapJsonFromGui();
     var payload = {
-      enabled: en ? 1 : 0,
-      spreadsheet_id: id,
+      name: name,
+      source_tag: tag,
+      target_module: target,
+      spreadsheet_id: spreadsheet,
       sheet_range: range,
       column_map: map || {},
+      enabled: enabled,
     };
+    if (id > 0) payload.id = id;
+    return payload;
+  }
+
+  function collectMasterPayload(requireSaIfMissing, settings) {
+    var sa = (document.getElementById("mk-sheet-sa").value || "").trim();
+    var en = document.getElementById("mk-sheet-enabled").checked;
+    var payload = { enabled: en ? 1 : 0 };
     if (sa) {
       payload.service_account_json = sa;
     } else if (requireSaIfMissing && !(settings && settings.service_account_configured)) {
@@ -5164,6 +5350,7 @@
     }
     var modal = ensureSheetModal();
     setSheetStatus("");
+    hideSheetEditor();
     store
       .getSheetSettings()
       .then(function (s) {
@@ -5171,14 +5358,6 @@
           window.alert("Chỉ Admin cấu hình được Google Sheet.");
           return;
         }
-        document.getElementById("mk-sheet-spreadsheet").value = s.spreadsheet_id || "";
-        document.getElementById("mk-sheet-range").value = s.sheet_range || "Sheet1";
-        var mapObj =
-          typeof s.column_map === "object" && s.column_map
-            ? s.column_map
-            : parseSheetMapRaw(String(s.column_map || "{}"));
-        document.getElementById("mk-sheet-map").value = JSON.stringify(mapObj, null, 2);
-        applySheetMapGuiFromObject(mapObj);
         document.getElementById("mk-sheet-sa").value = "";
         document.getElementById("mk-sheet-enabled").checked = !!s.enabled;
         var st = document.getElementById("mk-sheet-sa-status");
@@ -5189,8 +5368,16 @@
               : "(đã cấu hình)"
             : "(chưa có)";
         }
+        renderSheetSourcesList(s);
         setSheetStatus(
           [
+            s.sources_count != null
+              ? "Nguồn: " +
+                (s.enabled_sources_count || 0) +
+                "/" +
+                (s.sources_count || 0) +
+                " bật"
+              : "",
             s.last_poll_at ? "Poll gần nhất: " + s.last_poll_at : "",
             s.last_result ? s.last_result : "",
             s.last_error ? "Lỗi: " + s.last_error : "",
@@ -5201,55 +5388,209 @@
         );
         modal.hidden = false;
 
+        function refreshFromSettings(next) {
+          s = next || s;
+          renderSheetSourcesList(s);
+          document.getElementById("mk-sheet-enabled").checked = !!s.enabled;
+          var st2 = document.getElementById("mk-sheet-sa-status");
+          if (st2) {
+            st2.textContent = s.service_account_configured
+              ? s.service_account_email
+                ? "(đã cấu hình: " + s.service_account_email + ")"
+                : "(đã cấu hình)"
+              : "(chưa có)";
+          }
+        }
+
+        function findSource(id) {
+          var list = (s && s.sources) || [];
+          for (var i = 0; i < list.length; i++) {
+            if (Number(list[i].id) === Number(id)) return list[i];
+          }
+          return null;
+        }
+
         var saveBtn = document.getElementById("mk-sheet-save");
         var pollBtn = document.getElementById("mk-sheet-poll");
-        function doSave(andPoll) {
-          setSheetStatus(andPoll ? "Đang lưu & đồng bộ…" : "Đang lưu…", false);
+        var addBtn = document.getElementById("mk-sheet-add-source");
+        var editorSave = document.getElementById("mk-sheet-editor-save");
+        var editorCancel = document.getElementById("mk-sheet-editor-cancel");
+        var editorTest = document.getElementById("mk-sheet-editor-test");
+        var sourcesBox = document.getElementById("mk-sheet-sources");
+
+        addBtn.onclick = function () {
+          showSheetEditor({
+            name: "",
+            source_tag: "",
+            spreadsheet_id: "",
+            sheet_range: "Sheet1",
+            enabled: true,
+            column_map: {},
+          });
+        };
+        editorCancel.onclick = function () {
+          hideSheetEditor();
+        };
+        editorSave.onclick = function () {
           var payload;
           try {
-            payload = collectSheetPayload(true, s);
+            payload = collectSourceEditorPayload();
+          } catch (err) {
+            setSheetStatus(err.message || String(err), true);
+            return;
+          }
+          setSheetStatus("Đang lưu nguồn…", false);
+          editorSave.disabled = true;
+          store
+            .saveSheetSource(payload)
+            .then(function (res) {
+              refreshFromSettings(res && res.settings);
+              hideSheetEditor();
+              setSheetStatus("Đã lưu nguồn.", false);
+            })
+            .catch(function (err) {
+              setSheetStatus((err && (err.message || err)) || "Lưu nguồn thất bại.", true);
+            })
+            .then(function () {
+              editorSave.disabled = false;
+            });
+        };
+        editorTest.onclick = function () {
+          var idRaw = (document.getElementById("mk-sheet-edit-id").value || "").trim();
+          var id = idRaw ? parseInt(idRaw, 10) : 0;
+          if (!id) {
+            setSheetStatus("Lưu nguồn trước rồi mới Test.", true);
+            return;
+          }
+          setSheetStatus("Đang test nguồn…", false);
+          store
+            .testSheetSource(id)
+            .then(function (res) {
+              var ok = !!(res && res.success);
+              setSheetStatus(
+                (res && (res.message || res.error)) || (ok ? "OK" : "Test thất bại"),
+                !ok,
+              );
+            })
+            .catch(function (err) {
+              setSheetStatus((err && (err.message || err)) || "Test thất bại.", true);
+            });
+        };
+
+        sourcesBox.onclick = function (e) {
+          var t = e.target;
+          if (!t || !t.getAttribute) return;
+          var editId = t.getAttribute("data-sheet-src-edit");
+          var delId = t.getAttribute("data-sheet-src-del");
+          var pollId = t.getAttribute("data-sheet-src-poll");
+          if (editId) {
+            showSheetEditor(findSource(editId) || { id: editId });
+            return;
+          }
+          if (delId) {
+            if (!window.confirm("Xoá nguồn #" + delId + "?")) return;
+            setSheetStatus("Đang xoá…", false);
+            store
+              .deleteSheetSource(Number(delId))
+              .then(function (res) {
+                refreshFromSettings(res && res.settings);
+                hideSheetEditor();
+                setSheetStatus("Đã xoá nguồn.", false);
+              })
+              .catch(function (err) {
+                setSheetStatus((err && (err.message || err)) || "Xoá thất bại.", true);
+              });
+            return;
+          }
+          if (pollId) {
+            setSheetStatus("Đang sync nguồn #" + pollId + "…", false);
+            store
+              .pollSheetNow(Number(pollId))
+              .then(function (res) {
+                var msg =
+                  (res && res.summary) ||
+                  (res && res.error) ||
+                  "imported=" + (res && res.imported != null ? res.imported : "?");
+                setSheetStatus(msg, !!(res && (res.error || res.success === false)));
+                return store.getSheetSettings().then(function (next) {
+                  refreshFromSettings(next);
+                });
+              })
+              .then(function () {
+                if (store.refreshLeadsList) return store.refreshLeadsList();
+              })
+              .then(function () {
+                renderAll();
+              })
+              .catch(function (err) {
+                setSheetStatus((err && (err.message || err)) || "Sync thất bại.", true);
+              });
+          }
+        };
+
+        saveBtn.onclick = function () {
+          setSheetStatus("Đang lưu master…", false);
+          var payload;
+          try {
+            payload = collectMasterPayload(true, s);
           } catch (err) {
             setSheetStatus(err.message || String(err), true);
             return;
           }
           saveBtn.disabled = true;
-          pollBtn.disabled = true;
-          return store
+          store
             .saveSheetSettings(payload)
             .then(function (next) {
-              s = next || s;
-              if (!andPoll) {
-                setSheetStatus("Đã lưu cấu hình.", false);
-                return;
-              }
-              return store.pollSheetNow().then(function (res) {
-                var msg =
-                  res && res.summary
-                    ? res.summary
-                    : res && res.error
-                      ? res.error
-                      : "Poll xong: imported=" +
-                        (res && res.imported != null ? res.imported : "?");
-                setSheetStatus(msg, !!(res && res.error) || (res && res.success === false));
-                if (store.refreshLeadsList) return store.refreshLeadsList();
-              });
-            })
-            .then(function () {
-              renderAll();
+              refreshFromSettings(next);
+              document.getElementById("mk-sheet-sa").value = "";
+              setSheetStatus("Đã lưu cấu hình master / Service Account.", false);
             })
             .catch(function (err) {
               setSheetStatus((err && (err.message || err)) || "Lưu thất bại.", true);
             })
             .then(function () {
               saveBtn.disabled = false;
+            });
+        };
+
+        pollBtn.onclick = function () {
+          setSheetStatus("Đang đồng bộ tất cả nguồn…", false);
+          pollBtn.disabled = true;
+          var masterPromise = Promise.resolve();
+          try {
+            var master = collectMasterPayload(false, s);
+            masterPromise = store.saveSheetSettings(master).then(function (next) {
+              refreshFromSettings(next);
+            });
+          } catch (e0) {
+            /* ignore empty SA */
+          }
+          masterPromise
+            .then(function () {
+              return store.pollSheetNow();
+            })
+            .then(function (res) {
+              var msg =
+                (res && res.summary) ||
+                (res && res.error) ||
+                "imported=" + (res && res.imported != null ? res.imported : "?");
+              setSheetStatus(msg, !!(res && (res.error || res.success === false)));
+              return store.getSheetSettings().then(function (next) {
+                refreshFromSettings(next);
+              });
+            })
+            .then(function () {
+              if (store.refreshLeadsList) return store.refreshLeadsList();
+            })
+            .then(function () {
+              renderAll();
+            })
+            .catch(function (err) {
+              setSheetStatus((err && (err.message || err)) || "Đồng bộ thất bại.", true);
+            })
+            .then(function () {
               pollBtn.disabled = false;
             });
-        }
-        saveBtn.onclick = function () {
-          doSave(false);
-        };
-        pollBtn.onclick = function () {
-          doSave(true);
         };
       })
       .catch(function (err) {

@@ -196,7 +196,7 @@ class Leads_ModernService {
 		}
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
-				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw" . self::verifyProfileSelectSql() . ",
+				p.screening_result, p.sheet_source, p.sheet_row_key, p.sheet_source_id, p.sheet_source_name, p.qa_raw" . self::verifyProfileSelectSql() . ",
 				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
 				la.phone, la.lane, ce.smownerid, ce.createdtime, ce.description, p.pipeline_closed
 			FROM bace_lead_profile p
@@ -261,7 +261,7 @@ class Leads_ModernService {
 		self::installSchema($adb);
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
-				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw" . self::verifyProfileSelectSql() . ",
+				p.screening_result, p.sheet_source, p.sheet_row_key, p.sheet_source_id, p.sheet_source_name, p.qa_raw" . self::verifyProfileSelectSql() . ",
 				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
 				la.phone, la.lane, ce.smownerid, ce.createdtime, ce.description, p.pipeline_closed
 			FROM bace_lead_profile p
@@ -372,7 +372,7 @@ class Leads_ModernService {
 		$res = $adb->pquery(
 			"SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 				p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
-				p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw{$verifyCols},
+				p.screening_result, p.sheet_source, p.sheet_row_key, p.sheet_source_id, p.sheet_source_name, p.qa_raw{$verifyCols},
 				ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
 				la.phone, la.lane, ce.smownerid, ce.createdtime, p.pipeline_closed
 			FROM bace_lead_profile p
@@ -388,7 +388,7 @@ class Leads_ModernService {
 				$res = $adb->pquery(
 					"SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
 						p.segment, p.district, p.address_line, p.area, p.business_model, p.cccd, p.customer_type, p.purchase_reason,
-						p.screening_result, p.sheet_source, p.sheet_row_key, p.qa_raw{$verifyCols},
+						p.screening_result, p.sheet_source, p.sheet_row_key, p.sheet_source_id, p.sheet_source_name, p.qa_raw{$verifyCols},
 						ld.firstname, ld.lastname, ld.email, ld.company, ld.leadsource, ld.leadstatus,
 						la.phone, la.lane, ce.smownerid, ce.createdtime, p.pipeline_closed
 					FROM bace_lead_profile p
@@ -715,6 +715,8 @@ class Leads_ModernService {
 			'screening_result' => $screening,
 			'sheet_source' => !empty($payload['sheet_source']) ? 1 : 0,
 			'sheet_row_key' => isset($payload['sheet_row_key']) ? (string) $payload['sheet_row_key'] : '',
+			'sheet_source_id' => isset($payload['sheet_source_id']) ? (int) $payload['sheet_source_id'] : 0,
+			'sheet_source_name' => isset($payload['sheet_source_name']) ? (string) $payload['sheet_source_name'] : '',
 			'qa_raw' => $qaRaw,
 		);
 		self::upsertProfile($leadId, $profile);
@@ -1463,6 +1465,8 @@ class Leads_ModernService {
 			'screening_label' => $screeningLabel,
 			'sheet_source' => !empty($row['sheet_source']) ? 1 : 0,
 			'sheet_row_key' => isset($row['sheet_row_key']) ? (string) $row['sheet_row_key'] : '',
+			'sheet_source_id' => isset($row['sheet_source_id']) ? (int) $row['sheet_source_id'] : 0,
+			'sheet_source_name' => isset($row['sheet_source_name']) ? self::decodeText($row['sheet_source_name']) : '',
 			'qa_raw' => $qaDecoded !== null ? $qaDecoded : $qaRaw,
 			'phone_dup' => false,
 			'phone_dup_count' => 1,
@@ -1785,13 +1789,15 @@ class Leads_ModernService {
 		$screening = isset($profile['screening_result']) ? $profile['screening_result'] : null;
 		$sheetSource = !empty($profile['sheet_source']) ? 1 : 0;
 		$sheetRowKey = isset($profile['sheet_row_key']) ? $profile['sheet_row_key'] : null;
+		$sheetSourceId = isset($profile['sheet_source_id']) ? (int) $profile['sheet_source_id'] : 0;
+		$sheetSourceName = isset($profile['sheet_source_name']) ? trim((string) $profile['sheet_source_name']) : '';
 		$qaRaw = isset($profile['qa_raw']) ? $profile['qa_raw'] : null;
 		$hasBiz = array_key_exists('business_model', $profile);
 		$businessModel = $hasBiz ? self::normalizeBusinessModel($profile['business_model']) : '';
 		if ($exists && $adb->num_rows($exists) > 0) {
 			$sql = "UPDATE bace_lead_profile SET mk_cache_id=?, cccd=?, segment=?, district=?, address_line=?, area=?,
 				 lead_value=?, last_touch=?, next_action=?, open_tickets=?, customer_type=?, purchase_reason=?,
-				 screening_result=?, sheet_source=?, sheet_row_key=?, qa_raw=?, modified_at=?";
+				 screening_result=?, sheet_source=?, sheet_row_key=?, sheet_source_id=?, sheet_source_name=?, qa_raw=?, modified_at=?";
 			$params = array(
 				$profile['mk_cache_id'], $profile['cccd'], $profile['segment'], $profile['district'],
 				$profile['address_line'], $profile['area'], $profile['lead_value'], $profile['last_touch'],
@@ -1800,6 +1806,8 @@ class Leads_ModernService {
 				$screening !== '' ? $screening : null,
 				$sheetSource,
 				$sheetRowKey !== '' ? $sheetRowKey : null,
+				$sheetSourceId > 0 ? $sheetSourceId : null,
+				$sheetSourceName !== '' ? $sheetSourceName : null,
 				$qaRaw !== '' ? $qaRaw : null,
 				$now,
 			);
@@ -1815,9 +1823,9 @@ class Leads_ModernService {
 		$adb->pquery(
 			"INSERT INTO bace_lead_profile(leadid, mk_cache_id, cccd, segment, district, address_line, area, business_model, lead_value,
 			 last_touch, next_action, open_tickets, customer_type, purchase_reason,
-			 screening_result, sheet_source, sheet_row_key, qa_raw,
+			 screening_result, sheet_source, sheet_row_key, sheet_source_id, sheet_source_name, qa_raw,
 			 is_modern, created_at, modified_at)
-			 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,?)",
+			 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,?)",
 			array(
 				$leadId, $profile['mk_cache_id'], $profile['cccd'], $profile['segment'], $profile['district'],
 				$profile['address_line'], $profile['area'],
@@ -1828,6 +1836,8 @@ class Leads_ModernService {
 				$screening !== '' ? $screening : null,
 				$sheetSource,
 				$sheetRowKey !== '' ? $sheetRowKey : null,
+				$sheetSourceId > 0 ? $sheetSourceId : null,
+				$sheetSourceName !== '' ? $sheetSourceName : null,
 				$qaRaw !== '' ? $qaRaw : null,
 				$now, $now,
 			)

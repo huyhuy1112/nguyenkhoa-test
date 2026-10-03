@@ -611,6 +611,19 @@
 			}).join('');
 			return ''
 				+ '<div class="mk-q-page">'
+				+ '  <section class="mk-tre-section mk-tre-section--import">'
+				+ '    <div class="mk-tre-section__head"><div class="mk-tre-section__titles">'
+				+ '      <h2 class="mk-tre-section__title">Import Excel bộ tiêu chuẩn</h2>'
+				+ '      <p class="mk-tre-section__sub">Nạp file GD11 / GD14 - Tieu chuan 3 cau hoi.xlsx (hoặc GD12). Tự nhận loại theo sheet. GD11 → sàng lọc; GD14 → câu 990k; GD12 chỉ đọc đối chiếu.</p>'
+				+ '    </div><div class="mk-tre-section__actions">'
+				+ '      <label class="mk-tre-btn mk-tre-btn--ghost mk-tre-file">'
+				+ '        <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="js-tre-qbank-file" hidden />'
+				+ '        Chọn file .xlsx'
+				+ '      </label>'
+				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--primary js-tre-qbank-import">Import vào CRM</button>'
+				+ '    </div></div>'
+				+ '    <div class="mk-tre-section__body"><p class="mk-tre-import-status js-tre-qbank-status" hidden></p></div>'
+				+ '  </section>'
 				+ '  <section class="mk-tre-section">'
 				+ '    <div class="mk-tre-section__head"><div class="mk-tre-section__titles">'
 				+ '      <h2 class="mk-tre-section__title">Câu hỏi khi gọi khách</h2>'
@@ -1850,6 +1863,41 @@
 				} catch (e) {
 					window.alert(e.message || 'Không lưu được bộ câu hỏi');
 				}
+			});
+
+			this.$root.on('change', '.js-tre-qbank-file', function () {
+				var f = this.files && this.files[0];
+				var $st = self.$root.find('.js-tre-qbank-status');
+				if (!f) {
+					$st.attr('hidden', true).text('');
+					return;
+				}
+				$st.removeAttr('hidden').removeClass('is-error').text('Đã chọn: ' + f.name);
+			});
+			this.$root.on('click', '.js-tre-qbank-import', function () {
+				var input = self.$root.find('.js-tre-qbank-file')[0];
+				var file = input && input.files && input.files[0];
+				var $st = self.$root.find('.js-tre-qbank-status');
+				if (!file) {
+					window.alert('Chọn file .xlsx trước.');
+					return;
+				}
+				if (!store.importQuestionBank) {
+					window.alert('API import chưa sẵn sàng.');
+					return;
+				}
+				$st.removeAttr('hidden').removeClass('is-error').text('Đang import…');
+				store.importQuestionBank(file, '').then(function (res) {
+					var msg = (res && res.message) || 'Import xong.';
+					$st.removeClass('is-error').text(msg);
+					self.renderPanel();
+					self.renderStats();
+					toast(msg);
+				}).fail(function (err) {
+					var msg = (err && err.message) || 'Import thất bại';
+					$st.addClass('is-error').text(msg);
+					window.alert(msg);
+				});
 			});
 
 			this.$root.on('click', '.js-tre-sc-edit', function () { self.openScenarioForm($(this).data('id')); });

@@ -31,7 +31,8 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 			'save', 'save_next_action', 'save_inline_category_tags', 'delete', 'segments_save', 'seed',
 			'link_order', 'link_activity', 'calendar_tasks_sync', 'convert', 'comment_save', 'bulk_assign_owner',
 			'dedupe_leads', 'last_touch_call_log',
-			'sheet_settings_save', 'sheet_poll_now', 'merge_leads', 'restore_lead', 'purge_lead', 'soft_delete',
+			'sheet_settings_save', 'sheet_poll_now', 'sheet_source_save', 'sheet_source_delete', 'sheet_source_test',
+			'merge_leads', 'restore_lead', 'purge_lead', 'soft_delete',
 			'sales_verify_save', 'gd14_verify_save', 'gd14_payment_confirm', 'online_verify_save', 'offline_gd11_apply', 'offline_gd11_step2',
 			'offline_gd11_step2_remind', 'r1_notif_action',
 			'online_gd12_transfer_from_offline', 'online_gd12_transfer_from_online',
@@ -289,12 +290,58 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 					));
 					break;
 
+				case 'sheet_source_save':
+					require_once 'modules/Leads/models/SheetImportService.php';
+					if (!is_admin($current_user)) {
+						throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+					}
+					$payload = $this->decodePayload($request);
+					$source = Leads_SheetImportService::saveSource($payload, $userId);
+					Leads_SheetImportService::registerCron();
+					$response->setResult(array(
+						'success' => true,
+						'source' => $source,
+						'settings' => Leads_SheetImportService::getSettingsForAdmin(),
+					));
+					break;
+
+				case 'sheet_source_delete':
+					require_once 'modules/Leads/models/SheetImportService.php';
+					if (!is_admin($current_user)) {
+						throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+					}
+					$payload = $this->decodePayload($request);
+					$sourceId = isset($payload['id']) ? (int) $payload['id'] : (int) $request->get('id');
+					Leads_SheetImportService::deleteSource($sourceId);
+					$response->setResult(array(
+						'success' => true,
+						'settings' => Leads_SheetImportService::getSettingsForAdmin(),
+					));
+					break;
+
+				case 'sheet_source_test':
+					require_once 'modules/Leads/models/SheetImportService.php';
+					if (!is_admin($current_user)) {
+						throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+					}
+					$payload = $this->decodePayload($request);
+					$sourceId = isset($payload['id']) ? (int) $payload['id'] : (int) $request->get('id');
+					$result = Leads_SheetImportService::testConnection($sourceId > 0 ? $sourceId : null);
+					$response->setResult(array('success' => !empty($result['success'])) + $result);
+					break;
+
 				case 'sheet_poll_now':
 					require_once 'modules/Leads/models/SheetImportService.php';
 					if (!is_admin($current_user)) {
 						throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
 					}
-					$result = Leads_SheetImportService::pollOnce();
+					$payload = $this->decodePayload($request);
+					$sourceId = isset($payload['source_id']) ? (int) $payload['source_id'] : 0;
+					if ($sourceId > 0) {
+						$result = Leads_SheetImportService::pollSourceById($sourceId);
+					} else {
+						$result = Leads_SheetImportService::pollOnce();
+					}
 					$response->setResult(array('success' => !empty($result['success'])) + $result);
 					break;
 
@@ -550,6 +597,9 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 						'last_error' => $settings['last_error'],
 						'last_result' => $settings['last_result'],
 						'import_count' => $importCount,
+						'sources_count' => isset($settings['sources_count']) ? (int) $settings['sources_count'] : 0,
+						'enabled_sources_count' => isset($settings['enabled_sources_count'])
+							? (int) $settings['enabled_sources_count'] : 0,
 					));
 					break;
 
