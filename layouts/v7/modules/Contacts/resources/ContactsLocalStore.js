@@ -55,6 +55,11 @@
         if (Array.isArray(res.gd14_courses)) {
           root.MK_GD14_COURSES = res.gd14_courses;
         }
+        if (Array.isArray(res.screening_questions)) {
+          root.MK_SCREENING_QUESTIONS = { questions: res.screening_questions };
+        } else if (res.screening_options && Array.isArray(res.screening_options.questions)) {
+          root.MK_SCREENING_QUESTIONS = { questions: res.screening_options.questions };
+        }
         if (res && res.is_admin != null) {
           root.MK_CONTACTS_IS_ADMIN = Number(res.is_admin) === 1;
         }
@@ -228,6 +233,31 @@
           next.can_edubit_renew = res.can_edubit_renew;
         }
         if (res.status) next.online_status = res.status;
+        root.ContactsLocalStore.patchContact(oid, next);
+        return res;
+      });
+    },
+    provisionEdubit: function (id, payload) {
+      var oid = String(id || "");
+      return apiRequest("edubit_provision", {
+        record: oid,
+        id: oid,
+        payload: JSON.stringify(payload || {}),
+      }).then(function (res) {
+        if (!res || res.success === false) {
+          throw new Error((res && res.error) || "Cấp TK thất bại");
+        }
+        var next = {};
+        if (res.edubit_email) next.edubit_email = res.edubit_email;
+        if (res.edubit_user_id) next.edubit_user_id = res.edubit_user_id;
+        if (res.edubit_course_id) next.edubit_course_id = res.edubit_course_id;
+        if (res.edubit_expires_at) next.edubit_expires_at = res.edubit_expires_at;
+        if (res.edubit_activated_at) next.edubit_activated_at = res.edubit_activated_at;
+        if (Array.isArray(res.courses)) next.edubit_courses = res.courses;
+        if (res.edubit_user_id || (res.added_course_ids && res.added_course_ids.length)) {
+          next.da_cap_tai_khoan = "Đã cấp";
+          next.online_status = "online_dang_hoc";
+        }
         root.ContactsLocalStore.patchContact(oid, next);
         return res;
       });

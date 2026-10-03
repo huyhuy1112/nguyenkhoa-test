@@ -1422,6 +1422,14 @@
     return bank && Array.isArray(bank.questions) ? bank.questions : [];
   }
 
+  function screeningQuestions() {
+    var bank = window.MK_SCREENING_QUESTIONS;
+    var rows = bank && Array.isArray(bank.questions) ? bank.questions : [];
+    return rows.filter(function (q) {
+      return q && q.active !== false && ["c1", "c2", "c3"].indexOf(String(q.id || "").toLowerCase()) >= 0;
+    });
+  }
+
   function gd14Courses() {
     return Array.isArray(window.MK_GD14_COURSES) ? window.MK_GD14_COURSES : [];
   }
@@ -1444,6 +1452,15 @@
     return want;
   }
 
+  function fmtIsoDay(iso) {
+    if (!iso) return "—";
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return "—";
+    var dd = String(d.getDate()).padStart(2, "0");
+    var mm = String(d.getMonth() + 1).padStart(2, "0");
+    return dd + "/" + mm + "/" + d.getFullYear();
+  }
+
   function findContact(id) {
     var want = String(id || "");
     var rows = getContacts();
@@ -1451,6 +1468,26 @@
       if (String(rows[i].id) === want || String(rows[i].crmid || "") === want) return rows[i];
     }
     return null;
+  }
+
+  function contactIsOnlineLane(contact) {
+    var groups = productGroupsFromTags((contact && contact.tags) || []);
+    return !!groups.online;
+  }
+
+  function contactShowsEdubit(contact) {
+    if (!contact) return false;
+    if (contact.edubit_user_id || contact.edubit_course_id) return true;
+    if (Array.isArray(contact.edubit_courses) && contact.edubit_courses.length) return true;
+    if (contactHasGd14(contact)) return true;
+    return contactIsOnlineLane(contact);
+  }
+
+  function compareModeOf(contact) {
+    var compare = contact && contact.compare && typeof contact.compare === "object" ? contact.compare : {};
+    var mode = String(compare.mode || "").toLowerCase();
+    if (mode === "gd14" || mode === "gd11") return mode;
+    return contactHasGd14(contact) ? "gd14" : "gd11";
   }
 
   function verifyOpenHtml(row) {
@@ -1614,48 +1651,196 @@
     return html + "</select>";
   }
 
-  function comparePanelHtml(contact) {
-    var compare = contact.compare && typeof contact.compare === "object" ? contact.compare : {};
-    var form = compare.form || {};
-    var answers = compare.answers || {};
-    var questions = gd14Questions();
-    var formRows = questions
-      .map(function (q) {
-        var code = form[q.id] || "";
+  function compareFormCardsHtml(questions, form) {
+    if (!questions || !questions.length) {
+      return '<p class="mk-gd14-panel__empty">Chưa có đáp án form.</p>';
+    }
+    return (
+      '<div class="mk-gd14-panel__formcards">' +
+      questions
+        .map(function (q) {
+          var code = form[q.id] || "";
+          return (
+            '<div class="mk-gd14-panel__formcard"><em>' +
+            esc(String(q.id || "").toUpperCase()) +
+            "</em><strong>" +
+            esc(code ? gd14OptionLabel(q, code) : "—") +
+            "</strong><small>" +
+            esc(code ? "Mã " + String(code).toUpperCase() : "Form chưa có") +
+            "</small></div>"
+          );
+        })
+        .join("") +
+      "</div>"
+    );
+  }
+
+  function compareEdubitBlockHtml(contact) {
+    if (!contactShowsEdubit(contact)) return "";
+    var id = contact.crmid || contact.id;
+    var courses = resolveEdubitCourses(contact);
+    var owned = {};
+    courses.forEach(function (c) {
+      var cid = String((c && c.course_id) || "").replace(/\D+/g, "");
+      if (cid) owned[cid] = true;
+    });
+    if (contact.edubit_course_id) {
+      owned[String(contact.edubit_course_id).replace(/\D+/g, "")] = true;
+    }
+    var choices = [
+      { id: "29403", label: "29403 — Khai trương quán bài bản (990k)" },
+      { id: "29218", label: "29218 — Pha chế tổng hợp" },
+      { id: "28108", label: "28108 — Pha chế tổng hợp cơ bản" },
+    ];
+    var opts = choices
+      .map(function (c) {
+        var isOwned = !!owned[c.id];
         return (
-          '<div class="mk-gd14-panel__line"><span>' +
-          esc(q.label || q.id) +
-          "</span><strong>" +
-          esc(code ? gd14OptionLabel(q, code) : "Chưa có") +
-          "</strong></div>"
-        );
-      })
-      .join("");
-    var answerRows = questions
-      .map(function (q) {
-        return (
-          '<label class="mk-gd14-panel__field"><span>' +
-          esc(q.label || q.id) +
+          '<label class="mk-gd14-panel__course' +
+          (isOwned ? " is-owned" : "") +
+          '"><input type="checkbox" value="' +
+          esc(c.id) +
+          '" data-mk-panel-edubit-course="1"' +
+          (isOwned ? " checked disabled" : "") +
+          " /><span>" +
+          esc(c.label) +
           "</span>" +
-          compareSelectHtml(q.id, q.options || [], answers[q.id] || form[q.id] || "", "— Chọn —") +
+          (isOwned ? "<em>Đã có</em>" : "") +
           "</label>"
         );
       })
       .join("");
-    var editable = Number(compare.editable) === 1 || contactHasGd14(contact);
-    var editBlock = editable
-      ? '<section class="mk-gd14-panel__card"><h3>Sau đối chiếu</h3><p>Đáp án này sales sửa được khi khách đổi ý.</p>' +
-        answerRows +
-        '<label class="mk-gd14-panel__field"><span>Mục tiêu khách nêu</span><input class="mk-gd14-panel__select" data-mk-gd14-field="goal" value="' +
-        esc(compare.goal || "") +
-        '" /></label>' +
-        '<label class="mk-gd14-panel__field"><span>Khoá đã chọn</span>' +
-        compareSelectHtml("course", gd14Courses(), compare.course || "", "— Chưa chọn —") +
-        "</label>" +
-        '<button type="button" class="mk-gd14-class__btn mk-gd14-class__btn--ok" data-mk-gd14-save="' +
-        esc(contact.crmid || contact.id) +
-        '">Lưu đối chiếu</button></section>'
-      : "";
+    var hasAcc = !!(contact.edubit_user_id || courses.length);
+    var statusRows =
+      '<div class="mk-gd14-panel__status">' +
+      '<div class="mk-gd14-panel__line"><span>Tài khoản</span><strong>' +
+      esc(contact.edubit_email || contact.email || (hasAcc ? "Đã cấp" : "Chưa cấp")) +
+      "</strong></div>" +
+      '<div class="mk-gd14-panel__line"><span>Lớp / khóa</span><strong>' +
+      esc(
+        courses.length
+          ? courses
+              .map(function (c) {
+                return edubitCourseLabel(c.course_id, c.label);
+              })
+              .join(", ")
+          : contact.edubit_course_id
+            ? edubitCourseLabel(contact.edubit_course_id)
+            : "—"
+      ) +
+      "</strong></div>" +
+      '<div class="mk-gd14-panel__line"><span>Hết hạn</span><strong>' +
+      esc(fmtIsoDay(contact.edubit_expires_at)) +
+      "</strong></div>" +
+      (contact.edubit_user_id
+        ? '<div class="mk-gd14-panel__line"><span>User ID</span><strong>' +
+          esc(String(contact.edubit_user_id)) +
+          "</strong></div>"
+        : "") +
+      "</div>";
+    return (
+      '<section class="mk-gd14-panel__card mk-gd14-panel__card--edubit" data-mk-panel-edubit="1">' +
+      "<h3>Edubit — Tài khoản & lớp</h3>" +
+      '<p>Online và 990k: cấp TK, xem email / khóa / hạn truy cập (đồng bộ detail).</p>' +
+      statusRows +
+      '<label class="mk-gd14-panel__field"><span>Email học viên</span>' +
+      '<input type="email" class="mk-gd14-panel__select" data-mk-panel-edubit="email" value="' +
+      esc(contact.edubit_email || contact.email || "") +
+      '" placeholder="bắt buộc" ' +
+      (hasAcc ? "readonly" : "") +
+      " /></label>" +
+      (hasAcc
+        ? ""
+        : '<label class="mk-gd14-panel__field"><span>Mật khẩu</span>' +
+          '<input type="text" class="mk-gd14-panel__select" data-mk-panel-edubit="password" value="" placeholder="Để trống thì Edubit tự sinh" autocomplete="new-password" /></label>') +
+      '<div class="mk-gd14-panel__field"><span>Khóa học</span><div class="mk-gd14-panel__courses">' +
+      opts +
+      "</div></div>" +
+      '<button type="button" class="mk-gd14-panel__btn mk-gd14-panel__btn--primary" data-mk-panel-edubit-provision="' +
+      esc(id) +
+      '">' +
+      (hasAcc ? "Thêm khóa học" : "Cấp TK + kích hoạt khóa") +
+      "</button>" +
+      '<p class="mk-gd14-panel__hint" data-mk-panel-edubit-status hidden></p>' +
+      "</section>"
+    );
+  }
+
+  function comparePanelHtml(contact) {
+    var compare = contact.compare && typeof contact.compare === "object" ? contact.compare : {};
+    var form = compare.form || {};
+    var answers = compare.answers || {};
+    var mode = compareModeOf(contact);
+    var isGd14 = mode === "gd14" || contactHasGd14(contact);
+    var questions = isGd14 ? gd14Questions() : screeningQuestions();
+    var editable = Number(compare.editable) === 1 || isGd14 || Object.keys(form).length > 0 || Object.keys(answers).length > 0;
+    var badge = isGd14 ? "990k" : "3 câu";
+    var subtitle = isGd14
+      ? "Đối chiếu form 990k — sales sửa được đáp án sau gọi"
+      : "Xác minh GD 1.1 / 1.2 — sửa C1–C3 như trên Lead";
+    var elig = String(compare.eligibility_result || "").toLowerCase();
+    var pot = String(compare.potential_level || "").toLowerCase();
+    var resultChip = "";
+    if (elig === "du_dk") resultChip = '<span class="mk-gd14-panel__chip is-ok">Đủ điều kiện</span>';
+    else if (elig === "khong_du_dk") resultChip = '<span class="mk-gd14-panel__chip is-fail">Không đủ ĐK</span>';
+    if (pot) {
+      var potLabel =
+        pot === "sieu_tiem_nang"
+          ? "Siêu tiềm năng"
+          : pot === "tiem_nang"
+            ? "Tiềm năng"
+            : pot === "binh_thuong"
+              ? "Bình thường"
+              : pot === "khong_du_dk"
+                ? "Không đủ ĐK"
+                : pot;
+      resultChip += '<span class="mk-gd14-panel__chip">' + esc(potLabel) + "</span>";
+    }
+
+    var answerRows = questions
+      .map(function (q) {
+        var formCode = form[q.id] || "";
+        var selected = answers[q.id] || formCode || "";
+        return (
+          '<label class="mk-gd14-panel__field"><span>' +
+          esc(q.label || q.id) +
+          (formCode
+            ? ' <small class="mk-gd14-panel__formhint">Form: ' + esc(String(formCode).toUpperCase()) + "</small>"
+            : "") +
+          "</span>" +
+          compareSelectHtml(q.id, q.options || [], selected, "— Chọn —") +
+          "</label>"
+        );
+      })
+      .join("");
+
+    var editBlock = "";
+    if (editable) {
+      if (isGd14) {
+        editBlock =
+          '<section class="mk-gd14-panel__card" data-mk-verify-mode="gd14"><h3>Sau đối chiếu</h3>' +
+          "<p>Đáp án sales sửa được khi khách đổi ý.</p>" +
+          answerRows +
+          '<label class="mk-gd14-panel__field"><span>Mục tiêu khách nêu</span><input class="mk-gd14-panel__select" data-mk-gd14-field="goal" value="' +
+          esc(compare.goal || "") +
+          '" /></label>' +
+          '<label class="mk-gd14-panel__field"><span>Khoá đã chọn</span>' +
+          compareSelectHtml("course", gd14Courses(), compare.course || "", "— Chưa chọn —") +
+          "</label>" +
+          '<button type="button" class="mk-gd14-panel__btn mk-gd14-panel__btn--primary" data-mk-gd14-save="' +
+          esc(contact.crmid || contact.id) +
+          '">Lưu đối chiếu</button></section>';
+      } else {
+        editBlock =
+          '<section class="mk-gd14-panel__card" data-mk-verify-mode="gd11"><h3>Sales xác minh</h3>' +
+          "<p>Chọn lại C1–C3 khi khách khai sai hoặc đổi ý — lưu sẽ chấm lại mức tiềm năng.</p>" +
+          answerRows +
+          '<button type="button" class="mk-gd14-panel__btn mk-gd14-panel__btn--primary" data-mk-gd14-save="' +
+          esc(contact.crmid || contact.id) +
+          '">Lưu xác minh</button></section>';
+      }
+    }
+
     var staticLines =
       !editable && Array.isArray(contact.verify_lines) && contact.verify_lines.length
         ? '<section class="mk-gd14-panel__card"><h3>Đã ghi</h3>' +
@@ -1672,19 +1857,39 @@
             .join("") +
           "</section>"
         : "";
+
     return (
-      '<div class="mk-gd14-panel__cardhead"><div><p>Khách hàng</p><h2>' +
+      '<header class="mk-gd14-panel__head">' +
+      '<div class="mk-gd14-panel__head-main"><span class="mk-gd14-panel__badge">' +
+      esc(badge) +
+      "</span><div><h2>" +
       esc(contact.name || "Khách hàng") +
-      '</h2></div><button type="button" class="mk-gd14-panel__close" data-mk-gd14-close aria-label="Đóng">×</button></div>' +
+      '</h2><p class="mk-gd14-panel__sub">' +
+      esc(subtitle) +
+      "</p>" +
+      (resultChip ? '<div class="mk-gd14-panel__chips">' + resultChip + "</div>" : "") +
+      (contact.phone ? '<p class="mk-gd14-panel__phone">' + esc(contact.phone) + "</p>" : "") +
+      '</div></div><button type="button" class="mk-gd14-panel__close" data-mk-gd14-close aria-label="Đóng">×</button></header>' +
+      '<div class="mk-gd14-panel__body">' +
       '<section class="mk-gd14-panel__card"><h3>Đáp án form</h3><p>Khách tự khai, không sửa ở đây.</p>' +
-      (formRows || '<p class="mk-gd14-panel__empty">Chưa có đáp án form.</p>') +
+      compareFormCardsHtml(questions, form) +
       "</section>" +
       editBlock +
       staticLines +
       (contactHasGd14(contact)
         ? '<section class="mk-gd14-panel__card"><h3>Lớp 990k</h3>' + gd14ClassCellHtml(contact) + "</section>"
-        : "")
+        : "") +
+      compareEdubitBlockHtml(contact) +
+      "</div>"
     );
+  }
+
+  function closeComparePanel() {
+    var host = document.getElementById("mk-contacts-gd14-panel");
+    if (!host) return;
+    host.hidden = true;
+    host.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("mk-gd14-panel-open");
   }
 
   function openComparePanel(id) {
@@ -1695,11 +1900,21 @@
       host = document.createElement("div");
       host.id = "mk-contacts-gd14-panel";
       host.className = "mk-gd14-panel";
-      host.innerHTML = '<div class="mk-gd14-panel__sheet" data-mk-gd14-sheet></div>';
+      host.innerHTML =
+        '<div class="mk-gd14-panel__backdrop" data-mk-gd14-close="1"></div>' +
+        '<aside class="mk-gd14-panel__sheet" data-mk-gd14-sheet role="dialog" aria-modal="true"></aside>';
       document.body.appendChild(host);
+      if (!document.documentElement.getAttribute("data-mk-gd14-esc")) {
+        document.documentElement.setAttribute("data-mk-gd14-esc", "1");
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") closeComparePanel();
+        });
+      }
     }
     host.hidden = false;
+    host.setAttribute("aria-hidden", "false");
     host.setAttribute("data-contact-id", String(contact.crmid || contact.id));
+    document.body.classList.add("mk-gd14-panel-open");
     var sheet = host.querySelector("[data-mk-gd14-sheet]");
     if (sheet) sheet.innerHTML = comparePanelHtml(contact);
   }
@@ -2091,8 +2306,7 @@
 
     document.addEventListener("click", function (e) {
       if (e.target.closest && e.target.closest("[data-mk-gd14-close]")) {
-        var panel = document.getElementById("mk-contacts-gd14-panel");
-        if (panel) panel.hidden = true;
+        closeComparePanel();
         return;
       }
       var openBtn = e.target.closest && e.target.closest("[data-mk-gd14-open]");
@@ -2106,7 +2320,8 @@
         e.preventDefault();
         var sid = saveBtn.getAttribute("data-mk-gd14-save");
         var sheet = saveBtn.closest ? saveBtn.closest("[data-mk-gd14-sheet]") : null;
-        var payload = {};
+        var modeCard = saveBtn.closest ? saveBtn.closest("[data-mk-verify-mode]") : null;
+        var payload = { mode: modeCard ? modeCard.getAttribute("data-mk-verify-mode") || "" : "" };
         if (sheet) {
           sheet.querySelectorAll("[data-mk-gd14-field]").forEach(function (el) {
             payload[el.getAttribute("data-mk-gd14-field")] = el.value || "";
@@ -2124,6 +2339,53 @@
           .catch(function (err) {
             notifyUser("error", (err && (err.message || err)) || "Không lưu được đối chiếu.");
             saveBtn.disabled = false;
+          });
+        return;
+      }
+      var edubitProvBtn =
+        e.target && e.target.closest ? e.target.closest("[data-mk-panel-edubit-provision]") : null;
+      if (edubitProvBtn) {
+        e.preventDefault();
+        var eid = edubitProvBtn.getAttribute("data-mk-panel-edubit-provision");
+        var ebox = edubitProvBtn.closest ? edubitProvBtn.closest("[data-mk-panel-edubit]") : null;
+        if (!ebox || !store || !store.provisionEdubit) return;
+        var courseIds = [];
+        ebox.querySelectorAll("[data-mk-panel-edubit-course]").forEach(function (box) {
+          if (box.checked && !box.disabled) courseIds.push(String(box.value || "").trim());
+        });
+        var emailEl = ebox.querySelector('[data-mk-panel-edubit="email"]');
+        var passEl = ebox.querySelector('[data-mk-panel-edubit="password"]');
+        var statusEl = ebox.querySelector("[data-mk-panel-edubit-status]");
+        var email = emailEl ? String(emailEl.value || "").trim() : "";
+        var password = passEl ? String(passEl.value || "") : "";
+        if (!courseIds.length) {
+          notifyUser("error", "Chọn ít nhất một khóa chưa có trên tài khoản.");
+          return;
+        }
+        if (!email) {
+          notifyUser("error", "Nhập email học viên trước khi cấp TK.");
+          return;
+        }
+        edubitProvBtn.disabled = true;
+        store
+          .provisionEdubit(eid, { course_ids: courseIds, email: email, password: password })
+          .then(function (res) {
+            notifyUser("success", (res && res.message) || "Đã cấp TK Edubit.");
+            if (statusEl) {
+              statusEl.hidden = false;
+              statusEl.textContent = (res && res.message) || "Đã cấp TK Edubit.";
+            }
+            renderTable();
+            refreshComparePanel();
+          })
+          .catch(function (err) {
+            var msg = (err && (err.message || err)) || "Cấp TK thất bại.";
+            notifyUser("error", msg);
+            if (statusEl) {
+              statusEl.hidden = false;
+              statusEl.textContent = String(msg);
+            }
+            edubitProvBtn.disabled = false;
           });
         return;
       }
@@ -2185,6 +2447,7 @@
             .then(function (res) {
               notifyUser("success", (res && res.message) || "Đã gia hạn.");
               renderTable();
+              refreshComparePanel();
             })
             .catch(function (err) {
               notifyUser("error", (err && err.message) || "Không gia hạn được.");

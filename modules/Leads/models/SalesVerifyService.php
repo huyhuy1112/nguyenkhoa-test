@@ -1560,12 +1560,36 @@ class Leads_SalesVerifyService {
 			}
 		}
 		if (empty($verified) && empty($form)) {
+			$screenBank = self::getScreeningBank();
+			$qById = array();
+			foreach ($screenBank['questions'] as $sq) {
+				$qById[$sq['id']] = $sq;
+			}
 			foreach (array('c1' => 'Câu 1', 'c2' => 'Câu 2', 'c3' => 'Câu 3') as $qid => $label) {
-				$code = isset($pack['form_' . $qid]) ? trim((string) $pack['form_' . $qid]) : '';
-				if ($code !== '') {
-					$lines[] = array('label' => $label, 'value' => $code);
+				$formCode = isset($pack['form_' . $qid]) ? strtoupper(trim((string) $pack['form_' . $qid])) : '';
+				$verifyCode = isset($pack['verify_' . $qid]) ? strtoupper(trim((string) $pack['verify_' . $qid])) : '';
+				$q = isset($qById[$qid]) ? $qById[$qid] : null;
+				if ($formCode !== '') {
+					$lines[] = array(
+						'label' => 'Form · ' . $label,
+						'value' => $q ? self::gd14OptionText($q, $formCode) : $formCode,
+					);
+				}
+				if ($verifyCode !== '') {
+					$lines[] = array(
+						'label' => 'Xác minh · ' . $label,
+						'value' => $q ? self::gd14OptionText($q, $verifyCode) : $verifyCode,
+					);
+				} elseif ($formCode === '' && isset($pack[$qid])) {
+					$code = strtoupper(trim((string) $pack[$qid]));
+					if ($code !== '') {
+						$lines[] = array('label' => $label, 'value' => $code);
+					}
 				}
 			}
+		}
+		if (!empty($pack['potential_level']) && empty($pack['screening_result'])) {
+			$lines[] = array('label' => 'Mức tiềm năng', 'value' => self::potentialLabel($pack['potential_level']));
 		}
 		if (!empty($extra['gd14_goal'])) {
 			$lines[] = array('label' => 'Mục tiêu khách nêu', 'value' => (string) $extra['gd14_goal']);
@@ -1666,9 +1690,13 @@ class Leads_SalesVerifyService {
 		return self::linesFromPack(array(
 			'eligibility_result' => isset($row['eligibility_result']) ? (string) $row['eligibility_result'] : '',
 			'screening_result' => isset($row['screening_result']) ? (string) $row['screening_result'] : '',
+			'potential_level' => isset($row['potential_level']) ? (string) $row['potential_level'] : '',
 			'form_c1' => isset($row['form_c1']) ? (string) $row['form_c1'] : '',
 			'form_c2' => isset($row['form_c2']) ? (string) $row['form_c2'] : '',
 			'form_c3' => isset($row['form_c3']) ? (string) $row['form_c3'] : '',
+			'verify_c1' => isset($row['verify_c1']) ? (string) $row['verify_c1'] : '',
+			'verify_c2' => isset($row['verify_c2']) ? (string) $row['verify_c2'] : '',
+			'verify_c3' => isset($row['verify_c3']) ? (string) $row['verify_c3'] : '',
 			'extra' => self::decodeStoredJson(isset($row['verify_extra_json']) ? $row['verify_extra_json'] : ''),
 		));
 	}
@@ -1684,7 +1712,8 @@ class Leads_SalesVerifyService {
 			return array();
 		}
 		$res = $adb->pquery(
-			'SELECT contact_id, verify_extra_json, eligibility_result, screening_result, form_c1, form_c2, form_c3
+			'SELECT contact_id, verify_extra_json, eligibility_result, screening_result, potential_level,
+					form_c1, form_c2, form_c3, verify_c1, verify_c2, verify_c3
 			 FROM bace_lead_profile
 			 WHERE contact_id IN (' . generateQuestionMarks($contactIds) . ')
 			 ORDER BY leadid DESC',
@@ -1721,19 +1750,158 @@ class Leads_SalesVerifyService {
 				$form[$qid] = strtolower(trim((string) $row['form_' . $qid]));
 			}
 		}
-		$editable = !empty($answers) || !empty($extra['gd14_outcome']) || !empty($extra['gd14_course']) || !empty($extra['gd14_verified']);
+		$isGd14 = !empty($answers) || !empty($extra['gd14_form_answers']) || !empty($extra['gd14_outcome'])
+			|| !empty($extra['gd14_course']) || !empty($extra['gd14_verified']) || !empty($extra['gd14_goal']);
+		if ($isGd14) {
+			$editable = !empty($answers) || !empty($extra['gd14_outcome']) || !empty($extra['gd14_course'])
+				|| !empty($extra['gd14_verified']) || !empty($form);
+			return array(
+				'mode' => 'gd14',
+				'form' => $form,
+				'answers' => $answers,
+				'goal' => isset($extra['gd14_goal']) ? (string) $extra['gd14_goal'] : '',
+				'course' => isset($extra['gd14_course']) ? (string) $extra['gd14_course'] : '',
+				'editable' => $editable ? 1 : 0,
+				'eligibility_result' => isset($row['eligibility_result']) ? strtolower(trim((string) $row['eligibility_result'])) : '',
+				'potential_level' => isset($row['potential_level']) ? strtolower(trim((string) $row['potential_level'])) : '',
+			);
+		}
+
+		$form11 = array();
+		$answers11 = array();
+		foreach (array('c1', 'c2', 'c3') as $qid) {
+			$f = isset($row['form_' . $qid]) ? strtoupper(trim((string) $row['form_' . $qid])) : '';
+			$v = isset($row['verify_' . $qid]) ? strtoupper(trim((string) $row['verify_' . $qid])) : '';
+			if ($f !== '') {
+				$form11[$qid] = $f;
+			}
+			if ($v !== '') {
+				$answers11[$qid] = $v;
+			} elseif ($f !== '') {
+				$answers11[$qid] = $f;
+			}
+		}
+		$elig = isset($row['eligibility_result']) ? strtolower(trim((string) $row['eligibility_result'])) : '';
+		$pot = isset($row['potential_level']) ? strtolower(trim((string) $row['potential_level'])) : '';
+		if ($pot === '' && isset($row['screening_result'])) {
+			$pot = strtolower(trim((string) $row['screening_result']));
+		}
+		$editable = !empty($form11) || !empty($answers11) || $elig !== '' || $pot !== '';
 		return array(
-			'form' => $form,
-			'answers' => $answers,
-			'goal' => isset($extra['gd14_goal']) ? (string) $extra['gd14_goal'] : '',
-			'course' => isset($extra['gd14_course']) ? (string) $extra['gd14_course'] : '',
+			'mode' => 'gd11',
+			'form' => $form11,
+			'answers' => $answers11,
+			'goal' => '',
+			'course' => '',
 			'editable' => $editable ? 1 : 0,
-			'eligibility_result' => isset($row['eligibility_result']) ? strtolower(trim((string) $row['eligibility_result'])) : '',
+			'eligibility_result' => $elig,
+			'potential_level' => $pot,
 		);
 	}
 
 	/**
-	 * Sales sửa đáp án sau đối chiếu trên Khách hàng. Đáp án form khách đã khai giữ nguyên.
+	 * Sales sửa đáp án đối chiếu trên Khách hàng (GD 1.1/1.2 hoặc 990k).
+	 */
+	public static function saveContactVerifyAnswers($contactId, array $payload, $userId = 0) {
+		$mode = strtolower(trim((string) (isset($payload['mode']) ? $payload['mode'] : '')));
+		if ($mode === '') {
+			$c1 = strtoupper(trim((string) (isset($payload['c1']) ? $payload['c1'] : '')));
+			$looksScreening = $c1 !== '' && strlen($c1) <= 2 && preg_match('/^[A-F]$/', $c1);
+			$mode = $looksScreening && !array_key_exists('goal', $payload) && !array_key_exists('course', $payload)
+				? 'gd11'
+				: 'gd14';
+		}
+		if ($mode === 'gd11') {
+			return self::saveContactScreeningAnswers($contactId, $payload, $userId);
+		}
+		return self::saveGd14ContactAnswers($contactId, $payload, $userId);
+	}
+
+	/**
+	 * Sửa xác minh 3 câu (GD 1.1 / 1.2) trên hồ sơ lead gắn Contact — giữ nguyên verify_extra_json (990k).
+	 */
+	public static function saveContactScreeningAnswers($contactId, array $payload, $userId = 0) {
+		require_once 'modules/Leads/models/ModernService.php';
+		$contactId = (int) $contactId;
+		if ($contactId <= 0) {
+			throw new Exception('Không tìm thấy khách hàng.');
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		Leads_ModernService::installSchema($adb);
+		$res = $adb->pquery(
+			'SELECT leadid, verify_extra_json, form_c1, form_c2, form_c3, verify_c1, verify_c2, verify_c3,
+					eligibility_result, screening_result, potential_level
+			 FROM bace_lead_profile WHERE contact_id = ? ORDER BY leadid DESC LIMIT 1',
+			array($contactId)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			throw new Exception('Không tìm thấy hồ sơ xác minh của khách này.');
+		}
+		$leadId = (int) $adb->query_result($res, 0, 'leadid');
+		$row = $adb->raw_query_result_rowdata($res, 0);
+		$c1 = strtoupper(trim((string) (isset($payload['c1']) ? $payload['c1'] : '')));
+		$c2 = strtoupper(trim((string) (isset($payload['c2']) ? $payload['c2'] : '')));
+		$c3 = strtoupper(trim((string) (isset($payload['c3']) ? $payload['c3'] : '')));
+		if ($c1 === '' || $c2 === '' || $c3 === '') {
+			throw new Exception('Thiếu C1 / C2 / C3 sau xác minh.');
+		}
+		$result = self::compute(array('c1' => $c1, 'c2' => $c2, 'c3' => $c3));
+		if (empty($result['success'])) {
+			throw new Exception(isset($result['reason']) && $result['reason'] !== '' ? $result['reason'] : 'Không chấm được bộ 3 câu.');
+		}
+		$now = date('Y-m-d H:i:s');
+		$userId = (int) $userId;
+		$adb->pquery(
+			'UPDATE bace_lead_profile SET
+				verify_c1=?, verify_c2=?, verify_c3=?,
+				eligibility_result=?, potential_level=?,
+				verified_at=?, verified_by=?, modified_at=?
+			 WHERE leadid=?',
+			array(
+				$c1,
+				$c2,
+				$c3,
+				$result['eligibility_result'],
+				$result['potential_level'] !== '' ? $result['potential_level'] : null,
+				$now,
+				$userId > 0 ? $userId : null,
+				$now,
+				$leadId,
+			)
+		);
+		$row['verify_c1'] = $c1;
+		$row['verify_c2'] = $c2;
+		$row['verify_c3'] = $c3;
+		$row['eligibility_result'] = $result['eligibility_result'];
+		$row['potential_level'] = $result['potential_level'];
+		$extra = self::decodeStoredJson(isset($row['verify_extra_json']) ? $row['verify_extra_json'] : '');
+		try {
+			self::copyLeadVerifyOnto($leadId, 'Contacts', $contactId);
+		} catch (Exception $e) {
+			// best-effort
+		}
+		$biz = isset($result['business_model']) ? $result['business_model'] : '';
+		if ($biz !== '') {
+			try {
+				require_once 'modules/Contacts/models/ModernService.php';
+				Contacts_ModernService::saveInlineFields($contactId, null, null, $biz);
+			} catch (Exception $e) {
+				// optional
+			}
+		}
+		return array(
+			'success' => true,
+			'compare' => self::gd14CompareState($extra, $row),
+			'gd14' => self::gd14PublicState($extra),
+			'verify_lines' => self::linesForLeadColumns($row),
+			'message' => 'Đã cập nhật xác minh 3 câu.',
+			'result' => $result,
+		);
+	}
+
+	/**
+	 * Sales sửa đáp án sau đối chiếu 990k trên Khách hàng. Đáp án form khách đã khai giữ nguyên.
 	 */
 	public static function saveGd14ContactAnswers($contactId, array $payload, $userId = 0) {
 		require_once 'modules/Leads/models/ModernService.php';
@@ -1745,14 +1913,17 @@ class Leads_SalesVerifyService {
 		self::installSchema($adb);
 		Leads_ModernService::installSchema($adb);
 		$res = $adb->pquery(
-			'SELECT leadid, verify_extra_json FROM bace_lead_profile WHERE contact_id = ? ORDER BY leadid DESC LIMIT 1',
+			'SELECT leadid, verify_extra_json, form_c1, form_c2, form_c3, verify_c1, verify_c2, verify_c3,
+					eligibility_result, screening_result, potential_level
+			 FROM bace_lead_profile WHERE contact_id = ? ORDER BY leadid DESC LIMIT 1',
 			array($contactId)
 		);
 		if (!$res || $adb->num_rows($res) < 1) {
 			throw new Exception('Không tìm thấy hồ sơ đối chiếu của khách này.');
 		}
 		$leadId = (int) $adb->query_result($res, 0, 'leadid');
-		$extra = self::decodeStoredJson($adb->query_result($res, 0, 'verify_extra_json'));
+		$row = $adb->raw_query_result_rowdata($res, 0);
+		$extra = self::decodeStoredJson(isset($row['verify_extra_json']) ? $row['verify_extra_json'] : '');
 		$bank = self::getGd14QuestionBank();
 		$answers = self::readGd14AnswerPayload($payload, $bank, false);
 		if (!empty($answers)) {
@@ -1772,6 +1943,7 @@ class Leads_SalesVerifyService {
 			$extra['gd14_course'] = $course;
 		}
 		self::storeGd14Extra($adb, $leadId, $extra);
+		$row['verify_extra_json'] = json_encode($extra, JSON_UNESCAPED_UNICODE);
 		try {
 			self::copyLeadVerifyOnto($leadId, 'Contacts', $contactId);
 		} catch (Exception $e) {
@@ -1779,9 +1951,13 @@ class Leads_SalesVerifyService {
 		}
 		return array(
 			'success' => true,
-			'compare' => self::gd14CompareState($extra),
+			'compare' => self::gd14CompareState($extra, $row),
 			'gd14' => self::gd14PublicState($extra),
-			'verify_lines' => self::linesFromPack(array('extra' => $extra)),
+			'verify_lines' => self::linesFromPack(array(
+				'extra' => $extra,
+				'eligibility_result' => isset($row['eligibility_result']) ? (string) $row['eligibility_result'] : '',
+				'screening_result' => isset($row['screening_result']) ? (string) $row['screening_result'] : '',
+			)),
 			'message' => 'Đã cập nhật đáp án sau đối chiếu.',
 		);
 	}

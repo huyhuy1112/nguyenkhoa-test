@@ -41,6 +41,7 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 				case 'list':
 					require_once 'modules/Leads/models/SalesVerifyService.php';
 					$bank = Leads_SalesVerifyService::getGd14QuestionBank();
+					$screen = Leads_SalesVerifyService::optionsCatalog();
 					$courses = array();
 					foreach (Leads_SalesVerifyService::gd14CourseCatalog() as $code => $spec) {
 						$courses[] = array('code' => $code, 'label' => $spec['label']);
@@ -52,6 +53,8 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 						'offline_classes' => Contacts_ModernService::listOfflineClasses(),
 						'gd14_questions' => isset($bank['questions']) ? $bank['questions'] : array(),
 						'gd14_courses' => $courses,
+						'screening_questions' => isset($screen['questions']) ? $screen['questions'] : array(),
+						'screening_options' => $screen,
 						'is_admin' => Users_Record_Model::getCurrentUserModel()->isAdminUser() ? 1 : 0,
 					));
 					break;
@@ -66,7 +69,7 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 					if (!is_array($payload)) {
 						$payload = array();
 					}
-					$response->setResult(Leads_SalesVerifyService::saveGd14ContactAnswers($recordId, $payload, $userId));
+					$response->setResult(Leads_SalesVerifyService::saveContactVerifyAnswers($recordId, $payload, $userId));
 					break;
 				case 'gd14_class':
 					require_once 'modules/Leads/models/SalesVerifyService.php';
