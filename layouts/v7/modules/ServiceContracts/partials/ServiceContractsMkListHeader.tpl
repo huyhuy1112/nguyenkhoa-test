@@ -7,7 +7,7 @@
 			<p class="mk-leads-action-header__subtitle">{vtranslate('LBL_MK_SC_SUBTITLE', $MODULE)}</p>
 		</div>
 		<div class="mk-leads-action-header__actions">
-			<a class="mk-leads-btn mk-leads-btn--outline" href="index.php?module=ServiceContracts&amp;view=Import&amp;app=SALES" id="mk-sc-import-btn">
+			<a class="mk-leads-btn mk-leads-btn--outline" href="index.php?module=ServiceContracts&amp;view=Import&amp;app=SALES" id="mk-sc-import-btn" data-mk-import="1" data-module="ServiceContracts" data-app="SALES">
 				<span class="mk-leads-btn__ic" id="mk-sc-import-ic" aria-hidden="true"></span>
 				<span class="mk-leads-btn__txt">{vtranslate('LBL_IMPORT', 'Vtiger')}</span>
 			</a>

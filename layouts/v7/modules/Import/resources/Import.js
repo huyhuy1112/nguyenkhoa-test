@@ -279,8 +279,15 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 		getImportTargetModule: function () {
 			var moduleName = '';
 			try {
-				moduleName = String(jQuery('form[name="importAdvanced"] [name="module"], form[name="importBasic"] [name="module"]').first().val() || '').trim();
-			} catch (e0) {}
+				if (Vtiger_Import_Js._forcedImportModule) {
+					moduleName = String(Vtiger_Import_Js._forcedImportModule || '').trim();
+				}
+			} catch (eForced) {}
+			if (!moduleName) {
+				try {
+					moduleName = String(jQuery('form[name="importAdvanced"] [name="module"], form[name="importBasic"] [name="module"]').first().val() || '').trim();
+				} catch (e0) {}
+			}
 			if (!moduleName) {
 				try {
 					var href = window.location && window.location.href ? window.location.href : '';
@@ -293,13 +300,44 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 			if (!moduleName) {
 				try { moduleName = String(app.getModuleName() || '').trim(); } catch (e2) {}
 			}
+			if (moduleName === 'Import') {
+				moduleName = '';
+			}
 			return moduleName;
+		},
+
+		applyImportUrlContext: function (url) {
+			if (!url || typeof url !== 'string') {
+				return;
+			}
+			Vtiger_Import_Js._forcedImportModule = '';
+			Vtiger_Import_Js._forcedImportApp = '';
+			try {
+				var query = url.indexOf('?') >= 0 ? url.slice(url.indexOf('?') + 1) : url;
+				var parts = query.split('&');
+				for (var i = 0; i < parts.length; i++) {
+					var pair = parts[i].split('=');
+					var key = decodeURIComponent(pair[0] || '');
+					var val = decodeURIComponent(pair[1] || '');
+					if (key === 'module' && val && val !== 'Import') {
+						Vtiger_Import_Js._forcedImportModule = val;
+					}
+					if (key === 'app' && val) {
+						Vtiger_Import_Js._forcedImportApp = val;
+					}
+				}
+			} catch (eParse) {}
 		},
 
 		resolveSalesAppName: function () {
 			var appName = '';
 			try {
-				if (typeof app !== 'undefined' && app.getAppName) {
+				if (Vtiger_Import_Js._forcedImportApp) {
+					appName = String(Vtiger_Import_Js._forcedImportApp || '').trim();
+				}
+			} catch (eForcedApp) {}
+			try {
+				if (!appName && typeof app !== 'undefined' && app.getAppName) {
 					appName = String(app.getAppName() || '').trim();
 				}
 			} catch (e0) {}
@@ -821,30 +859,119 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
 			});
 		},
         triggerImportAction: function(url) {
+			try { Vtiger_Import_Js.applyImportUrlContext(url); } catch (eCtx) {}
             var params = Vtiger_Import_Js.getDefaultParams();
-            //Only for contacts and Calendar show landing page.
-            if(params.module != 'Contacts' && params.module != 'Calendar') {
-                Vtiger_Import_Js.showImportActionStepOne();
-                return false;
+            // Calendar keeps landing (CSV / ICS). Other modules open modern step-one overlay.
+            if (params.module === 'Calendar') {
+	            Vtiger_Import_Js.resetImportOverlayShell();
+	            params['mode'] = 'landing';
+	            app.helper.showProgress();
+	            app.request.get({data: params}).then(function(err, data) {
+	                app.helper.hideProgress();
+	                if (err) {
+	                    Vtiger_Import_Js.cleanupImportOverlay();
+	                    app.helper.showErrorNotification({message: 'Không thể mở Import. Vui lòng thử lại.'});
+	                    return;
+	                }
+	                Vtiger_Import_Js.resetImportOverlayShell();
+	                app.helper.loadPageContentOverlay(data).then(function () {
+	                    Vtiger_Import_Js.registerEvents();
+	                    try { Vtiger_Import_Js.applyImportPageShell(); } catch (eShell) {}
+	                });
+	            });
+	            return false;
             }
-            Vtiger_Import_Js.resetImportOverlayShell();
-            params['mode'] = 'landing';
-            app.helper.showProgress();
-            app.request.get({data: params}).then(function(err, data) {
-                app.helper.hideProgress();
-                if (err) {
-                    Vtiger_Import_Js.cleanupImportOverlay();
-                    app.helper.showErrorNotification({message: 'Không thể mở Import. Vui lòng thử lại.'});
-                    return;
-                }
-                Vtiger_Import_Js.resetImportOverlayShell();
-                app.helper.loadPageContentOverlay(data).then(function () {
-                    Vtiger_Import_Js.registerEvents();
-                    try { Vtiger_Import_Js.applyImportPageShell(); } catch (eShell) {}
-                });
-            });
+            Vtiger_Import_Js.showImportActionStepOne();
             return false;
         },
+		openImportOverlayFromElement: function (el) {
+			if (!el) {
+				return false;
+			}
+			var $el = jQuery(el);
+			var moduleName = String($el.attr('data-module') || $el.data('module') || '').trim();
+			var appName = String($el.attr('data-app') || $el.data('app') || '').trim();
+			var href = String($el.attr('href') || $el.attr('data-import-url') || '').trim();
+			if (href && href.indexOf('javascript:') !== 0 && href !== '#' && href.indexOf('view=Import') >= 0) {
+				Vtiger_Import_Js.applyImportUrlContext(href);
+			}
+			if (moduleName) {
+				Vtiger_Import_Js._forcedImportModule = moduleName;
+			}
+			if (appName) {
+				Vtiger_Import_Js._forcedImportApp = appName;
+			}
+			return Vtiger_Import_Js.triggerImportAction(href || '');
+		},
+		registerImportListTriggers: function () {
+			if (Vtiger_Import_Js._listTriggersBound) {
+				return;
+			}
+			Vtiger_Import_Js._listTriggersBound = true;
+			jQuery(document)
+				.off('click.mkImportOverlay', 'a[href*="view=Import"], [data-mk-import], #mk-leads-import-btn, #mk-contacts-import-btn, #mk-opps-import-btn, #mk-sc-import-btn')
+				.on('click.mkImportOverlay', 'a[href*="view=Import"], [data-mk-import], #mk-leads-import-btn, #mk-contacts-import-btn, #mk-opps-import-btn, #mk-sc-import-btn', function (e) {
+					var href = String(this.getAttribute('href') || '');
+					if (href && href.indexOf('mode=') >= 0 && href.indexOf('mode=importBasicStep') < 0 && href.indexOf('mode=landing') < 0) {
+						return true;
+					}
+					e.preventDefault();
+					e.stopPropagation();
+					Vtiger_Import_Js.openImportOverlayFromElement(this);
+					return false;
+				});
+		},
+		maybeOpenPendingImportOverlay: function () {
+			try {
+				var q = {};
+				try { q = app.convertUrlToDataParams(window.location.search.substring(1)) || {}; } catch (eQ) {}
+				var flag = String(q.mk_import || '').trim();
+				var pending = '';
+				try { pending = String(window.sessionStorage && sessionStorage.getItem('vtiger.openImportOverlay') || '').trim(); } catch (eS) {}
+				var moduleName = String(app.getModuleName() || '').trim();
+				if (flag === '1' || (pending && pending === moduleName)) {
+					try { window.sessionStorage && sessionStorage.removeItem('vtiger.openImportOverlay'); } catch (eR) {}
+					if (window.history && window.history.replaceState) {
+						try {
+							var clean = window.location.href.replace(/([?&])mk_import=1(&)?/, function (m, a, b) {
+								return b ? a : '';
+							}).replace(/[?&]$/, '');
+							window.history.replaceState({}, document.title, clean);
+						} catch (eH) {}
+					}
+					setTimeout(function () {
+						Vtiger_Import_Js.triggerImportAction('index.php?module=' + encodeURIComponent(moduleName) + '&view=Import');
+					}, 120);
+				}
+			} catch (e) {}
+		},
+		bounceFullPageImportToOverlay: function () {
+			try {
+				if (!Vtiger_Import_Js.isFullPageImport()) {
+					return false;
+				}
+				var q = {};
+				try { q = app.convertUrlToDataParams(window.location.search.substring(1)) || {}; } catch (eQ) {}
+				var mode = String(q.mode || '').trim();
+				if (mode && mode !== 'importBasicStep' && mode !== 'landing') {
+					return false;
+				}
+				var moduleName = Vtiger_Import_Js.getImportTargetModule();
+				if (!moduleName || moduleName === 'Import') {
+					return false;
+				}
+				var appName = Vtiger_Import_Js.resolveSalesAppName() || 'SALES';
+				try { window.sessionStorage && sessionStorage.setItem('vtiger.openImportOverlay', moduleName); } catch (eS) {}
+				var url = 'index.php?module=' + encodeURIComponent(moduleName) + '&view=List&mk_import=1';
+				if (appName) {
+					url += '&app=' + encodeURIComponent(appName);
+				}
+				window.location.replace(url);
+				return true;
+			} catch (e) {
+				return false;
+			}
+		},
         bactToStep1: function() {
             jQuery('#step2').removeClass('active');
             jQuery('#step1').addClass('active');
@@ -1804,15 +1931,15 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
             });
         },
         getDefaultParams: function() {
-            var module = window.app.getModuleName();
-            var url = "index.php?module=" + module + "&view=Import";
-            var urlParams = url.slice(url.indexOf('?') + 1).split('&');
-
-            var params = {};
-            for (var i = 0; i < urlParams.length; i++) {
-                var param = urlParams[i].split('=');
-                params[param[0]] = param[1];
-            }
+            var module = Vtiger_Import_Js.getImportTargetModule() || window.app.getModuleName();
+            var params = {
+				module: module,
+				view: 'Import'
+			};
+			var appName = Vtiger_Import_Js.resolveSalesAppName();
+			if (appName) {
+				params.app = appName;
+			}
             return params;
         },
         finishUndoOperation: function(){
@@ -1859,6 +1986,13 @@ if (typeof (Vtiger_Import_Js) == 'undefined') {
         }
     }
     jQuery(document).ready(function() {
+		try {
+			if (Vtiger_Import_Js.bounceFullPageImportToOverlay()) {
+				return;
+			}
+		} catch (eBounce) {}
+		try { Vtiger_Import_Js.registerImportListTriggers(); } catch (eTrig) {}
+		try { Vtiger_Import_Js.maybeOpenPendingImportOverlay(); } catch (ePending) {}
 		try { Vtiger_Import_Js.applyImportPageShell(); } catch (eShell) {}
 		try { Vtiger_Import_Js.registerModernDropzone(); } catch (eDrop) {}
 		try { console.log('[IMPORT DEBUG] Import.js loaded', new Date().toISOString()); } catch (e0) {}

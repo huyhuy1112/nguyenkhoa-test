@@ -15,7 +15,7 @@
 				<span class="mk-leads-btn__ic" id="mk-opps-edubit-sync-ic" aria-hidden="true"></span>
 				<span class="mk-leads-btn__txt">{vtranslate('LBL_MK_EDUBIT_SYNC', 'Contacts')}</span>
 			</button>
-			<a class="mk-leads-btn mk-leads-btn--outline" href="index.php?module=Potentials&amp;view=Import&amp;app=SALES" id="mk-opps-import-btn">
+			<a class="mk-leads-btn mk-leads-btn--outline" href="index.php?module=Potentials&amp;view=Import&amp;app=SALES" id="mk-opps-import-btn" data-mk-import="1" data-module="Potentials" data-app="SALES">
 				<span class="mk-leads-btn__ic" id="mk-opps-import-ic" aria-hidden="true"></span>
 				<span class="mk-leads-btn__txt">{vtranslate('LBL_IMPORT', 'Vtiger')}</span>
 			</a>
