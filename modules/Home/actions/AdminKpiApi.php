@@ -73,8 +73,19 @@ class Home_AdminKpiApi_Action extends Vtiger_Action_Controller {
 								'key' => (string) $request->get('key'),
 								'id' => (int) $request->get('id'),
 								'year' => (int) $request->get('year'),
+								'stage_period' => (string) $request->get('stage_period'),
 							)
 						),
+					));
+					break;
+
+				case 'role_boards':
+					$user = Users_Record_Model::getCurrentUserModel();
+					$persona = Home_AdminKpiAccess_Helper::getPersona($user);
+					$response->setResult(array(
+						'success' => true,
+						'persona' => $persona,
+						'boards' => Home_AdminKpiService::getRoleBoards($persona, (int) $user->getId()),
 					));
 					break;
 
@@ -88,6 +99,7 @@ class Home_AdminKpiApi_Action extends Vtiger_Action_Controller {
 						'dimension' => (string) $request->get('dimension'),
 						'sale_id' => (int) $request->get('sale_id'),
 						'year' => (int) $request->get('year'),
+						'stage_period' => (string) $request->get('stage_period'),
 					);
 					if ($mode === 'funnel') {
 						$payload = array('funnel' => Home_AdminKpiService::getSalesFunnel());

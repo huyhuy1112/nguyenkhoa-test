@@ -108,6 +108,9 @@
 								<th class="mk-so-col-email mk-qt-col-email" nowrap="nowrap">
 									<span class="mk-so-pos-th-label">Email</span>
 								</th>
+								<th class="mk-so-col-address mk-qt-col-address" nowrap="nowrap">
+									<span class="mk-so-pos-th-label">Địa chỉ</span>
+								</th>
 							{/if}
 						{/foreach}
 					</tr>
@@ -160,6 +163,9 @@
 									</td>
 									<td class="listViewEntryValue mk-so-col-email mk-qt-col-email" data-name="mk_list_email" data-field-type="email" title="{$LISTVIEW_ENTRY->get('mk_list_email')|default:'—'|escape}">
 										<span class="fieldValue"><span class="value">{$LISTVIEW_ENTRY->get('mk_list_email')|default:'—'|escape}</span></span>
+									</td>
+									<td class="listViewEntryValue mk-so-col-address mk-qt-col-address" data-name="mk_list_address" data-field-type="text" title="{$LISTVIEW_ENTRY->get('mk_list_address')|default:'—'|escape}">
+										<span class="fieldValue"><span class="value">{$LISTVIEW_ENTRY->get('mk_list_address')|default:'—'|escape}</span></span>
 									</td>
 								{/if}
 							{/foreach}

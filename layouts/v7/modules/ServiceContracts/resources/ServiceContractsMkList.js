@@ -107,11 +107,18 @@
   }
 
   function decodeHtml(s) {
+    if (window.mkDecodeHtml) return window.mkDecodeHtml(s);
     var str = String(s == null ? "" : s);
     if (!str || str.indexOf("&") < 0) return str;
     var el = document.createElement("textarea");
-    el.innerHTML = str;
-    return el.value;
+    var i;
+    for (i = 0; i < 5; i++) {
+      el.innerHTML = str;
+      var next = el.value;
+      if (next === str) break;
+      str = next;
+    }
+    return str;
   }
 
   function esc(s) {
@@ -1127,9 +1134,9 @@
       tbody.innerHTML =
         '<tr><td colspan="' +
         COL_COUNT +
-        '" class="mk-leads-empty">' +
-        esc(t("JS_MK_NO_SC_MATCH", "Không có khách chuyển nhượng phù hợp bộ lọc.")) +
-        "</td></tr>";
+        '" class="mk-leads-empty"><div class="mk-leads-empty__inner">' +
+        esc(t("JS_MK_NO_SC_DISPLAY", "Không có khách chuyển nhượng để hiển thị")) +
+        "</div></td></tr>";
     } else {
       tbody.innerHTML = pageRows
         .map(function (c) {

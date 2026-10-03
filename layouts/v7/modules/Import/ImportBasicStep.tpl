@@ -29,15 +29,15 @@
 					{else if $FORMAT eq 'ics'}
 						{$LABELS["step1"] = 'LBL_UPLOAD_ICS'}
 					{else}
-						{$LABELS["step1"] = 'LBL_UPLOAD_CSV'}
+						{$LABELS["step1"] = 'Tải file lên'}
 					{/if}
 
 					{if $FORMAT neq 'ics'}
 						{if isset($DUPLICATE_HANDLING_NOT_SUPPORTED) && $DUPLICATE_HANDLING_NOT_SUPPORTED eq 'true'}
-							{$LABELS["step3"] = 'LBL_FIELD_MAPPING'}
+							{$LABELS["step3"] = 'Map cột dữ liệu'}
 						{else}
-							{$LABELS["step2"] = 'LBL_DUPLICATE_HANDLING'}
-							{$LABELS["step3"] = 'LBL_FIELD_MAPPING'}
+							{$LABELS["step2"] = 'Xử lý trùng'}
+							{$LABELS["step3"] = 'Map cột dữ liệu'}
 						{/if}
 					{/if}
 					{include file="BreadCrumbs.tpl"|vtemplate_path:$MODULE BREADCRUMB_ID='navigation_links' ACTIVESTEP=1 BREADCRUMB_LABELS=$LABELS MODULE=$MODULE}

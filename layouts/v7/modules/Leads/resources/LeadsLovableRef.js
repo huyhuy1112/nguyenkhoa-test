@@ -36,8 +36,26 @@
     chua_hoc: { vi: "Chưa học", en: "Not studied", cat: "learning", cls: "mk-tag--chua-hoc" },
     da_hoc: { vi: "Đã học", en: "Studied", cat: "learning", cls: "mk-tag--da-hoc" },
     mien_phi_online: { vi: "Miễn phí Online", en: "Free Online", cat: "program", cls: "mk-tag--free-online" },
+    online_chua_dien_form: { vi: "Online — Chưa điền form", en: "Online — Form pending", cat: "online", cls: "mk-tag--online-status" },
+    online_chua_dk_tk: { vi: "Online — Chưa đăng ký TK", en: "Online — Account pending", cat: "online", cls: "mk-tag--online-status" },
+    online_dang_hoc: { vi: "Online — Đang học", en: "Online — Studying", cat: "online", cls: "mk-tag--online-status" },
+    online_dat_80: { vi: "Online — Đạt 80%", en: "Online — 80% done", cat: "online", cls: "mk-tag--online-status" },
+    online_khong_du_dk: { vi: "Online — Không đủ điều kiện", en: "Online — Ineligible", cat: "online", cls: "mk-tag--online-status" },
+    online_ngung_cskh: { vi: "Online — Ngưng chăm sóc", en: "Online — Stop care", cat: "online", cls: "mk-tag--online-status" },
+    offline_hen_goi_lai: { vi: "Hẹn gọi lại", en: "Call back", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_khong_nghe_may: { vi: "Không nghe máy", en: "No answer", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_sai_thong_tin: { vi: "Sai thông tin", en: "Bad contact", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_chuyen_chuong_trinh: { vi: "Chuyển CT", en: "Switch program", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_chua_xac_nhan_lich: { vi: "Chưa xác nhận lịch", en: "Schedule pending", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_da_xac_nhan_lich: { vi: "Đã xác nhận lịch", en: "Schedule confirmed", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_hen_lich_lai: { vi: "Hẹn lịch lại", en: "Reschedule class", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_khong_tham_gia: { vi: "Không tham gia", en: "No-show", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_da_tham_gia: { vi: "Đã tham gia", en: "Attended", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_ngung_cskh: { vi: "Ngưng CSKH", en: "Stop care", cat: "offline", cls: "mk-tag--offline-status" },
+    offline_ngung_cskh_tam: { vi: "Dừng CSKH tạm thời", en: "Temp stop care", cat: "offline", cls: "mk-tag--offline-status-temp" },
     mien_phi_offline: { vi: "Miễn phí Offline", en: "Free Offline", cat: "program", cls: "mk-tag--free-offline" },
     pcth: { vi: "PCTH", en: "PCTH", cat: "program", cls: "mk-tag--pcth" },
+    mqbb: { vi: "MQBB", en: "MQBB", cat: "program", cls: "mk-tag--da-mqbb" },
     van_hanh: { vi: "Vận hành", en: "Operations", cat: "program", cls: "mk-tag--van-hanh" },
     mkt: { vi: "Marketing", en: "Marketing", cat: "program", cls: "mk-tag--mkt" },
     lop_khac: { vi: "Lớp khác", en: "Other class", cat: "program", cls: "mk-tag--lop-khac" },
@@ -65,7 +83,7 @@
   }
 
   var SOURCE_TAGS = ["facebook", "tiktok", "website", "zalo", "other"];
-  var PROGRAM_TAGS = ["mien_phi_online", "mien_phi_offline", "pcth", "van_hanh", "mkt", "lop_khac", "nhuong_quyen"];
+  var PROGRAM_TAGS = ["mien_phi_online", "mien_phi_offline", "pcth", "mqbb", "van_hanh", "mkt", "lop_khac"];
   var PURCHASE_TAGS = ["mua_lan_dau", "mua_lai", "khong_mua", "ngung_mua"];
   var TIER_TAGS = ["vang", "bac", "dong"];
 
@@ -140,6 +158,19 @@
   TAG_META_RAW["l2"] = { vi: "L2", en: "L2", cat: "other", cls: "mk-tag--l2" };
   TAG_META_RAW["chua_990k"] = { vi: "Chưa 990k", en: "Not 990k", cat: "other", cls: "mk-tag--chua-990k" };
   TAG_META_RAW["da_990k"] = { vi: "Đã 990k", en: "Paid 990k", cat: "other", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_moi_dang_ky"] = { vi: "990k — Mới đăng ký", en: "990k — New", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_hen_goi_lai"] = { vi: "990k — Hẹn gọi lại", en: "990k — Callback", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_khong_nghe_may"] = { vi: "990k — Không nghe máy", en: "990k — No answer", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_sai_thong_tin"] = { vi: "990k — Sai thông tin liên hệ", en: "990k — Bad contact", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_dang_can_nhac"] = { vi: "990k — Đang cân nhắc", en: "990k — Considering", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_cho_thanh_toan"] = { vi: "990k — Chờ thanh toán", en: "990k — Awaiting payment", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_chua_xep_buoi"] = { vi: "990k — Chưa xếp buổi học", en: "990k — Unscheduled", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_da_xac_nhan_lich"] = { vi: "990k — Đã xác nhận lịch học", en: "990k — Class confirmed", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_khong_tham_gia"] = { vi: "990k — Không tham gia lớp học", en: "990k — Absent", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_da_tham_gia"] = { vi: "990k — Đã tham gia lớp học", en: "990k — Attended", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_ngung_cham_soc"] = { vi: "990k — Ngưng chăm sóc", en: "990k — Stopped", cat: "gd14", cls: "mk-tag--da-990k" };
+  TAG_META_RAW["gd14_990"] = TAG_META_RAW["gd14_moi_dang_ky"];
+  TAG_META_RAW["da_pcthcb"] = { vi: "Đã PCTHCB", en: "Done PCTHCB", cat: "other", cls: "mk-tag--da-pcthcb" };
   TAG_META_RAW["lop_online"] = { vi: "Lớp online", en: "Online class", cat: "other", cls: "mk-tag--lop-online" };
   TAG_META_RAW["moi_lai"] = { vi: "Mời lại", en: "Re-invite", cat: "other", cls: "mk-tag--moi-lai" };
   TAG_META_RAW["doi_lich"] = { vi: "Dời lịch", en: "Reschedule", cat: "other", cls: "mk-tag--doi-lich" };
@@ -172,40 +203,86 @@
   /** Tags available on Create form — used for list/inline tag editors. */
   var CREATE_TAG_GROUPS = [
     {
-      id: "source",
-      labelVi: "Nguồn",
-      labelEn: "Source",
-      tags: ["facebook", "tiktok", "website", "zalo", "other"],
-    },
-    {
-      id: "customer",
-      labelVi: "Loại / trạng thái khách",
-      labelEn: "Customer",
+      id: "gd14",
+      labelVi: "Giai đoạn 1.4",
+      labelEn: "Stage 1.4",
       tags: [
-        "individual",
-        "company",
-        "co_quan",
-        "chuan_bi_mo",
-        "gia_dinh",
+        "gd14_moi_dang_ky",
+        "gd14_hen_goi_lai",
+        "gd14_khong_nghe_may",
+        "gd14_sai_thong_tin",
+        "gd14_dang_can_nhac",
+        "gd14_cho_thanh_toan",
+        "gd14_chua_xep_buoi",
+        "gd14_da_xac_nhan_lich",
+        "gd14_khong_tham_gia",
+        "gd14_da_tham_gia",
+        "gd14_ngung_cham_soc",
       ],
     },
     {
-      id: "learning",
-      labelVi: "Học",
-      labelEn: "Learning",
-      tags: ["chua_hoc", "da_hoc"],
+      id: "online",
+      labelVi: "Online 1.2",
+      labelEn: "Online 1.2",
+      tags: [
+        "online_chua_dien_form",
+        "online_chua_dk_tk",
+        "online_dang_hoc",
+        "online_dat_80",
+        "online_khong_du_dk",
+        "online_ngung_cskh",
+      ],
     },
     {
-      id: "program",
-      labelVi: "Chương trình",
-      labelEn: "Program",
-      tags: ["mien_phi_online", "mien_phi_offline", "pcth", "van_hanh", "mkt", "lop_khac", "nhuong_quyen"],
+      id: "offline",
+      labelVi: "Offline 1.1",
+      labelEn: "Offline 1.1",
+      tags: [
+        "offline_hen_goi_lai",
+        "offline_khong_nghe_may",
+        "offline_sai_thong_tin",
+        "offline_chuyen_chuong_trinh",
+        "offline_chua_xac_nhan_lich",
+        "offline_da_xac_nhan_lich",
+        "offline_hen_lich_lai",
+        "offline_khong_tham_gia",
+        "offline_da_tham_gia",
+        "offline_ngung_cskh",
+        "offline_ngung_cskh_tam",
+      ],
     },
     {
-      id: "purchase",
-      labelVi: "Tình trạng mua",
-      labelEn: "Purchase",
-      tags: ["mua_lan_dau", "mua_lai", "khong_mua", "ngung_mua"],
+      id: "class",
+      labelVi: "Lớp học",
+      labelEn: "Class",
+      tags: [
+        "da_mqbb",
+        "da_990k",
+        "da_pcth",
+        "da_pcthcb",
+        "mien_phi_offline",
+        "mien_phi_online",
+        "chua_mqbh",
+        "da_tg_free",
+        "da_tg_fb1",
+        "thu_3",
+        "pcth",
+        "van_hanh",
+        "mkt",
+        "lop_khac",
+      ],
+    },
+    {
+      id: "franchise",
+      labelVi: "Nhượng quyền",
+      labelEn: "Franchise",
+      tags: ["nhuong_quyen", "da_ky_quy", "dang_tu_van"],
+    },
+    {
+      id: "material",
+      labelVi: "Nguyên liệu / tình trạng mua",
+      labelEn: "Material",
+      tags: ["mua_lan_dau", "mua_lai", "khong_mua", "ngung_mua", "mua_it_lai", "tiem_nang", "dang_cham_soc", "kh_can_nhac"],
     },
     {
       id: "region",
@@ -218,23 +295,15 @@
       labelVi: "Chăm sóc / trạng thái",
       labelEn: "Care",
       tags: [
-        "dang_tu_van", "dung_cham_soc", "kh_can_nhac", "mua_it_lai", "nguyen_lieu_chuoi",
-        "khong_nghe_may", "thue_bao", "tiem_nang", "tham_khao", "khong_du_tai_chinh", "da_ky_quy",
-        "thu_3", "lop_online", "moi_lai", "da_tg_free", "doi_lich", "l1", "l2", "khong_hoc",
-        "trung_so", "ngung_cham_soc", "chua_mqbb", "da_mqbb", "chua_mqbb_chua_pcth",
-        "chua_mqbb_da_pcth", "da_mqbb_chua_pcth", "da_mqbb_da_pcth", "da_pcth", "chua_pcth",
-        "da_990k", "chua_990k", "hoan_tien_lop_hoc",
+        "dung_cham_soc", "nguyen_lieu_chuoi", "khong_nghe_may", "thue_bao", "tham_khao",
+        "khong_du_tai_chinh", "lop_online", "moi_lai", "doi_lich", "l1", "l2", "khong_hoc",
+        "trung_so", "ngung_cham_soc", "chua_pcth", "chua_990k", "hoan_tien_lop_hoc",
+        "chua_mqbb_chua_pcth", "chua_mqbb_da_pcth", "da_mqbb_chua_pcth", "da_mqbb_da_pcth",
       ],
     },
   ];
 
   var PRESET_SEGMENTS = [
-    { id: "new", nameVi: "Khách mới", nameEn: "New customers", filters: { purchase: "mua_lan_dau" } },
-    { id: "repeat", nameVi: "Khách mua lại", nameEn: "Repeat customers", filters: { purchase: "mua_lai" } },
-    { id: "nobuy", nameVi: "Khách không mua", nameEn: "Not buying", filters: { purchase: "khong_mua" } },
-    { id: "chain", nameVi: "Khách chuỗi (PCTH)", nameEn: "Chain (PCTH)", filters: { program: "pcth" } },
-    { id: "franchise", nameVi: "Khách nhượng quyền", nameEn: "Franchise", filters: { program: "nhuong_quyen" } },
-    { id: "cskh", nameVi: "Khách cần CSKH", nameEn: "Needs care", filters: { staleOnly: true } },
     { id: "phone_dup", nameVi: "Trùng SĐT", nameEn: "Duplicate phone", filters: { phoneDupOnly: true } },
   ];
 
@@ -274,6 +343,9 @@
   var CACHE_ONLY = true;
 
   var TAG_ALIASES = {
+    "990k": "gd14_moi_dang_ky",
+    "990": "gd14_moi_dang_ky",
+    "gd14_990": "gd14_moi_dang_ky",
     other_source: "other",
     ca_nhan: "individual",
     gold: "vang",

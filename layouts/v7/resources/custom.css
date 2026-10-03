@@ -7367,51 +7367,49 @@ body[data-module="Home"][data-view="MainPage"] .content-area {
     background: linear-gradient(135deg, #6d28d9, #5b21b6);
     color: #fff;
 }
-/* ========== Add Announcement Modal - modern, colorful ========== */
+/* ========== Add Announcement Modal — Asana/clean (see AnnouncementMkView.css) ========== */
 .ann-add-modal .modal-dialog.ann-add-modal-dialog {
-    max-width: 680px;
+    max-width: 640px;
     border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
 }
 .ann-add-modal .modal-content.ann-add-modal-content {
     border: none;
     border-radius: 16px;
 }
 .ann-add-modal .modal-header.ann-add-modal-header {
-    background: linear-gradient(135deg, #0d9488 0%, #0f766e 50%, #115e59 100%);
-    color: #fff;
+    background: #fff;
+    color: #0f172a;
     border: none;
-    padding: 22px 28px;
+    border-bottom: 1px solid #eef2f7;
+    padding: 22px 24px 16px;
     position: relative;
 }
 .ann-add-modal .modal-header .modal-title {
-    font-weight: 700;
-    font-size: 1.45rem;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    font-weight: 800;
+    font-size: 1.35rem;
+    display: block;
+    color: #0f172a;
 }
 .ann-add-modal .modal-header .modal-title .fa-bullhorn {
-    opacity: 0.95;
-    font-size: 1.35rem;
+    display: none;
 }
 .ann-add-modal .modal-header .ann-add-close {
-    color: #fff;
-    opacity: 0.9;
+    color: #64748b;
+    opacity: 1;
     text-shadow: none;
-    position: absolute;
-    right: 18px;
-    top: 50%;
-    transform: translateY(-50%);
+    position: static;
+    right: auto;
+    top: auto;
+    transform: none;
     font-size: 1.5rem;
 }
 .ann-add-modal .modal-header .ann-add-close:hover {
     opacity: 1;
+    color: #0f172a;
 }
 .ann-add-modal .modal-body.ann-add-modal-body {
-    background: #f8fafc;
-    padding: 28px 28px;
+    background: #fff;
+    padding: 18px 24px 8px;
 }
 .ann-add-form .ann-form-group {
     margin-bottom: 22px;
@@ -7533,19 +7531,19 @@ body[data-module="Home"][data-view="MainPage"] .content-area {
     color: #334155;
 }
 .ann-add-modal .ann-btn-submit {
-    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+    background: #3b82f6;
     border: none;
-    border-radius: 12px;
-    padding: 10px 24px;
-    font-size: 16px;
-    font-weight: 600;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 700;
     color: #fff;
-    box-shadow: 0 2px 8px rgba(13, 148, 136, 0.35);
+    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.25);
 }
 .ann-add-modal .ann-btn-submit:hover {
-    background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+    background: #2563eb;
     color: #fff;
-    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.4);
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.3);
 }
 /* Select2 inside Add modal - to hơn */
 #mainpage-announcement-modal .select2-container--default .select2-selection--multiple {
@@ -7612,25 +7610,15 @@ body[data-module="Home"][data-view="MainPage"] .content-area {
     background-color: #e0f2fe;
 }
 
-/* Detail modal: kích thước vừa phải, left content, right Comments/Subscribers */
+/* Detail modal: Asana layout lives in AnnouncementMkView.css (loaded last on MainPage). */
 #mainpage-announcement-detail-modal .modal-dialog.ann-detail-dialog {
-    max-width: 720px;
-    width: 90%;
-    height: 75vh;
-    max-height: 75vh;
-    margin: 5vh auto;
+    /* overridden by AnnouncementMkView.css */
 }
 #mainpage-announcement-detail-modal .modal-content {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+    /* overridden by AnnouncementMkView.css */
 }
 #mainpage-announcement-detail-modal .modal-body.ann-detail-body {
-    padding: 24px;
-    position: relative;
-    flex: 1;
-    overflow: auto;
-    min-height: 0;
+    /* overridden by AnnouncementMkView.css */
 }
 #mainpage-announcement-detail-modal .ann-detail-body .row {
     min-height: 200px;
@@ -10302,67 +10290,77 @@ body[data-module="Reports"][data-view="Management"] .main-container {
     padding: 0;
 }
 .teams-add-person-modal .teams-modal-header {
-    padding: 18px 22px 12px;
+    padding: 22px 28px 20px;
     border-bottom: none;
-    background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 50%, #a855f7 100%);
-    color: #f9fafb;
+    background: linear-gradient(90deg, #08A045 0%, #059669 48%, #047857 100%);
+    color: #ffffff;
 }
 .teams-add-person-modal .teams-modal-title {
     margin: 0;
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
 }
 .teams-add-person-modal .teams-modal-form {
-    padding: 16px 22px 18px;
+    padding: 20px 28px 8px;
 }
 .teams-add-person-modal .teams-modal-grid {
-    display: flex;
-    gap: 14px;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 16px;
 }
 .teams-add-person-modal .teams-modal-grid .form-group {
-    flex: 1 1 0;
+    margin-bottom: 0;
 }
 .teams-add-person-modal .control-label {
     font-size: 12px;
-    font-weight: 500;
-    color: #4b5563;
+    font-weight: 700;
+    color: #334155;
 }
 .teams-add-person-modal .form-control {
-    border-radius: 8px;
-    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
     box-shadow: none;
 }
 .teams-add-person-modal .form-control:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 1px #3b82f6, 0 0 0 4px rgba(59,130,246,0.18);
+    border-color: #08A045;
+    box-shadow: 0 0 0 3px rgba(8, 160, 69, 0.18);
 }
 .teams-add-person-modal .teams-modal-footer {
-    margin-top: 10px;
-    padding: 12px 22px 16px;
-    border-top: 1px solid #e5e7eb;
+    margin-top: 0;
+    padding: 14px 28px 18px;
+    border-top: 1px solid #e2e8f0;
     text-align: right;
-    background: #f9fafb;
+    background: #ffffff;
 }
-.teams-add-person-modal .teams-btn-primary {
-    background: linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #22c55e 100%);
-    border: none;
-    border-radius: 999px;
-    padding: 6px 18px;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+.teams-add-person-modal .teams-btn-primary,
+.teams-add-person-modal .teams-btn--primary {
+    background: #08A045;
+    border: 1px solid #08A045;
+    border-radius: 10px;
+    padding: 0 16px;
+    height: 40px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    text-transform: none;
+    letter-spacing: 0;
 }
-.teams-add-person-modal .teams-btn-primary:hover {
-    background: linear-gradient(135deg, #16a34a 0%, #15803d 50%, #16a34a 100%);
+.teams-add-person-modal .teams-btn-primary:hover,
+.teams-add-person-modal .teams-btn--primary:hover {
+    background: #07903e;
+    border-color: #07903e;
 }
-.teams-add-person-modal .teams-btn-secondary {
-    border-radius: 999px;
-    padding: 6px 16px;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    border-color: #d1d5db;
+.teams-add-person-modal .teams-btn-secondary,
+.teams-add-person-modal .teams-btn--outline {
+    border-radius: 10px;
+    padding: 0 16px;
+    height: 40px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0;
+    border-color: #e2e8f0;
 }
 
 /* ========== Teams – Add Group modal (vivid future style) ========== */

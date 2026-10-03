@@ -211,6 +211,15 @@
     "Đã thanh toán": "Đã thanh toán",
     "Đã hủy": "Đã hủy",
     "Từ chối": "Từ chối",
+    "Chờ kế toán": "Chờ kế toán",
+    "Kế toán đã duyệt": "Kế toán đã duyệt",
+    "Kế toán từ chối": "Kế toán từ chối",
+    "Hóa đơn mới": "Hóa đơn mới",
+    "Đã phát hành": "Đã phát hành",
+    "Đợi gửi": "Đợi gửi",
+    "Đang gửi": "Đang gửi",
+    "Phát hành lỗi": "Phát hành lỗi",
+    "Hóa đơn đã hủy": "Hóa đơn đã hủy",
   };
 
   var POS_COL_CLASS_BY_FIELD = {

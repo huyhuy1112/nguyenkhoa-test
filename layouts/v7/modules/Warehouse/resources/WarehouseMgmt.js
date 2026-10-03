@@ -95,70 +95,221 @@
 	}
 
 	/* ========== LIST PAGE ========== */
+	var listFilter = { q: '', status: 'all' };
+
+	function warehouseMatchesFilter(w) {
+		if (listFilter.status !== 'all' && w.status !== listFilter.status) {
+			return false;
+		}
+		var q = String(listFilter.q || '').trim().toLowerCase();
+		if (!q) return true;
+		var hay = [w.code, w.name, w.address, w.manager, S.TYPE_LABEL[w.type] || w.type]
+			.map(function (x) { return String(x || '').toLowerCase(); })
+			.join(' ');
+		return hay.indexOf(q) !== -1;
+	}
+
+	function renderListKpi(warehouses) {
+		var el = qs('#mkWhListKpi');
+		if (!el) return;
+		var totalWh = warehouses.length;
+		var active = 0;
+		var sku = 0;
+		var stock = 0;
+		var exp = 0;
+		var so = 0;
+		warehouses.forEach(function (w) {
+			if (w.status === 'active') active += 1;
+			sku += S.skuCountOf(w.id);
+			stock += S.totalStockOf(w.id);
+			var d = S.ensureData(w.id);
+			exp += (d.stock || []).filter(S.isExpiringSoon).length;
+			so += (d.stock || []).filter(S.isStockoutSoon).length;
+		});
+		var items = [
+			{ key: 'wh', label: 'Tổng kho', value: totalWh, sub: active + ' đang hoạt động', tone: 'ink' },
+			{ key: 'sku', label: 'SKU', value: sku, sub: 'Mặt hàng đang theo dõi', tone: 'teal' },
+			{ key: 'stock', label: 'Tồn kho', value: stock, sub: 'Tổng đơn vị', tone: 'ink' },
+			{ key: 'exp', label: 'Gần HSD', value: exp, sub: 'Cần xử lý sớm', tone: exp > 0 ? 'warn' : 'muted' },
+			{ key: 'so', label: 'Sắp hết', value: so, sub: 'Nguy cơ đứt hàng', tone: so > 0 ? 'danger' : 'muted' },
+		];
+		el.innerHTML = items
+			.map(function (it, i) {
+				return (
+					'<div class="mk-wh-list-kpi__card mk-wh-list-kpi__card--' +
+					it.tone +
+					'" style="--mk-i:' +
+					i +
+					'">' +
+					'<span class="mk-wh-list-kpi__label">' +
+					escapeHtml(it.label) +
+					'</span>' +
+					'<strong class="mk-wh-list-kpi__value">' +
+					Number(it.value).toLocaleString('vi-VN') +
+					'</strong>' +
+					'<span class="mk-wh-list-kpi__sub">' +
+					escapeHtml(it.sub) +
+					'</span></div>'
+				);
+			})
+			.join('');
+	}
+
 	function renderList() {
 		var grid = qs('#mkWhMgmtCardGrid');
 		var tbody = qs('#mkWhMgmtTableBody');
 		if (!grid || !tbody) return;
 
 		var state = S.getState();
+		var all = state.warehouses || [];
+		renderListKpi(all);
+		var list = all.filter(warehouseMatchesFilter);
+		var hint = qs('#mkWhListTableHint');
+		if (hint) {
+			hint.textContent =
+				list.length === all.length
+					? list.length + ' kho'
+					: 'Hiển thị ' + list.length + ' / ' + all.length + ' kho';
+		}
+
 		var htmlCards = '';
 		var htmlRows = '';
 
-		state.warehouses.forEach(function (w) {
+		list.forEach(function (w, idx) {
 			var skus = S.skuCountOf(w.id);
 			var stock = S.totalStockOf(w.id);
 			var d = S.ensureData(w.id);
 			var exp = (d.stock || []).filter(S.isExpiringSoon).length;
 			var so = (d.stock || []).filter(S.isStockoutSoon).length;
+			var tone = w.status === 'active' ? 'live' : w.status === 'archived' ? 'archive' : 'idle';
 			htmlCards +=
-				'<article class="mk-wh-mgmt-card">' +
+				'<article class="mk-wh-mgmt-card mk-wh-mgmt-card--' +
+				tone +
+				'" style="--mk-i:' +
+				idx +
+				'">' +
+				'<div class="mk-wh-mgmt-card__glow" aria-hidden="true"></div>' +
 				'<div class="mk-wh-mgmt-card__top">' +
 				'<div class="mk-wh-mgmt-card__identity">' +
-				'<div class="mk-wh-mgmt-card__code">' + escText(w.code) + '</div>' +
+				'<div class="mk-wh-mgmt-card__code">' +
+				escText(w.code) +
+				'</div>' +
 				'<div class="mk-wh-mgmt-card__title-row">' +
-				'<span class="mk-wh-mgmt-card__icon">' + ICON.warehouse + '</span>' +
-				'<span class="mk-wh-mgmt-card__name">' + escText(w.name) + '</span></div></div>' +
+				'<span class="mk-wh-mgmt-card__icon">' +
+				ICON.warehouse +
+				'</span>' +
+				'<span class="mk-wh-mgmt-card__name">' +
+				escText(w.name) +
+				'</span></div></div>' +
 				statusBadge(w.status) +
 				'</div>' +
 				'<div class="mk-wh-mgmt-card__meta">' +
-				'<div class="mk-wh-mgmt-card__meta-row"><span>' + escapeHtml(S.TYPE_LABEL[w.type] || w.type) + '</span></div>' +
-				'<div class="mk-wh-mgmt-card__meta-row">' + ICON.mapPin + '<span>' + escText(w.address || '—') + '</span></div>' +
-				'<div class="mk-wh-mgmt-card__meta-row"><span>QL: ' + escText(w.manager || '—') + '</span></div>' +
+				'<div class="mk-wh-mgmt-card__meta-row"><span class="mk-wh-mgmt-card__type">' +
+				escapeHtml(S.TYPE_LABEL[w.type] || w.type) +
+				'</span></div>' +
+				'<div class="mk-wh-mgmt-card__meta-row">' +
+				ICON.mapPin +
+				'<span>' +
+				escText(w.address || '—') +
+				'</span></div>' +
+				'<div class="mk-wh-mgmt-card__meta-row"><span>QL: ' +
+				escText(w.manager || '—') +
+				'</span></div>' +
 				'</div>' +
 				'<div class="mk-wh-mgmt-card__stats">' +
-				'<div><span class="mk-wh-mgmt-card__stat-label">SKU</span><span class="mk-wh-mgmt-card__stat-value">' + skus + '</span></div>' +
-				'<div><span class="mk-wh-mgmt-card__stat-label">Tồn</span><span class="mk-wh-mgmt-card__stat-value">' + stock.toLocaleString('vi-VN') + '</span></div>' +
-				'<div><span class="mk-wh-mgmt-card__stat-label">HSD</span><span class="mk-wh-mgmt-card__stat-value' + (exp > 0 ? ' mk-wh-mgmt-warn' : '') + '">' + exp + '</span></div>' +
-				'<div><span class="mk-wh-mgmt-card__stat-label">Hết hàng</span><span class="mk-wh-mgmt-card__stat-value' + (so > 0 ? ' mk-wh-mgmt-warn' : '') + '">' + so + '</span></div>' +
+				'<div><span class="mk-wh-mgmt-card__stat-label">SKU</span><span class="mk-wh-mgmt-card__stat-value">' +
+				skus +
+				'</span></div>' +
+				'<div><span class="mk-wh-mgmt-card__stat-label">Tồn</span><span class="mk-wh-mgmt-card__stat-value">' +
+				stock.toLocaleString('vi-VN') +
+				'</span></div>' +
+				'<div><span class="mk-wh-mgmt-card__stat-label">HSD</span><span class="mk-wh-mgmt-card__stat-value' +
+				(exp > 0 ? ' mk-wh-mgmt-warn' : '') +
+				'">' +
+				exp +
+				'</span></div>' +
+				'<div><span class="mk-wh-mgmt-card__stat-label">Hết hàng</span><span class="mk-wh-mgmt-card__stat-value' +
+				(so > 0 ? ' mk-wh-mgmt-warn' : '') +
+				'">' +
+				so +
+				'</span></div>' +
 				'</div>' +
 				'<div class="mk-wh-mgmt-card__actions">' +
-				'<a class="mk-wh-mgmt-btn mk-wh-mgmt-btn--enter" href="' + detailUrl(w.id) + '"><span>Vào kho</span><span class="mk-wh-mgmt-btn__chev" aria-hidden="true">→</span></a>' +
+				'<a class="mk-wh-mgmt-btn mk-wh-mgmt-btn--enter" href="' +
+				detailUrl(w.id) +
+				'"><span>Vào kho</span><span class="mk-wh-mgmt-btn__chev" aria-hidden="true">→</span></a>' +
 				'<div class="mk-wh-mgmt-card__actions-secondary">' +
-				'<button type="button" class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline mk-wh-mgmt-btn--icon" title="Sửa" data-mk-wh-edit="' + escapeHtml(w.id) + '">' + ICON.pencil + '</button>' +
-				'<button type="button" class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline mk-wh-mgmt-btn--icon" title="Lưu trữ" data-mk-wh-archive="' + escapeHtml(w.id) + '">' + ICON.archive + '</button>' +
-				'<button type="button" class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline mk-wh-mgmt-btn--icon mk-wh-mgmt-btn--danger" title="Xóa" data-mk-wh-delete="' + escapeHtml(w.id) + '">' + ICON.trash + '</button>' +
+				'<button type="button" class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline mk-wh-mgmt-btn--icon" title="Sửa" data-mk-wh-edit="' +
+				escapeHtml(w.id) +
+				'">' +
+				ICON.pencil +
+				'</button>' +
+				'<button type="button" class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline mk-wh-mgmt-btn--icon" title="Lưu trữ" data-mk-wh-archive="' +
+				escapeHtml(w.id) +
+				'">' +
+				ICON.archive +
+				'</button>' +
+				'<button type="button" class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline mk-wh-mgmt-btn--icon mk-wh-mgmt-btn--danger" title="Xóa" data-mk-wh-delete="' +
+				escapeHtml(w.id) +
+				'">' +
+				ICON.trash +
+				'</button>' +
 				'</div></div></article>';
 
 			htmlRows +=
-				'<tr>' +
-				'<td><span class="mk-wh-mgmt-chip">' + escText(w.code) + '</span></td>' +
-				'<td><strong>' + escText(w.name) + '</strong></td>' +
-				'<td>' + escapeHtml(S.TYPE_LABEL[w.type] || w.type) + '</td>' +
-				'<td class="mk-wh-mgmt-muted">' + escText(w.address || '—') + '</td>' +
-				'<td>' + escText(w.manager || '—') + '</td>' +
-				'<td class="mk-wh-mgmt-td-right">' + skus + '</td>' +
-				'<td class="mk-wh-mgmt-td-right"><strong>' + stock.toLocaleString('vi-VN') + '</strong></td>' +
-				'<td class="mk-wh-mgmt-td-right' + (exp > 0 ? ' mk-wh-mgmt-warn' : '') + '">' + exp + '</td>' +
-				'<td class="mk-wh-mgmt-td-right' + (so > 0 ? ' mk-wh-mgmt-warn' : '') + '">' + so + '</td>' +
-				'<td>' + statusBadge(w.status) + '</td>' +
-				'<td class="mk-wh-mgmt-muted">' + fmtDate(w.createdAt) + '</td>' +
+				'<tr class="mk-wh-mgmt-row" style="--mk-i:' +
+				idx +
+				'">' +
+				'<td><span class="mk-wh-mgmt-chip">' +
+				escText(w.code) +
+				'</span></td>' +
+				'<td><strong>' +
+				escText(w.name) +
+				'</strong></td>' +
+				'<td>' +
+				escapeHtml(S.TYPE_LABEL[w.type] || w.type) +
+				'</td>' +
+				'<td class="mk-wh-mgmt-muted">' +
+				escText(w.address || '—') +
+				'</td>' +
+				'<td>' +
+				escText(w.manager || '—') +
+				'</td>' +
 				'<td class="mk-wh-mgmt-td-right">' +
-				'<a class="mk-wh-mgmt-link" href="' + detailUrl(w.id) + '">Vào</a>' +
+				skus +
+				'</td>' +
+				'<td class="mk-wh-mgmt-td-right"><strong>' +
+				stock.toLocaleString('vi-VN') +
+				'</strong></td>' +
+				'<td class="mk-wh-mgmt-td-right' +
+				(exp > 0 ? ' mk-wh-mgmt-warn' : '') +
+				'">' +
+				exp +
+				'</td>' +
+				'<td class="mk-wh-mgmt-td-right' +
+				(so > 0 ? ' mk-wh-mgmt-warn' : '') +
+				'">' +
+				so +
+				'</td>' +
+				'<td>' +
+				statusBadge(w.status) +
+				'</td>' +
+				'<td class="mk-wh-mgmt-muted">' +
+				fmtDate(w.createdAt) +
+				'</td>' +
+				'<td class="mk-wh-mgmt-td-right">' +
+				'<a class="mk-wh-mgmt-link" href="' +
+				detailUrl(w.id) +
+				'">Vào</a>' +
 				'</td></tr>';
 		});
 
-		grid.innerHTML = htmlCards || '<p class="mk-wh-mgmt-empty">Chưa có kho nào.</p>';
-		tbody.innerHTML = htmlRows || '<tr><td colspan="12" class="mk-wh-mgmt-empty">Chưa có kho nào.</td></tr>';
+		grid.innerHTML =
+			htmlCards ||
+			'<div class="mk-wh-mgmt-empty mk-wh-list-empty"><strong>Không có kho phù hợp</strong><span>Thử đổi bộ lọc hoặc tạo kho mới.</span></div>';
+		tbody.innerHTML =
+			htmlRows ||
+			'<tr><td colspan="12" class="mk-wh-mgmt-empty">Không có kho phù hợp bộ lọc.</td></tr>';
 	}
 
 	function bindListEvents() {
@@ -205,24 +356,49 @@
 			createBtn.addEventListener('click', function () { openModal(null); });
 		}
 
+		var search = qs('#mkWhListSearch');
+		if (search) {
+			search.addEventListener('input', function () {
+				listFilter.q = search.value || '';
+				renderList();
+			});
+		}
+		var filters = qs('#mkWhListFilters');
+		if (filters) {
+			filters.addEventListener('click', function (e) {
+				var btn = e.target && e.target.closest ? e.target.closest('[data-mk-wh-filter]') : null;
+				if (!btn) return;
+				listFilter.status = btn.getAttribute('data-mk-wh-filter') || 'all';
+				filters.querySelectorAll('[data-mk-wh-filter]').forEach(function (el) {
+					el.classList.toggle('is-active', el === btn);
+				});
+				renderList();
+			});
+		}
+
 		root.addEventListener('click', function (e) {
 			var t = e.target;
-			if (t.getAttribute && t.getAttribute('data-mk-wh-close') === '1') {
+			if (t.closest && t.closest('[data-mk-wh-close="1"]')) {
 				closeModal();
 				return;
 			}
-			var editId = t.getAttribute && t.getAttribute('data-mk-wh-edit');
-			if (editId) { e.preventDefault(); openModal(editId); return; }
-			var archiveId = t.getAttribute && t.getAttribute('data-mk-wh-archive');
-			if (archiveId) {
+			var editBtn = t.closest ? t.closest('[data-mk-wh-edit]') : null;
+			if (editBtn) {
 				e.preventDefault();
-				S.warehouseActions.archive(archiveId);
+				openModal(editBtn.getAttribute('data-mk-wh-edit'));
+				return;
+			}
+			var archiveBtn = t.closest ? t.closest('[data-mk-wh-archive]') : null;
+			if (archiveBtn) {
+				e.preventDefault();
+				S.warehouseActions.archive(archiveBtn.getAttribute('data-mk-wh-archive'));
 				renderList();
 				return;
 			}
-			var deleteId = t.getAttribute && t.getAttribute('data-mk-wh-delete');
-			if (deleteId) {
+			var deleteBtn = t.closest ? t.closest('[data-mk-wh-delete]') : null;
+			if (deleteBtn) {
 				e.preventDefault();
+				var deleteId = deleteBtn.getAttribute('data-mk-wh-delete');
 				var w = S.getState().warehouses.find(function (x) { return x.id === deleteId; });
 				if (w && window.confirm('Xóa ' + decodeEntities(w.name) + '?')) {
 					S.warehouseActions.remove(deleteId);

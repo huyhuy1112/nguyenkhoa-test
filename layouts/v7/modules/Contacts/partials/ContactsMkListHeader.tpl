@@ -7,7 +7,11 @@
 			<p class="mk-leads-action-header__subtitle">{vtranslate('LBL_MK_CONTACTS_SUBTITLE', 'Contacts')}</p>
 		</div>
 		<div class="mk-leads-action-header__actions">
-			<a class="mk-leads-btn mk-leads-btn--outline" href="index.php?module=Contacts&amp;view=Import&amp;app=SALES" id="mk-contacts-import-btn">
+			<button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-contacts-edubit-sync-btn" title="{vtranslate('LBL_MK_EDUBIT_SYNC_HINT', 'Contacts')}">
+				<span class="mk-leads-btn__ic" id="mk-contacts-edubit-sync-ic" aria-hidden="true"></span>
+				<span class="mk-leads-btn__txt">{vtranslate('LBL_MK_EDUBIT_SYNC', 'Contacts')}</span>
+			</button>
+			<a class="mk-leads-btn mk-leads-btn--outline" href="index.php?module=Contacts&amp;view=Import&amp;app=SALES" id="mk-contacts-import-btn" data-mk-import="1" data-module="Contacts" data-app="SALES">
 				<span class="mk-leads-btn__ic" id="mk-contacts-import-ic" aria-hidden="true"></span>
 				<span class="mk-leads-btn__txt">{vtranslate('LBL_IMPORT', 'Vtiger')}</span>
 			</a>

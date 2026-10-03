@@ -20,7 +20,8 @@
 	{/foreach}
 
 {if $MODULE eq 'Potentials' || (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY|trim eq 'SALES')) || (isset($smarty.get.app) && ($smarty.get.app|trim eq 'SALES'))}
-	<div class="mk-opportunity-detail-summary-grid">
+	<div class="mk-opportunity-detail-summary-grid mk-crm-v4-3col">
+		<div class="mk-crm-v4-stack mk-crm-v4-stack--left">
 		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--key mk-opportunity-detail-grid__key" aria-labelledby="mk-opportunity-detail-keyfields-title">
 			<div class="mk-opportunity-detail-card__head">
 				<h2 id="mk-opportunity-detail-keyfields-title" class="mk-opportunity-detail-card__title">{vtranslate('LBL_KEY_FIELDS', $MODULE_NAME)}</h2>
@@ -40,28 +41,6 @@
 				{/if}
 			</div>
 		</section>
-
-		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--activities mk-opportunity-detail-grid__activities" aria-labelledby="mk-opportunity-detail-activities-title">
-			<div id="relatedActivities" class="mk-opportunity-detail-related-activities">
-				{$RELATED_ACTIVITIES}
-			</div>
-		</section>
-
-		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--interaction-log mk-opportunity-detail-grid__interaction-log" id="mk-opp-section-interaction-log" aria-labelledby="mk-opp-interaction-log-title">
-			<div class="mk-opportunity-detail-card__head mk-opp-interaction-log__head">
-				<span class="mk-opp-interaction-log__ic" aria-hidden="true">📋</span>
-				<h2 id="mk-opp-interaction-log-title" class="mk-opportunity-detail-card__title">Lịch sử tương tác</h2>
-				<div class="mk-opportunity-detail-card__actions pull-right">
-					<button type="button" class="btn btn-sm btn-default mk-opportunity-detail-btn mk-opportunity-detail-btn--ghost" id="mkOppLogCallBtn">+ Ghi cuộc gọi</button>
-				</div>
-			</div>
-			<p class="mk-opp-interaction-log__hint">Tất cả hành động sale từ giai đoạn Lead đến từng giai đoạn Cơ hội.</p>
-			<script type="application/json" id="mk-opp-interaction-log-boot">{$MK_OPP_INTERACTION_LOG_JSON|default:'{"phone":"","contact_id":0,"contact_name":"","lead_id":0,"items":[]}' nofilter}</script>
-			<div class="mk-opp-interaction-log__body" id="mk-opp-interaction-log-body">
-				<p class="mk-opp-interaction-log__empty">Đang hiển thị lịch sử…</p>
-			</div>
-		</section>
-
 		{if $CONTACT_WIDGET_MODEL}
 		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--contacts mk-opportunity-detail-grid__contacts" aria-labelledby="mk-opportunity-detail-contacts-title">
 			<div class="summaryWidgetContainer mk-opportunity-detail-widget-host">
@@ -70,7 +49,6 @@
 						<input type="hidden" name="relatedModule" value="{$CONTACT_WIDGET_MODEL->get('linkName')}" />
 						<span class="toggleButton pull-left"><i class="fa fa-angle-down"></i>&nbsp;&nbsp;</span>
 						<h2 id="mk-opportunity-detail-contacts-title" class="mk-opportunity-detail-card__title display-inline-block pull-left">{vtranslate($CONTACT_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h2>
-
 						{if $CONTACT_WIDGET_MODEL->get('action')}
 							<div class="pull-right">
 								<button class="btn addButton btn-sm btn-default mk-opportunity-detail-btn mk-opportunity-detail-btn--ghost createRecord" type="button" data-url="{$CONTACT_WIDGET_MODEL->get('actionURL')}">
@@ -84,12 +62,54 @@
 			</div>
 		</section>
 		{/if}
+		</div>
+
+		<div class="mk-crm-v4-stack mk-crm-v4-stack--center">
+		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--interaction-log mk-opportunity-detail-grid__interaction-log" id="mk-opp-section-interaction-log" aria-labelledby="mk-opp-interaction-log-title">
+			<div class="mk-opportunity-detail-card__head mk-opp-interaction-log__head">
+				<h2 id="mk-opp-interaction-log-title" class="mk-opportunity-detail-card__title">Lịch sử tương tác</h2>
+				<div class="mk-opportunity-detail-card__actions pull-right">
+					<button type="button" class="btn btn-sm btn-default mk-opportunity-detail-btn mk-opportunity-detail-btn--ghost" id="mkOppLogCallBtn">+ Ghi cuộc gọi</button>
+				</div>
+			</div>
+			<p class="mk-opp-interaction-log__hint">Tất cả hành động sale từ giai đoạn Lead đến từng giai đoạn Cơ hội.</p>
+			<script type="application/json" id="mk-opp-interaction-log-boot">{$MK_OPP_INTERACTION_LOG_JSON|default:'{"phone":"","contact_id":0,"contact_name":"","lead_id":0,"items":[]}' nofilter}</script>
+			<div class="mk-opp-interaction-log__body" id="mk-opp-interaction-log-body">
+				<p class="mk-opp-interaction-log__empty">Đang hiển thị lịch sử…</p>
+			</div>
+		</section>
+		{if $PRODUCT_WIDGET_MODEL}
+		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--products mk-opportunity-detail-grid__products" aria-labelledby="mk-opportunity-detail-products-title">
+			<div class="summaryWidgetContainer mk-opportunity-detail-widget-host">
+				<div class="widgetContainer_products" data-url="{$PRODUCT_WIDGET_MODEL->getUrl()}" data-name="{$PRODUCT_WIDGET_MODEL->getLabel()}">
+					<div class="widget_header clearfix mk-opportunity-detail-card__head mk-opportunity-detail-products__head">
+						<input type="hidden" name="relatedModule" value="{$PRODUCT_WIDGET_MODEL->get('linkName')}" />
+						<span class="toggleButton pull-left"><i class="fa fa-angle-down"></i>&nbsp;&nbsp;</span>
+						<h2 id="mk-opportunity-detail-products-title" class="mk-opportunity-detail-card__title display-inline-block pull-left">{vtranslate($PRODUCT_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h2>
+						{if $PRODUCT_WIDGET_MODEL->get('action')}
+							<div class="pull-right">
+								<button class="btn addButton btn-sm btn-default mk-opportunity-detail-btn mk-opportunity-detail-btn--ghost potentialsSummaryProductsServicesAdd" type="button">
+									<i class="fa fa-plus"></i>&nbsp;&nbsp;{vtranslate('LBL_ADD',$MODULE_NAME)}
+								</button>
+							</div>
+						{/if}
+					</div>
+					<div class="widget_contents"></div>
+				</div>
+			</div>
+		</section>
+		{/if}
+		</div>
+
+		<div class="mk-crm-v4-stack mk-crm-v4-stack--right">
+		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--activities mk-opportunity-detail-grid__activities" aria-labelledby="mk-opportunity-detail-activities-title">
+			<div id="relatedActivities" class="mk-opportunity-detail-related-activities">
+				{$RELATED_ACTIVITIES}
+			</div>
+		</section>
 
 		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--service-contracts mk-opportunity-detail-grid__service-contracts" id="mk-opp-section-service-contracts" aria-labelledby="mk-opp-service-contracts-title">
 			<div class="mk-opportunity-detail-card__head mk-opp-service-contracts__head">
-				<span class="mk-opp-service-contracts__ic" aria-hidden="true">
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M7 4h10v16H7z" stroke="currentColor" stroke-width="1.6"/><path d="M9 8h6M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-				</span>
 				<h2 id="mk-opp-service-contracts-title" class="mk-opportunity-detail-card__title">Hợp đồng dịch vụ (0)</h2>
 				<div class="mk-opportunity-detail-card__actions pull-right">
 					<a class="btn btn-sm btn-default mk-opportunity-detail-btn mk-opportunity-detail-btn--ghost" id="mk-opp-add-service-contract" href="index.php?module=ServiceContracts&amp;view=Edit&amp;app=SALES">+ Tạo hợp đồng</a>
@@ -106,7 +126,6 @@
 						<input type="hidden" name="relatedModule" value="{$DOCUMENT_WIDGET_MODEL->get('linkName')}" />
 						<span class="toggleButton pull-left"><i class="fa fa-angle-down"></i>&nbsp;&nbsp;</span>
 						<h2 id="mk-opportunity-detail-documents-title" class="mk-opportunity-detail-card__title display-inline-block pull-left">{vtranslate($DOCUMENT_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h2>
-
 						{if $DOCUMENT_WIDGET_MODEL->get('action')}
 							{assign var=PARENT_ID value=$RECORD->getId()}
 							<div class="pull-right">
@@ -137,29 +156,7 @@
 			</div>
 		</section>
 		{/if}
-
-		{if $PRODUCT_WIDGET_MODEL}
-		<section class="mk-opportunity-detail-card mk-opportunity-detail-card--products mk-opportunity-detail-grid__products" aria-labelledby="mk-opportunity-detail-products-title">
-			<div class="summaryWidgetContainer mk-opportunity-detail-widget-host">
-				<div class="widgetContainer_products" data-url="{$PRODUCT_WIDGET_MODEL->getUrl()}" data-name="{$PRODUCT_WIDGET_MODEL->getLabel()}">
-					<div class="widget_header clearfix mk-opportunity-detail-card__head mk-opportunity-detail-products__head">
-						<input type="hidden" name="relatedModule" value="{$PRODUCT_WIDGET_MODEL->get('linkName')}" />
-						<span class="toggleButton pull-left"><i class="fa fa-angle-down"></i>&nbsp;&nbsp;</span>
-						<h2 id="mk-opportunity-detail-products-title" class="mk-opportunity-detail-card__title display-inline-block pull-left">{vtranslate($PRODUCT_WIDGET_MODEL->getLabel(),$MODULE_NAME)}</h2>
-
-						{if $PRODUCT_WIDGET_MODEL->get('action')}
-							<div class="pull-right">
-								<button class="btn addButton btn-sm btn-default mk-opportunity-detail-btn mk-opportunity-detail-btn--ghost potentialsSummaryProductsServicesAdd" type="button">
-									<i class="fa fa-plus"></i>&nbsp;&nbsp;{vtranslate('LBL_ADD',$MODULE_NAME)}
-								</button>
-							</div>
-						{/if}
-					</div>
-					<div class="widget_contents"></div>
-				</div>
-			</div>
-		</section>
-		{/if}
+		</div>
 	</div>
 
 	{* Viet Task PT12 - Add (preserve existing JS bridge) *}

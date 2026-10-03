@@ -65,6 +65,9 @@
         phone_dup: false,
         phone_dup_count: 1,
         qa_raw: null,
+        products: [],
+        can_edit_pipeline: 0,
+        pipeline_closed: 0,
       },
       lead,
     );
@@ -97,10 +100,14 @@
     });
   }
 
+  var _productCatalog = null;
+
   function bootstrapFromApi() {
     return apiRequest("list").then(function (res) {
       _memLeads = dedupeLeadsByCrmid((res.leads || []).map(normalizeLead));
       _assignableUsers = Array.isArray(res.assignable_users) ? res.assignable_users.slice() : null;
+      _productCatalog = res.product_catalog || null;
+      window.MK_GD14_QUESTIONS = res.gd14_questions || null;
       _bootstrapped = true;
       return _memLeads;
     }).then(function () {
@@ -262,6 +269,12 @@
       _memLeads = dedupeLeadsByCrmid((res.leads || []).map(normalizeLead));
       if (Array.isArray(res.assignable_users)) {
         _assignableUsers = res.assignable_users.slice();
+      }
+      if (res.product_catalog) {
+        _productCatalog = res.product_catalog;
+      }
+      if (res.gd14_questions) {
+        window.MK_GD14_QUESTIONS = res.gd14_questions;
       }
       _bootstrapped = true;
       return _memLeads;
@@ -462,9 +475,40 @@
     });
   }
 
-  function pollSheetNow() {
+  function saveSheetSource(source) {
+    if (!useApi()) return Promise.resolve(null);
+    return apiRequest("sheet_source_save", {
+      payload: JSON.stringify(source || {}),
+    }).then(function (res) {
+      return res;
+    });
+  }
+
+  function deleteSheetSource(id) {
+    if (!useApi()) return Promise.resolve(null);
+    return apiRequest("sheet_source_delete", {
+      payload: JSON.stringify({ id: id }),
+    }).then(function (res) {
+      return res;
+    });
+  }
+
+  function testSheetSource(id) {
     if (!useApi()) return Promise.resolve({});
-    return apiRequest("sheet_poll_now").then(function (res) {
+    return apiRequest("sheet_source_test", {
+      payload: JSON.stringify({ id: id || 0 }),
+    }).then(function (res) {
+      return res;
+    });
+  }
+
+  function pollSheetNow(sourceId) {
+    if (!useApi()) return Promise.resolve({});
+    var payload = {};
+    if (sourceId) payload.source_id = sourceId;
+    return apiRequest("sheet_poll_now", {
+      payload: JSON.stringify(payload),
+    }).then(function (res) {
       return res;
     });
   }
@@ -512,6 +556,40 @@
     return Promise.resolve();
   }
 
+  function getProductCatalog() {
+    return _productCatalog;
+  }
+
+  function productUpsert(leadId, group, productName) {
+    return apiRequest("product_upsert", {
+      record: leadId,
+      payload: JSON.stringify({ id: leadId, group: group, product_name: productName || "" }),
+    }).then(function (res) {
+      if (res.lead) upsertMemLead(res.lead);
+      return res;
+    });
+  }
+
+  function productSetStage(productId, stage) {
+    return apiRequest("product_set_stage", {
+      product_id: productId,
+      payload: JSON.stringify({ product_id: productId, stage: stage }),
+    }).then(function (res) {
+      if (res.lead) upsertMemLead(res.lead);
+      return res;
+    });
+  }
+
+  function productRemove(productId) {
+    return apiRequest("product_remove", {
+      product_id: productId,
+      payload: JSON.stringify({ product_id: productId }),
+    }).then(function (res) {
+      if (res.lead) upsertMemLead(res.lead);
+      return res;
+    });
+  }
+
   if (!useApi()) {
     ensureSeeded();
   }
@@ -548,11 +626,18 @@
     mergeLeads: mergeLeads,
     getSheetSettings: getSheetSettings,
     saveSheetSettings: saveSheetSettings,
+    saveSheetSource: saveSheetSource,
+    deleteSheetSource: deleteSheetSource,
+    testSheetSource: testSheetSource,
     pollSheetNow: pollSheetNow,
     sheetPollStatus: sheetPollStatus,
     getSegments: getSegments,
     saveSegments: saveSegments,
     resetDemo: resetDemo,
     ensureSeeded: ensureSeeded,
+    getProductCatalog: getProductCatalog,
+    productUpsert: productUpsert,
+    productSetStage: productSetStage,
+    productRemove: productRemove,
   };
 })(typeof window !== "undefined" ? window : this);

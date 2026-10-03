@@ -157,6 +157,18 @@ Vtiger.Class("Settings_Vtiger_Integrations_Js", {}, {
 				}
 				return;
 			}
+			if (name === "sources_json") {
+				var rawSrc = String(val || "").trim();
+				if (!rawSrc) {
+					return;
+				}
+				try {
+					payload.sources = JSON.parse(rawSrc);
+				} catch (err2) {
+					throw new Error("Danh sách nguồn (sources_json) không phải JSON hợp lệ.");
+				}
+				return;
+			}
 			if (el.attr("type") === "password" || name === "service_account_json") {
 				if (String(val || "").trim() === "") {
 					return;
@@ -278,6 +290,25 @@ Vtiger.Class("Settings_Vtiger_Integrations_Js", {}, {
 		}
 
 		form.find('input[name="enabled"]').prop("checked", !!conn.enabled);
+
+		if (conn.code === "google_sheet" && conn.extra) {
+			var gs = conn.extra;
+			if (gs.spreadsheet_id != null) {
+				form.find('input[name="spreadsheet_id"]').val(gs.spreadsheet_id);
+			}
+			if (gs.sheet_range != null) {
+				form.find('input[name="sheet_range"]').val(gs.sheet_range);
+			}
+			if (gs.column_map_json != null) {
+				form.find('textarea[name="column_map"]').val(gs.column_map_json);
+			}
+			if (gs.sources_json != null) {
+				form.find('textarea[name="sources_json"]').val(gs.sources_json);
+			}
+			if (gs.sources_summary) {
+				form.find('input[readonly]').first().val(gs.sources_summary);
+			}
+		}
 
 		if (conn.code === "zalo_oa" && conn.extra) {
 			var ex = conn.extra;

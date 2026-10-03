@@ -28,7 +28,8 @@ class HelpDesk_TagRulesApi_Action extends Vtiger_Action_Controller {
 			'save_tag', 'delete_tag', 'save_group', 'delete_group', 'save_rule', 'delete_rule', 'set_rule_active',
 			'save_scenario', 'delete_scenario', 'reseed', 'dismiss', 'apply_lead',
 			'save_affiliate_tier', 'delete_affiliate_tier', 'set_affiliate_tier_active',
-			'save_sheet_scoring', 'reset_sheet_scoring',
+			'save_sheet_scoring', 'reset_sheet_scoring', 'save_screening_bank', 'save_gd14_questions',
+			'import_question_bank',
 		);
 		if (in_array($mode, $write, true)) {
 			$request->validateWriteAccess();
@@ -213,6 +214,53 @@ class HelpDesk_TagRulesApi_Action extends Vtiger_Action_Controller {
 					));
 					break;
 
+				case 'save_gd14_questions':
+					require_once 'modules/Leads/models/SalesVerifyService.php';
+					$payload = json_decode((string)$request->get('payload'), true);
+					if (!is_array($payload)) {
+						$payload = array();
+					}
+					$bank = Leads_SalesVerifyService::saveGd14QuestionBank($payload);
+					$response->setResult(array(
+						'success' => true,
+						'gd14_questions' => $bank,
+					));
+					break;
+
+				case 'save_screening_bank':
+					require_once 'modules/Leads/models/SalesVerifyService.php';
+					$payload = json_decode((string)$request->get('payload'), true);
+					if (!is_array($payload)) {
+						$payload = array();
+					}
+					$bank = Leads_SalesVerifyService::saveScreeningBank($payload);
+					$response->setResult(array(
+						'success' => true,
+						'screening_bank' => $bank,
+					));
+					break;
+
+				case 'import_question_bank':
+					require_once 'modules/Leads/models/QuestionBankExcelImportService.php';
+					if (empty($_FILES['import_file']) || empty($_FILES['import_file']['tmp_name'])) {
+						throw new Exception('Chưa chọn file Excel (.xlsx).');
+					}
+					$tmp = (string) $_FILES['import_file']['tmp_name'];
+					$name = isset($_FILES['import_file']['name']) ? (string) $_FILES['import_file']['name'] : '';
+					$ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+					if ($ext !== 'xlsx') {
+						throw new Exception('Chỉ hỗ trợ .xlsx');
+					}
+					$forced = trim((string) $request->get('bank_type'));
+					$applyRaw = $request->get('apply');
+					$apply = !($applyRaw === '0' || $applyRaw === 0 || $applyRaw === false || $applyRaw === 'false');
+					$result = Leads_QuestionBankExcelImportService::importFromUpload($tmp, $forced, $apply);
+					if (!empty($result['applied'])) {
+						$result['state'] = $svc->bootstrap((int) $current_user->id);
+					}
+					$response->setResult($result);
+					break;
+
 				case 'reseed':
 					$svc->seedIfEmpty(true);
 					$svc->seedAffiliateTiersIfEmpty(true);
@@ -245,7 +293,7 @@ class HelpDesk_TagRulesApi_Action extends Vtiger_Action_Controller {
 					$response->setResult(array(
 						'success' => true,
 						'next_action' => $action,
-						'match' => $svc->matchRules($svc->getLeadTagLabels($leadId), true),
+						'match' => $svc->matchRules($svc->getLeadTagLabels($leadId), true, $svc->loadLeadFacts($leadId)),
 					));
 					break;
 

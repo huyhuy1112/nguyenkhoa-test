@@ -7,6 +7,8 @@ class Vtiger_BusinessModel_Helper {
 
 	public static function labels() {
 		return array(
+			'Thuê hoặc có sẵn mặt bằng',
+			'Mở vỉa hè, bán online',
 			'TS Topping',
 			'Xe đẩy',
 			'Cà phê máy lạnh',
@@ -33,8 +35,7 @@ class Vtiger_BusinessModel_Helper {
 	}
 
 	/**
-	 * Map Form Câu 2 (mã A–G hoặc câu chữ dài) → nhãn dropdown Leads.
-	 * G (gia đình / sở thích) không phải mô hình quán → trả về rỗng.
+	 * Map Form Câu 2 (mã A–B mới, hoặc A–G legacy) → nhãn dropdown Leads.
 	 */
 	public static function fromFormAnswer($raw) {
 		$v = trim((string) $raw);
@@ -44,10 +45,35 @@ class Vtiger_BusinessModel_Helper {
 		if (function_exists('decode_html')) {
 			$v = trim(decode_html($v));
 		}
+		if (in_array($v, self::labels(), true)) {
+			return $v;
+		}
 		$code = strtoupper(substr(ltrim($v), 0, 1));
 		$rest = substr(ltrim($v), 1);
 		if (preg_match('/^[A-G]$/i', $code) && ($rest === '' || preg_match('/^[\s.\-–—:).]/u', $rest))) {
-			$map = array(
+			// GD1.1 mới: A = mặt bằng, B = vỉa hè/online
+			if ($code === 'A' && (stripos($v, 'mặt bằng') !== false || stripos($v, 'mat bang') !== false || strlen(trim($rest)) <= 1)) {
+				// Ambiguous short "A" — prefer new meaning when only letter
+				if (strlen(trim($v)) <= 2) {
+					return 'Thuê hoặc có sẵn mặt bằng';
+				}
+			}
+			$mapNew = array(
+				'A' => 'Thuê hoặc có sẵn mặt bằng',
+				'B' => 'Mở vỉa hè, bán online',
+			);
+			// If explicit new labels in text
+			$f = self::fold($v);
+			if (strpos($f, 'via he') !== false || strpos($f, 'ban online') !== false) {
+				return 'Mở vỉa hè, bán online';
+			}
+			if (strpos($f, 'mat bang') !== false || strpos($f, 'thue') !== false) {
+				return 'Thuê hoặc có sẵn mặt bằng';
+			}
+			if (isset($mapNew[$code]) && strlen(trim($v)) <= 2) {
+				return $mapNew[$code];
+			}
+			$mapLegacy = array(
 				'A' => 'Xe đẩy',
 				'B' => 'TS Topping',
 				'C' => 'TS Pha máy',
@@ -56,7 +82,14 @@ class Vtiger_BusinessModel_Helper {
 				'F' => 'Cà phê không gian mở',
 				'G' => '',
 			);
-			return isset($map[$code]) ? $map[$code] : '';
+			// Legacy detailed answers → collapse to 2 buckets for new GD1.1
+			if ($code === 'A' || $code === 'G') {
+				return $code === 'A' ? 'Mở vỉa hè, bán online' : '';
+			}
+			if (in_array($code, array('B', 'C', 'D', 'E', 'F'), true)) {
+				return 'Thuê hoặc có sẵn mặt bằng';
+			}
+			return isset($mapLegacy[$code]) ? $mapLegacy[$code] : '';
 		}
 		$f = self::fold($v);
 		if ($f === '') {
@@ -64,6 +97,12 @@ class Vtiger_BusinessModel_Helper {
 		}
 		if (strpos($f, 'gia dinh') !== false || strpos($f, 'so thich') !== false || strpos($f, 'pha che cho gia') !== false) {
 			return '';
+		}
+		if (strpos($f, 'via he') !== false || (strpos($f, 'online') !== false && strpos($f, 'mat bang') === false) || strpos($f, 'xe day') !== false) {
+			return 'Mở vỉa hè, bán online';
+		}
+		if (strpos($f, 'mat bang') !== false || strpos($f, 'thue') !== false) {
+			return 'Thuê hoặc có sẵn mặt bằng';
 		}
 		if (strpos($f, 'xe day') !== false) {
 			return 'Xe đẩy';

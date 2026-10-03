@@ -1,0 +1,30 @@
+<?php
+/*+***********************************************************************************
+ * GD 1.2 Online — tự động đồng bộ tiến độ Edubit.
+ * Frequency: 1 giờ. Contacts + Opp/lead (quà 27312). Nút thủ công vẫn độc lập.
+ *************************************************************************************/
+
+require_once 'modules/Leads/models/OnlineGd12Service.php';
+
+try {
+	global $current_user;
+	if (empty($current_user) || empty($current_user->id)) {
+		$current_user = Users::getActiveAdminUser();
+	}
+	$userId = !empty($current_user->id) ? (int) $current_user->id : null;
+	Leads_OnlineGd12Service::installSchema();
+	$contacts = Leads_OnlineGd12Service::syncEdubitProgressForAllContacts(300, $userId);
+	$opps = Leads_OnlineGd12Service::syncEdubitProgressForAllOpportunities(300, $userId);
+	echo 'Online GD1.2 Edubit progress contacts: scanned='
+		. (isset($contacts['scanned']) ? (int) $contacts['scanned'] : 0)
+		. ' ok=' . (isset($contacts['ok']) ? (int) $contacts['ok'] : 0)
+		. ' fail=' . (isset($contacts['fail']) ? (int) $contacts['fail'] : 0)
+		. ' parsed=' . (isset($contacts['parsed']) ? (int) $contacts['parsed'] : 0)
+		. ' | opps/leads: scanned='
+		. (isset($opps['scanned']) ? (int) $opps['scanned'] : 0)
+		. ' ok=' . (isset($opps['ok']) ? (int) $opps['ok'] : 0)
+		. ' fail=' . (isset($opps['fail']) ? (int) $opps['fail'] : 0)
+		. ' parsed=' . (isset($opps['parsed']) ? (int) $opps['parsed'] : 0);
+} catch (Exception $e) {
+	echo 'Online GD1.2 Edubit progress exception: ' . $e->getMessage();
+}

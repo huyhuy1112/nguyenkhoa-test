@@ -244,7 +244,7 @@
 		return hay.indexOf(q) >= 0;
 	}
 
-	var TAB_IDS = { rules: true, tags: true, scenarios: true, affiliate: true, sheet_scoring: true };
+	var TAB_IDS = { rules: true, tags: true, scenarios: true, affiliate: true, questions: true };
 	var TAB_STORAGE_KEY = 'mk_tre_active_tab';
 
 	function readPersistedTab() {
@@ -371,7 +371,8 @@
 				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'tags' ? ' is-active' : '') + '" data-tab="tags">Tag</button>'
 				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'scenarios' ? ' is-active' : '') + '" data-tab="scenarios">Kịch bản</button>'
 				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'affiliate' ? ' is-active' : '') + '" data-tab="affiliate">Mã giới thiệu</button>'
-				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'sheet_scoring' ? ' is-active' : '') + '" data-tab="sheet_scoring">Điểm lọc Sheet</button>'
+				+ '      <button type="button" class="mk-tre-tab' + (this.activeTab === 'questions' ? ' is-active' : '') + '" data-tab="questions">Câu hỏi</button>'
+				+ '      <a class="mk-tre-tab" href="index.php?module=HelpDesk&view=MaterialAlerts&app=SUPPORT">Cảnh báo nguyên liệu</a>'
 				+ '    </div>'
 				+ '  </div>'
 				+ '  <div class="mk-tre-panel" id="mk-tre-panel"></div>'
@@ -407,18 +408,14 @@
 				$('#mk-tre-stats').html(htmlAff);
 				return;
 			}
-			if (this.activeTab === 'sheet_scoring') {
-				var cfg = store.getSheetScoring ? store.getSheetScoring() : {};
-				var q1Count = cfg.q1 ? Object.keys(cfg.q1).length : 0;
-				var q2Count = cfg.q2 ? Object.keys(cfg.q2).length : 0;
-				var q3Count = cfg.q3 ? Object.keys(cfg.q3).length : 0;
-				var regionCount = cfg.region ? Object.keys(cfg.region).length : 0;
-				var htmlScore = ''
-					+ '<article class="mk-tre-stat-card"><span class="mk-tre-stat-card__label">Câu hỏi</span><strong class="mk-tre-stat-card__value">3</strong><span class="mk-tre-stat-card__hint">Q1, Q2, Q3</span></article>'
-					+ '<article class="mk-tre-stat-card mk-tre-stat-card--accent"><span class="mk-tre-stat-card__label">Đáp án map</span><strong class="mk-tre-stat-card__value">' + (q1Count + q2Count + q3Count) + '</strong><span class="mk-tre-stat-card__hint">Điểm theo lựa chọn</span></article>'
-					+ '<article class="mk-tre-stat-card"><span class="mk-tre-stat-card__label">Khu vực</span><strong class="mk-tre-stat-card__value">' + regionCount + '</strong><span class="mk-tre-stat-card__hint">Điểm cộng/trừ vùng</span></article>'
-					+ '<article class="mk-tre-stat-card"><span class="mk-tre-stat-card__label">Mục đích</span><strong class="mk-tre-stat-card__value">Bộ A</strong><span class="mk-tre-stat-card__hint">Tham chiếu lọc Sheet</span></article>';
-				$('#mk-tre-stats').html(htmlScore);
+			if (this.activeTab === 'questions') {
+				var bank = store.getScreeningBank ? store.getScreeningBank() : { questions: [], levels: [] };
+				var qCount = (bank.questions || []).length;
+				var lvCount = (bank.levels || []).length;
+				$('#mk-tre-stats').html(
+					'<article class="mk-tre-stat-card"><span class="mk-tre-stat-card__label">Câu hỏi</span><strong class="mk-tre-stat-card__value">' + qCount + '</strong><span class="mk-tre-stat-card__hint">3 câu gốc bắt buộc</span></article>'
+					+ '<article class="mk-tre-stat-card mk-tre-stat-card--accent"><span class="mk-tre-stat-card__label">Mức xếp loại</span><strong class="mk-tre-stat-card__value">' + lvCount + '</strong><span class="mk-tre-stat-card__hint">Khớp đáp án, không cộng điểm</span></article>'
+				);
 				return;
 			}
 			var rules = store.getRules();
@@ -452,7 +449,7 @@
 			if (this.activeTab === 'rules') $panel.html(this.renderRulesTab());
 			else if (this.activeTab === 'tags') $panel.html(this.renderTagsTab());
 			else if (this.activeTab === 'affiliate') $panel.html(this.renderAffiliateTab());
-			else if (this.activeTab === 'sheet_scoring') $panel.html(this.renderSheetScoringTab());
+			else if (this.activeTab === 'questions') $panel.html(this.renderQuestionsTab());
 			else $panel.html(this.renderScenariosTab());
 		},
 
@@ -528,6 +525,312 @@
 				+ this.renderSheetScoringRows(groupName, scoreMap, cfg)
 				+ '</tbody></table></div>'
 				+ '</article>';
+		},
+
+		questionOptionRow: function (opt) {
+			opt = opt || { code: '', label: '' };
+			return ''
+				+ '<div class="mk-q-opt js-tre-opt-row">'
+				+ '  <input class="mk-q-opt__code js-tre-opt-code" value="' + esc(opt.code || '') + '" maxlength="3" placeholder="A" aria-label="Mã đáp án" />'
+				+ '  <input class="mk-q-opt__label js-tre-opt-label" value="' + esc(opt.label || '') + '" placeholder="Nội dung đáp án" aria-label="Nội dung đáp án" />'
+				+ '  <button type="button" class="mk-q-opt__del js-tre-opt-del" title="Xoá đáp án">×</button>'
+				+ '</div>';
+		},
+
+		questionCardHtml: function (q, index) {
+			q = q || { id: 'c' + (index || 4), label: '', required: false, core: false, options: [{ code: 'A', label: '' }] };
+			var opts = (q.options && q.options.length) ? q.options : [{ code: 'A', label: '' }];
+			var self = this;
+			var badge = q.core || q.required
+				? '<span class="mk-q-badge mk-q-badge--req">Bắt buộc</span>'
+				: '<span class="mk-q-badge">Không bắt buộc</span>';
+			return ''
+				+ '<article class="mk-q-card js-tre-q-card">'
+				+ '  <header class="mk-q-card__head">'
+				+ '    <div class="mk-q-card__num">' + (index || '') + '</div>'
+				+ '    <div class="mk-q-card__titles">'
+				+ '      <input class="mk-q-card__title js-tre-q-label" value="' + esc(q.label || '') + '" placeholder="Nội dung câu hỏi" />'
+				+ '      <div class="mk-q-card__meta">' + badge
+				+ '        <span class="mk-q-code">Mã <input class="js-tre-q-id" value="' + esc(q.id || '') + '"' + (q.core ? ' readonly' : '') + ' /></span>'
+				+ '      </div>'
+				+ '    </div>'
+				+ '    <label class="mk-q-switch"><input type="checkbox" class="js-tre-q-required"' + ((q.required || q.core) ? ' checked' : '') + (q.core ? ' disabled' : '') + ' /><span>Bắt buộc trả lời</span></label>'
+				+ (q.core ? '' : '<button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-q-del">Xoá câu</button>')
+				+ '  </header>'
+				+ '  <div class="mk-q-opts">'
+				+ '    <div class="mk-q-opts__label">Đáp án Sales chọn khi gọi</div>'
+				+ '    <div class="js-tre-opt-list">' + opts.map(function (o) { return self.questionOptionRow(o); }).join('') + '</div>'
+				+ '    <button type="button" class="mk-q-addopt js-tre-opt-add">+ Thêm đáp án</button>'
+				+ '  </div>'
+				+ '</article>';
+		},
+
+		levelTone: function (code) {
+			if (code === 'khong_du_dk') return 'stop';
+			if (code === 'sieu_tiem_nang') return 'hot';
+			if (code === 'tiem_nang') return 'good';
+			return 'mid';
+		},
+
+		levelPlain: function (lv) {
+			var bits = (lv.when || []).map(function (c) {
+				var q = String(c.q || '').replace(/^c/i, 'Câu ');
+				if (c.op === 'in') return q + ' là ' + String(c.value || '').replace(/,/g, ' hoặc ');
+				return q + ' là ' + c.value;
+			});
+			return bits.length ? bits.join(', và ') : 'Áp dụng khi chưa khớp mức nào phía trên';
+		},
+
+		renderQuestionsTab: function () {
+			var self = this;
+			var bank = store.getScreeningBank ? store.getScreeningBank() : { questions: [], levels: [] };
+			var questions = bank.questions || [];
+			var levels = bank.levels || [];
+			var qRows = questions.map(function (q, idx) {
+				return self.questionCardHtml(q, idx + 1);
+			}).join('');
+			var lvRows = levels.map(function (lv, idx) {
+				var when = (lv.when || []).map(function (c) {
+					return c.q + (c.op === 'in' ? ' in ' : '=') + c.value;
+				}).join(' & ');
+				var tone = self.levelTone(lv.code);
+				return ''
+					+ '<article class="mk-lv js-tre-lv-row mk-lv--' + tone + '">'
+					+ '  <div class="mk-lv__order">' + (idx + 1) + '</div>'
+					+ '  <div class="mk-lv__main">'
+					+ '    <div class="mk-lv__name">' + esc(lv.label || lv.code) + '</div>'
+					+ '    <div class="mk-lv__plain">' + esc(self.levelPlain(lv)) + '</div>'
+					+ '    <div class="mk-lv__edit">'
+					+ '      <label>Tên mức<input class="mk-tre-input js-tre-lv-label" value="' + esc(lv.label || '') + '" /></label>'
+					+ '      <label>Mã<input class="mk-tre-input js-tre-lv-code" value="' + esc(lv.code || '') + '" /></label>'
+					+ '      <label>Thứ tự xét<input class="mk-tre-input js-tre-lv-prio" type="number" value="' + esc(lv.priority) + '" /></label>'
+					+ '      <label class="mk-lv__when">Khi khách trả lời<input class="mk-tre-input js-tre-lv-when" value="' + esc(when) + '" placeholder="c3=F hoặc c1 in A,B & c2=A" /></label>'
+					+ '    </div>'
+					+ '  </div>'
+					+ '</article>';
+			}).join('');
+			return ''
+				+ '<div class="mk-q-page">'
+				+ '  <section class="mk-tre-section mk-tre-section--import">'
+				+ '    <div class="mk-tre-section__head"><div class="mk-tre-section__titles">'
+				+ '      <h2 class="mk-tre-section__title">Import Excel bộ tiêu chuẩn</h2>'
+				+ '      <p class="mk-tre-section__sub">Nạp file GD11 / GD14 - Tieu chuan 3 cau hoi.xlsx (hoặc GD12). Tự nhận loại theo sheet. GD11 → sàng lọc; GD14 → câu 990k; GD12 chỉ đọc đối chiếu.</p>'
+				+ '    </div><div class="mk-tre-section__actions">'
+				+ '      <label class="mk-tre-btn mk-tre-btn--ghost mk-tre-file">'
+				+ '        <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="js-tre-qbank-file" hidden />'
+				+ '        Chọn file .xlsx'
+				+ '      </label>'
+				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--primary js-tre-qbank-import">Import vào CRM</button>'
+				+ '    </div></div>'
+				+ '    <div class="mk-tre-section__body"><p class="mk-tre-import-status js-tre-qbank-status" hidden></p></div>'
+				+ '  </section>'
+				+ '  <section class="mk-tre-section">'
+				+ '    <div class="mk-tre-section__head"><div class="mk-tre-section__titles">'
+				+ '      <h2 class="mk-tre-section__title">Câu hỏi khi gọi khách</h2>'
+				+ '      <p class="mk-tre-section__sub">Ba câu đầu luôn phải hỏi. Câu thêm thì hỏi khi cần. Sales chọn đáp án, hệ thống tự xếp vào một mức ở dưới.</p>'
+				+ '    </div><div class="mk-tre-section__actions">'
+				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-q-add">Thêm câu</button>'
+				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--primary js-tre-q-save">Lưu</button>'
+				+ '    </div></div>'
+				+ '    <div class="mk-tre-section__body"><div class="mk-q-list js-tre-q-list">' + qRows + '</div></div>'
+				+ '  </section>'
+				+ '  <section class="mk-tre-section">'
+				+ '    <div class="mk-tre-section__head"><div class="mk-tre-section__titles">'
+				+ '      <h2 class="mk-tre-section__title">Trả lời xong thì thuộc nhóm nào</h2>'
+				+ '      <p class="mk-tre-section__sub">Đọc từ trên xuống. Dòng nào đúng trước thì lấy dòng đó. Không cộng điểm.</p>'
+				+ '    </div><div class="mk-tre-section__actions">'
+				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-lv-add">Thêm mức</button>'
+				+ '    </div></div>'
+				+ '    <div class="mk-tre-section__body"><div class="mk-lv-list js-tre-lv-list">' + lvRows + '</div></div>'
+				+ '  </section>'
+				+ self.renderGd14QuestionsSection()
+				+ '</div>';
+		},
+
+		renderGd14QuestionsSection: function () {
+			var self = this;
+			var bank = store.getGd14Questions ? store.getGd14Questions() : { questions: [] };
+			var questions = bank.questions || [];
+			var cards = questions.map(function (q, idx) {
+				return self.gd14CardHtml(q, idx + 1);
+			}).join('');
+			return ''
+				+ '<section class="mk-tre-section" style="margin-top:28px">'
+				+ '  <div class="mk-tre-section__head"><div class="mk-tre-section__titles">'
+				+ '    <h2 class="mk-tre-section__title">Câu hỏi 990k</h2>'
+				+ '    <p class="mk-tre-section__sub">Dùng khi xác minh lead gắn tag 990k. Sửa chữ câu và đáp án tại đây. Không dùng để xếp tiềm năng.</p>'
+				+ '  </div><div class="mk-tre-section__actions">'
+				+ '    <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-gd14-add">Thêm câu</button>'
+				+ '    <button type="button" class="mk-tre-btn mk-tre-btn--primary js-tre-gd14-save">Lưu câu 990k</button>'
+				+ '  </div></div>'
+				+ '  <div class="mk-tre-section__body"><div class="mk-q-list js-tre-gd14-list">' + cards + '</div></div>'
+				+ self.renderGd14ResultsSection(bank.results || [])
+				+ '</section>';
+		},
+
+		gd14GroupLabel: function (group) {
+			if (group === 'chan_moi') return 'Chặn mời khóa cao';
+			if (group === 'loi_tu_van') return 'Lời tư vấn';
+			if (group === 'mau_thuan') return 'Đáp án mâu thuẫn';
+			return group;
+		},
+
+		renderGd14ResultsSection: function (results) {
+			var self = this;
+			var rows = (results || []).map(function (row) {
+				var when = (row.when || []).map(function (c) {
+					if (c.op === 'in') return c.q + ' in ' + c.value;
+					if (c.op === 'neq') return c.q + '!=' + c.value;
+					return c.q + '=' + c.value;
+				}).join(' & ');
+				return ''
+					+ '<article class="mk-lv js-tre-gd14-result">'
+					+ '  <div class="mk-lv__main"><div class="mk-lv__edit">'
+					+ '    <label>Kết quả hiện cho Sales<input class="mk-tre-input js-tre-gd14-label" value="' + esc(row.label || '') + '" /></label>'
+					+ '    <label>Nhóm<select class="mk-tre-input mk-tre-input--select js-tre-gd14-group">'
+					+ '      <option value="chan_moi"' + (row.group === 'chan_moi' ? ' selected' : '') + '>Chặn mời Combo / Mở quán</option>'
+					+ '      <option value="loi_tu_van"' + (row.group === 'loi_tu_van' ? ' selected' : '') + '>Lời tư vấn</option>'
+					+ '      <option value="mau_thuan"' + (row.group === 'mau_thuan' ? ' selected' : '') + '>Hỏi lại vì mâu thuẫn</option>'
+					+ '    </select></label>'
+					+ '    <label>Thứ tự<input class="mk-tre-input js-tre-gd14-prio" type="number" value="' + esc(row.priority || 100) + '" /></label>'
+					+ '    <label class="mk-lv__when">Khi khách trả lời<input class="mk-tre-input js-tre-gd14-when" value="' + esc(when) + '" placeholder="c2 in a,b hoặc c1=d" /></label>'
+					+ '    <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-gd14-result-del">Xoá dòng</button>'
+					+ '  </div></div>'
+					+ '</article>';
+			}).join('');
+			return ''
+				+ '<div class="mk-tre-section__head" style="margin-top:18px"><div class="mk-tre-section__titles">'
+				+ '  <h2 class="mk-tre-section__title">Chọn đáp án thì ra kết quả nào</h2>'
+				+ '  <p class="mk-tre-section__sub">Đây là ma trận 990k. Không xếp tiềm năng. Khớp một dòng “chặn mời” thì không mời Combo và Mở quán bài bản. Không khớp dòng lời tư vấn thì dùng lời Quán. Khớp dòng mâu thuẫn thì Sales hỏi lại.</p>'
+				+ '</div><div class="mk-tre-section__actions">'
+				+ '  <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-gd14-result-add">Thêm dòng kết quả</button>'
+				+ '</div></div>'
+				+ '<div class="mk-tre-section__body"><div class="mk-lv-list js-tre-gd14-results">' + rows + '</div></div>';
+		},
+
+		renderGd14ResultBlank: function () {
+			return ''
+				+ '<article class="mk-lv js-tre-gd14-result">'
+				+ '  <div class="mk-lv__main"><div class="mk-lv__edit">'
+				+ '    <label>Kết quả hiện cho Sales<input class="mk-tre-input js-tre-gd14-label" value="" /></label>'
+				+ '    <label>Nhóm<select class="mk-tre-input mk-tre-input--select js-tre-gd14-group">'
+				+ '      <option value="chan_moi">Chặn mời Combo / Mở quán</option>'
+				+ '      <option value="loi_tu_van">Lời tư vấn</option>'
+				+ '      <option value="mau_thuan">Hỏi lại vì mâu thuẫn</option>'
+				+ '    </select></label>'
+				+ '    <label>Thứ tự<input class="mk-tre-input js-tre-gd14-prio" type="number" value="50" /></label>'
+				+ '    <label class="mk-lv__when">Khi khách trả lời<input class="mk-tre-input js-tre-gd14-when" placeholder="c2 in a,b hoặc c1=d" /></label>'
+				+ '    <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-gd14-result-del">Xoá dòng</button>'
+				+ '  </div></div></article>';
+		},
+
+		gd14CardHtml: function (q, index) {
+			var html = this.questionCardHtml({
+				id: q.id,
+				label: q.label,
+				required: false,
+				core: false,
+				options: q.options
+			}, index);
+			return html.replace('js-tre-q-card', 'js-tre-gd14-card').replace('js-tre-q-del', 'js-tre-gd14-del');
+		},
+
+		readGd14QuestionsForm: function () {
+			var questions = [];
+			$('#mk-tre-panel .js-tre-gd14-card').each(function () {
+				var $card = $(this);
+				var options = [];
+				$card.find('.js-tre-opt-row').each(function () {
+					var code = String($(this).find('.js-tre-opt-code').val() || '').trim();
+					var label = String($(this).find('.js-tre-opt-label').val() || '').trim();
+					if (!code || !label) return;
+					options.push({ code: code, label: label });
+				});
+				var id = String($card.find('.js-tre-q-id').val() || '').trim();
+				var label = String($card.find('.js-tre-q-label').val() || '').trim();
+				if (!id || !label || !options.length) return;
+				questions.push({ id: id, label: label, options: options });
+			});
+			return { questions: questions, results: self.readGd14ResultsForm() };
+		},
+
+		readGd14ResultsForm: function () {
+			var results = [];
+			$('#mk-tre-panel .js-tre-gd14-result').each(function () {
+				var $row = $(this);
+				var when = [];
+				String($row.find('.js-tre-gd14-when').val() || '').split('&').forEach(function (part) {
+					part = part.trim();
+					if (!part) return;
+					var inMatch = part.match(/^([a-zA-Z0-9_]+)\s+in\s+(.+)$/i);
+					if (inMatch) {
+						when.push({ q: inMatch[1].toLowerCase(), op: 'in', value: inMatch[2].replace(/\s/g, '').toLowerCase() });
+						return;
+					}
+					var neq = part.split('!=');
+					if (neq.length === 2) {
+						when.push({ q: neq[0].trim().toLowerCase(), op: 'neq', value: neq[1].trim().toLowerCase() });
+						return;
+					}
+					var eq = part.split('=');
+					if (eq.length >= 2) {
+						when.push({ q: eq[0].trim().toLowerCase(), op: 'eq', value: eq.slice(1).join('=').trim().toLowerCase() });
+					}
+				});
+				results.push({
+					group: $row.find('.js-tre-gd14-group').val(),
+					label: $row.find('.js-tre-gd14-label').val(),
+					priority: parseInt($row.find('.js-tre-gd14-prio').val(), 10) || 100,
+					when: when
+				});
+			});
+			return results;
+		},
+
+		readQuestionsForm: function () {
+			var questions = [];
+			$('#mk-tre-panel .js-tre-q-card').each(function () {
+				var $card = $(this);
+				var options = [];
+				$card.find('.js-tre-opt-row').each(function () {
+					var code = String($(this).find('.js-tre-opt-code').val() || '').trim();
+					var label = String($(this).find('.js-tre-opt-label').val() || '').trim();
+					if (!code || !label) return;
+					options.push({ code: code, label: label });
+				});
+				questions.push({
+					id: $card.find('.js-tre-q-id').val(),
+					label: $card.find('.js-tre-q-label').val(),
+					required: $card.find('.js-tre-q-required').prop('checked') || $card.find('.js-tre-q-required').prop('disabled'),
+					active: true,
+					options: options
+				});
+			});
+			var levels = [];
+			$('#mk-tre-panel .js-tre-lv-row').each(function () {
+				var $row = $(this);
+				var when = [];
+				String($row.find('.js-tre-lv-when').val() || '').split('&').forEach(function (part) {
+					part = part.trim();
+					if (!part) return;
+					var inMatch = part.match(/^([a-zA-Z0-9_]+)\s+in\s+(.+)$/i);
+					if (inMatch) {
+						when.push({ q: inMatch[1].toLowerCase(), op: 'in', value: inMatch[2].replace(/\s/g, '') });
+						return;
+					}
+					var eq = part.split('=');
+					if (eq.length >= 2) {
+						when.push({ q: eq[0].trim().toLowerCase(), op: 'eq', value: eq.slice(1).join('=').trim() });
+					}
+				});
+				levels.push({
+					code: $row.find('.js-tre-lv-code').val(),
+					label: $row.find('.js-tre-lv-label').val(),
+					priority: parseInt($row.find('.js-tre-lv-prio').val(), 10) || 100,
+					when: when
+				});
+			});
+			return { questions: questions, levels: levels };
 		},
 
 		renderSheetScoringTab: function () {
@@ -633,13 +936,22 @@
 						esc(r.alert_days) +
 						' ngày</span>';
 				}
+				if (r.condition_mode === 'OR') {
+					thenMeta += '<span class="mk-tre-chip">OR</span>';
+				}
+				if (r.formula_metric && r.formula_value != null && r.formula_value !== '') {
+					thenMeta += '<span class="mk-tre-chip mk-tre-chip--warn">' + esc(r.formula_metric) + ' ' + esc(r.formula_op || '>=') + ' ' + esc(r.formula_value) + '</span>';
+				}
+				if ((r.important_tags || []).length) {
+					thenMeta += '<span class="mk-tre-chip">' + (r.important_tags || []).length + ' điều kiện quan trọng</span>';
+				}
 
 				return ''
 					+ '<tr>'
 					+ '  <td><div class="mk-tre-rule-name">' + esc(r.status_label) + '</div><div class="mk-tre-rule-sub">' + esc(r.name) + '</div></td>'
 					+ '  <td><div class="mk-tre-if"><span class="mk-tre-if__label">Nếu</span><div class="mk-tre-chips">' + tagHtml + '</div></div></td>'
 					+ '  <td><div class="mk-tre-then"><span class="mk-tre-then__label">Thì</span>'
-					+ '    <div class="mk-tre-then__text">' + esc(r.next_action || '—') + '</div>'
+					+ '    <div class="mk-tre-then__text">' + esc(r.next_action || '—') + (r.result_tag ? '<div class="mk-tre-rule-sub">Đổi sang tag ' + esc(tagMap[r.result_tag] ? tagMap[r.result_tag].name : r.result_tag) + '</div>' : '') + '</div>'
 					+ (thenMeta ? '<div class="mk-tre-then__meta mk-tre-chips">' + thenMeta + '</div>' : '')
 					+ '  </div></td>'
 					+ '  <td><span class="mk-tre-priority">' + esc(r.priority) + '</span></td>'
@@ -1035,8 +1347,9 @@
 		openRuleForm: function (ruleId) {
 			var isEdit = !!ruleId;
 			var rule = isEdit ? store.getRuleById(ruleId) : {
-				status_label: '', name: '', tag_ids: [], priority: 50, is_active: true,
-				alert_days: 3, next_action: '', require_note: false, scenario_id: ''
+				status_label: '', name: '', tag_ids: [], important_tags: [], priority: 50, is_active: true,
+				alert_days: 3, next_action: '', require_note: false, scenario_id: '', result_tag: '',
+				condition_mode: 'AND', formula_metric: '', formula_op: '>=', formula_value: '', warning_value: '', action_code: ''
 			};
 			var tags = store.getTags();
 			var scenarios = store.getScenarios();
@@ -1093,66 +1406,119 @@
 			}).join('');
 
 			var selectedCount = selected.length;
+			var fcFields = [
+				['tag', 'Tag'],
+				['business_model', 'Mô hình kinh doanh'],
+				['eligibility', 'Đủ điều kiện'],
+				['leadsource', 'Nguồn'],
+				['idle_days', 'Số ngày chưa chăm'],
+				['class_time', 'Giờ học'],
+				['r1', 'R1 — liên hệ lỗi'],
+				['r2', 'R2 — chưa chốt lịch'],
+				['r3', 'R3 — không đến lớp'],
+				['r4', 'R4 — không đủ điều kiện']
+			];
+			function fcOps(field) {
+				if (field === 'idle_days' || field === 'r1' || field === 'r2' || field === 'r3' || field === 'r4') {
+					return ['>=', '>', '=', '<=', '<'];
+				}
+				if (field === 'class_time') return ['not_empty', 'empty'];
+				if (field === 'tag') return ['has', 'not_has'];
+				return ['eq', 'neq', 'contains'];
+			}
+			function fcOpLabel(op) {
+				var map = { has: 'có', not_has: 'không có', eq: 'bằng', neq: 'khác', contains: 'chứa', not_empty: 'đã có', empty: 'đang trống', '>=': '≥', '>': '>', '=': '=', '<=': '≤', '<': '<' };
+				return map[op] || op;
+			}
+			function fcRowHtml(row) {
+				row = row || { field: 'business_model', op: 'eq', value: '', important: false };
+				var fieldOpts = fcFields.map(function (pair) {
+					return '<option value="' + pair[0] + '"' + (row.field === pair[0] ? ' selected' : '') + '>' + pair[1] + '</option>';
+				}).join('');
+				var ops = fcOps(row.field);
+				if (ops.indexOf(row.op) < 0) row.op = ops[0];
+				var opOptsHtml = ops.map(function (o) {
+					return '<option value="' + o + '"' + (row.op === o ? ' selected' : '') + '>' + fcOpLabel(o) + '</option>';
+				}).join('');
+				return ''
+					+ '<div class="mk-tre-form-row js-tre-fc-row" style="margin-top:8px;align-items:end">'
+					+ '  <label class="mk-tre-field"><span>Trường</span><select class="mk-tre-input mk-tre-input--select" name="fc_field">' + fieldOpts + '</select></label>'
+					+ '  <label class="mk-tre-field"><span>So sánh</span><select class="mk-tre-input mk-tre-input--select" name="fc_op">' + opOptsHtml + '</select></label>'
+					+ '  <label class="mk-tre-field"><span>Giá trị</span><input class="mk-tre-input" name="fc_value" value="' + esc(row.value || '') + '" placeholder="VD: ca_phe_san_vuon hoặc 3" /></label>'
+					+ '  <input type="checkbox" name="fc_important" hidden' + (row.important ? ' checked' : '') + ' />'
+					+ '  <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-fc-del">Xoá</button>'
+					+ '</div>';
+			}
+			var fcSource = (rule.field_conditions && rule.field_conditions.length) ? rule.field_conditions : [{ field: 'business_model', op: 'eq', value: '', important: false }];
+			var fcRowsHtml = fcSource.map(fcRowHtml).join('');
 			var body = ''
 				+ '<div class="mk-tre-form mk-tre-form--rule">'
-				+ '  <div class="mk-tre-flow" aria-hidden="true">'
-				+ '    <span class="mk-tre-flow__badge mk-tre-flow__badge--if">Nếu</span>'
-				+ '    <span class="mk-tre-flow__line"></span>'
-				+ '    <span class="mk-tre-flow__badge mk-tre-flow__badge--then">Thì</span>'
-				+ '    <p class="mk-tre-flow__text">Đủ tag (AND) → trạng thái + hành động / kịch bản</p>'
-				+ '  </div>'
-
-				+ '  <section class="mk-tre-form-block">'
-				+ '    <header class="mk-tre-form-block__head">'
-				+ '      <span class="mk-tre-form-block__step">01</span>'
-				+ '      <div><h3 class="mk-tre-form-block__title">Kết quả khi khớp</h3>'
-				+ '      <p class="mk-tre-form-block__sub">Nhãn trạng thái, hành động và kịch bản áp dụng cho lead</p></div>'
-				+ '    </header>'
-				+ '    <div class="mk-tre-form-block__body">'
-				+ '      <div class="mk-tre-form-row">'
-				+ '        <label class="mk-tre-field"><span>Mã / tên rule</span><input class="mk-tre-input" name="name" value="' + esc(rule.name) + '" placeholder="VD: R03 Miss call" autocomplete="off" /></label>'
-				+ '        <label class="mk-tre-field"><span>Trạng thái khi khớp</span><input class="mk-tre-input" name="status_label" value="' + esc(rule.status_label) + '" placeholder="VD: Không nghe máy" autocomplete="off" /></label>'
-				+ '      </div>'
-				+ '      <label class="mk-tre-field"><span>Hành động tiếp theo</span><input class="mk-tre-input" name="next_action" value="' + esc(rule.next_action || '') + '" placeholder="VD: Nhắn Zalo + gọi lại trong 24h" autocomplete="off" /></label>'
-				+ '      <label class="mk-tre-field"><span>Gắn kịch bản</span><select class="mk-tre-input mk-tre-input--select" name="scenario_id">' + scOpts + '</select></label>'
-				+ '      <div class="mk-tre-form-row">'
-				+ '        <label class="mk-tre-field"><span>Priority</span><input class="mk-tre-input" type="number" name="priority" value="' + esc(rule.priority) + '" min="1" /></label>'
-				+ '        <label class="mk-tre-field"><span>Cảnh báo sau (ngày)</span><input class="mk-tre-input" type="number" name="alert_days" value="' + esc(rule.alert_days == null ? '' : rule.alert_days) + '" min="0" placeholder="Trống = không cảnh báo" /></label>'
-				+ '      </div>'
-				+ '    </div>'
-				+ '  </section>'
+				+ '<input type="hidden" name="status_label" value="' + esc(rule.status_label || rule.name || '') + '" />'
+				+ ''
+				+ '<input type="hidden" name="warning_value" value="' + esc(rule.warning_value == null ? '' : rule.warning_value) + '" />'
+				+ '<input type="hidden" name="scenario_id" value="' + esc(rule.scenario_id || '') + '" />'
+				+ '<input type="hidden" name="priority" value="' + esc(rule.priority) + '" />'
+				+ '<input type="hidden" name="alert_days" value="' + esc(rule.alert_days == null ? '' : rule.alert_days) + '" />'
+				+ '<input type="checkbox" name="require_note" hidden' + (rule.require_note ? ' checked' : '') + ' />'
 
 				+ '  <section class="mk-tre-form-block mk-tre-form-block--tags">'
 				+ '    <header class="mk-tre-form-block__head">'
-				+ '      <span class="mk-tre-form-block__step">02</span>'
-				+ '      <div><h3 class="mk-tre-form-block__title">Điều kiện tag</h3>'
-				+ '      <p class="mk-tre-form-block__sub">Lead phải có <strong>đủ</strong> các tag đã chọn (AND)</p></div>'
+				+ '      <span class="mk-tre-form-block__step">1</span>'
+				+ '      <div><h3 class="mk-tre-form-block__title">Khi khách đang có tag nào</h3>'
+				+ '      <p class="mk-tre-form-block__sub">Chọn tag khách đang mang. Để trống nếu không cần xét tag.</p></div>'
 				+ '      <span class="mk-tre-tag-count js-tre-tag-count">' + selectedCount + ' đã chọn</span>'
 				+ '    </header>'
 				+ '    <div class="mk-tre-form-block__body">'
 				+ '      <div class="mk-tre-tag-search">'
-				+ '        <svg class="mk-tre-tag-search__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
 				+ '        <input type="search" class="mk-tre-input mk-tre-input--search-inline js-tre-tag-filter" placeholder="Tìm tag theo tên…" autocomplete="off" />'
 				+ '      </div>'
-				+ '      <div class="mk-tre-tag-picker">' + (tagGroups || '<span class="mk-tre-muted">Chưa có tag trong catalogue.</span>') + '</div>'
-				+ '      <p class="mk-tre-tag-empty js-tre-tag-empty" hidden>Không tìm thấy tag phù hợp.</p>'
+				+ '      <div class="mk-tre-tag-picker">' + (tagGroups || '<span class="mk-tre-muted">Chưa có tag.</span>') + '</div>'
+				+ '      <p class="mk-tre-tag-empty js-tre-tag-empty" hidden>Không tìm thấy tag.</p>'
+				+ '      <div class="mk-tre-form-row" style="margin-top:12px;align-items:end">'
+				+ '        <label class="mk-tre-field"><span>Ghép điều kiện</span>'
+				+ '          <select class="mk-tre-input mk-tre-input--select" name="condition_mode">'
+				+ '            <option value="AND"' + ((rule.condition_mode || 'AND') !== 'OR' ? ' selected' : '') + '>Và — phải đủ mọi tag và điều kiện</option>'
+				+ '            <option value="OR"' + (rule.condition_mode === 'OR' ? ' selected' : '') + '>Hoặc — khớp một tag hoặc một điều kiện</option>'
+				+ '          </select></label>'
+				+ '        <label class="mk-tre-field"><span>Bắt đầu chạy</span><input class="mk-tre-input" type="date" name="active_from" value="' + esc(rule.active_from || '') + '" /></label>'
+				+ '        <label class="mk-tre-field"><span>Ngừng chạy</span><input class="mk-tre-input" type="date" name="active_until" value="' + esc(rule.active_until || '') + '" /></label>'
+				+ '      </div>'
+				+ '      <p class="mk-tre-form-block__sub">Để trống ngày thì rule chạy mọi lúc, chừng nào còn bật.</p>'
 				+ '    </div>'
 				+ '  </section>'
 
-				+ '  <section class="mk-tre-form-block mk-tre-form-block--opts">'
+				+ '  <section class="mk-tre-form-block">'
 				+ '    <header class="mk-tre-form-block__head">'
-				+ '      <span class="mk-tre-form-block__step">03</span>'
-				+ '      <div><h3 class="mk-tre-form-block__title">Tuỳ chọn</h3>'
-				+ '      <p class="mk-tre-form-block__sub">Bật/tắt rule và yêu cầu ghi chú</p></div>'
+				+ '      <span class="mk-tre-form-block__step">2</span>'
+				+ '      <div><h3 class="mk-tre-form-block__title">Và thêm điều kiện gì</h3>'
+				+ '      <p class="mk-tre-form-block__sub">Không bắt buộc. Ví dụ: chưa chăm từ 3 ngày, hoặc mô hình là cà phê sân vườn.</p></div>'
 				+ '    </header>'
-				+ '    <div class="mk-tre-form-block__body mk-tre-form-block__body--opts">'
+				+ '    <div class="mk-tre-form-block__body">'
+				+ '      <div class="js-tre-fc-list">' + fcRowsHtml + '</div>'
+				+ '      <button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-fc-add" style="margin-top:8px">Thêm dòng</button>'
+				+ '    </div>'
+				+ '  </section>'
+
+				+ '  <section class="mk-tre-form-block">'
+				+ '    <header class="mk-tre-form-block__head">'
+				+ '      <span class="mk-tre-form-block__step">3</span>'
+				+ '      <div><h3 class="mk-tre-form-block__title">Thì làm gì</h3>'
+				+ '      <p class="mk-tre-form-block__sub">Việc Sales cần làm. Có thể đổi sang tag khác.</p></div>'
+				+ '    </header>'
+				+ '    <div class="mk-tre-form-block__body">'
+				+ '      <label class="mk-tre-field"><span>Tên quy tắc</span><input class="mk-tre-input" name="name" value="' + esc(rule.name) + '" placeholder="VD: Không nghe máy 3 lần" autocomplete="off" /></label>'
+				+ '      <label class="mk-tre-field"><span>Việc Sales cần làm</span><input class="mk-tre-input" name="next_action" value="' + esc(rule.next_action || '') + '" placeholder="VD: Gọi lại khách vào sáng mai" autocomplete="off" /></label>'
+				+ '      <label class="mk-tre-field"><span>Đổi sang tag</span><select class="mk-tre-input mk-tre-input--select" name="result_tag">'
+				+ '        <option value="">Không đổi tag</option>'
+				+ tags.map(function (t) {
+					var sel = String(rule.result_tag || '') === String(t.id) ? ' selected' : '';
+					return '<option value="' + esc(t.id) + '"' + sel + '>' + esc(t.name) + '</option>';
+				}).join('')
+				+ '      </select></label>'
+				+ '      <p class="mk-tre-form-block__sub">Chọn tag mới thì CRM gỡ các tag ở mục 1 và gắn tag này. Không chuyển Cơ hội, không đổi giờ học, không điểm danh.</p>'
 				+ '      <label class="mk-tre-opt">'
-				+ '        <span class="mk-tre-opt__text"><strong>Active</strong><small>Rule được dùng khi khớp lead</small></span>'
+				+ '        <span class="mk-tre-opt__text"><strong>Đang dùng</strong><small>Tắt thì quy tắc này không chạy</small></span>'
 				+ '        <span class="mk-tre-switch"><input type="checkbox" name="is_active"' + (rule.is_active !== false ? ' checked' : '') + ' /><span class="mk-tre-switch__track"></span></span>'
-				+ '      </label>'
-				+ '      <label class="mk-tre-opt">'
-				+ '        <span class="mk-tre-opt__text"><strong>Bắt buộc ghi chú</strong><small>Nhánh xấu — yêu cầu lý do khi áp dụng</small></span>'
-				+ '        <span class="mk-tre-switch"><input type="checkbox" name="require_note"' + (rule.require_note ? ' checked' : '') + ' /><span class="mk-tre-switch__track"></span></span>'
 				+ '      </label>'
 				+ '    </div>'
 				+ '  </section>'
@@ -1257,9 +1623,17 @@
 				var $el = $(this);
 				var name = $el.attr('name');
 				if (!name) return;
-				if ($el.attr('type') === 'checkbox' && name === 'tag_ids') {
+		if ($el.attr('type') === 'checkbox' && name === 'tag_ids') {
 					if (!data.tag_ids) data.tag_ids = [];
 					if ($el.prop('checked')) data.tag_ids.push($el.val());
+					return;
+				}
+				if ($el.attr('name') && String($el.attr('name')).indexOf('fc_') === 0) {
+					return;
+				}
+				if ($el.attr('type') === 'radio') {
+					if (!$el.prop('checked')) return;
+					data[name] = $el.val();
 					return;
 				}
 				if ($el.attr('type') === 'checkbox') {
@@ -1290,13 +1664,31 @@
 				delete data.owner_select;
 				delete data.owner_new;
 			}
+			data.field_conditions = [];
+			$('#mk-tre-modal-body .js-tre-fc-row').each(function () {
+				var $row = $(this);
+				var value = String($row.find('[name="fc_value"]').val() || '').trim();
+				var field = $row.find('[name="fc_field"]').val() || '';
+				if (!field) return;
+				if (!value && field !== 'class_time') return;
+				data.field_conditions.push({
+					field: field,
+					op: $row.find('[name="fc_op"]').val() || '',
+					value: value,
+					important: $row.find('[name="fc_important"]').prop('checked')
+				});
+			});
 			return data;
 		},
 
 		bindEvents: function () {
 			var self = this;
 
-			this.$root.on('click', '.mk-tre-tabs > .mk-tre-tab', function () {
+			this.$root.on('click', '.mk-tre-tabs > .mk-tre-tab', function (e) {
+				if (this.tagName === 'A') {
+					return;
+				}
+				e.preventDefault();
 				self.setActiveTab($(this).data('tab'));
 			});
 
@@ -1399,6 +1791,115 @@
 			});
 
 			this.$root.on('click', '.js-tre-sc-create', function () { self.openScenarioForm(null); });
+			this.$root.on('click', '.js-tre-q-add', function () {
+				var n = $('#mk-tre-panel .js-tre-q-card').length + 1;
+				$('#mk-tre-panel .js-tre-q-list').append(self.questionCardHtml({
+					id: 'c' + n,
+					label: '',
+					required: false,
+					core: false,
+					options: [{ code: 'A', label: '' }, { code: 'B', label: '' }]
+				}, n));
+			});
+			this.$root.on('click', '.js-tre-opt-add', function () {
+				var $list = $(this).closest('.mk-q-opts').find('.js-tre-opt-list');
+				var next = String.fromCharCode(65 + $list.find('.js-tre-opt-row').length);
+				$list.append(self.questionOptionRow({ code: next, label: '' }));
+			});
+			this.$root.on('click', '.js-tre-opt-del', function () {
+				var $list = $(this).closest('.js-tre-opt-list');
+				if ($list.find('.js-tre-opt-row').length <= 1) return;
+				$(this).closest('.js-tre-opt-row').remove();
+			});
+			this.$root.on('click', '.js-tre-q-del', function () {
+				$(this).closest('.js-tre-q-card').remove();
+			});
+			this.$root.on('click', '.js-tre-lv-add', function () {
+				$('#mk-tre-panel .js-tre-lv-list').append(
+					'<article class="mk-lv js-tre-lv-row mk-lv--mid">'
+					+ '<div class="mk-lv__order">+</div>'
+					+ '<div class="mk-lv__main"><div class="mk-lv__name">Mức mới</div>'
+					+ '<div class="mk-lv__edit">'
+					+ '<label>Tên mức<input class="mk-tre-input js-tre-lv-label" value="" /></label>'
+					+ '<label>Mã<input class="mk-tre-input js-tre-lv-code" value="" /></label>'
+					+ '<label>Thứ tự xét<input class="mk-tre-input js-tre-lv-prio" type="number" value="50" /></label>'
+					+ '<label class="mk-lv__when">Khi khách trả lời<input class="mk-tre-input js-tre-lv-when" placeholder="c4=A" /></label>'
+					+ '</div></div></article>'
+				);
+			});
+			this.$root.on('click', '.js-tre-gd14-add', function () {
+				var n = $('#mk-tre-panel .js-tre-gd14-card').length + 1;
+				$('#mk-tre-panel .js-tre-gd14-list').append(self.gd14CardHtml({
+					id: 'c' + n,
+					label: '',
+					options: [{ code: 'a', label: '' }, { code: 'b', label: '' }]
+				}, n));
+			});
+			this.$root.on('click', '.js-tre-gd14-result-add', function () {
+				$('#mk-tre-panel .js-tre-gd14-results').append(self.renderGd14ResultBlank());
+			});
+			this.$root.on('click', '.js-tre-gd14-result-del', function () {
+				$(this).closest('.js-tre-gd14-result').remove();
+			});
+			this.$root.on('click', '.js-tre-gd14-save', function () {
+				try {
+					var saved = store.saveGd14Questions(self.readGd14QuestionsForm());
+					if (!saved || !saved.questions || !saved.questions.length) {
+						window.alert('Cần ít nhất một câu và mỗi câu có đáp án.');
+						return;
+					}
+					self.renderPanel();
+					toast('Đã lưu câu hỏi 990k');
+				} catch (e) {
+					window.alert(e.message || 'Không lưu được câu hỏi 990k');
+				}
+			});
+			this.$root.on('click', '.js-tre-q-save', function () {
+				try {
+					store.saveScreeningBank(self.readQuestionsForm());
+					self.renderPanel();
+					self.renderStats();
+					toast('Đã lưu bộ câu hỏi');
+				} catch (e) {
+					window.alert(e.message || 'Không lưu được bộ câu hỏi');
+				}
+			});
+
+			this.$root.on('change', '.js-tre-qbank-file', function () {
+				var f = this.files && this.files[0];
+				var $st = self.$root.find('.js-tre-qbank-status');
+				if (!f) {
+					$st.attr('hidden', true).text('');
+					return;
+				}
+				$st.removeAttr('hidden').removeClass('is-error').text('Đã chọn: ' + f.name);
+			});
+			this.$root.on('click', '.js-tre-qbank-import', function () {
+				var input = self.$root.find('.js-tre-qbank-file')[0];
+				var file = input && input.files && input.files[0];
+				var $st = self.$root.find('.js-tre-qbank-status');
+				if (!file) {
+					window.alert('Chọn file .xlsx trước.');
+					return;
+				}
+				if (!store.importQuestionBank) {
+					window.alert('API import chưa sẵn sàng.');
+					return;
+				}
+				$st.removeAttr('hidden').removeClass('is-error').text('Đang import…');
+				store.importQuestionBank(file, '').then(function (res) {
+					var msg = (res && res.message) || 'Import xong.';
+					$st.removeClass('is-error').text(msg);
+					self.renderPanel();
+					self.renderStats();
+					toast(msg);
+				}).fail(function (err) {
+					var msg = (err && err.message) || 'Import thất bại';
+					$st.addClass('is-error').text(msg);
+					window.alert(msg);
+				});
+			});
+
 			this.$root.on('click', '.js-tre-sc-edit', function () { self.openScenarioForm($(this).data('id')); });
 			this.$root.on('click', '.js-tre-sc-del', function () {
 				if (!window.confirm('Xoá "' + $(this).data('title') + '"?')) return;
@@ -1612,13 +2113,35 @@
 				}
 			});
 
+			$(document).on('click.mkTagRuleEngine', '.js-tre-fc-add', function () {
+				$('#mk-tre-modal-body .js-tre-fc-list').append(
+					'<div class="mk-tre-form-row js-tre-fc-row" style="margin-top:8px;align-items:end">'
+					+ '<label class="mk-tre-field"><span>Trường</span><select class="mk-tre-input mk-tre-input--select" name="fc_field">'
+					+ '<option value="tag">Tag</option><option value="business_model">Mô hình kinh doanh</option>'
+					+ '<option value="eligibility">Đủ điều kiện</option><option value="leadsource">Nguồn</option>'
+					+ '<option value="idle_days">Số ngày chưa chăm</option><option value="class_time">Giờ học</option>'
+					+ '<option value="r1">R1</option><option value="r2">R2</option><option value="r3">R3</option><option value="r4">R4</option>'
+					+ '</select></label>'
+					+ '<label class="mk-tre-field"><span>So sánh</span><select class="mk-tre-input mk-tre-input--select" name="fc_op"><option value="eq">bằng</option><option value="has">có</option><option value=">=">≥</option></select></label>'
+					+ '<label class="mk-tre-field"><span>Giá trị</span><input class="mk-tre-input" name="fc_value" placeholder="Giá trị" /></label>'
+					+ '<input type="checkbox" name="fc_important" hidden />'
+					+ '<button type="button" class="mk-tre-btn mk-tre-btn--ghost js-tre-fc-del">Xoá</button></div>'
+				);
+			});
+			$(document).on('click.mkTagRuleEngine', '.js-tre-fc-del', function () {
+				var $list = $('#mk-tre-modal-body .js-tre-fc-list');
+				if ($list.find('.js-tre-fc-row').length <= 1) return;
+				$(this).closest('.js-tre-fc-row').remove();
+			});
+
 			$(document).on('click.mkTagRuleEngine', '.js-tre-rule-save', function () {
 				var id = $(this).data('id');
 				var data = self.readForm();
-				if (!data.status_label || !data.name) {
-					window.alert('Vui lòng nhập trạng thái và tên rule.');
+				if (!data.name) {
+					window.alert('Nhập tên quy tắc.');
 					return;
 				}
+				if (!data.status_label) data.status_label = data.name;
 				try {
 					if (id) store.updateRule(id, data);
 					else store.createRule(data);

@@ -12,6 +12,7 @@
 		chartDimension: 'none',
 		chartYear: new Date().getFullYear(),
 		openDrillSig: '',
+		stagePeriod: 'month',
 	};
 
 	function money(n) {
@@ -164,6 +165,7 @@
 			group: state.chartDimension === 'none' ? state.chartGroup : state.chartGroup,
 			dimension: state.chartDimension,
 			year: state.chartYear,
+			stage_period: state.stagePeriod,
 		};
 		if (state.chartDimension !== 'none') {
 			params.group = state.chartDimension;
@@ -175,11 +177,18 @@
 				renderFunnel($root, (data && data.funnel) || { stages: [] });
 				renderChart($root, (data && data.revenue_chart) || {});
 				renderPerf($root, (data && data.performance) || {});
+				renderOffline($root, (data && data.offline_gd11) || {});
+				renderOnline($root, (data && data.online_gd12) || {});
+				renderGd14($root, (data && data.gd14) || {});
+				renderCompany($root, (data && data.company_report) || {});
 			})
 			.fail(function (msg) {
 				setError($root.find('#mkAdminKpiFunnelBody'), msg);
 				setError($root.find('#mkAdminKpiChartBody'), msg);
 				setError($root.find('#mkAdminKpiPerfBody'), msg);
+				setError($root.find('#mkAdminKpiOfflineBody'), msg);
+				setError($root.find('#mkAdminKpiOnlineBody'), msg);
+				setError($root.find('#mkAdminKpiGd14Body'), msg);
 			});
 	}
 
@@ -245,7 +254,10 @@
 		$box.html(html).removeAttr('hidden');
 	}
 
-	var PERF_PIE_COLORS = ['#0f8a4b', '#14a85a', '#3ecf8e', '#7dd3a7', '#b8e6ce'];
+	var PERF_PIE_COLORS = ['#2563eb', '#10b981', '#7c3aed', '#f59e0b', '#f43f5e', '#06b6d4'];
+	var FUNNEL_COLORS = ['#2563eb', '#06b6d4', '#10b981', '#f59e0b', '#7c3aed', '#f43f5e'];
+	var OFFLINE_COLORS = ['#2563eb', '#f59e0b', '#06b6d4', '#10b981', '#f43f5e', '#64748b'];
+	var ONLINE_COLORS = ['#2563eb', '#f59e0b', '#06b6d4', '#10b981', '#f43f5e', '#64748b', '#8b5cf6', '#a855f7'];
 
 	function polarToCartesian(cx, cy, r, angleDeg) {
 		var rad = ((angleDeg - 90) * Math.PI) / 180;
@@ -380,20 +392,207 @@
 		$root.find('#mkAdminKpiPerfBody').html(html);
 	}
 
+	function renderDonut(items, colors) {
+		colors = colors || PERF_PIE_COLORS;
+		var list = (items || []).filter(function (it) {
+			return Number(it.count != null ? it.count : it.value) > 0;
+		});
+		if (!list.length) {
+			return '<div class="mk-admin-kpi-placeholder">Chưa có dữ liệu</div>';
+		}
+		var total = 0;
+		list.forEach(function (it) {
+			total += Number(it.count != null ? it.count : it.value) || 0;
+		});
+		if (total <= 0) {
+			return '<div class="mk-admin-kpi-placeholder">Chưa có dữ liệu</div>';
+		}
+		var r = 54;
+		var c = 2 * Math.PI * r;
+		var offset = 0;
+		var circles = '';
+		list.forEach(function (it, i) {
+			var val = Number(it.count != null ? it.count : it.value) || 0;
+			var len = (val / total) * c;
+			var color = it.color || colors[i % colors.length];
+			circles +=
+				'<circle class="mk-admin-kpi-donut-seg" cx="70" cy="70" r="' +
+				r +
+				'" fill="none" stroke="' +
+				color +
+				'" stroke-width="16" stroke-linecap="butt" style="--donut-len:' +
+				len +
+				';--donut-gap:' +
+				(c - len) +
+				';--donut-off:' +
+				(-offset) +
+				';--donut-delay:' +
+				(i * 0.08) +
+				's" transform="rotate(-90 70 70)"></circle>';
+			offset += len;
+		});
+		return (
+			'<div class="mk-admin-kpi-pie-wrap mk-admin-kpi-pie-wrap--anim">' +
+			'<svg class="mk-admin-kpi-donut-svg" viewBox="0 0 140 140" width="140" height="140" aria-hidden="true">' +
+			'<circle cx="70" cy="70" r="' +
+			r +
+			'" fill="none" stroke="#e2e8f0" stroke-width="16"></circle>' +
+			circles +
+			'<text x="70" y="74" text-anchor="middle" font-size="18" font-weight="800" fill="#0f172a">' +
+			num(total) +
+			'</text></svg></div>'
+		);
+	}
+
+	function stageHit(item, zone) {
+		var label = safeLabel(item.label);
+		var value = item.value != null ? String(item.value) : num(item.count);
+		if (item.soon) {
+			return (
+				'<div class="mk-admin-kpi-offline-stat is-soon"><span>' +
+				label +
+				'</span><strong>Coming soon</strong></div>'
+			);
+		}
+		var drill = item.drill || {};
+		return (
+			'<button type="button" class="mk-admin-kpi-offline-stat mk-admin-kpi-stage-hit" data-drill-zone="' +
+			escapeHtml(zone) +
+			'" data-drill-type="' +
+			escapeHtml(drill.type || 'stage_people') +
+			'" data-drill-key="' +
+			escapeHtml(drill.key || '') +
+			'"><span>' +
+			label +
+			'</span><strong style="color:' +
+			escapeHtml(item.color || '#0f172a') +
+			'">' +
+			escapeHtml(value) +
+			'</strong></button>'
+		);
+	}
+
+	function renderStageBoard(data, zone) {
+		data = data || {};
+		var rates = data.rates || [];
+		var stages = data.stages || [];
+		var splits = data.splits || [];
+		var soon = data.soon || [];
+		if (!stages.length && !rates.length) {
+			return '<div class="mk-admin-kpi-placeholder">Chưa có hồ sơ trong tháng này</div>' + renderSoon(soon);
+		}
+		var donutItems = stages.filter(function (s) {
+			return Number(s.count) > 0 && String((s.drill && s.drill.key) || '').indexOf(':all') < 0;
+		});
+		var html = '';
+		if (rates.length) {
+			html += '<div class="mk-admin-kpi-rate-row">';
+			rates.forEach(function (item) {
+				html += stageHit(item, zone);
+			});
+			html += '</div>';
+		}
+		html += '<div class="mk-admin-kpi-offline-grid">';
+		html += renderDonut(donutItems.length ? donutItems : stages, OFFLINE_COLORS);
+		html += '<div class="mk-admin-kpi-offline-stats">';
+		stages.forEach(function (item) {
+			html += stageHit(item, zone);
+		});
+		html += '</div></div>';
+		splits.forEach(function (group) {
+			html += '<h3 class="mk-admin-kpi-split-title">' + safeLabel(group.title) + '</h3>';
+			html += '<div class="mk-admin-kpi-offline-stats">';
+			(group.items || []).forEach(function (item) {
+				html += stageHit(item, zone);
+			});
+			html += '</div>';
+		});
+		html += renderSoon(soon);
+		return html;
+	}
+
+	function renderSoon(items) {
+		if (!items || !items.length) return '';
+		var html = '<div class="mk-admin-kpi-soon"><span class="mk-admin-kpi-soon-label">Coming soon</span>';
+		items.forEach(function (label) {
+			html += '<span class="mk-admin-kpi-soon-chip">' + safeLabel(label) + '</span>';
+		});
+		html += '</div>';
+		return html;
+	}
+
+	function renderCompany($root, data) {
+		$root.find('#mkAdminKpiBiz').html(renderPlainCards(data.business));
+		$root.find('#mkAdminKpiCourse').html(renderPlainCards(data.courses));
+	}
+
+	function renderPlainCards(items) {
+		items = items || [];
+		if (!items.length) {
+			return '<div class="mk-admin-kpi-detail-loading">Chưa đủ dữ liệu</div>';
+		}
+		var tones = ['violet', 'emerald', 'blue', 'amber', 'rose', 'cyan'];
+		var html = '';
+		items.forEach(function (item, index) {
+			var missing = item.missing || item.value === 'Chưa đủ dữ liệu';
+			var tone = item.tone || tones[index % tones.length];
+			html +=
+				'<div class="mk-admin-kpi-card mk-admin-kpi-card--static' + (missing ? ' is-missing' : '') + '" data-tone="' + escapeHtml(tone) + '" role="listitem">' +
+				'<span class="mk-admin-kpi-card-label">' + escapeHtml(item.label || '') + '</span>' +
+				(missing
+					? '<span class="mk-admin-kpi-card-empty">Chưa đủ dữ liệu</span>'
+					: '<span class="mk-admin-kpi-card-value">' + escapeHtml(item.value || '—') + '</span>') +
+				(item.hint ? '<span class="mk-admin-kpi-card-label">' + escapeHtml(item.hint) + '</span>' : '') +
+				'</div>';
+		});
+		return html;
+	}
+
+	function renderOffline($root, data) {
+		data = data || {};
+		$root.find('#mkAdminKpiOfflineRate').text(data.period_label || 'Tháng này · SỐ TẠM');
+		$root.find('#mkAdminKpiOfflineBody').html(renderStageBoard(data, 'offline'));
+	}
+
+	function renderOnline($root, data) {
+		data = data || {};
+		$root.find('#mkAdminKpiOnlineFormRate').text(data.period_label || 'Tháng này · SỐ TẠM');
+		$root.find('#mkAdminKpiOnlineQualifyRate').text(
+			'Đủ ĐK: ' + (data.qualify_rate != null ? data.qualify_rate + '%' : '—')
+		);
+		$root.find('#mkAdminKpiOnlineBody').html(renderStageBoard(data, 'online'));
+	}
+
+	function renderGd14($root, data) {
+		data = data || {};
+		$root.find('#mkAdminKpiGd14Period').text(data.period_label || 'Tháng này · SỐ TẠM');
+		$root.find('#mkAdminKpiGd14Body').html(renderStageBoard(data, 'gd14'));
+	}
+
 	function renderFunnel($root, funnel) {
 		var stages = funnel.stages || [];
 		if (!stages.length) {
 			$root.find('#mkAdminKpiFunnelBody').html('<div class="mk-admin-kpi-placeholder">Chưa có dữ liệu phễu bán hàng</div>');
 			return;
 		}
-		var html = '<div class="mk-admin-kpi-funnel-steps">';
+		var donutItems = stages.map(function (s, i) {
+			return {
+				count: s.count,
+				label: s.label,
+				color: FUNNEL_COLORS[i % FUNNEL_COLORS.length],
+			};
+		});
+		var html = '<div class="mk-admin-kpi-funnel-layout">' + renderDonut(donutItems, FUNNEL_COLORS);
+		html += '<div class="mk-admin-kpi-funnel-steps">';
 		stages.forEach(function (s, i) {
 			html +=
 				'<a class="mk-admin-kpi-funnel-step" href="' +
 				escapeHtml(s.url || '#') +
 				'" style="--w:' +
 				Math.max(18, Number(s.percent) || 0) +
-				'%">' +
+				'%; border-left:4px solid ' +
+				FUNNEL_COLORS[i % FUNNEL_COLORS.length] +
+				'">' +
 				'<span class="mk-admin-kpi-funnel-label">' +
 				safeLabel(s.label) +
 				'</span>' +
@@ -404,7 +603,7 @@
 				html += '<span class="mk-admin-kpi-funnel-arrow" aria-hidden="true">→</span>';
 			}
 		});
-		html += '</div>';
+		html += '</div></div>';
 		$root.find('#mkAdminKpiFunnelBody').html(html);
 	}
 
@@ -455,9 +654,12 @@
 				tag +
 				attrs +
 				'>' +
-				'<div class="mk-admin-kpi-vbar-fill" style="height:' +
-				h +
-				'%"></div>' +
+				'<div class="mk-admin-kpi-vbar-track">' +
+				'<div class="mk-admin-kpi-vbar-fill" style="--bar-h:' +
+				Math.max(h, 4) +
+				'%; --bar-delay:' +
+				(i * 0.05) +
+				's"></div></div>' +
 				'<span class="mk-admin-kpi-vbar-val">' +
 				(v >= 1000000 ? num(Math.round(v / 1000000)) + 'tr' : num(Math.round(v))) +
 				'</span>' +
@@ -469,6 +671,12 @@
 		});
 		html += '</div>';
 		$root.find('#mkAdminKpiChartBody').html(html);
+		// Retrigger grow animation on each re-render (filter change)
+		window.requestAnimationFrame(function () {
+			window.requestAnimationFrame(function () {
+				$root.find('#mkAdminKpiChartBody .mk-admin-kpi-vbar-fill').addClass('is-grown');
+			});
+		});
 	}
 
 	function renderStatRow(items) {
@@ -566,13 +774,16 @@
 	}
 
 	function drillTargetSel(zone, type) {
+		if (zone === 'offline') return '#mkAdminKpiOfflineDrill';
+		if (zone === 'online') return '#mkAdminKpiOnlineDrill';
+		if (zone === 'gd14') return '#mkAdminKpiGd14Drill';
 		if (zone === 'alert') return '#mkAdminKpiAlertDrill';
 		if (zone === 'chart' || isChartDrillType(type)) return '#mkAdminKpiChartDrill';
 		return '#mkAdminKpiDrill';
 	}
 
 	function clearDrillActive($root) {
-		$root.find('.mk-admin-kpi-alert.is-open, .mk-admin-kpi-stat.is-open, .mk-admin-kpi-vbar.is-open').removeClass('is-open');
+		$root.find('.mk-admin-kpi-alert.is-open, .mk-admin-kpi-stat.is-open, .mk-admin-kpi-vbar.is-open, .mk-admin-kpi-stage-hit.is-open').removeClass('is-open');
 	}
 
 	function loadDrilldown(type, key, id, year, zone) {
@@ -580,7 +791,7 @@
 		zone = zone || (isChartDrillType(type) ? 'chart' : 'detail');
 		var sel = drillTargetSel(zone, type);
 		var $drill = $root.find(sel);
-		$root.find('#mkAdminKpiDrill, #mkAdminKpiChartDrill, #mkAdminKpiAlertDrill').not(sel).attr('hidden', true).empty();
+		$root.find('#mkAdminKpiDrill, #mkAdminKpiChartDrill, #mkAdminKpiAlertDrill, #mkAdminKpiOfflineDrill, #mkAdminKpiOnlineDrill, #mkAdminKpiGd14Drill').not(sel).attr('hidden', true).empty();
 		// Không auto-scroll — bảng hiện ngay dưới vùng vừa bấm
 		$drill.removeAttr('hidden').html('<div class="mk-admin-kpi-detail-loading">Đang tải danh sách…</div>');
 		var params = {
@@ -590,6 +801,7 @@
 			id: id || 0,
 		};
 		if (year) params.year = year;
+		params.stage_period = state.stagePeriod;
 		return api(params)
 			.done(function (data) {
 				$drill.html(renderDrillPanel((data && data.drilldown) || {}));
@@ -601,7 +813,7 @@
 
 	function hideDrilldown($root) {
 		$root = $root || $(ROOT_SEL);
-		$root.find('#mkAdminKpiDrill, #mkAdminKpiChartDrill, #mkAdminKpiAlertDrill').attr('hidden', true).empty();
+		$root.find('#mkAdminKpiDrill, #mkAdminKpiChartDrill, #mkAdminKpiAlertDrill, #mkAdminKpiOfflineDrill, #mkAdminKpiOnlineDrill, #mkAdminKpiGd14Drill').attr('hidden', true).empty();
 		state.openDrillSig = '';
 		clearDrillActive($root);
 	}
@@ -700,6 +912,25 @@
 					return [
 						safeLabel(r.name),
 						safeLabel(r.source || '—'),
+						safeLabel(r.status || '—'),
+						'<a class="mk-admin-kpi-row-link" href="' +
+							escapeHtml(r.detail_url || '#') +
+							'" target="_blank" rel="noopener">Chi tiết</a>',
+					];
+				})
+			);
+		} else if (module === 'StageRoster') {
+			html += renderTable(
+				[
+					{ label: 'Tên' },
+					{ label: 'SĐT' },
+					{ label: 'Trạng thái' },
+					{ label: 'Thao tác' },
+				],
+				rows.map(function (r) {
+					return [
+						safeLabel(r.name),
+						safeLabel(r.phone || '—'),
 						safeLabel(r.status || '—'),
 						'<a class="mk-admin-kpi-row-link" href="' +
 							escapeHtml(r.detail_url || '#') +
@@ -1063,6 +1294,43 @@
 			$btn.addClass('is-open');
 			state.openDrillSig = sig;
 			loadDrilldown(type, key, id, year, zone);
+		});
+
+		$root.on('click', '[data-stage-panel]', function () {
+			var zone = String($(this).data('stage-panel') || 'offline');
+			$root.find('[data-stage-panel]').removeClass('is-active');
+			$(this).addClass('is-active');
+			$root.find('#mkAdminKpiOffline, #mkAdminKpiOnline, #mkAdminKpiGd14, #mkAdminKpiNl').attr('hidden', true);
+			var map = { offline: '#mkAdminKpiOffline', online: '#mkAdminKpiOnline', gd14: '#mkAdminKpiGd14', nl: '#mkAdminKpiNl' };
+			$root.find(map[zone] || '#mkAdminKpiOffline').removeAttr('hidden');
+			var board = $root.find(map[zone] || '#mkAdminKpiOffline').get(0);
+			if (board && board.scrollIntoView) {
+				board.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			}
+			if (zone === 'nl') {
+				app.request.post({ data: { module: 'HelpDesk', action: 'MaterialAlertsApi', mode: 'summary' } }).then(function (err, res) {
+					var box = document.getElementById('mkAdminKpiNlBody');
+					if (!box) return;
+					if (err || !res) {
+						box.textContent = 'Chưa tải được cảnh báo nguyên liệu.';
+						return;
+					}
+					var html = '<p>Việc đang mở: <strong>' + (res.total || 0) + '</strong></p>';
+					var by = res.by_code || {};
+					Object.keys(by).forEach(function (code) {
+						html += '<div>' + code + ': ' + by[code] + '</div>';
+					});
+					if (!res.total) html += '<p>Chưa có việc. Ngưỡng định lượng để trống thì không bắn cảnh báo kỳ mua.</p>';
+					box.innerHTML = html;
+				});
+			}
+		});
+		$root.on('click', '[data-stage-period]', function () {
+			state.stagePeriod = String($(this).data('stage-period') || 'month');
+			$root.find('[data-stage-period]').removeClass('is-active');
+			$(this).addClass('is-active');
+			hideDrilldown($root);
+			loadWidgets($root);
 		});
 
 		$root.on('click', '[data-close-drill]', function () {

@@ -28,9 +28,6 @@
 			</div>
 			<div class="mk-qt-sticky-head__actions">
 				<a class="mk-qt-btn mk-qt-btn--ghost" href="{$MK_LIST_URL}">{vtranslate('LBL_CANCEL', $MODULE)}</a>
-				<button type="button" class="mk-qt-btn mk-qt-btn--secondary mk-qt-preview-print-btn" id="mkQtPreviewPrintBtn" title="Xem bản in báo giá">
-					<i class="fa fa-print" aria-hidden="true"></i> In
-				</button>
 				<button type="button" class="mk-qt-btn mk-qt-btn--confirm-order" id="mkQtSaveSendTop" title="Xác nhận và lưu báo giá">
 					<i class="fa fa-shopping-cart" aria-hidden="true"></i>
 					<span>Xác nhận đơn hàng</span>

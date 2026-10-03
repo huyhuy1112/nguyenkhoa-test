@@ -140,6 +140,7 @@
     customerType: null,
     leadSource: null,
     customerStatus: null,
+    studyPath: null,
     intent: null,
     entry: null,
     franchise: null,
@@ -371,6 +372,7 @@
     pushTag(state.customerType);
     pushTag(state.leadSource);
     pushTag(state.customerStatus);
+    pushTag(state.studyPath);
     pushTag(state.intent);
     pushTag(state.entry);
     pushTag(state.entryBranch);
@@ -494,7 +496,11 @@
       state.customerType = tag;
       syncCustomerTypePanel();
     } else if (group === "lead-source") state.leadSource = tag;
-    else if (group === "customer-status") {
+    else if (group === "study-path") {
+      state.studyPath = tag;
+      var hint = $("mk-td-study-path-hint");
+      if (hint) hint.hidden = true;
+    } else if (group === "customer-status") {
       state.customerStatus = btn.getAttribute("data-segment") || null;
     } else if (group === "purchase-status") {
       state.purchaseStatus = tag;
@@ -690,10 +696,34 @@
     if (btn) setChoiceGroup("customer-status", btn, { force: true });
   }
 
+  function studyPathFromTags(tags) {
+    var list = tags || [];
+    var ref = window.LeadsLovableRef;
+    var norm = ref && ref.normalizeTagKey
+      ? ref.normalizeTagKey
+      : function (raw) { return String(raw || "").trim().toLowerCase(); };
+    var gd14 = null;
+    var program = null;
+    for (var i = 0; i < list.length; i++) {
+      var key = norm(list[i]);
+      if (key.indexOf("gd14_") === 0 && !gd14) gd14 = key;
+      if ((key === "mien_phi_online" || key === "mien_phi_offline") && !program) program = key;
+    }
+    return gd14 || program;
+  }
+
   function applyTagsFromLead(tags, lead) {
     activateChoice("customer-type", findTag(tags, TAG_POOLS.customerType) || "individual");
     if (lead && lead.segment) activateSegment(lead.segment);
     activateChoice("lead-source", findTag(tags, TAG_POOLS.leadSource));
+    var pathTag = studyPathFromTags(tags);
+    if (pathTag && pathTag.indexOf("gd14_") === 0) {
+      activateChoice("study-path", "gd14_moi_dang_ky");
+      state.studyPath = pathTag;
+      renderTags();
+    } else {
+      activateChoice("study-path", pathTag);
+    }
     // Purchase Status trước — không để purchase tag spill sang Nguyên liệu
     activateChoice("purchase-status", findTag(tags, TAG_POOLS.purchaseStatus));
     setSelectByTag("mk-td-district", findTag(tags, TAG_POOLS.region));
@@ -900,6 +930,14 @@
       alert("Số điện thoại phải đủ 10 số.");
       return;
     }
+    if (!isEditMode() && !state.studyPath) {
+      var studyHint = $("mk-td-study-path-hint");
+      if (studyHint) studyHint.hidden = false;
+      alert("Vui lòng chọn Học Online, Học Offline hoặc 990k.");
+      var studySec = document.querySelector('[data-section="study-path"]');
+      if (studySec && studySec.scrollIntoView) studySec.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     if (state.customerType === "company") {
       var companyName = ($("mk-td-company-name") && $("mk-td-company-name").value) || "";
       if (!companyName.trim()) {
@@ -978,7 +1016,19 @@
           window.location.href = LIST_URL;
           return;
         }
-
+        var pathLabel =
+          state.studyPath === "mien_phi_online"
+            ? "Online (GD 1.2)"
+            : state.studyPath === "mien_phi_offline"
+              ? "Offline (GD 1.1)"
+              : String(state.studyPath || "").indexOf("gd14_") === 0
+                ? "990k (GD 1.4)"
+                : "";
+        if (window.app && app.helper && app.helper.showSuccessNotification && pathLabel) {
+          app.helper.showSuccessNotification({
+            message: "Đã tạo Lead " + pathLabel + " — mở Xác minh trên danh sách Lead.",
+          });
+        }
         var leadObj = lead && lead.id ? lead : { id: (lead && (lead.crmid || lead.id)) || recordId };
         return Promise.resolve(autoConvertToOppIfNeeded(leadObj)).then(function (convertRes) {
           if (convertRes && (convertRes.success !== false) && (convertRes.potentialId || convertRes.redirect)) {

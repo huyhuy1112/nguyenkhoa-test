@@ -430,6 +430,75 @@
 		);
 	}
 
+	function formatDate(d) {
+		if (!(d instanceof Date) || isNaN(d.getTime())) {
+			return '';
+		}
+		var dd = String(d.getDate()).padStart(2, '0');
+		var mm = String(d.getMonth() + 1).padStart(2, '0');
+		var yyyy = d.getFullYear();
+		return dd + '/' + mm + '/' + yyyy;
+	}
+
+	function avgSalesPerDay(it) {
+		// Backend đã tính sẵn
+		var v = Number(it.avg_sales_per_day);
+		if (isFinite(v) && v > 0) return v;
+	
+		// Fallback (nếu backend chưa trả)
+		var soldQty = Number(it.sold_qty);
+		var soldDays = Number(it.sold_days) || 30;
+		if (isFinite(soldQty) && soldQty > 0 && soldDays > 0) {
+			return soldQty / soldDays;
+		}
+		return 0;
+	}
+
+	function stockoutInfo(it) {
+		var stock = itemStock(it);
+	
+		// Backend trả sẵn
+		if (it.days_left !== null && it.days_left !== undefined && it.days_left !== '') {
+			var daysLeft = Number(it.days_left);
+			if (daysLeft <= 0 || stock <= 0) {
+				return { text: 'Đã hết', cls: 'mk-ps-num mk-ps-num--out', title: 'Tồn kho = 0' };
+			}
+			var etaText = it.stockout_date
+				? formatDate(new Date(it.stockout_date))
+				: '';
+			var cls = 'mk-ps-stockout';
+			if (daysLeft <= 3)      cls += ' mk-ps-stockout--danger';
+			else if (daysLeft <= 7) cls += ' mk-ps-stockout--warn';
+			else                    cls += ' mk-ps-stockout--ok';
+			return {
+				text: Math.floor(daysLeft) + ' ngày' + (etaText ? ' (' + etaText + ')' : ''),
+				cls: cls,
+				title: 'Tồn: ' + formatQty(stock) + ' • Bán/ngày: ' + formatQty(it.avg_sales_per_day)
+			};
+		}
+
+		//Fallback: tính avg_sales_per_day / sold_qty
+		var avg = avgSalesPerDay(it);
+		if (!avg || avg <= 0) {
+			return { text: '—', cls: 'mk-ps-muted', title: 'Chưa có dữ liệu bán' };
+		}
+		if (stock <= 0) {
+			return { text: 'Đã hết', cls: 'mk-ps-num mk-ps-num--out', title: 'Tồn kho = 0' };
+		}
+		var daysLeft2 = stock / avg;
+		var eta = new Date();
+		eta.setDate(eta.getDate() + Math.ceil(daysLeft2));
+		var cls2 = 'mk-ps-stockout';
+		if (daysLeft2 <= 3)      cls2 += ' mk-ps-stockout--danger';
+		else if (daysLeft2 <= 7) cls2 += ' mk-ps-stockout--warn';
+		else                     cls2 += ' mk-ps-stockout--ok';
+		return {
+			text: Math.floor(daysLeft2) + ' ngày (' + formatDate(eta) + ')',
+			cls: cls2,
+			title: 'Tồn: ' + formatQty(stock) + ' • Bán/ngày: ' + formatQty(Math.round(avg * 100) / 100)
+		};
+	}
+
 	function buildRowHtml(it) {
 		var id = it.id;
 		var name = String(it.name || '').trim() || '—';
@@ -459,6 +528,7 @@
 			'">' +
 			(isStarred ? '★' : '☆') +
 			'</button>';
+		var so = stockoutInfo(it);
 
 		return (
 			'<tr class="listViewEntries mk-ps-client-row" data-id="' +
@@ -508,7 +578,10 @@
 			'<td class="listViewEntryValue mk-col-ps-created"><span class="value">' +
 			esc(formatCreated(it.createdtime)) +
 			'</span></td>' +
-			'<td class="listViewEntryValue mk-col-ps-stockout"><span class="mk-ps-muted">---</span></td>' +
+			'<td class="listViewEntryValue mk-col-ps-stockout">' +
+				'<span class="' + esc(so.cls) + '"' +
+				(so.title ? ' title="' + esc(so.title) + '"' : '') +
+				'>' + esc(so.text) + '</span></td>' +
 			'</tr>'
 		);
 	}

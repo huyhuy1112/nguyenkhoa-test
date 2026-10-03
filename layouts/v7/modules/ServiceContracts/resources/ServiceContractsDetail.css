@@ -837,38 +837,35 @@ body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-s
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-summary-grid {
 	margin: 24px 0 0;
 	display: grid;
-	grid-template-columns: minmax(300px, 1fr) minmax(0, 1.4fr);
-	grid-template-areas:
-		"key activities"
-		"overview overview"
-		"documents comments";
-	gap: 20px;
-	align-items: start;
+	grid-template-columns: minmax(260px, 0.95fr) minmax(360px, 1.35fr) minmax(260px, 0.95fr);
+	grid-template-areas: none;
+	gap: 14px;
+	align-items: stretch;
 	width: 100%;
+	max-width: none;
 	min-width: 0;
 	box-sizing: border-box;
 }
 
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-grid__key,
-body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-summary-grid__key        { grid-area: key; }
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-summary-grid__key,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-grid__activities,
-body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-summary-grid__activities { grid-area: activities; }
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-summary-grid__activities,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-grid__overview,
-body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-summary-grid__overview  { grid-area: overview; }
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-summary-grid__overview,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-grid__documents,
-body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-summary-grid__documents  { grid-area: documents; }
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-summary-grid__documents,
 body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-grid__comments,
-body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-summary-grid__comments   { grid-area: comments; }
+body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-summary-grid__comments {
+	grid-area: auto;
+	width: 100%;
+	max-width: none;
+}
 
 @media (max-width: 1199px) {
 	body[data-module="ServiceContracts"][data-view="Detail"][data-app="SALES"] .mk-sc-detail-summary-grid {
 		grid-template-columns: 1fr;
-		grid-template-areas:
-			"key"
-			"activities"
-			"overview"
-			"documents"
-			"comments";
+		grid-template-areas: none;
 	}
 }
 

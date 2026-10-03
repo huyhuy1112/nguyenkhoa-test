@@ -23,6 +23,7 @@
 						{/if}
 						{assign var=MK_EDIT_FULL value=false}
 						{assign var=MK_EDIT_IMAGE value=false}
+						{assign var=MK_EDIT_CHECK value=false}
 						{if $FIELD_MODEL->get('uitype') eq "19" || $FIELD_MODEL->get('label') eq 'Signature'}
 							{assign var=MK_EDIT_FULL value=true}
 						{/if}
@@ -30,24 +31,37 @@
 							{assign var=MK_EDIT_IMAGE value=true}
 							{assign var=MK_EDIT_FULL value=true}
 						{/if}
-						<div class="mk-users-edit-field{if $MK_EDIT_FULL} mk-users-edit-field--full{/if}{if $MK_EDIT_IMAGE} mk-users-edit-field--image{/if}">
-							<label class="mk-users-edit-field__label fieldLabel alignMiddle" for="{$MODULE}_editView_fieldName_{$FIELD_MODEL->getName()}">
-								{if $isReferenceField eq "reference" && $refrenceListCount > 1}
-									<select style="width: 100%; max-width: 220px;" class="select2 referenceModulesList">
-										{foreach key=index item=value from=$refrenceList}
-											<option value="{$value}">{vtranslate($value, $value)}</option>
-										{/foreach}
-									</select>
-								{else}
-									<span class="mk-users-edit-field__label-text">
+						{if $FIELD_MODEL->get('uitype') eq "56" || $FIELD_MODEL->get('uitype') eq "156" || $isReferenceField eq 'boolean'}
+							{assign var=MK_EDIT_CHECK value=true}
+						{/if}
+						<div class="mk-users-edit-field{if $MK_EDIT_FULL} mk-users-edit-field--full{/if}{if $MK_EDIT_IMAGE} mk-users-edit-field--image{/if}{if $MK_EDIT_CHECK} mk-users-edit-field--check{/if}">
+							{if $MK_EDIT_CHECK}
+								<div class="mk-users-edit-field__control fieldValue mk-users-edit-field__control--check" id="{$MODULE}_editView_fieldName_{$FIELD_MODEL->getName()}">
+									{include file=vtemplate_path($FIELD_MODEL->getUITypeModel()->getTemplateName(),$MODULE)}
+									<label class="mk-users-edit-field__check-label" for="{$MODULE}_editView_fieldName_{$FIELD_MODEL->getName()}">
 										{vtranslate($FIELD_MODEL->get('label'), $MODULE)}
 										{if $FIELD_MODEL->isMandatory() eq true}<span class="redColor">*</span>{/if}
-									</span>
-								{/if}
-							</label>
-							<div class="mk-users-edit-field__control fieldValue{if in_array($FIELD_MODEL->get('uitype'),array('19')) || $FIELD_MODEL->get('label') eq 'Signature'} fieldValueWidth80{/if}" id="{$MODULE}_editView_fieldName_{$FIELD_MODEL->getName()}">
-								{include file=vtemplate_path($FIELD_MODEL->getUITypeModel()->getTemplateName(),$MODULE)}
-							</div>
+									</label>
+								</div>
+							{else}
+								<label class="mk-users-edit-field__label fieldLabel alignMiddle">
+									{if $isReferenceField eq "reference" && $refrenceListCount > 1}
+										<select style="width: 100%;" class="select2 referenceModulesList">
+											{foreach key=index item=value from=$refrenceList}
+												<option value="{$value}">{vtranslate($value, $value)}</option>
+											{/foreach}
+										</select>
+									{else}
+										<span class="mk-users-edit-field__label-text">
+											{vtranslate($FIELD_MODEL->get('label'), $MODULE)}
+											{if $FIELD_MODEL->isMandatory() eq true}<span class="redColor">*</span>{/if}
+										</span>
+									{/if}
+								</label>
+								<div class="mk-users-edit-field__control fieldValue{if in_array($FIELD_MODEL->get('uitype'),array('19')) || $FIELD_MODEL->get('label') eq 'Signature'} fieldValueWidth80{/if}" id="{$MODULE}_editView_fieldName_{$FIELD_MODEL->getName()}">
+									{include file=vtemplate_path($FIELD_MODEL->getUITypeModel()->getTemplateName(),$MODULE)}
+								</div>
+							{/if}
 						</div>
 					{/foreach}
 				</div>

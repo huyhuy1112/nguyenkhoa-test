@@ -750,7 +750,7 @@
 				var key = $chip.attr('data-tag');
 				var group = $chip.attr('data-group');
 				var turningOn = !$chip.hasClass('is-on');
-				if (group && turningOn) {
+				if (group && turningOn && group !== 'class') {
 					$('#mkCtTagsBody .mk-ct-tag-group[data-group="' + group + '"] .mk-ct-tag-chip.is-on').each(
 						function () {
 							var k = $(this).attr('data-tag');

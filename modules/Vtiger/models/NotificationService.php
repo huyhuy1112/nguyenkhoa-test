@@ -736,6 +736,19 @@ class Vtiger_NotificationService {
 		$svc = HelpDesk_TagRuleEngineService::getInstance();
 		if (method_exists($svc, 'upsertDismissal')) {
 			$svc->upsertDismissal((int)$userId, $parsed['lead_id'], $parsed['rule_id'], null);
+			try {
+				require_once 'modules/Vtiger/models/CareActivityService.php';
+				Vtiger_CareActivityService::log(
+					'Leads',
+					$parsed['lead_id'],
+					'CSKH',
+					'Xác nhận đã xử lý thông báo',
+					(string) $parsed['rule_id'],
+					$userId
+				);
+			} catch (Exception $e) {
+				// ignore
+			}
 			self::bustCskhCache();
 			return true;
 		}

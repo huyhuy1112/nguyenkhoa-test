@@ -42,12 +42,17 @@
 					{if $CONN.code eq 'google_sheet'}
 						<div class="nk-integ-fields nk-integ-fields--2col">
 							<label class="nk-integ-field nk-integ-field--wide">
-								<span>{vtranslate('LBL_NK_INTEG_SHEET_URL', $QUALIFIED_MODULE)}</span>
-								<input type="text" name="spreadsheet_id" value="{$CONN.extra.spreadsheet_id|escape:'html'}" placeholder="https://docs.google.com/spreadsheets/d/.../edit" autocomplete="off" />
+								<span>Tổng quan nguồn</span>
+								<input type="text" readonly value="{if isset($CONN.extra.sources_summary)}{$CONN.extra.sources_summary|escape:'html'}{else}—{/if}" />
+								<em class="nk-integ-field__hint">Thêm / sửa từng sheet tại trang Leads → nút Google Sheet (khuyến nghị). Hoặc chỉnh JSON bên dưới.</em>
 							</label>
 							<label class="nk-integ-field">
-								<span>{vtranslate('LBL_NK_INTEG_SHEET_RANGE', $QUALIFIED_MODULE)}</span>
+								<span>{vtranslate('LBL_NK_INTEG_SHEET_RANGE', $QUALIFIED_MODULE)} (nguồn đầu)</span>
 								<input type="text" name="sheet_range" value="{$CONN.extra.sheet_range|escape:'html'}" placeholder="Sheet1" autocomplete="off" />
+							</label>
+							<label class="nk-integ-field nk-integ-field--wide">
+								<span>{vtranslate('LBL_NK_INTEG_SHEET_URL', $QUALIFIED_MODULE)} (nguồn đầu / legacy)</span>
+								<input type="text" name="spreadsheet_id" value="{$CONN.extra.spreadsheet_id|escape:'html'}" placeholder="https://docs.google.com/spreadsheets/d/.../edit" autocomplete="off" />
 							</label>
 						</div>
 
@@ -66,8 +71,13 @@
 									<textarea name="service_account_json" rows="6" placeholder="{vtranslate('LBL_NK_INTEG_SA_PLACEHOLDER', $QUALIFIED_MODULE)}"></textarea>
 								</label>
 								<label class="nk-integ-field">
-									<span>{vtranslate('LBL_NK_INTEG_COLUMN_MAP', $QUALIFIED_MODULE)}</span>
+									<span>{vtranslate('LBL_NK_INTEG_COLUMN_MAP', $QUALIFIED_MODULE)} (nguồn đầu)</span>
 									<textarea name="column_map" rows="6" spellcheck="false">{$CONN.extra.column_map_json|escape:'html'}</textarea>
+								</label>
+								<label class="nk-integ-field">
+									<span>Danh sách nguồn (JSON — nhiều sheet)</span>
+									<textarea name="sources_json" rows="10" spellcheck="false">{if isset($CONN.extra.sources_json)}{$CONN.extra.sources_json|escape:'html'}{/if}</textarea>
+									<em class="nk-integ-field__hint">Mỗi phần tử: id, name, spreadsheet_id, sheet_range, column_map, source_tag, target_module (leads|accounts), enabled. Lưu sẽ đồng bộ toàn bộ danh sách có id.</em>
 								</label>
 							</div>
 						</details>
@@ -114,6 +124,11 @@
 							{else}
 								<p class="nk-integ-zalo-expiry" data-role="zalo-expiry" hidden></p>
 							{/if}
+							<label class="nk-integ-field nk-integ-field--wide">
+								<span>Link follow OA / QR (quầy Offline)</span>
+								<input type="text" name="follow_url" value="{if isset($CONN.extra.follow_url)}{$CONN.extra.follow_url|escape:'html'}{/if}" placeholder="https://zalo.me/.... hoặc link chia sẻ OA" autocomplete="off" />
+								<em class="nk-integ-field__hint">Dùng cho QR tại Bước 3 check-in Offline. Để trống thì CRM dùng https://zalo.me/&lt;OA_ID&gt;.</em>
+							</label>
 							<label class="nk-integ-field nk-integ-field--wide nk-integ-zalo-callback">
 								<span>{vtranslate('LBL_NK_INTEG_ZALO_CALLBACK', $QUALIFIED_MODULE)}</span>
 								<input type="text" readonly value="{$CONN.extra.callback_url|escape:'html'}" onclick="this.select();" title="{vtranslate('LBL_NK_INTEG_ZALO_CALLBACK_HINT', $QUALIFIED_MODULE)}" />
@@ -123,6 +138,25 @@
 								<span>{vtranslate('LBL_NK_INTEG_ZALO_WEBHOOK', $QUALIFIED_MODULE)}</span>
 								<input type="text" readonly value="{$CONN.extra.webhook_url|escape:'html'}" onclick="this.select();" title="{vtranslate('LBL_NK_INTEG_ZALO_WEBHOOK_HINT', $QUALIFIED_MODULE)}" />
 								<em class="nk-integ-field__hint">{vtranslate('LBL_NK_INTEG_ZALO_WEBHOOK_HINT', $QUALIFIED_MODULE)}</em>
+							</label>
+						</div>
+					{elseif $CONN.code eq 'edubit'}
+						<div class="nk-integ-fields nk-integ-fields--2col">
+							<label class="nk-integ-field nk-integ-field--wide">
+								<span>{vtranslate('LBL_NK_INTEG_BASE_URL', $QUALIFIED_MODULE)}</span>
+								<input type="text" name="base_url" value="{$CONN.base_url|escape:'html'}" placeholder="https://nguyenkhoa.edu.vn" autocomplete="off" />
+							</label>
+							<label class="nk-integ-field nk-integ-field--wide">
+								<span>API Token (Edubit)</span>
+								<input type="password" name="api_key" value="" placeholder="{vtranslate('LBL_NK_INTEG_SECRET_PLACEHOLDER', $QUALIFIED_MODULE)}" autocomplete="new-password" />
+								{if $CONN.credentials_configured}
+									<em class="nk-integ-field__hint">{vtranslate('LBL_NK_INTEG_CONFIGURED', $QUALIFIED_MODULE)}</em>
+								{/if}
+							</label>
+							<label class="nk-integ-field nk-integ-field--wide">
+								<span>Catalog khóa học (JSON — không có mặc định)</span>
+								<textarea name="courses_json" rows="8" placeholder="JSON: danh sach khoa [id, label]">{if isset($CONN.extra.courses_json)}{$CONN.extra.courses_json|escape:'html'}{/if}</textarea>
+								<em class="nk-integ-field__hint">Sales phải chọn course_id khi cấp TK. Không để trống id.</em>
 							</label>
 						</div>
 					{else}

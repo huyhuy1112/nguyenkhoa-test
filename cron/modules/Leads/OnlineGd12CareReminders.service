@@ -1,0 +1,29 @@
+<?php
+/*+***********************************************************************************
+ * GD 1.2 Online — D0/D1/D2/D3 reminders + access window tags.
+ * Frequency: 1 giờ. OA (Calendar fallback nếu thiếu OA id).
+ *************************************************************************************/
+
+require_once 'modules/Leads/models/OnlineGd12Service.php';
+
+try {
+	global $current_user;
+	if (empty($current_user) || empty($current_user->id)) {
+		$current_user = Users::getActiveAdminUser();
+	}
+	Leads_OnlineGd12Service::installSchema();
+	$result = Leads_OnlineGd12Service::processCareReminders(80);
+	$d0 = isset($result['d0']) ? $result['d0'] : array();
+	$d1 = isset($result['d1']) ? $result['d1'] : array();
+	$d2 = isset($result['d2']) ? $result['d2'] : array();
+	$d3 = isset($result['d3']) ? $result['d3'] : array();
+	$win = isset($result['access_window']) ? $result['access_window'] : array();
+	echo 'Online GD1.2 care:'
+		. ' d0_sent=' . (isset($d0['sent']) ? $d0['sent'] : 0)
+		. ' d1_sent=' . (isset($d1['sent']) ? $d1['sent'] : 0)
+		. ' d2_sent=' . (isset($d2['sent']) ? $d2['sent'] : 0)
+		. ' d3_sent=' . (isset($d3['sent']) ? $d3['sent'] : 0)
+		. ' win_upd=' . (isset($win['updated']) ? $win['updated'] : 0);
+} catch (Exception $e) {
+	echo 'Online GD1.2 care exception: ' . $e->getMessage();
+}

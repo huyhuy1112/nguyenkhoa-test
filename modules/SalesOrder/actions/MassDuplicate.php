@@ -102,9 +102,15 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 
 		$sourceSubject = trim((string) $source->get('subject'));
 
+		require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
+		$accountId = (int) Vtiger_MkSalesCustomerName_Helper::extractRawIdPublic($source, array('account_id', 'accountid'));
+		$contactId = (int) Vtiger_MkSalesCustomerName_Helper::extractRawIdPublic($source, array('contact_id', 'contactid'));
+		$potentialId = (int) Vtiger_MkSalesCustomerName_Helper::extractRawIdPublic($source, array('potential_id', 'potentialid'));
+		$customerLabel = Vtiger_MkSalesCustomerName_Helper::resolveListStyleName($source);
+
 		$newModel = Vtiger_Record_Model::getCleanInstance('Quotes');
 		$copyFields = array(
-			'subject', 'account_id', 'contact_id', 'potential_id', 'currency_id',
+			'subject', 'currency_id',
 			'description', 'terms_conditions',
 			'bill_street', 'bill_city', 'bill_state', 'bill_code', 'bill_country', 'bill_pobox',
 			'ship_street', 'ship_city', 'ship_state', 'ship_code', 'ship_country', 'ship_pobox',
@@ -115,6 +121,15 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 			if ($value !== null && $value !== '') {
 				$newModel->set($fieldName, $value);
 			}
+		}
+		if ($accountId > 0) {
+			$newModel->set('account_id', $accountId);
+		}
+		if ($contactId > 0) {
+			$newModel->set('contact_id', $contactId);
+		}
+		if ($potentialId > 0) {
+			$newModel->set('potential_id', $potentialId);
 		}
 
 		$newModel->set('mode', '');
@@ -150,7 +165,11 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 		}
 		if (trim((string) $newModel->get('subject')) === '') {
 			$soNo = trim((string) $source->get('salesorder_no'));
-			$fallbackSubject = $soNo !== '' ? ('Báo giá từ ' . $soNo) : ('Báo giá từ ĐH #' . $sourceId);
+			if ($customerLabel !== '' && $customerLabel !== '--' && $customerLabel !== '—') {
+				$fallbackSubject = $customerLabel;
+			} else {
+				$fallbackSubject = $soNo !== '' ? ('Báo giá từ ' . $soNo) : ('Báo giá từ ĐH #' . $sourceId);
+			}
 			$newModel->set('subject', $fallbackSubject);
 		}
 
@@ -164,6 +183,19 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 			$entity->isLineItemUpdate = false;
 			if (isset($entity->column_fields) && is_array($entity->column_fields)) {
 				$entity->column_fields['conversion_rate'] = $rate;
+				$entity->column_fields['subject'] = (string) $newModel->get('subject');
+				if ($accountId > 0) {
+					$entity->column_fields['account_id'] = $accountId;
+					$entity->column_fields['accountid'] = $accountId;
+				}
+				if ($contactId > 0) {
+					$entity->column_fields['contact_id'] = $contactId;
+					$entity->column_fields['contactid'] = $contactId;
+				}
+				if ($potentialId > 0) {
+					$entity->column_fields['potential_id'] = $potentialId;
+					$entity->column_fields['potentialid'] = $potentialId;
+				}
 				foreach (array('total', 'subtotal', 'pre_tax_total', 'discount_amount', 's_h_amount', 'adjustment', 'quote_no') as $fieldName) {
 					if ($fieldName === 'quote_no') {
 						$entity->column_fields[$fieldName] = '';
@@ -201,17 +233,21 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 			$this->ensureQuoteTotalsFromLines($newId, $sourceId);
 			$this->fixQuoteInflatedMoney($sourceId, $newId);
 			$this->ensureQuoteDocNumber($newId);
+			$this->persistQuoteIdentity($newId, $source, $accountId, $contactId, $potentialId);
 			$this->clearFranchiseQuoteLink($newId);
 			$this->touchQuoteModifiedTime($newId);
 		} catch (Exception $e) {
 			$this->ensureQuoteDocNumber($newId);
+			$this->persistQuoteIdentity($newId, $source, $accountId, $contactId, $potentialId);
 			$this->clearFranchiseQuoteLink($newId);
 			$this->touchQuoteModifiedTime($newId);
 		} catch (Error $e) {
 			$this->ensureQuoteDocNumber($newId);
+			$this->persistQuoteIdentity($newId, $source, $accountId, $contactId, $potentialId);
 			$this->clearFranchiseQuoteLink($newId);
 			$this->touchQuoteModifiedTime($newId);
 		}
+		$this->assertQuoteHasLines($newId, $sourceId);
 
 		return $newId;
 	}
@@ -675,5 +711,122 @@ class SalesOrder_MassDuplicate_Action extends Vtiger_Mass_Action {
 			'UPDATE vtiger_crmentity SET modifiedtime = ? WHERE crmid = ?',
 			array($now, $newId)
 		);
+	}
+
+	/**
+	 * Re-assert subject + account/contact/potential after save (entity may wipe refs).
+	 *
+	 * @param int $newId
+	 * @param Vtiger_Record_Model $source
+	 * @param int $accountId
+	 * @param int $contactId
+	 * @param int $potentialId
+	 */
+	protected function persistQuoteIdentity($newId, $source, $accountId, $contactId, $potentialId) {
+		$newId = (int) $newId;
+		if ($newId <= 0) {
+			return;
+		}
+		$db = PearDatabase::getInstance();
+		$subject = trim((string) $source->get('subject'));
+		if ($subject === '') {
+			require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
+			$customerLabel = Vtiger_MkSalesCustomerName_Helper::resolveListStyleName($source);
+			$soNo = trim((string) $source->get('salesorder_no'));
+			if ($customerLabel !== '' && $customerLabel !== '--' && $customerLabel !== '—') {
+				$subject = $customerLabel;
+			} else {
+				$subject = $soNo !== '' ? ('Báo giá từ ' . $soNo) : ('Báo giá từ ĐH #' . (int) $source->getId());
+			}
+		} else {
+			$subject = trim(preg_replace('/\s*\(copy(?:\s+\d+)?\)\s*$/i', '', $subject));
+		}
+
+		$cur = $db->pquery('SELECT subject, accountid, contactid, potentialid FROM vtiger_quotes WHERE quoteid = ?', array($newId));
+		$curSubject = ($cur && $db->num_rows($cur) > 0) ? trim((string) $db->query_result($cur, 0, 'subject')) : '';
+		$curAccount = ($cur && $db->num_rows($cur) > 0) ? (int) $db->query_result($cur, 0, 'accountid') : 0;
+		$curContact = ($cur && $db->num_rows($cur) > 0) ? (int) $db->query_result($cur, 0, 'contactid') : 0;
+		$curPotential = ($cur && $db->num_rows($cur) > 0) ? (int) $db->query_result($cur, 0, 'potentialid') : 0;
+
+		if ($curSubject === '' && $subject !== '') {
+			$db->pquery('UPDATE vtiger_quotes SET subject = ? WHERE quoteid = ?', array($subject, $newId));
+		}
+		if ($curAccount <= 0 && $accountId > 0) {
+			$db->pquery('UPDATE vtiger_quotes SET accountid = ? WHERE quoteid = ?', array($accountId, $newId));
+		}
+		if ($curContact <= 0 && $contactId > 0) {
+			$db->pquery('UPDATE vtiger_quotes SET contactid = ? WHERE quoteid = ?', array($contactId, $newId));
+		}
+		if ($curPotential <= 0 && $potentialId > 0) {
+			$db->pquery('UPDATE vtiger_quotes SET potentialid = ? WHERE quoteid = ?', array($potentialId, $newId));
+		}
+
+		// Optional BA customer fields if present on Quotes.
+		foreach (array(
+			'mk_customer_phone' => array('mk_customer_phone', 'phone'),
+			'mk_customer_email' => array('mk_customer_email', 'email'),
+			'mk_client_company' => array('mk_client_company'),
+		) as $quoteCol => $sourceKeys) {
+			$cols = $db->pquery('SHOW COLUMNS FROM vtiger_quotes LIKE ?', array($quoteCol));
+			if (!$cols || $db->num_rows($cols) <= 0) {
+				continue;
+			}
+			$val = '';
+			foreach ($sourceKeys as $sk) {
+				$raw = trim((string) $source->get($sk));
+				if ($raw !== '' && $raw !== '--' && $raw !== '—') {
+					$val = $raw;
+					break;
+				}
+			}
+			if ($val === '') {
+				continue;
+			}
+			$db->pquery(
+				'UPDATE vtiger_quotes SET `' . $quoteCol . '` = IF(`' . $quoteCol . '` IS NULL OR `' . $quoteCol . '` = \'\', ?, `' . $quoteCol . '`) WHERE quoteid = ?',
+				array($val, $newId)
+			);
+		}
+	}
+
+	/**
+	 * Fail loudly if line copy left an empty quote (avoids blank Detail / missing list row money).
+	 *
+	 * @param int $newId
+	 * @param int $sourceId
+	 */
+	protected function assertQuoteHasLines($newId, $sourceId) {
+		$newId = (int) $newId;
+		$sourceId = (int) $sourceId;
+		if ($newId <= 0) {
+			return;
+		}
+		$db = PearDatabase::getInstance();
+		$src = $db->pquery(
+			'SELECT COUNT(*) AS c FROM vtiger_inventoryproductrel WHERE id = ?',
+			array($sourceId)
+		);
+		$srcCount = ($src && $db->num_rows($src) > 0) ? (int) $db->query_result($src, 0, 'c') : 0;
+		if ($srcCount <= 0) {
+			return;
+		}
+		$dst = $db->pquery(
+			'SELECT COUNT(*) AS c FROM vtiger_inventoryproductrel WHERE id = ?',
+			array($newId)
+		);
+		$dstCount = ($dst && $db->num_rows($dst) > 0) ? (int) $db->query_result($dst, 0, 'c') : 0;
+		if ($dstCount <= 0) {
+			// Retry copy once before failing.
+			$this->copyInventoryLines($sourceId, $newId);
+			$this->syncLinePricesFromSource($sourceId, $newId);
+			$dst = $db->pquery(
+				'SELECT COUNT(*) AS c FROM vtiger_inventoryproductrel WHERE id = ?',
+				array($newId)
+			);
+			$dstCount = ($dst && $db->num_rows($dst) > 0) ? (int) $db->query_result($dst, 0, 'c') : 0;
+		}
+		if ($dstCount <= 0) {
+			throw new Exception('Báo giá #' . $newId . ' không có dòng hàng sau khi nhân bản từ ĐH #' . $sourceId);
+		}
 	}
 }

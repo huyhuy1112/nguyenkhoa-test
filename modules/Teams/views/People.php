@@ -12,17 +12,12 @@ class Teams_People_View extends Vtiger_Index_View {
 
 	public function getHeaderScripts(Vtiger_Request $request) {
 		$headerScriptInstances = parent::getHeaderScripts($request);
-		$moduleName = $request->getModule();
-
 		$jsFileNames = array(
-			'modules.Teams.resources.Group',
 			'modules.Teams.resources.Person',
 			'modules.Teams.resources.TeamsModal'
 		);
-
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
-		$headerScriptInstances = array_merge($headerScriptInstances, $jsScriptInstances);
-		return $headerScriptInstances;
+		return array_merge($headerScriptInstances, $jsScriptInstances);
 	}
 
 	public function checkPermission(Vtiger_Request $request) {
@@ -40,29 +35,7 @@ class Teams_People_View extends Vtiger_Index_View {
 		}
 
 		$viewer = $this->getViewer($request);
-		$db = PearDatabase::getInstance();
-
-		$roles = array();
-		$resRoles = $db->pquery("SELECT roleid, rolename FROM vtiger_role ORDER BY rolename", array());
-		while ($resRoles && ($row = $db->fetchByAssoc($resRoles))) {
-			$roles[] = $row;
-		}
-
-		$timezones = array();
-		$resTZ = $db->pquery("SELECT time_zone FROM vtiger_time_zone ORDER BY time_zone", array());
-		while ($resTZ && ($row = $db->fetchByAssoc($resTZ))) {
-			$timezones[] = $row['time_zone'];
-		}
-
-		$existingGroups = array();
-		$resGroups = $db->pquery("SELECT groupid, group_name FROM vtiger_team_groups ORDER BY createdtime DESC", array());
-		while ($resGroups && ($row = $db->fetchByAssoc($resGroups))) {
-			$existingGroups[] = $row;
-		}
-
-		$viewer->assign('TEAM_GROUPS_LIST', $existingGroups);
-		$viewer->assign('ROLES', $roles);
-		$viewer->assign('TIMEZONES', $timezones);
+		$this->assignFormData($viewer);
 		$viewer->assign('MODULE', $request->getModule());
 		$viewer->assign('APP', $request->get('app'));
 		$viewer->assign('USER_MODEL', Users_Record_Model::getCurrentUserModel());
@@ -71,6 +44,13 @@ class Teams_People_View extends Vtiger_Index_View {
 
 	protected function renderModal(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
+		$this->assignFormData($viewer);
+		$viewer->assign('MODULE', $request->getModule());
+		$viewer->assign('APP', $request->get('app'));
+		echo $viewer->view('AddPersonModal.tpl', $request->getModule(), true);
+	}
+
+	protected function assignFormData($viewer) {
 		$db = PearDatabase::getInstance();
 
 		$roles = array();
@@ -84,16 +64,11 @@ class Teams_People_View extends Vtiger_Index_View {
 		while ($resTZ && ($row = $db->fetchByAssoc($resTZ))) {
 			$timezones[] = $row['time_zone'];
 		}
+		if (empty($timezones)) {
+			$timezones = array('Asia/Ho_Chi_Minh', 'UTC');
+		}
 
-		$existingGroups = Teams_Module_Model::getTeamGroupsList();
-		$projects = Teams_Module_Model::getActiveProjectsList();
-
-		$viewer->assign('TEAM_GROUPS_LIST', $existingGroups);
 		$viewer->assign('ROLES', $roles);
 		$viewer->assign('TIMEZONES', $timezones);
-		$viewer->assign('PROJECTS', $projects);
-		$viewer->assign('MODULE', $request->getModule());
-		$viewer->assign('APP', $request->get('app'));
-		echo $viewer->view('AddPersonModal.tpl', $request->getModule(), true);
 	}
 }

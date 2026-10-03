@@ -187,10 +187,13 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 			'cd.phone', 'cd.mobile', 'cd.email', 'cd.secondaryemail',
 			'acc.accountname',
 		));
-		$sql = "SELECT cd.contactid, cd.firstname, cd.lastname, cd.phone, cd.mobile, cd.email, cd.secondaryemail, acc.accountname
+		$sql = "SELECT cd.contactid, cd.firstname, cd.lastname, cd.phone, cd.mobile, cd.email, cd.secondaryemail,
+				cd.accountid, acc.accountname,
+				ca.mailingstreet, ca.mailingcity
 			FROM vtiger_contactdetails cd
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid AND ce.deleted = 0
 			LEFT JOIN vtiger_account acc ON acc.accountid = cd.accountid
+			LEFT JOIN vtiger_contactaddress ca ON ca.contactaddressid = cd.contactid
 			WHERE {$where}
 			ORDER BY ce.modifiedtime DESC
 			LIMIT " . (int) $limit;
@@ -213,7 +216,16 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 				$email = decode_html((string) $adb->query_result($res, $i, 'secondaryemail'));
 			}
 			$account = decode_html((string) $adb->query_result($res, $i, 'accountname'));
-			$parts = array_filter(array($phone, $email, $account));
+			$address = $this->firstFilled(array(
+				$adb->query_result($res, $i, 'mailingstreet'),
+			));
+			$city = $this->firstFilled(array($adb->query_result($res, $i, 'mailingcity')));
+			if ($city !== '' && $address !== '' && stripos($address, $city) === false) {
+				$address .= ', ' . $city;
+			} elseif ($address === '') {
+				$address = $city;
+			}
+			$parts = array_filter(array($phone, $email, $address, $account));
 			$rows[] = array(
 				'id' => $id,
 				'module' => 'Contacts',
@@ -222,6 +234,8 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 				'subtitle' => implode(' · ', $parts),
 				'phone' => $phone,
 				'email' => $email,
+				'address' => $address,
+				'account_id' => (int) $adb->query_result($res, $i, 'accountid'),
 				'extra' => $account,
 				'contact_id' => $id,
 				'potential_id' => 0,
@@ -229,6 +243,16 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 			);
 		}
 		return $rows;
+	}
+
+	protected function firstFilled(array $values) {
+		foreach ($values as $value) {
+			$text = trim(decode_html((string) $value));
+			if ($text !== '' && $text !== '-' && $text !== '--') {
+				return $text;
+			}
+		}
+		return '';
 	}
 
 	protected function searchPotentials($q, $limit) {
@@ -242,14 +266,24 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 			"CONCAT(IFNULL(cd.firstname,''),' ',IFNULL(cd.lastname,''))",
 			'cd.phone', 'cd.mobile', 'cd.email',
 			'acc.phone', 'acc.email1',
+			'pp.phone', 'la.phone', 'la.mobile', 'ld.email',
 		));
 		$sql = "SELECT p.potentialid, p.potentialname, p.contact_id, p.related_to, acc.accountname,
 				acc.phone AS acc_phone, acc.email1 AS acc_email,
-				cd.firstname, cd.lastname, cd.phone AS contact_phone, cd.mobile AS contact_mobile, cd.email AS contact_email
+				cd.firstname, cd.lastname, cd.phone AS contact_phone, cd.mobile AS contact_mobile, cd.email AS contact_email,
+				pp.phone AS pot_phone, pp.address_line AS pot_address, pp.district AS pot_district,
+				la.phone AS lead_phone, la.mobile AS lead_mobile, la.lane AS lead_lane,
+				lp.address_line AS lead_address, lp.district AS lead_district, ld.email AS lead_email,
+				ca.mailingstreet AS contact_street, ca.mailingcity AS contact_city
 			FROM vtiger_potential p
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = p.potentialid AND ce.deleted = 0
 			LEFT JOIN vtiger_account acc ON acc.accountid = p.related_to
 			LEFT JOIN vtiger_contactdetails cd ON cd.contactid = p.contact_id
+			LEFT JOIN vtiger_contactaddress ca ON ca.contactaddressid = p.contact_id
+			LEFT JOIN bace_potential_profile pp ON pp.potentialid = p.potentialid
+			LEFT JOIN bace_lead_profile lp ON lp.potential_id = p.potentialid
+			LEFT JOIN vtiger_leaddetails ld ON ld.leadid = lp.leadid
+			LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = lp.leadid
 			WHERE {$where}
 			ORDER BY ce.modifiedtime DESC
 			LIMIT " . (int) $limit;
@@ -265,16 +299,34 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 			$account = decode_html((string) $adb->query_result($res, $i, 'accountname'));
 			$customer = $cname !== '' ? $cname : $account;
 			$label = $customer !== '' ? $customer : $pname;
-			$phone = decode_html((string) $adb->query_result($res, $i, 'contact_mobile'));
-			if ($phone === '') {
-				$phone = decode_html((string) $adb->query_result($res, $i, 'contact_phone'));
-			}
-			if ($phone === '') {
-				$phone = decode_html((string) $adb->query_result($res, $i, 'acc_phone'));
-			}
-			$email = decode_html((string) $adb->query_result($res, $i, 'contact_email'));
-			if ($email === '') {
-				$email = decode_html((string) $adb->query_result($res, $i, 'acc_email'));
+			$phone = $this->firstFilled(array(
+				$adb->query_result($res, $i, 'pot_phone'),
+				$adb->query_result($res, $i, 'contact_mobile'),
+				$adb->query_result($res, $i, 'contact_phone'),
+				$adb->query_result($res, $i, 'lead_mobile'),
+				$adb->query_result($res, $i, 'lead_phone'),
+				$adb->query_result($res, $i, 'acc_phone'),
+			));
+			$email = $this->firstFilled(array(
+				$adb->query_result($res, $i, 'contact_email'),
+				$adb->query_result($res, $i, 'lead_email'),
+				$adb->query_result($res, $i, 'acc_email'),
+			));
+			$address = $this->firstFilled(array(
+				$adb->query_result($res, $i, 'pot_address'),
+				$adb->query_result($res, $i, 'lead_address'),
+				$adb->query_result($res, $i, 'lead_lane'),
+				$adb->query_result($res, $i, 'contact_street'),
+			));
+			$district = $this->firstFilled(array(
+				$adb->query_result($res, $i, 'pot_district'),
+				$adb->query_result($res, $i, 'lead_district'),
+				$adb->query_result($res, $i, 'contact_city'),
+			));
+			if ($district !== '' && $address !== '' && stripos($address, $district) === false) {
+				$address .= ', ' . $district;
+			} elseif ($address === '') {
+				$address = $district;
 			}
 			$subtitleParts = array();
 			if ($pname !== '' && $pname !== $label) {
@@ -289,6 +341,9 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 			if ($email !== '') {
 				$subtitleParts[] = $email;
 			}
+			if ($address !== '') {
+				$subtitleParts[] = $address;
+			}
 			$rows[] = array(
 				'id' => $id,
 				'module' => 'Potentials',
@@ -297,6 +352,7 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 				'subtitle' => implode(' · ', $subtitleParts),
 				'phone' => $phone,
 				'email' => $email,
+				'address' => $address,
 				'extra' => $pname,
 				'contact_id' => $contactId,
 				'potential_id' => $id,

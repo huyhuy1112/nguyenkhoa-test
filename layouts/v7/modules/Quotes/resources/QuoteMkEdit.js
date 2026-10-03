@@ -1210,6 +1210,28 @@
 		}
 	}
 
+	function fillQuoteCustomerBits(item) {
+		var $f = $form();
+		if (!item) {
+			return;
+		}
+		if (item.phone && $f.find('[name="mk_customer_phone"]').length) {
+			var phone = item.phone;
+			if (window.MkPhoneFormat && typeof window.MkPhoneFormat.format === 'function') {
+				phone = window.MkPhoneFormat.format(phone) || phone;
+			}
+			$f.find('[name="mk_customer_phone"]').val(phone).trigger('change');
+		}
+		if (item.email && $f.find('[name="mk_customer_email"]').length) {
+			$f.find('[name="mk_customer_email"]').val(item.email).trigger('change');
+		}
+		var addr = $.trim(item.address || '');
+		if (addr) {
+			$f.find('[name="bill_street"]').val(addr);
+			$('#mkQtBillStreetRail, #mkSoBillStreetRail').val(addr);
+		}
+	}
+
 	function applyUnifiedCustomerSelection(item) {
 		var $f = $form();
 		if (!item || !item.module) {
@@ -1267,8 +1289,12 @@
 		} else if (item.module === 'Contacts') {
 			setHiddenRef($f, 'contact_id', item.contact_id || item.id, label);
 			setHiddenRef($f, 'potential_id', 0, '');
+			if (parseInt(item.account_id, 10) > 0) {
+				setHiddenRef($f, 'account_id', item.account_id, item.extra || '');
+			}
 			ensureServiceContractLinkFields($f, 0);
 			$f.find('[name="subject"]').val(label).trigger('change');
+			fillQuoteCustomerBits(item);
 			applyQuotePriceChannel('retail', { clearSc: true });
 		} else if (item.module === 'Potentials') {
 			setHiddenRef($f, 'potential_id', item.potential_id || item.id, label);
@@ -1282,6 +1308,7 @@
 			ensureServiceContractLinkFields($f, 0);
 			$f.find('[name="subject"]').val(label).trigger('change');
 			$f.find('[name="potential_id"]').trigger('change');
+			fillQuoteCustomerBits(item);
 			applyQuotePriceChannel('retail', { clearSc: true });
 		} else if (item.module === 'Leads') {
 			setHiddenRef($f, 'potential_id', 0, '');
@@ -1289,6 +1316,7 @@
 			ensureServiceContractLinkFields($f, 0);
 			$display.val(label);
 			$f.find('[name="subject"]').val(label).trigger('change');
+			fillQuoteCustomerBits(item);
 			applyQuotePriceChannel('retail', { clearSc: true });
 		}
 
@@ -2813,19 +2841,10 @@
 			return;
 		}
 		$info.addClass('mk-qt-block mk-qt-rail-quote-info');
-		var $addr = $rail.find('.mk-qt-address-rail, .mk-qt-rail-card--address').first();
-		if ($addr.length) {
-			var $existingInlineAddr = $info.find('.mk-qt-address-inline').first();
-			if (!$existingInlineAddr.length) {
-				var $addrGrid = $addr.find('.mk-qt-addr-grid').first();
-				if ($addrGrid.length) {
-					var $inlineAddr = $('<div class="mk-qt-address-inline"></div>');
-					$inlineAddr.append('<div class="mk-qt-address-inline__head"><span class="mk-qt-address-inline__icon" aria-hidden="true"><i class="fa fa-map-marker"></i></span><h3 class="mk-qt-address-inline__title">Địa chỉ</h3></div>');
-					$inlineAddr.append($addrGrid.detach());
-					$info.append($inlineAddr);
-				}
-			}
-			$addr.remove();
+		var $inline = $rail.find('.mk-qt-address-inline').first();
+		if ($inline.length) {
+			$info.append($inline.detach());
+			$rail.find('.mk-qt-address-rail, .mk-qt-rail-card--address').remove();
 			$rail.prepend($info);
 		} else {
 			$rail.prepend($info);

@@ -38,8 +38,135 @@ body[data-module="HelpDesk"][data-view="Rules"] .mk-hd-rules-main {
 	min-height: calc(100vh - 56px);
 }
 
-body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main {
+body[data-module="HelpDesk"][data-view="Rules"] .mk-dash-main.mk-hd-rules-main,
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-dash-main.mk-hd-rules-main {
 	background: linear-gradient(165deg, #f0fdf4 0%, #f8fafc 38%, var(--tre-bg) 100%) !important;
+}
+
+/* Cảnh báo nguyên liệu dùng cùng vỏ menu với Quản lý rule. */
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] {
+	--mk-dash-sidebar-w: 256px;
+	--mk-dash-topbar-h: 64px;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] #page,
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] #page.container-fluid {
+	padding-top: 0 !important;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] #page > .container-fluid.app-nav {
+	display: none !important;
+	height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	overflow: hidden !important;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] #mk-dash-split-root.mk-dash-split-root {
+	position: relative;
+	display: block;
+	min-height: 0;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-app-shell {
+	margin-left: var(--mk-dash-sidebar-w);
+	width: calc(100% - var(--mk-dash-sidebar-w));
+	max-width: calc(100% - var(--mk-dash-sidebar-w));
+	min-height: 100vh;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	padding-top: var(--mk-dash-topbar-h);
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-topbar {
+	height: 0;
+	margin: 0;
+	padding: 0;
+	overflow: visible;
+	flex-shrink: 0;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-topbar .mk-dash-app-topbar {
+	position: fixed;
+	top: 0;
+	left: var(--mk-dash-sidebar-w);
+	right: 0;
+	width: auto;
+	min-height: var(--mk-dash-topbar-h);
+	height: var(--mk-dash-topbar-h);
+	z-index: 1030;
+	box-sizing: border-box;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-dashboard-sidebar {
+	top: 0;
+	height: 100vh;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-hd-rules-main {
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: calc(100vh - var(--mk-dash-topbar-h));
+	padding: 28px 32px 48px !important;
+	overflow: auto;
+	box-sizing: border-box;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .main-container.mk-hd-rules-page,
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-hd-rules-content,
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] #listViewContent {
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	left: auto !important;
+	position: relative !important;
+	overflow: visible;
+	box-sizing: border-box;
+	background: transparent !important;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .mk-hd-hide-legacy,
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .module-action-bar {
+	display: none !important;
+}
+
+/* Thanh menu cũ #2C3B49 bị custom.css bật lại bằng #modnavigator. */
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .main-container.mk-hd-rules-page #modnavigator,
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .main-container.mk-hd-rules-page #modnavigator.module-nav,
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .main-container.mk-hd-rules-page #sidebar-essentials,
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] #modnavigator .modules-menu,
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] #modules-menu {
+	display: none !important;
+	visibility: hidden !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	max-width: 0 !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	overflow: hidden !important;
+	background: transparent !important;
+	position: absolute !important;
+	left: -9999px !important;
+	z-index: 0 !important;
+	pointer-events: none !important;
+}
+
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .main-container.mk-hd-rules-page #sidebar-essentials.sidebar-essentials.hide + #listViewContent.listViewPageDiv.content-area,
+body[data-module="HelpDesk"][data-view="MaterialAlerts"] .main-container.mk-hd-rules-page #listViewContent.listViewPageDiv.content-area {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	margin-left: 0 !important;
+}
+
+a.mk-tre-tab {
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .mk-tre-page {
@@ -2345,6 +2472,58 @@ html.mk-tre-ui-ready body[data-module="HelpDesk"][data-view="Rules"] #listViewCo
 	margin-top: 8px;
 }
 
+.mk-tre-alert-filters {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 12px 14px;
+	margin: 8px 0 4px;
+	padding: 14px 16px;
+	background: #fff;
+	border: 1px solid var(--tre-border, #e2e8f0);
+	border-radius: 14px;
+}
+
+.mk-tre-alert-filters label {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin: 0;
+	font-weight: 500;
+	font-size: 12px;
+	color: #64748b;
+}
+
+.mk-tre-alert-filters__search {
+	flex: 1 1 220px;
+	min-width: 180px;
+}
+
+.mk-tre-alert-filters__sort {
+	flex: 0 1 160px;
+}
+
+.mk-tre-alert-filters__date {
+	flex: 0 1 150px;
+}
+
+.mk-tre-alert-filters .mk-tre-input {
+	min-height: 36px;
+	font-size: 13px;
+}
+
+.mk-tre-alert-filters .js-tre-alert-clear {
+	margin-bottom: 1px;
+}
+
+@media (max-width: 720px) {
+	.mk-tre-alert-filters__search,
+	.mk-tre-alert-filters__sort,
+	.mk-tre-alert-filters__date {
+		flex: 1 1 100%;
+	}
+}
+
 .mk-tre-alert-card {
 	background: #fff;
 	border: 1px solid var(--tre-border, #e2e8f0);
@@ -2603,5 +2782,191 @@ body[data-module="SupportFAQ"][data-view="List"] .mk-sf-faq-content {
 	.mk-tre-stats--3 {
 		grid-template-columns: 1fr;
 	}
+}
+
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-page {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-list,
+body[data-module="HelpDesk"][data-view="Rules"] .mk-lv-list {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-card,
+body[data-module="HelpDesk"][data-view="Rules"] .mk-lv {
+	background: #fff;
+	border: 1px solid var(--tre-border);
+	border-radius: 16px;
+	box-shadow: var(--tre-shadow-sm);
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-card__head {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+	padding: 16px 18px;
+	border-bottom: 1px solid var(--tre-border-soft);
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-card__num,
+body[data-module="HelpDesk"][data-view="Rules"] .mk-lv__order {
+	width: 36px;
+	height: 36px;
+	border-radius: 10px;
+	background: var(--tre-green-pale);
+	color: var(--tre-green-dark);
+	font-weight: 700;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-card__titles { flex: 1; min-width: 0; }
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-card__title {
+	width: 100%;
+	border: 0;
+	background: transparent;
+	font-size: 1.45rem;
+	font-weight: 700;
+	color: var(--tre-text);
+	padding: 0;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-card__title:focus { outline: none; }
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-card__meta {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin-top: 6px;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-badge {
+	font-size: 0.95rem;
+	font-weight: 700;
+	padding: 3px 8px;
+	border-radius: 999px;
+	background: #f1f5f9;
+	color: var(--tre-text-secondary);
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-badge--req {
+	background: #ecfdf3;
+	color: #0b6e4f;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-code {
+	font-size: 1rem;
+	color: var(--tre-text-muted);
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-code input {
+	width: 72px;
+	border: 1px solid var(--tre-border);
+	border-radius: 8px;
+	padding: 2px 6px;
+	margin-left: 4px;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-switch {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 1.05rem;
+	color: var(--tre-text-secondary);
+	white-space: nowrap;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-opts { padding: 14px 18px 16px; }
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-opts__label {
+	font-size: 1rem;
+	font-weight: 700;
+	color: var(--tre-text-muted);
+	margin-bottom: 8px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-opt {
+	display: grid;
+	grid-template-columns: 72px 1fr 36px;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-opt__code,
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-opt__label {
+	border: 1px solid var(--tre-border);
+	border-radius: 10px;
+	padding: 10px 12px;
+	font-size: 1.15rem;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-opt__code {
+	text-align: center;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-opt__del,
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-addopt {
+	border: 0;
+	background: transparent;
+	color: var(--tre-text-muted);
+	cursor: pointer;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-q-addopt {
+	color: var(--tre-green-dark);
+	font-weight: 700;
+	padding: 4px 0;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-lv {
+	display: flex;
+	gap: 14px;
+	padding: 14px 16px;
+	border-left: 4px solid #94a3b8;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-lv--stop { border-left-color: #dc2626; }
+body[data-module="HelpDesk"][data-view="Rules"] .mk-lv--hot { border-left-color: #d97706; }
+body[data-module="HelpDesk"][data-view="Rules"] .mk-lv--good { border-left-color: #08a045; }
+body[data-module="HelpDesk"][data-view="Rules"] .mk-lv--mid { border-left-color: #64748b; }
+body[data-module="HelpDesk"][data-view="Rules"] .mk-lv__main { flex: 1; min-width: 0; }
+body[data-module="HelpDesk"][data-view="Rules"] .mk-lv__name {
+	font-weight: 800;
+	font-size: 1.2rem;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-lv__plain {
+	color: var(--tre-text-secondary);
+	margin: 4px 0 10px;
+	font-size: 1.05rem;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-lv__edit {
+	display: grid;
+	grid-template-columns: 1.2fr 0.8fr 90px 1.6fr;
+	gap: 10px;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-lv__edit label {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 0.95rem;
+	font-weight: 700;
+	color: var(--tre-text-muted);
+}
+@media (max-width: 900px) {
+	body[data-module="HelpDesk"][data-view="Rules"] .mk-lv__edit,
+	body[data-module="HelpDesk"][data-view="Rules"] .mk-q-card__head {
+		grid-template-columns: 1fr;
+		flex-wrap: wrap;
+	}
+	body[data-module="HelpDesk"][data-view="Rules"] .mk-lv__edit { display: flex; flex-direction: column; }
+}
+
+body[data-module="HelpDesk"][data-view="Rules"] .mk-tre-file {
+	cursor: pointer;
+	margin: 0;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-tre-import-status {
+	margin: 0;
+	padding: 10px 12px;
+	border-radius: 8px;
+	background: #f1f5f9;
+	color: #334155;
+	font-size: 13px;
+	line-height: 1.4;
+}
+body[data-module="HelpDesk"][data-view="Rules"] .mk-tre-import-status.is-error {
+	background: #fef2f2;
+	color: #b91c1c;
+	border: 1px solid #fecaca;
 }
 

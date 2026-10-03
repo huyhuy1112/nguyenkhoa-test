@@ -360,11 +360,22 @@ window.app = (function () {
 			}
 		},
 		htmlDecode: function (value) {
-			if (value) {
-        return $("<div />").html(value).text();
-			} else {
-        return "";
+			if (!value) {
+				return "";
 			}
+			if (window.mkDecodeHtml) {
+				return window.mkDecodeHtml(value);
+			}
+			var text = String(value);
+			var i;
+			for (i = 0; i < 5; i++) {
+				var next = $("<div />").html(text).text();
+				if (next === text) {
+					break;
+				}
+				text = next;
+			}
+			return text;
 		},
     changeURL: function (url) {
             if (typeof history.pushState !== "undefined") {

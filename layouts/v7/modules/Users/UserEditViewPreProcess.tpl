@@ -15,7 +15,7 @@
 {include file="SettingsMenuStart.tpl"|vtemplate_path:$QUALIFIED_MODULE}
 
 <div class="bodyContents mk-users-edit-page">
-	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Users/resources/UsersPrefEditContent.css')}&mk_v=20260605_users_edit_spacing1" />
+	<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Users/resources/UsersPrefEditContent.css')}&mk_v=20260918_users_edit_layout3" />
 	<div class="mainContainer row-fluid">
 		
 {/strip}

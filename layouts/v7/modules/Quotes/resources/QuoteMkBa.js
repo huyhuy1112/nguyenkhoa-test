@@ -132,6 +132,15 @@
 		return $('#mkQtQuoteRail, #mkSoOrderRail').first();
 	}
 
+	function ensureQuoteCustomerFields($form) {
+		['mk_customer_phone', 'mk_customer_email'].forEach(function (name) {
+			if ($field($form, name).length) {
+				return;
+			}
+			$form.append($('<input type="hidden" />').attr('name', name).val(''));
+		});
+	}
+
 	function injectCompanyReadonly($form) {
 		// BA: hide seller company info card on Quote/SO edit rail.
 		var $rail = getQuoteRail();
@@ -192,14 +201,23 @@
 			return;
 		}
 
+		ensureQuoteCustomerFields($form);
+		var $phoneField = $field($form, 'mk_customer_phone');
+		var $emailField = $field($form, 'mk_customer_email');
+		var $contactBody = $(
+			'<div class="mk-qt-addr-grid mk-qt-contact-grid">' +
+				'<div class="mk-qt-addr-col"><label class="mk-qt-addr-label" for="' + prefix + 'CustomerPhoneRail">SĐT</label><input type="text" id="' + prefix + 'CustomerPhoneRail" class="mk-qt-addr-ta mk-qt-phone-input" name="mk_customer_phone" placeholder="Số điện thoại khách" autocomplete="off" /></div>' +
+				'<div class="mk-qt-addr-col"><label class="mk-qt-addr-label" for="' + prefix + 'CustomerEmailRail">Email</label><input type="text" id="' + prefix + 'CustomerEmailRail" class="mk-qt-addr-ta mk-qt-phone-input" name="mk_customer_email" placeholder="Email khách" autocomplete="off" /></div>' +
+			'</div>'
+		);
 		var $addressBody = $(
 			'<div class="mk-qt-addr-grid">' +
-				'<div class="mk-qt-addr-col"><label class="mk-qt-addr-label" for="' + prefix + 'BillStreetRail">Địa chỉ</label><textarea id="' + prefix + 'BillStreetRail" class="mk-qt-addr-ta" rows="4" placeholder="Tự điền từ cơ hội nếu có — hoặc nhập tay"></textarea></div>' +
-				'<div class="mk-qt-addr-col"><label class="mk-qt-addr-label" for="' + prefix + 'ShipStreetRail">Địa chỉ vận chuyển</label><textarea id="' + prefix + 'ShipStreetRail" class="mk-qt-addr-ta" rows="4" placeholder="Nhập địa chỉ vận chuyển"></textarea></div>' +
+				'<div class="mk-qt-addr-col mk-qt-addr-col--full"><label class="mk-qt-addr-label" for="' + prefix + 'BillStreetRail">Địa chỉ</label><textarea id="' + prefix + 'BillStreetRail" class="mk-qt-addr-ta" rows="3" placeholder="Địa chỉ khách — tự điền khi chọn khách, hoặc nhập tay"></textarea></div>' +
 			'</div>'
 		);
 		var $addressSection = $('<div class="mk-qt-address-inline"></div>');
-		$addressSection.append('<div class="mk-qt-address-inline__head"><span class="mk-qt-address-inline__icon" aria-hidden="true"><i class="fa fa-map-marker"></i></span><h3 class="mk-qt-address-inline__title">Địa chỉ</h3></div>');
+		$addressSection.append('<div class="mk-qt-address-inline__head"><span class="mk-qt-address-inline__icon" aria-hidden="true"><i class="fa fa-map-marker"></i></span><h3 class="mk-qt-address-inline__title">Khách hàng</h3></div>');
+		$addressSection.append($contactBody);
 		$addressSection.append($addressBody);
 
 		var $infoCard = $rail.find('.mk-qt-rail-quote-info, .mk-so-rail-info').first();
@@ -207,23 +225,42 @@
 			$infoCard.append($addressSection);
 		} else {
 			var $card = $('<div class="mk-qt-rail-card mk-qt-rail-card--address mk-qt-address-rail"></div>');
-			$card.append('<div class="mk-qt-rail-card__head"><span class="mk-qt-rail-card__icon" aria-hidden="true"><i class="fa fa-map-marker"></i></span><h2 class="mk-qt-rail-card__title">Địa chỉ</h2></div>');
-			$card.append($addressBody);
+			$card.append($addressSection);
 			$rail.append($card);
 		}
 
 		var $billRail = $('#' + prefix + 'BillStreetRail');
 		var $shipRail = $('#' + prefix + 'ShipStreetRail');
+		var $phoneRail = $('#' + prefix + 'CustomerPhoneRail');
+		var $emailRail = $('#' + prefix + 'CustomerEmailRail');
 
 		$billRail.val($bill.val() || '');
-		$shipRail.val($ship.val() || '');
+		if ($shipRail.length) {
+			$shipRail.val($ship.val() || '');
+		}
+		$phoneRail.val($phoneField.val() || '');
+		$emailRail.val($emailField.val() || '');
+		$form.find('[name="mk_customer_phone"]').not($phoneRail).remove();
+		$form.find('[name="mk_customer_email"]').not($emailRail).remove();
 
 		$billRail.on('input', function () {
 			$bill.val($(this).val()).trigger('change');
 		});
-		$shipRail.on('input', function () {
-			$ship.val($(this).val()).trigger('change');
-		});
+		if ($shipRail.length) {
+			$shipRail.on('input', function () {
+				$ship.val($(this).val()).trigger('change');
+			});
+		}
+		$form
+			.off('change.mkQtContactRail input.mkQtContactRail', '[name="mk_customer_phone"], [name="mk_customer_email"]')
+			.on('change.mkQtContactRail input.mkQtContactRail', '[name="mk_customer_phone"], [name="mk_customer_email"]', function () {
+				if (this.name === 'mk_customer_phone' && this !== $phoneRail[0]) {
+					$phoneRail.val($(this).val() || '');
+				}
+				if (this.name === 'mk_customer_email' && this !== $emailRail[0]) {
+					$emailRail.val($(this).val() || '');
+				}
+			});
 
 		// Keep rail in sync when Opp autofill writes hidden form fields.
 		$form

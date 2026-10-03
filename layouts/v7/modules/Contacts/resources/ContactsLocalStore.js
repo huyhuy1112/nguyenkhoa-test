@@ -46,6 +46,23 @@
         if (Array.isArray(res.assignable_users)) {
           root.MK_CONTACTS_ASSIGNABLE_USERS = res.assignable_users;
         }
+        if (Array.isArray(res.offline_classes)) {
+          root.MK_OFFLINE_CLASSES = res.offline_classes;
+        }
+        if (Array.isArray(res.gd14_questions)) {
+          root.MK_GD14_QUESTIONS = { questions: res.gd14_questions };
+        }
+        if (Array.isArray(res.gd14_courses)) {
+          root.MK_GD14_COURSES = res.gd14_courses;
+        }
+        if (Array.isArray(res.screening_questions)) {
+          root.MK_SCREENING_QUESTIONS = { questions: res.screening_questions };
+        } else if (res.screening_options && Array.isArray(res.screening_options.questions)) {
+          root.MK_SCREENING_QUESTIONS = { questions: res.screening_options.questions };
+        }
+        if (res && res.is_admin != null) {
+          root.MK_CONTACTS_IS_ADMIN = Number(res.is_admin) === 1;
+        }
         return _contacts;
       })
       .catch(function () {
@@ -123,6 +140,75 @@
         return res;
       });
     },
+    saveGd14Answers: function (id, payload) {
+      var oid = String(id || "");
+      return apiRequest("gd14_answers", {
+        record: oid,
+        payload: JSON.stringify(payload || {}),
+      }).then(function (res) {
+        var patch = {};
+        if (res && res.gd14) patch.gd14 = res.gd14;
+        if (res && res.compare) patch.compare = res.compare;
+        if (res && res.verify_lines) patch.verify_lines = res.verify_lines;
+        root.ContactsLocalStore.patchContact(oid, patch);
+        return res;
+      });
+    },
+    gd14ClassStep: function (id, step, fields) {
+      var oid = String(id || "");
+      var data = Object.assign({ record: oid, step: step || "" }, fields || {});
+      return apiRequest("gd14_class", data).then(function (res) {
+        var patch = {};
+        if (res && res.gd14) patch.gd14 = res.gd14;
+        if (res && res.verify_lines) patch.verify_lines = res.verify_lines;
+        if (res && res.compare) patch.compare = res.compare;
+        if (res && res.tag) {
+          var current = null;
+          for (var i = 0; i < _contacts.length; i++) {
+            var row = _contacts[i];
+            if (String(row.id) === oid || String(row.crmid || "") === oid) {
+              current = row;
+              break;
+            }
+          }
+          var tags = ((current && current.tags) || []).filter(function (tag) {
+            return String(tag).toLowerCase().indexOf("gd14_") !== 0;
+          });
+          tags.push(res.tag);
+          patch.tags = tags;
+        }
+        root.ContactsLocalStore.patchContact(oid, patch);
+        return res;
+      });
+    },
+    saveOfflineAttend: function (id, classCode, datetime) {
+      var oid = String(id || "");
+      return apiRequest("save_offline_attend", {
+        record: oid,
+        class_code: classCode || "mqbb",
+        datetime: datetime || "",
+      }).then(function (res) {
+        var patch = {};
+        var code = (res && res.class_code) || classCode || "mqbb";
+        var iso = (res && res.datetime) || "";
+        if (code === "pcth_cb") patch.thoigian_pcthcb = iso;
+        else if (code === "pcth") patch.thoigian_pcth = iso;
+        else patch.thoigian_mqbb = iso;
+        root.ContactsLocalStore.patchContact(oid, patch);
+        return res;
+      });
+    },
+    saveNextAction: function (id, nextAction) {
+      var oid = String(id || "");
+      return apiRequest("save_next_action", {
+        record: oid,
+        next_action: nextAction || "",
+      }).then(function (res) {
+        var next = res && res.next_action != null ? res.next_action : nextAction || "";
+        root.ContactsLocalStore.patchContact(oid, { next_action: next });
+        return next;
+      });
+    },
     saveCredentials: function (id, daCapBang, daCapTaiKhoan) {
       var oid = String(id || "");
       return apiRequest("credential_save", {
@@ -136,6 +222,65 @@
           da_cap_tai_khoan: creds.da_cap_tai_khoan || daCapTaiKhoan,
         });
         return creds;
+      });
+    },
+    renewEdubitAccess: function (id, reason) {
+      var oid = String(id || "");
+      var data = { record: oid };
+      if (reason) data.reason = reason;
+      return apiRequest("edubit_renew", data).then(function (res) {
+        if (!res || res.success === false) {
+          throw new Error((res && res.error) || "Gia hạn thất bại");
+        }
+        var next = {};
+        if (res.edubit_expires_at) next.edubit_expires_at = res.edubit_expires_at;
+        if (typeof res.edubit_renew_count !== "undefined") {
+          next.edubit_renew_count = res.edubit_renew_count;
+        }
+        if (typeof res.edubit_renew_remaining !== "undefined") {
+          next.edubit_renew_remaining = res.edubit_renew_remaining;
+        }
+        if (typeof res.can_edubit_renew !== "undefined") {
+          next.can_edubit_renew = res.can_edubit_renew;
+        }
+        if (res.status) next.online_status = res.status;
+        root.ContactsLocalStore.patchContact(oid, next);
+        return res;
+      });
+    },
+    provisionEdubit: function (id, payload) {
+      var oid = String(id || "");
+      return apiRequest("edubit_provision", {
+        record: oid,
+        id: oid,
+        payload: JSON.stringify(payload || {}),
+      }).then(function (res) {
+        if (!res || res.success === false) {
+          throw new Error((res && res.error) || "Cấp TK thất bại");
+        }
+        var next = {};
+        if (res.edubit_email) next.edubit_email = res.edubit_email;
+        if (res.edubit_user_id) next.edubit_user_id = res.edubit_user_id;
+        if (res.edubit_course_id) next.edubit_course_id = res.edubit_course_id;
+        if (res.edubit_expires_at) next.edubit_expires_at = res.edubit_expires_at;
+        if (res.edubit_activated_at) next.edubit_activated_at = res.edubit_activated_at;
+        if (Array.isArray(res.courses)) next.edubit_courses = res.courses;
+        if (res.edubit_user_id || (res.added_course_ids && res.added_course_ids.length)) {
+          next.da_cap_tai_khoan = "Đã cấp";
+          next.online_status = "online_dang_hoc";
+        }
+        root.ContactsLocalStore.patchContact(oid, next);
+        return res;
+      });
+    },
+    syncEdubitAll: function (limit) {
+      var data = {};
+      if (limit) data.limit = limit;
+      return apiRequest("edubit_sync_all", data).then(function (res) {
+        if (!res || res.success === false) {
+          throw new Error((res && res.error) || "Đồng bộ thất bại");
+        }
+        return res;
       });
     },
   };
