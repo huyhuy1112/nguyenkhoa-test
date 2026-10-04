@@ -131,6 +131,15 @@ nav.app-fixed-navbar.navbar-inverse,
     flex: 1 1 auto !important;
     min-width: 80px;
 }
+/* Global keyword search removed — keep spacer collapsed */
+.app-fixed-navbar .global-nav .global-nav-row > .global-nav-center.mk-dash-app-global-center--empty,
+.app-fixed-navbar .global-nav .global-nav-row > .global-nav-center.mk-topbar-search-removed {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    visibility: hidden;
+    pointer-events: none;
+}
 /* #navbar (Quick Create, Calendar, bell, user...) luôn hiện và ngang hàng */
 .app-fixed-navbar .global-nav #navbar.collapse.navbar-collapse,
 .app-fixed-navbar .global-nav #navbar.collapse.in {

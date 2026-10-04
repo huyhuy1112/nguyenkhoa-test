@@ -307,7 +307,10 @@
 				+ '  <div class="mk-tre-alert-filters" role="search">'
 				+ '    <label class="mk-tre-alert-filters__search">'
 				+ '      <span class="mk-tre-muted">Tìm</span>'
-				+ '      <input type="text" class="mk-tre-input js-tre-alert-q" placeholder="Tên, SĐT, Lead #…" value="' + esc(f.q) + '" autocomplete="off" spellcheck="false" />'
+				+ '      <span class="mk-tre-alert-filters__search-row">'
+				+ '        <input type="text" class="mk-tre-input js-tre-alert-q" placeholder="Tên, SĐT, Lead #…" value="' + esc(f.q) + '" autocomplete="off" spellcheck="false" />'
+				+ '        <button type="button" class="mk-tre-btn mk-tre-btn--primary js-tre-alert-search">Tìm</button>'
+				+ '      </span>'
 				+ '    </label>'
 				+ '    <label class="mk-tre-alert-filters__sort">'
 				+ '      <span class="mk-tre-muted">Sắp xếp</span>'
@@ -345,18 +348,9 @@
 			this.renderResults();
 		},
 
-		scheduleSearchUpdate: function () {
-			var self = this;
-			if (this.searchTimer) {
-				clearTimeout(this.searchTimer);
-				this.searchTimer = null;
-			}
-			this.searchTimer = setTimeout(function () {
-				self.searchTimer = null;
-				if (self.composing) return;
-				self.readFiltersFromDom();
-				self.renderResults();
-			}, 160);
+		applySearch: function () {
+			this.readFiltersFromDom();
+			this.renderResults();
 		},
 
 		bindEvents: function () {
@@ -370,11 +364,18 @@
 			});
 			this.$root.on('compositionend', '.js-tre-alert-q', function () {
 				self.composing = false;
-				self.scheduleSearchUpdate();
 			});
-			this.$root.on('input', '.js-tre-alert-q', function () {
+			// Không lọc theo từng phím — chỉ khi bấm Tìm / Enter (ổn IME + chuột).
+			this.$root.on('keydown', '.js-tre-alert-q', function (e) {
+				if (e.key === 'Enter' || e.keyCode === 13) {
+					e.preventDefault();
+					if (self.composing) return;
+					self.applySearch();
+				}
+			});
+			this.$root.on('click', '.js-tre-alert-search', function () {
 				if (self.composing) return;
-				self.scheduleSearchUpdate();
+				self.applySearch();
 			});
 			this.$root.on('change', '.js-tre-alert-sort, .js-tre-alert-from, .js-tre-alert-to', function () {
 				self.readFiltersFromDom();

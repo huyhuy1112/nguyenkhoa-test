@@ -34,17 +34,8 @@
 		<div class="row global-nav-row mk-dash-app-topbar-row">
 			<div class="navbar-header paddingTop5 mk-dash-app-navbar-header">
 				<button type="button" class="navbar-toggle collapsed border0 mk-dash-topbar-navtoggle" data-toggle="collapse" data-target="#navbar" aria-expanded="false" title="{vtranslate('LBL_MENU','Vtiger')}"><span class="mk-dash-topbar-ic" aria-hidden="true">{include file="dashboards/DashboardSidebarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='MENU'}</span></button>
-				<button type="button" class="navbar-toggle collapsed border0 mk-dash-topbar-navtoggle" data-toggle="collapse" data-target="#search-links-container" aria-expanded="false" title="{vtranslate('LBL_SEARCH','Vtiger')}"><span class="mk-dash-topbar-ic" aria-hidden="true">{include file="partials/DashboardTopbarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='SEARCH'}</span></button>
 			</div>
-			<div class="global-nav-center mk-dash-app-global-center">
-				<div id="search-links-container" class="search-links-container collapse navbar-collapse">
-					<div class="search-link">
-						<span class="mk-dash-search-ic" aria-hidden="true">{include file="partials/DashboardTopbarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='SEARCH'}</span>
-						<input class="keyword-input" type="text" placeholder="{vtranslate('LBL_TYPE_TO_SEARCH','Vtiger')}" value="">
-						<span id="adv-search" class="adv-search fa fa-chevron-circle-down pull-right cursorPointer" aria-hidden="true"></span>
-					</div>
-				</div>
-			</div>
+			<div class="global-nav-center mk-dash-app-global-center mk-dash-app-global-center--empty" aria-hidden="true"></div>
 			<div id="navbar" class="global-nav-right col-sm-6 col-xs-12 collapse navbar-collapse navbar-right global-actions mk-dash-app-global-right">
 				<ul class="nav navbar-nav">
 					<li><div class="dropdown pull-left"><div class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true"><a href="#" id="menubar_quickCreate" class="qc-button mk-dash-topbar-qcbtn" title="{vtranslate('LBL_QUICK_CREATE','Vtiger')}" aria-label="{vtranslate('LBL_QUICK_CREATE','Vtiger')}"><span class="mk-dash-topbar-ic" aria-hidden="true">{include file="partials/DashboardTopbarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='PLUS'}</span></a></div>

@@ -2495,8 +2495,26 @@ html.mk-tre-ui-ready body[data-module="HelpDesk"][data-view="Rules"] #listViewCo
 }
 
 .mk-tre-alert-filters__search {
-	flex: 1 1 220px;
-	min-width: 180px;
+	flex: 1 1 280px;
+	min-width: 200px;
+}
+
+.mk-tre-alert-filters__search-row {
+	display: flex;
+	align-items: stretch;
+	gap: 8px;
+}
+
+.mk-tre-alert-filters__search-row .js-tre-alert-q {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.mk-tre-alert-filters__search-row .js-tre-alert-search {
+	flex: 0 0 auto;
+	white-space: nowrap;
+	min-height: 36px;
+	padding: 0 14px;
 }
 
 .mk-tre-alert-filters__sort {
