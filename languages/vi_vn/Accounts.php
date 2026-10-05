@@ -10,7 +10,7 @@
 $languageStrings = array(
 "Account Name" => "Tên công ty",
 "Fullname" => "Tên đầy đủ",
-"Account No" => "Mã nhượng quyền",
+"Account No" => "Mã Tuibao",
 "Accounts" => "Tổ chức",
 "Analyst" => "Chuyên viên phân tích",
 "Competitor" => "Đối thủ",

@@ -25,7 +25,7 @@ function println($msg) {
 
 global $adb;
 
-println('Switching sales entity codes (Contacts→KH, Accounts→NQ)...');
+println('Switching sales entity codes (Contacts→KH, Accounts→Tuibao)...');
 
 foreach (array('Contacts', 'Accounts') as $module) {
 	$ok = MkEntityNumbering::ensureModuleSequence($module);
@@ -53,4 +53,4 @@ while ($row = $adb->fetchByAssoc($res)) {
 }
 
 println('');
-println('Done. Existing LH/old-KH records keep old codes; new Contacts=KH…, new Accounts=NQ…');
+println('Done. Existing LH/old-KH/NQ records keep old codes; new Contacts=KH…, new Accounts=Tuibao…');

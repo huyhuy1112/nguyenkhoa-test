@@ -1932,7 +1932,7 @@ Should any need arise,please do give us a call.';
 		 */
 		$modseq = array(
 			'Leads' => 'LEA',
-			'Accounts' => 'NQ',
+			'Accounts' => 'Tuibao',
 			'Campaigns' => 'CAM',
 			'Contacts' => 'KH',
 			'Potentials' => 'CH',
