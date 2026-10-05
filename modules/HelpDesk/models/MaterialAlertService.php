@@ -606,22 +606,68 @@ class HelpDesk_MaterialAlertService {
 		$by = isset($summary['by_code']) && is_array($summary['by_code']) ? $summary['by_code'] : array();
 		$total = (int) (isset($summary['total']) ? $summary['total'] : 0);
 		$catalog = self::alertCatalog();
-		$groups = array(
-			'A. Tiếp nhận & mua lần đầu' => array('NL01', 'NL02', 'NL03', 'NL04', 'NL05', 'NL06', 'NL07'),
-			'B. Mua lại, giảm mua & bán chéo' => array('NL08', 'NL09', 'NL10', 'NL11', 'NL12', 'NL13', 'NL14'),
-			'C. Đơn, giao hàng & dữ liệu' => array('NL15', 'NL16', 'NL17', 'NL18', 'NL19', 'NL20', 'NL21', 'NL22', 'NL23'),
+		$groupsDef = array(
+			array(
+				'key' => 'A',
+				'title' => 'Tiếp nhận & mua lần đầu',
+				'codes' => array('NL01', 'NL02', 'NL03', 'NL04', 'NL05', 'NL06', 'NL07'),
+				'color' => '#2563eb',
+			),
+			array(
+				'key' => 'B',
+				'title' => 'Mua lại, giảm mua & bán chéo',
+				'codes' => array('NL08', 'NL09', 'NL10', 'NL11', 'NL12', 'NL13', 'NL14'),
+				'color' => '#b45309',
+			),
+			array(
+				'key' => 'C',
+				'title' => 'Đơn, giao hàng & dữ liệu',
+				'codes' => array('NL15', 'NL16', 'NL17', 'NL18', 'NL19', 'NL20', 'NL21', 'NL22', 'NL23'),
+				'color' => '#0f766e',
+			),
 		);
-		$groupTotals = array();
-		foreach ($groups as $title => $codes) {
+		$groups = array();
+		$donut = array();
+		foreach ($groupsDef as $def) {
+			$open = array();
+			$zeroCodes = array();
 			$sum = 0;
-			foreach ($codes as $code) {
-				$sum += isset($by[$code]) ? (int) $by[$code] : 0;
+			foreach ($def['codes'] as $code) {
+				$n = isset($by[$code]) ? (int) $by[$code] : 0;
+				$sum += $n;
+				$label = isset($catalog['nl'][$code]) ? $catalog['nl'][$code] : $code;
+				if ($n > 0) {
+					$open[] = array(
+						'code' => $code,
+						'label' => $label,
+						'count' => $n,
+						'color' => $def['color'],
+					);
+				} else {
+					$zeroCodes[] = $code;
+				}
 			}
-			$groupTotals[$title] = $sum;
+			usort($open, function ($a, $b) {
+				return $b['count'] - $a['count'];
+			});
+			$groups[] = array(
+				'key' => $def['key'],
+				'title' => $def['title'],
+				'total' => $sum,
+				'color' => $def['color'],
+				'open' => $open,
+				'zero_count' => count($zeroCodes),
+				'zero_codes' => $zeroCodes,
+			);
+			$donut[] = array(
+				'label' => $def['key'] . ' · ' . $def['title'],
+				'count' => $sum,
+				'color' => $def['color'],
+			);
 		}
-		$careOpen = $groupTotals['A. Tiếp nhận & mua lần đầu'];
-		$reorderOpen = $groupTotals['B. Mua lại, giảm mua & bán chéo'];
-		$fulfillOpen = $groupTotals['C. Đơn, giao hàng & dữ liệu'];
+		$careOpen = $groups[0]['total'];
+		$reorderOpen = $groups[1]['total'];
+		$fulfillOpen = $groups[2]['total'];
 		$rates = array(
 			array(
 				'label' => 'Việc đang mở',
@@ -630,45 +676,41 @@ class HelpDesk_MaterialAlertService {
 				'color' => '#047857',
 				'nodrill' => true,
 			),
-			self::boardRate('Tiếp nhận / mua lần đầu', $careOpen, max($total, 1)),
-			self::boardRate('Mua lại / giảm / bán chéo', $reorderOpen, max($total, 1)),
-			self::boardRate('Đơn / giao / dữ liệu', $fulfillOpen, max($total, 1)),
+			self::boardRate('Nhóm A · tiếp nhận', $careOpen, max($total, 1)),
+			self::boardRate('Nhóm B · mua lại', $reorderOpen, max($total, 1)),
+			self::boardRate('Nhóm C · đơn/giao', $fulfillOpen, max($total, 1)),
 		);
-		$stages = array(
-			self::boardCount('Tổng việc NL đang mở', $total, '#2563eb'),
-		);
-		foreach ($catalog['nl'] as $code => $label) {
-			$n = isset($by[$code]) ? (int) $by[$code] : 0;
-			$stages[] = self::boardCount($code . ' — ' . $label, $n, $n > 0 ? '#b45309' : '#64748b');
-		}
-		$splits = array();
-		foreach ($groups as $title => $codes) {
-			$items = array();
-			foreach ($codes as $code) {
-				$label = isset($catalog['nl'][$code]) ? $catalog['nl'][$code] : $code;
-				$n = isset($by[$code]) ? (int) $by[$code] : 0;
-				$items[] = self::boardCount($code . ' — ' . $label, $n, $n > 0 ? '#0f766e' : '#94a3b8');
-			}
-			$splits[] = array('title' => $title . ' · ' . $groupTotals[$title] . ' việc', 'items' => $items);
-		}
-		$qlItems = array();
+		$qlHot = array();
+		$qlCold = array();
 		foreach ($catalog['ql'] as $code => $label) {
 			$derived = self::qlDerivedCount($code, $by, $total);
-			$qlItems[] = self::boardCount($code . ' — ' . $label, $derived['count'], $derived['color'], $derived['hint']);
-		}
-		$splits[] = array('title' => 'QL — Chỉ số quản lý (Word)', 'items' => $qlItems);
-		$soon = array();
-		foreach (array('NL10', 'NL11', 'NL13', 'NL14', 'NL21', 'NL22', 'NL23') as $code) {
-			if (!isset($by[$code]) || (int) $by[$code] === 0) {
-				$soon[] = $code . ' — ' . $catalog['nl'][$code] . ' (cần ngưỡng/dữ liệu)';
+			$row = array(
+				'code' => $code,
+				'label' => $label,
+				'count' => (int) $derived['count'],
+				'color' => $derived['color'],
+				'hint' => isset($derived['hint']) ? $derived['hint'] : '',
+			);
+			if ($row['count'] > 0) {
+				$qlHot[] = $row;
+			} else {
+				$qlCold[] = $row;
 			}
 		}
 		return array(
+			'layout' => 'materials',
 			'period_label' => 'Theo Word · việc đang mở',
 			'rates' => $rates,
-			'stages' => $stages,
-			'splits' => $splits,
-			'soon' => $soon,
+			'groups' => $groups,
+			'donut' => $donut,
+			'ql' => array(
+				'title' => 'QL — Chỉ số quản lý',
+				'hot' => $qlHot,
+				'cold' => $qlCold,
+			),
+			'stages' => array(),
+			'splits' => array(),
+			'soon' => array(),
 			'total' => $total,
 		);
 	}

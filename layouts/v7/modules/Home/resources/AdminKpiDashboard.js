@@ -14,6 +14,9 @@
 		openDrillSig: '',
 		stagePeriod: 'month',
 		stageOffset: 0,
+		stagePanel: 'offline',
+		widgetsCache: null,
+		paintedPanels: {},
 	};
 
 	function money(n) {
@@ -175,19 +178,15 @@
 		}
 		return api(params)
 			.done(function (data) {
+				state.widgetsCache = data || {};
+				state.paintedPanels = {};
 				renderAlerts($root, (data && data.alerts) || { items: [] });
 				renderFunnel($root, (data && data.funnel) || { stages: [] });
 				renderChart($root, (data && data.revenue_chart) || {});
 				renderPerf($root, (data && data.performance) || {});
-				renderOffline($root, (data && data.offline_gd11) || {});
-				renderOnline($root, (data && data.online_gd12) || {});
-				renderGd14($root, (data && data.gd14) || {});
-				renderGd14Course($root, 'pcth', (data && data.gd14_pcth) || {});
-				renderGd14Course($root, 'mqbb', (data && data.gd14_mqbb) || {});
-				renderGd14Course($root, 'combo', (data && data.gd14_combo) || {});
-				renderMaterials($root, (data && data.materials) || {});
 				renderCompany($root, (data && data.company_report) || {});
 				syncStagePeriodNav($root, (data && data.stage_nav) || null);
+				paintActiveStagePanel($root);
 			})
 			.fail(function (msg) {
 				setError($root.find('#mkAdminKpiFunnelBody'), msg);
@@ -201,6 +200,30 @@
 				setError($root.find('#mkAdminKpiComboBody'), msg);
 				setError($root.find('#mkAdminKpiNlBody'), msg);
 			});
+	}
+
+	function paintActiveStagePanel($root) {
+		var zone = state.stagePanel || 'offline';
+		var data = state.widgetsCache || {};
+		if (state.paintedPanels[zone]) {
+			return;
+		}
+		if (zone === 'offline') {
+			renderOffline($root, data.offline_gd11 || {});
+		} else if (zone === 'online') {
+			renderOnline($root, data.online_gd12 || {});
+		} else if (zone === 'gd14') {
+			renderGd14($root, data.gd14 || {});
+		} else if (zone === 'pcth') {
+			renderGd14Course($root, 'pcth', data.gd14_pcth || {});
+		} else if (zone === 'mqbb') {
+			renderGd14Course($root, 'mqbb', data.gd14_mqbb || {});
+		} else if (zone === 'combo') {
+			renderGd14Course($root, 'combo', data.gd14_combo || {});
+		} else if (zone === 'nl') {
+			renderMaterials($root, data.materials || {});
+		}
+		state.paintedPanels[zone] = true;
 	}
 
 	function loadChartOnly($root) {
@@ -494,7 +517,7 @@
 	function stageHit(item, zone, index) {
 		var label = safeLabel(item.label);
 		var value = item.value != null ? String(item.value) : num(item.count);
-		var delay = Math.min(0.45, (Number(index) || 0) * 0.035);
+		var delay = Math.min(0.2, Math.min(8, Number(index) || 0) * 0.025);
 		var pct = parsePct(value);
 		var isRate = pct !== null;
 		var icon = stageIconSvg(stageIconKind(item.label, isRate));
@@ -575,7 +598,7 @@
 		var donutItems = stages.filter(function (s) {
 			return Number(s.count) > 0 && String((s.drill && s.drill.key) || '').indexOf(':all') < 0;
 		});
-		var html = '<div class="mk-admin-kpi-board is-enter" data-board-zone="' + escapeHtml(zone) + '">';
+		var html = '<div class="mk-admin-kpi-board" data-board-zone="' + escapeHtml(zone) + '">';
 		var idx = 0;
 		if (rates.length) {
 			html += '<div class="mk-admin-kpi-rate-row">';
@@ -584,8 +607,12 @@
 			});
 			html += '</div>';
 		}
-		html += '<div class="mk-admin-kpi-offline-grid">';
-		html += renderDonut(donutItems.length ? donutItems : stages, OFFLINE_COLORS);
+		// Chỉ hiện donut khi có trạng thái > 0 — tránh cột trái trống
+		var showDonut = donutItems.length > 0 && donutItems.length <= 14;
+		html += '<div class="mk-admin-kpi-offline-grid' + (showDonut ? '' : ' is-full') + '">';
+		if (showDonut) {
+			html += renderDonut(donutItems, OFFLINE_COLORS);
+		}
 		html += '<div class="mk-admin-kpi-offline-stats">';
 		stages.forEach(function (item) {
 			html += stageHit(item, zone, idx++);
@@ -700,7 +727,103 @@
 
 	function renderMaterials($root, data) {
 		data = data || {};
-		$root.find('#mkAdminKpiNlBody').html(renderStageBoard(data, 'nl'));
+		$root.find('#mkAdminKpiNlBody').html(renderMaterialsBoard(data));
+	}
+
+	function renderMaterialsBoard(data) {
+		data = data || {};
+		if (data.layout !== 'materials') {
+			return renderStageBoard(data, 'nl');
+		}
+		var rates = data.rates || [];
+		var groups = data.groups || [];
+		var donut = data.donut || [];
+		var ql = data.ql || {};
+		var html = '<div class="mk-nl-board">';
+		html += '<div class="mk-nl-hero">';
+		html += '<div class="mk-nl-kpi">';
+		rates.forEach(function (item, i) {
+			html += stageHit(item, 'nl', i);
+		});
+		html += '</div>';
+		if (donut.some(function (d) { return Number(d.count) > 0; })) {
+			html += '<div class="mk-nl-donut">' + renderDonut(donut, ['#2563eb', '#b45309', '#0f766e']) + '</div>';
+		}
+		html += '</div>';
+		html += '<div class="mk-nl-cols">';
+		groups.forEach(function (g) {
+			html += '<section class="mk-nl-col" style="--col:' + escapeHtml(g.color || '#64748b') + '">';
+			html +=
+				'<header class="mk-nl-col__head"><span class="mk-nl-col__key">' +
+				escapeHtml(g.key || '') +
+				'</span><div><strong>' +
+				safeLabel(g.title) +
+				'</strong><em>' +
+				num(g.total) +
+				' việc</em></div></header>';
+			html += '<div class="mk-nl-col__body">';
+			var open = g.open || [];
+			if (!open.length) {
+				html += '<p class="mk-nl-empty">Không có việc mở</p>';
+			} else {
+				open.forEach(function (row) {
+					html +=
+						'<div class="mk-nl-row is-hot">' +
+						'<span class="mk-nl-row__code">' +
+						escapeHtml(row.code || '') +
+						'</span>' +
+						'<span class="mk-nl-row__label">' +
+						safeLabel(row.label) +
+						'</span>' +
+						'<strong style="color:' +
+						escapeHtml(row.color || g.color || '#0f172a') +
+						'">' +
+						num(row.count) +
+						'</strong></div>';
+				});
+			}
+			if (Number(g.zero_count) > 0) {
+				html +=
+					'<div class="mk-nl-zero" title="' +
+					escapeHtml((g.zero_codes || []).join(', ')) +
+					'">+' +
+					num(g.zero_count) +
+					' mã = 0 · ' +
+					escapeHtml((g.zero_codes || []).slice(0, 6).join(', ')) +
+					(g.zero_codes && g.zero_codes.length > 6 ? '…' : '') +
+					'</div>';
+			}
+			html += '</div></section>';
+		});
+		html += '</div>';
+		html += '<section class="mk-nl-ql">';
+		html += '<h3 class="mk-nl-ql__title">' + safeLabel(ql.title || 'QL') + '</h3>';
+		html += '<div class="mk-nl-ql__grid">';
+		(ql.hot || []).forEach(function (row) {
+			html +=
+				'<div class="mk-nl-ql__item is-hot"><span>' +
+				escapeHtml(row.code) +
+				' — ' +
+				safeLabel(row.label) +
+				'</span><strong style="color:' +
+				escapeHtml(row.color || '#b45309') +
+				'">' +
+				num(row.count) +
+				'</strong></div>';
+		});
+		html += '</div>';
+		if ((ql.cold || []).length) {
+			html +=
+				'<p class="mk-nl-ql__cold">Theo dõi (chưa có số): ' +
+				(ql.cold || [])
+					.map(function (r) {
+						return escapeHtml(r.code);
+					})
+					.join(', ') +
+				'</p>';
+		}
+		html += '</section></div>';
+		return html;
 	}
 
 	function renderFunnel($root, funnel) {
@@ -1436,6 +1559,7 @@
 
 		$root.on('click', '[data-stage-panel]', function () {
 			var zone = String($(this).data('stage-panel') || 'offline');
+			state.stagePanel = zone;
 			$root.find('[data-stage-panel]').removeClass('is-active');
 			$(this).addClass('is-active');
 			$root.find('#mkAdminKpiOffline, #mkAdminKpiOnline, #mkAdminKpiGd14, #mkAdminKpiPcth, #mkAdminKpiMqbb, #mkAdminKpiCombo, #mkAdminKpiNl').attr('hidden', true);
@@ -1449,6 +1573,7 @@
 				nl: '#mkAdminKpiNl',
 			};
 			$root.find(map[zone] || '#mkAdminKpiOffline').removeAttr('hidden');
+			paintActiveStagePanel($root);
 		});
 		$root.on('click', '[data-stage-period]', function () {
 			state.stagePeriod = String($(this).data('stage-period') || 'month');

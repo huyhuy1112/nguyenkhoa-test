@@ -1153,14 +1153,13 @@ button.mk-admin-kpi-stage-hit.is-open {
 	height: 180px;
 	border-radius: 50%;
 	background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.85), transparent 68%);
-	opacity: 0.9;
-	animation: mkHudPulse 4.8s ease-in-out infinite;
+	opacity: 0.7;
 }
 
 .mk-admin-kpi-hud__grid {
 	position: absolute;
 	inset: 0;
-	opacity: 0.35;
+	opacity: 0.22;
 	background-image:
 		linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
 		linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
@@ -1172,15 +1171,13 @@ button.mk-admin-kpi-stage-hit.is-open {
 	position: absolute;
 	right: 18px;
 	top: 14px;
-	width: 54px;
-	height: 54px;
-	border-radius: 16px;
+	width: 48px;
+	height: 48px;
+	border-radius: 14px;
 	display: grid;
 	place-items: center;
-	background: rgba(255, 255, 255, 0.55);
-	backdrop-filter: blur(8px);
-	box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
-	animation: mkHudFloat 5.5s ease-in-out infinite;
+	background: #fff;
+	box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
 }
 
 .mk-admin-kpi-hud__icon::before {
@@ -1322,27 +1319,24 @@ button.mk-admin-kpi-stage-hit.is-open {
 	flex-direction: column;
 	justify-content: space-between;
 	gap: 10px;
-	min-height: 88px;
+	min-height: 84px;
 	border: 1px solid rgba(148, 163, 184, 0.35);
-	background: rgba(255, 255, 255, 0.82);
-	backdrop-filter: blur(8px);
-	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
-	transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-	animation: mkStatIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-	animation-delay: var(--stagger, 0s);
+	background: #fff;
+	box-shadow: none;
+	transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .mk-admin-kpi-stat-card:hover {
-	transform: translateY(-3px);
-	box-shadow: 0 14px 28px rgba(15, 23, 42, 0.1);
-	border-color: color-mix(in srgb, var(--mk-hud-accent, #2563eb) 45%, #e2e8f0);
+	transform: none;
+	box-shadow: none;
+	background: #f8fafc;
+	border-color: #94a3b8;
 }
 
 button.mk-admin-kpi-stage-hit.mk-admin-kpi-stat-card:hover,
 button.mk-admin-kpi-stage-hit.mk-admin-kpi-stat-card.is-open {
 	border-color: var(--mk-hud-accent, #0f766e);
-	box-shadow: 0 0 0 2px color-mix(in srgb, var(--mk-hud-accent, #0f766e) 22%, transparent),
-		0 14px 28px rgba(15, 23, 42, 0.1);
+	box-shadow: inset 0 0 0 1px var(--mk-hud-accent, #0f766e);
 }
 
 .mk-admin-kpi-stat-top {
@@ -1392,8 +1386,6 @@ button.mk-admin-kpi-stage-hit.mk-admin-kpi-stat-card.is-open {
 	display: grid;
 	place-items: center;
 	flex: 0 0 auto;
-	animation: mkRingSpin 0.7s ease both;
-	animation-delay: var(--stagger, 0s);
 }
 
 .mk-admin-kpi-stat-ring i {
@@ -1404,8 +1396,8 @@ button.mk-admin-kpi-stage-hit.mk-admin-kpi-stat-card.is-open {
 	display: block;
 }
 
-.mk-admin-kpi-board.is-enter .mk-admin-kpi-pie-wrap--anim {
-	animation: mkBoardPop 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+.mk-admin-kpi-offline-grid.is-full {
+	grid-template-columns: 1fr;
 }
 
 .mk-admin-kpi-empty-hud {
@@ -1416,16 +1408,11 @@ button.mk-admin-kpi-stage-hit.mk-admin-kpi-stat-card.is-open {
 	overflow: hidden;
 	border-radius: 14px;
 	border: 1px dashed #cbd5e1;
-	background: rgba(255, 255, 255, 0.55);
+	background: #fff;
 }
 
 .mk-admin-kpi-empty-hud__glow {
-	position: absolute;
-	width: 160px;
-	height: 160px;
-	border-radius: 50%;
-	background: radial-gradient(circle, color-mix(in srgb, var(--mk-hud-accent, #94a3b8) 35%, transparent), transparent 70%);
-	animation: mkHudPulse 3.6s ease-in-out infinite;
+	display: none;
 }
 
 .mk-admin-kpi-empty-hud .mk-admin-kpi-placeholder {
@@ -1434,38 +1421,233 @@ button.mk-admin-kpi-stage-hit.mk-admin-kpi-stat-card.is-open {
 	margin: 0;
 }
 
-.mk-admin-kpi-split-title {
+/* ── Nguyên liệu layout ── */
+.mk-nl-board {
 	display: flex;
-	align-items: center;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.mk-nl-hero {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 140px;
+	gap: 14px;
+	align-items: stretch;
+}
+
+@media (max-width: 900px) {
+	.mk-nl-hero {
+		grid-template-columns: 1fr;
+	}
+}
+
+.mk-nl-kpi {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
 	gap: 8px;
 }
 
-.mk-admin-kpi-split-title::before {
-	content: "";
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	background: var(--mk-hud-accent, #64748b);
-	box-shadow: 0 0 0 4px color-mix(in srgb, var(--mk-hud-accent, #64748b) 18%, transparent);
+@media (max-width: 900px) {
+	.mk-nl-kpi {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
 }
 
-@keyframes mkStatIn {
-	from {
-		opacity: 0;
-		transform: translateY(10px) scale(0.98);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0) scale(1);
+.mk-nl-donut {
+	display: grid;
+	place-items: center;
+	background: #fff;
+	border: 1px solid var(--mk-kpi-line);
+	border-radius: 14px;
+	padding: 8px;
+}
+
+.mk-nl-donut .mk-admin-kpi-pie-wrap,
+.mk-nl-donut .mk-admin-kpi-donut-svg {
+	width: 120px;
+	height: 120px;
+}
+
+.mk-nl-cols {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px;
+	align-items: stretch;
+}
+
+@media (max-width: 960px) {
+	.mk-nl-cols {
+		grid-template-columns: 1fr;
 	}
 }
-@keyframes mkBoardPop {
-	from { opacity: 0; transform: scale(0.94); }
-	to { opacity: 1; transform: scale(1); }
+
+.mk-nl-col {
+	--col: #64748b;
+	background: #fff;
+	border: 1px solid var(--mk-kpi-line);
+	border-radius: 14px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	min-height: 220px;
+	box-shadow: inset 3px 0 0 var(--col);
 }
-@keyframes mkRingSpin {
-	from { filter: saturate(0.4); transform: rotate(-40deg) scale(0.85); opacity: 0; }
-	to { filter: none; transform: rotate(0) scale(1); opacity: 1; }
+
+.mk-nl-col__head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 14px;
+	background: linear-gradient(180deg, #f8fafc, #fff);
+	border-bottom: 1px solid var(--mk-kpi-line);
+}
+
+.mk-nl-col__key {
+	width: 28px;
+	height: 28px;
+	border-radius: 9px;
+	display: grid;
+	place-items: center;
+	font-size: 12px;
+	font-weight: 800;
+	color: #fff;
+	background: var(--col);
+}
+
+.mk-nl-col__head strong {
+	display: block;
+	font-size: 13px;
+	color: #0f172a;
+}
+
+.mk-nl-col__head em {
+	font-style: normal;
+	font-size: 11px;
+	font-weight: 700;
+	color: var(--mk-kpi-muted);
+}
+
+.mk-nl-col__body {
+	padding: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	flex: 1;
+}
+
+.mk-nl-row {
+	display: grid;
+	grid-template-columns: 52px minmax(0, 1fr) auto;
+	gap: 8px;
+	align-items: center;
+	padding: 8px 10px;
+	border-radius: 10px;
+	background: #f8fafc;
+	border: 1px solid transparent;
+}
+
+.mk-nl-row.is-hot {
+	background: #fff;
+	border-color: #e2e8f0;
+}
+
+.mk-nl-row__code {
+	font-size: 11px;
+	font-weight: 800;
+	color: var(--col);
+	font-variant-numeric: tabular-nums;
+}
+
+.mk-nl-row__label {
+	font-size: 12px;
+	color: #334155;
+	line-height: 1.3;
+	min-width: 0;
+}
+
+.mk-nl-row strong {
+	font-size: 18px;
+	font-weight: 800;
+	font-variant-numeric: tabular-nums;
+}
+
+.mk-nl-empty {
+	margin: auto;
+	padding: 18px 8px;
+	text-align: center;
+	color: #94a3b8;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.mk-nl-zero {
+	margin-top: auto;
+	padding: 8px 10px;
+	border-radius: 10px;
+	background: #f1f5f9;
+	color: #64748b;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.35;
+}
+
+.mk-nl-ql {
+	background: #fff;
+	border: 1px solid var(--mk-kpi-line);
+	border-radius: 14px;
+	padding: 12px 14px 14px;
+}
+
+.mk-nl-ql__title {
+	margin: 0 0 10px;
+	font-size: 13px;
+	font-weight: 800;
+	color: #0f172a;
+}
+
+.mk-nl-ql__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 6px;
+}
+
+.mk-nl-ql__item {
+	display: flex;
+	justify-content: space-between;
+	gap: 10px;
+	align-items: center;
+	padding: 8px 10px;
+	border-radius: 10px;
+	background: #f8fafc;
+	font-size: 12px;
+	color: #475569;
+}
+
+.mk-nl-ql__item.is-hot {
+	background: #fff7ed;
+	border: 1px solid #fed7aa;
+	color: #9a3412;
+}
+
+.mk-nl-ql__item strong {
+	font-size: 16px;
+	font-weight: 800;
+}
+
+.mk-nl-ql__cold {
+	margin: 10px 0 0;
+	font-size: 11px;
+	color: #94a3b8;
+	line-height: 1.4;
+}
+
+@keyframes mkHudPulse {
+	0%, 100% { transform: scale(1); opacity: 0.85; }
+	50% { transform: scale(1.08); opacity: 1; }
+}
+@keyframes mkHudFloat {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(-6px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
