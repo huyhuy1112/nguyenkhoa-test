@@ -279,6 +279,7 @@ class Leads_SalesVerifyService {
 			'sai_thong_tin' => 'gd14_sai_thong_tin',
 			'dang_can_nhac' => 'gd14_dang_can_nhac',
 			'chon_khoa' => 'gd14_cho_thanh_toan',
+			'theo_doi_thanh_toan' => 'gd14_cho_thanh_toan',
 			'khong_chon' => 'gd14_ngung_cham_soc',
 			'tu_choi' => 'gd14_ngung_cham_soc',
 		);
@@ -326,6 +327,9 @@ class Leads_SalesVerifyService {
 		if (!empty($extra['gd14_drop'])) {
 			throw new Exception('Hồ sơ đã ngưng chăm sóc tại ' . $extra['gd14_drop'] . '.');
 		}
+		$prevOutcome = strtolower(trim((string) (isset($extra['gd14_outcome']) ? $extra['gd14_outcome'] : '')));
+		$wasWaiting = ($prevOutcome === 'chon_khoa' || $prevOutcome === 'theo_doi_thanh_toan'
+			|| !empty($extra['gd14_waiting_at']));
 		$extra['gd14_outcome'] = $outcome;
 		if ($course !== '') {
 			$extra['gd14_course'] = $course;
@@ -334,7 +338,17 @@ class Leads_SalesVerifyService {
 		if ($outcome === 'chon_khoa' && empty($extra['gd14_waiting_at'])) {
 			$extra['gd14_waiting_at'] = date('Y-m-d H:i:s');
 		}
-		$drop = self::bumpGd14Drop($extra, $outcome);
+		if ($outcome === 'theo_doi_thanh_toan' && empty($extra['gd14_waiting_at']) && empty($extra['gd14_course'])) {
+			throw new Exception('Chỉ theo dõi thanh toán khi khách đã chọn khoá.');
+		}
+		if ($outcome === 'hen_goi_lai') {
+			$cb = self::parseGd14CallbackAt($payload);
+			if ($cb === '') {
+				throw new Exception('Hẹn gọi lại cần thống nhất giờ gọi cụ thể.');
+			}
+			$extra['gd14_callback_at'] = $cb;
+		}
+		$drop = self::bumpGd14Drop($extra, $outcome, $wasWaiting);
 		$tag = !empty($drop['stopped']) ? 'gd14_ngung_cham_soc' : $outcomeTags[$outcome];
 		if ($tag === 'gd14_ngung_cham_soc' && empty($extra['gd14_drop'])) {
 			$extra['gd14_drop'] = 'Ngưng';
@@ -342,8 +356,22 @@ class Leads_SalesVerifyService {
 			$drop['reason'] = $extra['gd14_drop_reason'];
 			$drop['stopped'] = true;
 		}
+		$nextMeta = self::scheduleGd14NextAction($extra, $outcome, $payload, $drop);
 		self::storeGd14Extra($adb, $leadId, $extra);
 		self::replaceGd14Tag($leadId, $tag, $userId);
+		if (!empty($nextMeta['text'])) {
+			try {
+				Leads_ModernService::updateNextAction($leadId, $nextMeta['text']);
+			} catch (Exception $e) {
+				// ignore
+			}
+		} elseif (!empty($drop['stopped'])) {
+			try {
+				Leads_ModernService::updateNextAction($leadId, 'Ngưng chăm sóc 990k');
+			} catch (Exception $e) {
+				// ignore
+			}
+		}
 		$labels = self::gd14TagCatalog();
 		try {
 			require_once 'modules/Vtiger/models/CareActivityService.php';
@@ -352,7 +380,7 @@ class Leads_SalesVerifyService {
 				$leadId,
 				'990k',
 				isset($labels[$tag]) ? $labels[$tag] : $tag,
-				'',
+				!empty($nextMeta['text']) ? $nextMeta['text'] : '',
 				$userId
 			);
 		} catch (Exception $e) {
@@ -363,6 +391,9 @@ class Leads_SalesVerifyService {
 		if (!empty($drop['code'])) {
 			$message .= ' · ' . $drop['code'] . ' ' . (int) $drop['count'] . '/3';
 		}
+		if (!empty($nextMeta['due_at'])) {
+			$message .= ' · Tiếp theo ' . date('d/m H:i', strtotime($nextMeta['due_at']));
+		}
 		if (!empty($drop['stopped'])) {
 			$message .= ' · Ngưng chăm sóc: ' . $drop['reason'];
 		}
@@ -370,6 +401,8 @@ class Leads_SalesVerifyService {
 			'success' => true,
 			'lead' => $lead,
 			'tag' => $tag,
+			'next_action' => isset($nextMeta['text']) ? $nextMeta['text'] : '',
+			'next_due_at' => isset($nextMeta['due_at']) ? $nextMeta['due_at'] : '',
 			'message' => $message,
 		);
 	}
@@ -409,6 +442,14 @@ class Leads_SalesVerifyService {
 		$paidAt = date('Y-m-d H:i:s');
 		$extra['gd14_course'] = $course;
 		$extra['gd14_paid_at'] = $paidAt;
+		$quoted = isset($extra['gd14_quoted_price']) ? (int) $extra['gd14_quoted_price'] : 0;
+		if ($course === 'lop_990k') {
+			if ($quoted !== 590000) {
+				$quoted = 990000;
+			}
+			$extra['gd14_quoted_price'] = $quoted;
+			$extra['gd14_applied_price'] = $quoted;
+		}
 		$giftWindow = '';
 		$retentionUntil = '';
 		if ($course === 'lop_990k') {
@@ -417,7 +458,13 @@ class Leads_SalesVerifyService {
 			}
 			$waitingTs = strtotime((string) $extra['gd14_waiting_at']);
 			$paidTs = strtotime($paidAt);
+			// Sau hạn quà (= lần 3 / +3 ngày) → giá 590k theo quy trình mới.
 			$giftWindow = ($waitingTs && $paidTs && $paidTs <= ($waitingTs + 3 * 86400)) ? 'trong_han' : 'sau_han';
+			if ($giftWindow === 'sau_han') {
+				$extra['gd14_quoted_price'] = 590000;
+				$extra['gd14_applied_price'] = 590000;
+				$quoted = 590000;
+			}
 			$extra['gd14_gift_window'] = $giftWindow;
 			$retentionUntil = date('Y-m-d H:i:s', strtotime('+1 year', $paidTs ? $paidTs : time()));
 			$extra['gd14_retention_until'] = $retentionUntil;
@@ -563,23 +610,126 @@ class Leads_SalesVerifyService {
 	}
 
 	/**
-	 * R1 liên hệ không thành, R2 đã chọn khoá chưa thanh toán, R3 đã tư vấn chưa chọn khoá. Đủ 3 lần thì ngưng.
+	 * R1: đếm riêng từng tag ②/③/④ (tối đa 3 mỗi tag).
+	 * R2: lần 1 khi chọn khoá; lần 2–3 khi theo dõi thanh toán.
+	 * R3: theo dõi cân nhắc; quay lại từ chờ TT không cộng thêm.
+	 * Đủ 3 lần thì ngưng.
 	 */
-	protected static function bumpGd14Drop(array &$extra, $outcome) {
-		$map = array(
-			'hen_goi_lai' => array('field' => 'gd14_r1', 'code' => 'R1', 'reason' => 'Liên hệ không thành quá 3 lần'),
-			'khong_nghe_may' => array('field' => 'gd14_r1', 'code' => 'R1', 'reason' => 'Liên hệ không thành quá 3 lần'),
-			'sai_thong_tin' => array('field' => 'gd14_r1', 'code' => 'R1', 'reason' => 'Liên hệ không thành quá 3 lần'),
-			'chon_khoa' => array('field' => 'gd14_r2', 'code' => 'R2', 'reason' => 'Không thanh toán'),
-			'dang_can_nhac' => array('field' => 'gd14_r3', 'code' => 'R3', 'reason' => 'Đã tư vấn nhưng không chọn khoá quá 3 lần'),
-		);
-		if (!isset($map[$outcome])) {
-			return array('stopped' => false, 'code' => '', 'reason' => '', 'count' => 0);
+	protected static function bumpGd14Drop(array &$extra, $outcome, $wasWaiting = false) {
+		self::normalizeGd14R1Counters($extra);
+		if ($outcome === 'chon_khoa') {
+			$count = isset($extra['gd14_r2']) ? (int) $extra['gd14_r2'] : 0;
+			if ($count <= 0) {
+				$extra['gd14_r2'] = 1;
+				$extra['gd14_r2_anchor'] = date('Y-m-d H:i:s');
+				self::ensureGd14QuotedPrice($extra, 990000);
+				return array(
+					'stopped' => false,
+					'code' => 'R2',
+					'reason' => '',
+					'count' => 1,
+					'attempt' => 1,
+				);
+			}
+			return array('stopped' => false, 'code' => 'R2', 'reason' => '', 'count' => $count, 'attempt' => $count);
 		}
-		$spec = $map[$outcome];
+		if ($outcome === 'theo_doi_thanh_toan') {
+			$count = isset($extra['gd14_r2']) ? (int) $extra['gd14_r2'] : 0;
+			if ($count < 1) {
+				throw new Exception('Chọn khoá trước khi theo dõi thanh toán (R2 lần 1).');
+			}
+			$count = min(3, $count + 1);
+			$extra['gd14_r2'] = $count;
+			if ($count >= 3) {
+				self::ensureGd14QuotedPrice($extra, 590000, true);
+				$extra['gd14_drop'] = 'R2';
+				$extra['gd14_drop_reason'] = 'Không thanh toán';
+				$extra['gd14_outcome'] = 'ngung';
+				return array(
+					'stopped' => true,
+					'code' => 'R2',
+					'reason' => 'Không thanh toán',
+					'count' => $count,
+					'attempt' => $count,
+				);
+			}
+			return array(
+				'stopped' => false,
+				'code' => 'R2',
+				'reason' => '',
+				'count' => $count,
+				'attempt' => $count,
+			);
+		}
+		if ($outcome === 'dang_can_nhac') {
+			// Quay lại từ Bước 2: giữ nguyên số lần theo dõi tư vấn.
+			if ($wasWaiting) {
+				$count = isset($extra['gd14_r3']) ? (int) $extra['gd14_r3'] : 0;
+				return array(
+					'stopped' => false,
+					'code' => 'R3',
+					'reason' => '',
+					'count' => $count,
+					'attempt' => $count,
+					'kept' => true,
+				);
+			}
+			$count = isset($extra['gd14_r3']) ? (int) $extra['gd14_r3'] : 0;
+			if ($count < 1) {
+				$extra['gd14_r3_anchor'] = date('Y-m-d H:i:s');
+				self::ensureGd14QuotedPrice($extra, 990000);
+			}
+			$count = min(3, $count + 1);
+			$extra['gd14_r3'] = $count;
+			if ($count >= 3) {
+				self::ensureGd14QuotedPrice($extra, 590000, true);
+				$extra['gd14_drop'] = 'R3';
+				$extra['gd14_drop_reason'] = 'Hết lượt theo dõi';
+				$extra['gd14_outcome'] = 'ngung';
+				return array(
+					'stopped' => true,
+					'code' => 'R3',
+					'reason' => 'Hết lượt theo dõi',
+					'count' => $count,
+					'attempt' => $count,
+				);
+			}
+			return array(
+				'stopped' => false,
+				'code' => 'R3',
+				'reason' => '',
+				'count' => $count,
+				'attempt' => $count,
+			);
+		}
+		$r1Map = array(
+			'hen_goi_lai' => array(
+				'field' => 'gd14_r1_hen_goi',
+				'code' => 'R1',
+				'reason' => 'Không liên hệ được',
+				'label' => 'Hẹn gọi lại',
+			),
+			'khong_nghe_may' => array(
+				'field' => 'gd14_r1_khong_nghe',
+				'code' => 'R1',
+				'reason' => 'Không liên hệ được',
+				'label' => 'Không nghe máy',
+			),
+			'sai_thong_tin' => array(
+				'field' => 'gd14_r1_sai_tt',
+				'code' => 'R1',
+				'reason' => 'Không liên hệ được',
+				'label' => 'Sai thông tin',
+			),
+		);
+		if (!isset($r1Map[$outcome])) {
+			return array('stopped' => false, 'code' => '', 'reason' => '', 'count' => 0, 'attempt' => 0);
+		}
+		$spec = $r1Map[$outcome];
 		$count = isset($extra[$spec['field']]) ? (int) $extra[$spec['field']] : 0;
 		$count = min(3, $count + 1);
 		$extra[$spec['field']] = $count;
+		$extra['gd14_r1'] = self::sumGd14R1($extra);
 		$stopped = $count >= 3;
 		if ($stopped) {
 			$extra['gd14_drop'] = $spec['code'];
@@ -591,7 +741,144 @@ class Leads_SalesVerifyService {
 			'code' => $spec['code'],
 			'reason' => $spec['reason'],
 			'count' => $count,
+			'attempt' => $count,
+			'r1_label' => $spec['label'],
 		);
+	}
+
+	protected static function normalizeGd14R1Counters(array &$extra) {
+		$h = isset($extra['gd14_r1_hen_goi']) ? (int) $extra['gd14_r1_hen_goi'] : 0;
+		$k = isset($extra['gd14_r1_khong_nghe']) ? (int) $extra['gd14_r1_khong_nghe'] : 0;
+		$s = isset($extra['gd14_r1_sai_tt']) ? (int) $extra['gd14_r1_sai_tt'] : 0;
+		$legacy = isset($extra['gd14_r1']) ? (int) $extra['gd14_r1'] : 0;
+		if ($h + $k + $s === 0 && $legacy > 0) {
+			// Hồ sơ cũ chỉ có tổng R1 — giữ tổng, không gán nhầm vào một tag.
+			$extra['gd14_r1'] = min(9, $legacy);
+			return;
+		}
+		$extra['gd14_r1_hen_goi'] = max(0, min(3, $h));
+		$extra['gd14_r1_khong_nghe'] = max(0, min(3, $k));
+		$extra['gd14_r1_sai_tt'] = max(0, min(3, $s));
+		$extra['gd14_r1'] = self::sumGd14R1($extra);
+	}
+
+	protected static function sumGd14R1(array $extra) {
+		return max(0, min(9,
+			(isset($extra['gd14_r1_hen_goi']) ? (int) $extra['gd14_r1_hen_goi'] : 0)
+			+ (isset($extra['gd14_r1_khong_nghe']) ? (int) $extra['gd14_r1_khong_nghe'] : 0)
+			+ (isset($extra['gd14_r1_sai_tt']) ? (int) $extra['gd14_r1_sai_tt'] : 0)
+		));
+	}
+
+	protected static function ensureGd14QuotedPrice(array &$extra, $price, $force = false) {
+		$cur = isset($extra['gd14_quoted_price']) ? (int) $extra['gd14_quoted_price'] : 0;
+		if (!$force && $cur === 590000) {
+			return;
+		}
+		if ($force || $cur <= 0) {
+			$extra['gd14_quoted_price'] = (int) $price;
+		}
+	}
+
+	protected static function parseGd14CallbackAt(array $payload) {
+		foreach (array('callback_at', 'due_at', 'follow_up_at') as $key) {
+			if (empty($payload[$key])) {
+				continue;
+			}
+			$raw = trim((string) $payload[$key]);
+			$ts = strtotime($raw);
+			if (!$ts) {
+				continue;
+			}
+			require_once 'modules/Vtiger/models/R1ReminderSettings.php';
+			return Vtiger_R1ReminderSettings::snapToBusinessHours(date('Y-m-d H:i:s', $ts));
+		}
+		return '';
+	}
+
+	/**
+	 * Ghi nhiệm vụ tiếp theo + mốc giờ theo lịch Bước 1 / Bước 2 (GD14 mới).
+	 */
+	protected static function scheduleGd14NextAction(array &$extra, $outcome, array $payload, array $drop) {
+		if (!empty($drop['stopped'])) {
+			$extra['gd14_next_due'] = '';
+			$extra['gd14_next_label'] = 'Ngưng chăm sóc';
+			return array('text' => 'Ngưng chăm sóc 990k', 'due_at' => '');
+		}
+		require_once 'modules/Vtiger/models/R1ReminderSettings.php';
+		$due = '';
+		$text = '';
+		$attempt = isset($drop['attempt']) ? (int) $drop['attempt'] : 0;
+		if ($outcome === 'hen_goi_lai') {
+			$due = !empty($extra['gd14_callback_at'])
+				? (string) $extra['gd14_callback_at']
+				: self::parseGd14CallbackAt($payload);
+			$text = 'Gọi lại theo hẹn (R1 · Hẹn gọi lại ' . $attempt . '/3)';
+		} elseif ($outcome === 'khong_nghe_may') {
+			$due = Vtiger_R1ReminderSettings::addGapWithinBusinessHours(date('Y-m-d H:i:s'), 3);
+			$text = 'Gọi lại sau 3 giờ — không nghe máy (R1 ' . $attempt . '/3)';
+		} elseif ($outcome === 'sai_thong_tin') {
+			$due = Vtiger_R1ReminderSettings::addGapWithinBusinessHours(date('Y-m-d H:i:s'), 24);
+			$text = 'Xin lại số đúng / nguồn (R1 · Sai thông tin ' . $attempt . '/3)';
+		} elseif ($outcome === 'dang_can_nhac') {
+			$anchor = !empty($extra['gd14_r3_anchor'])
+				? strtotime((string) $extra['gd14_r3_anchor'])
+				: time();
+			if (!$anchor) {
+				$anchor = time();
+			}
+			if (!empty($drop['kept'])) {
+				$text = 'Theo dõi cân nhắc lại (R3 giữ ' . max(0, $attempt) . '/3)';
+				if ($attempt >= 2) {
+					$due = Vtiger_R1ReminderSettings::snapToBusinessHours(date('Y-m-d H:i:s', $anchor + 3 * 86400));
+				} elseif ($attempt === 1) {
+					$due = Vtiger_R1ReminderSettings::snapToBusinessHours(date('Y-m-d H:i:s', $anchor + 86400));
+				} else {
+					$due = date('Y-m-d H:i:s', time() + 5 * 60);
+				}
+			} elseif ($attempt <= 1) {
+				// Lần 1: tin tóm tắt trong 5 phút; nhiệm vụ tiếp = lần 2 sau 1 ngày.
+				$due = Vtiger_R1ReminderSettings::snapToBusinessHours(date('Y-m-d H:i:s', $anchor + 86400));
+				$text = 'Theo dõi cân nhắc — R3 lần 2/3 (sau tin tóm tắt trong 5 phút)';
+			} elseif ($attempt === 2) {
+				$due = Vtiger_R1ReminderSettings::snapToBusinessHours(date('Y-m-d H:i:s', $anchor + 3 * 86400));
+				$text = 'Kích chốt · báo giá 590k — R3 lần 3/3';
+			} else {
+				$text = 'Hết lượt theo dõi R3';
+			}
+		} elseif ($outcome === 'chon_khoa' || $outcome === 'theo_doi_thanh_toan') {
+			$anchor = !empty($extra['gd14_r2_anchor'])
+				? strtotime((string) $extra['gd14_r2_anchor'])
+				: (!empty($extra['gd14_waiting_at']) ? strtotime((string) $extra['gd14_waiting_at']) : time());
+			if (!$anchor) {
+				$anchor = time();
+			}
+			$count = isset($extra['gd14_r2']) ? (int) $extra['gd14_r2'] : $attempt;
+			$price = isset($extra['gd14_quoted_price']) ? (int) $extra['gd14_quoted_price'] : 990000;
+			if ($count <= 1) {
+				// Lần 1: kiểm tra sau 10 phút; nhiệm vụ tiếp = lần 2 sau 1 ngày từ lần 1.
+				$due = Vtiger_R1ReminderSettings::snapToBusinessHours(date('Y-m-d H:i:s', $anchor + 86400));
+				$text = 'Theo dõi thanh toán — R2 lần 2/3 (sau kiểm tra 10 phút)';
+				if ($price === 590000) {
+					$text .= ' · giá 590k';
+				}
+			} elseif ($count === 2) {
+				$due = Vtiger_R1ReminderSettings::snapToBusinessHours(date('Y-m-d H:i:s', $anchor + 3 * 86400));
+				$text = 'Kích thanh toán · báo giá 590k — R2 lần 3/3';
+			} else {
+				$text = 'Hết lượt theo dõi thanh toán R2';
+			}
+		} elseif ($outcome === 'tu_choi' || $outcome === 'khong_chon') {
+			$text = 'Ngưng chăm sóc 990k';
+			$due = '';
+		}
+		if ($due !== '') {
+			$fmt = date('d/m/Y H:i', strtotime($due));
+			$text .= ' · đến ' . $fmt;
+		}
+		$extra['gd14_next_due'] = $due;
+		$extra['gd14_next_label'] = $text;
+		return array('text' => $text, 'due_at' => $due);
 	}
 
 	protected static function loadGd14Extra($adb, $leadId) {
@@ -1676,6 +1963,9 @@ class Leads_SalesVerifyService {
 			'preclass' => !empty($extra['gd14_preclass_confirm']) ? 1 : 0,
 			'checked_in_at' => isset($extra['gd14_checked_in_at']) ? (string) $extra['gd14_checked_in_at'] : '',
 			'r1' => isset($extra['gd14_r1']) ? (int) $extra['gd14_r1'] : 0,
+			'r1_hen_goi' => isset($extra['gd14_r1_hen_goi']) ? (int) $extra['gd14_r1_hen_goi'] : 0,
+			'r1_khong_nghe' => isset($extra['gd14_r1_khong_nghe']) ? (int) $extra['gd14_r1_khong_nghe'] : 0,
+			'r1_sai_tt' => isset($extra['gd14_r1_sai_tt']) ? (int) $extra['gd14_r1_sai_tt'] : 0,
 			'r2' => isset($extra['gd14_r2']) ? (int) $extra['gd14_r2'] : 0,
 			'r3' => isset($extra['gd14_r3']) ? (int) $extra['gd14_r3'] : 0,
 			'r4' => isset($extra['gd14_r4']) ? (int) $extra['gd14_r4'] : 0,
@@ -1683,6 +1973,10 @@ class Leads_SalesVerifyService {
 			'drop_reason' => isset($extra['gd14_drop_reason']) ? (string) $extra['gd14_drop_reason'] : '',
 			'course' => isset($extra['gd14_course']) ? (string) $extra['gd14_course'] : '',
 			'outcome' => isset($extra['gd14_outcome']) ? (string) $extra['gd14_outcome'] : '',
+			'next_due' => isset($extra['gd14_next_due']) ? (string) $extra['gd14_next_due'] : '',
+			'next_label' => isset($extra['gd14_next_label']) ? (string) $extra['gd14_next_label'] : '',
+			'quoted_price' => isset($extra['gd14_quoted_price']) ? (int) $extra['gd14_quoted_price'] : 0,
+			'callback_at' => isset($extra['gd14_callback_at']) ? (string) $extra['gd14_callback_at'] : '',
 		);
 	}
 

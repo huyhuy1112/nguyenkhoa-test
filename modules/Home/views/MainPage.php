@@ -455,16 +455,6 @@ class Home_MainPage_View extends Vtiger_Index_View {
 	protected function buildMainPageShortcuts(array $links, $taskCount, $loggedTimeDisplay) {
 		$shortcuts = array();
 
-		if (Users_Privileges_Model::isPermitted('ProjectTask', 'DetailView')) {
-			$shortcuts[] = array(
-				'type' => 'link',
-				'icon' => 'tasks',
-				'label' => vtranslate('LBL_MK_SHORTCUT_MY_TASKS', 'Home'),
-				'url' => $links['projecttask_list'],
-				'badge' => (int) $taskCount,
-			);
-		}
-
 		if (Users_Privileges_Model::isPermitted('Calendar', 'DetailView')) {
 			$shortcuts[] = array(
 				'type' => 'link',
@@ -491,26 +481,20 @@ class Home_MainPage_View extends Vtiger_Index_View {
 		$viewer = $this->getViewer($request);
 		$currentUser = Users_Record_Model::getCurrentUserModel();
 
-		// Real data: projects and tasks (assigned to me only), agenda (my schedule)
-		$mainPageProjects = $this->getMainPageList('Project', 8);
-		$mainPageTasks = $this->getMainPageList('ProjectTask', 8);
-		$projectTaskCount = $this->getProjectTaskCount();
 		$mainPageAgenda = $this->getAgendaToday(10);
 		$mainPageAgendaUpcoming = $this->getAgendaUpcoming(10);
 
 		// Links for shortcuts (with app=MANAGEMENT)
 		$app = 'MANAGEMENT';
 		$mainPageLinks = array(
-			'projecttask_list' => 'index.php?module=ProjectTask&view=List&app=' . $app,
-			'project_list' => 'index.php?module=Project&view=List&app=' . $app,
 			'calendar' => 'index.php?module=Calendar&view=Calendar&app=' . $app,
 			'home' => 'index.php?module=Home&view=DashBoard&app=' . $app,
 		);
 
 		$viewer->assign('CURRENT_USER', $currentUser);
-		$viewer->assign('MAINPAGE_PROJECTS', $mainPageProjects);
-		$viewer->assign('MAINPAGE_TASKS', $mainPageTasks);
-		$viewer->assign('MAINPAGE_TASK_COUNT', $projectTaskCount);
+		$viewer->assign('MAINPAGE_PROJECTS', array());
+		$viewer->assign('MAINPAGE_TASKS', array());
+		$viewer->assign('MAINPAGE_TASK_COUNT', 0);
 		$viewer->assign('MAINPAGE_AGENDA', $mainPageAgenda);
 		$viewer->assign('MAINPAGE_AGENDA_UPCOMING', $mainPageAgendaUpcoming);
 		$viewer->assign('MAINPAGE_LINKS', $mainPageLinks);
@@ -553,8 +537,8 @@ class Home_MainPage_View extends Vtiger_Index_View {
 		$viewer->assign('MAINPAGE_WEEK', $this->buildWeekStrip($mainPageAgenda, $mainPageAgendaUpcoming));
 		$viewer->assign('MAINPAGE_KPI', array(
 			'announcements' => count($mainPageAnnouncements),
-			'projects' => count($mainPageProjects),
-			'tasks' => (int) $projectTaskCount,
+			'projects' => 0,
+			'tasks' => 0,
 			'agenda' => count($mainPageAgenda) + count($mainPageAgendaUpcoming),
 		));
 
@@ -570,10 +554,10 @@ class Home_MainPage_View extends Vtiger_Index_View {
 		$viewer->assign('MAINPAGE_LOGGED_TIME_DISPLAY', $loggedTimeDisplay);
 		$viewer->assign('MAINPAGE_LOGGED_TIME_SECONDS', $loggedTimeSeconds);
 
-		// Shortcuts: chỉ module user có quyền; bỏ Stickies/Bookmarks (không có module)
-		$viewer->assign('MAINPAGE_SHORTCUTS', $this->buildMainPageShortcuts($mainPageLinks, $projectTaskCount, $loggedTimeDisplay));
+		// Shortcuts: chỉ module user có quyền; bỏ Stickies/Bookmarks / nhiệm vụ dự án
+		$viewer->assign('MAINPAGE_SHORTCUTS', $this->buildMainPageShortcuts($mainPageLinks, 0, $loggedTimeDisplay));
 
-		// Heartbeat: cập nhật login_time của phiên hiện tại để Team Status (30 phút) coi user đang có hoạt động
+		// Heartbeat: cập nhật login_time của phiên hiện tại để Team Status coi user đang có hoạt động
 		if (class_exists('LoginHeartbeat')) {
 			LoginHeartbeat::update($currentUser->get('user_name'));
 		}
@@ -582,7 +566,7 @@ class Home_MainPage_View extends Vtiger_Index_View {
 		$mainPageLoginHistory = self::getLoginHistoryForUser($currentUser->get('user_name'), 15);
 		$viewer->assign('MAINPAGE_LOGIN_HISTORY', $mainPageLoginHistory);
 
-		// Team Status: chỉ CEO/Admin xem danh sách thành viên (online/offline/ngày nghỉ) + bộ lọc
+		// Team Status: chỉ CEO/Admin xem danh sách thành viên (online/offline) + bộ lọc
 		$canSeeTeamStatus = self::isUserCEOOrAdmin($currentUser);
 		$mainPageTeamStatus = array();
 		$teamFilterOptions = array('users' => array(), 'departments' => array());
@@ -590,7 +574,6 @@ class Home_MainPage_View extends Vtiger_Index_View {
 			// Luôn lấy danh sách TẤT CẢ user (không lọc theo người phụ trách/phòng ban) để cả 2 acc đều thấy nhau online
 			$filterDate = $request->get('team_filter_date');
 			$mainPageTeamStatus = self::getTeamStatusForCEO('', '', $filterDate);
-			// Giữ lại giá trị filter cho form (hiển thị đúng dropdown, nhưng danh sách đã là tất cả)
 			$filterUser = isset($_REQUEST['team_filter_user']) ? trim((string) $_REQUEST['team_filter_user']) : '';
 			$filterDept = isset($_REQUEST['team_filter_department']) ? trim((string) $_REQUEST['team_filter_department']) : '';
 			if ($filterUser === '' || $filterUser === '0') $filterUser = '';
@@ -598,22 +581,21 @@ class Home_MainPage_View extends Vtiger_Index_View {
 			// User đang đăng nhập (có session) luôn hiển thị Online trong Team Status
 			$currentUserId = $currentUser->getId();
 			foreach ($mainPageTeamStatus as &$m) {
-				if (isset($m['id']) && (int)$m['id'] === (int)$currentUserId && (!isset($m['status']) || $m['status'] !== 'leave')) {
+				if (isset($m['id']) && (int)$m['id'] === (int)$currentUserId) {
 					$m['status'] = 'online';
 					$m['status_label'] = 'Online';
+					$m['last_seen_ago'] = '';
 				}
 			}
 			unset($m);
 			$teamFilterOptions = self::getTeamStatusFilterOptions();
-			$mainPageTeamStatusLeaveOnly = array_filter($mainPageTeamStatus, function ($m) { return isset($m['status']) && $m['status'] === 'leave'; });
 			$teamFilterDateDisplay = !empty($filterDate) ? date('d/m/Y', strtotime($filterDate)) : date('d/m/Y');
 		} else {
-			$mainPageTeamStatusLeaveOnly = array();
 			$teamFilterDateDisplay = date('d/m/Y');
 		}
 		$viewer->assign('MAINPAGE_CAN_SEE_TEAM_STATUS', $canSeeTeamStatus);
 		$viewer->assign('MAINPAGE_TEAM_STATUS', $mainPageTeamStatus);
-		$viewer->assign('MAINPAGE_TEAM_STATUS_LEAVE_ONLY', $mainPageTeamStatusLeaveOnly);
+		$viewer->assign('MAINPAGE_TEAM_STATUS_LEAVE_ONLY', array());
 		$viewer->assign('MAINPAGE_TEAM_FILTER_DATE_DISPLAY', $teamFilterDateDisplay);
 		$viewer->assign('MAINPAGE_TEAM_FILTER_USER', $request->get('team_filter_user'));
 		$viewer->assign('MAINPAGE_TEAM_FILTER_DEPARTMENT', $request->get('team_filter_department'));
@@ -695,15 +677,14 @@ class Home_MainPage_View extends Vtiger_Index_View {
 	}
 
 	/**
-	 * Lấy danh sách thành viên với trạng thái: online, offline, ngày nghỉ.
-	 * Chỉ gọi khi user là CEO/Admin.
+	 * Lấy danh sách thành viên với trạng thái online / offline (+ thời gian offline).
+	 * Chỉ gọi khi user là CEO/Admin. Không dùng ngày nghỉ phép.
 	 * @param string|int $filterUser Người phụ trách (reports_to_id) - chỉ lấy user thuộc quyền người này; rỗng = tất cả
 	 * @param string $filterDept Phòng ban; rỗng = tất cả
-	 * @param string $filterDate Ngày xem trạng thái (Y-m-d); rỗng = hôm nay
+	 * @param string $filterDate Ngày (giữ tham số tương thích; không còn dùng cho nghỉ phép)
 	 */
 	protected static function getTeamStatusForCEO($filterUser = '', $filterDept = '', $filterDate = '') {
 		$list = array();
-		$today = !empty($filterDate) ? date('Y-m-d', strtotime($filterDate)) : date('Y-m-d');
 		try {
 			$db = PearDatabase::getInstance();
 			$params = array();
@@ -723,7 +704,6 @@ class Home_MainPage_View extends Vtiger_Index_View {
 			if (!$resUsers) {
 				return $list;
 			}
-			$userNames = array();
 			while ($row = $db->fetchByAssoc($resUsers)) {
 				$id = (int) $row['id'];
 				$name = trim($row['first_name'] . ' ' . $row['last_name']);
@@ -741,17 +721,15 @@ class Home_MainPage_View extends Vtiger_Index_View {
 					'user_name' => $row['user_name'],
 					'status' => 'offline',
 					'status_label' => 'Offline',
+					'last_seen_ago' => '',
 					'leave_note' => '',
 				);
-				$userNames[$row['user_name']] = $id;
 			}
 			if (empty($list)) {
 				return $list;
 			}
 
-			// Online/Offline: dùng chung logic với Teams (bảng vtiger_user_activity, trường last_seen).
-			// - Current user: luôn Online nếu không Inactive.
-			// - Các user khác: Online nếu last_seen trong vòng 2 phút (120 giây), còn lại = Offline.
+			// Online nếu last_seen trong 2 phút; Offline kèm "X phút trước".
 			$userIds = array_keys($list);
 			if (!empty($userIds) && Vtiger_Utils::CheckTable('vtiger_user_activity')) {
 				$placeholders = generateQuestionMarks($userIds);
@@ -770,8 +748,8 @@ class Home_MainPage_View extends Vtiger_Index_View {
 					$isInactive = ($row['user_status'] === 'Inactive');
 					$lastSeen = $row['last_seen'];
 					$isOnline = false;
+					$ago = '';
 					if ($uid === (int)$currentUserId && !$isInactive) {
-						// User hiện tại luôn Online (giống Teams)
 						$isOnline = true;
 					} elseif (!$isInactive && !empty($lastSeen)) {
 						$ts = strtotime($lastSeen);
@@ -779,52 +757,52 @@ class Home_MainPage_View extends Vtiger_Index_View {
 							$diff = $now - $ts;
 							if ($diff >= 0 && $diff <= 120) {
 								$isOnline = true;
+							} elseif ($diff > 120) {
+								$ago = self::formatLastSeenAgo($diff);
 							}
 						}
 					}
 					if ($isOnline) {
 						$list[$uid]['status'] = 'online';
 						$list[$uid]['status_label'] = 'Online';
+						$list[$uid]['last_seen_ago'] = '';
 					} else {
 						$list[$uid]['status'] = 'offline';
-						$list[$uid]['status_label'] = 'Offline';
+						$list[$uid]['last_seen_ago'] = $ago;
+						$list[$uid]['status_label'] = $ago !== '' ? ('Offline · ' . $ago) : 'Offline';
 					}
 				}
 			}
-
-			// Ngày nghỉ phép: vtiger_leaverequest approved, hôm nay nằm trong [date_start, due_date]
-			if (Vtiger_Utils::CheckTable('vtiger_leaverequest')) {
-				$sqlLeave = "SELECT created_user_id, subject, leave_type FROM vtiger_leaverequest
-					WHERE approval_status = 'approved'
-					AND created_user_id > 0
-					AND date_start <= ? AND (due_date >= ? OR (due_date IS NULL AND date_start = ?))";
-				$resLeave = $db->pquery($sqlLeave, array($today, $today, $today));
-				if ($resLeave) {
-				while ($row = $db->fetchByAssoc($resLeave)) {
-					$uid = (int) $row['created_user_id'];
-					if (isset($list[$uid])) {
-						$list[$uid]['status'] = 'leave';
-						$list[$uid]['status_label'] = 'Ngày nghỉ';
-						$note = decode_html($row['subject']);
-						if (empty($note)) {
-							$note = $row['leave_type'] === 'unpaid' ? 'Nghỉ không lương' : 'Nghỉ phép';
-						}
-						$list[$uid]['leave_note'] = $note;
-					}
-				}
-				}
-			}
-			// Sắp xếp: Ngày nghỉ → Online → Offline (người nghỉ phép hiển thị trước)
-			$order = array('leave' => 0, 'online' => 1, 'offline' => 2);
+			$order = array('online' => 0, 'offline' => 1);
 			usort($list, function ($a, $b) use ($order) {
 				$oa = isset($order[$a['status']]) ? $order[$a['status']] : 2;
 				$ob = isset($order[$b['status']]) ? $order[$b['status']] : 2;
-				return $oa - $ob;
+				if ($oa !== $ob) {
+					return $oa - $ob;
+				}
+				return strcasecmp($a['name'], $b['name']);
 			});
 		} catch (Exception $e) {
 			// ignore
 		}
 		return array_values($list);
+	}
+
+	/**
+	 * Ví dụ: 5 phút trước, 2 giờ trước, 1 ngày trước.
+	 */
+	protected static function formatLastSeenAgo($seconds) {
+		$seconds = max(0, (int) $seconds);
+		if ($seconds < 60) {
+			return 'vừa xong';
+		}
+		if ($seconds < 3600) {
+			return floor($seconds / 60) . ' phút trước';
+		}
+		if ($seconds < 86400) {
+			return floor($seconds / 3600) . ' giờ trước';
+		}
+		return floor($seconds / 86400) . ' ngày trước';
 	}
 
 	/**

@@ -24,6 +24,10 @@
 	{/if}
 	{foreach key=moduleName item=moduleModel from=$SELECTED_CATEGORY_MENU_LIST}
 		{if $SELECTED_MENU_CATEGORY eq 'MANAGEMENT' && $moduleName eq 'Home'}{continue}{/if}
+		{* SUPPORT: ẩn Hỏi đáp *}
+		{if $SELECTED_MENU_CATEGORY eq 'SUPPORT' && $moduleName eq 'Faq'}{continue}{/if}
+		{* MANAGEMENT: ẩn Dự án / Nhiệm vụ dự án *}
+		{if $SELECTED_MENU_CATEGORY eq 'MANAGEMENT' && ($moduleName eq 'Project' || $moduleName eq 'ProjectTask' || $moduleName eq 'ProjectMilestone')}{continue}{/if}
 		{* SALES: hide legacy Products/Services; ProductsServices lives under Kho *}
 		{if $SELECTED_MENU_CATEGORY eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services' || $moduleName eq 'ProductsServices')}{continue}{/if}
 		{assign var='translatedModuleLabel' value=vtranslate($moduleModel->get('label'),$moduleName )}

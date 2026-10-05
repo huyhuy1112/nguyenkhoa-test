@@ -80,6 +80,18 @@ class Settings_MenuEditor_Module_Model extends Settings_Vtiger_Module_Model {
 					if ($appKey === 'MANAGEMENT' && $moduleName === 'Contacts') {
 						continue;
 					}
+					// Hỗ trợ: ẩn Hỏi đáp (Faq) — khách không dùng
+					if ($appKey === 'SUPPORT' && $moduleName === 'Faq') {
+						continue;
+					}
+					// Quản lý: ẩn Dự án / Nhiệm vụ dự án — khách không dùng
+					if ($appKey === 'MANAGEMENT' && ($moduleName === 'Project' || $moduleName === 'ProjectTask' || $moduleName === 'ProjectMilestone')) {
+						continue;
+					}
+					// App PROJECT gốc (nếu còn): cũng ẩn để không lộ lại
+					if ($appKey === 'PROJECT' && ($moduleName === 'Project' || $moduleName === 'ProjectTask' || $moduleName === 'ProjectMilestone')) {
+						continue;
+					}
 					$modules[$appKey][$moduleName] = $moduleModel;
 				}
 			}

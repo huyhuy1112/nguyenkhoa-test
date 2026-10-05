@@ -52,21 +52,11 @@
 			<span class="mk-mp-action__title">Mở lịch làm việc</span>
 			<span class="mk-mp-action__hint">Xem tuần &amp; sự kiện</span>
 		</a>
-		<a href="{$MAINPAGE_LINKS.projecttask_list|escape:'html'}" class="mk-mp-action mk-mp-action--green">
-			<span class="mk-mp-action__eyebrow">Nhiệm vụ</span>
-			<span class="mk-mp-action__title">Theo dõi task của tôi</span>
-			<span class="mk-mp-action__hint">{if $MAINPAGE_KPI.tasks gt 0}{$MAINPAGE_KPI.tasks} đang mở{else}Chưa có task{/if}</span>
-		</a>
-		<a href="{$MAINPAGE_LINKS.project_list|escape:'html'}" class="mk-mp-action mk-mp-action--teal">
-			<span class="mk-mp-action__eyebrow">Dự án</span>
-			<span class="mk-mp-action__title">Danh sách dự án</span>
-			<span class="mk-mp-action__hint">{if $MAINPAGE_KPI.projects gt 0}{$MAINPAGE_KPI.projects} gần đây{else}Chưa có dự án{/if}</span>
-		</a>
 	</section>
 
 	<section class="mk-mp-insight" aria-label="Tổng quan">
 		<div class="mk-mp-insight__ring">
-			<div class="mk-mp-ring" style="--mk-ring-a:{$MAINPAGE_KPI.announcements|default:0};--mk-ring-b:{$MAINPAGE_KPI.agenda|default:0};--mk-ring-c:{$MAINPAGE_KPI.tasks|default:0};--mk-ring-d:{$MAINPAGE_KPI.projects|default:0}">
+			<div class="mk-mp-ring" style="--mk-ring-a:{$MAINPAGE_KPI.announcements|default:0};--mk-ring-b:{$MAINPAGE_KPI.agenda|default:0};--mk-ring-c:0;--mk-ring-d:0">
 				<div class="mk-mp-ring__center">
 					<span class="mk-mp-ring__num">{$MAINPAGE_KPI.agenda|default:0}</span>
 					<span class="mk-mp-ring__lbl">Lịch tuần</span>
@@ -78,17 +68,9 @@
 				<span class="mk-mp-stat__n">{$MAINPAGE_KPI.announcements|default:0}</span>
 				<span class="mk-mp-stat__l">Thông báo</span>
 			</div>
-			<div class="mk-mp-stat mk-mp-stat--green">
-				<span class="mk-mp-stat__n">{$MAINPAGE_KPI.projects|default:0}</span>
-				<span class="mk-mp-stat__l">Dự án</span>
-			</div>
 			<div class="mk-mp-stat mk-mp-stat--teal">
 				<span class="mk-mp-stat__n">{$MAINPAGE_KPI.agenda|default:0}</span>
 				<span class="mk-mp-stat__l">Sự kiện</span>
-			</div>
-			<div class="mk-mp-stat mk-mp-stat--blue">
-				<span class="mk-mp-stat__n">{$MAINPAGE_KPI.tasks|default:0}</span>
-				<span class="mk-mp-stat__l">Nhiệm vụ</span>
 			</div>
 		</div>
 	</section>
@@ -207,74 +189,6 @@
 			</div>
 		</div>
 
-		<div class="mainpage-card projects area-projects">
-			<div class="card-header subtle">
-				<div class="title">{vtranslate('LBL_MK_MY_PROJECTS', 'Home')}</div>
-				<div class="actions">
-					<a href="{$MAINPAGE_LINKS.project_list}" class="btn btn-default btn-xs">{vtranslate('LBL_MK_VIEW_ALL', 'Home')}</a>
-				</div>
-			</div>
-			<div class="table-responsive">
-				<table class="table mainpage-table table-hover">
-					<thead>
-						<tr>
-							<th style="width: 46%;">{vtranslate('LBL_MK_TABLE_TITLE', 'Home')}</th>
-							<th>{vtranslate('LBL_MK_TABLE_START', 'Home')}</th>
-							<th>{vtranslate('LBL_MK_TABLE_END', 'Home')}</th>
-							<th style="width: 60px;">{vtranslate('LBL_MK_TABLE_STATUS', 'Home')}</th>
-						</tr>
-					</thead>
-					<tbody>
-						{if $MAINPAGE_PROJECTS|@count gt 0}
-							{foreach from=$MAINPAGE_PROJECTS item=p}
-								<tr>
-									<td><a href="{$p.url}" class="text-primary">{$p.title|escape:'html'}</a></td>
-									<td>{$p.startdate|escape:'html'}</td>
-									<td>{$p.enddate|escape:'html'}</td>
-									<td><span class="status-pill gray">{$p.status|escape:'html'|default:'-'}</span></td>
-								</tr>
-							{/foreach}
-						{else}
-							<tr><td colspan="4" class="text-muted text-center">Chưa có dữ liệu. <a href="{$MAINPAGE_LINKS.project_list}">Tạo project</a></td></tr>
-						{/if}
-					</tbody>
-				</table>
-			</div>
-		</div>
-
-		<div class="mainpage-card tasks area-tasks">
-			<div class="card-header subtle">
-				<div class="title">{vtranslate('LBL_MK_MY_TASKS', 'Home')}</div>
-				<div class="actions">
-					<a href="{$MAINPAGE_LINKS.projecttask_list}" class="btn btn-default btn-xs">{vtranslate('LBL_MK_VIEW_ALL', 'Home')}</a>
-				</div>
-			</div>
-			<div class="table-responsive">
-				<table class="table mainpage-table">
-					<thead>
-						<tr>
-							<th>{vtranslate('LBL_MK_TABLE_TITLE', 'Home')}</th>
-							<th>{vtranslate('LBL_MK_TABLE_DUE_DATE', 'Home')}</th>
-							<th>{vtranslate('LBL_MK_TABLE_STATUS', 'Home')}</th>
-						</tr>
-					</thead>
-					<tbody>
-						{if $MAINPAGE_TASKS|@count gt 0}
-							{foreach from=$MAINPAGE_TASKS item=t}
-								<tr>
-									<td><a href="{$t.url}" class="text-primary">{$t.title|escape:'html'}</a></td>
-									<td>{$t.duedate|escape:'html'}</td>
-									<td><span class="status-pill gray">{$t.status|escape:'html'|default:'-'}</span></td>
-								</tr>
-							{/foreach}
-						{else}
-							<tr><td colspan="3" class="text-muted text-center">Chưa có dữ liệu. <a href="{$MAINPAGE_LINKS.projecttask_list}">Tạo task</a></td></tr>
-						{/if}
-					</tbody>
-				</table>
-			</div>
-		</div>
-
 		<script type="text/javascript">
 		(function(){
 			var tabs = document.querySelectorAll('.agenda-tabs [data-agenda-panel]');
@@ -298,41 +212,24 @@
 			<div class="card-header subtle">
 				<div class="title-block">
 					<div class="title"><i class="fa fa-users"></i> Team Status</div>
-					<div class="subtitle text-muted small">Nhân sự đi làm, vắng mặt, làm ở nhà, đi công tác,…</div>
+					<div class="subtitle text-muted small">Nhân sự đang online / offline</div>
 				</div>
 			</div>
 			<div class="card-body time-grid">
 				{if $MAINPAGE_CAN_SEE_TEAM_STATUS}
-					{* CEO/Admin: block Người nghỉ phép (nếu có) + toàn bộ trạng thái *}
-					{if $MAINPAGE_TEAM_STATUS_LEAVE_ONLY|@count gt 0}
-						<div class="team-status-leave-block">
-							<div class="team-status-leave-block-title"><i class="fa fa-calendar-minus-o"></i> Người nghỉ phép ({$MAINPAGE_TEAM_FILTER_DATE_DISPLAY|escape:'html'})</div>
-							<ul class="team-status-list team-status-list-leave list-unstyled">
-								{foreach from=$MAINPAGE_TEAM_STATUS_LEAVE_ONLY item=member}
-									<li class="team-status-item team-status-leave">
-										<span class="team-status-avatar">{$member.initial|escape:'html'}</span>
-										<span class="team-status-name">{$member.name|escape:'html'}</span>
-										<span class="team-status-badge status-leave">{$member.status_label|escape:'html'}</span>
-										{if $member.leave_note}<span class="team-status-leave-note text-muted">— {$member.leave_note|escape:'html'}</span>{/if}
-									</li>
-								{/foreach}
-							</ul>
-						</div>
-					{/if}
 					<div class="team-status-legend text-muted small">
 						<span class="team-status-legend-item"><i class="fa fa-circle status-online"></i> Online</span>
 						<span class="team-status-legend-item"><i class="fa fa-circle status-offline"></i> Offline</span>
-						<span class="team-status-legend-item"><i class="fa fa-calendar-minus-o status-leave"></i> Ngày nghỉ phép</span>
 					</div>
 					<div class="team-status-list-wrap">
 						{if $MAINPAGE_TEAM_STATUS|@count gt 0}
 							<ul class="team-status-list list-unstyled">
 								{foreach from=$MAINPAGE_TEAM_STATUS item=member}
+									{if $member.status eq 'leave'}{continue}{/if}
 									<li class="team-status-item team-status-{$member.status}">
 										<span class="team-status-avatar">{$member.initial|escape:'html'}</span>
 										<span class="team-status-name">{$member.name|escape:'html'}</span>
 										<span class="team-status-badge status-{$member.status}">{$member.status_label|escape:'html'}</span>
-										{if $member.leave_note}<span class="team-status-leave-note text-muted">({$member.leave_note|escape:'html'})</span>{/if}
 									</li>
 								{/foreach}
 							</ul>

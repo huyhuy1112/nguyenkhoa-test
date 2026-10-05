@@ -2309,14 +2309,22 @@
   }
 
   function gd14DropHtml(lead) {
+    var r1h = Number(lead.gd14_r1_hen_goi) || 0;
+    var r1k = Number(lead.gd14_r1_khong_nghe) || 0;
+    var r1s = Number(lead.gd14_r1_sai_tt) || 0;
+    var r1Sum = r1h + r1k + r1s;
+    var r1Total = Math.max(0, Math.min(9, r1Sum > 0 ? r1Sum : Number(lead.gd14_r1) || 0));
     var rows = [
-      ["R1", "Liên hệ không thành", lead.gd14_r1],
-      ["R2", "Đã chọn khoá, chưa thanh toán", lead.gd14_r2],
-      ["R3", "Đã tư vấn, chưa chọn khoá", lead.gd14_r3],
+      ["R1 · Hẹn gọi lại", "② mỗi tag tối đa 3", r1h, 3],
+      ["R1 · Không nghe máy", "③ mỗi tag tối đa 3", r1k, 3],
+      ["R1 · Sai thông tin", "④ mỗi tag tối đa 3", r1s, 3],
+      ["R2", "Theo dõi thanh toán", lead.gd14_r2, 3],
+      ["R3", "Theo dõi cân nhắc", lead.gd14_r3, 3],
     ];
     var items = rows
       .map(function (row) {
-        var n = Math.max(0, Math.min(3, Number(row[2]) || 0));
+        var max = row[3] || 3;
+        var n = Math.max(0, Math.min(max, Number(row[2]) || 0));
         return (
           '<div class="mk-gd14-drop__item"><span>' +
           esc(row[0]) +
@@ -2324,14 +2332,37 @@
           esc(row[1]) +
           '</span><strong>' +
           n +
-          "/3</strong></div>"
+          "/" +
+          max +
+          "</strong></div>"
         );
       })
       .join("");
+    var price = Number(lead.gd14_quoted_price) || 0;
+    var nextDue = lead.gd14_next_due || "";
+    var nextLabel = lead.gd14_next_label || lead.next_action || "";
+    var meta = [];
+    if (r1Total > 0) meta.push("R1 tổng " + r1Total + "/9");
+    if (price === 590000 || price === 990000) meta.push("Giá đã báo " + (price === 590000 ? "590k" : "990k"));
+    if (nextLabel) {
+      meta.push(
+        "Tiếp theo: " + nextLabel + (nextDue && nextLabel.indexOf(gd14FormatWhen(nextDue)) < 0 ? " · " + gd14FormatWhen(nextDue) : "")
+      );
+    }
     var reason = lead.gd14_drop
       ? '<p class="mk-gd14-note">Đã dừng tại ' + esc(lead.gd14_drop) + (lead.gd14_drop_reason ? " · " + esc(lead.gd14_drop_reason) : "") + "</p>"
       : "";
-    return '<section class="mk-leads-verify-section mk-gd14-card"><h4>Điểm rơi R1–R3</h4><div class="mk-gd14-drop">' + items + "</div>" + reason + "</section>";
+    var metaHtml = meta.length
+      ? '<p class="mk-gd14-note">' + esc(meta.join(" · ")) + "</p>"
+      : "";
+    return '<section class="mk-leads-verify-section mk-gd14-card"><h4>Điểm rơi R1–R3 · nhiệm vụ tiếp theo</h4><div class="mk-gd14-drop">' + items + "</div>" + metaHtml + reason + "</section>";
+  }
+
+  function gd14CallbackInputValue(raw) {
+    var d = gd14ParseWhen(raw);
+    if (!d) return "";
+    var pad = function (n) { return n < 10 ? "0" + n : String(n); };
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
   }
 
   function fillListVerifyBodyGd14(lead) {
@@ -2366,6 +2397,25 @@
       );
     }).join("");
     var waiting = gd14LeadTag(lead) === "gd14_cho_thanh_toan";
+    var outcomeOpts = waiting
+      ? [
+          { code: "theo_doi_thanh_toan", label: "Theo dõi thanh toán (R2 lần 2/3)" },
+          { code: "dang_can_nhac", label: "Xin cân nhắc lại → về Bước 1" },
+          { code: "chon_khoa", label: "Giữ chờ thanh toán / đổi khoá" },
+          { code: "tu_choi", label: "Từ chối — ngưng chăm sóc" },
+        ]
+      : [
+          { code: "hen_goi_lai", label: "Hẹn gọi lại" },
+          { code: "khong_nghe_may", label: "Không nghe máy" },
+          { code: "sai_thong_tin", label: "Sai thông tin liên hệ" },
+          { code: "tu_choi", label: "Từ chối trao đổi" },
+          { code: "dang_can_nhac", label: "Đã tư vấn, đang cân nhắc" },
+          { code: "chon_khoa", label: "Đã chọn khoá, chờ thanh toán" },
+          { code: "khong_chon", label: "Không chọn khoá nào" },
+        ];
+    var defaultOutcome = waiting
+      ? (lead.gd14_outcome === "theo_doi_thanh_toan" ? "theo_doi_thanh_toan" : "")
+      : (lead.gd14_outcome || "");
     body.innerHTML =
       '<div class="mk-gd14">' +
       '<div class="mk-leads-verify-hero">' +
@@ -2394,15 +2444,11 @@
       '<section class="mk-leads-verify-section mk-gd14-card">' +
       "<h4>3 · Kết quả cuộc gọi</h4>" +
       '<p class="mk-leads-verify-offline__meta">Lưu xong hồ sơ vẫn ở KH tiềm năng. Chỉ sang Khách hàng khi xác nhận thanh toán.</p>' +
-      listVerifySelectHtml("outcome", [
-        { code: "hen_goi_lai", label: "Hẹn gọi lại" },
-        { code: "khong_nghe_may", label: "Không nghe máy" },
-        { code: "sai_thong_tin", label: "Sai thông tin liên hệ" },
-        { code: "tu_choi", label: "Từ chối trao đổi" },
-        { code: "dang_can_nhac", label: "Đã tư vấn, đang cân nhắc" },
-        { code: "chon_khoa", label: "Đã chọn khoá, chờ thanh toán" },
-        { code: "khong_chon", label: "Không chọn khoá nào" },
-      ], lead.gd14_outcome || "", "— Chọn kết quả —") +
+      listVerifySelectHtml("outcome", outcomeOpts, defaultOutcome, "— Chọn kết quả —") +
+      '<label class="mk-leads-verify-field" data-mk-gd14-callback hidden><span>Giờ hẹn gọi lại</span>' +
+      '<input class="mk-leads-verify-select" type="datetime-local" data-mk-verify="callback_at" value="' +
+      esc(gd14CallbackInputValue(lead.gd14_callback_at || lead.gd14_next_due || "")) +
+      '" /></label>' +
       '<div data-mk-gd14-course hidden>' +
       listVerifySelectHtml("course", [
         { code: "lop_990k", label: "Lớp Pha chế Chuyên đề 990k" },
@@ -2433,9 +2479,12 @@
     var courseWrap = host.querySelector("[data-mk-gd14-course]");
     var course = host.querySelector('[data-mk-verify="course"]');
     var topicWrap = host.querySelector("[data-mk-gd14-topic]");
-    var showCourse = outcome && outcome.value === "chon_khoa";
+    var callbackWrap = host.querySelector("[data-mk-gd14-callback]");
+    var val = outcome ? outcome.value : "";
+    var showCourse = val === "chon_khoa";
     if (courseWrap) courseWrap.hidden = !showCourse;
     if (topicWrap) topicWrap.hidden = !(showCourse && course && course.value === "lop_990k");
+    if (callbackWrap) callbackWrap.hidden = val !== "hen_goi_lai";
   }
 
   function gd14Results() {
@@ -2526,7 +2575,14 @@
     };
     var mode = (host && host._mkVerifyMode) || "sales_b";
     if (mode === "gd14_990") {
-      var gd14 = { mode: "gd14_990", outcome: get("outcome"), course: get("course"), topic: get("topic"), goal: get("goal") };
+      var gd14 = {
+        mode: "gd14_990",
+        outcome: get("outcome"),
+        course: get("course"),
+        topic: get("topic"),
+        goal: get("goal"),
+        callback_at: get("callback_at"),
+      };
       gd14Questions().forEach(function (q) {
         gd14[q.id] = get(q.id);
       });
@@ -3146,6 +3202,10 @@
       }
       if (payload.outcome === "chon_khoa" && !payload.course) {
         setListVerifyMsg("Chọn khoá khách đã chốt.", "");
+        return;
+      }
+      if (payload.outcome === "hen_goi_lai" && !payload.callback_at) {
+        setListVerifyMsg("Chọn giờ hẹn gọi lại cụ thể.", "");
         return;
       }
       if (typeof app === "undefined" || !app.request) {

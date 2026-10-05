@@ -69,6 +69,10 @@
 							{foreach item=moduleModel key=moduleName from=$APP_GROUPED_MENU[$APP_NAME]}
 								{* SUPPORT: ẩn Schedule (Calendar) — Schedule chỉ ở MANAGEMENT *}
 								{if $APP_NAME eq 'SUPPORT' && ($moduleName eq 'Calendar' || $moduleName eq 'Schedule')}{continue}{/if}
+								{* SUPPORT: ẩn Hỏi đáp *}
+								{if $APP_NAME eq 'SUPPORT' && $moduleName eq 'Faq'}{continue}{/if}
+								{* MANAGEMENT: ẩn Dự án / Nhiệm vụ dự án *}
+								{if $APP_NAME eq 'MANAGEMENT' && ($moduleName eq 'Project' || $moduleName eq 'ProjectTask' || $moduleName eq 'ProjectMilestone')}{continue}{/if}
 								{* SALES: ProductsServices lives under Kho; hide legacy Products/Services *}
 								{if $APP_NAME eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services' || $moduleName eq 'ProductsServices')}{continue}{/if}
 								{* INVENTORY: ẩn Inbound / Storage / Outbound *}
