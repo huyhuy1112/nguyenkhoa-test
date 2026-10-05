@@ -8,7 +8,11 @@ class Contacts_ContactTagCatalog {
 
 	/** Canonical keys allowed on Contact (from BA Excel). */
 	protected static $allowedKeys = array(
-		// Loại khách (Trạng thái khách từ Lead)
+		// Loại khách — công ty | cá nhân
+		'ca_nhan', 'cong_ty', 'individual', 'company',
+		// Nhóm NVL / kênh import
+		'miutea', 'khach_le',
+		// Tình trạng khách (Đã/Chưa có quán… — không còn gọi là loại khách)
 		'co_quan', 'chuan_bi_mo', 'gia_dinh', 'moi_quen', 'da_co_quan_he',
 		// Tag lớp học / chương trình / sản phẩm (Lead → Contact)
 		'chua_mqbh', 'da_tg_free', 'da_tg_fb1', 'thu_3',
@@ -93,6 +97,17 @@ class Contacts_ContactTagCatalog {
 		'da pcthcb' => 'da_pcthcb',
 		'đã pcthcb' => 'da_pcthcb',
 		'da_pcth_cb' => 'da_pcthcb',
+		'individual' => 'ca_nhan',
+		'ca_nhan' => 'ca_nhan',
+		'cá nhân' => 'ca_nhan',
+		'company' => 'cong_ty',
+		'cong_ty' => 'cong_ty',
+		'công ty' => 'cong_ty',
+		'doanh_nghiep' => 'cong_ty',
+		'miutea' => 'miutea',
+		'khach_le' => 'khach_le',
+		'khachle' => 'khach_le',
+		'khách lẻ' => 'khach_le',
 	);
 
 	public static function normalizeKey($tagName) {

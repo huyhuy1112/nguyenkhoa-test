@@ -7,7 +7,7 @@
   var ref = window.ContactsLovableRef;
   var store = window.ContactsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 18;
+  var COL_COUNT = 19;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -170,8 +170,10 @@
 
   /** Tag con của NVL — chỉ hiện khi chọn tab NVL */
   var NVL_SUB_FILTERS = [
-    { id: "has_store", label: pick("Đã có quán", "Has store"), filters: { customerRank: "co_quan" } },
-    { id: "no_store", label: pick("Chưa có quán", "No store yet"), filters: { customerRank: "chuan_bi_mo" } },
+    { id: "miutea", label: "Miutea", filters: { nvlSegment: "miutea" } },
+    { id: "khach_le", label: pick("Khách lẻ", "Retail"), filters: { nvlSegment: "khach_le" } },
+    { id: "has_store", label: pick("Đã có quán", "Has store"), filters: { customerStatus: "co_quan" } },
+    { id: "no_store", label: pick("Chưa có quán", "No store yet"), filters: { customerStatus: "chuan_bi_mo" } },
     { id: "deposit", label: pick("Đã ký quỹ", "Deposited"), filters: { franchise: "da_ky_quy" } },
     { id: "gold", label: pick("Hạng Vàng", "Gold tier"), filters: { tier: "vang" } },
     { id: "silver", label: pick("Hạng Bạc", "Silver tier"), filters: { tier: "bac" } },
@@ -206,6 +208,10 @@
   var EMPTY = {
     search: "",
     lane: ANY,
+    customerType: ANY,
+    nvlSegment: ANY,
+    customerStatus: ANY,
+    /** @deprecated alias of customerStatus */
     customerRank: ANY,
     classTag: ANY,
     material: ANY,
@@ -265,7 +271,9 @@
 
   function clearNvlSubFilters() {
     state.nvlSubFilter = ANY;
+    state.filters.customerStatus = ANY;
     state.filters.customerRank = ANY;
+    state.filters.nvlSegment = ANY;
     state.filters.franchise = ANY;
     state.filters.tier = ANY;
   }
@@ -278,7 +286,9 @@
     state.productTab = "nvl";
     state.activeSegment = null;
     clearCourseCountFilter();
+    state.filters.customerStatus = ANY;
     state.filters.customerRank = ANY;
+    state.filters.nvlSegment = ANY;
     state.filters.franchise = ANY;
     state.filters.tier = ANY;
     state.nvlSubFilter = subId || ANY;
@@ -566,7 +576,10 @@
       if (f.hasTag && !(c.tags || []).length) return false;
       if (f.hasAccount && !c.account) return false;
       if (f.hasNextAction && !deriveNextAction(c)) return false;
-      if (f.customerRank !== ANY && (!cats.customerRank || ref.normalizeTag(cats.customerRank) !== f.customerRank)) return false;
+      if (f.customerType !== ANY && (!cats.customerType || ref.normalizeTag(cats.customerType) !== f.customerType)) return false;
+      if (f.nvlSegment !== ANY && (!cats.nvlSegment || ref.normalizeTag(cats.nvlSegment) !== f.nvlSegment)) return false;
+      var statusWant = f.customerStatus !== ANY ? f.customerStatus : f.customerRank;
+      if (statusWant !== ANY && (!cats.customerStatus || ref.normalizeTag(cats.customerStatus) !== statusWant)) return false;
       var needClass = [];
       if (f.classTag !== ANY && f.classTag) {
         needClass.push(f.classTag);
@@ -901,8 +914,10 @@
         ["courses", "Khóa học"],
         ["materials", "Nguyên liệu"],
       ]) +
+      fieldSelect(t("JS_MK_FILTER_CUSTOMER_TYPE", "Loại khách"), "customerType", (ref.CUSTOMER_TYPE_TAGS || []).map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_NVL_SEGMENT", "Nhóm NVL"), "nvlSegment", (ref.NVL_SEGMENT_TAGS || []).map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
+      fieldSelect(t("JS_MK_FILTER_CUSTOMER_STATUS", "Tình trạng khách"), "customerStatus", (ref.CUSTOMER_STATUS_TAGS || ref.CUSTOMER_RANK_TAGS || []).map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_TIER", "Hạng khách hàng"), "tier", ref.TIER_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
-      fieldSelect(t("JS_MK_FILTER_CUSTOMER_RANK", "Loại khách"), "customerRank", ref.CUSTOMER_RANK_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_CLASS", "Tag lớp học"), "classTag", ref.CLASS_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_MATERIAL", "Tag nguyên liệu"), "material", ref.MATERIAL_TAGS.map(function (tg) { return [ref.normalizeTag(tg), tagMeta(tg).label]; })) +
       fieldSelect(t("JS_MK_FILTER_PROGRESS", "Tiến trình"), "progress", [
@@ -989,6 +1004,8 @@
       var key = ref && ref.normalizeTag ? ref.normalizeTag(tg) : String(tg || "");
       if (!key || seen[key]) return;
       if (key === "da_cap_bang" || key === "da_cap_tai_khoan") return;
+      // Dedicated columns — skip duplicate chips
+      if (key === "ca_nhan" || key === "cong_ty" || key === "miutea" || key === "khach_le") return;
       seen[key] = true;
       parts.push(tagBadgeHtml(tg));
     }
@@ -1278,13 +1295,26 @@
 
   function customerTypeCellHtml(contact) {
     var cats = categorize(contact && contact.tags);
-    if (!cats.customerRank) return '<span class="mk-leads-muted">—</span>';
-    var m = tagMeta(cats.customerRank);
+    if (!cats.customerType) return '<span class="mk-leads-muted">—</span>';
+    var m = tagMeta(cats.customerType);
     return (
       '<span class="mk-tag ' +
       esc(m.cls || "") +
       '">' +
-      esc(m.label || cats.customerRank) +
+      esc(m.label || cats.customerType) +
+      "</span>"
+    );
+  }
+
+  function nvlSegmentCellHtml(contact) {
+    var cats = categorize(contact && contact.tags);
+    if (!cats.nvlSegment) return '<span class="mk-leads-muted">—</span>';
+    var m = tagMeta(cats.nvlSegment);
+    return (
+      '<span class="mk-tag ' +
+      esc(m.cls || "") +
+      '">' +
+      esc(m.label || cats.nvlSegment) +
       "</span>"
     );
   }
@@ -2088,6 +2118,9 @@
             "</td>" +
             '<td class="mk-leads-td mk-leads-td--cust">' +
             customerTypeCellHtml(c) +
+            "</td>" +
+            '<td class="mk-leads-td mk-leads-td--nvl-seg">' +
+            nvlSegmentCellHtml(c) +
             "</td>" +
             '<td class="mk-leads-td mk-leads-td--tags"><button type="button" class="mk-leads-tags-edit" data-contact-id="' +
             esc(c.id) +

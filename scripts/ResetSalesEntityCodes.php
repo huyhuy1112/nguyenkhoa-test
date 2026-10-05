@@ -1,14 +1,22 @@
 <?php
 /**
- * Reset entity numbering for Order (Potentials), Contact, Organization (Accounts).
- * Formats: KH00001 (Organization), LH00001 (Contact), CH00001 (Opportunity).
- *
- * Usage (from CRM root): php scripts/ResetSalesEntityCodes.php
+ * Switch entity numbering: Contacts → KH, Accounts → NQ.
+ * Usage: php scripts/ResetSalesEntityCodes.php
  */
 chdir(dirname(__DIR__));
 
-require_once 'config.inc.php';
-require_once 'include/utils/utils.php';
+require_once 'vendor/autoload.php';
+require_once 'config.php';
+if (isset($dbconfig) && is_array($dbconfig)) {
+	$host = isset($dbconfig['db_server']) ? (string) $dbconfig['db_server'] : '';
+	if ($host === 'db' || $host === 'mysql') {
+		$dbconfig['db_server'] = '127.0.0.1';
+		$dbconfig['db_port'] = ':3307';
+		$dbconfig['db_hostname'] = '127.0.0.1:3307';
+	}
+}
+include_once 'vtlib/Vtiger/Cron.php';
+vimport('includes.runtime.EntryPoint');
 require_once 'include/utils/MkEntityNumbering.php';
 
 function println($msg) {
@@ -17,14 +25,13 @@ function println($msg) {
 
 global $adb;
 
-println('Resetting sales entity codes (Potentials, Contacts, Accounts)...');
+println('Switching sales entity codes (Contacts→KH, Accounts→NQ)...');
 
-$results = MkEntityNumbering::resetAll();
-
-foreach ($results as $module => $ok) {
+foreach (array('Contacts', 'Accounts') as $module) {
+	$ok = MkEntityNumbering::ensureModuleSequence($module);
 	$cfg = MkEntityNumbering::$PADDED_MODULES[$module];
-	$sample = MkEntityNumbering::formatNumber($cfg['prefix'], $cfg['start'], $cfg['width']);
-	println(($ok ? 'OK' : 'SKIP') . "  {$module}: next code = {$sample}");
+	$preview = MkEntityNumbering::previewNextNumber($module);
+	println(($ok ? 'OK' : 'SKIP') . "  {$module}: prefix={$cfg['prefix']} next={$preview}");
 }
 
 $res = $adb->pquery(
@@ -46,4 +53,4 @@ while ($row = $adb->fetchByAssoc($res)) {
 }
 
 println('');
-println('Done. Existing records keep old codes; new records use the formats above.');
+println('Done. Existing LH/old-KH records keep old codes; new Contacts=KH…, new Accounts=NQ…');

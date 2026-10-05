@@ -12,11 +12,11 @@
 {/if}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkLovableListShell.css')}&mk_v=20260709_lovable_shell4" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkShell.css')}&mk_v=20260711_segments_ui2" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsMkListShell.css')}&mk_v=20260713_loai_khach1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsMkListShell.css')}&mk_v=20261005_loai_nvl1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.css')}&mk_v=20261003_verify_fail1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkListLovable.css')}&mk_v=20260916_touchfix2" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkTagPalette.css')}&mk_v=20260725_cred_tags1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsMkList.css')}&mk_v=20261003_nextact1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsMkList.css')}&mk_v=20261005_loai_nvl1" />
 <style type="text/css">
 html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] .main-container .content-area,
 html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] #listViewContent,
@@ -30,10 +30,10 @@ html.mk-contacts-ui-ready body[data-module="Contacts"][data-view="List"] #mk-das
 </style>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkIcons.js')}&mk_v=20260711_segments_ui2"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsLovableRef.js')}&mk_v=20260929_gd14pay1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsLovableRef.js')}&mk_v=20261005_loai_nvl1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsLocalStore.js')}&mk_v=20261003_nextact1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkLastTouchCall.js')}?mk_v=20260805_lt1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsMkList.js')}&mk_v=20261003_nextact1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Contacts/resources/ContactsMkList.js')}&mk_v=20261005_loai_nvl1"></script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20261002_nlcards1" />
 <script type="text/javascript">
 window.__mkSalesPosInlineConfig = {
@@ -41,7 +41,7 @@ window.__mkSalesPosInlineConfig = {
 	drawer: true,
 	tableSelector: '#mk-contacts-table',
 	rowSelector: 'tr.mk-leads-row',
-	colspan: 17,
+	colspan: 19,
 	enabledSelector: '[data-mk-contacts-list]',
 	loadingText: 'Đang tải chi tiết khách hàng...',
 	errorText: 'Không tải được chi tiết khách hàng.'

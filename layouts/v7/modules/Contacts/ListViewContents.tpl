@@ -49,6 +49,7 @@
 							<th class="mk-leads-th" scope="col">Mô hình kinh doanh</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_PRODUCTS', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_CUSTOMER_RANK', 'Contacts')}</th>
+							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_NVL_SEGMENT', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_TAGS', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('LBL_MK_COL_PROGRESS', 'Contacts')}</th>
 							<th class="mk-leads-th" scope="col">{vtranslate('da_cap_bang', 'Contacts')}</th>

@@ -1,5 +1,9 @@
 /**
  * Contacts list — tag categories per BA Excel (distinct from Leads / Opp).
+ *
+ * Loại khách = công ty | cá nhân
+ * Nhóm NVL   = miutea | khách lẻ  (import / lọc)
+ * Tình trạng = đã/chưa có quán, gia đình… (không còn gọi là loại khách)
  */
 (function (root) {
   "use strict";
@@ -74,16 +78,34 @@
     da_co_quan_he: "da_co_quan_he",
     co_quan: "co_quan",
     chuan_bi_mo: "chuan_bi_mo",
+    // Loại khách (pháp nhân)
+    individual: "ca_nhan",
+    ca_nhan: "ca_nhan",
+    company: "cong_ty",
+    cong_ty: "cong_ty",
+    doanh_nghiep: "cong_ty",
+    // Nhóm NVL / kênh import
+    miutea: "miutea",
+    khach_le: "khach_le",
+    khachle: "khach_le",
+    khach_le_: "khach_le",
   };
 
   var TAG_META_RAW = {
-    moi_quen: { vi: "CH - Mới quen", en: "New contact", cat: "customerRank", cls: "mk-tag--moi-quen" },
-    da_co_quan_he: { vi: "Đã có quan hệ", en: "Has relationship", cat: "customerRank", cls: "mk-tag--co-quan-he" },
-    co_quan: { vi: "Đã có quán", en: "Has store", cat: "customerRank", cls: "mk-tag--co-quan" },
-    chuan_bi_mo: { vi: "Chưa có quán", en: "No store yet", cat: "customerRank", cls: "mk-tag--chuan-bi-mo" },
-    gia_dinh: { vi: "Gia đình", en: "Family", cat: "customerRank", cls: "mk-tag--gia-dinh" },
-    da_cap_bang: { vi: "Cấp bằng", en: "Certificate", cat: "customerRank", cls: "mk-tag--da-cap-bang" },
-    da_cap_tai_khoan: { vi: "Đã cấp tài khoản", en: "Account issued", cat: "customerRank", cls: "mk-tag--da-cap-tai-khoan" },
+    // Loại khách — công ty | cá nhân
+    ca_nhan: { vi: "Cá nhân", en: "Individual", cat: "customerType", cls: "mk-tag--ca-nhan" },
+    cong_ty: { vi: "Công ty", en: "Company", cat: "customerType", cls: "mk-tag--cong-ty" },
+    // Nhóm NVL — miutea | khách lẻ
+    miutea: { vi: "Miutea", en: "Miutea", cat: "nvlSegment", cls: "mk-tag--miutea" },
+    khach_le: { vi: "Khách lẻ", en: "Retail", cat: "nvlSegment", cls: "mk-tag--khach-le" },
+    // Tình trạng khách (đã/chưa quán…) — không còn là "Loại khách"
+    moi_quen: { vi: "CH - Mới quen", en: "New contact", cat: "customerStatus", cls: "mk-tag--moi-quen" },
+    da_co_quan_he: { vi: "Đã có quan hệ", en: "Has relationship", cat: "customerStatus", cls: "mk-tag--co-quan-he" },
+    co_quan: { vi: "Đã có quán", en: "Has store", cat: "customerStatus", cls: "mk-tag--co-quan" },
+    chuan_bi_mo: { vi: "Chưa có quán", en: "No store yet", cat: "customerStatus", cls: "mk-tag--chuan-bi-mo" },
+    gia_dinh: { vi: "Gia đình", en: "Family", cat: "customerStatus", cls: "mk-tag--gia-dinh" },
+    da_cap_bang: { vi: "Cấp bằng", en: "Certificate", cat: "customerStatus", cls: "mk-tag--da-cap-bang" },
+    da_cap_tai_khoan: { vi: "Đã cấp tài khoản", en: "Account issued", cat: "customerStatus", cls: "mk-tag--da-cap-tai-khoan" },
     chua_mqbh: { vi: "Chưa MQBH", en: "No MQBH", cat: "classTag", cls: "mk-tag--chua-mqbh" },
     da_tg_free: { vi: "Đã TG FREE", en: "Attended FREE", cat: "classTag", cls: "mk-tag--da-tg-free" },
     da_tg_fb1: { vi: "Đã TG F&B1", en: "Attended F&B1", cat: "classTag", cls: "mk-tag--da-tg-fb1" },
@@ -126,8 +148,14 @@
     dong: { vi: "Đồng", en: "Bronze", cat: "tier", cls: "mk-tag--dong" },
   };
 
-  /** Loại khách — khớp Trạng thái khách trên Lead (Đã/Chưa có quán, Gia đình). */
-  var CUSTOMER_RANK_TAGS = ["co_quan", "chuan_bi_mo", "gia_dinh", "moi_quen", "da_co_quan_he"];
+  /** Loại khách — chỉ công ty | cá nhân */
+  var CUSTOMER_TYPE_TAGS = ["ca_nhan", "cong_ty"];
+  /** Nhóm NVL / kênh — miutea | khách lẻ */
+  var NVL_SEGMENT_TAGS = ["miutea", "khach_le"];
+  /** Tình trạng khách — đã/chưa quán, gia đình… */
+  var CUSTOMER_STATUS_TAGS = ["co_quan", "chuan_bi_mo", "gia_dinh", "moi_quen", "da_co_quan_he"];
+  /** @deprecated use CUSTOMER_STATUS_TAGS — kept for older callers */
+  var CUSTOMER_RANK_TAGS = CUSTOMER_STATUS_TAGS;
   // Credential status uses list dropdowns only — not tag chips.
   var CREDENTIAL_TAGS = [];
   var CLASS_TAGS = [
@@ -202,8 +230,13 @@
   }
 
   function categorizeTags(tags) {
+    var status = findTagInPool(tags, CUSTOMER_STATUS_TAGS);
     return {
-      customerRank: findTagInPool(tags, CUSTOMER_RANK_TAGS),
+      customerType: findTagInPool(tags, CUSTOMER_TYPE_TAGS),
+      nvlSegment: findTagInPool(tags, NVL_SEGMENT_TAGS),
+      customerStatus: status,
+      // Alias: older list code used customerRank for "đã/chưa quán"
+      customerRank: status,
       classTag: findTagInPool(tags, CLASS_TAGS),
       material: findTagInPool(tags, MATERIAL_TAGS),
       franchise: findTagInPool(tags, FRANCHISE_TAGS),
@@ -235,14 +268,26 @@
     return !!TAG_META_RAW[normalizeTag(tag)];
   }
 
-  /** Groups for list / inline tag editor — same BA buckets as Opp / Leads. */
+  /** Groups for list / inline tag editor */
   var CREATE_TAG_GROUPS = [
     { id: "tier", labelVi: "Hạng khách", labelEn: "Tier", tags: TIER_TAGS },
     {
-      id: "customerRank",
+      id: "customerType",
       labelVi: "Loại khách",
       labelEn: "Customer type",
-      tags: CUSTOMER_RANK_TAGS,
+      tags: CUSTOMER_TYPE_TAGS,
+    },
+    {
+      id: "nvlSegment",
+      labelVi: "Nhóm NVL",
+      labelEn: "NVL segment",
+      tags: NVL_SEGMENT_TAGS,
+    },
+    {
+      id: "customerStatus",
+      labelVi: "Tình trạng khách",
+      labelEn: "Customer status",
+      tags: CUSTOMER_STATUS_TAGS,
     },
     { id: "class", labelVi: "Lớp học", labelEn: "Class", tags: CLASS_TAGS },
     { id: "material", labelVi: "Tag nguyên liệu", labelEn: "Material", tags: MATERIAL_TAGS },
@@ -279,6 +324,9 @@
 
   root.ContactsLovableRef = {
     TAG_META_RAW: TAG_META_RAW,
+    CUSTOMER_TYPE_TAGS: CUSTOMER_TYPE_TAGS,
+    NVL_SEGMENT_TAGS: NVL_SEGMENT_TAGS,
+    CUSTOMER_STATUS_TAGS: CUSTOMER_STATUS_TAGS,
     CUSTOMER_RANK_TAGS: CUSTOMER_RANK_TAGS,
     CREDENTIAL_TAGS: CREDENTIAL_TAGS,
     CLASS_TAGS: CLASS_TAGS,

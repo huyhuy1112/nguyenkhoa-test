@@ -763,3 +763,15 @@ body.mk-gd14-panel-open { overflow: hidden; }
 .mk-tag--bac { background: #f1f5f9; color: #475569; }
 .mk-tag--dong { background: #fff7ed; color: #9a3412; }
 .mk-tag--offline { background: #ffedd5; color: #9a3412; }
+
+/* Loại khách — công ty | cá nhân */
+.mk-contacts-page .mk-tag--ca-nhan,
+.mk-tag--ca-nhan { background: #eff6ff; color: #1d4ed8; }
+.mk-contacts-page .mk-tag--cong-ty,
+.mk-tag--cong-ty { background: #f0fdf4; color: #15803d; }
+
+/* Nhóm NVL — miutea | khách lẻ */
+.mk-contacts-page .mk-tag--miutea,
+.mk-tag--miutea { background: #fdf4ff; color: #a21caf; }
+.mk-contacts-page .mk-tag--khach-le,
+.mk-tag--khach-le { background: #ecfeff; color: #0e7490; }
