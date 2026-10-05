@@ -769,6 +769,11 @@ tr.is-clickable-row:hover {
 	background: #f1f5f9;
 	border-radius: 12px;
 }
+.mk-admin-kpi-stagebar__tabs {
+	flex-wrap: wrap;
+	overflow-x: auto;
+	max-width: 100%;
+}
 .mk-admin-kpi-stagebar .mk-admin-kpi-mode-btn {
 	border: 0;
 	background: transparent;

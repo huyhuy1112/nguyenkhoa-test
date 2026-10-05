@@ -1588,9 +1588,13 @@ class Home_AdminKpiService {
 			'revenue_chart' => self::getRevenueChart($chartOpts),
 			'performance' => self::getPerformance(),
 			'alerts' => self::getAlerts(),
-			'offline_gd11' => $offline = self::getOfflineGd11(),
-			'online_gd12' => $online = self::getOnlineGd12(),
-			'gd14' => $gd14 = self::getGd14(),
+			'offline_gd11' => self::getOfflineGd11(),
+			'online_gd12' => self::getOnlineGd12(),
+			'gd14' => self::getGd14(),
+			'gd14_pcth' => self::getGd14Course('pcth'),
+			'gd14_mqbb' => self::getGd14Course('mqbb'),
+			'gd14_combo' => self::getGd14Course('combo'),
+			'materials' => self::getMaterialsBoard(),
 			'company_report' => self::getCompanyOverview(),
 		);
 	}
@@ -1922,6 +1926,44 @@ class Home_AdminKpiService {
 	 * @return array
 	 */
 	public static function getGd14() {
+		return self::buildGd14Board(null);
+	}
+
+	/**
+	 * Board tương đương 990k, lọc theo khoá PCTH / MQBB / Combo.
+	 * @param string $course pcth|mqbb|combo
+	 * @return array
+	 */
+	public static function getGd14Course($course) {
+		$course = strtolower(trim((string) $course));
+		if (!in_array($course, array('pcth', 'mqbb', 'combo'), true)) {
+			return self::emptyStageBoard(array());
+		}
+		return self::buildGd14Board($course);
+	}
+
+	/**
+	 * Board Nguyên liệu theo Word: NL01–NL23 + QL01–QL17.
+	 * @return array
+	 */
+	public static function getMaterialsBoard() {
+		require_once 'modules/HelpDesk/models/MaterialAlertService.php';
+		return HelpDesk_MaterialAlertService::dashboardBoard();
+	}
+
+	/**
+	 * @param string|null $courseFilter null = toàn bộ GD1.4 (tab 990k); pcth|mqbb|combo = tab riêng
+	 * @return array
+	 */
+	protected static function buildGd14Board($courseFilter = null) {
+		$labels = array(
+			null => array('short' => '990k', 'title' => 'Hồ sơ 990k trong kỳ', 'paid' => 'Lớp 990k đã thanh toán'),
+			'pcth' => array('short' => 'PCTH', 'title' => 'Hồ sơ PCTH trong kỳ', 'paid' => 'PCTH đã thanh toán'),
+			'mqbb' => array('short' => 'MQBB', 'title' => 'Hồ sơ MQBB trong kỳ', 'paid' => 'MQBB đã thanh toán'),
+			'combo' => array('short' => 'Combo', 'title' => 'Hồ sơ Combo trong kỳ', 'paid' => 'Combo đã thanh toán'),
+		);
+		$meta = isset($labels[$courseFilter]) ? $labels[$courseFilter] : $labels[null];
+		$prefix = $meta['short'];
 		$soon = array(
 			'Liên hệ đúng hạn 30 phút',
 			'Tham gia lớp trong 30 / 60 / 90 ngày',
@@ -1933,19 +1975,28 @@ class Home_AdminKpiService {
 			return self::emptyStageBoard($soon);
 		}
 		$catalog = array(
-			'gd14_moi_dang_ky' => '990k — Mới đăng ký',
-			'gd14_hen_goi_lai' => '990k — Hẹn gọi lại',
-			'gd14_khong_nghe_may' => '990k — Không nghe máy',
-			'gd14_sai_thong_tin' => '990k — Sai thông tin liên hệ',
-			'gd14_dang_can_nhac' => '990k — Đang cân nhắc',
-			'gd14_cho_thanh_toan' => '990k — Chờ thanh toán',
-			'gd14_chua_xep_buoi' => '990k — Chưa xếp buổi học',
-			'gd14_da_xac_nhan_lich' => '990k — Đã xác nhận lịch học',
-			'gd14_khong_tham_gia' => '990k — Không tham gia lớp học',
-			'gd14_da_tham_gia' => '990k — Đã tham gia lớp học',
-			'gd14_ngung_cham_soc' => '990k — Ngưng chăm sóc',
+			'gd14_moi_dang_ky' => $prefix . ' — Mới đăng ký',
+			'gd14_hen_goi_lai' => $prefix . ' — Hẹn gọi lại',
+			'gd14_khong_nghe_may' => $prefix . ' — Không nghe máy',
+			'gd14_sai_thong_tin' => $prefix . ' — Sai thông tin liên hệ',
+			'gd14_dang_can_nhac' => $prefix . ' — Đang cân nhắc',
+			'gd14_cho_thanh_toan' => $prefix . ' — Chờ thanh toán',
+			'gd14_chua_xep_buoi' => $prefix . ' — Chưa xếp buổi học',
+			'gd14_da_xac_nhan_lich' => $prefix . ' — Đã xác nhận lịch học',
+			'gd14_khong_tham_gia' => $prefix . ' — Không tham gia lớp học',
+			'gd14_da_tham_gia' => $prefix . ' — Đã tham gia lớp học',
+			'gd14_ngung_cham_soc' => $prefix . ' — Ngưng chăm sóc',
 		);
 		$packed = self::fetchGd14MonthRows($db);
+		if ($courseFilter !== null) {
+			$filtered = array();
+			foreach ($packed as $row) {
+				if (self::gd14PreferredCourse($row) === $courseFilter) {
+					$filtered[] = $row;
+				}
+			}
+			$packed = $filtered;
+		}
 		$tagCounts = array();
 		foreach (array_keys($catalog) as $slug) {
 			$tagCounts[$slug] = 0;
@@ -1964,6 +2015,7 @@ class Home_AdminKpiService {
 		$courses = array('lop_990k' => 0, 'pcth' => 0, 'mqbb' => 0, 'combo' => 0);
 		$miss = array('gd14_moi_dang_ky' => 1, 'gd14_hen_goi_lai' => 1, 'gd14_khong_nghe_may' => 1, 'gd14_sai_thong_tin' => 1);
 		$choseTags = array('gd14_cho_thanh_toan' => 1, 'gd14_chua_xep_buoi' => 1, 'gd14_da_xac_nhan_lich' => 1, 'gd14_khong_tham_gia' => 1, 'gd14_da_tham_gia' => 1);
+		$scopePrefix = $courseFilter !== null ? ($courseFilter . '__') : '';
 		foreach ($packed as $row) {
 			$tag = $row['tag'];
 			if (isset($tagCounts[$tag])) {
@@ -1986,7 +2038,7 @@ class Home_AdminKpiService {
 			if (!empty($row['advised'])) {
 				$advised++;
 			}
-			$didChoose = isset($choseTags[$tag]) || $row['course'] !== '';
+			$didChoose = isset($choseTags[$tag]) || $row['course'] !== '' || self::gd14PreferredCourse($row) !== '';
 			if ($didChoose) {
 				$chose++;
 			}
@@ -2011,20 +2063,26 @@ class Home_AdminKpiService {
 			}
 		}
 		$total = count($packed);
-		$stages = array(self::stageCountCard('Hồ sơ 990k trong kỳ', $total, 'gd14:all', '#2563eb'));
+		$stages = array(self::stageCountCard($meta['title'], $total, 'gd14:' . $scopePrefix . 'all', '#2563eb'));
 		foreach ($catalog as $slug => $label) {
-			$stages[] = self::stageCountCard($label, $tagCounts[$slug], 'gd14:tag:' . $slug, '#0f766e');
+			$stages[] = self::stageCountCard($label, $tagCounts[$slug], 'gd14:' . $scopePrefix . 'tag:' . $slug, '#0f766e');
 		}
-		$courseItems = array(
-			self::stageCountCard('Lớp 990k đã thanh toán', $courses['lop_990k'], 'gd14:course:lop_990k', '#10b981'),
-			self::stageCountCard('Pha chế tổng hợp', $courses['pcth'], 'gd14:course:pcth', '#2563eb'),
-			self::stageCountCard('Mở quán bài bản', $courses['mqbb'], 'gd14:course:mqbb', '#7c3aed'),
-			self::stageCountCard('Combo mở quán', $courses['combo'], 'gd14:course:combo', '#b45309'),
-		);
+		if ($courseFilter !== null) {
+			$courseItems = array(
+				self::stageCountCard($meta['paid'], $courses[$courseFilter], 'gd14:' . $scopePrefix . 'course:' . $courseFilter, '#10b981'),
+			);
+		} else {
+			$courseItems = array(
+				self::stageCountCard('Lớp 990k đã thanh toán', $courses['lop_990k'], 'gd14:course:lop_990k', '#10b981'),
+				self::stageCountCard('Pha chế tổng hợp', $courses['pcth'], 'gd14:course:pcth', '#2563eb'),
+				self::stageCountCard('Mở quán bài bản', $courses['mqbb'], 'gd14:course:mqbb', '#7c3aed'),
+				self::stageCountCard('Combo mở quán', $courses['combo'], 'gd14:course:combo', '#b45309'),
+			);
+		}
 		$classified = $invited + $blocked;
 		$sourceItems = array();
 		foreach ($sources as $src => $count) {
-			$sourceItems[] = self::stageCountCard($src, $count, 'gd14:source:' . $src, '#e11d48');
+			$sourceItems[] = self::stageCountCard($src, $count, 'gd14:' . $scopePrefix . 'source:' . $src, '#e11d48');
 		}
 		$splits = array(
 			array('title' => 'Đã xác nhận thanh toán', 'items' => $courseItems),
@@ -2036,7 +2094,7 @@ class Home_AdminKpiService {
 		$attend30 = 0;
 		$attend60 = 0;
 		$attend90 = 0;
-		$attended990 = 0;
+		$attended = 0;
 		foreach ($packed as $row) {
 			$created = isset($row['createdtime']) ? strtotime((string) $row['createdtime']) : false;
 			$touch = isset($row['last_touch']) ? strtotime((string) $row['last_touch']) : false;
@@ -2046,7 +2104,7 @@ class Home_AdminKpiService {
 			if ($row['tag'] !== 'gd14_da_tham_gia') {
 				continue;
 			}
-			$attended990++;
+			$attended++;
 			$stamp = isset($row['modified_at']) ? strtotime((string) $row['modified_at']) : false;
 			if (!$created || !$stamp || $stamp < $created) {
 				continue;
@@ -2064,25 +2122,25 @@ class Home_AdminKpiService {
 		}
 		$money = self::cohortOrderMoney($db, $packed);
 		$rates = array(
-			self::stageRateCard('Liên hệ được', $contacted, $total, 'gd14:contacted'),
-			self::stageRateCard('Tư vấn đủ', $advised, $contacted, 'gd14:advised'),
-			self::stageRateCard('Chọn khoá', $chose, $advised > 0 ? $advised : $contacted, 'gd14:chose'),
-			self::stageRateCard('Chốt đơn', $closed, $chose, 'gd14:closed'),
-			self::stageRateCard('Đã xác minh', $verified, $total, 'gd14:verified'),
-			self::stageRateCard('Được mời Combo / Mở quán', $invited, $classified, 'gd14:invited'),
-			self::stageRateCard('Bị chặn Combo / Mở quán', $blocked, $classified, 'gd14:blocked'),
-			self::stageRateCard('Đổi đáp án so với form', $formChanged, $hasForm, 'gd14:form_changed'),
-			self::stageRateCard('Cờ đáp án mâu thuẫn', $contradict, $verified, 'gd14:contradict'),
-			self::stageRateCard('Liên hệ đúng hạn 30 phút', $onTime, $total, 'gd14:sla30'),
-			self::stageRateCard('Tham gia trong 30 ngày', $attend30, $total, 'gd14:attend30'),
-			self::stageRateCard('Tham gia trong 60 ngày', $attend60, $total, 'gd14:attend60'),
-			self::stageRateCard('Tham gia trong 90 ngày', $attend90, $total, 'gd14:attend90'),
-			self::stageRateCard('Hủy hoặc xin hoàn', $money['cancelled'], $money['orders'], 'gd14:cancel'),
+			self::stageRateCard('Liên hệ được', $contacted, $total, 'gd14:' . $scopePrefix . 'contacted'),
+			self::stageRateCard('Tư vấn đủ', $advised, $contacted, 'gd14:' . $scopePrefix . 'advised'),
+			self::stageRateCard('Chọn khoá', $chose, $advised > 0 ? $advised : $contacted, 'gd14:' . $scopePrefix . 'chose'),
+			self::stageRateCard('Chốt đơn', $closed, $chose, 'gd14:' . $scopePrefix . 'closed'),
+			self::stageRateCard('Đã xác minh', $verified, $total, 'gd14:' . $scopePrefix . 'verified'),
+			self::stageRateCard('Được mời Combo / Mở quán', $invited, $classified, 'gd14:' . $scopePrefix . 'invited'),
+			self::stageRateCard('Bị chặn Combo / Mở quán', $blocked, $classified, 'gd14:' . $scopePrefix . 'blocked'),
+			self::stageRateCard('Đổi đáp án so với form', $formChanged, $hasForm, 'gd14:' . $scopePrefix . 'form_changed'),
+			self::stageRateCard('Cờ đáp án mâu thuẫn', $contradict, $verified, 'gd14:' . $scopePrefix . 'contradict'),
+			self::stageRateCard('Liên hệ đúng hạn 30 phút', $onTime, $total, 'gd14:' . $scopePrefix . 'sla30'),
+			self::stageRateCard('Tham gia trong 30 ngày', $attend30, $total, 'gd14:' . $scopePrefix . 'attend30'),
+			self::stageRateCard('Tham gia trong 60 ngày', $attend60, $total, 'gd14:' . $scopePrefix . 'attend60'),
+			self::stageRateCard('Tham gia trong 90 ngày', $attend90, $total, 'gd14:' . $scopePrefix . 'attend90'),
+			self::stageRateCard('Hủy hoặc xin hoàn', $money['cancelled'], $money['orders'], 'gd14:' . $scopePrefix . 'cancel'),
 		);
 		$splits[] = array('title' => 'Doanh thu và giá trị đơn', 'items' => array(
-			array_merge(self::stageCountCard('Giá trị đơn chưa hủy', 0, 'gd14:revenue', '#10b981'), array('value' => self::formatMoney($money['amount']))),
-			self::stageCountCard('Số đơn chưa hủy', $money['kept'], 'gd14:orders', '#2563eb'),
-			self::stageCountCard('Đã tham gia lớp', $attended990, 'gd14:tag:gd14_da_tham_gia', '#0f766e'),
+			array_merge(self::stageCountCard('Giá trị đơn chưa hủy', 0, 'gd14:' . $scopePrefix . 'revenue', '#10b981'), array('value' => self::formatMoney($money['amount']))),
+			self::stageCountCard('Số đơn chưa hủy', $money['kept'], 'gd14:' . $scopePrefix . 'orders', '#2563eb'),
+			self::stageCountCard('Đã tham gia lớp', $attended, 'gd14:' . $scopePrefix . 'tag:gd14_da_tham_gia', '#0f766e'),
 		));
 		return array(
 			'period_label' => self::stagePeriodCaption(),
@@ -2091,7 +2149,16 @@ class Home_AdminKpiService {
 			'splits' => $splits,
 			'soon' => array(),
 			'total' => $total,
+			'course' => $courseFilter,
 		);
+	}
+
+	protected static function gd14PreferredCourse(array $row) {
+		$preferred = isset($row['preferred']) ? strtolower(trim((string) $row['preferred'])) : '';
+		if ($preferred !== '') {
+			return $preferred;
+		}
+		return isset($row['course']) ? strtolower(trim((string) $row['course'])) : '';
 	}
 
 	protected static function profileSelectExtra(PearDatabase $db) {
@@ -2508,6 +2575,7 @@ class Home_AdminKpiService {
 						'verified' => !empty($extra['gd14_verified']) ? 1 : 0,
 						'invite' => self::gd14InviteFlag($extra),
 						'course' => !empty($extra['gd14_paid_at']) ? strtolower(trim((string) (isset($extra['gd14_course']) ? $extra['gd14_course'] : ''))) : '',
+						'preferred' => strtolower(trim((string) (isset($extra['gd14_course']) ? $extra['gd14_course'] : ''))),
 						'advised' => (!empty($extra['gd14_verified']) && trim((string) (isset($extra['gd14_goal']) ? $extra['gd14_goal'] : '')) !== '') ? 1 : 0,
 						'has_form' => self::gd14HasForm($extra) ? 1 : 0,
 						'form_changed' => self::gd14FormChanged($extra) ? 1 : 0,
@@ -2626,14 +2694,22 @@ class Home_AdminKpiService {
 			$title = 'Online 1.2 — ' . $arg;
 			$rows = self::mapStagePeople($picked, 'online_status');
 		} elseif ($stage === 'gd14') {
+			$scope = '';
+			if (preg_match('/^(pcth|mqbb|combo)__(.+)$/', $kind, $m)) {
+				$scope = $m[1];
+				$kind = $m[2];
+			}
 			$all = self::fetchGd14MonthRows($db);
 			$picked = array();
 			foreach ($all as $row) {
+				if ($scope !== '' && self::gd14PreferredCourse($row) !== $scope) {
+					continue;
+				}
 				if (self::gd14RowMatches($row, $kind, $arg)) {
 					$picked[] = $row;
 				}
 			}
-			$title = '990k — ' . ($arg !== '' ? $arg : $kind);
+			$title = ($scope !== '' ? strtoupper($scope) : '990k') . ' — ' . ($arg !== '' ? $arg : $kind);
 			$rows = self::mapStagePeople($picked, 'status');
 		}
 		if (count($rows) > 200) {
@@ -2779,7 +2855,9 @@ class Home_AdminKpiService {
 			return !empty($row['advised']);
 		}
 		if ($kind === 'chose') {
-			return in_array($row['tag'], array('gd14_cho_thanh_toan', 'gd14_chua_xep_buoi', 'gd14_da_xac_nhan_lich', 'gd14_khong_tham_gia', 'gd14_da_tham_gia'), true) || $row['course'] !== '';
+			return in_array($row['tag'], array('gd14_cho_thanh_toan', 'gd14_chua_xep_buoi', 'gd14_da_xac_nhan_lich', 'gd14_khong_tham_gia', 'gd14_da_tham_gia'), true)
+				|| $row['course'] !== ''
+				|| self::gd14PreferredCourse($row) !== '';
 		}
 		if ($kind === 'closed') {
 			return $row['course'] !== '';
@@ -2793,6 +2871,9 @@ class Home_AdminKpiService {
 		if ($kind === 'source') {
 			$src = $row['source'] !== '' ? $row['source'] : 'Chưa ghi nguồn';
 			return $row['tag'] === 'gd14_sai_thong_tin' && $src === $arg;
+		}
+		if ($kind === 'sla30' || $kind === 'attend30' || $kind === 'attend60' || $kind === 'attend90' || $kind === 'cancel' || $kind === 'revenue' || $kind === 'orders') {
+			return true;
 		}
 		return false;
 	}

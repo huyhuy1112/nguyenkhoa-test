@@ -597,6 +597,178 @@ class HelpDesk_MaterialAlertService {
 		return array('total' => $total, 'by_code' => $by);
 	}
 
+	/**
+	 * Board Admin KPI — NL01–NL23 + QL theo file Word cơ chế cảnh báo nguyên liệu.
+	 * @return array
+	 */
+	public static function dashboardBoard() {
+		$summary = self::summary();
+		$by = isset($summary['by_code']) && is_array($summary['by_code']) ? $summary['by_code'] : array();
+		$total = (int) (isset($summary['total']) ? $summary['total'] : 0);
+		$catalog = self::alertCatalog();
+		$groups = array(
+			'A. Tiếp nhận & mua lần đầu' => array('NL01', 'NL02', 'NL03', 'NL04', 'NL05', 'NL06', 'NL07'),
+			'B. Mua lại, giảm mua & bán chéo' => array('NL08', 'NL09', 'NL10', 'NL11', 'NL12', 'NL13', 'NL14'),
+			'C. Đơn, giao hàng & dữ liệu' => array('NL15', 'NL16', 'NL17', 'NL18', 'NL19', 'NL20', 'NL21', 'NL22', 'NL23'),
+		);
+		$groupTotals = array();
+		foreach ($groups as $title => $codes) {
+			$sum = 0;
+			foreach ($codes as $code) {
+				$sum += isset($by[$code]) ? (int) $by[$code] : 0;
+			}
+			$groupTotals[$title] = $sum;
+		}
+		$careOpen = $groupTotals['A. Tiếp nhận & mua lần đầu'];
+		$reorderOpen = $groupTotals['B. Mua lại, giảm mua & bán chéo'];
+		$fulfillOpen = $groupTotals['C. Đơn, giao hàng & dữ liệu'];
+		$rates = array(
+			array(
+				'label' => 'Việc đang mở',
+				'value' => (string) $total,
+				'count' => $total,
+				'color' => '#047857',
+				'nodrill' => true,
+			),
+			self::boardRate('Tiếp nhận / mua lần đầu', $careOpen, max($total, 1)),
+			self::boardRate('Mua lại / giảm / bán chéo', $reorderOpen, max($total, 1)),
+			self::boardRate('Đơn / giao / dữ liệu', $fulfillOpen, max($total, 1)),
+		);
+		$stages = array(
+			self::boardCount('Tổng việc NL đang mở', $total, '#2563eb'),
+		);
+		foreach ($catalog['nl'] as $code => $label) {
+			$n = isset($by[$code]) ? (int) $by[$code] : 0;
+			$stages[] = self::boardCount($code . ' — ' . $label, $n, $n > 0 ? '#b45309' : '#64748b');
+		}
+		$splits = array();
+		foreach ($groups as $title => $codes) {
+			$items = array();
+			foreach ($codes as $code) {
+				$label = isset($catalog['nl'][$code]) ? $catalog['nl'][$code] : $code;
+				$n = isset($by[$code]) ? (int) $by[$code] : 0;
+				$items[] = self::boardCount($code . ' — ' . $label, $n, $n > 0 ? '#0f766e' : '#94a3b8');
+			}
+			$splits[] = array('title' => $title . ' · ' . $groupTotals[$title] . ' việc', 'items' => $items);
+		}
+		$qlItems = array();
+		foreach ($catalog['ql'] as $code => $label) {
+			$derived = self::qlDerivedCount($code, $by, $total);
+			$qlItems[] = self::boardCount($code . ' — ' . $label, $derived['count'], $derived['color'], $derived['hint']);
+		}
+		$splits[] = array('title' => 'QL — Chỉ số quản lý (Word)', 'items' => $qlItems);
+		$soon = array();
+		foreach (array('NL10', 'NL11', 'NL13', 'NL14', 'NL21', 'NL22', 'NL23') as $code) {
+			if (!isset($by[$code]) || (int) $by[$code] === 0) {
+				$soon[] = $code . ' — ' . $catalog['nl'][$code] . ' (cần ngưỡng/dữ liệu)';
+			}
+		}
+		return array(
+			'period_label' => 'Theo Word · việc đang mở',
+			'rates' => $rates,
+			'stages' => $stages,
+			'splits' => $splits,
+			'soon' => $soon,
+			'total' => $total,
+		);
+	}
+
+	protected static function alertCatalog() {
+		return array(
+			'nl' => array(
+				'NL01' => 'Khách mới chưa liên hệ',
+				'NL02' => 'Đã học nhưng chưa mua nguyên liệu',
+				'NL03' => 'Nhiệm vụ quá hạn',
+				'NL04' => 'Cơ hội mở thiếu bước tiếp theo',
+				'NL05' => 'Báo giá sắp/quá hạn',
+				'NL06' => 'Chờ thanh toán quá hẹn',
+				'NL07' => 'Mua lần đầu chưa mua lần hai',
+				'NL08' => 'Sắp đến kỳ mua lại',
+				'NL09' => 'Quá kỳ mua lại',
+				'NL10' => 'Tổng sản lượng/doanh thu giảm',
+				'NL11' => 'Một SKU/nhóm hàng giảm',
+				'NL12' => 'Khách lớn có rủi ro',
+				'NL13' => 'Gợi ý bán chéo',
+				'NL14' => 'Gợi ý bán chéo lúc lên đơn',
+				'NL15' => 'Đã thanh toán nhưng chưa xử lý',
+				'NL16' => 'Giao trễ',
+				'NL17' => 'Giao thiếu/sai/hư/trả',
+				'NL18' => 'Sự cố giao hàng lặp lại',
+				'NL19' => 'Khiếu nại quá hạn',
+				'NL20' => 'Kiểm tra sau giao chưa có kết quả',
+				'NL21' => 'Thiếu dữ liệu bắt buộc',
+				'NL22' => 'Chứng từ/hóa đơn chưa hoàn tất',
+				'NL23' => 'Nghi trùng hồ sơ',
+			),
+			'ql' => array(
+				'QL01' => 'Chưa phân công',
+				'QL02' => 'Việc nhân viên quá hạn',
+				'QL03' => 'Khách lớn rủi ro',
+				'QL04' => 'Chuyển sang mua lần đầu',
+				'QL05' => 'Tỷ lệ mua lần hai',
+				'QL06' => 'Tỷ lệ khách mua lại',
+				'QL07' => 'Doanh thu/sản lượng giảm',
+				'QL08' => 'Khách/SKU biến động lớn',
+				'QL09' => 'Tập trung doanh thu',
+				'QL10' => 'Hiệu quả bán chéo',
+				'QL11' => 'Chất lượng giao hàng/khiếu nại',
+				'QL12' => 'Nguy cơ thiếu hàng',
+				'QL13' => 'Biên lợi nhuận/chiết khấu',
+				'QL14' => 'Chất lượng dữ liệu CRM',
+				'QL15' => 'Đã thu tiền chưa giao',
+				'QL16' => 'Cơ cấu vòng đời & hạng',
+				'QL17' => 'Kết quả theo nhân viên',
+			),
+		);
+	}
+
+	protected static function qlDerivedCount($code, array $by, $total) {
+		$map = array(
+			'QL01' => array('codes' => array('NL01'), 'color' => '#b45309'),
+			'QL02' => array('codes' => array('NL03'), 'color' => '#e11d48'),
+			'QL03' => array('codes' => array('NL12'), 'color' => '#7c3aed'),
+			'QL11' => array('codes' => array('NL16', 'NL17', 'NL18', 'NL19'), 'color' => '#b45309'),
+			'QL14' => array('codes' => array('NL21', 'NL23'), 'color' => '#64748b'),
+			'QL15' => array('codes' => array('NL15', 'NL16'), 'color' => '#2563eb'),
+		);
+		if (isset($map[$code])) {
+			$n = 0;
+			foreach ($map[$code]['codes'] as $nl) {
+				$n += isset($by[$nl]) ? (int) $by[$nl] : 0;
+			}
+			return array('count' => $n, 'color' => $map[$code]['color'], 'hint' => '');
+		}
+		// QL04–QL10, QL12–QL13, QL16–QL17: bảng theo dõi — hiện 0 + gợi ý Word
+		return array('count' => 0, 'color' => '#94a3b8', 'hint' => 'Bảng theo dõi · chờ ngưỡng');
+	}
+
+	protected static function boardCount($label, $count, $color, $hint = '') {
+		$card = array(
+			'label' => $label,
+			'value' => (string) (int) $count,
+			'count' => (int) $count,
+			'color' => $color,
+			'nodrill' => true,
+		);
+		if ($hint !== '') {
+			$card['hint'] = $hint;
+		}
+		return $card;
+	}
+
+	protected static function boardRate($label, $num, $den) {
+		$num = (int) $num;
+		$den = (int) $den;
+		$pct = $den > 0 ? round(($num / $den) * 100, 1) : 0;
+		return array(
+			'label' => $label . ' · ' . $num . '/' . $den,
+			'value' => $pct . '%',
+			'count' => $num,
+			'color' => '#047857',
+			'nodrill' => true,
+		);
+	}
+
 	protected static function needsFollowUp($code) {
 		return in_array($code, array('NL01', 'NL02', 'NL07', 'NL08', 'NL09', 'NL10', 'NL11', 'NL12', 'NL16', 'NL18'), true);
 	}

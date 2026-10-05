@@ -180,6 +180,10 @@
 				renderOffline($root, (data && data.offline_gd11) || {});
 				renderOnline($root, (data && data.online_gd12) || {});
 				renderGd14($root, (data && data.gd14) || {});
+				renderGd14Course($root, 'pcth', (data && data.gd14_pcth) || {});
+				renderGd14Course($root, 'mqbb', (data && data.gd14_mqbb) || {});
+				renderGd14Course($root, 'combo', (data && data.gd14_combo) || {});
+				renderMaterials($root, (data && data.materials) || {});
 				renderCompany($root, (data && data.company_report) || {});
 			})
 			.fail(function (msg) {
@@ -189,6 +193,10 @@
 				setError($root.find('#mkAdminKpiOfflineBody'), msg);
 				setError($root.find('#mkAdminKpiOnlineBody'), msg);
 				setError($root.find('#mkAdminKpiGd14Body'), msg);
+				setError($root.find('#mkAdminKpiPcthBody'), msg);
+				setError($root.find('#mkAdminKpiMqbbBody'), msg);
+				setError($root.find('#mkAdminKpiComboBody'), msg);
+				setError($root.find('#mkAdminKpiNlBody'), msg);
 			});
 	}
 
@@ -454,6 +462,18 @@
 				'</span><strong>Coming soon</strong></div>'
 			);
 		}
+		if (item.nodrill) {
+			return (
+				'<div class="mk-admin-kpi-offline-stat"><span>' +
+				label +
+				(item.hint ? '<em class="mk-admin-kpi-card-label"> · ' + escapeHtml(item.hint) + '</em>' : '') +
+				'</span><strong style="color:' +
+				escapeHtml(item.color || '#0f172a') +
+				'">' +
+				escapeHtml(value) +
+				'</strong></div>'
+			);
+		}
 		var drill = item.drill || {};
 		return (
 			'<button type="button" class="mk-admin-kpi-offline-stat mk-admin-kpi-stage-hit" data-drill-zone="' +
@@ -567,6 +587,19 @@
 		data = data || {};
 		$root.find('#mkAdminKpiGd14Period').text(data.period_label || 'Tháng này · SỐ TẠM');
 		$root.find('#mkAdminKpiGd14Body').html(renderStageBoard(data, 'gd14'));
+	}
+
+	function renderGd14Course($root, course, data) {
+		data = data || {};
+		var idMap = { pcth: 'Pcth', mqbb: 'Mqbb', combo: 'Combo' };
+		var suffix = idMap[course] || 'Gd14';
+		$root.find('#mkAdminKpi' + suffix + 'Period').text(data.period_label || 'Tháng này · SỐ TẠM');
+		$root.find('#mkAdminKpi' + suffix + 'Body').html(renderStageBoard(data, 'gd14_' + course));
+	}
+
+	function renderMaterials($root, data) {
+		data = data || {};
+		$root.find('#mkAdminKpiNlBody').html(renderStageBoard(data, 'nl'));
 	}
 
 	function renderFunnel($root, funnel) {
@@ -777,6 +810,9 @@
 		if (zone === 'offline') return '#mkAdminKpiOfflineDrill';
 		if (zone === 'online') return '#mkAdminKpiOnlineDrill';
 		if (zone === 'gd14') return '#mkAdminKpiGd14Drill';
+		if (zone === 'gd14_pcth') return '#mkAdminKpiPcthDrill';
+		if (zone === 'gd14_mqbb') return '#mkAdminKpiMqbbDrill';
+		if (zone === 'gd14_combo') return '#mkAdminKpiComboDrill';
 		if (zone === 'alert') return '#mkAdminKpiAlertDrill';
 		if (zone === 'chart' || isChartDrillType(type)) return '#mkAdminKpiChartDrill';
 		return '#mkAdminKpiDrill';
@@ -791,7 +827,7 @@
 		zone = zone || (isChartDrillType(type) ? 'chart' : 'detail');
 		var sel = drillTargetSel(zone, type);
 		var $drill = $root.find(sel);
-		$root.find('#mkAdminKpiDrill, #mkAdminKpiChartDrill, #mkAdminKpiAlertDrill, #mkAdminKpiOfflineDrill, #mkAdminKpiOnlineDrill, #mkAdminKpiGd14Drill').not(sel).attr('hidden', true).empty();
+		$root.find('#mkAdminKpiDrill, #mkAdminKpiChartDrill, #mkAdminKpiAlertDrill, #mkAdminKpiOfflineDrill, #mkAdminKpiOnlineDrill, #mkAdminKpiGd14Drill, #mkAdminKpiPcthDrill, #mkAdminKpiMqbbDrill, #mkAdminKpiComboDrill').not(sel).attr('hidden', true).empty();
 		// Không auto-scroll — bảng hiện ngay dưới vùng vừa bấm
 		$drill.removeAttr('hidden').html('<div class="mk-admin-kpi-detail-loading">Đang tải danh sách…</div>');
 		var params = {
@@ -1300,30 +1336,17 @@
 			var zone = String($(this).data('stage-panel') || 'offline');
 			$root.find('[data-stage-panel]').removeClass('is-active');
 			$(this).addClass('is-active');
-			$root.find('#mkAdminKpiOffline, #mkAdminKpiOnline, #mkAdminKpiGd14, #mkAdminKpiNl').attr('hidden', true);
-			var map = { offline: '#mkAdminKpiOffline', online: '#mkAdminKpiOnline', gd14: '#mkAdminKpiGd14', nl: '#mkAdminKpiNl' };
+			$root.find('#mkAdminKpiOffline, #mkAdminKpiOnline, #mkAdminKpiGd14, #mkAdminKpiPcth, #mkAdminKpiMqbb, #mkAdminKpiCombo, #mkAdminKpiNl').attr('hidden', true);
+			var map = {
+				offline: '#mkAdminKpiOffline',
+				online: '#mkAdminKpiOnline',
+				gd14: '#mkAdminKpiGd14',
+				pcth: '#mkAdminKpiPcth',
+				mqbb: '#mkAdminKpiMqbb',
+				combo: '#mkAdminKpiCombo',
+				nl: '#mkAdminKpiNl',
+			};
 			$root.find(map[zone] || '#mkAdminKpiOffline').removeAttr('hidden');
-			var board = $root.find(map[zone] || '#mkAdminKpiOffline').get(0);
-			if (board && board.scrollIntoView) {
-				board.scrollIntoView({ behavior: 'smooth', block: 'start' });
-			}
-			if (zone === 'nl') {
-				app.request.post({ data: { module: 'HelpDesk', action: 'MaterialAlertsApi', mode: 'summary' } }).then(function (err, res) {
-					var box = document.getElementById('mkAdminKpiNlBody');
-					if (!box) return;
-					if (err || !res) {
-						box.textContent = 'Chưa tải được cảnh báo nguyên liệu.';
-						return;
-					}
-					var html = '<p>Việc đang mở: <strong>' + (res.total || 0) + '</strong></p>';
-					var by = res.by_code || {};
-					Object.keys(by).forEach(function (code) {
-						html += '<div>' + code + ': ' + by[code] + '</div>';
-					});
-					if (!res.total) html += '<p>Chưa có việc. Ngưỡng định lượng để trống thì không bắn cảnh báo kỳ mua.</p>';
-					box.innerHTML = html;
-				});
-			}
 		});
 		$root.on('click', '[data-stage-period]', function () {
 			state.stagePeriod = String($(this).data('stage-period') || 'month');
