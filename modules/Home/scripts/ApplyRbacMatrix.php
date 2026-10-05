@@ -1,11 +1,19 @@
 <?php
 /*+***********************************************************************************
- * Apply RBAC matrix: 5 Profiles + 5 Roles (keep Vtiger RBAC tables).
+ * Apply RBAC theo phòng ban (Excel khách Nguyễn Khoa).
  *
- * Run inside app container:
+ * Profiles (Hồ sơ) — chỗ phân quyền chính:
+ *   NK BGD           — CEO / Expert / Assistant (full)
+ *   NK Sale Manager  — Kinh doanh trưởng
+ *   NK Sale          — Sale
+ *   NK KTT           — Kế toán trưởng
+ *   NK Ke toan       — Kế toán
+ *   NK Cung ung      — Trưởng cung ứng
+ *   NK Kho           — Quản lý kho
+ *
+ * Run:
  *   docker exec vtiger_web php -f modules/Home/scripts/ApplyRbacMatrix.php
- *
- * Idempotent: safe to re-run. Does not drop existing Roles/Profiles.
+ * Idempotent. Không tạo user mới.
  *************************************************************************************/
 
 chdir(dirname(__DIR__, 3));
@@ -18,7 +26,7 @@ require_once 'modules/Home/helpers/RbacMatrix.php';
 
 global $adb;
 
-echo "=== Apply RBAC Matrix ===\n";
+echo "=== Apply RBAC Matrix (phòng ban) ===\n";
 
 $SOURCE_PROFILE_ID = 1; // Administrator — template clone
 
@@ -33,37 +41,44 @@ $ACTION = array(
 $UTIL_CONVERT_LEAD = 9;
 
 /**
- * Matrix module levels per persona profile.
- * full | view | crm_no_delete_lead | none
- * Unlisted entity modules are denied on non-Admin profiles after clone wipe.
+ * Module levels: full | view | crm_no_delete_lead | none
+ * Module không liệt kê → deny (trừ clone_full).
  */
 $MATRIX = array(
-	'NK Admin' => array(
-		'description' => 'Ma trận: Admin — full nghiệp vụ (Settings Users vẫn cần is_admin)',
-		'viewall' => false,
-		'editall' => false,
-		'clone_full' => true, // keep Administrator clone, then force-fill inventory CRUD
+	'NK BGD' => array(
+		'description' => 'BGĐ (CEO/Expert/Assistant) — xem & thao tác toàn hệ thống',
+		'viewall' => true,
+		'editall' => true,
+		'clone_full' => true,
 		'modules' => array(
 			'Dashboard' => 'full',
-			'Warehouse' => 'full',
-			'GoodsIssue' => 'full',
-			'GoodsReceipt' => 'full',
-			'Products' => 'full',
-			'Services' => 'full',
-			'ProductsServices' => 'full',
 			'Leads' => 'full',
 			'Potentials' => 'full',
 			'Contacts' => 'full',
 			'Accounts' => 'full',
+			'Quotes' => 'full',
 			'SalesOrder' => 'full',
-			'Reports' => 'full',
-			'Teams' => 'full',
+			'Invoice' => 'full',
+			'Products' => 'full',
+			'Services' => 'full',
+			'ProductsServices' => 'full',
+			'Warehouse' => 'full',
+			'GoodsIssue' => 'full',
+			'GoodsReceipt' => 'full',
+			'Vendors' => 'full',
+			'PurchaseOrder' => 'full',
+			'HelpDesk' => 'full',
+			'Calendar' => 'full',
 			'Events' => 'full',
+			'Documents' => 'full',
+			'Reports' => 'full',
+			'Emails' => 'full',
+			'Teams' => 'full',
 			'ModComments' => 'full',
 		),
 	),
-	'NK Supervisor' => array(
-		'description' => 'Ma trận: Supervisor — CRM+Đơn+SP+xem tồn; không NXK',
+	'NK Sale Manager' => array(
+		'description' => 'Kinh doanh (TPKD) — menu Bán hàng full; Kho chỉ xem, không NXK',
 		'viewall' => false,
 		'editall' => false,
 		'modules' => array(
@@ -72,27 +87,29 @@ $MATRIX = array(
 			'Potentials' => 'full',
 			'Contacts' => 'full',
 			'Accounts' => 'full',
-			'SalesOrder' => 'full',
 			'Quotes' => 'full',
-			'Calendar' => 'full',
-			'Events' => 'full',
-			'Documents' => 'full',
+			'SalesOrder' => 'full',
+			'Invoice' => 'view',
 			'Products' => 'full',
 			'Services' => 'full',
 			'ProductsServices' => 'full',
 			'Warehouse' => 'view',
 			'GoodsIssue' => 'none',
 			'GoodsReceipt' => 'none',
-			'Reports' => 'full',
-			'Invoice' => 'view',
+			'Vendors' => 'none',
+			'PurchaseOrder' => 'none',
 			'HelpDesk' => 'full',
+			'Calendar' => 'full',
+			'Events' => 'full',
+			'Documents' => 'full',
+			'Reports' => 'full',
 			'Emails' => 'full',
 			'Teams' => 'full',
 			'ModComments' => 'full',
 		),
 	),
 	'NK Sale' => array(
-		'description' => 'Ma trận: Sale — CRM trừ xóa Lead; Đơn; xem tồn; không SP',
+		'description' => 'Kinh doanh (Sale) — Bán hàng; Kho chỉ xem; không NXK',
 		'viewall' => false,
 		'editall' => false,
 		'modules' => array(
@@ -101,54 +118,91 @@ $MATRIX = array(
 			'Potentials' => 'full',
 			'Contacts' => 'full',
 			'Accounts' => 'full',
-			'SalesOrder' => 'full',
 			'Quotes' => 'full',
-			'Calendar' => 'full',
-			'Events' => 'full',
-			'Documents' => 'full',
-			'Products' => 'none',
-			'Services' => 'none',
-			'ProductsServices' => 'none',
+			'SalesOrder' => 'full',
+			'Invoice' => 'view',
+			'Products' => 'view',
+			'Services' => 'view',
+			'ProductsServices' => 'view',
 			'Warehouse' => 'view',
 			'GoodsIssue' => 'none',
 			'GoodsReceipt' => 'none',
-			'Reports' => 'view',
-			'Invoice' => 'view',
+			'Vendors' => 'none',
+			'PurchaseOrder' => 'none',
 			'HelpDesk' => 'full',
+			'Calendar' => 'full',
+			'Events' => 'full',
+			'Documents' => 'full',
+			'Reports' => 'view',
+			'Emails' => 'full',
+			'Teams' => 'full',
+			'ModComments' => 'full',
+		),
+	),
+	'NK KTT' => array(
+		'description' => 'Kế toán trưởng — Hóa đơn/báo cáo; không bán hàng tạo mới; không NXK',
+		'viewall' => false,
+		'editall' => false,
+		'modules' => array(
+			'Dashboard' => 'view',
+			'Leads' => 'none',
+			'Potentials' => 'view',
+			'Contacts' => 'view',
+			'Accounts' => 'view',
+			'Quotes' => 'view',
+			'SalesOrder' => 'view',
+			'Invoice' => 'full',
+			'Products' => 'view',
+			'Services' => 'view',
+			'ProductsServices' => 'view',
+			'Warehouse' => 'view',
+			'GoodsIssue' => 'none',
+			'GoodsReceipt' => 'none',
+			'Vendors' => 'view',
+			'PurchaseOrder' => 'view',
+			'HelpDesk' => 'view',
+			'Calendar' => 'full',
+			'Events' => 'full',
+			'Documents' => 'full',
+			'Reports' => 'full',
 			'Emails' => 'full',
 			'Teams' => 'full',
 			'ModComments' => 'full',
 		),
 	),
 	'NK Ke toan' => array(
-		'description' => 'Ma tran: Ke toan — Dashboard + ton + SP; khong CRM/Don',
+		'description' => 'Kế toán — Hóa đơn CRUD; không menu bán hàng tạo; không NXK',
 		'viewall' => false,
 		'editall' => false,
 		'modules' => array(
 			'Dashboard' => 'view',
 			'Leads' => 'none',
 			'Potentials' => 'none',
-			'Contacts' => 'none',
-			'Accounts' => 'none',
-			'SalesOrder' => 'none',
-			'Quotes' => 'none',
-			'Calendar' => 'view',
-			'Events' => 'view',
-			'Documents' => 'view',
-			'Products' => 'full',
-			'Services' => 'full',
-			'ProductsServices' => 'full',
+			'Contacts' => 'view',
+			'Accounts' => 'view',
+			'Quotes' => 'view',
+			'SalesOrder' => 'view',
+			'Invoice' => 'full',
+			'Products' => 'view',
+			'Services' => 'view',
+			'ProductsServices' => 'view',
 			'Warehouse' => 'view',
 			'GoodsIssue' => 'none',
 			'GoodsReceipt' => 'none',
+			'Vendors' => 'view',
+			'PurchaseOrder' => 'view',
+			'HelpDesk' => 'view',
+			'Calendar' => 'full',
+			'Events' => 'full',
+			'Documents' => 'full',
 			'Reports' => 'view',
-			'Invoice' => 'view',
-			'HelpDesk' => 'none',
-			'ModComments' => 'view',
+			'Emails' => 'view',
+			'Teams' => 'full',
+			'ModComments' => 'full',
 		),
 	),
-	'NK Kho' => array(
-		'description' => 'Ma trận: Kho — xem Đơn + full tồn/NXK + SP',
+	'NK Cung ung' => array(
+		'description' => 'Cung ứng — Kho/NCC/PO full; không menu Bán hàng',
 		'viewall' => false,
 		'editall' => false,
 		'modules' => array(
@@ -157,23 +211,56 @@ $MATRIX = array(
 			'Potentials' => 'none',
 			'Contacts' => 'none',
 			'Accounts' => 'none',
-			'SalesOrder' => 'view',
 			'Quotes' => 'none',
-			'Calendar' => 'view',
-			'Events' => 'view',
-			'Documents' => 'view',
+			'SalesOrder' => 'view',
+			'Invoice' => 'none',
 			'Products' => 'full',
 			'Services' => 'full',
 			'ProductsServices' => 'full',
 			'Warehouse' => 'full',
 			'GoodsIssue' => 'full',
 			'GoodsReceipt' => 'full',
+			'Vendors' => 'full',
+			'PurchaseOrder' => 'full',
+			'HelpDesk' => 'full',
+			'Calendar' => 'full',
+			'Events' => 'full',
+			'Documents' => 'full',
 			'Reports' => 'view',
+			'Emails' => 'view',
+			'Teams' => 'full',
+			'ModComments' => 'full',
+		),
+	),
+	'NK Kho' => array(
+		'description' => 'Kho vận — chỉ Kho/NXK/SP; không menu Bán hàng',
+		'viewall' => false,
+		'editall' => false,
+		'modules' => array(
+			'Dashboard' => 'view',
+			'Leads' => 'none',
+			'Potentials' => 'none',
+			'Contacts' => 'none',
+			'Accounts' => 'none',
+			'Quotes' => 'none',
+			'SalesOrder' => 'none',
 			'Invoice' => 'none',
-			'HelpDesk' => 'none',
+			'Products' => 'full',
+			'Services' => 'full',
+			'ProductsServices' => 'full',
+			'Warehouse' => 'full',
+			'GoodsIssue' => 'full',
+			'GoodsReceipt' => 'full',
 			'Vendors' => 'view',
 			'PurchaseOrder' => 'view',
-			'ModComments' => 'view',
+			'HelpDesk' => 'full',
+			'Calendar' => 'full',
+			'Events' => 'full',
+			'Documents' => 'full',
+			'Reports' => 'view',
+			'Emails' => 'view',
+			'Teams' => 'full',
+			'ModComments' => 'full',
 		),
 	),
 );
@@ -234,7 +321,6 @@ function rbac_clone_profile($sourceId, $name, $description) {
 function rbac_set_global($profileId, $viewall, $editall) {
 	global $adb;
 	$adb->pquery('DELETE FROM vtiger_profile2globalpermissions WHERE profileid=?', array($profileId));
-	// 0 = permitted (ON), 1 = not permitted (OFF)
 	$viewVal = $viewall ? 0 : 1;
 	$editVal = $editall ? 0 : 1;
 	$adb->pquery(
@@ -270,7 +356,7 @@ function rbac_set_module_level($profileId, $moduleName, $level, $ACTION, $UTIL_C
 
 	$allow = array();
 	foreach ($ACTION as $name => $op) {
-		$allow[$op] = 1; // deny by default
+		$allow[$op] = 1;
 	}
 
 	if ($level === 'full' || $level === 'crm_no_delete_lead') {
@@ -284,7 +370,6 @@ function rbac_set_module_level($profileId, $moduleName, $level, $ACTION, $UTIL_C
 		$allow[$ACTION['index']] = 0;
 		$allow[$ACTION['DetailView']] = 0;
 	}
-	// none → all deny (already 1)
 
 	foreach ($allow as $operation => $perm) {
 		$chk = $adb->pquery(
@@ -304,7 +389,6 @@ function rbac_set_module_level($profileId, $moduleName, $level, $ACTION, $UTIL_C
 		}
 	}
 
-	// ConvertLead utility
 	if ($moduleName === 'Leads') {
 		$convertPerm = ($level === 'full' || $level === 'crm_no_delete_lead') ? 0 : 1;
 		$chk = $adb->pquery(
@@ -334,7 +418,6 @@ function rbac_deny_unlisted_modules($profileId, $listedModules, $ACTION) {
 			$listedTabIds[$tid] = true;
 		}
 	}
-	// Always keep Home accessible if present
 	$homeId = rbac_tab_id('Home');
 	if ($homeId) {
 		$listedTabIds[$homeId] = true;
@@ -360,7 +443,6 @@ function rbac_deny_unlisted_modules($profileId, $listedModules, $ACTION) {
 }
 
 function rbac_ensure_role($roleName, $parentRoleId, $profileId) {
-	global $adb;
 	$parent = Settings_Roles_Record_Model::getInstanceById($parentRoleId);
 	if (!$parent) {
 		throw new Exception("Parent role $parentRoleId not found");
@@ -381,7 +463,6 @@ function rbac_ensure_role($roleName, $parentRoleId, $profileId) {
 	$role->set('profileIds', array($profileId));
 	$role->set('allowassignedrecordsto', 1);
 	$parent->addChildRole($role);
-	// save() does not set roleid on the model — reload by name
 	$created = Settings_Roles_Record_Model::getInstanceByName($roleName);
 	$roleId = $created ? $created->getId() : '';
 	echo "  Created role: $roleName ($roleId) under $parentRoleId → profile #$profileId\n";
@@ -404,21 +485,59 @@ function rbac_rename_role_if($fromName, $toName) {
 	return true;
 }
 
+function rbac_rename_profile_if($fromName, $toName) {
+	global $adb;
+	$fromId = rbac_get_profile_id_by_name($fromName);
+	if (!$fromId) {
+		return false;
+	}
+	$toId = rbac_get_profile_id_by_name($toName);
+	if ($toId && $toId !== $fromId) {
+		echo "  Skip rename profile '$fromName' → '$toName' (target exists #$toId)\n";
+		return false;
+	}
+	$adb->pquery('UPDATE vtiger_profile SET profilename=? WHERE profileid=?', array($toName, $fromId));
+	echo "  Renamed profile: $fromName → $toName (#$fromId)\n";
+	return true;
+}
+
+function rbac_hide_sharing_access_menu() {
+	global $adb;
+	// Vtiger: active=0 hiển thị, active=1 ẩn
+	$r = $adb->pquery(
+		"SELECT fieldid, name, active FROM vtiger_settings_field WHERE name = ? OR linkto LIKE ?",
+		array('LBL_SHARING_ACCESS', '%module=SharingAccess%')
+	);
+	if (!$adb->num_rows($r)) {
+		echo "  SharingAccess settings field not found — skip hide\n";
+		return;
+	}
+	for ($i = 0; $i < $adb->num_rows($r); $i++) {
+		$fieldId = (int) $adb->query_result($r, $i, 'fieldid');
+		$name = $adb->query_result($r, $i, 'name');
+		$adb->pquery('UPDATE vtiger_settings_field SET active = 1 WHERE fieldid = ?', array($fieldId));
+		echo "  Hidden settings menu: $name (#$fieldId)\n";
+	}
+}
+
+// ---------------------------------------------------------------------------
+// 0) Legacy renames → tên mới
+// ---------------------------------------------------------------------------
+echo "\n-- Legacy rename --\n";
+rbac_rename_profile_if('NK Admin', 'NK BGD');
+rbac_rename_profile_if('NK Supervisor', 'NK Sale Manager');
+rbac_rename_profile_if('NK Kế toán', 'NK Ke toan');
+
+rbac_rename_role_if('Vice President', 'Expert');
+rbac_rename_role_if('Admin', 'Expert');
+rbac_rename_role_if('Sales Manager', 'Sale Manager');
+rbac_rename_role_if('Supervisor', 'Sale Manager');
+rbac_rename_role_if('Sales Person', 'Sale');
+
 // ---------------------------------------------------------------------------
 // 1) Profiles
 // ---------------------------------------------------------------------------
 echo "\n-- Profiles --\n";
-// Rename legacy accented profile name → ASCII (avoids Vtiger &aacute; mangling)
-$legacyProf = $adb->pquery('SELECT profileid FROM vtiger_profile WHERE profilename = ?', array('NK Kế toán'));
-if ($adb->num_rows($legacyProf)) {
-	$lp = (int) $adb->query_result($legacyProf, 0, 'profileid');
-	$existsAscii = rbac_get_profile_id_by_name('NK Ke toan');
-	if (!$existsAscii) {
-		$adb->pquery('UPDATE vtiger_profile SET profilename=? WHERE profileid=?', array('NK Ke toan', $lp));
-		echo "  Renamed profile NK Kế toán → NK Ke toan (#$lp)\n";
-	}
-}
-
 $profileIds = array();
 foreach ($MATRIX as $profileName => $cfg) {
 	$pid = rbac_clone_profile($SOURCE_PROFILE_ID, $profileName, $cfg['description']);
@@ -434,7 +553,7 @@ foreach ($MATRIX as $profileName => $cfg) {
 }
 
 // ---------------------------------------------------------------------------
-// 2) Roles (under CEO)
+// 2) Roles (cây phòng ban dưới CEO)
 // ---------------------------------------------------------------------------
 echo "\n-- Roles --\n";
 $ceo = Settings_Roles_Record_Model::getInstanceByName('CEO');
@@ -448,20 +567,92 @@ if (!$ceo) {
 $ceoId = $ceo->getId();
 echo "  Parent CEO: $ceoId\n";
 
-// Align legacy default roles with matrix names (idempotent)
-rbac_rename_role_if('Vice President', 'Admin');
-rbac_rename_role_if('Sales Manager', 'Supervisor');
-rbac_rename_role_if('Sales Person', 'Sale');
+/**
+ * Ensure role sits under expected parent (idempotent).
+ * Reads/writes vtiger_role directly to avoid Settings_Roles_Record_Model cache.
+ */
+function rbac_ensure_parent($roleId, $parentRoleId, $label) {
+	global $adb;
+
+	$parentRow = $adb->pquery(
+		'SELECT parentrole, depth FROM vtiger_role WHERE roleid=?',
+		array($parentRoleId)
+	);
+	$roleRow = $adb->pquery(
+		'SELECT parentrole, depth FROM vtiger_role WHERE roleid=?',
+		array($roleId)
+	);
+	if (!$adb->num_rows($parentRow) || !$adb->num_rows($roleRow)) {
+		echo "  Skip reparent $label — role/parent missing\n";
+		return;
+	}
+
+	$parentString = $adb->query_result($parentRow, 0, 'parentrole');
+	$parentDepth = (int) $adb->query_result($parentRow, 0, 'depth');
+	$current = $adb->query_result($roleRow, 0, 'parentrole');
+	$currentDepth = (int) $adb->query_result($roleRow, 0, 'depth');
+	$expected = $parentString . '::' . $roleId;
+
+	if ($current === $expected) {
+		echo "  Parent OK: $label under $parentRoleId\n";
+		return;
+	}
+	if (strpos($parentString, '::' . $roleId) !== false || strpos($parentString, $roleId . '::') === 0) {
+		echo "  Skip reparent $label — would create cycle\n";
+		return;
+	}
+
+	$oldPrefix = $current;
+	$newDepth = $parentDepth + 1;
+	$depthDiff = $newDepth - $currentDepth;
+
+	$adb->pquery(
+		'UPDATE vtiger_role SET parentrole=?, depth=? WHERE roleid=?',
+		array($expected, $newDepth, $roleId)
+	);
+
+	$kids = $adb->pquery(
+		'SELECT roleid, parentrole, depth FROM vtiger_role WHERE parentrole LIKE ? AND roleid <> ?',
+		array($oldPrefix . '::%', $roleId)
+	);
+	for ($i = 0; $i < $adb->num_rows($kids); $i++) {
+		$kidId = $adb->query_result($kids, $i, 'roleid');
+		$kidParent = $adb->query_result($kids, $i, 'parentrole');
+		$kidDepth = (int) $adb->query_result($kids, $i, 'depth') + $depthDiff;
+		$newKidParent = $expected . substr($kidParent, strlen($oldPrefix));
+		$adb->pquery(
+			'UPDATE vtiger_role SET parentrole=?, depth=? WHERE roleid=?',
+			array($newKidParent, $kidDepth, $kidId)
+		);
+	}
+	echo "  Moved $label ($roleId) → under $parentRoleId ($expected)\n";
+}
 
 $roleIds = array();
-$roleIds['Admin'] = rbac_ensure_role('Admin', $ceoId, $profileIds['NK Admin']);
-$roleIds['Supervisor'] = rbac_ensure_role('Supervisor', $roleIds['Admin'], $profileIds['NK Supervisor']);
-$roleIds['Sale'] = rbac_ensure_role('Sale', $roleIds['Supervisor'], $profileIds['NK Sale']);
-// ASCII role name avoids Vtiger HTML-entity mangling of Vietnamese
-$roleIds['Ke toan'] = rbac_ensure_role('Ke toan', $roleIds['Admin'], $profileIds['NK Ke toan']);
-$roleIds['Kho'] = rbac_ensure_role('Kho', $roleIds['Admin'], $profileIds['NK Kho']);
+// BGĐ
+$roleIds['Expert'] = rbac_ensure_role('Expert', $ceoId, $profileIds['NK BGD']);
+$roleIds['Assistant'] = rbac_ensure_role('Assistant', $ceoId, $profileIds['NK BGD']);
+// Kinh doanh
+$roleIds['Sale Manager'] = rbac_ensure_role('Sale Manager', $ceoId, $profileIds['NK Sale Manager']);
+$roleIds['Sale'] = rbac_ensure_role('Sale', $roleIds['Sale Manager'], $profileIds['NK Sale']);
+// Kế toán
+$roleIds['KTT'] = rbac_ensure_role('KTT', $ceoId, $profileIds['NK KTT']);
+$roleIds['Ke toan'] = rbac_ensure_role('Ke toan', $roleIds['KTT'], $profileIds['NK Ke toan']);
+// Cung ứng / Kho
+$roleIds['Cung ung'] = rbac_ensure_role('Cung ung', $ceoId, $profileIds['NK Cung ung']);
+$roleIds['Kho'] = rbac_ensure_role('Kho', $roleIds['Cung ung'], $profileIds['NK Kho']);
 
-// Fix legacy HTML-encoded accountant role name from earlier runs (do not create duplicate)
+echo "\n-- Fix role hierarchy --\n";
+rbac_ensure_parent($roleIds['Expert'], $ceoId, 'Expert');
+rbac_ensure_parent($roleIds['Assistant'], $ceoId, 'Assistant');
+rbac_ensure_parent($roleIds['Sale Manager'], $ceoId, 'Sale Manager');
+rbac_ensure_parent($roleIds['Sale'], $roleIds['Sale Manager'], 'Sale');
+rbac_ensure_parent($roleIds['KTT'], $ceoId, 'KTT');
+rbac_ensure_parent($roleIds['Ke toan'], $roleIds['KTT'], 'Ke toan');
+rbac_ensure_parent($roleIds['Cung ung'], $ceoId, 'Cung ung');
+rbac_ensure_parent($roleIds['Kho'], $roleIds['Cung ung'], 'Kho');
+
+// Fix legacy HTML-encoded accountant role name
 $broken = $adb->pquery(
 	"SELECT roleid, rolename FROM vtiger_role WHERE (rolename LIKE ? OR rolename LIKE ?) AND rolename <> ?",
 	array('%aacute%', '%amp;aacute%', 'Ke toan')
@@ -470,7 +661,6 @@ $canonicalKeToan = Settings_Roles_Record_Model::getInstanceByName('Ke toan');
 for ($i = 0; $i < $adb->num_rows($broken); $i++) {
 	$rid = $adb->query_result($broken, $i, 'roleid');
 	if ($canonicalKeToan && $canonicalKeToan->getId() !== $rid) {
-		// Prefer keeping existing Ke toan; drop broken duplicate if unused
 		$usersOnBroken = $adb->pquery('SELECT 1 FROM vtiger_user2role WHERE roleid=? LIMIT 1', array($rid));
 		if ($adb->num_rows($usersOnBroken) == 0) {
 			$adb->pquery('DELETE FROM vtiger_role2profile WHERE roleid=?', array($rid));
@@ -488,52 +678,20 @@ for ($i = 0; $i < $adb->num_rows($broken); $i++) {
 	}
 }
 
-// CEO keeps Administrator profile (executive)
+// CEO + Administrator = full (executive)
 $adb->pquery('DELETE FROM vtiger_role2profile WHERE roleid=?', array($ceoId));
 $adb->pquery('INSERT INTO vtiger_role2profile(roleid, profileid) VALUES (?,?)', array($ceoId, $SOURCE_PROFILE_ID));
 echo "  CEO → Administrator profile (#$SOURCE_PROFILE_ID)\n";
 
 // ---------------------------------------------------------------------------
-// 3) Demo users for Kế toán / Kho if missing (optional, inactive credentials)
+// 3) Ẩn menu Quyền truy cập (SharingAccess) — phân quyền chính = Hồ sơ
 // ---------------------------------------------------------------------------
-echo "\n-- Sample user assignment --\n";
-function rbac_ensure_demo_user($userName, $firstName, $roleId) {
-	global $adb;
-	$r = $adb->pquery('SELECT id FROM vtiger_users WHERE user_name=? AND deleted=0', array($userName));
-	if ($adb->num_rows($r)) {
-		$userId = (int) $adb->query_result($r, 0, 'id');
-		$adb->pquery('UPDATE vtiger_user2role SET roleid=? WHERE userid=?', array($roleId, $userId));
-		echo "  Linked existing user $userName (#$userId) → $roleId\n";
-		return $userId;
-	}
-	echo "  No user '$userName' — skip create (assign manually in Settings → Users)\n";
-	return 0;
-}
+echo "\n-- Hide SharingAccess menu --\n";
+rbac_hide_sharing_access_menu();
 
-rbac_ensure_demo_user('ketoan', 'Ke toan', $roleIds['Ke toan']);
-rbac_ensure_demo_user('kho', 'Kho', $roleIds['Kho']);
-rbac_ensure_demo_user('sale', 'Sale', $roleIds['Sale']);
-rbac_ensure_demo_user('supervisor', 'Supervisor', $roleIds['Supervisor']);
-
-// Map spare Organization (H1) users onto empty matrix roles for smoke/demo
-function rbac_assign_if_on_role($userId, $fromRoleId, $toRoleId, $label) {
-	global $adb;
-	$r = $adb->pquery('SELECT roleid FROM vtiger_user2role WHERE userid=?', array($userId));
-	if (!$adb->num_rows($r)) {
-		return;
-	}
-	$current = $adb->query_result($r, 0, 'roleid');
-	if ($current !== $fromRoleId) {
-		echo "  Skip user #$userId (role $current, want $fromRoleId)\n";
-		return;
-	}
-	$adb->pquery('UPDATE vtiger_user2role SET roleid=? WHERE userid=?', array($toRoleId, $userId));
-	echo "  Assigned user #$userId → $label ($toRoleId)\n";
-}
-rbac_assign_if_on_role(22, 'H1', $roleIds['Ke toan'], 'Ke toan');
-rbac_assign_if_on_role(23, 'H1', $roleIds['Kho'], 'Kho');
-
-// Ensure users already on renamed roles get privilege rebuild (role id unchanged on rename)
+// ---------------------------------------------------------------------------
+// 4) Rebuild privileges (không tạo user)
+// ---------------------------------------------------------------------------
 echo "\n-- Rebuild user_privileges --\n";
 $userRes = $adb->pquery('SELECT id, user_name FROM vtiger_users WHERE deleted = 0', array());
 for ($u = 0; $u < $adb->num_rows($userRes); $u++) {
@@ -547,4 +705,5 @@ for ($u = 0; $u < $adb->num_rows($userRes); $u++) {
 echo "\n=== Done ===\n";
 echo "Roles: " . json_encode($roleIds, JSON_UNESCAPED_UNICODE) . "\n";
 echo "Profiles: " . json_encode($profileIds, JSON_UNESCAPED_UNICODE) . "\n";
-echo "Gán user vào role Admin/Supervisor/Sale/Kế toán/Kho trong Settings nếu chưa có.\n";
+echo "Chưa tạo user. Gán user vào role trong Settings → Người sử dụng khi sẵn sàng.\n";
+echo "Phân quyền module: Cài đặt → Hồ sơ (NK BGD / Sale Manager / Sale / KTT / Ke toan / Cung ung / Kho).\n";

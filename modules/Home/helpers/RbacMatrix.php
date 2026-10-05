@@ -1,36 +1,52 @@
 <?php
 /*+***********************************************************************************
- * RBAC matrix personas (Admin / Supervisor / Sale / Kế toán / Kho) + CEO.
- * Profile permissions are seeded by modules/Home/scripts/ApplyRbacMatrix.php.
+ * RBAC theo phòng ban (Excel khách):
+ *   BGĐ: CEO / Expert / Assistant — full
+ *   Kinh doanh: Sale Manager / Sale
+ *   Kế toán: KTT / Ke toan
+ *   Cung ứng / Kho vận: Cung ung / Kho
+ *
+ * Profile permissions seeded by modules/Home/scripts/ApplyRbacMatrix.php.
  *************************************************************************************/
 
 class Home_RbacMatrix_Helper {
 
-	const PERSONA_ADMIN = 'admin';
-	const PERSONA_SUPERVISOR = 'supervisor';
-	const PERSONA_SALE = 'sale';
-	const PERSONA_ACCOUNTANT = 'accountant';
-	const PERSONA_WAREHOUSE = 'warehouse';
+	const PERSONA_BGD = 'bgd';
 	const PERSONA_CEO = 'ceo';
+	const PERSONA_SALE_MANAGER = 'sale_manager';
+	const PERSONA_SALE = 'sale';
+	const PERSONA_CHIEF_ACCOUNTANT = 'chief_accountant';
+	const PERSONA_ACCOUNTANT = 'accountant';
+	const PERSONA_SUPPLY = 'supply';
+	const PERSONA_WAREHOUSE = 'warehouse';
+
+	/** @deprecated keep aliases for older code paths */
+	const PERSONA_ADMIN = 'bgd';
+	const PERSONA_SUPERVISOR = 'sale_manager';
 
 	/** Profile display names (seeded). */
 	public static function profileNames() {
 		return array(
-			self::PERSONA_ADMIN => 'NK Admin',
-			self::PERSONA_SUPERVISOR => 'NK Supervisor',
+			self::PERSONA_BGD => 'NK BGD',
+			self::PERSONA_SALE_MANAGER => 'NK Sale Manager',
 			self::PERSONA_SALE => 'NK Sale',
+			self::PERSONA_CHIEF_ACCOUNTANT => 'NK KTT',
 			self::PERSONA_ACCOUNTANT => 'NK Ke toan',
+			self::PERSONA_SUPPLY => 'NK Cung ung',
 			self::PERSONA_WAREHOUSE => 'NK Kho',
 		);
 	}
 
-	/** Canonical role display names (seeded / renamed). */
+	/** Canonical role display names (seeded). */
 	public static function roleNames() {
 		return array(
-			self::PERSONA_ADMIN => 'Admin',
-			self::PERSONA_SUPERVISOR => 'Supervisor',
+			self::PERSONA_CEO => 'CEO',
+			self::PERSONA_BGD => 'Expert', // Expert & Assistant share NK BGD profile
+			self::PERSONA_SALE_MANAGER => 'Sale Manager',
 			self::PERSONA_SALE => 'Sale',
+			self::PERSONA_CHIEF_ACCOUNTANT => 'KTT',
 			self::PERSONA_ACCOUNTANT => 'Ke toan',
+			self::PERSONA_SUPPLY => 'Cung ung',
 			self::PERSONA_WAREHOUSE => 'Kho',
 		);
 	}
@@ -48,7 +64,7 @@ class Home_RbacMatrix_Helper {
 			return null;
 		}
 		if (method_exists($userModel, 'isAdminUser') && $userModel->isAdminUser()) {
-			return self::PERSONA_ADMIN;
+			return self::PERSONA_BGD;
 		}
 		$roleName = self::getRoleName($userModel);
 		if ($roleName === '') {
@@ -63,24 +79,39 @@ class Home_RbacMatrix_Helper {
 	 */
 	public static function personaFromRoleName($roleName) {
 		$n = self::normalize($roleName);
+
 		if ($n === 'ceo' || preg_match('/\bceo\b/', $n)) {
 			return self::PERSONA_CEO;
 		}
-		if ($n === 'admin' || $n === 'administrator') {
-			return self::PERSONA_ADMIN;
+		// BGĐ full: Expert, Assistant, Admin (legacy), Administrator
+		if ($n === 'expert' || $n === 'assistant' || $n === 'assistant bgd'
+			|| $n === 'admin' || $n === 'administrator' || $n === 'bgd') {
+			return self::PERSONA_BGD;
 		}
-		if ($n === 'supervisor' || $n === 'sales manager') {
-			return self::PERSONA_SUPERVISOR;
+		// Kinh doanh
+		if ($n === 'sale manager' || $n === 'sales manager' || $n === 'supervisor'
+			|| $n === 'tpkd' || $n === 'truong phong kinh doanh') {
+			return self::PERSONA_SALE_MANAGER;
 		}
 		if ($n === 'sale' || $n === 'sales' || $n === 'sales person' || $n === 'salesperson') {
 			return self::PERSONA_SALE;
 		}
-		// "Ke toan" / "Kế toán" / HTML-entity mangled variants
+		// Kế toán
+		if ($n === 'ktt' || $n === 'chief accountant' || $n === 'ke toan truong'
+			|| strpos($n, 'ktt') !== false) {
+			return self::PERSONA_CHIEF_ACCOUNTANT;
+		}
 		if ($n === 'ke toan' || $n === 'ketoan' || $n === 'accountant' || $n === 'accounting'
 			|| strpos($n, 'ke toan') !== false || strpos($n, 'aacute') !== false) {
 			return self::PERSONA_ACCOUNTANT;
 		}
-		if ($n === 'kho' || $n === 'warehouse' || $n === 'ware house') {
+		// Cung ứng / Kho
+		if ($n === 'cung ung' || $n === 'supply' || $n === 'supply lead'
+			|| strpos($n, 'cung ung') !== false) {
+			return self::PERSONA_SUPPLY;
+		}
+		if ($n === 'kho' || $n === 'warehouse' || $n === 'ware house'
+			|| $n === 'quan ly kho' || strpos($n, 'kho van') !== false) {
 			return self::PERSONA_WAREHOUSE;
 		}
 		return null;
@@ -97,11 +128,13 @@ class Home_RbacMatrix_Helper {
 			return false;
 		}
 		return in_array($persona, array(
-			self::PERSONA_ADMIN,
+			self::PERSONA_BGD,
 			self::PERSONA_CEO,
-			self::PERSONA_SUPERVISOR,
+			self::PERSONA_SALE_MANAGER,
 			self::PERSONA_SALE,
+			self::PERSONA_CHIEF_ACCOUNTANT,
 			self::PERSONA_ACCOUNTANT,
+			self::PERSONA_SUPPLY,
 			self::PERSONA_WAREHOUSE,
 		), true);
 	}
@@ -140,7 +173,9 @@ class Home_RbacMatrix_Helper {
 				$value = strtolower($trans);
 			}
 		}
-		$value = str_replace(array('ế', 'ề', 'ể', 'ễ', 'ệ', 'é', 'è', 'ẻ', 'ẽ', 'ẹ', 'á', 'à', 'ả', 'ã', 'ạ'), 'e', $value);
+		$value = str_replace(array('ế', 'ề', 'ể', 'ễ', 'ệ', 'é', 'è', 'ẻ', 'ẽ', 'ẹ', 'á', 'à', 'ả', 'ã', 'ạ', 'ư', 'ú', 'ù', 'ủ', 'ũ', 'ụ', 'ơ', 'ó', 'ò', 'ỏ', 'õ', 'ọ', 'í', 'ì', 'ỉ', 'ĩ', 'ị', 'ý', 'ỳ', 'ỷ', 'ỹ', 'ỵ', 'đ'),
+			array('e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'a', 'a', 'a', 'a', 'a', 'u', 'u', 'u', 'u', 'u', 'u', 'o', 'o', 'o', 'o', 'o', 'o', 'i', 'i', 'i', 'i', 'i', 'y', 'y', 'y', 'y', 'y', 'd'),
+			$value);
 		$value = preg_replace('/[^a-z0-9\s]/', ' ', $value);
 		$value = preg_replace('/\s+/', ' ', trim($value));
 		return $value;

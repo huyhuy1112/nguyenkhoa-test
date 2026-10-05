@@ -1,6 +1,6 @@
 <?php
 /*+***********************************************************************************
- * Smoke-test RBAC matrix against Profile permissions (no login UI).
+ * Smoke-test RBAC theo phòng ban (no login UI).
  *   docker exec vtiger_web php -f modules/Home/scripts/SmokeTestRbacMatrix.php
  *************************************************************************************/
 
@@ -12,42 +12,50 @@ require_once 'modules/Home/helpers/RbacMatrix.php';
 global $adb;
 
 $EXPECT = array(
-	'NK Admin' => array(
+	'NK BGD' => array(
 		'Leads' => array('index' => 1, 'CreateView' => 1, 'EditView' => 1, 'Delete' => 1, 'DetailView' => 1),
 		'SalesOrder' => array('index' => 1, 'CreateView' => 1, 'EditView' => 1),
 		'Warehouse' => array('index' => 1, 'CreateView' => 1, 'EditView' => 1),
 		'GoodsIssue' => array('CreateView' => 1),
 		'Products' => array('index' => 1, 'CreateView' => 1),
 	),
-	'NK Supervisor' => array(
+	'NK Sale Manager' => array(
 		'Leads' => array('index' => 1, 'CreateView' => 1, 'EditView' => 1, 'Delete' => 1, 'DetailView' => 1),
 		'SalesOrder' => array('index' => 1, 'CreateView' => 1, 'EditView' => 1),
 		'Warehouse' => array('index' => 1, 'DetailView' => 1, 'CreateView' => 0, 'EditView' => 0, 'Delete' => 0),
 		'GoodsIssue' => array('index' => 0, 'CreateView' => 0),
 		'GoodsReceipt' => array('CreateView' => 0),
-		'Products' => array('index' => 1, 'CreateView' => 1),
 	),
 	'NK Sale' => array(
 		'Leads' => array('index' => 1, 'CreateView' => 1, 'EditView' => 1, 'Delete' => 0, 'DetailView' => 1),
 		'SalesOrder' => array('index' => 1, 'CreateView' => 1, 'EditView' => 1),
 		'Warehouse' => array('index' => 1, 'CreateView' => 0),
 		'GoodsIssue' => array('CreateView' => 0),
-		'Products' => array('index' => 0, 'CreateView' => 0),
+	),
+	'NK KTT' => array(
+		'Leads' => array('index' => 0, 'CreateView' => 0),
+		'Invoice' => array('index' => 1, 'CreateView' => 1, 'EditView' => 1, 'Delete' => 1),
+		'GoodsIssue' => array('CreateView' => 0),
 	),
 	'NK Ke toan' => array(
 		'Leads' => array('index' => 0, 'CreateView' => 0),
-		'SalesOrder' => array('index' => 0, 'CreateView' => 0),
+		'Invoice' => array('index' => 1, 'CreateView' => 1, 'EditView' => 1),
 		'Warehouse' => array('index' => 1, 'CreateView' => 0),
 		'GoodsIssue' => array('CreateView' => 0),
-		'Products' => array('index' => 1, 'CreateView' => 1),
 	),
-	'NK Kho' => array(
+	'NK Cung ung' => array(
 		'Leads' => array('index' => 0),
 		'SalesOrder' => array('index' => 1, 'CreateView' => 0, 'EditView' => 0, 'DetailView' => 1),
 		'Warehouse' => array('index' => 1, 'CreateView' => 1, 'EditView' => 1),
 		'GoodsIssue' => array('index' => 1, 'CreateView' => 1),
+		'PurchaseOrder' => array('CreateView' => 1),
+	),
+	'NK Kho' => array(
+		'Leads' => array('index' => 0),
+		'SalesOrder' => array('index' => 0, 'CreateView' => 0),
+		'Warehouse' => array('index' => 1, 'CreateView' => 1, 'EditView' => 1),
+		'GoodsIssue' => array('index' => 1, 'CreateView' => 1),
 		'GoodsReceipt' => array('CreateView' => 1),
-		'Products' => array('index' => 1, 'CreateView' => 1),
 	),
 );
 
@@ -55,7 +63,6 @@ $actionMap = array();
 $r = $adb->pquery('SELECT actionid, actionname FROM vtiger_actionmapping WHERE actionname IN (?,?,?,?,?,?)',
 	array('Save', 'EditView', 'Delete', 'index', 'DetailView', 'CreateView'));
 for ($i = 0; $i < $adb->num_rows($r); $i++) {
-	// Prefer first mapping for standard names (some actionids collide with aliases)
 	$name = $adb->query_result($r, $i, 'actionname');
 	$id = (int) $adb->query_result($r, $i, 'actionid');
 	if (!isset($actionMap[$name])) {
@@ -85,7 +92,7 @@ function is_allowed_action($profileId, $tabId, $operation) {
 	return (int) $adb->query_result($std, 0, 'permissions') === 0;
 }
 
-echo "=== Smoke Test RBAC Matrix ===\n";
+echo "=== Smoke Test RBAC (phòng ban) ===\n";
 $fail = 0;
 $pass = 0;
 
@@ -119,9 +126,8 @@ foreach ($EXPECT as $profileName => $mods) {
 	}
 }
 
-// ConvertLead for Sale / Supervisor
 echo "\n[ConvertLead utility]\n";
-foreach (array('NK Supervisor' => 0, 'NK Sale' => 0, 'NK Ke toan' => 1, 'NK Kho' => 1) as $pn => $expectDeny) {
+foreach (array('NK Sale Manager' => 0, 'NK Sale' => 0, 'NK Ke toan' => 1, 'NK Kho' => 1) as $pn => $expectDeny) {
 	$pid = profile_id($pn);
 	$tabId = getTabid('Leads');
 	$u = $adb->pquery('SELECT permission FROM vtiger_profile2utility WHERE profileid=? AND tabid=? AND activityid=9', array($pid, $tabId));
@@ -136,9 +142,8 @@ foreach (array('NK Supervisor' => 0, 'NK Sale' => 0, 'NK Ke toan' => 1, 'NK Kho'
 	}
 }
 
-// Roles present
 echo "\n[Roles]\n";
-foreach (array('Admin', 'Supervisor', 'Sale', 'Ke toan', 'Kho', 'CEO') as $rn) {
+foreach (array('CEO', 'Expert', 'Assistant', 'Sale Manager', 'Sale', 'KTT', 'Ke toan', 'Cung ung', 'Kho') as $rn) {
 	$rr = $adb->pquery('SELECT roleid FROM vtiger_role WHERE rolename=?', array($rn));
 	if ($adb->num_rows($rr)) {
 		$pass++;
@@ -149,17 +154,19 @@ foreach (array('Admin', 'Supervisor', 'Sale', 'Ke toan', 'Kho', 'CEO') as $rn) {
 	}
 }
 
-// Persona resolver
 echo "\n[Persona resolver]\n";
 $cases = array(
-	'Admin' => 'admin',
-	'Supervisor' => 'supervisor',
-	'Sale' => 'sale',
-	'Ke toan' => 'accountant',
-	'Kế toán' => 'accountant',
-	'Kho' => 'warehouse',
-	'CEO' => 'ceo',
-	'Sales Person' => 'sale',
+	'CEO' => Home_RbacMatrix_Helper::PERSONA_CEO,
+	'Expert' => Home_RbacMatrix_Helper::PERSONA_BGD,
+	'Assistant' => Home_RbacMatrix_Helper::PERSONA_BGD,
+	'Sale Manager' => Home_RbacMatrix_Helper::PERSONA_SALE_MANAGER,
+	'Sale' => Home_RbacMatrix_Helper::PERSONA_SALE,
+	'Sales Person' => Home_RbacMatrix_Helper::PERSONA_SALE,
+	'KTT' => Home_RbacMatrix_Helper::PERSONA_CHIEF_ACCOUNTANT,
+	'Ke toan' => Home_RbacMatrix_Helper::PERSONA_ACCOUNTANT,
+	'Kế toán' => Home_RbacMatrix_Helper::PERSONA_ACCOUNTANT,
+	'Cung ung' => Home_RbacMatrix_Helper::PERSONA_SUPPLY,
+	'Kho' => Home_RbacMatrix_Helper::PERSONA_WAREHOUSE,
 );
 foreach ($cases as $role => $expect) {
 	$got = Home_RbacMatrix_Helper::personaFromRoleName($role);
@@ -170,6 +177,24 @@ foreach ($cases as $role => $expect) {
 		$fail++;
 		echo "  FAIL $role => $got (expected $expect)\n";
 	}
+}
+
+echo "\n[SharingAccess menu hidden]\n";
+$sf = $adb->pquery(
+	"SELECT active FROM vtiger_settings_field WHERE name = ? OR linkto LIKE ? LIMIT 1",
+	array('LBL_SHARING_ACCESS', '%module=SharingAccess%')
+);
+if ($adb->num_rows($sf)) {
+	$active = (int) $adb->query_result($sf, 0, 'active');
+	if ($active === 1) {
+		$pass++;
+		echo "  OK  SharingAccess active=1 (hidden)\n";
+	} else {
+		$fail++;
+		echo "  FAIL SharingAccess still visible (active=$active)\n";
+	}
+} else {
+	echo "  SKIP settings field not found\n";
 }
 
 echo "\n=== Result: $pass passed, $fail failed ===\n";
