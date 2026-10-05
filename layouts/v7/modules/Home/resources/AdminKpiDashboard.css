@@ -1447,6 +1447,10 @@ button.mk-admin-kpi-stage-hit.mk-admin-kpi-stat-card.is-open {
 	gap: 8px;
 }
 
+.mk-nl-kpi.is-wrap {
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
 @media (max-width: 900px) {
 	.mk-nl-kpi {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1475,8 +1479,17 @@ button.mk-admin-kpi-stage-hit.mk-admin-kpi-stat-card.is-open {
 	align-items: stretch;
 }
 
+.mk-nl-cols.is-one {
+	grid-template-columns: 1fr;
+}
+
+.mk-nl-cols.is-two {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 @media (max-width: 960px) {
-	.mk-nl-cols {
+	.mk-nl-cols,
+	.mk-nl-cols.is-two {
 		grid-template-columns: 1fr;
 	}
 }
@@ -1544,6 +1557,23 @@ button.mk-admin-kpi-stage-hit.mk-admin-kpi-stat-card.is-open {
 	border-radius: 10px;
 	background: #f8fafc;
 	border: 1px solid transparent;
+	width: 100%;
+	text-align: left;
+	font: inherit;
+	color: inherit;
+	appearance: none;
+	-webkit-appearance: none;
+}
+
+button.mk-nl-row {
+	cursor: pointer;
+	background: #fff;
+}
+
+button.mk-nl-row:hover,
+button.mk-nl-row.is-open {
+	border-color: var(--col, #94a3b8);
+	background: #f8fafc;
 }
 
 .mk-nl-row.is-hot {

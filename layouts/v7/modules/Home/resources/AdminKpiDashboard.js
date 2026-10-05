@@ -586,7 +586,7 @@
 		var stages = data.stages || [];
 		var splits = data.splits || [];
 		var soon = data.soon || [];
-		if (!stages.length && !rates.length) {
+		if (!stages.length && !rates.length && !splits.length) {
 			return (
 				'<div class="mk-admin-kpi-empty-hud">' +
 				'<div class="mk-admin-kpi-empty-hud__glow"></div>' +
@@ -595,38 +595,267 @@
 				renderSoon(soon)
 			);
 		}
-		var donutItems = stages.filter(function (s) {
-			return Number(s.count) > 0 && String((s.drill && s.drill.key) || '').indexOf(':all') < 0;
+		var heroRates = rates.slice(0, 4);
+		var extraRates = rates.slice(4);
+		var donut = [];
+		var statusOpen = [];
+		var statusZero = [];
+		var statusTotal = 0;
+		var colColors = ['#2563eb', '#0f766e', '#b45309', '#7c3aed', '#0891b2', '#e11d48'];
+		stages.forEach(function (item, i) {
+			var key = String((item.drill && item.drill.key) || '');
+			var count = Number(item.count) || 0;
+			if (key.indexOf(':all') >= 0) {
+				statusTotal = count;
+				return;
+			}
+			var row = stageItemToHudRow(item, i);
+			if (count > 0) {
+				statusOpen.push(row);
+				donut.push({ label: item.label, count: count, color: item.color || colColors[donut.length % colColors.length] });
+			} else {
+				statusZero.push(item.label || row.code);
+			}
 		});
-		var html = '<div class="mk-admin-kpi-board" data-board-zone="' + escapeHtml(zone) + '">';
-		var idx = 0;
-		if (rates.length) {
-			html += '<div class="mk-admin-kpi-rate-row">';
-			rates.forEach(function (item) {
-				html += stageHit(item, zone, idx++);
+		statusOpen.sort(function (a, b) {
+			return (Number(b.count) || 0) - (Number(a.count) || 0);
+		});
+		if (!statusTotal) {
+			statusOpen.forEach(function (r) {
+				statusTotal += Number(r.count) || 0;
+			});
+		}
+		var groups = [];
+		if (statusOpen.length || statusZero.length) {
+			groups.push({
+				key: 'TT',
+				title: 'Trạng thái',
+				total: statusTotal,
+				color: '#2563eb',
+				open: statusOpen,
+				zero_count: statusZero.length,
+				zero_codes: statusZero,
+				empty_text: 'Chưa có trạng thái',
+			});
+		}
+		if (extraRates.length) {
+			groups.push({
+				key: '%',
+				title: 'Thêm tỷ lệ',
+				total: extraRates.length,
+				color: '#047857',
+				open: extraRates.map(function (item, i) {
+					return stageItemToHudRow(item, i);
+				}),
+				zero_count: 0,
+				zero_codes: [],
+				empty_text: '',
+				total_label: 'chỉ số',
+			});
+		}
+		splits.forEach(function (sp, si) {
+			var open = [];
+			var zero = [];
+			(sp.items || []).forEach(function (item, i) {
+				var count = Number(item.count) || 0;
+				var val = item.value != null ? String(item.value) : '';
+				var emptyVal = !count && (val === '' || val === '0' || val === '0%');
+				var row = stageItemToHudRow(item, i);
+				if (!emptyVal) {
+					open.push(row);
+				} else {
+					zero.push(item.label || row.code);
+				}
+			});
+			open.sort(function (a, b) {
+				return (Number(b.count) || 0) - (Number(a.count) || 0);
+			});
+			var sum = 0;
+			open.forEach(function (r) {
+				sum += Number(r.count) || 0;
+			});
+			groups.push({
+				key: String(si + 1),
+				title: sp.title || 'Nhóm',
+				total: sum,
+				color: colColors[(si + 1) % colColors.length],
+				open: open,
+				zero_count: zero.length,
+				zero_codes: zero,
+				empty_text: 'Chưa có dữ liệu',
+			});
+		});
+		return renderHudBoard({
+			zone: zone,
+			rates: heroRates,
+			donut: donut,
+			groups: groups,
+			footerHtml: renderSoon(soon),
+		});
+	}
+
+	function stageItemToHudRow(item, index) {
+		item = item || {};
+		var label = String(item.label || '');
+		var key = String((item.drill && item.drill.key) || '');
+		var code = '';
+		var m = label.match(/\b([A-Z]{1,4}\d{1,3})\b/);
+		if (m) {
+			code = m[1];
+		} else {
+			var parts = key.split(':');
+			var last = parts.length ? parts[parts.length - 1] : '';
+			if (last && last !== 'all' && last.length <= 18) {
+				code = last.replace(/^gd1[124]_?/i, '').replace(/_/g, ' ').slice(0, 10);
+			}
+			if (!code) {
+				code = String(index + 1);
+			}
+		}
+		var display = item.value != null ? String(item.value) : num(item.count);
+		return {
+			code: code,
+			label: label,
+			count: Number(item.count) || 0,
+			display: display,
+			color: item.color || '',
+			drill: item.drill || null,
+			nodrill: !!item.nodrill || !item.drill,
+		};
+	}
+
+	function renderHudRow(row, zone, fallbackColor) {
+		row = row || {};
+		var color = row.color || fallbackColor || '#0f172a';
+		var body =
+			'<span class="mk-nl-row__code">' +
+			escapeHtml(row.code || '') +
+			'</span><span class="mk-nl-row__label">' +
+			safeLabel(row.label) +
+			'</span><strong style="color:' +
+			escapeHtml(color) +
+			'">' +
+			escapeHtml(row.display != null ? String(row.display) : num(row.count)) +
+			'</strong>';
+		if (row.nodrill || !row.drill || !zone) {
+			return '<div class="mk-nl-row is-hot">' + body + '</div>';
+		}
+		return (
+			'<button type="button" class="mk-nl-row is-hot mk-admin-kpi-stage-hit" data-drill-zone="' +
+			escapeHtml(zone) +
+			'" data-drill-type="' +
+			escapeHtml(row.drill.type || 'stage_people') +
+			'" data-drill-key="' +
+			escapeHtml(row.drill.key || '') +
+			'">' +
+			body +
+			'</button>'
+		);
+	}
+
+	function renderHudBoard(opts) {
+		opts = opts || {};
+		var zone = opts.zone || '';
+		var rates = opts.rates || [];
+		var groups = opts.groups || [];
+		var donut = opts.donut || [];
+		var ql = opts.ql || null;
+		var html = '<div class="mk-nl-board" data-board-zone="' + escapeHtml(zone) + '">';
+		html += '<div class="mk-nl-hero">';
+		html += '<div class="mk-nl-kpi' + (rates.length > 4 ? ' is-wrap' : '') + '">';
+		rates.forEach(function (item, i) {
+			html += stageHit(item, zone, i);
+		});
+		html += '</div>';
+		if (donut.some(function (d) { return Number(d.count) > 0; })) {
+			html +=
+				'<div class="mk-nl-donut">' +
+				renderDonut(donut, ['#2563eb', '#0f766e', '#b45309', '#7c3aed', '#0891b2', '#e11d48']) +
+				'</div>';
+		}
+		html += '</div>';
+		if (groups.length) {
+			html += '<div class="mk-nl-cols' + (groups.length === 1 ? ' is-one' : groups.length === 2 ? ' is-two' : '') + '">';
+			groups.forEach(function (g) {
+				var totalLabel = g.total_label || 'mục';
+				html += '<section class="mk-nl-col" style="--col:' + escapeHtml(g.color || '#64748b') + '">';
+				html +=
+					'<header class="mk-nl-col__head"><span class="mk-nl-col__key">' +
+					escapeHtml(g.key || '') +
+					'</span><div><strong>' +
+					safeLabel(g.title) +
+					'</strong><em>' +
+					num(g.total) +
+					' ' +
+					escapeHtml(totalLabel) +
+					'</em></div></header>';
+				html += '<div class="mk-nl-col__body">';
+				var open = g.open || [];
+				if (!open.length) {
+					html += '<p class="mk-nl-empty">' + safeLabel(g.empty_text || 'Không có dữ liệu') + '</p>';
+				} else {
+					open.forEach(function (row) {
+						html += renderHudRow(row, zone, g.color);
+					});
+				}
+				if (Number(g.zero_count) > 0) {
+					var zeros = g.zero_codes || [];
+					html +=
+						'<div class="mk-nl-zero" title="' +
+						escapeHtml(zeros.join(', ')) +
+						'">+' +
+						num(g.zero_count) +
+						' mục = 0' +
+						(zeros.length
+							? ' · ' +
+							  escapeHtml(
+									zeros
+										.slice(0, 5)
+										.map(function (z) {
+											return String(z).slice(0, 24);
+										})
+										.join(', ')
+							  ) +
+							  (zeros.length > 5 ? '…' : '')
+							: '') +
+						'</div>';
+				}
+				html += '</div></section>';
 			});
 			html += '</div>';
 		}
-		// Chỉ hiện donut khi có trạng thái > 0 — tránh cột trái trống
-		var showDonut = donutItems.length > 0 && donutItems.length <= 14;
-		html += '<div class="mk-admin-kpi-offline-grid' + (showDonut ? '' : ' is-full') + '">';
-		if (showDonut) {
-			html += renderDonut(donutItems, OFFLINE_COLORS);
-		}
-		html += '<div class="mk-admin-kpi-offline-stats">';
-		stages.forEach(function (item) {
-			html += stageHit(item, zone, idx++);
-		});
-		html += '</div></div>';
-		splits.forEach(function (group) {
-			html += '<h3 class="mk-admin-kpi-split-title">' + safeLabel(group.title) + '</h3>';
-			html += '<div class="mk-admin-kpi-offline-stats">';
-			(group.items || []).forEach(function (item) {
-				html += stageHit(item, zone, idx++);
+		if (ql) {
+			html += '<section class="mk-nl-ql">';
+			html += '<h3 class="mk-nl-ql__title">' + safeLabel(ql.title || 'QL') + '</h3>';
+			html += '<div class="mk-nl-ql__grid">';
+			(ql.hot || []).forEach(function (row) {
+				html +=
+					'<div class="mk-nl-ql__item is-hot"><span>' +
+					escapeHtml(row.code || '') +
+					' — ' +
+					safeLabel(row.label) +
+					'</span><strong style="color:' +
+					escapeHtml(row.color || '#b45309') +
+					'">' +
+					num(row.count) +
+					'</strong></div>';
 			});
 			html += '</div>';
-		});
-		html += renderSoon(soon);
+			if ((ql.cold || []).length) {
+				html +=
+					'<p class="mk-nl-ql__cold">Theo dõi (chưa có số): ' +
+					(ql.cold || [])
+						.map(function (r) {
+							return escapeHtml(r.code);
+						})
+						.join(', ') +
+					'</p>';
+			}
+			html += '</section>';
+		}
+		if (opts.footerHtml) {
+			html += opts.footerHtml;
+		}
 		html += '</div>';
 		return html;
 	}
@@ -735,95 +964,34 @@
 		if (data.layout !== 'materials') {
 			return renderStageBoard(data, 'nl');
 		}
-		var rates = data.rates || [];
-		var groups = data.groups || [];
-		var donut = data.donut || [];
-		var ql = data.ql || {};
-		var html = '<div class="mk-nl-board">';
-		html += '<div class="mk-nl-hero">';
-		html += '<div class="mk-nl-kpi">';
-		rates.forEach(function (item, i) {
-			html += stageHit(item, 'nl', i);
+		return renderHudBoard({
+			zone: 'nl',
+			rates: data.rates || [],
+			donut: data.donut || [],
+			groups: (data.groups || []).map(function (g) {
+				return {
+					key: g.key,
+					title: g.title,
+					total: g.total,
+					color: g.color,
+					open: (g.open || []).map(function (row) {
+						return {
+							code: row.code,
+							label: row.label,
+							count: row.count,
+							display: num(row.count),
+							color: row.color || g.color,
+							nodrill: true,
+						};
+					}),
+					zero_count: g.zero_count,
+					zero_codes: g.zero_codes,
+					empty_text: 'Không có việc mở',
+					total_label: 'việc',
+				};
+			}),
+			ql: data.ql || null,
 		});
-		html += '</div>';
-		if (donut.some(function (d) { return Number(d.count) > 0; })) {
-			html += '<div class="mk-nl-donut">' + renderDonut(donut, ['#2563eb', '#b45309', '#0f766e']) + '</div>';
-		}
-		html += '</div>';
-		html += '<div class="mk-nl-cols">';
-		groups.forEach(function (g) {
-			html += '<section class="mk-nl-col" style="--col:' + escapeHtml(g.color || '#64748b') + '">';
-			html +=
-				'<header class="mk-nl-col__head"><span class="mk-nl-col__key">' +
-				escapeHtml(g.key || '') +
-				'</span><div><strong>' +
-				safeLabel(g.title) +
-				'</strong><em>' +
-				num(g.total) +
-				' việc</em></div></header>';
-			html += '<div class="mk-nl-col__body">';
-			var open = g.open || [];
-			if (!open.length) {
-				html += '<p class="mk-nl-empty">Không có việc mở</p>';
-			} else {
-				open.forEach(function (row) {
-					html +=
-						'<div class="mk-nl-row is-hot">' +
-						'<span class="mk-nl-row__code">' +
-						escapeHtml(row.code || '') +
-						'</span>' +
-						'<span class="mk-nl-row__label">' +
-						safeLabel(row.label) +
-						'</span>' +
-						'<strong style="color:' +
-						escapeHtml(row.color || g.color || '#0f172a') +
-						'">' +
-						num(row.count) +
-						'</strong></div>';
-				});
-			}
-			if (Number(g.zero_count) > 0) {
-				html +=
-					'<div class="mk-nl-zero" title="' +
-					escapeHtml((g.zero_codes || []).join(', ')) +
-					'">+' +
-					num(g.zero_count) +
-					' mã = 0 · ' +
-					escapeHtml((g.zero_codes || []).slice(0, 6).join(', ')) +
-					(g.zero_codes && g.zero_codes.length > 6 ? '…' : '') +
-					'</div>';
-			}
-			html += '</div></section>';
-		});
-		html += '</div>';
-		html += '<section class="mk-nl-ql">';
-		html += '<h3 class="mk-nl-ql__title">' + safeLabel(ql.title || 'QL') + '</h3>';
-		html += '<div class="mk-nl-ql__grid">';
-		(ql.hot || []).forEach(function (row) {
-			html +=
-				'<div class="mk-nl-ql__item is-hot"><span>' +
-				escapeHtml(row.code) +
-				' — ' +
-				safeLabel(row.label) +
-				'</span><strong style="color:' +
-				escapeHtml(row.color || '#b45309') +
-				'">' +
-				num(row.count) +
-				'</strong></div>';
-		});
-		html += '</div>';
-		if ((ql.cold || []).length) {
-			html +=
-				'<p class="mk-nl-ql__cold">Theo dõi (chưa có số): ' +
-				(ql.cold || [])
-					.map(function (r) {
-						return escapeHtml(r.code);
-					})
-					.join(', ') +
-				'</p>';
-		}
-		html += '</section></div>';
-		return html;
 	}
 
 	function renderFunnel($root, funnel) {
