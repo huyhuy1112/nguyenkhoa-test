@@ -87,7 +87,18 @@
 		},
 	};
 
-	var DEFAULT_SETTINGS = { wh_allow_negative_stock: 1, wh_expiry_warn_days: 90 };
+	var DEFAULT_SETTINGS = {
+		wh_allow_negative_stock: 1,
+		wh_expiry_warn_days: 90,
+		wh_slow_window_days: 30,
+		wh_doi_threshold: 60,
+		wh_dsi_threshold: 30,
+		wh_age_max: 90,
+		wh_risk_w1: 0.35,
+		wh_risk_w2: 0.3,
+		wh_risk_w3: 0.2,
+		wh_risk_w4: 0.15,
+	};
 	var STOCKOUT_SOON_DAYS = 14;
 	var state = { warehouses: SEED_WH.slice(), transfers: [], data: JSON.parse(JSON.stringify(SEED_DATA)), settings: Object.assign({}, DEFAULT_SETTINGS) };
 	var hydrated = false;

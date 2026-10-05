@@ -170,6 +170,16 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					));
 					break;
 
+				case 'get_slow_moving':
+					$whId = trim((string) $request->get('whId'));
+					if ($whId === '') {
+						$whId = trim((string) $request->get('id'));
+					}
+					$minRisk = $request->has('minRisk') ? (float) $request->get('minRisk') : 0.0;
+					$report = Warehouse_WhMgmtService::getSlowMovingReport($whId, $minRisk);
+					$response->setResult(array_merge(array('success' => true), $report));
+					break;
+
 				case 'set_settings':
 					require_once 'modules/Warehouse/helpers/SettingsHelper.php';
 					global $current_user;
@@ -187,7 +197,19 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					} else if ($request->has('wh_expiry_warn_days')) {
 						$expiryDays = $request->get('wh_expiry_warn_days');
 					}
-					if ($allow === null && $expiryDays === null) {
+					$slowKeys = array(
+						'wh_slow_window_days', 'wh_doi_threshold', 'wh_dsi_threshold', 'wh_age_max',
+						'wh_risk_w1', 'wh_risk_w2', 'wh_risk_w3', 'wh_risk_w4',
+					);
+					$slowPartial = array();
+					foreach ($slowKeys as $sk) {
+						if (array_key_exists($sk, $payload)) {
+							$slowPartial[$sk] = $payload[$sk];
+						} else if ($request->has($sk)) {
+							$slowPartial[$sk] = $request->get($sk);
+						}
+					}
+					if ($allow === null && $expiryDays === null && empty($slowPartial)) {
 						throw new Exception('Thiếu cấu hình kho.');
 					}
 					if ($allow !== null) {
@@ -197,6 +219,9 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					}
 					if ($expiryDays !== null && $expiryDays !== '') {
 						Warehouse_Settings_Helper::setExpiryWarnDays((int) $expiryDays, $userId);
+					}
+					if (!empty($slowPartial)) {
+						Warehouse_Settings_Helper::setSlowMovingConfig($slowPartial, $userId);
 					}
 					$response->setResult(array(
 						'success' => true,

@@ -602,10 +602,31 @@ class Warehouse_WhMgmtService {
 
 	public static function publicSettings() {
 		require_once 'modules/Warehouse/helpers/SettingsHelper.php';
+		$slow = Warehouse_Settings_Helper::slowMovingConfig();
 		return array(
 			'wh_allow_negative_stock' => Warehouse_Settings_Helper::allowNegativeStock() ? 1 : 0,
 			'wh_expiry_warn_days' => Warehouse_Settings_Helper::expiryWarnDays(),
+			'wh_slow_window_days' => (int) $slow['window_days'],
+			'wh_doi_threshold' => (float) $slow['doi_threshold'],
+			'wh_dsi_threshold' => (float) $slow['dsi_threshold'],
+			'wh_age_max' => (float) $slow['age_max'],
+			'wh_risk_w1' => (float) $slow['w1'],
+			'wh_risk_w2' => (float) $slow['w2'],
+			'wh_risk_w3' => (float) $slow['w3'],
+			'wh_risk_w4' => (float) $slow['w4'],
 		);
+	}
+
+	/**
+	 * Slow-moving inventory report (DOI/DSI/Age/Risk).
+	 * @param string $warehouseId
+	 * @param float $minRisk
+	 * @return array
+	 */
+	public static function getSlowMovingReport($warehouseId = '', $minRisk = 0.0) {
+		require_once 'modules/Warehouse/helpers/SlowMovingHelper.php';
+		self::ensureInstalled();
+		return Warehouse_SlowMoving_Helper::compute($warehouseId, $minRisk);
 	}
 
 	public static function listWarehouses(PearDatabase $db = null) {

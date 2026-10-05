@@ -473,9 +473,33 @@
 	function bindDashboardSettings() {
 		var $cb = jQuery('#mkWhAllowNegativeStock');
 		var $days = jQuery('#mkWhExpiryWarnDays');
+		var $win = jQuery('#mkWhSlowWindowDays');
+		var $doi = jQuery('#mkWhDoiThreshold');
+		var $dsi = jQuery('#mkWhDsiThreshold');
+		var $age = jQuery('#mkWhAgeMax');
 		var $st = jQuery('#mkWhSettingsStatus');
-		if (!$cb.length && !$days.length) {
+		if (!$cb.length && !$days.length && !$win.length) {
 			return;
+		}
+		function applySettingsToForm(settings) {
+			if ($cb.length && settings.wh_allow_negative_stock !== undefined) {
+				$cb.prop('checked', Number(settings.wh_allow_negative_stock) === 1);
+			}
+			if ($days.length && settings.wh_expiry_warn_days) {
+				$days.val(Number(settings.wh_expiry_warn_days));
+			}
+			if ($win.length && settings.wh_slow_window_days) {
+				$win.val(Number(settings.wh_slow_window_days));
+			}
+			if ($doi.length && settings.wh_doi_threshold) {
+				$doi.val(Number(settings.wh_doi_threshold));
+			}
+			if ($dsi.length && settings.wh_dsi_threshold) {
+				$dsi.val(Number(settings.wh_dsi_threshold));
+			}
+			if ($age.length && settings.wh_age_max) {
+				$age.val(Number(settings.wh_age_max));
+			}
 		}
 		function saveSettings(partial) {
 			$st.text('Đang lưu...');
@@ -483,26 +507,21 @@
 				payload: JSON.stringify(partial),
 			}).done(function (result) {
 				var settings = (result && result.settings) || {};
-				if ($cb.length && settings.wh_allow_negative_stock !== undefined) {
-					$cb.prop('checked', Number(settings.wh_allow_negative_stock) === 1);
-				}
-				if ($days.length && settings.wh_expiry_warn_days) {
-					$days.val(Number(settings.wh_expiry_warn_days));
-				}
+				applySettingsToForm(settings);
 				$st.text('Đã lưu.');
 				if (window.MkWarehouseStore && window.MkWarehouseStore.getState) {
 					var st = window.MkWarehouseStore.getState();
 					st.settings = Object.assign({}, st.settings || {}, settings);
 				}
 				renderDashboard();
+				loadSlowMoving();
 			}).fail(function (err) {
 				$st.text(String(err || 'Không lưu được.'));
 			});
 		}
 		whApi('get_settings').done(function (result) {
 			var settings = (result && result.settings) || {};
-			if ($cb.length) $cb.prop('checked', Number(settings.wh_allow_negative_stock) === 1);
-			if ($days.length) $days.val(Number(settings.wh_expiry_warn_days) || 90);
+			applySettingsToForm(settings);
 		}).fail(function () {
 			$st.text('Không tải được cấu hình.');
 		});
@@ -521,6 +540,98 @@
 			$days.val(n);
 			saveSettings({ wh_expiry_warn_days: n });
 		});
+		function bindSlowNum($el, key, minV, maxV, defV) {
+			if (!$el.length) return;
+			$el.off('change.mkWhSlow').on('change.mkWhSlow', function () {
+				var n = parseInt($el.val(), 10);
+				if (!isFinite(n) || n < minV) n = defV;
+				if (n > maxV) n = maxV;
+				$el.val(n);
+				var payload = {};
+				payload[key] = n;
+				saveSettings(payload);
+			});
+		}
+		bindSlowNum($win, 'wh_slow_window_days', 7, 365, 30);
+		bindSlowNum($doi, 'wh_doi_threshold', 1, 730, 60);
+		bindSlowNum($dsi, 'wh_dsi_threshold', 1, 730, 30);
+		bindSlowNum($age, 'wh_age_max', 1, 730, 90);
+
+		jQuery('#mkWhSlowOnlyAlert').off('change.mkWhSlowFilter').on('change.mkWhSlowFilter', function () {
+			renderSlowMovingTable();
+		});
+	}
+
+	var slowMovingCache = { items: [], summary: { alert_count: 0 } };
+
+	function riskBadge(level, label) {
+		var cls = 'mk-wh-proto-pill';
+		if (level === 'mild') cls += ' mk-wh-proto-pill--warn';
+		else if (level === 'warning') cls += ' mk-wh-proto-pill--warn';
+		else if (level === 'critical') cls += ' mk-wh-proto-pill--danger';
+		else cls += ' mk-wh-proto-pill--ok';
+		return '<span class="' + cls + '">' + escapeHtml(label || level || '—') + '</span>';
+	}
+
+	function loadSlowMoving() {
+		var tbody = qs('#mkWhSlowTableBody');
+		if (!tbody) return;
+		tbody.innerHTML = '<tr><td colspan="11" class="mk-wh-proto-muted">Đang tải…</td></tr>';
+		whApi('get_slow_moving', { minRisk: 0 }).done(function (result) {
+			slowMovingCache.items = (result && result.items) || [];
+			slowMovingCache.summary = (result && result.summary) || { alert_count: 0 };
+			renderSlowMovingTable();
+			renderDashboard();
+		}).fail(function (err) {
+			tbody.innerHTML = '<tr><td colspan="11" class="mk-wh-mgmt-empty">' +
+				escapeHtml(String(err || 'Không tải được cảnh báo tồn lâu ngày.')) + '</td></tr>';
+		});
+	}
+
+	function renderSlowMovingTable() {
+		var tbody = qs('#mkWhSlowTableBody');
+		if (!tbody) return;
+		var onlyAlert = jQuery('#mkWhSlowOnlyAlert').is(':checked');
+		var items = (slowMovingCache.items || []).filter(function (it) {
+			return !onlyAlert || Number(it.risk_score) >= 1.0;
+		});
+		if (!items.length) {
+			tbody.innerHTML = '<tr><td colspan="11" class="mk-wh-mgmt-empty">Không có dòng tồn lâu ngày theo bộ lọc hiện tại.</td></tr>';
+			return;
+		}
+		var rows = '';
+		items.forEach(function (it) {
+			var riskWarn = Number(it.risk_score) >= 1.5;
+			rows +=
+				'<tr>' +
+				'<td>' + escapeHtml(it.warehouse_id || '—') + '</td>' +
+				'<td><div class="mk-wh-mgmt-card__name">' + escapeHtml(it.product_name || '—') + '</div>' +
+				(it.sku ? '<div class="mk-wh-mgmt-card__code">' + escapeHtml(it.sku) + '</div>' : '') +
+				'</td>' +
+				'<td class="mk-wh-mgmt-td-right"><strong>' + Number(it.qty || 0).toLocaleString('vi-VN') + '</strong></td>' +
+				'<td class="mk-wh-mgmt-td-right">' + Number(it.avg_sales || 0).toLocaleString('vi-VN', { maximumFractionDigits: 3 }) + '</td>' +
+				'<td class="mk-wh-mgmt-td-right">' + (it.doi == null ? '—' : Number(it.doi).toLocaleString('vi-VN')) + '</td>' +
+				'<td class="mk-wh-mgmt-td-right">' + (it.dsi == null ? '—' : it.dsi) + '</td>' +
+				'<td class="mk-wh-mgmt-td-right">' + (it.age == null ? '—' : it.age) + '</td>' +
+				'<td class="mk-wh-mgmt-td-right">' + Number(it.value || 0).toLocaleString('vi-VN') + '</td>' +
+				'<td class="mk-wh-mgmt-td-right' + (riskWarn ? ' mk-wh-mgmt-warn' : '') + '"><strong>' +
+				Number(it.risk_score || 0).toLocaleString('vi-VN', { maximumFractionDigits: 3 }) +
+				'</strong></td>' +
+				'<td>' + riskBadge(it.risk_level, it.risk_label) + '</td>' +
+				'<td>' + escapeHtml(it.action_hint || '—') + '</td>' +
+				'</tr>';
+		});
+		tbody.innerHTML = rows;
+	}
+
+	function slowCountForWarehouse(whId) {
+		var n = 0;
+		(slowMovingCache.items || []).forEach(function (it) {
+			if (String(it.warehouse_id) === String(whId) && Number(it.risk_score) >= 1.0) {
+				n += 1;
+			}
+		});
+		return n;
 	}
 
 	function renderDashboard() {
@@ -529,17 +640,20 @@
 		if (!kpiEl || !tbody) return;
 
 		var summary = S.computeSummary();
+		var slowAlert = (slowMovingCache.summary && slowMovingCache.summary.alert_count) || 0;
 		kpiEl.innerHTML =
 			kpiCard(ICON.warehouse, 'Tổng số kho', summary.perWh.length, false) +
 			kpiCard(ICON.boxes, 'Tổng tồn kho', summary.totalStock.toLocaleString('vi-VN'), false) +
 			kpiCard(ICON.clock, 'Chờ QC', summary.pendingQC, false) +
 			kpiCard(ICON.file, 'Xuất chờ duyệt', summary.pendingExport, false) +
 			kpiCard(ICON.alert, 'Lô sắp hết hạn', summary.expiring, summary.expiring > 0) +
-			kpiCard(ICON.alert, 'Dự kiến hết hàng', summary.stockoutSoon || 0, (summary.stockoutSoon || 0) > 0);
+			kpiCard(ICON.alert, 'Dự kiến hết hàng', summary.stockoutSoon || 0, (summary.stockoutSoon || 0) > 0) +
+			kpiCard(ICON.alert, 'Tồn lâu ngày', slowAlert, slowAlert > 0);
 
 		var rows = '';
 		summary.perWh.forEach(function (item) {
 			var w = item.w;
+			var slowN = slowCountForWarehouse(w.id);
 			rows +=
 				'<tr>' +
 				'<td><div class="mk-wh-mgmt-card__name">' + escText(w.name) + '</div>' +
@@ -551,11 +665,12 @@
 				'<td class="mk-wh-mgmt-td-right">' + item.pEx + '</td>' +
 				'<td class="mk-wh-mgmt-td-right' + (item.exp > 0 ? ' mk-wh-mgmt-warn' : '') + '">' + item.exp + '</td>' +
 				'<td class="mk-wh-mgmt-td-right' + ((item.stockoutSoon || 0) > 0 ? ' mk-wh-mgmt-warn' : '') + '">' + (item.stockoutSoon || 0) + '</td>' +
+				'<td class="mk-wh-mgmt-td-right' + (slowN > 0 ? ' mk-wh-mgmt-warn' : '') + '">' + slowN + '</td>' +
 				'<td>' + statusBadge(w.status) + '</td>' +
 				'<td class="mk-wh-mgmt-td-right"><a class="mk-wh-mgmt-link" href="' + detailUrl(w.id) + '">Vào kho →</a></td>' +
 				'</tr>';
 		});
-		tbody.innerHTML = rows || '<tr><td colspan="10" class="mk-wh-mgmt-empty">Chưa có dữ liệu.</td></tr>';
+		tbody.innerHTML = rows || '<tr><td colspan="11" class="mk-wh-mgmt-empty">Chưa có dữ liệu.</td></tr>';
 	}
 
 	function kpiCard(iconSvg, label, value, warn) {
@@ -1408,6 +1523,7 @@
 		} else if (view === 'WhDashboard') {
 			renderDashboard();
 			bindDashboardSettings();
+			loadSlowMoving();
 			S.subscribe(renderDashboard);
 		} else if (view === 'WhDetail') {
 			bindDetailEvents();
