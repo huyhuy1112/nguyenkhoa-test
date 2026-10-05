@@ -847,25 +847,67 @@ class Leads_SheetImportService {
 
 	/**
 	 * Connectivity check (no lead import). Used by Settings → Tích hợp hệ thống.
-	 * @param int|null $sourceId optional specific source
+	 * @param int|null $sourceId optional specific source; null = nguồn đầu / primary
 	 * @return array
 	 */
 	public static function testConnection($sourceId = null) {
 		$settings = self::getSettings();
+		$saEmail = '';
+		try {
+			if (trim((string) $settings['service_account_json']) !== '') {
+				$creds = self::loadServiceAccount($settings['service_account_json']);
+				$saEmail = isset($creds['client_email']) ? (string) $creds['client_email'] : '';
+			}
+		} catch (Exception $e) {
+			$err = self::humanizeSheetError($e->getMessage(), null, '');
+			return array(
+				'success' => false,
+				'error' => $err,
+				'error_code' => 'service_account',
+				'message' => $err,
+			);
+		}
 		if (trim((string) $settings['service_account_json']) === '') {
-			return array('success' => false, 'error' => 'Chưa có Service Account JSON.');
+			$err = 'Chưa có Service Account JSON. Vào Tích hợp hệ thống → Google Sheet → Nâng cao, dán JSON (có client_email + private_key), rồi Lưu.';
+			return array(
+				'success' => false,
+				'error' => $err,
+				'error_code' => 'missing_sa',
+				'message' => $err,
+			);
 		}
 		$source = null;
 		if ($sourceId !== null && (int) $sourceId > 0) {
 			$source = self::getSource((int) $sourceId);
 			if (!$source) {
-				return array('success' => false, 'error' => 'Không tìm thấy nguồn #' . (int) $sourceId);
+				$err = 'Không tìm thấy nguồn Google Sheet #' . (int) $sourceId . '.';
+				return array(
+					'success' => false,
+					'error' => $err,
+					'error_code' => 'source_not_found',
+					'source_id' => (int) $sourceId,
+					'message' => $err,
+				);
 			}
 		} else {
 			$source = self::getPrimarySource();
 		}
-		if (!$source || $source['spreadsheet_id'] === '') {
-			return array('success' => false, 'error' => 'Thiếu Spreadsheet ID / link.');
+		$label = ($source && !empty($source['name']))
+			? (string) $source['name']
+			: (($source && !empty($source['id'])) ? ('#' . $source['id']) : 'nguồn mặc định');
+		if (!$source || trim((string) $source['spreadsheet_id']) === '') {
+			$err = 'Nguồn "' . $label . '" thiếu Spreadsheet ID / link Google Sheet.';
+			if ($source && !empty($source['id'])) {
+				self::updateSourcePollMeta((int) $source['id'], $err, 'test_fail');
+			}
+			return array(
+				'success' => false,
+				'error' => $err,
+				'error_code' => 'missing_spreadsheet',
+				'source_id' => $source ? (int) $source['id'] : 0,
+				'source_name' => $label,
+				'message' => $err,
+			);
 		}
 		try {
 			$rows = self::fetchSheetValues(
@@ -874,16 +916,133 @@ class Leads_SheetImportService {
 				$settings['service_account_json']
 			);
 			$n = is_array($rows) ? count($rows) : 0;
-			$label = !empty($source['name']) ? $source['name'] : ('#' . $source['id']);
+			$msg = 'Kết nối "' . $label . '" thành công. Đọc được ' . $n . ' dòng (gồm header)'
+				. ' · sheet_range=' . $source['sheet_range']
+				. ($saEmail !== '' ? (' · SA=' . $saEmail) : '');
+			if (!empty($source['id'])) {
+				self::updateSourcePollMeta((int) $source['id'], '', 'test_ok:' . $n . ' rows');
+			}
 			return array(
 				'success' => true,
-				'message' => 'Kết nối "' . $label . '" thành công. Đọc được ' . $n . ' dòng (gồm header).',
+				'message' => $msg,
 				'rows' => $n,
 				'source_id' => (int) $source['id'],
+				'source_name' => $label,
+				'spreadsheet_id' => (string) $source['spreadsheet_id'],
+				'sheet_range' => (string) $source['sheet_range'],
+				'service_account_email' => $saEmail,
 			);
 		} catch (Exception $e) {
-			return array('success' => false, 'error' => $e->getMessage());
+			$err = self::humanizeSheetError($e->getMessage(), $source, $saEmail);
+			if (!empty($source['id'])) {
+				self::updateSourcePollMeta((int) $source['id'], $err, 'test_fail');
+			}
+			return array(
+				'success' => false,
+				'error' => $err,
+				'error_code' => 'google_api',
+				'source_id' => (int) $source['id'],
+				'source_name' => $label,
+				'spreadsheet_id' => (string) $source['spreadsheet_id'],
+				'sheet_range' => (string) $source['sheet_range'],
+				'service_account_email' => $saEmail,
+				'raw_error' => $e->getMessage(),
+				'message' => $err,
+			);
 		}
+	}
+
+	/**
+	 * Test lần lượt mọi nguồn đã cấu hình (kể cả đang tắt) — báo cáo từng cái.
+	 * @return array
+	 */
+	public static function testAllConnections() {
+		$sources = self::listSources();
+		if (empty($sources)) {
+			$one = self::testConnection(null);
+			$one['results'] = array($one);
+			$one['tested'] = 1;
+			$one['passed'] = !empty($one['success']) ? 1 : 0;
+			$one['failed'] = !empty($one['success']) ? 0 : 1;
+			return $one;
+		}
+		$results = array();
+		$passed = 0;
+		$failed = 0;
+		foreach ($sources as $src) {
+			$r = self::testConnection((int) $src['id']);
+			$results[] = $r;
+			if (!empty($r['success'])) {
+				$passed++;
+			} else {
+				$failed++;
+			}
+		}
+		$ok = ($failed === 0 && $passed > 0);
+		$msg = $ok
+			? ('Tất cả ' . $passed . ' nguồn kết nối OK.')
+			: ($passed . '/' . ($passed + $failed) . ' nguồn OK · ' . $failed . ' nguồn lỗi — xem chi tiết từng dòng.');
+		return array(
+			'success' => $ok,
+			'message' => $msg,
+			'error' => $ok ? '' : $msg,
+			'tested' => $passed + $failed,
+			'passed' => $passed,
+			'failed' => $failed,
+			'results' => $results,
+		);
+	}
+
+	/**
+	 * Diễn giải lỗi Google / cấu hình cho Sales & Admin đọc được.
+	 * @param string $raw
+	 * @param array|null $source
+	 * @param string $saEmail
+	 * @return string
+	 */
+	public static function humanizeSheetError($raw, $source = null, $saEmail = '') {
+		$raw = trim((string) $raw);
+		$label = '';
+		if (is_array($source)) {
+			$label = !empty($source['name']) ? (string) $source['name'] : ('#' . (int) $source['id']);
+		}
+		$prefix = $label !== '' ? ('Nguồn "' . $label . '": ') : '';
+		$low = mb_strtolower($raw, 'UTF-8');
+		$hintSa = $saEmail !== '' ? $saEmail : 'email service account trong JSON đã lưu';
+
+		if ($raw === '') {
+			return $prefix . 'Lỗi không xác định khi đọc Google Sheet.';
+		}
+		if (strpos($low, 'service account') !== false && strpos($low, 'không hợp lệ') !== false) {
+			return $prefix . 'Service Account JSON không hợp lệ (cần client_email + private_key). ' . $raw;
+		}
+		if (strpos($low, 'chưa cấu hình') !== false || (strpos($low, 'missing') !== false && strpos($low, 'service') !== false)) {
+			return $prefix . 'Chưa cấu hình Service Account JSON.';
+		}
+		if (strpos($low, 'permission') !== false
+			|| strpos($low, 'the caller does not have permission') !== false
+			|| strpos($low, '403') !== false
+			|| strpos($low, 'access_denied') !== false
+			|| strpos($low, 'insufficient') !== false) {
+			return $prefix . 'Không có quyền đọc spreadsheet. Mở Google Sheet → Share → thêm "'
+				. $hintSa . '" với quyền Viewer. Chi tiết Google: ' . $raw;
+		}
+		if (strpos($low, 'not found') !== false
+			|| strpos($low, '404') !== false
+			|| strpos($low, 'unable to parse range') !== false
+			|| strpos($low, 'unable to parse') !== false) {
+			$range = is_array($source) && !empty($source['sheet_range']) ? $source['sheet_range'] : '';
+			return $prefix . 'Không tìm thấy spreadsheet hoặc sai tên tab (sheet_range'
+				. ($range !== '' ? ('="' . $range . '"') : '')
+				. '). Kiểm tra link/ID và tên sheet. Chi tiết: ' . $raw;
+		}
+		if (strpos($low, 'invalid_grant') !== false || strpos($low, 'jwt') !== false || strpos($low, 'ký jwt') !== false) {
+			return $prefix . 'Service Account không ký được token (private_key sai / JSON bị cắt). Dán lại JSON đầy đủ. Chi tiết: ' . $raw;
+		}
+		if (strpos($low, 'http') !== false && (strpos($low, 'failed') !== false || strpos($low, 'timed out') !== false)) {
+			return $prefix . 'Máy chủ CRM không gọi được Google API (mạng / firewall). Chi tiết: ' . $raw;
+		}
+		return $prefix . ($raw !== '' ? $raw : 'Lỗi không xác định khi đọc Google Sheet.');
 	}
 
 	/**

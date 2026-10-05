@@ -26,7 +26,7 @@ class NkApi_GoogleSheet_Adapter extends NkApi_Adapter {
 	}
 
 	public function hint() {
-		return 'Mỗi nguồn chọn đích Lead hoặc Accounts (nhượng quyền Tuibao). Share sheet với email service account (Viewer). Quản lý tại Leads → Google Sheet.';
+		return 'Quản lý & kiểm tra từng nguồn bên dưới. Share mỗi sheet với email service account (Viewer). Thêm/sửa chi tiết map cột cũng có thể làm ở Leads → Google Sheet.';
 	}
 
 	public function extraFields() {
@@ -68,6 +68,29 @@ class NkApi_GoogleSheet_Adapter extends NkApi_Adapter {
 		}
 		$enabledCount = isset($sheet['enabled_sources_count']) ? (int) $sheet['enabled_sources_count'] : 0;
 		$totalCount = isset($sheet['sources_count']) ? (int) $sheet['sources_count'] : count($sources);
+		$sourcesUi = array();
+		foreach ($sources as $src) {
+			$sid = isset($src['id']) ? (int) $src['id'] : 0;
+			$ssId = isset($src['spreadsheet_id']) ? (string) $src['spreadsheet_id'] : '';
+			$sourcesUi[] = array(
+				'id' => $sid,
+				'name' => isset($src['name']) ? (string) $src['name'] : ('#' . $sid),
+				'spreadsheet_id' => $ssId,
+				'spreadsheet_short' => $ssId !== '' ? (strlen($ssId) > 18 ? (substr($ssId, 0, 10) . '…' . substr($ssId, -6)) : $ssId) : '—',
+				'sheet_range' => isset($src['sheet_range']) ? (string) $src['sheet_range'] : 'Sheet1',
+				'target_module' => isset($src['target_module']) ? (string) $src['target_module'] : 'leads',
+				'target_label' => (isset($src['target_module']) && $src['target_module'] === 'accounts')
+					? 'Accounts (Tuibao)'
+					: 'Leads',
+				'enabled' => !empty($src['enabled']),
+				'last_poll_at' => isset($src['last_poll_at']) ? (string) $src['last_poll_at'] : '',
+				'last_error' => isset($src['last_error']) ? (string) $src['last_error'] : '',
+				'last_result' => isset($src['last_result']) ? (string) $src['last_result'] : '',
+				'status' => !empty($src['last_error'])
+					? 'error'
+					: ((!empty($src['spreadsheet_id']) && !empty($src['enabled'])) ? 'ok' : 'idle'),
+			);
+		}
 		return array(
 			'code' => $this->code(),
 			'label' => $this->label(),
@@ -90,6 +113,7 @@ class NkApi_GoogleSheet_Adapter extends NkApi_Adapter {
 				'column_map_json' => $columnMapJson,
 				'service_account_email' => isset($sheet['service_account_email']) ? (string) $sheet['service_account_email'] : '',
 				'sources' => $sources,
+				'sources_ui' => $sourcesUi,
 				'sources_json' => $sourcesJson,
 				'sources_count' => $totalCount,
 				'enabled_sources_count' => $enabledCount,
@@ -158,12 +182,21 @@ class NkApi_GoogleSheet_Adapter extends NkApi_Adapter {
 		return $admin;
 	}
 
-	public function test() {
-		$result = Leads_SheetImportService::testConnection();
+	public function test(array $options = array()) {
+		$sourceId = 0;
+		if (isset($options['source_id'])) {
+			$sourceId = (int) $options['source_id'];
+		}
+		$testAll = !empty($options['test_all']);
+		if ($testAll) {
+			$result = Leads_SheetImportService::testAllConnections();
+		} else {
+			$result = Leads_SheetImportService::testConnection($sourceId > 0 ? $sourceId : null);
+		}
 		$ok = !empty($result['success']);
 		$msg = $ok
 			? (isset($result['message']) ? (string) $result['message'] : 'Kết nối Google Sheet thành công.')
-			: (isset($result['error']) ? (string) $result['error'] : 'Không kết nối được Google Sheet.');
+			: (isset($result['error']) ? (string) $result['error'] : (isset($result['message']) ? (string) $result['message'] : 'Không kết nối được Google Sheet.'));
 		$fields = array(
 			'status' => $ok ? 'ok' : 'error',
 			'last_error' => $ok ? '' : $msg,
@@ -172,12 +205,23 @@ class NkApi_GoogleSheet_Adapter extends NkApi_Adapter {
 			$fields['last_sync'] = date('Y-m-d H:i:s');
 		}
 		NkApiConnection::saveRow($this->code(), $fields, 0);
-		return array(
+		$out = array(
 			'success' => $ok,
 			'status' => $ok ? 'ok' : 'error',
 			'message' => $msg,
 			'imported' => isset($result['imported']) ? $result['imported'] : null,
+			'source_id' => isset($result['source_id']) ? (int) $result['source_id'] : $sourceId,
+			'source_name' => isset($result['source_name']) ? (string) $result['source_name'] : '',
+			'error_code' => isset($result['error_code']) ? (string) $result['error_code'] : '',
+			'raw_error' => isset($result['raw_error']) ? (string) $result['raw_error'] : '',
 		);
+		if (!empty($result['results']) && is_array($result['results'])) {
+			$out['results'] = $result['results'];
+			$out['passed'] = isset($result['passed']) ? (int) $result['passed'] : 0;
+			$out['failed'] = isset($result['failed']) ? (int) $result['failed'] : 0;
+			$out['tested'] = isset($result['tested']) ? (int) $result['tested'] : 0;
+		}
+		return $out;
 	}
 
 	public function isEnabled() {

@@ -43,8 +43,8 @@
 						<div class="nk-integ-fields nk-integ-fields--2col">
 							<label class="nk-integ-field nk-integ-field--wide">
 								<span>Tổng quan nguồn</span>
-								<input type="text" readonly value="{if isset($CONN.extra.sources_summary)}{$CONN.extra.sources_summary|escape:'html'}{else}—{/if}" />
-								<em class="nk-integ-field__hint">Thêm / sửa từng sheet tại trang Leads → nút Google Sheet (khuyến nghị). Hoặc chỉnh JSON bên dưới.</em>
+								<input type="text" readonly data-role="gs-summary" value="{if isset($CONN.extra.sources_summary)}{$CONN.extra.sources_summary|escape:'html'}{else}—{/if}" />
+								<em class="nk-integ-field__hint">Danh sách bên dưới dùng để kiểm tra từng sheet trước khi chạy thực tế. Thêm nguồn mới / map cột: Leads → Google Sheet hoặc JSON nâng cao.</em>
 							</label>
 							<label class="nk-integ-field">
 								<span>{vtranslate('LBL_NK_INTEG_SHEET_RANGE', $QUALIFIED_MODULE)} (nguồn đầu)</span>
@@ -61,7 +61,51 @@
 								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
 								<span>{vtranslate('LBL_NK_INTEG_CONFIGURED', $QUALIFIED_MODULE)}{if $CONN.extra.service_account_email}: {$CONN.extra.service_account_email|escape:'html'}{/if}</span>
 							</div>
+						{else}
+							<div class="nk-integ-callout nk-integ-callout--warn">
+								<svg class="nk-integ-callout__ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+								<p>Chưa có Service Account JSON — mọi test sẽ báo lỗi cấu hình. Dán JSON ở mục Nâng cao rồi Lưu trước khi test sheet.</p>
+							</div>
 						{/if}
+
+						<div class="nk-integ-gs-sources" data-role="gs-sources">
+							<div class="nk-integ-gs-sources__head">
+								<strong>Nguồn Google Sheet</strong>
+								<button type="button" class="mk-settings-btn mk-settings-btn--outline nk-integ-gs-test-all" data-code="google_sheet">
+									<span class="nk-integ-btn__label">Test tất cả</span>
+								</button>
+							</div>
+							{if isset($CONN.extra.sources_ui) && $CONN.extra.sources_ui|@count gt 0}
+								<ul class="nk-integ-gs-list" data-role="gs-list">
+									{foreach from=$CONN.extra.sources_ui item=SRC}
+										<li class="nk-integ-gs-item nk-integ-gs-item--{$SRC.status|escape:'html'}" data-source-id="{$SRC.id|escape:'html'}">
+											<div class="nk-integ-gs-item__main">
+												<div class="nk-integ-gs-item__title">
+													<span class="nk-integ-gs-item__name">{$SRC.name|escape:'html'}</span>
+													{if $SRC.enabled}
+														<span class="nk-integ-gs-pill nk-integ-gs-pill--on">Bật</span>
+													{else}
+														<span class="nk-integ-gs-pill nk-integ-gs-pill--off">Tắt</span>
+													{/if}
+													<span class="nk-integ-gs-pill">{$SRC.target_label|escape:'html'}</span>
+												</div>
+												<div class="nk-integ-gs-item__meta">
+													<code>{$SRC.spreadsheet_short|escape:'html'}</code>
+													<span>· tab {$SRC.sheet_range|escape:'html'}</span>
+													{if $SRC.last_poll_at}<span>· poll {$SRC.last_poll_at|escape:'html'}</span>{/if}
+												</div>
+												<p class="nk-integ-gs-item__err{if !$SRC.last_error} is-empty{/if}" data-role="gs-source-error">{if $SRC.last_error}{$SRC.last_error|escape:'html'}{else}—{/if}</p>
+											</div>
+											<button type="button" class="mk-settings-btn mk-settings-btn--outline nk-integ-gs-test" data-code="google_sheet" data-source-id="{$SRC.id|escape:'html'}">
+												<span class="nk-integ-btn__label">Test</span>
+											</button>
+										</li>
+									{/foreach}
+								</ul>
+							{else}
+								<p class="nk-integ-gs-empty" data-role="gs-empty">Chưa có nguồn trong danh sách. Thêm ở Leads → Google Sheet hoặc dán JSON nguồn ở Nâng cao rồi Lưu.</p>
+							{/if}
+						</div>
 
 						<details class="nk-integ-advanced">
 							<summary>{vtranslate('LBL_NK_INTEG_ADVANCED', $QUALIFIED_MODULE)}</summary>
@@ -202,9 +246,15 @@
 								<span class="nk-integ-btn__label">{vtranslate('LBL_NK_INTEG_ZALO_CONNECT', $QUALIFIED_MODULE)}</span>
 							</button>
 						{/if}
-						<button type="button" class="mk-settings-btn mk-settings-btn--outline nk-integ-test" data-code="{$CONN.code|escape:'html'}">
-							<span class="nk-integ-btn__label">{vtranslate('LBL_NK_INTEG_TEST', $QUALIFIED_MODULE)}</span>
-						</button>
+						{if $CONN.code eq 'google_sheet'}
+							<button type="button" class="mk-settings-btn mk-settings-btn--outline nk-integ-test" data-code="google_sheet" title="Test nguồn đầu / primary">
+								<span class="nk-integ-btn__label">Test nguồn đầu</span>
+							</button>
+						{else}
+							<button type="button" class="mk-settings-btn mk-settings-btn--outline nk-integ-test" data-code="{$CONN.code|escape:'html'}">
+								<span class="nk-integ-btn__label">{vtranslate('LBL_NK_INTEG_TEST', $QUALIFIED_MODULE)}</span>
+							</button>
+						{/if}
 						<button type="submit" class="mk-settings-btn mk-settings-btn--primary nk-integ-save">
 							<span class="nk-integ-btn__label">{vtranslate('LBL_SAVE', $QUALIFIED_MODULE)}</span>
 						</button>

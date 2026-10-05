@@ -55,7 +55,33 @@ class Settings_Vtiger_IntegrationsAjax_Action extends Settings_Vtiger_Basic_Acti
 			NkApiConnection::ensureInstalled();
 			$code = trim((string) $request->get('code'));
 			$adapter = NkApiConnection::adapter($code);
-			$result = $adapter->test();
+			$options = array();
+			$sourceId = (int) $request->get('source_id');
+			if ($sourceId <= 0) {
+				$payload = $this->decodePayload($request);
+				if (isset($payload['source_id'])) {
+					$sourceId = (int) $payload['source_id'];
+				}
+				if (!empty($payload['test_all'])) {
+					$options['test_all'] = 1;
+				}
+			}
+			if ($sourceId > 0) {
+				$options['source_id'] = $sourceId;
+			}
+			if ((int) $request->get('test_all') === 1) {
+				$options['test_all'] = 1;
+			}
+			if (method_exists($adapter, 'test')) {
+				$ref = new ReflectionMethod($adapter, 'test');
+				if ($ref->getNumberOfParameters() > 0) {
+					$result = $adapter->test($options);
+				} else {
+					$result = $adapter->test();
+				}
+			} else {
+				$result = array('success' => false, 'message' => 'Adapter không hỗ trợ test.');
+			}
 			$result['connection'] = $adapter->getConfigForAdmin();
 			$response->setResult($result);
 		} catch (Exception $e) {

@@ -521,6 +521,159 @@ body[data-parent="Settings"] .nk-integ-msg.is-error {
 	border-color: rgba(185, 28, 28, 0.12);
 }
 
+/* Google Sheet multi-source manager */
+body[data-parent="Settings"] .nk-integ-callout--warn {
+	background: #fffbeb;
+	border-color: rgba(180, 83, 9, 0.2);
+	color: #92400e;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-sources {
+	margin: 14px 0 18px;
+	padding: 14px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	background: #f8fafc;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-sources__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 12px;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-sources__head strong {
+	font-size: 14px;
+	color: #0f172a;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-item {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 14px;
+	border-radius: 10px;
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-left: 3px solid #94a3b8;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-item--ok {
+	border-left-color: #16a34a;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-item--error {
+	border-left-color: #dc2626;
+	background: #fffafa;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-item__main {
+	min-width: 0;
+	flex: 1;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-item__title {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 4px;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-item__name {
+	font-weight: 700;
+	color: #0f172a;
+	font-size: 13px;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-pill {
+	display: inline-flex;
+	align-items: center;
+	padding: 1px 8px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+	background: #e2e8f0;
+	color: #334155;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-pill--on {
+	background: #dcfce7;
+	color: #166534;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-pill--off {
+	background: #f1f5f9;
+	color: #64748b;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-item__meta {
+	font-size: 12px;
+	color: #64748b;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 8px;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-item__meta code {
+	font-size: 11px;
+	background: #f1f5f9;
+	padding: 1px 6px;
+	border-radius: 4px;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-item__err {
+	margin: 8px 0 0;
+	font-size: 12px;
+	line-height: 1.45;
+	color: #b91c1c;
+	font-weight: 600;
+	word-break: break-word;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-item__err.is-empty {
+	color: #94a3b8;
+	font-weight: 500;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-item__err.is-ok {
+	color: #166534;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-empty {
+	margin: 0;
+	font-size: 13px;
+	color: #64748b;
+}
+
+body[data-parent="Settings"] .nk-integ-gs-test.is-busy,
+body[data-parent="Settings"] .nk-integ-gs-test-all.is-busy {
+	pointer-events: none;
+	opacity: 0.7;
+}
+
+@media (max-width: 720px) {
+	body[data-parent="Settings"] .nk-integ-gs-item {
+		flex-direction: column;
+	}
+	body[data-parent="Settings"] .nk-integ-gs-sources__head {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}
+
 /* Actions */
 body[data-parent="Settings"] .nk-integ-actions {
 	display: flex;
