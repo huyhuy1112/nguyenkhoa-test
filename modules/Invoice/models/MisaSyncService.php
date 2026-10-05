@@ -1,7 +1,8 @@
 <?php
 /*+***********************************************************************************
- * Đơn hàng → đề nghị hóa đơn MISA. Menu Hóa đơn hiện trạng thái kế toán.
- * Chờ kế toán · Kế toán đã duyệt · Kế toán từ chối
+ * Đơn hàng CRM → đề nghị Đơn đặt hàng (sa_order) MISA.
+ * Kế toán: Sinh chứng từ từ đề nghị → Đơn đặt hàng trên AMIS.
+ * Menu Hóa đơn CRM: Chờ kế toán · Kế toán đã duyệt · Kế toán từ chối
  *************************************************************************************/
 
 class Invoice_MisaSyncService {
@@ -63,7 +64,7 @@ class Invoice_MisaSyncService {
 
 		$lines = self::linesFor($soId);
 		if (!$lines) {
-			return array('error' => 'Đơn ' . $orderNo . ' chưa có dòng hàng để lập hóa đơn.');
+			return array('error' => 'Đơn ' . $orderNo . ' chưa có dòng hàng để gửi Đơn đặt hàng.');
 		}
 
 		$orgRefid = $existing ? $existing['org_refid'] : self::guidFrom('so-' . $soId);
@@ -72,13 +73,13 @@ class Invoice_MisaSyncService {
 
 		$invoiceId = $existing ? (int) $existing['invoiceid'] : self::createInvoice($soModel, $orderNo);
 		self::setInvoiceStatus($invoiceId, self::STATUS_WAIT);
-		self::saveLink($soId, $invoiceId, $orgRefid, 'pending', 'Đã gửi đề nghị, chờ kế toán sinh chứng từ trên MISA.', '');
+		self::saveLink($soId, $invoiceId, $orgRefid, 'pending', 'Đã gửi đề nghị Đơn đặt hàng, chờ kế toán sinh chứng từ trên MISA.', '');
 
 		$invoiceNo = self::invoiceNo($invoiceId);
 		return array(
 			'success' => true,
-			'message' => 'Đã gửi đề nghị hóa đơn ' . ($invoiceNo !== '' ? $invoiceNo : ('#' . $invoiceId))
-				. ' sang MISA. Trạng thái: Chờ kế toán.',
+			'message' => 'Đã gửi đề nghị Đơn đặt hàng ' . ($invoiceNo !== '' ? $invoiceNo : ('#' . $invoiceId))
+				. ' sang MISA. Kế toán sinh chứng từ → Đơn đặt hàng. Trạng thái: Chờ kế toán.',
 			'invoiceid' => $invoiceId,
 		);
 	}
@@ -429,25 +430,10 @@ class Invoice_MisaSyncService {
 			if ($productId <= 0) {
 				continue;
 			}
-			$name = '';
-			$code = '';
-			$prod = $adb->pquery('SELECT productname, productcode FROM vtiger_products WHERE productid = ?', array($productId));
-			if ($prod && $adb->num_rows($prod) > 0) {
-				$name = decode_html($adb->query_result($prod, 0, 'productname'));
-				$code = decode_html($adb->query_result($prod, 0, 'productcode'));
-			} else {
-				$svc = $adb->pquery('SELECT servicename, service_no FROM vtiger_service WHERE serviceid = ?', array($productId));
-				if ($svc && $adb->num_rows($svc) > 0) {
-					$name = decode_html($adb->query_result($svc, 0, 'servicename'));
-					$code = decode_html($adb->query_result($svc, 0, 'service_no'));
-				}
-			}
-			if ($code === '') {
-				$code = 'SP' . $productId;
-			}
-			if ($name === '') {
-				$name = $code;
-			}
+			$comment = trim(decode_html($adb->query_result($res, $i, 'comment')));
+			$resolved = self::resolveProductLabel($productId, $comment);
+			$code = $resolved['code'];
+			$name = $resolved['name'];
 			$qty = self::money($adb->query_result($res, $i, 'quantity'));
 			$price = self::money($adb->query_result($res, $i, 'listprice'));
 			$amount = $qty * $price;
@@ -467,6 +453,7 @@ class Invoice_MisaSyncService {
 				'product_id' => $productId,
 				'code' => $code,
 				'name' => $name,
+				'unit' => $resolved['unit'],
 				'qty' => $qty,
 				'price' => $price,
 				'amount' => round($amount, 2),
@@ -474,10 +461,87 @@ class Invoice_MisaSyncService {
 				'discount_rate' => $discPct,
 				'vat_rate' => $rate,
 				'vat' => $vat,
-				'comment' => decode_html($adb->query_result($res, $i, 'comment')),
+				'comment' => $comment,
 			);
 		}
 		return $lines;
+	}
+
+	/**
+	 * Resolve SKU + display name for MISA (name must not fall back to code when a real name exists).
+	 * @return array{code:string,name:string,unit:string}
+	 */
+	protected static function resolveProductLabel($productId, $comment = '') {
+		$adb = PearDatabase::getInstance();
+		$name = '';
+		$code = '';
+		$unit = 'Cái';
+
+		$prod = $adb->pquery('SELECT productname, productcode FROM vtiger_products WHERE productid = ?', array($productId));
+		if ($prod && $adb->num_rows($prod) > 0) {
+			$name = trim(decode_html($adb->query_result($prod, 0, 'productname')));
+			$code = trim(decode_html($adb->query_result($prod, 0, 'productcode')));
+		} else {
+			$svc = $adb->pquery('SELECT servicename, service_no FROM vtiger_service WHERE serviceid = ?', array($productId));
+			if ($svc && $adb->num_rows($svc) > 0) {
+				$name = trim(decode_html($adb->query_result($svc, 0, 'servicename')));
+				$code = trim(decode_html($adb->query_result($svc, 0, 'service_no')));
+			}
+		}
+
+		// ProductsServices catalog (sku / productsservicesname) — preferred display name when CRM stores code as productname.
+		$psName = '';
+		$psSku = '';
+		$psUnit = '';
+		try {
+			$ps = null;
+			if ($code !== '') {
+				$ps = @$adb->pquery(
+					'SELECT productsservicesname, sku, unit FROM vtiger_productsservices WHERE sku = ? LIMIT 1',
+					array($code)
+				);
+			}
+			if (!$ps || $adb->num_rows($ps) < 1) {
+				$ps = @$adb->pquery(
+					'SELECT productsservicesname, sku, unit FROM vtiger_productsservices WHERE productsservicesid = ? LIMIT 1',
+					array($productId)
+				);
+			}
+			if ($ps && $adb->num_rows($ps) > 0) {
+				$psName = trim(decode_html($adb->query_result($ps, 0, 'productsservicesname')));
+				$psSku = trim(decode_html($adb->query_result($ps, 0, 'sku')));
+				$psUnit = trim(decode_html($adb->query_result($ps, 0, 'unit')));
+			}
+		} catch (Exception $e) {
+			// Table may not exist on some installs.
+		}
+		if ($code === '' && $psSku !== '') {
+			$code = $psSku;
+		}
+		if ($psUnit !== '') {
+			$unit = $psUnit;
+		}
+
+		$comment = trim((string) $comment);
+		$nameLooksLikeCode = ($name === '' || ($code !== '' && strcasecmp($name, $code) === 0));
+		if ($nameLooksLikeCode && $psName !== '' && strcasecmp($psName, $code) !== 0) {
+			$name = $psName;
+		}
+		if (($name === '' || ($code !== '' && strcasecmp($name, $code) === 0)) && $comment !== '' && strcasecmp($comment, $code) !== 0) {
+			$name = $comment;
+		}
+		if ($code === '') {
+			$code = 'SP' . $productId;
+		}
+		if ($name === '') {
+			$name = $psName !== '' ? $psName : ($comment !== '' ? $comment : $code);
+		}
+
+		return array(
+			'code' => $code,
+			'name' => $name,
+			'unit' => $unit !== '' ? $unit : 'Cái',
+		);
 	}
 
 	protected static function taxRate($soId, $productId, $sequence) {
@@ -538,6 +602,7 @@ class Invoice_MisaSyncService {
 			$discount += $line['discount'];
 			$itemId = self::guidFrom('item-' . $line['product_id']);
 			$detailId = self::guidFrom('line-' . $soId . '-' . $line['seq']);
+			$unitName = !empty($line['unit']) ? $line['unit'] : 'Cái';
 			$details[] = array(
 				'ref_detail_id' => $detailId,
 				'refid' => $orgRefid,
@@ -550,6 +615,8 @@ class Invoice_MisaSyncService {
 				'main_quantity' => $line['qty'],
 				'unit_price' => $line['price'],
 				'main_unit_price' => $line['price'],
+				'unit_name' => $unitName,
+				'main_unit_name' => $unitName,
 				'amount_oc' => $line['amount'],
 				'amount' => $line['amount'],
 				'discount_rate' => $line['discount_rate'],
@@ -564,6 +631,8 @@ class Invoice_MisaSyncService {
 				'account_object_address' => $party['address'],
 				'main_convert_rate' => 1,
 				'is_promotion' => false,
+				'is_description' => false,
+				'crm_id' => (string) $line['product_id'],
 				'state' => 0,
 			);
 			$dictionary[] = array(
@@ -572,25 +641,22 @@ class Invoice_MisaSyncService {
 				'inventory_item_code' => $line['code'],
 				'inventory_item_name' => $line['name'],
 				'inventory_item_type' => 0,
-				'unit_name' => 'Cái',
+				'unit_name' => $unitName,
 				'inactive' => false,
 			);
 		}
 
 		$grand = round($sub + $vat, 2);
+		// voucher_type 20 = Đơn đặt hàng (sa_order); reftype 3520 = Đơn đặt hàng AMIS.
 		$voucher = array(
-			'voucher_type' => 13,
+			'voucher_type' => 20,
 			'org_refid' => $orgRefid,
 			'org_refno' => $orderNo,
-			'org_reftype' => 3530,
-			'org_reftype_name' => 'Đơn hàng CRM',
-			'reftype' => 3530,
+			'org_reftype' => 3520,
+			'org_reftype_name' => 'Đơn đặt hàng',
+			'reftype' => 3520,
 			'refdate' => $today,
-			'posted_date' => $today,
-			'inv_date' => $today,
-			'include_invoice' => 1,
-			'is_invoice_exported' => true,
-			'is_paid' => false,
+			'crm_id' => (string) $soId,
 			'currency_id' => 'VND',
 			'exchange_rate' => 1,
 			'account_object_id' => $partyId,
@@ -598,7 +664,7 @@ class Invoice_MisaSyncService {
 			'account_object_name' => $party['name'],
 			'account_object_address' => $party['address'],
 			'account_object_tax_code' => $party['tax'],
-			'journal_memo' => 'Đề nghị hóa đơn cho đơn ' . $orderNo,
+			'journal_memo' => 'Đề nghị Đơn đặt hàng từ CRM ' . $orderNo,
 			'total_sale_amount_oc' => round($sub, 2),
 			'total_sale_amount' => round($sub, 2),
 			'total_discount_amount_oc' => round($discount, 2),
@@ -607,37 +673,15 @@ class Invoice_MisaSyncService {
 			'total_vat_amount' => round($vat, 2),
 			'total_amount_oc' => $grand,
 			'total_amount' => $grand,
-			'publish_status' => 0,
 			'discount_type' => 0,
-			'paid_type' => 0,
+			'discount_rate_voucher' => 0,
+			'status' => 0,
+			'delivered_status' => 0,
+			'is_invoiced' => false,
+			'due_day' => 0,
 			'created_date' => $now,
 			'modified_date' => $now,
 			'detail' => $details,
-			'sa_invoice' => array(
-				'voucher_type' => 11,
-				'is_get_new_id' => true,
-				'refid' => self::guidFrom('inv-' . $soId),
-				'account_object_id' => $partyId,
-				'account_object_code' => $party['code'],
-				'account_object_name' => $party['name'],
-				'account_object_address' => $party['address'],
-				'account_object_tax_code' => $party['tax'],
-				'inv_date' => $today,
-				'include_invoice' => 1,
-				'currency_id' => 'VND',
-				'exchange_rate' => 1,
-				'publish_status' => 0,
-				'total_sale_amount_oc' => round($sub, 2),
-				'total_sale_amount' => round($sub, 2),
-				'total_discount_amount_oc' => round($discount, 2),
-				'total_discount_amount' => round($discount, 2),
-				'total_vat_amount_oc' => round($vat, 2),
-				'total_vat_amount' => round($vat, 2),
-				'total_amount_oc' => $grand,
-				'total_amount' => $grand,
-				'payment_method' => 'TM/CK',
-				'reftype' => 3560,
-			),
 		);
 		return array('voucher' => $voucher, 'dictionary' => $dictionary);
 	}
