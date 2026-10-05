@@ -74,6 +74,7 @@ class Home_AdminKpiApi_Action extends Vtiger_Action_Controller {
 								'id' => (int) $request->get('id'),
 								'year' => (int) $request->get('year'),
 								'stage_period' => (string) $request->get('stage_period'),
+								'stage_offset' => (int) $request->get('stage_offset'),
 							)
 						),
 					));
@@ -100,6 +101,7 @@ class Home_AdminKpiApi_Action extends Vtiger_Action_Controller {
 						'sale_id' => (int) $request->get('sale_id'),
 						'year' => (int) $request->get('year'),
 						'stage_period' => (string) $request->get('stage_period'),
+						'stage_offset' => (int) $request->get('stage_offset'),
 					);
 					if ($mode === 'funnel') {
 						$payload = array('funnel' => Home_AdminKpiService::getSalesFunnel());

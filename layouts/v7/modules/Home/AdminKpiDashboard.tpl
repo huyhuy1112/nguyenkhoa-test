@@ -75,17 +75,32 @@
 				<button type="button" class="mk-admin-kpi-mode-btn" data-stage-panel="nl">Nguyên liệu</button>
 			</div>
 			<div class="mk-admin-kpi-stagebar__period" id="mkAdminKpiStagePeriod">
-				<button type="button" class="mk-admin-kpi-mode-btn is-active" data-stage-period="month">Tháng</button>
-				<button type="button" class="mk-admin-kpi-mode-btn" data-stage-period="quarter">Quý</button>
-				<button type="button" class="mk-admin-kpi-mode-btn" data-stage-period="year">Năm</button>
+				<div class="mk-admin-kpi-period-modes">
+					<button type="button" class="mk-admin-kpi-mode-btn is-active" data-stage-period="month">Tháng</button>
+					<button type="button" class="mk-admin-kpi-mode-btn" data-stage-period="quarter">Quý</button>
+					<button type="button" class="mk-admin-kpi-mode-btn" data-stage-period="year">Năm</button>
+				</div>
+				<div class="mk-admin-kpi-period-nav" role="group" aria-label="Chọn kỳ">
+					<button type="button" class="mk-admin-kpi-period-nav__btn" data-stage-nav="prev" title="Kỳ trước" aria-label="Kỳ trước">‹</button>
+					<span class="mk-admin-kpi-period-nav__label" id="mkAdminKpiPeriodLabel">Tháng hiện tại</span>
+					<button type="button" class="mk-admin-kpi-period-nav__btn" data-stage-nav="next" title="Kỳ sau" aria-label="Kỳ sau" disabled>›</button>
+				</div>
 			</div>
 		</div>
 		<div class="mk-admin-kpi-stage-stack">
 
 		{* Offline GD 1.1 *}
-		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--offline" id="mkAdminKpiOffline">
+		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--offline mk-admin-kpi-panel--hud" id="mkAdminKpiOffline" data-stage-theme="offline">
+			<div class="mk-admin-kpi-hud" aria-hidden="true">
+				<span class="mk-admin-kpi-hud__orb"></span>
+				<span class="mk-admin-kpi-hud__grid"></span>
+				<span class="mk-admin-kpi-hud__icon"></span>
+			</div>
 			<div class="mk-admin-kpi-panel-head">
-				<h2 class="mk-admin-kpi-panel-title">Offline miễn phí (GD 1.1)</h2>
+				<div class="mk-admin-kpi-panel-heading">
+					<span class="mk-admin-kpi-panel-badge">GD 1.1</span>
+					<h2 class="mk-admin-kpi-panel-title">Offline miễn phí</h2>
+				</div>
 				<span class="mk-admin-kpi-pill" id="mkAdminKpiOfflineRate">Tỷ lệ tham gia: —</span>
 			</div>
 			<div class="mk-admin-kpi-offline" id="mkAdminKpiOfflineBody">
@@ -95,9 +110,17 @@
 		</section>
 
 		{* Online GD 1.2 *}
-		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--online" id="mkAdminKpiOnline" hidden>
+		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--online mk-admin-kpi-panel--hud" id="mkAdminKpiOnline" hidden data-stage-theme="online">
+			<div class="mk-admin-kpi-hud" aria-hidden="true">
+				<span class="mk-admin-kpi-hud__orb"></span>
+				<span class="mk-admin-kpi-hud__grid"></span>
+				<span class="mk-admin-kpi-hud__icon">{* Online *}</span>
+			</div>
 			<div class="mk-admin-kpi-panel-head">
-				<h2 class="mk-admin-kpi-panel-title">Online Zalo OA (GD 1.2)</h2>
+				<div class="mk-admin-kpi-panel-heading">
+					<span class="mk-admin-kpi-panel-badge">GD 1.2</span>
+					<h2 class="mk-admin-kpi-panel-title">Online Zalo OA</h2>
+				</div>
 				<div class="mk-admin-kpi-pills">
 					<span class="mk-admin-kpi-pill" id="mkAdminKpiOnlineFormRate">Điền form: —</span>
 					<span class="mk-admin-kpi-pill mk-admin-kpi-pill--cyan" id="mkAdminKpiOnlineQualifyRate">Đủ ĐK: —</span>
@@ -109,9 +132,17 @@
 			<section class="mk-admin-kpi-drill" id="mkAdminKpiOnlineDrill" hidden aria-live="polite"></section>
 		</section>
 
-		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--gd14" id="mkAdminKpiGd14" hidden>
+		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--gd14 mk-admin-kpi-panel--hud" id="mkAdminKpiGd14" hidden data-stage-theme="gd14">
+			<div class="mk-admin-kpi-hud" aria-hidden="true">
+				<span class="mk-admin-kpi-hud__orb"></span>
+				<span class="mk-admin-kpi-hud__grid"></span>
+				<span class="mk-admin-kpi-hud__icon">{* 990k *}</span>
+			</div>
 			<div class="mk-admin-kpi-panel-head">
-				<h2 class="mk-admin-kpi-panel-title">Lớp 990k (GD 1.4)</h2>
+				<div class="mk-admin-kpi-panel-heading">
+					<span class="mk-admin-kpi-panel-badge">GD 1.4</span>
+					<h2 class="mk-admin-kpi-panel-title">Lớp 990k</h2>
+				</div>
 				<span class="mk-admin-kpi-pill" id="mkAdminKpiGd14Period">Tháng này · SỐ TẠM</span>
 			</div>
 			<div class="mk-admin-kpi-offline" id="mkAdminKpiGd14Body">
@@ -120,9 +151,17 @@
 			<section class="mk-admin-kpi-drill" id="mkAdminKpiGd14Drill" hidden aria-live="polite"></section>
 		</section>
 
-		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--gd14" id="mkAdminKpiPcth" hidden>
+		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--pcth mk-admin-kpi-panel--hud" id="mkAdminKpiPcth" hidden data-stage-theme="pcth">
+			<div class="mk-admin-kpi-hud" aria-hidden="true">
+				<span class="mk-admin-kpi-hud__orb"></span>
+				<span class="mk-admin-kpi-hud__grid"></span>
+				<span class="mk-admin-kpi-hud__icon">{* PCTH *}</span>
+			</div>
 			<div class="mk-admin-kpi-panel-head">
-				<h2 class="mk-admin-kpi-panel-title">Pha chế tổng hợp (PCTH)</h2>
+				<div class="mk-admin-kpi-panel-heading">
+					<span class="mk-admin-kpi-panel-badge">PCTH</span>
+					<h2 class="mk-admin-kpi-panel-title">Pha chế tổng hợp</h2>
+				</div>
 				<span class="mk-admin-kpi-pill" id="mkAdminKpiPcthPeriod">Tháng này · SỐ TẠM</span>
 			</div>
 			<div class="mk-admin-kpi-offline" id="mkAdminKpiPcthBody">
@@ -131,9 +170,17 @@
 			<section class="mk-admin-kpi-drill" id="mkAdminKpiPcthDrill" hidden aria-live="polite"></section>
 		</section>
 
-		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--gd14" id="mkAdminKpiMqbb" hidden>
+		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--mqbb mk-admin-kpi-panel--hud" id="mkAdminKpiMqbb" hidden data-stage-theme="mqbb">
+			<div class="mk-admin-kpi-hud" aria-hidden="true">
+				<span class="mk-admin-kpi-hud__orb"></span>
+				<span class="mk-admin-kpi-hud__grid"></span>
+				<span class="mk-admin-kpi-hud__icon">{* MQBB *}</span>
+			</div>
 			<div class="mk-admin-kpi-panel-head">
-				<h2 class="mk-admin-kpi-panel-title">Mở quán bài bản (MQBB)</h2>
+				<div class="mk-admin-kpi-panel-heading">
+					<span class="mk-admin-kpi-panel-badge">MQBB</span>
+					<h2 class="mk-admin-kpi-panel-title">Mở quán bài bản</h2>
+				</div>
 				<span class="mk-admin-kpi-pill" id="mkAdminKpiMqbbPeriod">Tháng này · SỐ TẠM</span>
 			</div>
 			<div class="mk-admin-kpi-offline" id="mkAdminKpiMqbbBody">
@@ -142,9 +189,17 @@
 			<section class="mk-admin-kpi-drill" id="mkAdminKpiMqbbDrill" hidden aria-live="polite"></section>
 		</section>
 
-		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--gd14" id="mkAdminKpiCombo" hidden>
+		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--combo mk-admin-kpi-panel--hud" id="mkAdminKpiCombo" hidden data-stage-theme="combo">
+			<div class="mk-admin-kpi-hud" aria-hidden="true">
+				<span class="mk-admin-kpi-hud__orb"></span>
+				<span class="mk-admin-kpi-hud__grid"></span>
+				<span class="mk-admin-kpi-hud__icon">{* Combo *}</span>
+			</div>
 			<div class="mk-admin-kpi-panel-head">
-				<h2 class="mk-admin-kpi-panel-title">Combo mở quán</h2>
+				<div class="mk-admin-kpi-panel-heading">
+					<span class="mk-admin-kpi-panel-badge">Combo</span>
+					<h2 class="mk-admin-kpi-panel-title">Combo mở quán</h2>
+				</div>
 				<span class="mk-admin-kpi-pill" id="mkAdminKpiComboPeriod">Tháng này · SỐ TẠM</span>
 			</div>
 			<div class="mk-admin-kpi-offline" id="mkAdminKpiComboBody">
@@ -153,9 +208,17 @@
 			<section class="mk-admin-kpi-drill" id="mkAdminKpiComboDrill" hidden aria-live="polite"></section>
 		</section>
 
-		<section class="mk-admin-kpi-panel" id="mkAdminKpiNl" hidden>
+		<section class="mk-admin-kpi-panel mk-admin-kpi-panel--nl mk-admin-kpi-panel--hud" id="mkAdminKpiNl" hidden data-stage-theme="nl">
+			<div class="mk-admin-kpi-hud" aria-hidden="true">
+				<span class="mk-admin-kpi-hud__orb"></span>
+				<span class="mk-admin-kpi-hud__grid"></span>
+				<span class="mk-admin-kpi-hud__icon">{* NL *}</span>
+			</div>
 			<div class="mk-admin-kpi-panel-head">
-				<h2 class="mk-admin-kpi-panel-title">Nguyên liệu</h2>
+				<div class="mk-admin-kpi-panel-heading">
+					<span class="mk-admin-kpi-panel-badge">NL</span>
+					<h2 class="mk-admin-kpi-panel-title">Nguyên liệu</h2>
+				</div>
 				<a class="mk-admin-kpi-pill" href="index.php?module=HelpDesk&view=MaterialAlerts&app=SUPPORT">Mở danh sách việc</a>
 			</div>
 			<div class="mk-admin-kpi-offline" id="mkAdminKpiNlBody"><div class="mk-admin-kpi-detail-loading">Đang tải…</div></div>

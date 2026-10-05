@@ -1582,7 +1582,10 @@ class Home_AdminKpiService {
 	 * @return array
 	 */
 	public static function getWidgets(array $chartOpts = array()) {
-		self::setStagePeriod(isset($chartOpts['stage_period']) ? $chartOpts['stage_period'] : 'month');
+		self::setStagePeriod(
+			isset($chartOpts['stage_period']) ? $chartOpts['stage_period'] : 'month',
+			isset($chartOpts['stage_offset']) ? $chartOpts['stage_offset'] : 0
+		);
 		return array(
 			'funnel' => self::getSalesFunnel(),
 			'revenue_chart' => self::getRevenueChart($chartOpts),
@@ -1596,6 +1599,7 @@ class Home_AdminKpiService {
 			'gd14_combo' => self::getGd14Course('combo'),
 			'materials' => self::getMaterialsBoard(),
 			'company_report' => self::getCompanyOverview(),
+			'stage_nav' => self::stageNavMeta(),
 		);
 	}
 
@@ -2453,48 +2457,69 @@ class Home_AdminKpiService {
 	}
 
 	protected static $stagePeriod = 'month';
+	protected static $stageOffset = 0;
 
-	protected static function setStagePeriod($period) {
+	protected static function setStagePeriod($period, $offset = 0) {
 		$period = strtolower(trim((string) $period));
 		self::$stagePeriod = in_array($period, array('month', 'quarter', 'year'), true) ? $period : 'month';
+		self::$stageOffset = max(0, min(120, (int) $offset));
 	}
 
+	/**
+	 * @return array{0:string,1:string} from,to datetime
+	 */
 	protected static function stageMonthBounds() {
-		$year = date('Y');
+		$offset = self::$stageOffset;
 		if (self::$stagePeriod === 'year') {
+			$year = (int) date('Y') - $offset;
 			return array($year . '-01-01 00:00:00', $year . '-12-31 23:59:59');
 		}
 		if (self::$stagePeriod === 'quarter') {
-			$q = (int) ceil(((int) date('n')) / 3);
+			$nowQ = (int) ceil(((int) date('n')) / 3);
+			$idx = ((int) date('Y') * 4 + $nowQ - 1) - $offset;
+			$year = (int) floor($idx / 4);
+			$q = ($idx % 4) + 1;
 			$start = ($q - 1) * 3 + 1;
 			$from = $year . '-' . sprintf('%02d', $start) . '-01 00:00:00';
 			$end = strtotime($year . '-' . sprintf('%02d', $start + 2) . '-01');
 			return array($from, date('Y-m-t 23:59:59', $end));
 		}
-		return array(date('Y-m-01 00:00:00'), date('Y-m-t 23:59:59'));
+		$ts = strtotime(date('Y-m-01') . ' -' . $offset . ' months');
+		return array(date('Y-m-01 00:00:00', $ts), date('Y-m-t 23:59:59', $ts));
+	}
+
+	protected static function stagePeriodNameOnly() {
+		if (self::$stagePeriod === 'year') {
+			$year = (int) date('Y') - self::$stageOffset;
+			return 'Năm ' . $year;
+		}
+		if (self::$stagePeriod === 'quarter') {
+			$nowQ = (int) ceil(((int) date('n')) / 3);
+			$idx = ((int) date('Y') * 4 + $nowQ - 1) - self::$stageOffset;
+			$year = (int) floor($idx / 4);
+			$q = ($idx % 4) + 1;
+			return 'Quý ' . $q . '/' . $year;
+		}
+		$ts = strtotime(date('Y-m-01') . ' -' . self::$stageOffset . ' months');
+		return 'Tháng ' . date('m/Y', $ts);
 	}
 
 	protected static function stagePeriodCaption() {
-		$year = date('Y');
-		if (self::$stagePeriod === 'year') {
-			$name = 'Năm ' . $year;
-		} elseif (self::$stagePeriod === 'quarter') {
-			$q = (int) ceil(((int) date('n')) / 3);
-			$name = 'Quý ' . $q . '/' . $year;
-		} else {
-			$name = 'Tháng ' . date('m/Y');
-		}
-		return $name . ' · theo ngày tạo hồ sơ · SỐ TẠM';
+		return self::stagePeriodNameOnly() . ' · theo ngày tạo hồ sơ · SỐ TẠM';
 	}
 
 	protected static function stagePeriodShort() {
-		if (self::$stagePeriod === 'year') {
-			return 'năm nay';
-		}
-		if (self::$stagePeriod === 'quarter') {
-			return 'quý này';
-		}
-		return 'tháng này';
+		return self::stagePeriodNameOnly();
+	}
+
+	protected static function stageNavMeta() {
+		return array(
+			'period' => self::$stagePeriod,
+			'offset' => self::$stageOffset,
+			'label' => self::stagePeriodNameOnly(),
+			'can_next' => self::$stageOffset > 0,
+			'can_prev' => self::$stageOffset < 120,
+		);
 	}
 
 	protected static function fetchMonthLeadRows(PearDatabase $db, $extraWhere) {
@@ -3579,7 +3604,10 @@ class Home_AdminKpiService {
 	 * @return array
 	 */
 	public static function getDrilldown($type, array $opts = array()) {
-		self::setStagePeriod(isset($opts['stage_period']) ? $opts['stage_period'] : 'month');
+		self::setStagePeriod(
+			isset($opts['stage_period']) ? $opts['stage_period'] : 'month',
+			isset($opts['stage_offset']) ? $opts['stage_offset'] : 0
+		);
 		$type = strtolower(trim((string) $type));
 		$key = isset($opts['key']) ? (string) $opts['key'] : '';
 		$id = isset($opts['id']) ? (int) $opts['id'] : 0;

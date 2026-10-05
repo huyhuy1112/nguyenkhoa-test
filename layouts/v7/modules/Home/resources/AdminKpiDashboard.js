@@ -13,6 +13,7 @@
 		chartYear: new Date().getFullYear(),
 		openDrillSig: '',
 		stagePeriod: 'month',
+		stageOffset: 0,
 	};
 
 	function money(n) {
@@ -166,6 +167,7 @@
 			dimension: state.chartDimension,
 			year: state.chartYear,
 			stage_period: state.stagePeriod,
+			stage_offset: state.stageOffset,
 		};
 		if (state.chartDimension !== 'none') {
 			params.group = state.chartDimension;
@@ -185,6 +187,7 @@
 				renderGd14Course($root, 'combo', (data && data.gd14_combo) || {});
 				renderMaterials($root, (data && data.materials) || {});
 				renderCompany($root, (data && data.company_report) || {});
+				syncStagePeriodNav($root, (data && data.stage_nav) || null);
 			})
 			.fail(function (msg) {
 				setError($root.find('#mkAdminKpiFunnelBody'), msg);
@@ -452,43 +455,105 @@
 		);
 	}
 
-	function stageHit(item, zone) {
+	function stageIconSvg(kind) {
+		var paths = {
+			rate: '<path d="M8 14a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5v3.7l2.2 1.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+			users: '<path d="M6 7.2a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4Zm4.8.4a1.8 1.8 0 1 0-1.5-1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1.8 13.2c.4-2.2 2.1-3.4 4.2-3.4s3.8 1.2 4.2 3.4M10.4 9.2c1.5.2 2.7 1.1 3.1 2.8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+			check: '<path d="M3.2 8.2 6.4 11.2 12.8 4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+			money: '<path d="M2.5 5.2h11v6.6h-11V5.2Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 6.4v4.2M6.2 8.5h3.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+			warn: '<path d="M8 2.8 14.2 13.2H1.8L8 2.8Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.4v3.2M8 11.4h.01" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+			target: '<circle cx="8" cy="8" r="5.2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+			box: '<path d="M2.4 5.2 8 2.4l5.6 2.8v5.6L8 13.6 2.4 10.8V5.2Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2.4 5.2 8 8l5.6-2.8M8 8v5.6" fill="none" stroke="currentColor" stroke-width="1.5"/>',
+			phone: '<path d="M5 2.8h2.4l1 2.4-1.4 1.2a8.5 8.5 0 0 0 3.6 3.6l1.2-1.4 2.4 1v2.4A1.4 1.4 0 0 1 12.8 13.4 10.6 10.6 0 0 1 2.6 3.2 1.4 1.4 0 0 1 5 2.8Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
+		};
+		var d = paths[kind] || paths.target;
+		return (
+			'<svg class="mk-admin-kpi-stat-ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">' +
+			d +
+			'</svg>'
+		);
+	}
+
+	function stageIconKind(label, isRate) {
+		var s = String(label || '').toLowerCase();
+		if (isRate) return 'rate';
+		if (/doanh thu|giá trị|đơn|thanh toán|money|revenue/.test(s)) return 'money';
+		if (/liên hệ|gọi|phone|nghe máy/.test(s)) return 'phone';
+		if (/hồ sơ|khách|người|combo|pcth|mqbb|990/.test(s)) return 'users';
+		if (/xác minh|tham gia|chốt|đủ|xác nhận/.test(s)) return 'check';
+		if (/sai|hủy|rủi|cảnh|quá hạn|trễ|mâu thuẫn|chặn/.test(s)) return 'warn';
+		if (/nguyên liệu|sku|giao|kho|nl0|ql0/.test(s)) return 'box';
+		return 'target';
+	}
+
+	function parsePct(value) {
+		var m = String(value || '').match(/(-?\d+(?:\.\d+)?)\s*%/);
+		return m ? Math.max(0, Math.min(100, parseFloat(m[1]))) : null;
+	}
+
+	function stageHit(item, zone, index) {
 		var label = safeLabel(item.label);
 		var value = item.value != null ? String(item.value) : num(item.count);
+		var delay = Math.min(0.45, (Number(index) || 0) * 0.035);
+		var pct = parsePct(value);
+		var isRate = pct !== null;
+		var icon = stageIconSvg(stageIconKind(item.label, isRate));
+		var tone = item.color || (isRate ? '#047857' : '#2563eb');
+		var ring =
+			isRate
+				? '<span class="mk-admin-kpi-stat-ring" style="--pct:' +
+				  pct +
+				  ';--tone:' +
+				  escapeHtml(tone) +
+				  '"><i></i></span>'
+				: '';
 		if (item.soon) {
 			return (
-				'<div class="mk-admin-kpi-offline-stat is-soon"><span>' +
+				'<div class="mk-admin-kpi-offline-stat is-soon mk-admin-kpi-stat-card" style="--stagger:' +
+				delay +
+				's"><span class="mk-admin-kpi-stat-top">' +
+				icon +
+				'<span>' +
 				label +
-				'</span><strong>Coming soon</strong></div>'
+				'</span></span><strong>Coming soon</strong></div>'
 			);
 		}
+		var body =
+			'<span class="mk-admin-kpi-stat-top">' +
+			icon +
+			'<span>' +
+			label +
+			(item.hint ? '<em class="mk-admin-kpi-card-label"> · ' + escapeHtml(item.hint) + '</em>' : '') +
+			'</span></span>' +
+			'<span class="mk-admin-kpi-stat-bottom">' +
+			ring +
+			'<strong style="color:' +
+			escapeHtml(tone) +
+			'">' +
+			escapeHtml(value) +
+			'</strong></span>';
 		if (item.nodrill) {
 			return (
-				'<div class="mk-admin-kpi-offline-stat"><span>' +
-				label +
-				(item.hint ? '<em class="mk-admin-kpi-card-label"> · ' + escapeHtml(item.hint) + '</em>' : '') +
-				'</span><strong style="color:' +
-				escapeHtml(item.color || '#0f172a') +
-				'">' +
-				escapeHtml(value) +
-				'</strong></div>'
+				'<div class="mk-admin-kpi-offline-stat mk-admin-kpi-stat-card" style="--stagger:' +
+				delay +
+				's">' +
+				body +
+				'</div>'
 			);
 		}
 		var drill = item.drill || {};
 		return (
-			'<button type="button" class="mk-admin-kpi-offline-stat mk-admin-kpi-stage-hit" data-drill-zone="' +
+			'<button type="button" class="mk-admin-kpi-offline-stat mk-admin-kpi-stage-hit mk-admin-kpi-stat-card" style="--stagger:' +
+			delay +
+			's" data-drill-zone="' +
 			escapeHtml(zone) +
 			'" data-drill-type="' +
 			escapeHtml(drill.type || 'stage_people') +
 			'" data-drill-key="' +
 			escapeHtml(drill.key || '') +
-			'"><span>' +
-			label +
-			'</span><strong style="color:' +
-			escapeHtml(item.color || '#0f172a') +
 			'">' +
-			escapeHtml(value) +
-			'</strong></button>'
+			body +
+			'</button>'
 		);
 	}
 
@@ -499,16 +564,23 @@
 		var splits = data.splits || [];
 		var soon = data.soon || [];
 		if (!stages.length && !rates.length) {
-			return '<div class="mk-admin-kpi-placeholder">Chưa có hồ sơ trong tháng này</div>' + renderSoon(soon);
+			return (
+				'<div class="mk-admin-kpi-empty-hud">' +
+				'<div class="mk-admin-kpi-empty-hud__glow"></div>' +
+				'<p class="mk-admin-kpi-placeholder">Chưa có hồ sơ trong kỳ này</p>' +
+				'</div>' +
+				renderSoon(soon)
+			);
 		}
 		var donutItems = stages.filter(function (s) {
 			return Number(s.count) > 0 && String((s.drill && s.drill.key) || '').indexOf(':all') < 0;
 		});
-		var html = '';
+		var html = '<div class="mk-admin-kpi-board is-enter" data-board-zone="' + escapeHtml(zone) + '">';
+		var idx = 0;
 		if (rates.length) {
 			html += '<div class="mk-admin-kpi-rate-row">';
 			rates.forEach(function (item) {
-				html += stageHit(item, zone);
+				html += stageHit(item, zone, idx++);
 			});
 			html += '</div>';
 		}
@@ -516,19 +588,48 @@
 		html += renderDonut(donutItems.length ? donutItems : stages, OFFLINE_COLORS);
 		html += '<div class="mk-admin-kpi-offline-stats">';
 		stages.forEach(function (item) {
-			html += stageHit(item, zone);
+			html += stageHit(item, zone, idx++);
 		});
 		html += '</div></div>';
 		splits.forEach(function (group) {
 			html += '<h3 class="mk-admin-kpi-split-title">' + safeLabel(group.title) + '</h3>';
 			html += '<div class="mk-admin-kpi-offline-stats">';
 			(group.items || []).forEach(function (item) {
-				html += stageHit(item, zone);
+				html += stageHit(item, zone, idx++);
 			});
 			html += '</div>';
 		});
 		html += renderSoon(soon);
+		html += '</div>';
 		return html;
+	}
+
+	function syncStagePeriodNav($root, nav) {
+		nav = nav || {};
+		if (typeof nav.offset === 'number') {
+			state.stageOffset = Math.max(0, nav.offset);
+		}
+		var label = nav.label || fallbackPeriodLabel();
+		$root.find('#mkAdminKpiPeriodLabel').text(label);
+		$root.find('[data-stage-nav="next"]').prop('disabled', !(nav.can_next || state.stageOffset > 0));
+		$root.find('[data-stage-nav="prev"]').prop('disabled', nav.can_prev === false);
+		$root.find('[data-stage-period]').removeClass('is-active');
+		$root.find('[data-stage-period="' + (state.stagePeriod || 'month') + '"]').addClass('is-active');
+	}
+
+	function fallbackPeriodLabel() {
+		var now = new Date();
+		if (state.stagePeriod === 'year') {
+			return 'Năm ' + (now.getFullYear() - state.stageOffset);
+		}
+		if (state.stagePeriod === 'quarter') {
+			var q = Math.ceil((now.getMonth() + 1) / 3);
+			var idx = now.getFullYear() * 4 + q - 1 - state.stageOffset;
+			return 'Quý ' + ((idx % 4) + 1) + '/' + Math.floor(idx / 4);
+		}
+		var d = new Date(now.getFullYear(), now.getMonth() - state.stageOffset, 1);
+		var m = d.getMonth() + 1;
+		return 'Tháng ' + (m < 10 ? '0' : '') + m + '/' + d.getFullYear();
 	}
 
 	function renderSoon(items) {
@@ -838,6 +939,7 @@
 		};
 		if (year) params.year = year;
 		params.stage_period = state.stagePeriod;
+		params.stage_offset = state.stageOffset;
 		return api(params)
 			.done(function (data) {
 				$drill.html(renderDrillPanel((data && data.drilldown) || {}));
@@ -1350,8 +1452,23 @@
 		});
 		$root.on('click', '[data-stage-period]', function () {
 			state.stagePeriod = String($(this).data('stage-period') || 'month');
+			state.stageOffset = 0;
 			$root.find('[data-stage-period]').removeClass('is-active');
 			$(this).addClass('is-active');
+			hideDrilldown($root);
+			loadWidgets($root);
+		});
+		$root.on('click', '[data-stage-nav]', function () {
+			var dir = String($(this).data('stage-nav') || '');
+			if (dir === 'prev') {
+				if (state.stageOffset >= 120) return;
+				state.stageOffset += 1;
+			} else if (dir === 'next') {
+				if (state.stageOffset <= 0) return;
+				state.stageOffset -= 1;
+			} else {
+				return;
+			}
 			hideDrilldown($root);
 			loadWidgets($root);
 		});
@@ -1410,6 +1527,7 @@
 		$root.data('mk-kpi-bound', 1);
 		bind($root);
 		syncChartFilterUi($root);
+		syncStagePeriodNav($root, { offset: 0, label: fallbackPeriodLabel(), can_next: false, can_prev: true });
 		loadSummary($root).always(function () {
 			loadDetail($root);
 			loadWidgets($root);
