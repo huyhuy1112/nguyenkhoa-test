@@ -202,7 +202,7 @@ $MATRIX = array(
 		),
 	),
 	'NK Cung ung' => array(
-		'description' => 'Cung ứng — Kho/NCC/PO full; không menu Bán hàng',
+		'description' => 'Cung ứng — chỉ nhập kho (GoodsReceipt) + NCC/PO; ngang cấp với Kho; không Bán hàng',
 		'viewall' => false,
 		'editall' => false,
 		'modules' => array(
@@ -214,11 +214,11 @@ $MATRIX = array(
 			'Quotes' => 'none',
 			'SalesOrder' => 'view',
 			'Invoice' => 'none',
-			'Products' => 'full',
-			'Services' => 'full',
-			'ProductsServices' => 'full',
-			'Warehouse' => 'full',
-			'GoodsIssue' => 'full',
+			'Products' => 'view',
+			'Services' => 'view',
+			'ProductsServices' => 'view',
+			'Warehouse' => 'view',
+			'GoodsIssue' => 'none',
 			'GoodsReceipt' => 'full',
 			'Vendors' => 'full',
 			'PurchaseOrder' => 'full',
@@ -233,7 +233,7 @@ $MATRIX = array(
 		),
 	),
 	'NK Kho' => array(
-		'description' => 'Kho vận — chỉ Kho/NXK/SP; không menu Bán hàng',
+		'description' => 'QL kho / QC — quản lý kho + xuất nhập; ngang cấp Cung ứng; không Bán hàng',
 		'viewall' => false,
 		'editall' => false,
 		'modules' => array(
@@ -640,7 +640,7 @@ $roleIds['KTT'] = rbac_ensure_role('KTT', $ceoId, $profileIds['NK KTT']);
 $roleIds['Ke toan'] = rbac_ensure_role('Ke toan', $roleIds['KTT'], $profileIds['NK Ke toan']);
 // Cung ứng / Kho
 $roleIds['Cung ung'] = rbac_ensure_role('Cung ung', $ceoId, $profileIds['NK Cung ung']);
-$roleIds['Kho'] = rbac_ensure_role('Kho', $roleIds['Cung ung'], $profileIds['NK Kho']);
+$roleIds['Kho'] = rbac_ensure_role('Kho', $ceoId, $profileIds['NK Kho']);
 
 echo "\n-- Fix role hierarchy --\n";
 rbac_ensure_parent($roleIds['Expert'], $ceoId, 'Expert');
@@ -650,7 +650,7 @@ rbac_ensure_parent($roleIds['Sale'], $roleIds['Sale Manager'], 'Sale');
 rbac_ensure_parent($roleIds['KTT'], $ceoId, 'KTT');
 rbac_ensure_parent($roleIds['Ke toan'], $roleIds['KTT'], 'Ke toan');
 rbac_ensure_parent($roleIds['Cung ung'], $ceoId, 'Cung ung');
-rbac_ensure_parent($roleIds['Kho'], $roleIds['Cung ung'], 'Kho');
+rbac_ensure_parent($roleIds['Kho'], $ceoId, 'Kho');
 
 // Fix legacy HTML-encoded accountant role name
 $broken = $adb->pquery(

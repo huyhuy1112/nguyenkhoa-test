@@ -46,8 +46,9 @@ $EXPECT = array(
 	'NK Cung ung' => array(
 		'Leads' => array('index' => 0),
 		'SalesOrder' => array('index' => 1, 'CreateView' => 0, 'EditView' => 0, 'DetailView' => 1),
-		'Warehouse' => array('index' => 1, 'CreateView' => 1, 'EditView' => 1),
-		'GoodsIssue' => array('index' => 1, 'CreateView' => 1),
+		'Warehouse' => array('index' => 1, 'CreateView' => 0, 'EditView' => 0, 'DetailView' => 1),
+		'GoodsIssue' => array('index' => 0, 'CreateView' => 0),
+		'GoodsReceipt' => array('index' => 1, 'CreateView' => 1, 'EditView' => 1),
 		'PurchaseOrder' => array('CreateView' => 1),
 	),
 	'NK Kho' => array(

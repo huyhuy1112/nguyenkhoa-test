@@ -14,7 +14,9 @@
 class Vtiger_Action_Model extends Vtiger_Base_Model {
 
 	static $standardActions = array('0' => 'Save','1' => 'EditView','2' => 'Delete','3' => 'index','4' => 'DetailView', '7' => 'CreateView');
-	static $nonConfigurableActions = array('Save', 'index', 'SavePriceBook', 'SaveVendor',
+	// 'List' shares actionid 3 with 'index' — exclude so Profile UI column order
+	// (View/Create/Edit/Delete) stays aligned with BASIC_ACTION_ORDER in templates.
+	static $nonConfigurableActions = array('Save', 'index', 'List', 'SavePriceBook', 'SaveVendor',
 											'DetailViewAjax', 'PriceBookEditView', 'QuickCreate', 'VendorEditView',
 											'DeletePriceBook', 'DeleteVendor', 'Popup', 'PriceBookDetailView',
 											'TagCloud', 'VendorDetailView');
@@ -131,6 +133,9 @@ class Vtiger_Action_Model extends Vtiger_Base_Model {
 			$sql .= ' AND actionname NOT IN ('. generateQuestionMarks(self::$nonConfigurableActions) .')';
 			$params = array_merge($params, self::$nonConfigurableActions);
 		}
+		// Stable order for Profile UI: EditView, Delete, DetailView, CreateView
+		// (templates use BASIC_ACTION_ORDER = array(2,3,0,1) → View, Create, Edit, Delete)
+		$sql .= ' ORDER BY FIELD(actionname, \'EditView\', \'Delete\', \'DetailView\', \'CreateView\'), actionid';
 		$result = $db->pquery($sql, $params);
 		$noOfRows = $db->num_rows($result);
 		$actionModels = array();
