@@ -630,24 +630,23 @@ class HelpDesk_MaterialAlertService {
 		$donut = array();
 		foreach ($groupsDef as $def) {
 			$open = array();
-			$zeroCodes = array();
 			$sum = 0;
 			foreach ($def['codes'] as $code) {
 				$n = isset($by[$code]) ? (int) $by[$code] : 0;
 				$sum += $n;
 				$label = isset($catalog['nl'][$code]) ? $catalog['nl'][$code] : $code;
-				if ($n > 0) {
-					$open[] = array(
-						'code' => $code,
-						'label' => $label,
-						'count' => $n,
-						'color' => $def['color'],
-					);
-				} else {
-					$zeroCodes[] = $code;
-				}
+				$open[] = array(
+					'code' => $code,
+					'label' => $label,
+					'count' => $n,
+					'color' => $n > 0 ? $def['color'] : '#94a3b8',
+					'muted' => $n <= 0,
+				);
 			}
 			usort($open, function ($a, $b) {
+				if ($a['count'] === $b['count']) {
+					return strcmp($a['code'], $b['code']);
+				}
 				return $b['count'] - $a['count'];
 			});
 			$groups[] = array(
@@ -656,8 +655,8 @@ class HelpDesk_MaterialAlertService {
 				'total' => $sum,
 				'color' => $def['color'],
 				'open' => $open,
-				'zero_count' => count($zeroCodes),
-				'zero_codes' => $zeroCodes,
+				'zero_count' => 0,
+				'zero_codes' => array(),
 			);
 			$donut[] = array(
 				'label' => $def['key'] . ' · ' . $def['title'],
@@ -690,6 +689,7 @@ class HelpDesk_MaterialAlertService {
 				'count' => (int) $derived['count'],
 				'color' => $derived['color'],
 				'hint' => isset($derived['hint']) ? $derived['hint'] : '',
+				'muted' => ((int) $derived['count']) <= 0,
 			);
 			if ($row['count'] > 0) {
 				$qlHot[] = $row;
@@ -705,8 +705,8 @@ class HelpDesk_MaterialAlertService {
 			'donut' => $donut,
 			'ql' => array(
 				'title' => 'QL — Chỉ số quản lý',
-				'hot' => $qlHot,
-				'cold' => $qlCold,
+				'hot' => array_merge($qlHot, $qlCold),
+				'cold' => array(),
 			),
 			'stages' => array(),
 			'splits' => array(),

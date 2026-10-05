@@ -595,99 +595,77 @@
 				renderSoon(soon)
 			);
 		}
-		var heroRates = rates.slice(0, 4);
-		var extraRates = rates.slice(4);
-		var donut = [];
-		var statusOpen = [];
-		var statusZero = [];
-		var statusTotal = 0;
 		var colColors = ['#2563eb', '#0f766e', '#b45309', '#7c3aed', '#0891b2', '#e11d48'];
+		var donut = [];
+		var statusRows = [];
+		var statusTotal = 0;
 		stages.forEach(function (item, i) {
 			var key = String((item.drill && item.drill.key) || '');
 			var count = Number(item.count) || 0;
+			var row = stageItemToHudRow(item, i);
 			if (key.indexOf(':all') >= 0) {
 				statusTotal = count;
+				row.code = 'ALL';
+				row.muted = false;
+				statusRows.unshift(row);
 				return;
 			}
-			var row = stageItemToHudRow(item, i);
+			row.muted = count <= 0;
+			statusRows.push(row);
 			if (count > 0) {
-				statusOpen.push(row);
-				donut.push({ label: item.label, count: count, color: item.color || colColors[donut.length % colColors.length] });
-			} else {
-				statusZero.push(item.label || row.code);
+				donut.push({
+					label: item.label,
+					count: count,
+					color: item.color || colColors[donut.length % colColors.length],
+				});
 			}
 		});
-		statusOpen.sort(function (a, b) {
-			return (Number(b.count) || 0) - (Number(a.count) || 0);
-		});
 		if (!statusTotal) {
-			statusOpen.forEach(function (r) {
-				statusTotal += Number(r.count) || 0;
+			statusRows.forEach(function (r) {
+				if (String(r.code).toUpperCase() !== 'ALL') {
+					statusTotal += Number(r.count) || 0;
+				}
 			});
 		}
 		var groups = [];
-		if (statusOpen.length || statusZero.length) {
+		if (statusRows.length) {
 			groups.push({
 				key: 'TT',
 				title: 'Trạng thái',
 				total: statusTotal,
 				color: '#2563eb',
-				open: statusOpen,
-				zero_count: statusZero.length,
-				zero_codes: statusZero,
-				empty_text: 'Chưa có trạng thái',
-			});
-		}
-		if (extraRates.length) {
-			groups.push({
-				key: '%',
-				title: 'Thêm tỷ lệ',
-				total: extraRates.length,
-				color: '#047857',
-				open: extraRates.map(function (item, i) {
-					return stageItemToHudRow(item, i);
-				}),
+				open: statusRows,
 				zero_count: 0,
 				zero_codes: [],
-				empty_text: '',
-				total_label: 'chỉ số',
+				empty_text: 'Chưa có trạng thái',
+				total_label: 'hồ sơ',
 			});
 		}
 		splits.forEach(function (sp, si) {
-			var open = [];
-			var zero = [];
+			var rows = [];
+			var sum = 0;
 			(sp.items || []).forEach(function (item, i) {
+				var row = stageItemToHudRow(item, i);
 				var count = Number(item.count) || 0;
 				var val = item.value != null ? String(item.value) : '';
-				var emptyVal = !count && (val === '' || val === '0' || val === '0%');
-				var row = stageItemToHudRow(item, i);
-				if (!emptyVal) {
-					open.push(row);
-				} else {
-					zero.push(item.label || row.code);
-				}
-			});
-			open.sort(function (a, b) {
-				return (Number(b.count) || 0) - (Number(a.count) || 0);
-			});
-			var sum = 0;
-			open.forEach(function (r) {
-				sum += Number(r.count) || 0;
+				row.muted = !count && (val === '' || val === '0' || val === '0%' || val === '—');
+				sum += count;
+				rows.push(row);
 			});
 			groups.push({
 				key: String(si + 1),
 				title: sp.title || 'Nhóm',
 				total: sum,
 				color: colColors[(si + 1) % colColors.length],
-				open: open,
-				zero_count: zero.length,
-				zero_codes: zero,
+				open: rows,
+				zero_count: 0,
+				zero_codes: [],
 				empty_text: 'Chưa có dữ liệu',
 			});
 		});
 		return renderHudBoard({
 			zone: zone,
-			rates: heroRates,
+			rates: rates,
 			donut: donut,
 			groups: groups,
 			footerHtml: renderSoon(soon),
@@ -726,7 +704,8 @@
 
 	function renderHudRow(row, zone, fallbackColor) {
 		row = row || {};
-		var color = row.color || fallbackColor || '#0f172a';
+		var color = row.muted ? '#94a3b8' : row.color || fallbackColor || '#0f172a';
+		var cls = 'mk-nl-row' + (row.muted ? ' is-muted' : ' is-hot');
 		var body =
 			'<span class="mk-nl-row__code">' +
 			escapeHtml(row.code || '') +
@@ -738,10 +717,12 @@
 			escapeHtml(row.display != null ? String(row.display) : num(row.count)) +
 			'</strong>';
 		if (row.nodrill || !row.drill || !zone) {
-			return '<div class="mk-nl-row is-hot">' + body + '</div>';
+			return '<div class="' + cls + '">' + body + '</div>';
 		}
 		return (
-			'<button type="button" class="mk-nl-row is-hot mk-admin-kpi-stage-hit" data-drill-zone="' +
+			'<button type="button" class="' +
+			cls +
+			' mk-admin-kpi-stage-hit" data-drill-zone="' +
 			escapeHtml(zone) +
 			'" data-drill-type="' +
 			escapeHtml(row.drill.type || 'stage_people') +
@@ -829,13 +810,16 @@
 			html += '<h3 class="mk-nl-ql__title">' + safeLabel(ql.title || 'QL') + '</h3>';
 			html += '<div class="mk-nl-ql__grid">';
 			(ql.hot || []).forEach(function (row) {
+				var muted = !!row.muted || !(Number(row.count) > 0);
 				html +=
-					'<div class="mk-nl-ql__item is-hot"><span>' +
+					'<div class="mk-nl-ql__item' +
+					(muted ? ' is-muted' : ' is-hot') +
+					'"><span>' +
 					escapeHtml(row.code || '') +
 					' — ' +
 					safeLabel(row.label) +
 					'</span><strong style="color:' +
-					escapeHtml(row.color || '#b45309') +
+					escapeHtml(muted ? '#94a3b8' : row.color || '#b45309') +
 					'">' +
 					num(row.count) +
 					'</strong></div>';
@@ -981,11 +965,12 @@
 							count: row.count,
 							display: num(row.count),
 							color: row.color || g.color,
+							muted: !!row.muted || !(Number(row.count) > 0),
 							nodrill: true,
 						};
 					}),
-					zero_count: g.zero_count,
-					zero_codes: g.zero_codes,
+					zero_count: 0,
+					zero_codes: [],
 					empty_text: 'Không có việc mở',
 					total_label: 'việc',
 				};
