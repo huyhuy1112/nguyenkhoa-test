@@ -916,11 +916,17 @@
 		var active = qs('.mk-wh-proto-tab.is-active');
 		var tabKey = active ? active.getAttribute('data-tab') : 'inbound';
 		var btn = qs('#mkWhProtoCreateBtn');
+		var importBtn = qs('#mkWhProtoImportStockBtn');
 		var canCreate = isWarehouseOps(role) && (tabKey === 'inbound' || tabKey === 'outbound' || tabKey === 'returns');
+		var canImport = isWarehouseOps(role) && tabKey === 'stock';
 		if (btn) {
 			btn.classList.toggle('hide', !canCreate);
 			btn.disabled = !canCreate;
 			btn.textContent = tabKey === 'outbound' ? 'Tạo phiếu xuất' : (tabKey === 'returns' ? 'Tạo phiếu thu hồi' : 'Tạo phiếu nhập');
+		}
+		if (importBtn) {
+			importBtn.classList.toggle('hide', !canImport);
+			importBtn.disabled = !canImport;
 		}
 	}
 
@@ -3805,6 +3811,70 @@
 				openReturnModal();
 			}
 		});
+
+		var importBtn = qs('#mkWhProtoImportStockBtn');
+		var importFile = qs('#mkWhProtoImportStockFile');
+		if (importBtn && importFile) {
+			importBtn.addEventListener('click', function () {
+				if (importBtn.disabled || importBtn.classList.contains('hide')) return;
+				importFile.value = '';
+				importFile.click();
+			});
+			importFile.addEventListener('change', function () {
+				var file = importFile.files && importFile.files[0] ? importFile.files[0] : null;
+				if (!file) return;
+				var whId = getWhId();
+				if (!whId) return;
+				var name = String(file.name || '').toLowerCase();
+				if (!/\.xlsx$/i.test(name)) {
+					window.alert('Chỉ hỗ trợ file .xlsx (báo cáo Xuất–Nhập–Tồn).');
+					importFile.value = '';
+					return;
+				}
+				var ok = window.confirm(
+					'Import tồn kho từ file:\n' + file.name +
+					'\n\nSẽ XÓA tồn hiện tại của kho này rồi ghi lại theo Excel' +
+					'\n(SKU = Mã hàng, tồn = Tồn cuối kỳ, giá/tên từ Hàng hoá, HSD trống).' +
+					'\n\nTiếp tục?'
+				);
+				if (!ok) {
+					importFile.value = '';
+					return;
+				}
+				importBtn.disabled = true;
+				importBtn.textContent = 'Đang import…';
+				var done = function () {
+					importBtn.disabled = false;
+					importBtn.textContent = 'Import Excel';
+					importFile.value = '';
+				};
+				if (!(S.warehouseDataActions && typeof S.warehouseDataActions.importStockExcel === 'function')) {
+					window.alert('Chức năng import chưa sẵn sàng (cần chế độ DB).');
+					done();
+					return;
+				}
+				S.warehouseDataActions.importStockExcel(whId, file, true).then(function (res) {
+					var st = (res && res.stats) ? res.stats : {};
+					var miss = (res && res.missing) ? res.missing : [];
+					var msg =
+						'Import xong.\n' +
+						'- Excel: ' + (st.excel || 0) + '\n' +
+						'- Khớp catalog: ' + (st.matched || 0) + '\n' +
+						'- Thêm mới: ' + (st.inserted || 0) + '\n' +
+						'- Cập nhật: ' + (st.updated || 0) + '\n' +
+						'- SKU thiếu trên Hàng hoá: ' + (st.missing_sku || 0);
+					if (miss && miss.length) {
+						msg += '\n\nSKU thiếu (mẫu):\n- ' + miss.slice(0, 12).join('\n- ');
+					}
+					window.alert(msg);
+					renderAll();
+					done();
+				}).fail(function (err) {
+					window.alert((err && err.message) ? err.message : 'Import thất bại.');
+					done();
+				});
+			});
+		}
 
 		var modal = qs('#mkWhProtoModal');
 		if (modal) {

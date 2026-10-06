@@ -4376,6 +4376,61 @@ class Warehouse_WhMgmtService {
 			'data' => self::getWarehouseData($db, $warehouseCode),
 		);
 	}
+
+	/**
+	 * Import tồn kho từ file báo cáo Xuất–Nhập–Tồn (.xlsx).
+	 * Giá/tên lấy từ ProductsServices; HSD để trống.
+	 *
+	 * @param string $warehouseCode
+	 * @param array $file $_FILES entry
+	 * @param bool $wipe
+	 * @param int $userId
+	 * @return array
+	 */
+	public static function importStockFromExcel($warehouseCode, array $file, $wipe = true, $userId = 0) {
+		$db = PearDatabase::getInstance();
+		self::ensureInstalled();
+		require_once 'modules/Warehouse/helpers/StockExcelImportHelper.php';
+
+		$warehouseCode = trim((string) $warehouseCode);
+		if ($warehouseCode === '') {
+			throw new Exception('Thiếu mã kho.');
+		}
+		$err = isset($file['error']) ? (int) $file['error'] : UPLOAD_ERR_NO_FILE;
+		if ($err !== UPLOAD_ERR_OK) {
+			throw new Exception('Upload file thất bại (mã lỗi ' . $err . ').');
+		}
+		$tmp = isset($file['tmp_name']) ? (string) $file['tmp_name'] : '';
+		if ($tmp === '' || !is_uploaded_file($tmp)) {
+			throw new Exception('File upload không hợp lệ.');
+		}
+		$orig = isset($file['name']) ? (string) $file['name'] : 'stock.xlsx';
+		$ext = strtolower(pathinfo($orig, PATHINFO_EXTENSION));
+		if ($ext !== 'xlsx') {
+			throw new Exception('Chỉ hỗ trợ file .xlsx (báo cáo Xuất–Nhập–Tồn).');
+		}
+
+		$dir = 'storage/warehouse_stock_import';
+		if (!is_dir($dir)) {
+			@mkdir($dir, 0775, true);
+		}
+		$stored = $dir . '/' . date('Ymd_His') . '_' . preg_replace('/[^a-zA-Z0-9._-]+/', '_', $orig);
+		if (!@move_uploaded_file($tmp, $stored)) {
+			// Fallback copy when open_basedir / move fails after validation
+			if (!@copy($tmp, $stored)) {
+				throw new Exception('Không lưu được file upload.');
+			}
+		}
+
+		try {
+			$result = Warehouse_StockExcelImport_Helper::import($db, $warehouseCode, $stored, (bool) $wipe, (int) $userId);
+		} finally {
+			@unlink($stored);
+		}
+
+		$result['data'] = self::getWarehouseData($db, $warehouseCode);
+		return $result;
+	}
 }
 
 ?>

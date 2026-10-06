@@ -1249,6 +1249,19 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	margin-bottom: 10px;
 }
 
+.mk-wh-proto-stage__actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.mk-wh-proto-btn--outline {
+	background: #fff;
+	border: 1px solid #cbd5e1;
+	color: #0f172a;
+}
+
 .mk-wh-proto-stage__title {
 	margin: 0;
 	font-size: 14px;

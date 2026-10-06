@@ -22,7 +22,7 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'save_issue', 'receipt_action', 'issue_action', 'save_return', 'return_action', 'set_settings', 'qc_upload_image', 'qc_delete_image', 'qc_update'), true)) {
+		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'save_issue', 'receipt_action', 'issue_action', 'save_return', 'return_action', 'set_settings', 'qc_upload_image', 'qc_delete_image', 'qc_update', 'import_stock_excel'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -323,6 +323,22 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					$role = trim((string) $request->get('role'));
 					$note = $this->readActionNote($request);
 					$result = Warehouse_WhMgmtService::updateQcRecord($whId, $code, $note, $userId, $role);
+					$response->setResult(array_merge(array('success' => true), $result));
+					break;
+
+				case 'import_stock_excel':
+					global $current_user;
+					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
+					$whId = trim((string) $request->get('whId'));
+					if ($whId === '') {
+						$whId = trim((string) $request->get('id'));
+					}
+					$wipeRaw = $request->get('wipe');
+					$wipe = !($wipeRaw === '0' || $wipeRaw === 0 || $wipeRaw === false || $wipeRaw === 'false');
+					if (!isset($_FILES['stockExcel']) || !is_array($_FILES['stockExcel'])) {
+						throw new Exception('Chưa chọn file Excel.');
+					}
+					$result = Warehouse_WhMgmtService::importStockFromExcel($whId, $_FILES['stockExcel'], $wipe, $userId);
 					$response->setResult(array_merge(array('success' => true), $result));
 					break;
 

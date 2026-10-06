@@ -448,6 +448,56 @@
 			});
 			return def.promise();
 		},
+		importStockExcel: function (whId, file, wipe) {
+			if (!useDb) {
+				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
+			}
+			var def = $.Deferred();
+			var fd = new FormData();
+			fd.append('module', 'Warehouse');
+			fd.append('action', 'WhMgmtApi');
+			fd.append('mode', 'import_stock_excel');
+			fd.append('whId', whId);
+			fd.append('wipe', wipe ? '1' : '0');
+			fd.append('stockExcel', file);
+			try {
+				var csrf = '';
+				if (typeof jQuery !== 'undefined' && jQuery('[name="__vtrftk"]').length) {
+					csrf = jQuery('[name="__vtrftk"]').val() || '';
+				} else if (typeof csrfMagicToken !== 'undefined') {
+					csrf = csrfMagicToken;
+				}
+				if (csrf) {
+					fd.append('__vtrftk', csrf);
+				}
+			} catch (eCsrf) { /* ignore */ }
+			$.ajax({
+				url: 'index.php',
+				method: 'POST',
+				data: fd,
+				processData: false,
+				contentType: false,
+				dataType: 'json',
+			}).done(function (res) {
+				var out = unwrapApiResponse(res);
+				if (!out || out.success === false || out.error) {
+					def.reject({ message: String((out && out.error) || 'Import thất bại') });
+					return;
+				}
+				if (out.data) {
+					patchData(whId, function () { return out.data; });
+				}
+				def.resolve(out);
+			}).fail(function (xhr) {
+				var msg = 'Import thất bại';
+				if (xhr && xhr.responseJSON) {
+					if (xhr.responseJSON.error) msg = xhr.responseJSON.error;
+					else if (xhr.responseJSON.message) msg = xhr.responseJSON.message;
+				}
+				def.reject({ message: String(msg) });
+			});
+			return def.promise();
+		},
 		deleteQcImage: function (whId, code, imageId) {
 			if (!useDb) {
 				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();

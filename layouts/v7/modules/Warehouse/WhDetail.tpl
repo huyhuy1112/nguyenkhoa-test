@@ -99,7 +99,11 @@
 			<section class="mk-wh-proto-stage">
 				<header class="mk-wh-proto-stage__head">
 					<h2 class="mk-wh-proto-stage__title" id="mkWhProtoStageTitle">Danh sách phiếu nhập</h2>
-					<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--primary" id="mkWhProtoCreateBtn">Tạo phiếu nhập</button>
+					<div class="mk-wh-proto-stage__actions">
+						<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--outline hide" id="mkWhProtoImportStockBtn" title="Import tồn từ file Excel báo cáo Xuất–Nhập–Tồn">Import Excel</button>
+						<input type="file" id="mkWhProtoImportStockFile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hide" tabindex="-1" aria-hidden="true" />
+						<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--primary" id="mkWhProtoCreateBtn">Tạo phiếu nhập</button>
+					</div>
 				</header>
 				<div class="mk-wh-proto-pane" id="mkWhProtoPaneInbound">
 					<div class="mk-wh-proto-table-wrap">
