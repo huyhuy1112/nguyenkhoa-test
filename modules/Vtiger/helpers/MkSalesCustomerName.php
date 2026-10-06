@@ -77,6 +77,47 @@ class Vtiger_MkSalesCustomerName_Helper {
 	}
 
 	/**
+	 * Invoice list: customer name from Invoice, else from linked SalesOrder.
+	 *
+	 * @param Vtiger_Record_Model $recordModel
+	 * @return Vtiger_Record_Model
+	 */
+	public static function applyInvoiceListCustomerColumn(Vtiger_Record_Model $recordModel) {
+		$name = self::resolveListStyleName($recordModel);
+		if ($name === '') {
+			$soId = self::extractRawId($recordModel, array('salesorder_id', 'salesorderid'));
+			if ($soId <= 0) {
+				$raw = $recordModel->getRawData();
+				if (is_array($raw)) {
+					$soId = (int) (isset($raw['salesorderid']) ? $raw['salesorderid'] : (isset($raw['salesorder_id']) ? $raw['salesorder_id'] : 0));
+				}
+			}
+			if ($soId <= 0) {
+				$db = PearDatabase::getInstance();
+				$rs = $db->pquery(
+					'SELECT salesorderid FROM vtiger_invoice WHERE invoiceid = ?',
+					array((int) $recordModel->getId())
+				);
+				if ($rs && $db->num_rows($rs) > 0) {
+					$soId = (int) $db->query_result($rs, 0, 'salesorderid');
+				}
+			}
+			if ($soId > 0) {
+				try {
+					$soModel = Vtiger_Record_Model::getInstanceById($soId, 'SalesOrder');
+					if ($soModel) {
+						$name = self::resolveListStyleName($soModel);
+					}
+				} catch (Exception $e) {
+					$name = '';
+				}
+			}
+		}
+		$recordModel->set('account_id', $name !== '' ? $name : '--');
+		return $recordModel;
+	}
+
+	/**
 	 * Franchise / empty-contact quotes: subject, Account, or linked ServiceContract name.
 	 *
 	 * @param Vtiger_Record_Model $recordModel

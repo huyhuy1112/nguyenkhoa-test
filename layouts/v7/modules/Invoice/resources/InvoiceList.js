@@ -1548,8 +1548,12 @@
       $notes.val(decodeHtmlEntities($notes.val()));
     }
 
-    // Always editable — no pencil toggle needed.
-    setInlineDetailEditMode($panel, true);
+    // Always editable — no pencil toggle needed (SalesOrder / Quotes).
+    // Invoice panel is read-focused (order → invoice snapshot).
+    var panelModule = String($panel.attr("data-module") || $panel.data("module") || "").toLowerCase();
+    if (panelModule !== "invoice") {
+      setInlineDetailEditMode($panel, true);
+    }
 
     $panel.on("click", ".mk-so-inline-detail__edit-toggle", function (e) {
       e.preventDefault();
