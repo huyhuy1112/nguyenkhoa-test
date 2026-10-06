@@ -165,7 +165,7 @@
 									{assign var=_mkModActive value=true}
 								{/if}
 								<a class="mk-dash-mod-link{if $_mkModActive} mk-dash-mod-link--active{/if}" href="{$moduleModel->getDefaultUrl()}&app={$APP_NAME}">
-									<span class="mk-dash-mod-label">{if $moduleName eq 'Rules'}Quản Lý rule{elseif $moduleName eq 'SupportFAQ'}Cảnh báo{elseif $moduleName eq 'Accounts'}Khách hàng nhượng quyền{elseif $moduleName eq 'Contacts'}Khách hàng{elseif $moduleName eq 'ProductsServices'}Hàng hoá{elseif $moduleName eq 'ServiceContracts'}Khách hàng nhượng quyền tiềm năng{else}{vtranslate($moduleName, $moduleName)}{/if}</span>
+									<span class="mk-dash-mod-label">{if $moduleName eq 'Rules'}Quản Lý rule{elseif $moduleName eq 'SupportFAQ'}Cảnh báo{elseif $moduleName eq 'Accounts'}Danh sách chủ quán{elseif $moduleName eq 'Contacts'}Khách hàng{elseif $moduleName eq 'ProductsServices'}Hàng hoá{elseif $moduleName eq 'ServiceContracts'}Khách hàng nhượng quyền tiềm năng{else}{vtranslate($moduleName, $moduleName)}{/if}</span>
 								</a>
 								{* SALES: Hóa đơn ngay dưới Đơn hàng, rồi tới Tuibao *}
 								{if $APP_NAME eq 'SALES' && $moduleName eq 'SalesOrder' && $_mkInvoiceRendered eq false}
@@ -188,7 +188,7 @@
 											<div class="mk-dash-mod-panel" id="mk-dash-tuibao-panel-{$APP_NAME}" role="region" aria-labelledby="mk-dash-tuibao-btn-{$APP_NAME}">
 												{if $_mkHasAccounts}
 													<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkAccActive} mk-dash-mod-link--active{/if}" href="index.php?module=Accounts&amp;view=List&amp;app=SALES">
-														<span class="mk-dash-mod-label">Khách hàng nhượng quyền</span>
+														<span class="mk-dash-mod-label">Danh sách chủ quán</span>
 													</a>
 												{/if}
 												{if $_mkHasServiceContracts}
@@ -225,7 +225,7 @@
 								<div class="mk-dash-mod-panel" id="mk-dash-tuibao-panel-{$APP_NAME}-fb" role="region">
 									{if $_mkHasAccounts}
 										<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkAccActive} mk-dash-mod-link--active{/if}" href="index.php?module=Accounts&amp;view=List&amp;app=SALES">
-											<span class="mk-dash-mod-label">Khách hàng nhượng quyền</span>
+											<span class="mk-dash-mod-label">Danh sách chủ quán</span>
 										</a>
 									{/if}
 									{if $_mkHasServiceContracts}

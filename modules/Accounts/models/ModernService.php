@@ -1,7 +1,9 @@
 <?php
 /*+***********************************************************************************
- * Modern Accounts (KH NQ tiềm năng) — list + tags for Leads-like SALES UI.
+ * Modern Accounts (Danh sách chủ quán) — SC-like list + tags for SALES UI.
  *************************************************************************************/
+
+require_once 'modules/ServiceContracts/models/ModernService.php';
 
 class Accounts_ModernService {
 
@@ -18,17 +20,68 @@ class Accounts_ModernService {
 		'facebook', 'tiktok', 'website', 'zalo', 'other', 'other_source',
 	);
 
+	public static function installSchema(PearDatabase $adb = null) {
+		if ($adb === null) {
+			$adb = PearDatabase::getInstance();
+		}
+		$adb->pquery("CREATE TABLE IF NOT EXISTS bace_acc_profile (
+			accountid INT(19) NOT NULL,
+			received_date DATE DEFAULT NULL,
+			business_note TEXT,
+			franchise_status VARCHAR(128) DEFAULT NULL,
+			data_source VARCHAR(128) DEFAULT NULL,
+			referrer VARCHAR(255) DEFAULT NULL,
+			contact_status VARCHAR(128) DEFAULT NULL,
+			interaction_materials TEXT,
+			last_touch DATETIME DEFAULT NULL,
+			created_at DATETIME DEFAULT NULL,
+			modified_at DATETIME DEFAULT NULL,
+			PRIMARY KEY (accountid),
+			KEY idx_last_touch (last_touch)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8", array());
+	}
+
+	public static function ensureProfileRow($accountId) {
+		$accountId = (int) $accountId;
+		if ($accountId <= 0) {
+			return false;
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$res = $adb->pquery(
+			'SELECT accountid FROM bace_acc_profile WHERE accountid = ?',
+			array($accountId)
+		);
+		if ($res && $adb->num_rows($res) > 0) {
+			return true;
+		}
+		$now = date('Y-m-d H:i:s');
+		$adb->pquery(
+			'INSERT INTO bace_acc_profile (accountid, last_touch, created_at, modified_at) VALUES (?, ?, ?, ?)',
+			array($accountId, $now, $now, $now)
+		);
+		return true;
+	}
+
+	public static function franchisePicklists() {
+		return ServiceContracts_ModernService::franchisePicklists();
+	}
+
 	public static function listAccounts($userId = null) {
 		global $current_user;
 		if ($userId === null) {
 			$userId = (int) $current_user->id;
 		}
 		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
 		$sql = "SELECT a.accountid, a.accountname, a.phone, a.email1, a.account_no,
 				a.tb_store_address, a.tb_party_b_name, a.tb_party_b_phone,
+				p.received_date, p.business_note, p.franchise_status, p.data_source,
+				p.referrer, p.contact_status, p.interaction_materials, p.last_touch AS profile_last_touch,
 				ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description
 			FROM vtiger_account a
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = a.accountid AND ce.deleted = 0
+			LEFT JOIN bace_acc_profile p ON p.accountid = a.accountid
 			ORDER BY ce.createdtime DESC, a.accountid DESC";
 		$res = $adb->pquery($sql, array());
 		$rows = array();
@@ -37,6 +90,9 @@ class Accounts_ModernService {
 		for ($i = 0; $i < $n; $i++) {
 			$row = $adb->query_result_rowdata($res, $i);
 			$ids[] = (int) $row['accountid'];
+			if (empty($row['profile_last_touch'])) {
+				self::ensureProfileRow((int) $row['accountid']);
+			}
 			$rows[] = $row;
 		}
 		$tagsById = self::getTagsForIds($ids, $userId);
@@ -59,12 +115,16 @@ class Accounts_ModernService {
 			return null;
 		}
 		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
 		$res = $adb->pquery(
 			"SELECT a.accountid, a.accountname, a.phone, a.email1, a.account_no,
 				a.tb_store_address, a.tb_party_b_name, a.tb_party_b_phone,
+				p.received_date, p.business_note, p.franchise_status, p.data_source,
+				p.referrer, p.contact_status, p.interaction_materials, p.last_touch AS profile_last_touch,
 				ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description
 			FROM vtiger_account a
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = a.accountid AND ce.deleted = 0
+			LEFT JOIN bace_acc_profile p ON p.accountid = a.accountid
 			WHERE a.accountid = ?",
 			array($accountId)
 		);
@@ -165,6 +225,99 @@ class Accounts_ModernService {
 		return $out;
 	}
 
+	public static function saveInline($accountId, array $payload, $userId = null) {
+		global $current_user;
+		if ($userId === null) {
+			$userId = (int) $current_user->id;
+		}
+		$accountId = (int) $accountId;
+		if ($accountId <= 0) {
+			throw new Exception('Record not found.');
+		}
+		if (!Users_Privileges_Model::isPermitted(self::MODULE, 'EditView', $accountId)) {
+			throw new Exception(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		self::ensureProfileRow($accountId);
+
+		$account = self::getAccount($accountId, $userId);
+		if (!$account) {
+			throw new Exception('Account not found.');
+		}
+		$picklists = self::franchisePicklists();
+		$now = date('Y-m-d H:i:s');
+
+		if (array_key_exists('phone', $payload)) {
+			$phone = preg_replace('/\D+/', '', trim(self::decodeText($payload['phone'])));
+			if ($phone !== '' && strlen($phone) !== 10) {
+				throw new Exception('Số điện thoại phải đủ 10 số.');
+			}
+			if ($phone !== '') {
+				$record = Vtiger_Record_Model::getInstanceById($accountId, self::MODULE);
+				$record->set('mode', 'edit');
+				$record->set('phone', $phone);
+				$record->set('tb_party_b_phone', $phone);
+				$record->save();
+			}
+		}
+
+		$sets = array();
+		$params = array();
+		$profileFields = array(
+			'business_note' => 'business_note',
+			'franchise_status' => 'franchise_status',
+			'data_source' => 'data_source',
+			'referrer' => 'referrer',
+			'contact_status' => 'contact_status',
+			'interaction_materials' => 'interaction_materials',
+		);
+		foreach ($profileFields as $key => $col) {
+			if (!array_key_exists($key, $payload)) {
+				continue;
+			}
+			$val = self::decodeText($payload[$key]);
+			if ($key === 'franchise_status') {
+				$val = self::normalizePick($val, $picklists['franchise_status']);
+			} elseif ($key === 'contact_status') {
+				$val = self::normalizePick($val, $picklists['contact_status']);
+			} elseif ($key === 'data_source') {
+				$val = self::normalizePick($val, $picklists['data_source']);
+			}
+			$sets[] = $col . ' = ?';
+			$params[] = $val;
+		}
+		if (!empty($sets)) {
+			$sets[] = 'last_touch = ?';
+			$params[] = $now;
+			$sets[] = 'modified_at = ?';
+			$params[] = $now;
+			$params[] = $accountId;
+			$adb->pquery(
+				'UPDATE bace_acc_profile SET ' . implode(', ', $sets) . ' WHERE accountid = ?',
+				$params
+			);
+		}
+
+		return array(
+			'success' => true,
+			'account' => self::getAccount($accountId, $userId),
+		);
+	}
+
+	protected static function normalizePick($value, array $allowed) {
+		$value = trim(self::decodeText($value));
+		if ($value === '') {
+			return '';
+		}
+		foreach ($allowed as $opt) {
+			if (strcasecmp($value, $opt) === 0) {
+				return $opt;
+			}
+		}
+		return $value;
+	}
+
 	protected static function composeRow(array $row, array $tags) {
 		$id = (int) $row['accountid'];
 		$name = self::decodeText(isset($row['accountname']) ? $row['accountname'] : '');
@@ -173,6 +326,10 @@ class Accounts_ModernService {
 			$phone = self::decodeText($row['tb_party_b_phone']);
 		}
 		$address = self::decodeText(isset($row['tb_store_address']) ? $row['tb_store_address'] : '');
+		$businessNote = self::decodeText(isset($row['business_note']) ? $row['business_note'] : '');
+		if ($businessNote === '') {
+			$businessNote = $address;
+		}
 		$created = '';
 		if (!empty($row['createdtime'])) {
 			$ts = strtotime($row['createdtime']);
@@ -187,6 +344,19 @@ class Accounts_ModernService {
 				$modified = date('c', $ts);
 			}
 		}
+		$profileTouch = '';
+		if (!empty($row['profile_last_touch'])) {
+			$ts = strtotime($row['profile_last_touch']);
+			if ($ts) {
+				$profileTouch = date('c', $ts);
+			}
+		}
+		$receivedDate = '';
+		if (!empty($row['received_date']) && $row['received_date'] !== '0000-00-00') {
+			$receivedDate = (string) $row['received_date'];
+		} elseif ($created !== '') {
+			$receivedDate = substr($created, 0, 10);
+		}
 		return array(
 			'id' => (string) $id,
 			'crmid' => $id,
@@ -195,12 +365,27 @@ class Accounts_ModernService {
 			'email' => self::decodeText(isset($row['email1']) ? $row['email1'] : ''),
 			'account_no' => self::decodeText(isset($row['account_no']) ? $row['account_no'] : ''),
 			'address' => $address,
+			'business_note' => $businessNote,
+			'franchise_status' => self::decodeText(isset($row['franchise_status']) ? $row['franchise_status'] : ''),
+			'data_source' => self::decodeText(isset($row['data_source']) ? $row['data_source'] : ''),
+			'referrer' => self::decodeText(isset($row['referrer']) ? $row['referrer'] : ''),
+			'contact_status' => self::decodeText(isset($row['contact_status']) ? $row['contact_status'] : ''),
+			'interaction_materials' => self::decodeText(isset($row['interaction_materials']) ? $row['interaction_materials'] : ''),
+			'received_date' => $receivedDate,
 			'area' => '',
 			'owner' => self::getOwnerLabel(isset($row['smownerid']) ? (int) $row['smownerid'] : 0),
 			'owner_id' => isset($row['smownerid']) ? (int) $row['smownerid'] : 0,
 			'tags' => array_values($tags),
 			'createdtime' => $created,
-			'last_touch' => $modified ?: $created,
+			'last_touch' => $profileTouch ?: ($modified ?: $created),
+			'lastTouchCalls' => array(
+				'calls' => array(),
+				'count' => 0,
+				'next_n' => 1,
+				'can_add' => false,
+				'max_calls' => 3,
+				'hint' => '',
+			),
 			'next_action' => '',
 			'notes' => self::decodeText(isset($row['description']) ? $row['description'] : ''),
 		);

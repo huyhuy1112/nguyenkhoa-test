@@ -48,13 +48,14 @@ html.mk-acc-ui-ready body[data-module="Accounts"][data-view="List"] #sidebar-ess
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.css')}&mk_v=20261006_acc_list2" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkListLovable.css')}&mk_v=20260916_touchfix2" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkTagPalette.css')}&mk_v=20260715_tag_color_v1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsMkList.css')}?mk_v=20261006_no_ellipsis1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260820_sheet1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkIcons.js')}&mk_v=20260711_segments_ui2"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsLovableRef.js')}&mk_v=20261006_acc_list2"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsLocalStore.js')}&mk_v=20261006_acc_list3"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsLocalStore.js')}&mk_v=20261006_acc_sc1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkQuickImport.js')}&mk_v=20261006_quick1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsMkList.js')}&mk_v=20261006_acc_list3"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsMkList.js')}&mk_v=20261006_acc_sc1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLocalStore.js')}&mk_v=20261006_acc_sheet2"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.js')}&mk_v=20261006_acc_sheet2"></script>
 <script type="text/javascript">
@@ -63,9 +64,9 @@ window.__mkSalesPosInlineConfig = {
 	drawer: true,
 	tableSelector: '#mk-acc-table',
 	rowSelector: 'tr.mk-leads-row',
-	colspan: 10,
+	colspan: 13,
 	enabledSelector: '[data-mk-acc-list]',
-	loadingText: 'Đang tải chi tiết khách hàng nhượng quyền...',
+	loadingText: 'Đang tải chi tiết chủ quán...',
 	errorText: 'Không tải được chi tiết.'
 };
 </script>

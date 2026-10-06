@@ -344,6 +344,10 @@ class Accounts_SheetIngestService_Helper {
 			$sourceName = isset($source['name']) ? trim((string) $source['name']) : '';
 		}
 
+		require_once 'include/utils/MkCustomerCode.php';
+		$displayName = $accountName !== '' ? $accountName : ('Chu quan ' . $phone);
+		$accountNo = MkCustomerCode::accountCode($displayName, $phone !== '' ? $phone : $partyPhone);
+
 		return array(
 			'accountname' => $accountName,
 			'phone' => $phone,
@@ -355,7 +359,7 @@ class Accounts_SheetIngestService_Helper {
 			'tb_store_address' => $storeAddr,
 			'tb_contract_no' => self::getMappedCell($assoc, $colMap, 'tb_contract_no'),
 			'bill_street' => $billStreet,
-			'account_no' => self::getMappedCell($assoc, $colMap, 'account_no'),
+			'account_no' => $accountNo,
 			'sheet_row_key' => $rowKey,
 			'sheet_source_id' => $sourceId,
 			'sheet_source_name' => $sourceName,
@@ -387,6 +391,10 @@ class Accounts_SheetIngestService_Helper {
 		}
 		if (!empty($payload['account_no'])) {
 			$record->set('account_no', $payload['account_no']);
+		} elseif (!empty($payload['accountname']) || !empty($payload['phone'])) {
+			require_once 'include/utils/MkCustomerCode.php';
+			$dn = !empty($payload['accountname']) ? $payload['accountname'] : ('Chu quan ' . $payload['phone']);
+			$record->set('account_no', MkCustomerCode::accountCode($dn, $payload['phone']));
 		}
 		$franchiseFields = array(
 			'tb_party_b_name', 'tb_party_b_phone', 'tb_party_b_email', 'tb_party_b_cccd',

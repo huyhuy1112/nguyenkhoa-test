@@ -80,6 +80,27 @@
       }
       return null;
     },
+    updateFields: function (id, fields) {
+      var oid = String(id || "");
+      return apiRequest("save_inline", {
+        id: oid,
+        record: oid,
+        payload: JSON.stringify(fields || {}),
+      }).then(function (res) {
+        var a = (res && res.account) || {};
+        var patch = Object.assign({}, fields || {}, {
+          phone: a.phone != null ? a.phone : fields.phone,
+          business_note: a.business_note != null ? a.business_note : fields.business_note,
+          data_source: a.data_source,
+          referrer: a.referrer,
+          franchise_status: a.franchise_status,
+          contact_status: a.contact_status,
+          interaction_materials: a.interaction_materials,
+        });
+        root.AccountsLocalStore.patchAccount(oid, patch);
+        return a;
+      });
+    },
     saveTags: function (id, tags) {
       var oid = String(id || "");
       return apiRequest("save_tags", {

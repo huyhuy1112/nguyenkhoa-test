@@ -456,14 +456,12 @@
     return '<span class="mk-leads-phone">' + esc(display || phone) + "</span>";
   }
 
-  function textCell(raw, opts) {
+  function textCell(raw) {
     var n = String(raw || "").trim();
     if (!n) {
       return '<span class="mk-leads-muted">—</span>';
     }
-    var max = opts && opts.max ? opts.max : 80;
-    var short = n.length > max ? n.slice(0, max) + "…" : n;
-    return '<span class="mk-sc-cell-text" title="' + esc(n) + '">' + esc(short) + "</span>";
+    return '<span class="mk-sc-cell-text">' + esc(n) + "</span>";
   }
 
   /** Leads-style click-to-edit cell (phone / business_note) — no need to open inline dropdown. */
@@ -1233,9 +1231,7 @@
               : c.contract_no
                 ? '<div class="mk-leads-sub">' + esc(c.contract_no) + "</div>"
                 : "") +
-            (c.notes
-              ? '<div class="mk-leads-sub mk-sc-name-note" title="' + esc(c.notes) + '">' + esc(c.notes.length > 60 ? c.notes.slice(0, 60) + "…" : c.notes) + "</div>"
-              : "") +
+            (c.notes ? '<div class="mk-leads-sub mk-sc-name-note">' + esc(c.notes) + "</div>" : "") +
             "</span></span></td>" +
             '<td class="mk-leads-td mk-leads-td--phone">' +
             editableCellHtml("phone", c.phone, rowId, "SĐT") +
@@ -1250,7 +1246,7 @@
             pillCell("data_source", c.data_source) +
             "</td>" +
             '<td class="mk-leads-td">' +
-            textCell(c.referrer, { max: 40 }) +
+            textCell(c.referrer) +
             "</td>" +
             '<td class="mk-leads-td">' +
             pillCell("contact_status", c.contact_status) +

@@ -178,9 +178,13 @@ function tb_map_row(array $row) {
 		$descParts[] = 'Giới tính: ' . $gender;
 	}
 
+	require_once __DIR__ . '/../../../include/utils/MkCustomerCode.php';
+	$displayName = $name !== '' ? $name : ($code !== '' ? $code : ('Tuibao ' . $phone));
+	$accountNo = MkCustomerCode::accountCode($displayName, $phone);
+
 	return array(
-		'account_no' => $code,
-		'accountname' => $name !== '' ? $name : ($code !== '' ? $code : ('Tuibao ' . $phone)),
+		'account_no' => $accountNo,
+		'accountname' => $displayName,
 		'phone' => $phone,
 		'email1' => $email,
 		'bill_street' => $fullAddress,

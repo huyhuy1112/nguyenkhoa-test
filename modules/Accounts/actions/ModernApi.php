@@ -22,7 +22,7 @@ class Accounts_ModernApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save_tags'), true)) {
+		if (in_array($mode, array('save_tags', 'save_inline'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -72,6 +72,25 @@ class Accounts_ModernApi_Action extends Vtiger_Action_Controller {
 						$tags = is_array($raw) ? $raw : array();
 					}
 					$result = Accounts_ModernService::saveTags((int) $id, $tags, $userId);
+					$response->setResult($result);
+					break;
+
+				case 'save_inline':
+					$id = $request->get('id');
+					if ($id === null || $id === '') {
+						$id = $request->get('record');
+					}
+					$payload = $this->decodePayload($request);
+					if (empty($payload) && $request->get('payload')) {
+						$raw = $request->get('payload');
+						if (is_string($raw)) {
+							$decoded = json_decode($raw, true);
+							if (is_array($decoded)) {
+								$payload = $decoded;
+							}
+						}
+					}
+					$result = Accounts_ModernService::saveInline((int) $id, is_array($payload) ? $payload : array(), $userId);
 					$response->setResult($result);
 					break;
 

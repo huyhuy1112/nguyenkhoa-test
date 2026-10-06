@@ -5,6 +5,7 @@
 
 require_once 'modules/Contacts/models/ModernService.php';
 require_once 'modules/Contacts/helpers/ContactTagCatalog.php';
+require_once 'include/utils/MkCustomerCode.php';
 
 class Contacts_KiotSimpleImport_Helper {
 
@@ -212,8 +213,11 @@ class Contacts_KiotSimpleImport_Helper {
 		}
 		$descParts[] = 'Nguồn import: Excel Kiot (' . $segmentTag . ')';
 
+		$displayName = $name !== '' ? $name : ($code !== '' ? $code : ('KH ' . $phone));
+		$contactNo = MkCustomerCode::contactCode($code, $displayName, $phone);
+
 		return array(
-			'contact_no' => $code,
+			'contact_no' => $contactNo,
 			'lastname' => $name !== '' ? $name : ($code !== '' ? $code : ('KH ' . $phone)),
 			'firstname' => '',
 			'phone' => $phone,
