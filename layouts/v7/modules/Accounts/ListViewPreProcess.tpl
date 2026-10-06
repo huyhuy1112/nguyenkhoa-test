@@ -52,8 +52,9 @@ html.mk-acc-ui-ready body[data-module="Accounts"][data-view="List"] #sidebar-ess
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkIcons.js')}&mk_v=20260711_segments_ui2"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsLovableRef.js')}&mk_v=20261006_acc_list2"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsLocalStore.js')}&mk_v=20261006_acc_list2"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsMkList.js')}&mk_v=20261006_acc_list2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsLocalStore.js')}&mk_v=20261006_acc_list3"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkQuickImport.js')}&mk_v=20261006_quick1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsMkList.js')}&mk_v=20261006_acc_list3"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLocalStore.js')}&mk_v=20261006_acc_sheet2"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.js')}&mk_v=20261006_acc_sheet2"></script>
 <script type="text/javascript">
@@ -64,7 +65,7 @@ window.__mkSalesPosInlineConfig = {
 	rowSelector: 'tr.mk-leads-row',
 	colspan: 10,
 	enabledSelector: '[data-mk-acc-list]',
-	loadingText: 'Đang tải chi tiết khách NQ tiềm năng...',
+	loadingText: 'Đang tải chi tiết khách hàng nhượng quyền...',
 	errorText: 'Không tải được chi tiết.'
 };
 </script>

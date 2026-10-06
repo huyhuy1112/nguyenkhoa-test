@@ -2947,6 +2947,26 @@
       });
     }
     bindEvents();
+    if (window.MkQuickImport && typeof window.MkQuickImport.bind === "function") {
+      window.MkQuickImport.bind({
+        buttonId: "mk-contacts-import-btn",
+        fileInputId: "mk-contacts-import-file",
+        module: "Contacts",
+        xlsxOnly: true,
+        confirmMessage:
+          "Import Contacts từ Excel Kiot (Khách lẻ / Miutea):\n" +
+          "Tự map Mã KH, Tên, SĐT, Địa chỉ, Email + tag nhóm.\n\nTiếp tục?",
+        onDone: function () {
+          if (store && store.bootstrap) {
+            store.bootstrap().then(function () {
+              renderAll();
+            });
+          } else {
+            window.location.reload();
+          }
+        },
+      });
+    }
     var boot = store && store.bootstrap ? store.bootstrap() : Promise.resolve([]);
     boot.then(function () {
       renderAll();

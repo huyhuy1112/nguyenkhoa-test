@@ -4,7 +4,7 @@
 	<div class="mk-so-page mk-so-list-sales-root mk-leads-page mk-leads-page--lovable mk-acc-page mk-acc-page--lovable" data-mk-acc-list="1">
 		{include file="partials/AccountsMkListHeader.tpl"|vtemplate_path:$MODULE}
 
-		<div id="mk-acc-kpi" class="mk-leads-kpi-grid" aria-label="Chỉ số khách hàng nhượng quyền tiềm năng"></div>
+		<div id="mk-acc-kpi" class="mk-leads-kpi-grid" aria-label="Chỉ số khách hàng nhượng quyền"></div>
 
 		<div class="mk-leads-segments-card" role="region" aria-label="{vtranslate('LBL_MK_SEGMENTS', 'Leads')}">
 			<div class="mk-leads-segments-card__label">
@@ -64,7 +64,7 @@
 				{assign var=MK_POS_SEARCH_ID value='mk-acc-pos-search'}
 				{assign var=MK_POS_SEARCH_CLEAR_ID value='mk-acc-pos-search-clear'}
 				{assign var=MK_POS_SEARCH_PLACEHOLDER value='Theo tên Tuibao'}
-				{assign var=MK_POS_TITLE value='Khách hàng nhượng quyền tiềm năng'}
+				{assign var=MK_POS_TITLE value='Khách hàng nhượng quyền'}
 				{include file="partials/MkSalesPosListHeader.tpl"|vtemplate_path:'Vtiger'}
 				<div class="mk-so-table-card mk-org-table-card">
 					{capture name=mk_acc_sales_lv}{include file="partials/MkSalesPosListContents.tpl"|vtemplate_path:'Vtiger'}{/capture}

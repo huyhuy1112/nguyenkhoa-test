@@ -5182,7 +5182,7 @@
       '      <label class="mk-leads-sheet-field"><span>Đích import</span>' +
       '        <select id="mk-sheet-edit-target" class="mk-leads-sheet-select">' +
       '          <option value="leads">Leads (landing / ads)</option>' +
-      '          <option value="accounts">Accounts — KH NQ tiềm năng (Tuibao)</option>' +
+      '          <option value="accounts">Accounts — KH NQ (Tuibao)</option>' +
       "        </select>" +
       "      </label>" +
       '      <label class="mk-leads-sheet-field"><span>Link hoặc Spreadsheet ID</span>' +

@@ -7,10 +7,11 @@
 			<p class="mk-leads-action-header__subtitle">{vtranslate('LBL_MK_ACCOUNTS_SUBTITLE', $MODULE)}</p>
 		</div>
 		<div class="mk-leads-action-header__actions">
-			<a class="mk-leads-btn mk-leads-btn--outline" href="index.php?module=Accounts&amp;view=Import&amp;app=SALES" id="mk-acc-import-btn" data-mk-import="1" data-module="Accounts" data-app="SALES">
+			<a class="mk-leads-btn mk-leads-btn--outline" href="javascript:void(0)" id="mk-acc-import-btn" data-mk-quick-import="1" data-module="Accounts" title="Import Excel — chọn file là xong">
 				<span class="mk-leads-btn__ic" id="mk-acc-import-ic" aria-hidden="true"></span>
 				<span class="mk-leads-btn__txt">{vtranslate('LBL_IMPORT', 'Vtiger')}</span>
 			</a>
+			<input type="file" id="mk-acc-import-file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" class="hide" tabindex="-1" aria-hidden="true" />
 			<button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-acc-sheet-btn" title="Cấu hình Google Sheet (Admin)">
 				<span class="mk-leads-btn__txt">Google Sheet</span>
 			</button>

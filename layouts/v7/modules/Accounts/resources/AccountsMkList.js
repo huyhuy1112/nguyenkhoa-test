@@ -1,4 +1,4 @@
-/* Accounts list — Leads-like UI for KH NQ tiềm năng + tags */
+/* Accounts list — Leads-like UI for KH NQ + tags */
 (function () {
   "use strict";
 
@@ -430,7 +430,7 @@
         '<tr><td colspan="' +
         COL_COUNT +
         '" class="mk-leads-empty"><div class="mk-leads-empty__inner">' +
-        esc(pick("Không có khách hàng nhượng quyền tiềm năng", "No franchise prospects")) +
+        esc(pick("Không có khách hàng nhượng quyền", "No franchise prospects")) +
         "</div></td></tr>";
     } else {
       tbody.innerHTML = pageRows
@@ -671,6 +671,25 @@
     document.documentElement.classList.add("mk-sales-list-ready", "mk-accounts-list-ready");
     decorateIcons();
     bindEvents();
+    if (window.MkQuickImport && typeof window.MkQuickImport.bind === "function") {
+      window.MkQuickImport.bind({
+        buttonId: "mk-acc-import-btn",
+        fileInputId: "mk-acc-import-file",
+        module: "Accounts",
+        xlsxOnly: false,
+        confirmMessage:
+          "Import khách hàng nhượng quyền từ Excel/CSV:\nTự map cột theo mẫu Organizations.\n\nTiếp tục?",
+        onDone: function () {
+          if (store && store.bootstrap) {
+            store.bootstrap().then(function () {
+              renderAll();
+            });
+          } else {
+            window.location.reload();
+          }
+        },
+      });
+    }
     var boot = store && store.bootstrap ? store.bootstrap() : Promise.resolve();
     boot.then(function () {
       renderAll();

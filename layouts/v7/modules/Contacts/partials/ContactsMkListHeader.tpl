@@ -11,10 +11,11 @@
 				<span class="mk-leads-btn__ic" id="mk-contacts-edubit-sync-ic" aria-hidden="true"></span>
 				<span class="mk-leads-btn__txt">{vtranslate('LBL_MK_EDUBIT_SYNC', 'Contacts')}</span>
 			</button>
-			<a class="mk-leads-btn mk-leads-btn--outline" href="index.php?module=Contacts&amp;view=Import&amp;app=SALES" id="mk-contacts-import-btn" data-mk-import="1" data-module="Contacts" data-app="SALES">
+			<a class="mk-leads-btn mk-leads-btn--outline" href="javascript:void(0)" id="mk-contacts-import-btn" data-mk-quick-import="1" data-module="Contacts" title="Import Excel Khách lẻ / Miutea — chọn file là xong">
 				<span class="mk-leads-btn__ic" id="mk-contacts-import-ic" aria-hidden="true"></span>
 				<span class="mk-leads-btn__txt">{vtranslate('LBL_IMPORT', 'Vtiger')}</span>
 			</a>
+			<input type="file" id="mk-contacts-import-file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hide" tabindex="-1" aria-hidden="true" />
 			<button type="button" class="mk-leads-btn mk-leads-btn--primary" onclick="window.location.href='index.php?module=Contacts&amp;view=Edit&amp;app=SALES'">
 				<span class="mk-leads-btn__ic" id="mk-contacts-create-ic" aria-hidden="true"></span>
 				<span class="mk-leads-btn__txt">{vtranslate('LBL_ADD_RECORD', 'Contacts')}</span>
