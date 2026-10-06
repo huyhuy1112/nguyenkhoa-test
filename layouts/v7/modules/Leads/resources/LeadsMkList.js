@@ -5182,7 +5182,7 @@
       '      <label class="mk-leads-sheet-field"><span>Đích import</span>' +
       '        <select id="mk-sheet-edit-target" class="mk-leads-sheet-select">' +
       '          <option value="leads">Leads (landing / ads)</option>' +
-      '          <option value="accounts">Accounts — Tuibao nhượng quyền</option>' +
+      '          <option value="accounts">Accounts — KH NQ tiềm năng (Tuibao)</option>' +
       "        </select>" +
       "      </label>" +
       '      <label class="mk-leads-sheet-field"><span>Link hoặc Spreadsheet ID</span>' +
@@ -5270,7 +5270,7 @@
     box.innerHTML = sources
       .map(function (src) {
         var meta = [
-          src.target_module === "accounts" ? "→ Accounts (Tuibao)" : "→ Leads",
+          src.target_module === "accounts" ? "→ KH NQ tiềm năng" : "→ Leads",
           src.enabled ? "Đang bật" : "Tắt",
           src.sheet_range || "Sheet1",
           src.last_poll_at ? "Poll: " + src.last_poll_at : "",
@@ -5687,6 +5687,22 @@
   }
 
   function init() {
+    window.MkOpenLeadsSheetSettings = openSheetSettings;
+
+    var hasList = !!$("mk-leads-tbody");
+    var sheetBtn = $("mk-leads-sheet-btn") || $("mk-acc-sheet-btn");
+
+    // Accounts (Tuibao tiềm năng) loads this file only for Google Sheet modal.
+    if (!hasList) {
+      if (sheetBtn && store) {
+        sheetBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          openSheetSettings();
+        });
+      }
+      return;
+    }
+
     if (!logic || !store) return;
     var boot = store.refreshLeadsList
       ? store.refreshLeadsList()
@@ -5697,7 +5713,6 @@
       .then(function () {
         decorateStaticIcons();
         bindEvents();
-        var sheetBtn = $("mk-leads-sheet-btn");
         if (sheetBtn) {
           sheetBtn.addEventListener("click", function (e) {
             e.preventDefault();

@@ -130,7 +130,7 @@
 							{if $APP_NAME eq 'SUPPORT' && ($moduleName eq 'Calendar' || $moduleName eq 'Schedule')}{continue}{/if}
 							{* SUPPORT: ẩn Hỏi đáp (Faq) — khách không dùng *}
 							{if $APP_NAME eq 'SUPPORT' && $moduleName eq 'Faq'}{continue}{/if}
-							{* SUPPORT: Hợp đồng nhượng quyền (Accounts) chỉ nằm ở BÁN HÀNG → Tuibao *}
+							{* SUPPORT: Accounts (KH NQ tiềm năng) chỉ nằm ở BÁN HÀNG → Tuibao *}
 							{if $APP_NAME eq 'SUPPORT' && ($moduleName eq 'Accounts' || $moduleName eq 'ServiceContracts')}{continue}{/if}
 							{if $moduleName eq 'Calendar'}{assign var=_mkHasCalendar value=true}{/if}
 							{if $moduleName eq 'Leads'}{assign var=_mkHasLeads value=true}{/if}
@@ -165,7 +165,7 @@
 									{assign var=_mkModActive value=true}
 								{/if}
 								<a class="mk-dash-mod-link{if $_mkModActive} mk-dash-mod-link--active{/if}" href="{$moduleModel->getDefaultUrl()}&app={$APP_NAME}">
-									<span class="mk-dash-mod-label">{if $moduleName eq 'Rules'}Quản Lý rule{elseif $moduleName eq 'SupportFAQ'}Cảnh báo{elseif $moduleName eq 'Accounts'}Hợp đồng nhượng quyền{elseif $moduleName eq 'Contacts'}Khách hàng{elseif $moduleName eq 'ProductsServices'}Hàng hoá{elseif $moduleName eq 'ServiceContracts'}Khách hàng nhượng quyền{else}{vtranslate($moduleName, $moduleName)}{/if}</span>
+									<span class="mk-dash-mod-label">{if $moduleName eq 'Rules'}Quản Lý rule{elseif $moduleName eq 'SupportFAQ'}Cảnh báo{elseif $moduleName eq 'Accounts'}Khách hàng nhượng quyền tiềm năng{elseif $moduleName eq 'Contacts'}Khách hàng{elseif $moduleName eq 'ProductsServices'}Hàng hoá{elseif $moduleName eq 'ServiceContracts'}Khách hàng nhượng quyền{else}{vtranslate($moduleName, $moduleName)}{/if}</span>
 								</a>
 								{* SALES: Hóa đơn ngay dưới Đơn hàng, rồi tới Tuibao *}
 								{if $APP_NAME eq 'SALES' && $moduleName eq 'SalesOrder' && $_mkInvoiceRendered eq false}
@@ -186,14 +186,14 @@
 												<span class="mk-dash-mod-chevron" aria-hidden="true">{include file="dashboards/DashboardSidebarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='CHEVRON'}</span>
 											</button>
 											<div class="mk-dash-mod-panel" id="mk-dash-tuibao-panel-{$APP_NAME}" role="region" aria-labelledby="mk-dash-tuibao-btn-{$APP_NAME}">
+												{if $_mkHasAccounts}
+													<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkAccActive} mk-dash-mod-link--active{/if}" href="index.php?module=Accounts&amp;view=List&amp;app=SALES">
+														<span class="mk-dash-mod-label">Khách hàng nhượng quyền tiềm năng</span>
+													</a>
+												{/if}
 												{if $_mkHasServiceContracts}
 													<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkScActive} mk-dash-mod-link--active{/if}" href="index.php?module=ServiceContracts&amp;view=List&amp;app=SALES">
 														<span class="mk-dash-mod-label">Khách hàng nhượng quyền</span>
-													</a>
-												{/if}
-												{if $_mkHasAccounts}
-													<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkAccActive} mk-dash-mod-link--active{/if}" href="index.php?module=Accounts&amp;view=List&amp;app=SALES">
-														<span class="mk-dash-mod-label">Hợp đồng nhượng quyền</span>
 													</a>
 												{/if}
 											</div>
@@ -223,14 +223,14 @@
 									<span class="mk-dash-mod-chevron" aria-hidden="true">{include file="dashboards/DashboardSidebarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='CHEVRON'}</span>
 								</button>
 								<div class="mk-dash-mod-panel" id="mk-dash-tuibao-panel-{$APP_NAME}-fb" role="region">
+									{if $_mkHasAccounts}
+										<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkAccActive} mk-dash-mod-link--active{/if}" href="index.php?module=Accounts&amp;view=List&amp;app=SALES">
+											<span class="mk-dash-mod-label">Khách hàng nhượng quyền tiềm năng</span>
+										</a>
+									{/if}
 									{if $_mkHasServiceContracts}
 										<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkScActive} mk-dash-mod-link--active{/if}" href="index.php?module=ServiceContracts&amp;view=List&amp;app=SALES">
 											<span class="mk-dash-mod-label">Khách hàng nhượng quyền</span>
-										</a>
-									{/if}
-									{if $_mkHasAccounts}
-										<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkAccActive} mk-dash-mod-link--active{/if}" href="index.php?module=Accounts&amp;view=List&amp;app=SALES">
-											<span class="mk-dash-mod-label">Hợp đồng nhượng quyền</span>
 										</a>
 									{/if}
 								</div>

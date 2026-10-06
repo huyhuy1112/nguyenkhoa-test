@@ -26,9 +26,9 @@ html.mk-sc-ui-ready body[data-module="ServiceContracts"][data-view="List"] #mk-d
 </style>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkIcons.js')}&mk_v=20260711_segments_ui2"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsLovableRef.js')}&mk_v=20260725_sc_list1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsLovableRef.js')}&mk_v=20261006_contacts1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsLocalStore.js')}&mk_v=20260819_fix8"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsMkList.js')}&mk_v=20260915_empty1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsMkList.js')}&mk_v=20261006_contacts1"></script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260820_sheet1" />
 <script type="text/javascript">
 window.__mkSalesPosInlineConfig = {
@@ -38,8 +38,8 @@ window.__mkSalesPosInlineConfig = {
 	rowSelector: 'tr.mk-leads-row',
 	colspan: 13,
 	enabledSelector: '[data-mk-sc-list]',
-	loadingText: 'Đang tải chi tiết khách chuyển nhượng...',
-	errorText: 'Không tải được chi tiết khách chuyển nhượng.'
+	loadingText: 'Đang tải chi tiết khách hàng nhượng quyền...',
+	errorText: 'Không tải được chi tiết khách hàng nhượng quyền.'
 };
 </script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260821_affdel1"></script>
