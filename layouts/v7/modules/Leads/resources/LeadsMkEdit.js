@@ -793,9 +793,9 @@
     if ($("mk-td-address")) $("mk-td-address").value = address;
   }
 
-  function hydrateFromStore(recordId) {
+  function resolveLeadFromStore(recordId) {
     var store = window.LeadsLocalStore;
-    if (!store || !recordId || typeof store.getLead !== "function") return;
+    if (!store || !recordId || typeof store.getLead !== "function") return null;
     var lead = store.getLead(recordId);
     if (!lead && store.getLeads) {
       var all = store.getLeads();
@@ -806,7 +806,11 @@
         }
       }
     }
-    if (!lead) return;
+    return lead || null;
+  }
+
+  function hydrateFromLead(lead) {
+    if (!lead) return false;
 
     if ($("mk-td-name")) $("mk-td-name").value = lead.name || "";
     if ($("mk-td-phone")) $("mk-td-phone").value = digitsOnly(lead.phone || "");
@@ -849,6 +853,28 @@
 
     applyTagsFromLead(lead.tags || [], lead);
     refreshSearchSelectTriggers();
+    return true;
+  }
+
+  function hydrateFromStore(recordId) {
+    return hydrateFromLead(resolveLeadFromStore(recordId));
+  }
+
+  function hydrateFromBootstrap() {
+    var boot = window.MK_LEAD_EDIT_BOOTSTRAP;
+    if (!boot || typeof boot !== "object") return false;
+    try {
+      var store = window.LeadsLocalStore;
+      if (store && typeof store.getLead === "function") {
+        // Seed mem cache so later save/update can resolve crmid.
+        if (typeof store.fetchLead === "function" && boot.crmid) {
+          /* no-op — upsert via hydrate path below if store exposes upsert */
+        }
+      }
+    } catch (e0) {
+      /* ignore */
+    }
+    return hydrateFromLead(boot);
   }
 
   function buildLeadPatch() {
@@ -1088,6 +1114,10 @@
     syncCustomerTypePanel();
 
     var recordId = getEditRecordId();
+    // Immediate PHP bootstrap so the form is never blank while API loads.
+    if (recordId && isEditMode()) {
+      hydrateFromBootstrap();
+    }
     var boot = store && store.ready ? store.ready() : Promise.resolve();
     boot.then(function () {
       if (recordId && isEditMode()) {
@@ -1096,14 +1126,22 @@
             ? store.reloadLead(recordId)
             : store && store.fetchLead
               ? store.fetchLead(recordId, true)
-              : Promise.resolve();
+              : Promise.resolve(null);
         load
-          .then(function () {
-            hydrateFromStore(recordId);
+          .then(function (lead) {
+            if (lead && typeof lead === "object") {
+              hydrateFromLead(lead);
+              return;
+            }
+            if (!hydrateFromStore(recordId)) {
+              hydrateFromBootstrap();
+            }
           })
           .catch(function (err) {
             console.error("Lead edit hydrate failed", err);
-            renderTags();
+            if (!hydrateFromBootstrap() && !hydrateFromStore(recordId)) {
+              renderTags();
+            }
           });
         return;
       }

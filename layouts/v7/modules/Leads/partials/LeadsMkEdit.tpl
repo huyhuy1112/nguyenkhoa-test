@@ -8,6 +8,9 @@
 {else}
 	{assign var=MK_CANCEL_URL value=$MK_LIST_URL}
 {/if}
+{if $MK_IS_EDIT && isset($MK_LEAD_EDIT_BOOTSTRAP_JSON)}
+<script type="text/javascript">window.MK_LEAD_EDIT_BOOTSTRAP = {$MK_LEAD_EDIT_BOOTSTRAP_JSON};</script>
+{/if}
 <div class="mk-td-create" id="mk-td-create" data-record-id="{$MK_LEAD_RECORD_ID|escape:'html'}"{if $MK_IS_EDIT} data-mode="edit"{/if}>
 	<header class="mk-td-create__head">
 		<nav class="mk-td-create__crumb" aria-label="Breadcrumb">
