@@ -8,7 +8,7 @@ class Warehouse_WhMgmtSeedData {
 		return array(
 			array(
 				'code' => 'WH-001',
-				'name' => 'Kho Hồ Chí Minh',
+				'name' => 'Kho trung tâm',
 				'type' => 'central',
 				'address' => 'Q.7, TP.HCM',
 				'manager' => 'QL Tuấn',

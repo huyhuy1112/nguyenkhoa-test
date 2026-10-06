@@ -9,7 +9,7 @@
 	var useDb = false;
 
 	var SEED_WH = [
-		{ id: 'WH-001', code: 'WH-001', name: 'Kho Hồ Chí Minh', type: 'central', address: 'Q.7, TP.HCM', manager: 'QL Tuấn', status: 'active', createdAt: '2026-01-15T08:00:00Z' },
+		{ id: 'WH-001', code: 'WH-001', name: 'Kho trung tâm', type: 'central', address: 'Q.7, TP.HCM', manager: 'QL Tuấn', status: 'active', createdAt: '2026-01-15T08:00:00Z' },
 		{ id: 'WH-002', code: 'WH-002', name: 'Kho Hà Nội', type: 'branch', address: 'Long Biên, Hà Nội', manager: 'QL Nam', status: 'active', createdAt: '2026-02-20T08:00:00Z' },
 		{ id: 'WH-003', code: 'WH-003', name: 'Kho Bình Dương', type: 'branch', address: 'Thuận An, Bình Dương', manager: 'QL Hùng', status: 'active', createdAt: '2026-03-10T08:00:00Z' },
 	];
