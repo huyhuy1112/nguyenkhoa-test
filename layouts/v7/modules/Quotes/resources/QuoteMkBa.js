@@ -397,8 +397,10 @@
 			markReadonlyComputed($form);
 			syncVatAndWords($form);
 			syncAddressRailFromForm($form);
+			syncCustomerFromReferences($form);
 			setTimeout(function () {
 				syncAddressRailFromForm($form);
+				syncCustomerFromReferences($form);
 			}, 900);
 		};
 

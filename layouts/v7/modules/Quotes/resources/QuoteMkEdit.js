@@ -750,6 +750,201 @@
 		ensureCustomerFieldVisible();
 	}
 
+	/**
+	 * Edit / "Xử lý báo giá": refill customer display + module tags from hidden refs.
+	 * Modern form hides subject/potential/account, so without this the KH field looks empty.
+	 */
+	function hydrateExistingQuoteCustomer() {
+		var $f = $form();
+		if (!$f.length || isSalesOrder()) {
+			return;
+		}
+		var recordId = parseInt(getQuoteRecordId(), 10) || 0;
+		if (recordId <= 0) {
+			return;
+		}
+		if ($f.data('mkQtCustomerHydrated')) {
+			return;
+		}
+
+		var $display = $f.find('[name="contact_id_display"]').first();
+		if (!$display.length) {
+			return;
+		}
+
+		var contactId = parseInt($f.find('[name="contact_id"]').val(), 10) || 0;
+		var potentialId = parseInt($f.find('[name="potential_id"]').val(), 10) || 0;
+		var scId =
+			parseInt($f.find('[name="mk_servicecontract_id"]').val(), 10) ||
+			parseInt($f.find('[name="servicecontract_id"]').val(), 10) ||
+			0;
+		var subject = $.trim($f.find('[name="subject"]').val() || '');
+		var currentDisplay = $.trim($display.val() || '');
+		var potentialLabel = $.trim($f.find('[name="potential_id_display"]').val() || '');
+		var accountLabel = $.trim($f.find('[name="account_id_display"]').val() || '');
+
+		function markSelected() {
+			$f.find('.mk-qt-customer-ref .clearReferenceSelection').removeClass('hide');
+			$f.find('.mk-qt-customer-ref').addClass('selected');
+			syncCustomerInfoButtonVisibility();
+			syncRail();
+			if (window.MkQuoteBa && typeof window.MkQuoteBa.syncAddressRailFromForm === 'function') {
+				window.MkQuoteBa.syncAddressRailFromForm($f);
+			}
+		}
+
+		function finish(label, mod, extra) {
+			label = $.trim(label || '');
+			if (!label) {
+				$f.data('mkQtCustomerHydrated', 1);
+				return;
+			}
+			$display.val(label).data('mkCustomerModule', mod || 'Contacts');
+			if (extra && extra.scId) {
+				$display.data('mkServiceContractId', extra.scId);
+			}
+			if (extra && extra.leadId) {
+				$display.data('mkLeadId', extra.leadId);
+			}
+			markSelected();
+			$f.data('mkQtCustomerHydrated', 1);
+		}
+
+		function fillContactExtras(data) {
+			if (!data) {
+				return;
+			}
+			var phone = $.trim(data.mobile || data.phone || '');
+			var email = $.trim(data.email || data.email1 || '');
+			var $phone = $f.find('[name="mk_customer_phone"]').first();
+			var $email = $f.find('[name="mk_customer_email"]').first();
+			if (phone && $phone.length && !$.trim($phone.val() || '')) {
+				var formatted =
+					window.MkPhoneFormat && typeof window.MkPhoneFormat.format === 'function'
+						? window.MkPhoneFormat.format(phone)
+						: phone;
+				$phone.val(formatted || phone).trigger('change');
+			}
+			if (email && $email.length && !$.trim($email.val() || '')) {
+				$email.val(email).trigger('change');
+			}
+			var addr = $.trim(data.mailingstreet || data.otherstreet || data.bill_street || '');
+			if (addr && !$.trim($f.find('[name="bill_street"]').val() || '')) {
+				applyScAddressToQuoteForm($f, addr);
+			}
+			if (window.MkQuoteBa && typeof window.MkQuoteBa.syncAddressRailFromForm === 'function') {
+				window.MkQuoteBa.syncAddressRailFromForm($f);
+			}
+		}
+
+		// Display already present — just tag module + refresh rail.
+		if (currentDisplay) {
+			if (!$display.data('mkCustomerModule')) {
+				if (scId > 0) {
+					$display.data('mkCustomerModule', 'ServiceContracts').data('mkServiceContractId', scId);
+				} else if (potentialId > 0) {
+					$display.data('mkCustomerModule', 'Potentials');
+				} else if (contactId > 0) {
+					$display.data('mkCustomerModule', 'Contacts');
+				}
+			}
+			markSelected();
+			$f.data('mkQtCustomerHydrated', 1);
+			if (contactId > 0) {
+				fetchRecordDetailsSimple('Contacts', contactId).done(fillContactExtras);
+			} else if (scId > 0) {
+				fetchRecordDetailsSimple('ServiceContracts', scId).done(function (data) {
+					var phone = $.trim((data && (data.phone || data.mobile)) || '');
+					var email = $.trim((data && (data.email || data.email1)) || '');
+					var $phone = $f.find('[name="mk_customer_phone"]').first();
+					var $email = $f.find('[name="mk_customer_email"]').first();
+					if (phone && $phone.length && !$.trim($phone.val() || '')) {
+						$phone.val(phone).trigger('change');
+					}
+					if (email && $email.length && !$.trim($email.val() || '')) {
+						$email.val(email).trigger('change');
+					}
+					var scAddr = $.trim((data && (data.address || data.business_note)) || '');
+					if (scAddr && !$.trim($f.find('[name="bill_street"]').val() || '')) {
+						applyScAddressToQuoteForm($f, scAddr);
+					}
+					if (window.MkQuoteBa && typeof window.MkQuoteBa.syncAddressRailFromForm === 'function') {
+						window.MkQuoteBa.syncAddressRailFromForm($f);
+					}
+				});
+			}
+			return;
+		}
+
+		if (scId > 0) {
+			ensureServiceContractLinkFields($f, scId);
+			fetchRecordDetailsSimple('ServiceContracts', scId).done(function (data) {
+				var name = $.trim((data && (data.subject || data.label || data.account_id_display)) || subject || '');
+				finish(name || ('#' + scId), 'ServiceContracts', { scId: scId });
+				var phone = $.trim((data && (data.phone || data.mobile)) || '');
+				var email = $.trim((data && (data.email || data.email1)) || '');
+				var $phone = $f.find('[name="mk_customer_phone"]').first();
+				var $email = $f.find('[name="mk_customer_email"]').first();
+				if (phone && $phone.length && !$.trim($phone.val() || '')) {
+					$phone.val(phone).trigger('change');
+				}
+				if (email && $email.length && !$.trim($email.val() || '')) {
+					$email.val(email).trigger('change');
+				}
+				var scAddr = $.trim((data && (data.address || data.business_note)) || '');
+				if (scAddr && !$.trim($f.find('[name="bill_street"]').val() || '')) {
+					applyScAddressToQuoteForm($f, scAddr);
+				}
+			});
+			return;
+		}
+
+		if (potentialId > 0) {
+			if (potentialLabel || subject) {
+				finish(potentialLabel || subject, 'Potentials');
+				return;
+			}
+			fetchRecordDetailsSimple('Potentials', potentialId).done(function (data) {
+				finish(
+					$.trim((data && (data.potentialname || data.label)) || subject || ('#' + potentialId)),
+					'Potentials'
+				);
+			});
+			return;
+		}
+
+		if (contactId > 0) {
+			fetchRecordDetailsSimple('Contacts', contactId).done(function (data) {
+				var name = '';
+				if (data) {
+					name = $.trim(
+						[data.firstname, data.lastname].filter(Boolean).join(' ') ||
+							data.lastname ||
+							data.firstname ||
+							''
+					);
+				}
+				finish(name || subject || ('#' + contactId), 'Contacts');
+				fillContactExtras(data);
+			});
+			return;
+		}
+
+		if (subject) {
+			finish(subject, 'Contacts');
+			return;
+		}
+		if (accountLabel) {
+			finish(accountLabel, 'Accounts');
+			return;
+		}
+
+		$f.data('mkQtCustomerHydrated', 1);
+		if (window.MkQuoteBa && typeof window.MkQuoteBa.syncAddressRailFromForm === 'function') {
+			window.MkQuoteBa.syncAddressRailFromForm($f);
+		}
+	}
+
 	function clearQuoteCustomerFields() {
 		var $f = $form();
 		$f.find('[name="contact_id"]').val('');
@@ -2774,29 +2969,33 @@
 		var $assigned = $editForm.find('[name="assigned_user_id"]').first();
 		if ($assigned.length) {
 			$assigned.closest('tr').addClass('mk-qt-hide-legacy');
-			var uid = '';
-			try {
-				if (window._USERMETA && _USERMETA.id) {
-					uid = String(_USERMETA.id);
-				} else if (window.app && typeof app.getUserId === 'function') {
-					uid = String(app.getUserId() || '');
-				}
-			} catch (e) {}
-			if (uid) {
-				if ($assigned.is('select')) {
-					if (!$assigned.find('option[value="' + uid + '"]').length) {
-						$assigned.append($('<option/>', { value: uid, text: uid }));
-					}
-					$assigned.val(uid);
-				} else {
-					$assigned.val(uid);
-				}
+			// Only force current user on create — preserve owner when editing / processing.
+			var editRecordId = parseInt(getQuoteRecordId(), 10) || 0;
+			if (editRecordId <= 0) {
+				var uid = '';
 				try {
-					$assigned.trigger('change');
-					if ($assigned.data('select2')) {
-						$assigned.select2('val', uid);
+					if (window._USERMETA && _USERMETA.id) {
+						uid = String(_USERMETA.id);
+					} else if (window.app && typeof app.getUserId === 'function') {
+						uid = String(app.getUserId() || '');
 					}
-				} catch (e2) {}
+				} catch (e) {}
+				if (uid) {
+					if ($assigned.is('select')) {
+						if (!$assigned.find('option[value="' + uid + '"]').length) {
+							$assigned.append($('<option/>', { value: uid, text: uid }));
+						}
+						$assigned.val(uid);
+					} else {
+						$assigned.val(uid);
+					}
+					try {
+						$assigned.trigger('change');
+						if ($assigned.data('select2')) {
+							$assigned.select2('val', uid);
+						}
+					} catch (e2) {}
+				}
 			}
 		}
 
@@ -3317,6 +3516,7 @@
 		// Customer row last so it stays at top of Chi tiết báo giá (above Ghi chú).
 		if (!isSalesOrder()) {
 			layoutQuoteHeaderFields();
+			hydrateExistingQuoteCustomer();
 			applyServiceContractPrefill();
 		}
 		forceRenameTermsToNotes();
@@ -3332,6 +3532,7 @@
 			fixFormDisplayEncoding();
 			if (!isSalesOrder()) {
 				layoutQuoteHeaderFields();
+				hydrateExistingQuoteCustomer();
 				applyServiceContractPrefill();
 				lockAssignedAndMoveQuoteInfoToRail();
 				pinTotalsBelowOrderDetails();

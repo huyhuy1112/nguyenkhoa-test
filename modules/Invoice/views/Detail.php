@@ -119,8 +119,11 @@ class Invoice_Detail_View extends Inventory_Detail_View {
 		$viewer->assign('INLINE_PRINT_URL', 'index.php?module=Invoice&action=ExportPDF&record=' . (int) $recordId . '&app=SALES');
 		$viewer->assign('INLINE_CREATED_DATE', $this->formatInlineCreatedDateDmY($recordModel));
 		$statusField = $this->resolveInvoiceStatusFieldName($moduleModel);
-		$viewer->assign('INLINE_INVOICE_STATUS', $statusField ? (string) $recordModel->get($statusField) : '');
-		$viewer->assign('INLINE_INVOICE_STATUS_LABEL', $statusField ? (string) $recordModel->getDisplayValue($statusField) : '');
+		$statusRaw = $statusField ? trim((string) $recordModel->get($statusField)) : '';
+		$statusLabel = $statusField ? trim((string) $recordModel->getDisplayValue($statusField)) : '';
+		$statusLabel = $this->resolveInvoiceStatusLabel($statusRaw, $statusLabel);
+		$viewer->assign('INLINE_INVOICE_STATUS', $statusRaw);
+		$viewer->assign('INLINE_INVOICE_STATUS_LABEL', $statusLabel);
 
 		return $viewer->view('partials/ListInlineDetail.tpl', $moduleName, true);
 	}
@@ -185,6 +188,15 @@ class Invoice_Detail_View extends Inventory_Detail_View {
 			$meta['no'] = trim((string) $soModel->get('salesorder_no'));
 		}
 		$meta['status'] = trim((string) $soModel->getDisplayValue('sostatus'));
+		if ($meta['status'] === '' || $meta['status'] === trim((string) $soModel->get('sostatus'))) {
+			$soRaw = trim((string) $soModel->get('sostatus'));
+			$soTranslated = $soRaw !== '' ? trim((string) vtranslate($soRaw, 'SalesOrder')) : '';
+			if ($soTranslated !== '' && $soTranslated !== $soRaw) {
+				$meta['status'] = $soTranslated;
+			} elseif ($soRaw !== '') {
+				$meta['status'] = $soRaw;
+			}
+		}
 		$meta['url'] = $soModel->getDetailViewUrl() . '&app=SALES';
 		return $meta;
 	}
@@ -198,8 +210,51 @@ class Invoice_Detail_View extends Inventory_Detail_View {
 		return $name !== '' ? $name : '—';
 	}
 
+	protected function resolveInvoiceStatusLabel($raw, $display = '') {
+		$raw = trim((string) $raw);
+		$display = trim((string) $display);
+		$map = array(
+			'Created' => 'Hóa đơn mới',
+			'AutoCreated' => 'Tạo tự động',
+			'Sent' => 'Đã gửi',
+			'Paid' => 'Đã thanh toán',
+			'Credit Invoice' => 'Phải thu',
+			'Cancel' => 'Hủy bỏ',
+			'Cancelled' => 'Đã hủy',
+			'Approved' => 'Đã xác nhận',
+			'Pending' => 'Đang chờ',
+			'Rejected' => 'Từ chối',
+			'Delivered' => 'Đã giao',
+		);
+		if ($display !== '' && $display !== $raw && !isset($map[$display])) {
+			return $display;
+		}
+		if ($raw !== '' && isset($map[$raw])) {
+			return $map[$raw];
+		}
+		if ($raw !== '') {
+			$translated = trim((string) vtranslate($raw, 'Invoice'));
+			if ($translated !== '' && $translated !== $raw) {
+				return $translated;
+			}
+		}
+		return $display !== '' ? $display : $raw;
+	}
+
 	protected function enrichLineUsageUnits(array $products) {
 		$db = PearDatabase::getInstance();
+		$formatMoney = function ($value) {
+			$raw = is_numeric($value) ? (float) $value : (float) preg_replace('/[^\d.-]/', '', (string) $value);
+			return Vtiger_Currency_UIType::transformDisplayValue($raw, null, true);
+		};
+		$formatQty = function ($value) {
+			$q = (float) preg_replace('/[^\d.-]/', '', (string) $value);
+			if (abs($q - round($q)) < 0.0001) {
+				return (string) (int) round($q);
+			}
+			return rtrim(rtrim(number_format($q, 3, '.', ''), '0'), '.');
+		};
+
 		$count = php7_count($products);
 		for ($i = 1; $i <= $count; $i++) {
 			if (!isset($products[$i])) {
@@ -211,16 +266,75 @@ class Invoice_Detail_View extends Inventory_Detail_View {
 				$products[$i]['lineSku' . $i] = '';
 				continue;
 			}
+
 			$unit = '';
 			$sku = '';
-			$rs = $db->pquery('SELECT unit, sku FROM vtiger_productsservices WHERE productsservicesid = ?', array($productId));
+			$catalogName = '';
+			$rs = $db->pquery(
+				'SELECT unit, sku, productsservicesname FROM vtiger_productsservices WHERE productsservicesid = ?',
+				array($productId)
+			);
 			if ($rs && $db->num_rows($rs) > 0) {
 				$unit = (string) $db->query_result($rs, 0, 'unit');
 				$sku = (string) $db->query_result($rs, 0, 'sku');
+				$catalogName = (string) $db->query_result($rs, 0, 'productsservicesname');
 			}
+			if ($catalogName === '') {
+				$prod = $db->pquery('SELECT productname, productcode FROM vtiger_products WHERE productid = ?', array($productId));
+				if ($prod && $db->num_rows($prod) > 0) {
+					$catalogName = (string) $db->query_result($prod, 0, 'productname');
+					if ($sku === '') {
+						$sku = (string) $db->query_result($prod, 0, 'productcode');
+					}
+				} else {
+					$svc = $db->pquery('SELECT servicename, service_no FROM vtiger_service WHERE serviceid = ?', array($productId));
+					if ($svc && $db->num_rows($svc) > 0) {
+						$catalogName = (string) $db->query_result($svc, 0, 'servicename');
+						if ($sku === '') {
+							$sku = (string) $db->query_result($svc, 0, 'service_no');
+						}
+					}
+				}
+			}
+
+			$sku = trim(decode_html($sku));
+			$catalogName = trim(decode_html($catalogName));
+			$existingName = trim(decode_html(isset($products[$i]['productName' . $i]) ? (string) $products[$i]['productName' . $i] : ''));
+			$existingCode = trim(decode_html(isset($products[$i]['hdnProductcode' . $i]) ? (string) $products[$i]['hdnProductcode' . $i] : ''));
+
 			$products[$i]['usageunit' . $i] = trim(decode_html($unit));
-			$products[$i]['lineSku' . $i] = trim(decode_html($sku));
+			$products[$i]['lineSku' . $i] = $sku !== '' ? $sku : ($existingCode !== '' ? $existingCode : '—');
+
+			// Prefer catalog name when stored productName is empty or is just the SKU/code.
+			$nameLooksLikeCode = ($existingName !== '' && (
+				strcasecmp($existingName, $sku) === 0
+				|| strcasecmp($existingName, $existingCode) === 0
+			));
+			if ($catalogName !== '' && ($existingName === '' || $nameLooksLikeCode)) {
+				$products[$i]['productName' . $i] = $catalogName;
+			} elseif ($existingName === '' && $sku !== '') {
+				$products[$i]['productName' . $i] = $sku;
+			}
+
+			if (isset($products[$i]['qty' . $i])) {
+				$products[$i]['qty' . $i] = $formatQty($products[$i]['qty' . $i]);
+			}
+			foreach (array('listPrice', 'unitPrice', 'productTotal', 'netPrice', 'totalAfterDiscount') as $moneyKey) {
+				$key = $moneyKey . $i;
+				if (isset($products[$i][$key]) && $products[$i][$key] !== '') {
+					$products[$i][$key] = $formatMoney($products[$i][$key]);
+				}
+			}
 		}
+
+		if (isset($products[1]['final_details']) && is_array($products[1]['final_details'])) {
+			foreach (array('hdnSubTotal', 'grandTotal', 'discountTotal_final', 'tax_totalamount', 'shipping_handling_charge', 'adjustment') as $finalKey) {
+				if (isset($products[1]['final_details'][$finalKey]) && $products[1]['final_details'][$finalKey] !== '') {
+					$products[1]['final_details'][$finalKey] = $formatMoney($products[1]['final_details'][$finalKey]);
+				}
+			}
+		}
+
 		return $products;
 	}
 
@@ -264,7 +378,13 @@ class Invoice_Detail_View extends Inventory_Detail_View {
 					continue;
 				}
 				$seen[$fieldName] = true;
+				$rawValue = (string) $recordModel->get($fieldName);
 				$value = trim((string) $recordModel->getDisplayValue($fieldName));
+				if ($fieldName === $statusField) {
+					$value = $this->resolveInvoiceStatusLabel($rawValue, $value);
+				} elseif (in_array($fieldName, array('received', 'paid', 'mk_customer_paid'), true)) {
+					$value = Vtiger_Currency_UIType::transformDisplayValue((float) preg_replace('/[^\d.-]/', '', $rawValue), null, true);
+				}
 				if ($value === '') {
 					$value = '—';
 				}
@@ -272,7 +392,7 @@ class Invoice_Detail_View extends Inventory_Detail_View {
 					'name' => $fieldName,
 					'label' => $candidate['label'],
 					'value' => $value,
-					'raw_value' => (string) $recordModel->get($fieldName),
+					'raw_value' => $rawValue,
 					'data_type' => $fieldModel->getFieldDataType(),
 					'editable' => false,
 					'is_html' => false,
