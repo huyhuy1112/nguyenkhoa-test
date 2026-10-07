@@ -22,7 +22,7 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'save_issue', 'receipt_action', 'issue_action', 'save_return', 'return_action', 'set_settings', 'qc_upload_image', 'qc_delete_image', 'qc_update', 'import_stock_excel'), true)) {
+		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'save_purchase', 'complete_purchase', 'save_issue', 'receipt_action', 'issue_action', 'save_return', 'return_action', 'set_settings', 'qc_upload_image', 'qc_delete_image', 'qc_update', 'import_stock_excel'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -108,6 +108,7 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					break;
 
 				case 'save_receipt':
+				case 'save_purchase':
 					global $current_user;
 					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
 					$whId = trim((string) $request->get('whId'));
@@ -115,8 +116,61 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 						$whId = trim((string) $request->get('id'));
 					}
 					$payload = $this->decodePayload($request);
+					if ($whId === '' && isset($payload['warehouse'])) {
+						$whId = trim((string) $payload['warehouse']);
+					}
+					if ($whId === '' && isset($payload['whId'])) {
+						$whId = trim((string) $payload['whId']);
+					}
 					$result = Warehouse_WhMgmtService::saveInboundReceipt($whId, $payload, $userId);
 					$response->setResult(array_merge(array('success' => true), $result));
+					break;
+
+				case 'complete_purchase':
+					global $current_user;
+					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
+					$whId = trim((string) $request->get('whId'));
+					if ($whId === '') {
+						$whId = trim((string) $request->get('id'));
+					}
+					$code = trim((string) $request->get('code'));
+					$payload = $this->decodePayload($request);
+					if ($whId === '' && isset($payload['warehouse'])) {
+						$whId = trim((string) $payload['warehouse']);
+					}
+					if ($code === '' && isset($payload['code'])) {
+						$code = trim((string) $payload['code']);
+					}
+					$result = Warehouse_WhMgmtService::completePurchaseDraft($whId, $code, $userId);
+					$response->setResult(array_merge(array('success' => true), $result));
+					break;
+
+				case 'list_purchases':
+					$q = trim((string) $request->get('q'));
+					$status = trim((string) $request->get('status'));
+					$payload = $this->decodePayload($request);
+					if ($q === '' && isset($payload['q'])) {
+						$q = trim((string) $payload['q']);
+					}
+					if ($status === '' && isset($payload['status'])) {
+						$status = trim((string) $payload['status']);
+					}
+					$response->setResult(array(
+						'success' => true,
+						'receipts' => Warehouse_WhMgmtService::listPurchaseReceipts($q, $status),
+					));
+					break;
+
+				case 'search_vendors':
+					$q = trim((string) $request->get('q'));
+					$payload = $this->decodePayload($request);
+					if ($q === '' && isset($payload['q'])) {
+						$q = trim((string) $payload['q']);
+					}
+					$response->setResult(array(
+						'success' => true,
+						'vendors' => Warehouse_WhMgmtService::searchVendors($q),
+					));
 					break;
 
 				case 'save_issue':

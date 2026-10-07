@@ -1021,6 +1021,9 @@ class Warehouse_WhMgmtService {
 				'id' => (string) $row['code'],
 				'supplier' => (string) (isset($row['source_name']) ? $row['source_name'] : ''),
 				'poRef' => (string) (isset($meta['poRef']) ? $meta['poRef'] : ''),
+				'vendorId' => isset($meta['vendorId']) ? (int) $meta['vendorId'] : 0,
+				'discount' => isset($meta['discount']) ? (float) $meta['discount'] : 0,
+				'paidAmount' => isset($meta['paidAmount']) ? (float) $meta['paidAmount'] : 0,
 				'createdAt' => $created !== '' ? gmdate('c', strtotime($created)) : gmdate('c'),
 				'createdBy' => (string) (isset($meta['createdBy']) ? $meta['createdBy'] : ''),
 				'status' => $dbStatus !== '' ? $dbStatus : 'stored',
@@ -3152,6 +3155,13 @@ class Warehouse_WhMgmtService {
 	 * Lines without needs_qc apply stock immediately.
 	 * Mixed: receipt stays pending_qc until QC lines complete; store must not double-stock.
 	 *
+	 * Purchase (Mua hàng) extras in $payload:
+	 * - asDraft / draft: status=draft, no stock apply (Lưu tạm)
+	 * - vendorId: Vendors id → source_name + mk_meta
+	 * - discount, paidAmount, paymentNote: stored in meta (MISA later)
+	 * - poRef optional → auto MH-…
+	 * - empty lot → auto LOT-YYYYMMDD
+	 *
 	 * @param array $payload supplier, poRef, lines[{product_id,sku,name,lot,qty,mfg,expiry}]
 	 */
 	public static function saveInboundReceipt($warehouseCode, array $payload, $userId = 0) {
@@ -3167,16 +3177,29 @@ class Warehouse_WhMgmtService {
 		}
 		$whName = (string) $wh['name'];
 
+		$asDraft = !empty($payload['asDraft']) || !empty($payload['draft']);
+		$vendorId = (int) (isset($payload['vendorId']) ? $payload['vendorId'] : (isset($payload['vendor_id']) ? $payload['vendor_id'] : 0));
 		$supplier = trim((string) (isset($payload['supplier']) ? $payload['supplier'] : ''));
-		$poRef = trim((string) (isset($payload['poRef']) ? $payload['poRef'] : ''));
+		if ($vendorId > 0) {
+			$vendor = self::findVendorById($db, $vendorId);
+			if ($vendor) {
+				if ($supplier === '') {
+					$supplier = (string) $vendor['name'];
+				}
+			}
+		}
+		$poRef = trim((string) (isset($payload['poRef']) ? $payload['poRef'] : (isset($payload['po']) ? $payload['po'] : '')));
 		$lines = isset($payload['lines']) && is_array($payload['lines']) ? $payload['lines'] : array();
 
-		if ($supplier === '' || $poRef === '' || empty($lines)) {
+		if ($supplier === '' || empty($lines)) {
 			throw new Exception('Thiếu thông tin phiếu nhập.');
 		}
 
 		$now = date('Y-m-d H:i:s');
 		$code = self::nextGrnCode($db);
+		if ($poRef === '') {
+			$poRef = 'MH-' . date('ymd') . '-' . preg_replace('/\D+/', '', $code);
+		}
 
 		// Pre-resolve lines + product QC flags before insert (skip invalids).
 		$resolved = array();
@@ -3196,11 +3219,14 @@ class Warehouse_WhMgmtService {
 				$sku = self::resolveProductSku($db, $productId);
 			}
 			$lot = trim((string) (isset($line['lot']) ? $line['lot'] : ''));
+			if ($lot === '') {
+				$lot = 'LOT-' . date('Ymd');
+			}
 			$qty = (float) (isset($line['qty']) ? $line['qty'] : 0);
 			$location = trim((string) (isset($line['location']) ? $line['location'] : ''));
 			$expiry = isset($line['expiry']) && $line['expiry'] !== '—' ? $line['expiry'] : null;
 			$mfg = isset($line['mfg']) && $line['mfg'] !== '' && $line['mfg'] !== '—' ? $line['mfg'] : null;
-			if ($name === '' || $lot === '' || $qty <= 0) {
+			if ($name === '' || $qty <= 0) {
 				continue;
 			}
 			if ($productId > 0 && $sku === '') {
@@ -3229,12 +3255,23 @@ class Warehouse_WhMgmtService {
 			throw new Exception('Thiếu thông tin phiếu nhập.');
 		}
 
-		$anyQc = $qcLineCount > 0;
-		$status = $anyQc ? 'pending_qc' : 'stored';
+		$anyQc = !$asDraft && $qcLineCount > 0;
+		if ($asDraft) {
+			$status = 'draft';
+		} else {
+			$status = $anyQc ? 'pending_qc' : 'stored';
+		}
 		$timeline = array(
-			array('at' => gmdate('c'), 'by' => 'Thủ kho', 'role' => 'keeper', 'action' => 'Tạo phiếu nhập'),
+			array(
+				'at' => gmdate('c'),
+				'by' => 'Thủ kho',
+				'role' => 'keeper',
+				'action' => $asDraft ? 'Lưu tạm phiếu mua hàng' : 'Tạo phiếu nhập',
+			),
 		);
-		if ($anyQc) {
+		if ($asDraft) {
+			// Draft: no stock / QC yet.
+		} else if ($anyQc) {
 			$note = $directLineCount > 0
 				? ($qcLineCount . ' dòng QC / ' . $directLineCount . ' dòng nhập thẳng')
 				: ($qcLineCount . ' dòng QC theo hàng hoá');
@@ -3288,30 +3325,59 @@ class Warehouse_WhMgmtService {
 			)
 		);
 
+		$hasUnitPriceCol = false;
+		try {
+			$colRs = $db->pquery("SHOW COLUMNS FROM vtiger_goodsreceipt_items LIKE 'unit_price'", array());
+			$hasUnitPriceCol = $colRs && $db->num_rows($colRs) > 0;
+		} catch (Exception $e) {
+			$hasUnitPriceCol = false;
+		}
+
 		foreach ($resolved as $line) {
 			$itemId = (int) $db->getUniqueID('vtiger_goodsreceipt_items');
 			$lineNeedsQc = !empty($line['needs_qc']);
 			$lineNeedsQcMeta[(string) $itemId] = $lineNeedsQc ? 1 : 0;
 
-			$db->pquery(
-				'INSERT INTO vtiger_goodsreceipt_items
-				 (itemid, receiptid, productid, product_name, quantity, serial_number, expired_date, mfg_date, line_note, storage_location)
-				 VALUES (?,?,?,?,?,?,?,?,?,?)',
-				array(
-					$itemId,
-					$receiptId,
-					$line['product_id'],
-					$line['name'],
-					$line['qty'],
-					$line['lot'],
-					$line['expiry'],
-					$line['mfg'],
-					$line['sku'],
-					$line['location'] !== '' ? $line['location'] : null,
-				)
-			);
+			if ($hasUnitPriceCol) {
+				$db->pquery(
+					'INSERT INTO vtiger_goodsreceipt_items
+					 (itemid, receiptid, productid, product_name, quantity, unit_price, serial_number, expired_date, mfg_date, line_note, storage_location)
+					 VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+					array(
+						$itemId,
+						$receiptId,
+						$line['product_id'],
+						$line['name'],
+						$line['qty'],
+						$line['price'],
+						$line['lot'],
+						$line['expiry'],
+						$line['mfg'],
+						$line['sku'],
+						$line['location'] !== '' ? $line['location'] : null,
+					)
+				);
+			} else {
+				$db->pquery(
+					'INSERT INTO vtiger_goodsreceipt_items
+					 (itemid, receiptid, productid, product_name, quantity, serial_number, expired_date, mfg_date, line_note, storage_location)
+					 VALUES (?,?,?,?,?,?,?,?,?,?)',
+					array(
+						$itemId,
+						$receiptId,
+						$line['product_id'],
+						$line['name'],
+						$line['qty'],
+						$line['lot'],
+						$line['expiry'],
+						$line['mfg'],
+						$line['sku'],
+						$line['location'] !== '' ? $line['location'] : null,
+					)
+				);
+			}
 
-			if (!$lineNeedsQc) {
+			if (!$asDraft && !$lineNeedsQc) {
 				self::applyInboundStockLine($db, $warehouseCode, $whName, array(
 					'product_id' => $line['product_id'],
 					'sku' => $line['sku'],
@@ -3333,8 +3399,24 @@ class Warehouse_WhMgmtService {
 			'timeline' => $timeline,
 			'lineNeedsQc' => $lineNeedsQcMeta,
 			'stockedItemIds' => $stockedItemIds,
+			'isPurchase' => true,
 		);
-		if (!$anyQc) {
+		if ($vendorId > 0) {
+			$metaArr['vendorId'] = $vendorId;
+		}
+		$discount = isset($payload['discount']) ? (float) $payload['discount'] : 0;
+		$paidAmount = isset($payload['paidAmount']) ? (float) $payload['paidAmount'] : (isset($payload['paid']) ? (float) $payload['paid'] : 0);
+		$paymentNote = trim((string) (isset($payload['paymentNote']) ? $payload['paymentNote'] : ''));
+		if ($discount > 0) {
+			$metaArr['discount'] = $discount;
+		}
+		if ($paidAmount > 0) {
+			$metaArr['paidAmount'] = $paidAmount;
+		}
+		if ($paymentNote !== '') {
+			$metaArr['paymentNote'] = $paymentNote;
+		}
+		if (!$asDraft && !$anyQc) {
 			$metaArr['stockStored'] = true;
 		}
 		$db->pquery(
@@ -3345,8 +3427,223 @@ class Warehouse_WhMgmtService {
 		return array(
 			'code' => $code,
 			'warehouse' => $warehouseCode,
+			'status' => $status,
+			'poRef' => $poRef,
 			'data' => self::getWarehouseData($db, $warehouseCode),
 		);
+	}
+
+	/**
+	 * Hoàn thành phiếu mua hàng đang Lưu tạm → cộng tồn (hoặc chuyển QC).
+	 */
+	public static function completePurchaseDraft($warehouseCode, $code, $userId = 0) {
+		$db = PearDatabase::getInstance();
+		self::ensureInstalled();
+		$warehouseCode = trim((string) $warehouseCode);
+		$code = trim((string) $code);
+		if ($warehouseCode === '' || $code === '') {
+			throw new Exception('Thiếu mã kho hoặc mã phiếu.');
+		}
+		$wh = self::findWarehouseRowByCode($db, $warehouseCode);
+		if (!$wh) {
+			throw new Exception('Không tìm thấy kho.');
+		}
+		$whName = (string) $wh['name'];
+		$rs = $db->pquery(
+			'SELECT receiptid, status, mk_meta_json, source_name
+			 FROM vtiger_goodsreceipt
+			 WHERE deleted = 0 AND code = ? AND warehouse_id = ?
+			 LIMIT 1',
+			array($code, $warehouseCode)
+		);
+		if (!$rs || $db->num_rows($rs) < 1) {
+			throw new Exception('Không tìm thấy phiếu mua hàng.');
+		}
+		$row = $db->fetchByAssoc($rs);
+		$status = strtolower(trim((string) $row['status']));
+		if ($status !== 'draft') {
+			throw new Exception('Chỉ hoàn thành được phiếu đang Lưu tạm.');
+		}
+		$receiptId = (int) $row['receiptid'];
+		$meta = self::decodeMeta(isset($row['mk_meta_json']) ? $row['mk_meta_json'] : '');
+		$stockedItemIds = isset($meta['stockedItemIds']) && is_array($meta['stockedItemIds']) ? $meta['stockedItemIds'] : array();
+		$lineNeedsQcMeta = isset($meta['lineNeedsQc']) && is_array($meta['lineNeedsQc']) ? $meta['lineNeedsQc'] : array();
+
+		$items = $db->pquery(
+			'SELECT itemid, productid, product_name, quantity, serial_number, expired_date, mfg_date, line_note, storage_location
+			 FROM vtiger_goodsreceipt_items WHERE receiptid = ? ORDER BY itemid ASC',
+			array($receiptId)
+		);
+		$qcLineCount = 0;
+		$directLineCount = 0;
+		while ($item = $db->fetchByAssoc($items)) {
+			$itemId = (string) (int) $item['itemid'];
+			$productId = (int) $item['productid'];
+			$needsQc = !empty($lineNeedsQcMeta[$itemId]) || self::productNeedsQc($db, $productId);
+			$lineNeedsQcMeta[$itemId] = $needsQc ? 1 : 0;
+			if ($needsQc) {
+				$qcLineCount++;
+				continue;
+			}
+			if (!empty($stockedItemIds[$itemId])) {
+				$directLineCount++;
+				continue;
+			}
+			self::applyInboundStockLine($db, $warehouseCode, $whName, array(
+				'product_id' => $productId,
+				'sku' => trim((string) $item['line_note']),
+				'name' => (string) $item['product_name'],
+				'lot' => trim((string) $item['serial_number']) !== '' ? trim((string) $item['serial_number']) : ('LOT-' . date('Ymd')),
+				'qty' => (float) $item['quantity'],
+				'mfg' => $item['mfg_date'],
+				'expiry' => $item['expired_date'],
+				'price' => 0,
+				'location' => (string) (isset($item['storage_location']) ? $item['storage_location'] : ''),
+			), $userId);
+			$stockedItemIds[$itemId] = 1;
+			$directLineCount++;
+		}
+
+		$anyQc = $qcLineCount > 0;
+		$newStatus = $anyQc ? 'pending_qc' : 'stored';
+		self::pushTimeline($meta, 'Hoàn thành phiếu mua hàng', 'keeper', $anyQc ? ($qcLineCount . ' dòng QC') : 'Cộng tồn kho');
+		$meta['lineNeedsQc'] = $lineNeedsQcMeta;
+		$meta['stockedItemIds'] = $stockedItemIds;
+		$meta['isPurchase'] = true;
+		if (!$anyQc) {
+			$meta['stockStored'] = true;
+		}
+		$now = date('Y-m-d H:i:s');
+		$db->pquery(
+			'UPDATE vtiger_goodsreceipt SET status = ?, mk_meta_json = ?, updatedby = ?, updatedtime = ? WHERE receiptid = ?',
+			array($newStatus, self::encodeMeta($meta), $userId, $now, $receiptId)
+		);
+
+		return array(
+			'code' => $code,
+			'warehouse' => $warehouseCode,
+			'status' => $newStatus,
+			'data' => self::getWarehouseData($db, $warehouseCode),
+		);
+	}
+
+	public static function listPurchaseReceipts($q = '', $status = '', $limit = 200) {
+		$db = PearDatabase::getInstance();
+		self::ensureInstalled();
+		$limit = max(1, min(500, (int) $limit));
+		$sql = 'SELECT receiptid, code, source_name, status, warehouse_id, createdtime, mk_meta_json
+			 FROM vtiger_goodsreceipt
+			 WHERE deleted = 0';
+		$params = array();
+		$status = strtolower(trim((string) $status));
+		if ($status !== '' && $status !== 'all') {
+			$sql .= ' AND status = ?';
+			$params[] = $status;
+		}
+		$q = trim((string) $q);
+		if ($q !== '') {
+			$sql .= ' AND (code LIKE ? OR source_name LIKE ? OR mk_meta_json LIKE ?)';
+			$like = '%' . $q . '%';
+			$params[] = $like;
+			$params[] = $like;
+			$params[] = $like;
+		}
+		$sql .= ' ORDER BY createdtime DESC, receiptid DESC LIMIT ' . $limit;
+		$rs = $db->pquery($sql, $params);
+		$out = array();
+		while ($row = $db->fetchByAssoc($rs)) {
+			$meta = self::decodeMeta(isset($row['mk_meta_json']) ? $row['mk_meta_json'] : '');
+			$created = isset($row['createdtime']) ? (string) $row['createdtime'] : '';
+			$items = self::loadReceiptItems($db, (int) $row['receiptid'], $meta);
+			$lineTotal = 0;
+			foreach ($items as $it) {
+				$qty = isset($it['qty']) ? (float) $it['qty'] : 0;
+				$price = isset($it['unit_price']) ? (float) $it['unit_price'] : 0;
+				$lineTotal += $qty * $price;
+			}
+			$out[] = array(
+				'id' => (string) $row['code'],
+				'code' => (string) $row['code'],
+				'supplier' => self::decodeDisplayTextDeep((string) (isset($row['source_name']) ? $row['source_name'] : '')),
+				'poRef' => (string) (isset($meta['poRef']) ? $meta['poRef'] : ''),
+				'vendorId' => isset($meta['vendorId']) ? (int) $meta['vendorId'] : 0,
+				'warehouse' => (string) (isset($row['warehouse_id']) ? $row['warehouse_id'] : ''),
+				'status' => (string) (isset($row['status']) ? $row['status'] : ''),
+				'createdAt' => $created !== '' ? gmdate('c', strtotime($created)) : '',
+				'discount' => isset($meta['discount']) ? (float) $meta['discount'] : 0,
+				'paidAmount' => isset($meta['paidAmount']) ? (float) $meta['paidAmount'] : 0,
+				'lineCount' => count($items),
+				'amount' => $lineTotal,
+				'lines' => $items,
+			);
+		}
+		return $out;
+	}
+
+	public static function searchVendors($q = '', $limit = 30) {
+		$db = PearDatabase::getInstance();
+		$limit = max(1, min(100, (int) $limit));
+		$q = trim((string) $q);
+		$sql = 'SELECT v.vendorid, v.vendor_no, v.vendorname, v.phone, v.email, v.street, v.city, v.category, v.description
+			 FROM vtiger_vendor v
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = v.vendorid AND ce.deleted = 0';
+		$params = array();
+		if ($q !== '') {
+			$sql .= ' WHERE (v.vendorname LIKE ? OR v.vendor_no LIKE ? OR v.phone LIKE ? OR v.email LIKE ?)';
+			$like = '%' . $q . '%';
+			$params = array($like, $like, $like, $like);
+		}
+		$sql .= ' ORDER BY v.vendorname ASC LIMIT ' . $limit;
+		$rs = $db->pquery($sql, $params);
+		$out = array();
+		while ($row = $db->fetchByAssoc($rs)) {
+			$out[] = array(
+				'id' => (int) $row['vendorid'],
+				'code' => (string) (isset($row['vendor_no']) ? $row['vendor_no'] : ''),
+				'name' => self::decodeDisplayTextDeep((string) $row['vendorname']),
+				'phone' => (string) (isset($row['phone']) ? $row['phone'] : ''),
+				'email' => (string) (isset($row['email']) ? $row['email'] : ''),
+				'address' => self::decodeDisplayTextDeep(trim(
+					(isset($row['street']) ? (string) $row['street'] : '') . ', ' .
+					(isset($row['city']) ? (string) $row['city'] : ''),
+					' ,'
+				)),
+				'tax' => self::extractVendorTaxFromDescription(isset($row['description']) ? $row['description'] : ''),
+				'category' => (string) (isset($row['category']) ? $row['category'] : ''),
+			);
+		}
+		return $out;
+	}
+
+	protected static function findVendorById(PearDatabase $db, $vendorId) {
+		$rs = $db->pquery(
+			'SELECT v.vendorid, v.vendor_no, v.vendorname, v.phone, v.email, v.street, v.city, v.description
+			 FROM vtiger_vendor v
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = v.vendorid AND ce.deleted = 0
+			 WHERE v.vendorid = ?
+			 LIMIT 1',
+			array((int) $vendorId)
+		);
+		if (!$rs || $db->num_rows($rs) < 1) {
+			return null;
+		}
+		$row = $db->fetchByAssoc($rs);
+		return array(
+			'id' => (int) $row['vendorid'],
+			'code' => (string) (isset($row['vendor_no']) ? $row['vendor_no'] : ''),
+			'name' => self::decodeDisplayTextDeep((string) $row['vendorname']),
+			'phone' => (string) (isset($row['phone']) ? $row['phone'] : ''),
+			'email' => (string) (isset($row['email']) ? $row['email'] : ''),
+			'tax' => self::extractVendorTaxFromDescription(isset($row['description']) ? $row['description'] : ''),
+		);
+	}
+
+	protected static function extractVendorTaxFromDescription($description) {
+		$text = (string) $description;
+		if (preg_match('/MST\s*[:=]\s*([A-Za-z0-9\-]+)/u', $text, $m)) {
+			return trim($m[1]);
+		}
+		return '';
 	}
 
 	protected static function findProductById(PearDatabase $db, $productId) {
