@@ -3162,7 +3162,7 @@
         }
         var okMsg =
           (res && (res.message || res.msg)) ||
-          "Đã gửi đơn hàng sang kế toán MISA.";
+          "Đã gửi Đơn đặt hàng sang MISA.";
         if (app.helper && app.helper.showSuccessNotification) {
           app.helper.showSuccessNotification({ message: okMsg });
         } else {
@@ -3172,8 +3172,8 @@
     };
     showOrderActionConfirm({
       title: "Chuyển qua MISA",
-      question: "Gửi đề nghị hóa đơn sang MISA?",
-      hint: "Kế toán xuất hóa đơn trên MISA. Nhân viên xem trạng thái ở menu Hóa đơn.",
+      question: "Gửi đơn này sang MISA thành Đơn đặt hàng?",
+      hint: "Đơn sẽ vào AMIS → Bán hàng → Đơn đặt hàng. Kế toán lập chứng từ bán hàng trên MISA khi cần.",
       icon: "fa-share-square-o",
     }).then(run, function () {});
   }

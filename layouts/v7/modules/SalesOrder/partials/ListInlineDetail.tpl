@@ -166,7 +166,7 @@
 				<span>Xác nhận đơn hàng</span>
 			</button>
 			{/if}
-			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__misa-btn" data-record-id="{$RECORD->getId()}" title="Chuyển đơn hàng sang kế toán MISA">
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__misa-btn" data-record-id="{$RECORD->getId()}" title="Gửi sang AMIS thành Đơn đặt hàng">
 				<i class="fa fa-share-square-o" aria-hidden="true"></i>
 				<span>Chuyển qua MISA</span>
 			</button>

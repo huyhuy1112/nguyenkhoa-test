@@ -1,11 +1,11 @@
 <?php
 /*+***********************************************************************************
  * MISA AMIS Kế toán — ACT Open API.
- * Đơn hàng tạo đề nghị hóa đơn. Kế toán sinh chứng từ trên MISA.
+ * Chốt A: đơn CRM → Đơn đặt hàng (sa_order) trên AMIS; không qua bước sinh CT trước.
  * Trạng thái về CRM qua callback, và khi mở menu Hóa đơn.
  *
- * App ID, mã kết nối, mã công ty lưu trong Cài đặt → Tích hợp (nk_api_connection).
- * Không ghi mã kết nối vào source.
+ * App ID, mã kết nối, mã công ty lưu trong Cài đặt → Tích hợp (nk_api_connection)
+ * hoặc config.misa.local.php. Không ghi mã kết nối vào source.
  *************************************************************************************/
 
 require_once 'modules/Vtiger/helpers/NkApi/Adapter.php';
@@ -25,7 +25,7 @@ class NkApi_Misa_Adapter extends NkApi_Adapter {
 	}
 
 	public function description() {
-		return 'Đẩy đơn hàng sang MISA thành đề nghị hóa đơn. Kế toán xuất hóa đơn trên MISA, CRM nhận trạng thái đã duyệt hay chưa.';
+		return 'Đẩy đơn hàng CRM sang AMIS thành Đơn đặt hàng. Kế toán lập chứng từ bán hàng trên MISA khi cần; CRM nhận trạng thái qua callback.';
 	}
 
 	public function isImplemented() {
@@ -33,7 +33,7 @@ class NkApi_Misa_Adapter extends NkApi_Adapter {
 	}
 
 	public function hint() {
-		return 'Host https://actapp.misa.vn. Username = App ID, API key = mã kết nối. Mã công ty đang dùng: km4kb96v. Callback: modules/Invoice/callbacks/MisaAct.php — khai đường dẫn này trong MISA → Thiết lập → Kết nối ứng dụng.';
+		return 'Host https://actapp.misa.vn. Username = App ID, API key = mã kết nối. Mã công ty: km4kb96v. Chuyển qua MISA → tab Đơn đặt hàng. Callback: modules/Invoice/callbacks/MisaAct.php — khai trong MISA → Thiết lập → Kết nối ứng dụng.';
 	}
 
 	public function save(array $payload, $userId = 0) {
@@ -127,7 +127,7 @@ class NkApi_Misa_Adapter extends NkApi_Adapter {
 		try {
 			return Invoice_MisaSyncService::push($this, $soModel);
 		} catch (Exception $e) {
-			$this->logSync('error', 'MISA — không gửi được đề nghị hóa đơn', $e->getMessage());
+			$this->logSync('error', 'MISA — không gửi được Đơn đặt hàng', $e->getMessage());
 			return array('error' => $e->getMessage());
 		}
 	}
@@ -258,7 +258,7 @@ class NkApi_Misa_Adapter extends NkApi_Adapter {
 		if (empty($body['Success'])) {
 			$msg = isset($body['ErrorMessage']) && $body['ErrorMessage'] !== ''
 				? (string) $body['ErrorMessage']
-				: 'MISA không nhận đề nghị hóa đơn.';
+				: 'MISA không nhận Đơn đặt hàng.';
 			$code = isset($body['ErrorCode']) ? (string) $body['ErrorCode'] : '';
 			throw new Exception($code !== '' ? ($msg . ' (' . $code . ')') : $msg);
 		}

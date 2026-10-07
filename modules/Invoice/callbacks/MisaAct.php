@@ -1,6 +1,6 @@
 <?php
 /*+***********************************************************************************
- * MISA gọi URL này khi xử lý đề nghị hóa đơn.
+ * MISA gọi URL này khi cập nhật trạng thái Đơn đặt hàng / chứng từ liên quan.
  * Khai trong MISA → Thiết lập → Kết nối ứng dụng → API kết nối.
  *************************************************************************************/
 chdir(dirname(__FILE__) . '/../../../');

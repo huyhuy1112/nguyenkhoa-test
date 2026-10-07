@@ -1,7 +1,8 @@
 <?php
 /*+***********************************************************************************
- * Đơn hàng CRM → đề nghị Đơn đặt hàng (sa_order) MISA.
- * Kế toán: Sinh chứng từ từ đề nghị → Đơn đặt hàng trên AMIS.
+ * Đơn hàng CRM → Đơn đặt hàng (sa_order) trên AMIS (voucher_type 20).
+ * Chốt A: bấm Chuyển qua MISA → đơn vào tab Đơn đặt hàng ngay.
+ * Kế toán lập chứng từ bán hàng trên MISA khi cần (bước sau, không chặn tạo đơn).
  * Menu Hóa đơn CRM: Chờ kế toán · Kế toán đã duyệt · Kế toán từ chối
  *************************************************************************************/
 
@@ -73,13 +74,13 @@ class Invoice_MisaSyncService {
 
 		$invoiceId = $existing ? (int) $existing['invoiceid'] : self::createInvoice($soModel, $orderNo);
 		self::setInvoiceStatus($invoiceId, self::STATUS_WAIT);
-		self::saveLink($soId, $invoiceId, $orgRefid, 'pending', 'Đã gửi đề nghị Đơn đặt hàng, chờ kế toán sinh chứng từ trên MISA.', '');
+		self::saveLink($soId, $invoiceId, $orgRefid, 'pending', 'Đã gửi Đơn đặt hàng sang MISA (tab Đơn đặt hàng).', '');
 
 		$invoiceNo = self::invoiceNo($invoiceId);
 		return array(
 			'success' => true,
-			'message' => 'Đã gửi đề nghị Đơn đặt hàng ' . ($invoiceNo !== '' ? $invoiceNo : ('#' . $invoiceId))
-				. ' sang MISA. Kế toán sinh chứng từ → Đơn đặt hàng. Trạng thái: Chờ kế toán.',
+			'message' => 'Đã gửi Đơn đặt hàng ' . ($invoiceNo !== '' ? $invoiceNo : ('#' . $invoiceId))
+				. ' sang MISA. Kiểm tra AMIS → Bán hàng → Đơn đặt hàng. Trạng thái CRM: Chờ kế toán.',
 			'invoiceid' => $invoiceId,
 		);
 	}
@@ -664,7 +665,7 @@ class Invoice_MisaSyncService {
 			'account_object_name' => $party['name'],
 			'account_object_address' => $party['address'],
 			'account_object_tax_code' => $party['tax'],
-			'journal_memo' => 'Đề nghị Đơn đặt hàng từ CRM ' . $orderNo,
+			'journal_memo' => 'Đơn đặt hàng từ CRM ' . $orderNo,
 			'total_sale_amount_oc' => round($sub, 2),
 			'total_sale_amount' => round($sub, 2),
 			'total_discount_amount_oc' => round($discount, 2),
