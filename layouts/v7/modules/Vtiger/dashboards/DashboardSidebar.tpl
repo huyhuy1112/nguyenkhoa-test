@@ -186,14 +186,14 @@
 												<span class="mk-dash-mod-chevron" aria-hidden="true">{include file="dashboards/DashboardSidebarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='CHEVRON'}</span>
 											</button>
 											<div class="mk-dash-mod-panel" id="mk-dash-tuibao-panel-{$APP_NAME}" role="region" aria-labelledby="mk-dash-tuibao-btn-{$APP_NAME}">
-												{if $_mkHasAccounts}
-													<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkAccActive} mk-dash-mod-link--active{/if}" href="index.php?module=Accounts&amp;view=List&amp;app=SALES">
-														<span class="mk-dash-mod-label">Danh sách chủ quán</span>
-													</a>
-												{/if}
 												{if $_mkHasServiceContracts}
 													<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkScActive} mk-dash-mod-link--active{/if}" href="index.php?module=ServiceContracts&amp;view=List&amp;app=SALES">
 														<span class="mk-dash-mod-label">Khách hàng nhượng quyền tiềm năng</span>
+													</a>
+												{/if}
+												{if $_mkHasAccounts}
+													<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkAccActive} mk-dash-mod-link--active{/if}" href="index.php?module=Accounts&amp;view=List&amp;app=SALES">
+														<span class="mk-dash-mod-label">Danh sách chủ quán</span>
 													</a>
 												{/if}
 											</div>
@@ -223,14 +223,14 @@
 									<span class="mk-dash-mod-chevron" aria-hidden="true">{include file="dashboards/DashboardSidebarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='CHEVRON'}</span>
 								</button>
 								<div class="mk-dash-mod-panel" id="mk-dash-tuibao-panel-{$APP_NAME}-fb" role="region">
-									{if $_mkHasAccounts}
-										<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkAccActive} mk-dash-mod-link--active{/if}" href="index.php?module=Accounts&amp;view=List&amp;app=SALES">
-											<span class="mk-dash-mod-label">Danh sách chủ quán</span>
-										</a>
-									{/if}
 									{if $_mkHasServiceContracts}
 										<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkScActive} mk-dash-mod-link--active{/if}" href="index.php?module=ServiceContracts&amp;view=List&amp;app=SALES">
 											<span class="mk-dash-mod-label">Khách hàng nhượng quyền tiềm năng</span>
+										</a>
+									{/if}
+									{if $_mkHasAccounts}
+										<a class="mk-dash-mod-link mk-dash-mod-link--nested{if $_mkAccActive} mk-dash-mod-link--active{/if}" href="index.php?module=Accounts&amp;view=List&amp;app=SALES">
+											<span class="mk-dash-mod-label">Danh sách chủ quán</span>
 										</a>
 									{/if}
 								</div>

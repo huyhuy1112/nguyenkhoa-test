@@ -2018,13 +2018,29 @@
     if ($("mk-acc-filters-ic")) $("mk-acc-filters-ic").innerHTML = ic("filter");
   }
 
+  function setListReady() {
+    document.documentElement.classList.add("mk-sales-list-ready", "mk-acc-ui-ready");
+    if (window.MkSalesListShared && typeof window.MkSalesListShared.revealSalesListUi === "function") {
+      window.MkSalesListShared.revealSalesListUi();
+    }
+  }
+
   function init() {
     if (!document.querySelector(".mk-acc-page--lovable")) return;
     bindEvents();
     var boot = store && store.bootstrap ? store.bootstrap() : Promise.resolve([]);
-    boot.then(function () {
-      renderAll();
-    });
+    boot
+      .then(function () {
+        renderAll();
+      })
+      .catch(function () {
+        renderAll();
+      })
+      .then(function () {
+        setListReady();
+      });
+    // Reveal shell even if bootstrap hangs (anti-FOUC otherwise stays blank).
+    setTimeout(setListReady, 800);
   }
 
   if (document.readyState === "loading") {

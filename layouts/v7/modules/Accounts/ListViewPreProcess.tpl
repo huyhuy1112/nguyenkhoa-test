@@ -4,14 +4,14 @@
 {if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
-<script type="text/javascript">document.documentElement.classList.add('mk-accounts-list-modern', 'mk-acc-list-sales', 'mk-acc-ui-ready');</script>
+<script type="text/javascript">document.documentElement.classList.add('mk-accounts-list-modern', 'mk-acc-list-sales', 'mk-acc-ui-ready', 'mk-sales-list-ready');</script>
 <script type="text/javascript">window.MK_ACC_API_READY = true;</script>
 <script type="text/javascript">window.MK_LEADS_API_READY = true;</script>
-{include file="partials/MkSalesListAntiFouc.tpl"|@vtemplate_path:'Vtiger'}
+{* Không dùng MkSalesListAntiFouc — list Lovable tự render; anti-FOUC từng ẩn trắng cả trang. *}
 <style type="text/css">
-html.mk-sales-list-guard:not(.mk-sales-list-ready) #modnavigator,
-html.mk-sales-list-guard:not(.mk-sales-list-ready) #sidebar-essentials,
-html.mk-sales-list-guard:not(.mk-sales-list-ready) .essentials-toggle {
+html.mk-acc-list-sales #modnavigator,
+html.mk-acc-list-sales #sidebar-essentials,
+html.mk-acc-list-sales .essentials-toggle {
 	display: none !important;
 }
 html.mk-acc-list-sales body[data-module="Accounts"][data-view="List"] #mk-dash-main.mk-accounts-list-main {
@@ -42,20 +42,20 @@ html.mk-acc-ui-ready body[data-module="Accounts"][data-view="List"] #sidebar-ess
 }
 </style>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsList.css')}?mk_v=20261006_leads2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsList.css')}?mk_v=20261007_tuibao1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkLovableListShell.css')}&mk_v=20260709_lovable_shell4" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkShell.css')}&mk_v=20260711_segments_ui2" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.css')}&mk_v=20261006_acc_list2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.css')}&mk_v=20261007_tuibao1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkListLovable.css')}&mk_v=20260916_touchfix2" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkTagPalette.css')}&mk_v=20260715_tag_color_v1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsMkList.css')}?mk_v=20261006_no_ellipsis1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsMkList.css')}?mk_v=20261007_tuibao1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260820_sheet1" />
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkIcons.js')}&mk_v=20260711_segments_ui2"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsLovableRef.js')}&mk_v=20261006_acc_list2"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsLocalStore.js')}&mk_v=20261006_acc_sc1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsLovableRef.js')}&mk_v=20261007_tuibao1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsLocalStore.js')}&mk_v=20261007_tuibao1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkQuickImport.js')}&mk_v=20261006_quick1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsMkList.js')}&mk_v=20261006_acc_sc1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsMkList.js')}&mk_v=20261007_tuibao1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLocalStore.js')}&mk_v=20261006_acc_sheet2"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.js')}&mk_v=20261006_acc_sheet2"></script>
 <script type="text/javascript">
