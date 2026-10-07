@@ -1,4 +1,4 @@
-{* Phiếu mua hàng — UI hiện đại (Kiot 1 bước) *}
+{* Tạo phiếu nhập hàng — từ nút + Nhập hàng *}
 {strip}
 <div class="mk-gi-page">
 	<section class="mk-wh-mgmt mk-purchase-page mk-purchase-page--create" id="mkPurchaseCreateRoot" data-can-write="{$MK_WH_CAN_WRITE|default:0}">
@@ -6,28 +6,16 @@
 			<div class="mk-purchase-hero__copy">
 				<p class="mk-purchase-eyebrow">
 					<span class="mk-purchase-eyebrow__dot" aria-hidden="true"></span>
-					Mua hàng · Phiếu MH
+					<a href="index.php?module=Warehouse&amp;view=PurchaseHistory&amp;app=INVENTORY" style="color:inherit;text-decoration:none">Nhập hàng</a>
+					· Tạo mới
 				</p>
-				<h1 class="mk-purchase-hero__title">Tạo phiếu mua hàng</h1>
-				<p class="mk-purchase-hero__sub">Chọn kho, nhà cung cấp và hàng — <strong>Lưu tạm</strong> hoặc <strong>Hoàn thành</strong> để cộng tồn kho ngay.</p>
+				<h1 class="mk-purchase-hero__title">Nhập hàng</h1>
+				<p class="mk-purchase-hero__sub">Chọn kho, nhà cung cấp và hàng — <strong>Lưu tạm</strong> hoặc <strong>Hoàn thành</strong> để cộng tồn kho.</p>
 			</div>
 			<div class="mk-purchase-hero__actions">
-				<a class="mk-purchase-btn mk-purchase-btn--ghost" href="index.php?module=Warehouse&amp;view=PurchaseHistory&amp;app=INVENTORY">
-					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-					Lịch sử
-				</a>
-				<a class="mk-purchase-btn mk-purchase-btn--ghost" href="index.php?module=Warehouse&amp;view=WhList&amp;app=INVENTORY">
-					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 9.5 12 4l9 5.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-					Kho CRM
-				</a>
+				<a class="mk-purchase-btn mk-purchase-btn--ghost" href="index.php?module=Warehouse&amp;view=PurchaseHistory&amp;app=INVENTORY">Danh sách nhập hàng</a>
 			</div>
 		</header>
-
-		<div class="mk-purchase-steps" aria-hidden="true">
-			<div class="mk-purchase-step is-active"><span>1</span> Kho &amp; NCC</div>
-			<div class="mk-purchase-step is-active"><span>2</span> Dòng hàng</div>
-			<div class="mk-purchase-step"><span>3</span> Hoàn tất</div>
-		</div>
 
 		<div class="mk-purchase-grid">
 			<aside class="mk-purchase-card mk-purchase-side">

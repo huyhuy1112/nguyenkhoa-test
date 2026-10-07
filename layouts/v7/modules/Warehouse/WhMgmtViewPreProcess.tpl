@@ -9,7 +9,7 @@
 	{if $VIEW eq 'WhDetail'}
 	document.documentElement.classList.add('mk-wh-proto-ready');
 	{/if}
-	{if $VIEW eq 'PurchaseCreate' || $VIEW eq 'PurchaseHistory'}
+	{if $VIEW eq 'PurchaseCreate' || $VIEW eq 'PurchaseHistory' || $VIEW eq 'PurchaseDetail' || $VIEW eq 'VendorList'}
 	document.documentElement.classList.add('mk-purchase-ready');
 	{/if}
 </script>
@@ -28,9 +28,9 @@
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehousePrototype.css')}?mk_v=20261006_stock_import1" />
 {if $VIEW eq 'WhDetail'}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseWhDetailOverrides.css')}?mk_v=20261006_stock_import1" />
-{elseif $VIEW eq 'PurchaseCreate' || $VIEW eq 'PurchaseHistory'}
+{elseif $VIEW eq 'PurchaseCreate' || $VIEW eq 'PurchaseHistory' || $VIEW eq 'PurchaseDetail' || $VIEW eq 'VendorList'}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.css')}?mk_v=20261006_stock_import1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/PurchaseMgmt.css')}?mk_v=20261007_purchase_ui2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/PurchaseMgmt.css')}?mk_v=20261007_kiot_ia1" />
 {else}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.css')}?mk_v=20261006_stock_import1" />
 {/if}
@@ -38,8 +38,8 @@
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseLocalStore.js')}?mk_v=20261006_stock_import1"></script>
 {if $VIEW eq 'WhDetail'}
 	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseWhDetailPrototype.js')}?mk_v=20261006_stock_import1"></script>
-{elseif $VIEW eq 'PurchaseCreate' || $VIEW eq 'PurchaseHistory'}
-	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/PurchaseMgmt.js')}?mk_v=20261007_purchase_ui2"></script>
+{elseif $VIEW eq 'PurchaseCreate' || $VIEW eq 'PurchaseHistory' || $VIEW eq 'PurchaseDetail' || $VIEW eq 'VendorList'}
+	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/PurchaseMgmt.js')}?mk_v=20261007_kiot_ia1"></script>
 {else}
 	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.js')}?mk_v=20261006_stock_import1"></script>
 {/if}

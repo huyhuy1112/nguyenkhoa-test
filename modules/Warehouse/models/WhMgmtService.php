@@ -3561,6 +3561,9 @@ class Warehouse_WhMgmtService {
 				$price = isset($it['unit_price']) ? (float) $it['unit_price'] : 0;
 				$lineTotal += $qty * $price;
 			}
+			$discount = isset($meta['discount']) ? (float) $meta['discount'] : 0;
+			$paidAmount = isset($meta['paidAmount']) ? (float) $meta['paidAmount'] : 0;
+			$due = max(0, $lineTotal - $discount - $paidAmount);
 			$out[] = array(
 				'id' => (string) $row['code'],
 				'code' => (string) $row['code'],
@@ -3570,14 +3573,180 @@ class Warehouse_WhMgmtService {
 				'warehouse' => (string) (isset($row['warehouse_id']) ? $row['warehouse_id'] : ''),
 				'status' => (string) (isset($row['status']) ? $row['status'] : ''),
 				'createdAt' => $created !== '' ? gmdate('c', strtotime($created)) : '',
-				'discount' => isset($meta['discount']) ? (float) $meta['discount'] : 0,
-				'paidAmount' => isset($meta['paidAmount']) ? (float) $meta['paidAmount'] : 0,
+				'createdBy' => (string) (isset($meta['createdBy']) ? $meta['createdBy'] : ''),
+				'discount' => $discount,
+				'paidAmount' => $paidAmount,
+				'dueAmount' => $due,
+				'paymentNote' => (string) (isset($meta['paymentNote']) ? $meta['paymentNote'] : ''),
 				'lineCount' => count($items),
 				'amount' => $lineTotal,
 				'lines' => $items,
 			);
 		}
 		return $out;
+	}
+
+	public static function getPurchaseReceipt($code, $warehouseCode = '') {
+		$db = PearDatabase::getInstance();
+		self::ensureInstalled();
+		$code = trim((string) $code);
+		$warehouseCode = trim((string) $warehouseCode);
+		if ($code === '') {
+			throw new Exception('Thiếu mã phiếu nhập.');
+		}
+		$sql = 'SELECT receiptid, code, source_name, status, warehouse_id, createdtime, mk_meta_json, note
+			 FROM vtiger_goodsreceipt
+			 WHERE deleted = 0 AND code = ?';
+		$params = array($code);
+		if ($warehouseCode !== '') {
+			$sql .= ' AND warehouse_id = ?';
+			$params[] = $warehouseCode;
+		}
+		$sql .= ' LIMIT 1';
+		$rs = $db->pquery($sql, $params);
+		if (!$rs || $db->num_rows($rs) < 1) {
+			throw new Exception('Không tìm thấy phiếu nhập hàng.');
+		}
+		$row = $db->fetchByAssoc($rs);
+		$meta = self::decodeMeta(isset($row['mk_meta_json']) ? $row['mk_meta_json'] : '');
+		$items = self::loadReceiptItems($db, (int) $row['receiptid'], $meta);
+		$lineTotal = 0;
+		foreach ($items as $it) {
+			$lineTotal += (isset($it['qty']) ? (float) $it['qty'] : 0) * (isset($it['unit_price']) ? (float) $it['unit_price'] : 0);
+		}
+		$discount = isset($meta['discount']) ? (float) $meta['discount'] : 0;
+		$paidAmount = isset($meta['paidAmount']) ? (float) $meta['paidAmount'] : 0;
+		$created = isset($row['createdtime']) ? (string) $row['createdtime'] : '';
+		$vendorId = isset($meta['vendorId']) ? (int) $meta['vendorId'] : 0;
+		$vendorCode = '';
+		if ($vendorId > 0) {
+			$v = self::findVendorById($db, $vendorId);
+			if ($v) {
+				$vendorCode = (string) $v['code'];
+			}
+		}
+		return array(
+			'id' => (string) $row['code'],
+			'code' => (string) $row['code'],
+			'supplier' => self::decodeDisplayTextDeep((string) (isset($row['source_name']) ? $row['source_name'] : '')),
+			'vendorId' => $vendorId,
+			'vendorCode' => $vendorCode,
+			'poRef' => (string) (isset($meta['poRef']) ? $meta['poRef'] : ''),
+			'warehouse' => (string) (isset($row['warehouse_id']) ? $row['warehouse_id'] : ''),
+			'status' => (string) (isset($row['status']) ? $row['status'] : ''),
+			'createdAt' => $created !== '' ? gmdate('c', strtotime($created)) : '',
+			'createdBy' => (string) (isset($meta['createdBy']) ? $meta['createdBy'] : ''),
+			'discount' => $discount,
+			'paidAmount' => $paidAmount,
+			'dueAmount' => max(0, $lineTotal - $discount - $paidAmount),
+			'paymentNote' => (string) (isset($meta['paymentNote']) ? $meta['paymentNote'] : ''),
+			'note' => self::decodeDisplayTextDeep((string) (isset($row['note']) ? $row['note'] : '')),
+			'lineCount' => count($items),
+			'amount' => $lineTotal,
+			'lines' => $items,
+			'timeline' => isset($meta['timeline']) && is_array($meta['timeline']) ? $meta['timeline'] : array(),
+		);
+	}
+
+	/**
+	 * Danh sách NCC đầy đủ cho UI Kiot (kèm tổng mua / nợ ước tính từ phiếu nhập).
+	 */
+	public static function listVendorsDetailed($q = '', $limit = 200) {
+		$db = PearDatabase::getInstance();
+		$limit = max(1, min(500, (int) $limit));
+		$q = trim((string) $q);
+		$sql = 'SELECT v.vendorid, v.vendor_no, v.vendorname, v.phone, v.email, v.street, v.city, v.state,
+			 v.category, v.description, ce.createdtime, ce.smcreatorid
+			 FROM vtiger_vendor v
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = v.vendorid AND ce.deleted = 0';
+		$params = array();
+		if ($q !== '') {
+			$sql .= ' WHERE (v.vendorname LIKE ? OR v.vendor_no LIKE ? OR v.phone LIKE ? OR v.email LIKE ?)';
+			$like = '%' . $q . '%';
+			$params = array($like, $like, $like, $like);
+		}
+		$sql .= ' ORDER BY v.vendorname ASC LIMIT ' . $limit;
+		$rs = $db->pquery($sql, $params);
+		$out = array();
+		while ($row = $db->fetchByAssoc($rs)) {
+			$id = (int) $row['vendorid'];
+			$name = self::decodeDisplayTextDeep((string) $row['vendorname']);
+			$stats = self::vendorPurchaseStats($db, $id, $name);
+			$created = isset($row['createdtime']) ? (string) $row['createdtime'] : '';
+			$creatorId = (int) (isset($row['smcreatorid']) ? $row['smcreatorid'] : 0);
+			$creator = '';
+			if ($creatorId > 0) {
+				try {
+					$u = Users_Record_Model::getInstanceById($creatorId, 'Users');
+					if ($u) {
+						$creator = trim((string) $u->getName());
+					}
+				} catch (Exception $e) {
+					$creator = '';
+				}
+			}
+			$out[] = array(
+				'id' => $id,
+				'code' => (string) (isset($row['vendor_no']) ? $row['vendor_no'] : ''),
+				'name' => $name,
+				'phone' => (string) (isset($row['phone']) ? $row['phone'] : ''),
+				'email' => (string) (isset($row['email']) ? $row['email'] : ''),
+				'address' => self::decodeDisplayTextDeep(trim(
+					(isset($row['street']) ? (string) $row['street'] : '') . ', ' .
+					(isset($row['city']) ? (string) $row['city'] : '') . ', ' .
+					(isset($row['state']) ? (string) $row['state'] : ''),
+					' ,'
+				)),
+				'tax' => self::extractVendorTaxFromDescription(isset($row['description']) ? $row['description'] : ''),
+				'category' => self::decodeDisplayTextDeep((string) (isset($row['category']) ? $row['category'] : '')),
+				'note' => self::decodeDisplayTextDeep((string) (isset($row['description']) ? $row['description'] : '')),
+				'createdAt' => $created !== '' ? gmdate('c', strtotime($created)) : '',
+				'createdBy' => $creator,
+				'totalPurchase' => $stats['total'],
+				'dueAmount' => $stats['due'],
+				'receiptCount' => $stats['count'],
+				'active' => true,
+			);
+		}
+		return $out;
+	}
+
+	protected static function vendorPurchaseStats(PearDatabase $db, $vendorId, $vendorName) {
+		$total = 0.0;
+		$due = 0.0;
+		$count = 0;
+		try {
+			self::ensureInstalled();
+			$rs = $db->pquery(
+				'SELECT receiptid, source_name, mk_meta_json FROM vtiger_goodsreceipt WHERE deleted = 0 ORDER BY receiptid DESC LIMIT 500',
+				array()
+			);
+			while ($row = $db->fetchByAssoc($rs)) {
+				$meta = self::decodeMeta(isset($row['mk_meta_json']) ? $row['mk_meta_json'] : '');
+				$match = false;
+				if ($vendorId > 0 && isset($meta['vendorId']) && (int) $meta['vendorId'] === (int) $vendorId) {
+					$match = true;
+				} else if ($vendorName !== '' && strcasecmp(trim((string) $row['source_name']), $vendorName) === 0) {
+					$match = true;
+				}
+				if (!$match) {
+					continue;
+				}
+				$count++;
+				$items = self::loadReceiptItems($db, (int) $row['receiptid'], $meta);
+				$lineTotal = 0;
+				foreach ($items as $it) {
+					$lineTotal += (isset($it['qty']) ? (float) $it['qty'] : 0) * (isset($it['unit_price']) ? (float) $it['unit_price'] : 0);
+				}
+				$discount = isset($meta['discount']) ? (float) $meta['discount'] : 0;
+				$paid = isset($meta['paidAmount']) ? (float) $meta['paidAmount'] : 0;
+				$total += $lineTotal;
+				$due += max(0, $lineTotal - $discount - $paid);
+			}
+		} catch (Exception $e) {
+			// ignore
+		}
+		return array('total' => $total, 'due' => $due, 'count' => $count);
 	}
 
 	public static function searchVendors($q = '', $limit = 30) {

@@ -9,8 +9,8 @@
 				<p class="mk-wh-proto-title__sub">Theo dõi tồn, hạn dùng và cảnh báo hết hàng trên mọi kho — mở kho để nhập / xuất / QC. Mua hàng dùng menu Phiếu MH.</p>
 			</div>
 			<div class="mk-wh-mgmt-toolbar">
-				<a class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline" href="index.php?module=Warehouse&amp;view=PurchaseCreate&amp;app=INVENTORY">+ Phiếu MH</a>
-				<a class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline" href="index.php?module=Warehouse&amp;view=PurchaseHistory&amp;app=INVENTORY">Lịch sử MH</a>
+				<a class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline" href="index.php?module=Warehouse&amp;view=PurchaseHistory&amp;app=INVENTORY">Nhập hàng</a>
+				<a class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline" href="index.php?module=Warehouse&amp;view=VendorList&amp;app=INVENTORY">Nhà cung cấp</a>
 				<a class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline" href="index.php?module=Warehouse&amp;view=WhDashboard&amp;app=INVENTORY">Bảng điều khiển kho</a>
 				<a class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline" href="index.php?module=Warehouse&amp;view=WhTransfer&amp;app=INVENTORY">Chuyển kho</a>
 				<button type="button" class="mk-wh-mgmt-btn mk-wh-mgmt-btn--primary" id="mkWhMgmtCreateBtn">

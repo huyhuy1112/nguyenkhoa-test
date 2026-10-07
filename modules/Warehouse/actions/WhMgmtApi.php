@@ -161,6 +161,22 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					));
 					break;
 
+				case 'get_purchase':
+					$code = trim((string) $request->get('code'));
+					$whId = trim((string) $request->get('whId'));
+					$payload = $this->decodePayload($request);
+					if ($code === '' && isset($payload['code'])) {
+						$code = trim((string) $payload['code']);
+					}
+					if ($whId === '' && isset($payload['warehouse'])) {
+						$whId = trim((string) $payload['warehouse']);
+					}
+					$response->setResult(array(
+						'success' => true,
+						'receipt' => Warehouse_WhMgmtService::getPurchaseReceipt($code, $whId),
+					));
+					break;
+
 				case 'search_vendors':
 					$q = trim((string) $request->get('q'));
 					$payload = $this->decodePayload($request);
@@ -170,6 +186,18 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					$response->setResult(array(
 						'success' => true,
 						'vendors' => Warehouse_WhMgmtService::searchVendors($q),
+					));
+					break;
+
+				case 'list_vendors':
+					$q = trim((string) $request->get('q'));
+					$payload = $this->decodePayload($request);
+					if ($q === '' && isset($payload['q'])) {
+						$q = trim((string) $payload['q']);
+					}
+					$response->setResult(array(
+						'success' => true,
+						'vendors' => Warehouse_WhMgmtService::listVendorsDetailed($q),
 					));
 					break;
 

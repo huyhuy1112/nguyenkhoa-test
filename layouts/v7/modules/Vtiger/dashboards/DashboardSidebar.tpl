@@ -252,23 +252,19 @@
 							</a>
 						{/if}
 
-						{* INVENTORY: Mua hàng (Phiếu MH / Lịch sử) + Kho CRM + Hàng hoá + NCC *}
+						{* INVENTORY: Nhập hàng (list/tạo/chi tiết) + NCC + Kho + Hàng hoá — IA kiểu Kiot *}
 						{if $APP_NAME eq 'INVENTORY'}
-							{assign var=_mkPurchaseCreateActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && $VIEW eq 'PurchaseCreate')}
-							<a class="mk-dash-mod-link{if $_mkPurchaseCreateActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=PurchaseCreate&amp;app=INVENTORY">
-								<span class="mk-dash-mod-label">Phiếu MH</span>
+							{assign var=_mkInboundActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && ($VIEW eq 'PurchaseHistory' || $VIEW eq 'PurchaseCreate' || $VIEW eq 'PurchaseDetail'))}
+							<a class="mk-dash-mod-link{if $_mkInboundActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=PurchaseHistory&amp;app=INVENTORY">
+								<span class="mk-dash-mod-label">Nhập hàng</span>
 							</a>
-							{assign var=_mkPurchaseHistActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && $VIEW eq 'PurchaseHistory')}
-							<a class="mk-dash-mod-link{if $_mkPurchaseHistActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=PurchaseHistory&amp;app=INVENTORY">
-								<span class="mk-dash-mod-label">Lịch sử MH</span>
+							{assign var=_mkVendorsActive value=(!$_settingsActive && (($MODULE eq 'Vendors') || ($MODULE eq 'Warehouse' && $VIEW eq 'VendorList')))}
+							<a class="mk-dash-mod-link{if $_mkVendorsActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=VendorList&amp;app=INVENTORY">
+								<span class="mk-dash-mod-label">Nhà cung cấp</span>
 							</a>
 							{assign var=_mkWhListActive value=(!$_settingsActive && $MODULE eq 'Warehouse' && ($VIEW eq 'WhList' || $VIEW eq 'WhDetail' || $VIEW eq 'WhDashboard' || $VIEW eq 'WhTransfer'))}
 							<a class="mk-dash-mod-link{if $_mkWhListActive} mk-dash-mod-link--active{/if}" href="index.php?module=Warehouse&amp;view=WhList&amp;app=INVENTORY">
 								<span class="mk-dash-mod-label">{vtranslate('LBL_WH_LIST','Warehouse')}</span>
-							</a>
-							{assign var=_mkVendorsActive value=(!$_settingsActive && $MODULE eq 'Vendors')}
-							<a class="mk-dash-mod-link{if $_mkVendorsActive} mk-dash-mod-link--active{/if}" href="index.php?module=Vendors&amp;view=List&amp;app=INVENTORY">
-								<span class="mk-dash-mod-label">Nhà cung cấp</span>
 							</a>
 							{assign var=_mkPsActive value=(!$_settingsActive && $MODULE eq 'ProductsServices')}
 							<a class="mk-dash-mod-link{if $_mkPsActive} mk-dash-mod-link--active{/if}" href="index.php?module=ProductsServices&amp;view=List&amp;app=INVENTORY">

@@ -1,5 +1,5 @@
 /**
- * Mua hàng CRM — Phiếu MH + Lịch sử (UI hiện đại).
+ * Nhập hàng + Nhà cung cấp — IA/UI kiểu Kiot.
  */
 (function () {
 	'use strict';
@@ -13,14 +13,11 @@
 	}
 
 	function money(n) {
-		var v = Math.round(Number(n) || 0);
-		return v.toLocaleString('vi-VN');
+		return Math.round(Number(n) || 0).toLocaleString('vi-VN');
 	}
 
 	function unwrap(res) {
-		if (!res || typeof res !== 'object') {
-			return res || {};
-		}
+		if (!res || typeof res !== 'object') return res || {};
 		if (res.result && typeof res.result === 'object') {
 			return Object.assign({ success: true }, res.result);
 		}
@@ -30,69 +27,52 @@
 	function apiPost(data) {
 		var req = Object.assign({ module: 'Warehouse', action: 'WhMgmtApi' }, data || {});
 		return new Promise(function (resolve, reject) {
-			if (typeof app !== 'undefined' && app.request && app.request.post) {
-				app.request.post({ data: req }).then(function (err, res) {
-					if (err) {
-						var em = err;
-						if (em && typeof em === 'object') {
-							em = em.message || em.statusText || JSON.stringify(em);
-						}
-						reject(String(em || 'Lỗi mạng'));
-						return;
-					}
-					var body = unwrap(res);
-					if (body && (body.success === false || body.error)) {
-						var msg = body.error || body.message || 'Lỗi API';
-						if (msg && typeof msg === 'object' && msg.message) {
-							msg = msg.message;
-						}
-						reject(String(msg));
-						return;
-					}
-					resolve(body || {});
-				});
+			if (typeof app === 'undefined' || !app.request || !app.request.post) {
+				reject('Thiếu app.request');
 				return;
 			}
-			reject('Thiếu app.request');
+			app.request.post({ data: req }).then(function (err, res) {
+				if (err) {
+					var em = err && typeof err === 'object' ? (err.message || err.statusText) : err;
+					reject(String(em || 'Lỗi mạng'));
+					return;
+				}
+				var body = unwrap(res);
+				if (body && (body.success === false || body.error)) {
+					var msg = body.error || body.message || 'Lỗi API';
+					if (msg && typeof msg === 'object') msg = msg.message || JSON.stringify(msg);
+					reject(String(msg));
+					return;
+				}
+				resolve(body || {});
+			});
 		});
 	}
 
 	function statusLabel(st) {
 		var s = String(st || '').toLowerCase();
-		if (s === 'draft') return 'Lưu tạm';
+		if (s === 'draft') return 'Phiếu tạm';
 		if (s === 'pending_qc') return 'Chờ QC';
-		if (s === 'stored') return 'Đã nhập kho';
+		if (s === 'stored') return 'Đã nhập hàng';
 		return st || '—';
 	}
 
 	function showToast(el, text, isErr) {
 		if (!el) return;
-		if (!text) {
-			el.hidden = true;
-			el.textContent = '';
-			return;
-		}
+		if (!text) { el.hidden = true; el.textContent = ''; return; }
 		el.hidden = false;
 		el.textContent = text;
 		el.className = 'mk-purchase-toast ' + (isErr ? 'is-error' : 'is-ok');
-		clearTimeout(el._mkTimer);
-		el._mkTimer = setTimeout(function () {
-			el.hidden = true;
-		}, 4500);
+		clearTimeout(el._t);
+		el._t = setTimeout(function () { el.hidden = true; }, 4500);
 	}
 
-	function emptyLinesHtml() {
-		return '<tr class="mk-purchase-empty-row"><td colspan="7">' +
-			'<div class="mk-purchase-empty">' +
-			'<div class="mk-purchase-empty__icon" aria-hidden="true">' +
-			'<svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>' +
-			'</div>' +
-			'<p class="mk-purchase-empty__title">Chưa có dòng hàng</p>' +
-			'<p class="mk-purchase-empty__sub">Gõ mã hoặc tên sản phẩm ở ô tìm kiếm rồi chọn để thêm.</p>' +
-			'</div></td></tr>';
+	function detailUrl(code, wh) {
+		return 'index.php?module=Warehouse&view=PurchaseDetail&app=INVENTORY&code=' +
+			encodeURIComponent(code || '') + '&whId=' + encodeURIComponent(wh || '');
 	}
 
-	/* ---------- Create ---------- */
+	/* ---------- Create (giữ logic) ---------- */
 	function initCreate() {
 		var root = document.getElementById('mkPurchaseCreateRoot');
 		if (!root) return;
@@ -112,17 +92,19 @@
 		var vendorTimer = null;
 		var canWrite = String(root.getAttribute('data-can-write') || '0') === '1';
 
-		function setMsg(text, isErr) {
-			showToast(msg, text, !!isErr);
+		function setMsg(text, isErr) { showToast(msg, text, !!isErr); }
+
+		function emptyLinesHtml() {
+			return '<tr class="mk-purchase-empty-row"><td colspan="7"><div class="mk-purchase-empty">' +
+				'<div class="mk-purchase-empty__icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>' +
+				'<p class="mk-purchase-empty__title">Chưa có dòng hàng</p>' +
+				'<p class="mk-purchase-empty__sub">Gõ mã hoặc tên sản phẩm rồi chọn để thêm.</p></div></td></tr>';
 		}
 
 		function loadWarehouses() {
-			var state = window.MK_WH_DB_STATE || {};
-			var list = Array.isArray(state.warehouses) ? state.warehouses : [];
+			var list = ((window.MK_WH_DB_STATE || {}).warehouses) || [];
 			whSelect.innerHTML = '';
-			list.filter(function (w) {
-				return String(w.status || 'active') !== 'archived';
-			}).forEach(function (w) {
+			list.filter(function (w) { return String(w.status || 'active') !== 'archived'; }).forEach(function (w) {
 				var opt = document.createElement('option');
 				opt.value = w.id || w.code;
 				opt.textContent = (w.code || w.id) + ' — ' + (w.name || '');
@@ -137,14 +119,8 @@
 		}
 
 		function renderLines() {
-			if (lineCountEl) {
-				lineCountEl.textContent = lines.length + ' mặt hàng';
-			}
-			if (!lines.length) {
-				body.innerHTML = emptyLinesHtml();
-				updateTotals();
-				return;
-			}
+			if (lineCountEl) lineCountEl.textContent = lines.length + ' mặt hàng';
+			if (!lines.length) { body.innerHTML = emptyLinesHtml(); updateTotals(); return; }
 			body.innerHTML = lines.map(function (ln, idx) {
 				var amount = (Number(ln.qty) || 0) * (Number(ln.price) || 0);
 				return '<tr data-idx="' + idx + '">' +
@@ -154,17 +130,14 @@
 					'<td class="is-num"><input class="mk-purchase-cell mk-purchase-cell--num" data-f="qty" type="number" min="0" step="1" value="' + esc(ln.qty) + '" /></td>' +
 					'<td class="is-num"><input class="mk-purchase-cell mk-purchase-cell--num" data-f="price" type="number" min="0" step="1000" value="' + esc(ln.price) + '" /></td>' +
 					'<td class="is-num">' + money(amount) + '</td>' +
-					'<td class="is-action"><button type="button" class="mk-purchase-remove" data-idx="' + idx + '" title="Xóa">×</button></td>' +
-					'</tr>';
+					'<td class="is-action"><button type="button" class="mk-purchase-remove" data-idx="' + idx + '">×</button></td></tr>';
 			}).join('');
 			updateTotals();
 		}
 
 		function updateTotals() {
 			var sub = 0;
-			lines.forEach(function (ln) {
-				sub += (Number(ln.qty) || 0) * (Number(ln.price) || 0);
-			});
+			lines.forEach(function (ln) { sub += (Number(ln.qty) || 0) * (Number(ln.price) || 0); });
 			var disc = Number(document.getElementById('mkPurchaseDiscount').value) || 0;
 			document.getElementById('mkPurchaseSubtotal').textContent = money(sub);
 			document.getElementById('mkPurchaseDiscountLbl').textContent = money(disc);
@@ -184,53 +157,36 @@
 			updateTotals();
 			if (f === 'qty' || f === 'price') {
 				var amtCell = tr.querySelectorAll('td')[5];
-				if (amtCell) {
-					amtCell.textContent = money((Number(lines[idx].qty) || 0) * (Number(lines[idx].price) || 0));
-				}
+				if (amtCell) amtCell.textContent = money((Number(lines[idx].qty) || 0) * (Number(lines[idx].price) || 0));
 			}
 		});
-
 		body.addEventListener('click', function (e) {
 			var btn = e.target.closest('.mk-purchase-remove');
 			if (!btn) return;
-			var idx = Number(btn.getAttribute('data-idx'));
-			lines.splice(idx, 1);
+			lines.splice(Number(btn.getAttribute('data-idx')), 1);
 			renderLines();
 		});
-
 		document.getElementById('mkPurchaseDiscount').addEventListener('input', updateTotals);
 
 		function searchVendors(q) {
 			apiPost({ mode: 'search_vendors', q: q }).then(function (res) {
 				var vendors = (res && res.vendors) || [];
-				if (!vendors.length) {
-					vendorSuggest.hidden = true;
-					vendorSuggest.innerHTML = '';
-					return;
-				}
+				if (!vendors.length) { vendorSuggest.hidden = true; return; }
 				vendorSuggest.innerHTML = vendors.map(function (v) {
 					return '<button type="button" class="mk-purchase-suggest__item" data-id="' + esc(v.id) + '" data-name="' + esc(v.name) + '">' +
-						'<strong>' + esc(v.name) + '</strong>' +
-						'<span>' + esc(v.code || '') + (v.phone ? ' · ' + esc(v.phone) : '') + '</span>' +
-						'</button>';
+						'<strong>' + esc(v.name) + '</strong><span>' + esc(v.code || '') + (v.phone ? ' · ' + esc(v.phone) : '') + '</span></button>';
 				}).join('');
 				vendorSuggest.hidden = false;
-			}).catch(function () {
-				vendorSuggest.hidden = true;
-			});
+			}).catch(function () { vendorSuggest.hidden = true; });
 		}
 
 		vendorQ.addEventListener('input', function () {
 			vendorId.value = '';
 			clearTimeout(vendorTimer);
 			var q = vendorQ.value.trim();
-			if (q.length < 1) {
-				vendorSuggest.hidden = true;
-				return;
-			}
+			if (q.length < 1) { vendorSuggest.hidden = true; return; }
 			vendorTimer = setTimeout(function () { searchVendors(q); }, 250);
 		});
-
 		vendorSuggest.addEventListener('click', function (e) {
 			var btn = e.target.closest('.mk-purchase-suggest__item');
 			if (!btn) return;
@@ -243,284 +199,361 @@
 		function showProductSuggest(q) {
 			q = String(q || '').toLowerCase().trim();
 			var hits = catalog.filter(function (p) {
-				var name = String(p.name || p.productsservicesname || '').toLowerCase();
-				var sku = String(p.sku || p.code || '').toLowerCase();
+				var name = String(p.name || '').toLowerCase();
+				var sku = String(p.sku || '').toLowerCase();
 				return !q || name.indexOf(q) >= 0 || sku.indexOf(q) >= 0;
 			}).slice(0, 12);
-			if (!hits.length) {
-				productSuggest.hidden = true;
-				productSuggest.innerHTML = '';
-				return;
-			}
+			if (!hits.length) { productSuggest.hidden = true; return; }
 			productSuggest.innerHTML = hits.map(function (p) {
-				var id = p.id || p.productsservicesid || p.product_id || 0;
-				var name = p.name || p.productsservicesname || '';
-				var sku = p.sku || p.code || '';
-				var price = p.price || p.unit_price || 0;
-				return '<button type="button" class="mk-purchase-suggest__item" data-id="' + esc(id) + '" data-name="' + esc(name) + '" data-sku="' + esc(sku) + '" data-price="' + esc(price) + '">' +
-					'<strong>' + esc(name) + '</strong><span>' + esc(sku) + (price ? ' · ' + money(price) : '') + '</span></button>';
+				return '<button type="button" class="mk-purchase-suggest__item" data-id="' + esc(p.id) + '" data-name="' + esc(p.name) + '" data-sku="' + esc(p.sku || '') + '" data-price="' + esc(p.price || 0) + '">' +
+					'<strong>' + esc(p.name) + '</strong><span>' + esc(p.sku || '') + (p.price ? ' · ' + money(p.price) : '') + '</span></button>';
 			}).join('');
 			productSuggest.hidden = false;
 		}
-
-		productQ.addEventListener('input', function () {
-			showProductSuggest(productQ.value);
-		});
-		productQ.addEventListener('focus', function () {
-			showProductSuggest(productQ.value);
-		});
+		productQ.addEventListener('input', function () { showProductSuggest(productQ.value); });
+		productQ.addEventListener('focus', function () { showProductSuggest(productQ.value); });
 
 		function addProductFromBtn(btn) {
 			var id = Number(btn.getAttribute('data-id') || 0);
 			var name = btn.getAttribute('data-name') || '';
-			var sku = btn.getAttribute('data-sku') || '';
-			var price = Number(btn.getAttribute('data-price') || 0);
 			if (!name) return;
 			var existing = lines.find(function (ln) { return ln.product_id === id && id > 0; });
-			if (existing) {
-				existing.qty = (Number(existing.qty) || 0) + 1;
-			} else {
-				lines.push({
-					product_id: id,
-					sku: sku,
-					name: name,
-					lot: '',
-					qty: 1,
-					price: price
-				});
-			}
+			if (existing) existing.qty = (Number(existing.qty) || 0) + 1;
+			else lines.push({ product_id: id, sku: btn.getAttribute('data-sku') || '', name: name, lot: '', qty: 1, price: Number(btn.getAttribute('data-price') || 0) });
 			productQ.value = '';
 			productSuggest.hidden = true;
 			renderLines();
 		}
-
 		productSuggest.addEventListener('click', function (e) {
 			var btn = e.target.closest('.mk-purchase-suggest__item');
 			if (btn) addProductFromBtn(btn);
 		});
-
 		document.getElementById('mkPurchaseAddProductBtn').addEventListener('click', function () {
 			var first = productSuggest.querySelector('.mk-purchase-suggest__item');
-			if (first) {
-				addProductFromBtn(first);
-				return;
-			}
-			showProductSuggest(productQ.value);
-			setMsg('Chọn một sản phẩm từ gợi ý.', true);
+			if (first) addProductFromBtn(first);
+			else { showProductSuggest(productQ.value); setMsg('Chọn một sản phẩm từ gợi ý.', true); }
 		});
-
-		function buildPayload(asDraft) {
-			var wh = (whSelect.value || '').trim();
-			var name = (supplier.value || vendorQ.value || '').trim();
-			if (!wh) throw new Error('Chọn kho nhận.');
-			if (!name) throw new Error('Chọn hoặc nhập nhà cung cấp.');
-			if (!lines.length) throw new Error('Thêm ít nhất một dòng hàng.');
-			var clean = lines.filter(function (ln) {
-				return (Number(ln.qty) || 0) > 0 && String(ln.name || '').trim() !== '';
-			}).map(function (ln) {
-				return {
-					product_id: ln.product_id || 0,
-					sku: ln.sku || '',
-					name: ln.name,
-					lot: ln.lot || '',
-					qty: Number(ln.qty) || 0,
-					price: Number(ln.price) || 0
-				};
-			});
-			if (!clean.length) throw new Error('Số lượng dòng hàng phải > 0.');
-			return {
-				warehouse: wh,
-				whId: wh,
-				supplier: name,
-				vendorId: Number(vendorId.value || 0) || 0,
-				poRef: (document.getElementById('mkPurchasePoRef').value || '').trim(),
-				discount: Number(document.getElementById('mkPurchaseDiscount').value) || 0,
-				paidAmount: Number(document.getElementById('mkPurchasePaid').value) || 0,
-				paymentNote: (document.getElementById('mkPurchasePayNote').value || '').trim(),
-				asDraft: !!asDraft,
-				lines: clean
-			};
-		}
 
 		function submit(asDraft) {
-			if (!canWrite) {
-				setMsg('Bạn không có quyền tạo phiếu.', true);
-				return;
-			}
-			var payload;
+			if (!canWrite) { setMsg('Bạn không có quyền tạo phiếu.', true); return; }
 			try {
-				payload = buildPayload(asDraft);
+				var wh = (whSelect.value || '').trim();
+				var name = (supplier.value || vendorQ.value || '').trim();
+				if (!wh) throw new Error('Chọn kho nhận.');
+				if (!name) throw new Error('Chọn hoặc nhập nhà cung cấp.');
+				var clean = lines.filter(function (ln) { return (Number(ln.qty) || 0) > 0 && ln.name; }).map(function (ln) {
+					return { product_id: ln.product_id || 0, sku: ln.sku || '', name: ln.name, lot: ln.lot || '', qty: Number(ln.qty) || 0, price: Number(ln.price) || 0 };
+				});
+				if (!clean.length) throw new Error('Thêm ít nhất một dòng hàng.');
+				var payload = {
+					warehouse: wh, whId: wh, supplier: name,
+					vendorId: Number(vendorId.value || 0) || 0,
+					poRef: (document.getElementById('mkPurchasePoRef').value || '').trim(),
+					discount: Number(document.getElementById('mkPurchaseDiscount').value) || 0,
+					paidAmount: Number(document.getElementById('mkPurchasePaid').value) || 0,
+					paymentNote: (document.getElementById('mkPurchasePayNote').value || '').trim(),
+					asDraft: !!asDraft, lines: clean
+				};
+				setMsg(asDraft ? 'Đang lưu tạm…' : 'Đang hoàn thành…');
+				apiPost({ mode: 'save_purchase', whId: wh, payload: JSON.stringify(payload) }).then(function (res) {
+					var code = (res && res.code) || '';
+					window.location.href = detailUrl(code, wh);
+				}).catch(function (err) { setMsg(String(err), true); });
 			} catch (e) {
 				setMsg(e.message || String(e), true);
-				return;
 			}
-			setMsg(asDraft ? 'Đang lưu tạm…' : 'Đang hoàn thành…');
-			apiPost({
-				mode: 'save_purchase',
-				whId: payload.whId,
-				payload: JSON.stringify(payload)
-			}).then(function (res) {
-				var code = (res && res.code) || '';
-				var st = (res && res.status) || '';
-				setMsg(
-					(asDraft ? 'Đã lưu tạm ' : 'Đã hoàn thành ') + code +
-					(st ? ' · ' + statusLabel(st) : '')
-				);
-				lines = [];
-				renderLines();
-				document.getElementById('mkPurchasePoRef').value = '';
-			}).catch(function (err) {
-				setMsg(typeof err === 'string' ? err : (err.message || 'Không lưu được phiếu.'), true);
-			});
 		}
-
 		document.getElementById('mkPurchaseDraftBtn').addEventListener('click', function () { submit(true); });
 		document.getElementById('mkPurchaseCompleteBtn').addEventListener('click', function () { submit(false); });
-
 		document.addEventListener('click', function (e) {
-			if (!vendorSuggest.contains(e.target) && e.target !== vendorQ) {
-				vendorSuggest.hidden = true;
-			}
-			if (!productSuggest.contains(e.target) && e.target !== productQ) {
-				productSuggest.hidden = true;
-			}
+			if (!vendorSuggest.contains(e.target) && e.target !== vendorQ) vendorSuggest.hidden = true;
+			if (!productSuggest.contains(e.target) && e.target !== productQ) productSuggest.hidden = true;
 		});
-
 		loadWarehouses();
 		renderLines();
 	}
 
-	/* ---------- History ---------- */
+	/* ---------- List Nhập hàng ---------- */
 	function initHistory() {
 		var root = document.getElementById('mkPurchaseHistoryRoot');
 		if (!root) return;
 		var body = document.getElementById('mkPurchaseHistBody');
 		var msg = document.getElementById('mkPurchaseHistMsg');
 		var qInput = document.getElementById('mkPurchaseHistQ');
-		var kpiRoot = document.getElementById('mkPurchaseHistKpi');
-		var status = 'all';
-		var timer = null;
+		var whSelect = document.getElementById('mkPurchaseHistWh');
+		var dueSum = document.getElementById('mkPurchaseHistDueSum');
 		var allRows = [];
+		var timer = null;
 
-		function setMsg(text, isErr) {
-			showToast(msg, text, !!isErr);
-		}
-
-		function updateKpi(rows) {
-			if (!kpiRoot) return;
-			var counts = { all: rows.length, draft: 0, pending_qc: 0, stored: 0 };
-			rows.forEach(function (r) {
-				var st = String(r.status || '');
-				if (counts[st] != null) counts[st] += 1;
-			});
-			Array.prototype.forEach.call(kpiRoot.querySelectorAll('[data-kpi]'), function (el) {
-				var key = el.getAttribute('data-kpi');
-				el.textContent = String(counts[key] != null ? counts[key] : 0);
+		function fillWh() {
+			var list = ((window.MK_WH_DB_STATE || {}).warehouses) || [];
+			list.forEach(function (w) {
+				var opt = document.createElement('option');
+				opt.value = w.id || w.code;
+				opt.textContent = (w.code || w.id) + ' — ' + (w.name || '');
+				whSelect.appendChild(opt);
 			});
 		}
 
-		function render(rows) {
+		function selectedStatuses() {
+			var boxes = root.querySelectorAll('#mkPurchaseHistFilters input[data-status]');
+			var set = {};
+			Array.prototype.forEach.call(boxes, function (b) {
+				if (b.checked) set[b.getAttribute('data-status')] = true;
+			});
+			return set;
+		}
+
+		function render() {
+			var st = selectedStatuses();
+			var wh = (whSelect.value || '').trim();
+			var rows = allRows.filter(function (r) {
+				if (wh && String(r.warehouse) !== wh) return false;
+				return !!st[String(r.status || '')];
+			});
+			var due = 0;
+			rows.forEach(function (r) { due += Number(r.dueAmount) || 0; });
+			if (dueSum) dueSum.textContent = money(due);
 			if (!rows.length) {
-				body.innerHTML = '<tr class="mk-purchase-empty-row"><td colspan="9">' +
-					'<div class="mk-purchase-empty">' +
-					'<p class="mk-purchase-empty__title">Chưa có phiếu mua hàng</p>' +
-					'<p class="mk-purchase-empty__sub">Tạo phiếu MH mới để bắt đầu nhập hàng vào kho.</p>' +
-					'</div></td></tr>';
+				body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:36px;color:#5b7268">Chưa có phiếu nhập hàng.</td></tr>';
 				return;
 			}
 			body.innerHTML = rows.map(function (r) {
-				var st = String(r.status || '');
-				var actions = '<a class="mk-purchase-link" href="index.php?module=Warehouse&amp;view=WhDetail&amp;app=INVENTORY&amp;whId=' + encodeURIComponent(r.warehouse || '') + '">Mở kho</a>';
-				if (st === 'draft') {
-					actions += ' <button type="button" class="mk-purchase-btn mk-purchase-btn--primary mk-purchase-complete-btn" data-code="' + esc(r.code) + '" data-wh="' + esc(r.warehouse) + '">Hoàn thành</button>';
-				}
+				var stLabel = statusLabel(r.status);
 				var created = r.createdAt ? new Date(r.createdAt).toLocaleString('vi-VN') : '—';
-				return '<tr>' +
-					'<td><span class="mk-purchase-code">' + esc(r.code) + '</span></td>' +
+				return '<tr data-code="' + esc(r.code) + '" data-wh="' + esc(r.warehouse) + '">' +
+					'<td><a class="mk-kiot-code-link" href="' + detailUrl(r.code, r.warehouse) + '">' + esc(r.code) + '</a></td>' +
 					'<td>' + esc(r.poRef || '—') + '</td>' +
+					'<td>' + esc(created) + '</td>' +
 					'<td>' + esc(r.supplier || '—') + '</td>' +
 					'<td>' + esc(r.warehouse || '—') + '</td>' +
-					'<td><span class="mk-purchase-badge mk-purchase-badge--' + esc(st) + '">' + esc(statusLabel(st)) + '</span></td>' +
-					'<td class="is-num">' + esc(r.lineCount || 0) + '</td>' +
-					'<td class="is-num">' + money(r.amount || 0) + '</td>' +
-					'<td>' + esc(created) + '</td>' +
-					'<td class="is-action">' + actions + '</td>' +
-					'</tr>';
+					'<td class="is-num">' + money(r.dueAmount || 0) + '</td>' +
+					'<td><span class="mk-purchase-badge mk-purchase-badge--' + esc(r.status) + '">' + esc(stLabel) + '</span></td></tr>';
 			}).join('');
 		}
 
 		function load() {
-			body.innerHTML = '<tr class="mk-purchase-empty-row"><td colspan="9"><div class="mk-purchase-empty"><p class="mk-purchase-empty__title">Đang tải…</p></div></td></tr>';
-			apiPost({
-				mode: 'list_purchases',
-				q: (qInput.value || '').trim(),
-				status: 'all'
-			}).then(function (res) {
+			body.innerHTML = '<tr><td colspan="7">Đang tải…</td></tr>';
+			apiPost({ mode: 'list_purchases', q: (qInput.value || '').trim(), status: 'all' }).then(function (res) {
 				allRows = (res && res.receipts) || [];
-				updateKpi(allRows);
-				var filtered = allRows;
-				if (status !== 'all') {
-					filtered = allRows.filter(function (r) {
-						return String(r.status || '') === status;
-					});
-				}
-				render(filtered);
+				render();
 			}).catch(function (err) {
-				body.innerHTML = '<tr class="mk-purchase-empty-row"><td colspan="9"><div class="mk-purchase-empty"><p class="mk-purchase-empty__title">Không tải được danh sách</p></div></td></tr>';
-				setMsg(typeof err === 'string' ? err : 'Lỗi tải lịch sử.', true);
+				body.innerHTML = '<tr><td colspan="7">Không tải được danh sách.</td></tr>';
+				showToast(msg, String(err), true);
 			});
 		}
 
-		document.getElementById('mkPurchaseHistFilters').addEventListener('click', function (e) {
-			var btn = e.target.closest('[data-status]');
-			if (!btn) return;
-			Array.prototype.forEach.call(document.querySelectorAll('#mkPurchaseHistFilters .mk-purchase-filter'), function (b) {
-				b.classList.toggle('is-active', b === btn);
-			});
-			status = btn.getAttribute('data-status') || 'all';
-			var filtered = allRows;
-			if (status !== 'all') {
-				filtered = allRows.filter(function (r) {
-					return String(r.status || '') === status;
-				});
-			}
-			if (!allRows.length) {
-				load();
-				return;
-			}
-			render(filtered);
+		body.addEventListener('click', function (e) {
+			if (e.target.closest('a')) return;
+			var tr = e.target.closest('tr[data-code]');
+			if (!tr) return;
+			window.location.href = detailUrl(tr.getAttribute('data-code'), tr.getAttribute('data-wh'));
 		});
-
+		root.querySelectorAll('#mkPurchaseHistFilters input[data-status]').forEach(function (b) {
+			b.addEventListener('change', render);
+		});
+		whSelect.addEventListener('change', render);
 		qInput.addEventListener('input', function () {
 			clearTimeout(timer);
-			timer = setTimeout(load, 300);
+			timer = setTimeout(load, 280);
 		});
+		fillWh();
+		load();
+	}
+
+	/* ---------- Detail ---------- */
+	function initDetail() {
+		var root = document.getElementById('mkPurchaseDetailRoot');
+		if (!root) return;
+		var code = root.getAttribute('data-code') || '';
+		var wh = root.getAttribute('data-wh') || '';
+		var msg = document.getElementById('mkPurchaseDetailMsg');
+
+		apiPost({ mode: 'get_purchase', code: code, whId: wh }).then(function (res) {
+			var r = (res && res.receipt) || {};
+			document.getElementById('mkPurchaseDetailCode').textContent = r.code || code;
+			var stEl = document.getElementById('mkPurchaseDetailStatus');
+			stEl.textContent = statusLabel(r.status);
+			stEl.className = 'mk-purchase-badge mk-purchase-badge--' + String(r.status || '');
+			var created = r.createdAt ? new Date(r.createdAt).toLocaleString('vi-VN') : '—';
+			document.getElementById('mkPurchaseDetailMeta').textContent =
+				created + (r.vendorCode ? ' · ' + r.vendorCode : '') + (r.supplier ? ' · ' + r.supplier : '');
+			document.getElementById('mkPurchaseDetailWh').innerHTML =
+				'Kho: <strong>' + esc(r.warehouse || '—') + '</strong>';
+			document.getElementById('mkPurchaseDetailInfo').innerHTML =
+				'<div><span>Người tạo</span><strong>' + esc(r.createdBy || '—') + '</strong></div>' +
+				'<div><span>Ngày nhập</span><strong>' + esc(created) + '</strong></div>' +
+				'<div><span>Nhà cung cấp</span><strong>' + esc(r.supplier || '—') + '</strong></div>' +
+				'<div><span>Tham chiếu</span><strong>' + esc(r.poRef || '—') + '</strong></div>';
+
+			var lines = r.lines || [];
+			var tbody = document.getElementById('mkPurchaseDetailLines');
+			if (!lines.length) {
+				tbody.innerHTML = '<tr><td colspan="5">Không có dòng hàng.</td></tr>';
+			} else {
+				tbody.innerHTML = lines.map(function (ln) {
+					var amt = (Number(ln.qty) || 0) * (Number(ln.unit_price) || 0);
+					return '<tr><td>' + esc(ln.sku || '—') + '</td><td>' + esc(ln.name || '—') + '</td>' +
+						'<td class="is-num">' + esc(ln.qty) + '</td><td class="is-num">' + money(ln.unit_price || 0) + '</td>' +
+						'<td class="is-num">' + money(amt) + '</td></tr>';
+				}).join('');
+			}
+			document.getElementById('mkPurchaseDetailNote').textContent =
+				(r.paymentNote || r.note) ? ('Ghi chú: ' + (r.paymentNote || r.note)) : 'Không có ghi chú';
+			document.getElementById('mkPurchaseDetailTotals').innerHTML =
+				'<div class="row"><span>Số lượng mặt hàng</span><strong>' + esc(r.lineCount || 0) + '</strong></div>' +
+				'<div class="row"><span>Tổng tiền hàng</span><strong>' + money(r.amount || 0) + '</strong></div>' +
+				'<div class="row"><span>Giảm giá</span><strong>' + money(r.discount || 0) + '</strong></div>' +
+				'<div class="row total"><span>Tổng cộng</span><strong>' + money(Math.max(0, (r.amount || 0) - (r.discount || 0))) + '</strong></div>' +
+				'<div class="row"><span>Tiền đã trả NCC</span><strong>' + money(r.paidAmount || 0) + '</strong></div>' +
+				'<div class="row"><span>Cần trả NCC</span><strong>' + money(r.dueAmount || 0) + '</strong></div>';
+
+			var actions = document.getElementById('mkPurchaseDetailActions');
+			actions.innerHTML = '';
+			if (String(r.status) === 'draft') {
+				var btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className = 'mk-kiot-btn mk-kiot-btn--primary';
+				btn.textContent = 'Hoàn thành nhập hàng';
+				btn.addEventListener('click', function () {
+					btn.disabled = true;
+					apiPost({ mode: 'complete_purchase', whId: r.warehouse, code: r.code }).then(function () {
+						window.location.reload();
+					}).catch(function (err) {
+						btn.disabled = false;
+						showToast(msg, String(err), true);
+					});
+				});
+				actions.appendChild(btn);
+			}
+			var back = document.createElement('a');
+			back.className = 'mk-kiot-btn mk-kiot-btn--ghost';
+			back.href = 'index.php?module=Warehouse&view=PurchaseHistory&app=INVENTORY';
+			back.textContent = 'Danh sách nhập hàng';
+			actions.appendChild(back);
+		}).catch(function (err) {
+			showToast(msg, String(err), true);
+		});
+	}
+
+	/* ---------- Vendors ---------- */
+	function initVendors() {
+		var root = document.getElementById('mkVendorListRoot');
+		if (!root) return;
+		var body = document.getElementById('mkVendorListBody');
+		var qInput = document.getElementById('mkVendorListQ');
+		var groupSel = document.getElementById('mkVendorGroupFilter');
+		var dueSum = document.getElementById('mkVendorDueSum');
+		var totalSum = document.getElementById('mkVendorTotalSum');
+		var all = [];
+		var openId = null;
+		var timer = null;
+
+		function groupsFrom(rows) {
+			var map = {};
+			rows.forEach(function (v) {
+				var g = String(v.category || '').trim();
+				if (g) map[g] = true;
+			});
+			var cur = groupSel.value;
+			groupSel.innerHTML = '<option value="">Tất cả nhóm</option>';
+			Object.keys(map).sort().forEach(function (g) {
+				var opt = document.createElement('option');
+				opt.value = g;
+				opt.textContent = g;
+				groupSel.appendChild(opt);
+			});
+			groupSel.value = cur;
+		}
+
+		function expandHtml(v) {
+			return '<tr class="mk-kiot-expand" data-expand="' + esc(v.id) + '"><td colspan="6"><div class="mk-kiot-expand-panel">' +
+				'<div class="mk-kiot-expand-tabs">' +
+				'<button type="button" class="mk-kiot-expand-tab is-active">Thông tin</button>' +
+				'<button type="button" class="mk-kiot-expand-tab" disabled title="Sắp có">Lịch sử nhập/trả hàng</button>' +
+				'<button type="button" class="mk-kiot-expand-tab" disabled title="Sắp có">Nợ cần trả nhà cung cấp</button>' +
+				'</div>' +
+				'<h3 class="mk-kiot-expand-title">' + esc(v.name) + '<code>' + esc(v.code || '') + '</code></h3>' +
+				'<p class="mk-kiot-expand-meta">Người tạo: ' + esc(v.createdBy || '—') +
+				' | Ngày tạo: ' + esc(v.createdAt ? new Date(v.createdAt).toLocaleDateString('vi-VN') : '—') +
+				' | Nhóm: ' + esc(v.category || 'Chưa có') + '</p>' +
+				'<div class="mk-kiot-expand-grid">' +
+				'<div><span>Điện thoại</span><strong>' + esc(v.phone || 'Chưa có') + '</strong></div>' +
+				'<div><span>Email</span><strong>' + esc(v.email || 'Chưa có') + '</strong></div>' +
+				'<div class="full"><span>Địa chỉ</span><strong>' + esc(v.address || 'Chưa có') + '</strong></div>' +
+				'<div><span>MST</span><strong>' + esc(v.tax || 'Chưa có') + '</strong></div>' +
+				'<div><span>Phiếu nhập</span><strong>' + esc(v.receiptCount || 0) + '</strong></div>' +
+				'</div>' +
+				'<div class="mk-kiot-expand-actions">' +
+				'<a class="mk-kiot-btn mk-kiot-btn--ghost" href="index.php?module=Vendors&view=Detail&record=' + esc(v.id) + '&app=INVENTORY">Xem Vtiger</a>' +
+				'<a class="mk-kiot-btn mk-kiot-btn--primary" href="index.php?module=Vendors&view=Edit&record=' + esc(v.id) + '&app=INVENTORY">Chỉnh sửa</a>' +
+				'</div></div></td></tr>';
+		}
+
+		function render() {
+			var q = (qInput.value || '').trim().toLowerCase();
+			var g = (groupSel.value || '').trim();
+			var rows = all.filter(function (v) {
+				if (g && String(v.category || '') !== g) return false;
+				if (!q) return true;
+				return String(v.name || '').toLowerCase().indexOf(q) >= 0 ||
+					String(v.code || '').toLowerCase().indexOf(q) >= 0 ||
+					String(v.phone || '').toLowerCase().indexOf(q) >= 0 ||
+					String(v.email || '').toLowerCase().indexOf(q) >= 0;
+			});
+			var due = 0, tot = 0;
+			rows.forEach(function (v) { due += Number(v.dueAmount) || 0; tot += Number(v.totalPurchase) || 0; });
+			if (dueSum) dueSum.textContent = money(due);
+			if (totalSum) totalSum.textContent = money(tot);
+			if (!rows.length) {
+				body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:36px;color:#5b7268">Không có nhà cung cấp. Tạo mới hoặc import NCC.</td></tr>';
+				return;
+			}
+			var html = '';
+			rows.forEach(function (v) {
+				html += '<tr class="mk-kiot-vendor-row' + (openId === v.id ? ' is-open' : '') + '" data-id="' + esc(v.id) + '">' +
+					'<td><span class="mk-purchase-code">' + esc(v.code || '—') + '</span></td>' +
+					'<td>' + esc(v.name) + '</td>' +
+					'<td>' + esc(v.phone || '—') + '</td>' +
+					'<td>' + esc(v.email || '—') + '</td>' +
+					'<td class="is-num">' + money(v.dueAmount || 0) + '</td>' +
+					'<td class="is-num">' + money(v.totalPurchase || 0) + '</td></tr>';
+				if (openId === v.id) html += expandHtml(v);
+			});
+			body.innerHTML = html;
+		}
+
+		function load() {
+			body.innerHTML = '<tr><td colspan="6">Đang tải…</td></tr>';
+			apiPost({ mode: 'list_vendors', q: '' }).then(function (res) {
+				all = (res && res.vendors) || [];
+				groupsFrom(all);
+				render();
+			}).catch(function () {
+				body.innerHTML = '<tr><td colspan="6">Không tải được danh sách NCC.</td></tr>';
+			});
+		}
 
 		body.addEventListener('click', function (e) {
-			var btn = e.target.closest('.mk-purchase-complete-btn');
-			if (!btn) return;
-			var code = btn.getAttribute('data-code');
-			var wh = btn.getAttribute('data-wh');
-			btn.disabled = true;
-			setMsg('Đang hoàn thành ' + code + '…');
-			apiPost({
-				mode: 'complete_purchase',
-				whId: wh,
-				code: code
-			}).then(function () {
-				setMsg('Đã hoàn thành ' + code + ' — tồn kho đã cập nhật.');
-				load();
-			}).catch(function (err) {
-				btn.disabled = false;
-				setMsg(typeof err === 'string' ? err : 'Không hoàn thành được.', true);
-			});
+			if (e.target.closest('a') || e.target.closest('.mk-kiot-expand-panel')) return;
+			var tr = e.target.closest('tr.mk-kiot-vendor-row');
+			if (!tr) return;
+			var id = Number(tr.getAttribute('data-id'));
+			openId = openId === id ? null : id;
+			render();
 		});
-
+		qInput.addEventListener('input', function () {
+			clearTimeout(timer);
+			timer = setTimeout(render, 200);
+		});
+		groupSel.addEventListener('change', render);
 		load();
 	}
 
 	document.addEventListener('DOMContentLoaded', function () {
 		initCreate();
 		initHistory();
+		initDetail();
+		initVendors();
 	});
 })();
