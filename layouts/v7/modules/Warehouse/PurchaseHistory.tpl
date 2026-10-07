@@ -1,4 +1,4 @@
-{* Nhập hàng — list kiểu Kiot (không gọi Lịch sử) *}
+{* Nhập hàng — list + panel phải chi tiết *}
 {strip}
 <div class="mk-gi-page">
 	<section class="mk-wh-mgmt mk-purchase-page mk-purchase-page--history mk-kiot-inbound" id="mkPurchaseHistoryRoot">
@@ -18,7 +18,7 @@
 			</div>
 		</header>
 
-		<div class="mk-kiot-layout">
+		<div class="mk-kiot-layout" id="mkPurchaseHistLayout">
 			<aside class="mk-kiot-filters" id="mkPurchaseHistFilters">
 				<div class="mk-kiot-filter-block">
 					<p class="mk-kiot-filter-label">Kho hàng</p>
@@ -59,6 +59,42 @@
 					</table>
 				</div>
 			</div>
+
+			<aside class="mk-kiot-sidepanel" id="mkPurchaseSidePanel" hidden aria-label="Chi tiết phiếu nhập">
+				<header class="mk-kiot-sidepanel__head">
+					<div class="mk-kiot-sidepanel__title-row">
+						<h2 class="mk-kiot-sidepanel__title" id="mkPurchasePanelCode">—</h2>
+						<span class="mk-purchase-badge" id="mkPurchasePanelStatus">—</span>
+					</div>
+					<button type="button" class="mk-kiot-sidepanel__close" id="mkPurchasePanelClose" aria-label="Đóng">
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+					</button>
+				</header>
+				<p class="mk-kiot-sidepanel__meta" id="mkPurchasePanelMeta"></p>
+				<div class="mk-kiot-sidepanel__wh" id="mkPurchasePanelWh"></div>
+				<div class="mk-kiot-sidepanel__info" id="mkPurchasePanelInfo"></div>
+				<div class="mk-kiot-sidepanel__table-wrap">
+					<table class="mk-kiot-table mk-kiot-table--compact">
+						<thead>
+							<tr>
+								<th>Mã hàng</th>
+								<th>Tên hàng</th>
+								<th class="is-num">SL</th>
+								<th class="is-num">Giá</th>
+								<th class="is-num">Tiền</th>
+							</tr>
+						</thead>
+						<tbody id="mkPurchasePanelLines">
+							<tr><td colspan="5">Chọn một phiếu để xem chi tiết.</td></tr>
+						</tbody>
+					</table>
+				</div>
+				<footer class="mk-kiot-sidepanel__foot">
+					<div class="mk-kiot-sidepanel__note" id="mkPurchasePanelNote"></div>
+					<div class="mk-kiot-sidepanel__totals" id="mkPurchasePanelTotals"></div>
+				</footer>
+				<div class="mk-kiot-sidepanel__actions" id="mkPurchasePanelActions"></div>
+			</aside>
 		</div>
 		<div class="mk-purchase-toast" id="mkPurchaseHistMsg" role="status" hidden></div>
 	</section>

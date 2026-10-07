@@ -72,6 +72,85 @@
 			encodeURIComponent(code || '') + '&whId=' + encodeURIComponent(wh || '');
 	}
 
+	/** Render chi tiết phiếu vào một bộ DOM (trang full hoặc panel phải). */
+	function paintPurchaseReceipt(ids, r, opts) {
+		opts = opts || {};
+		var code = r.code || opts.code || '—';
+		var created = r.createdAt ? new Date(r.createdAt).toLocaleString('vi-VN') : '—';
+		if (ids.code) ids.code.textContent = code;
+		if (ids.status) {
+			ids.status.textContent = statusLabel(r.status);
+			ids.status.className = 'mk-purchase-badge mk-purchase-badge--' + String(r.status || '');
+		}
+		if (ids.meta) {
+			ids.meta.textContent =
+				created + (r.vendorCode ? ' · ' + r.vendorCode : '') + (r.supplier ? ' · ' + r.supplier : '');
+		}
+		if (ids.wh) {
+			ids.wh.innerHTML = 'Kho: <strong>' + esc(r.warehouse || '—') + '</strong>';
+		}
+		if (ids.info) {
+			ids.info.innerHTML =
+				'<div><span>Người tạo</span><strong>' + esc(r.createdBy || '—') + '</strong></div>' +
+				'<div><span>Ngày nhập</span><strong>' + esc(created) + '</strong></div>' +
+				'<div><span>Nhà cung cấp</span><strong>' + esc(r.supplier || '—') + '</strong></div>' +
+				'<div><span>Tham chiếu</span><strong>' + esc(r.poRef || '—') + '</strong></div>';
+		}
+		var lines = r.lines || [];
+		if (ids.lines) {
+			if (!lines.length) {
+				ids.lines.innerHTML = '<tr><td colspan="5">Không có dòng hàng.</td></tr>';
+			} else {
+				ids.lines.innerHTML = lines.map(function (ln) {
+					var amt = (Number(ln.qty) || 0) * (Number(ln.unit_price) || 0);
+					return '<tr><td>' + esc(ln.sku || '—') + '</td><td>' + esc(ln.name || '—') + '</td>' +
+						'<td class="is-num">' + esc(ln.qty) + '</td><td class="is-num">' + money(ln.unit_price || 0) + '</td>' +
+						'<td class="is-num">' + money(amt) + '</td></tr>';
+				}).join('');
+			}
+		}
+		if (ids.note) {
+			ids.note.textContent =
+				(r.paymentNote || r.note) ? ('Ghi chú: ' + (r.paymentNote || r.note)) : 'Không có ghi chú';
+		}
+		if (ids.totals) {
+			ids.totals.innerHTML =
+				'<div class="row"><span>Số lượng mặt hàng</span><strong>' + esc(r.lineCount || 0) + '</strong></div>' +
+				'<div class="row"><span>Tổng tiền hàng</span><strong>' + money(r.amount || 0) + '</strong></div>' +
+				'<div class="row"><span>Giảm giá</span><strong>' + money(r.discount || 0) + '</strong></div>' +
+				'<div class="row total"><span>Tổng cộng</span><strong>' + money(Math.max(0, (r.amount || 0) - (r.discount || 0))) + '</strong></div>' +
+				'<div class="row"><span>Tiền đã trả NCC</span><strong>' + money(r.paidAmount || 0) + '</strong></div>' +
+				'<div class="row"><span>Cần trả NCC</span><strong>' + money(r.dueAmount || 0) + '</strong></div>';
+		}
+		if (ids.actions) {
+			ids.actions.innerHTML = '';
+			if (String(r.status) === 'draft') {
+				var btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className = 'mk-kiot-btn mk-kiot-btn--primary';
+				btn.textContent = 'Hoàn thành nhập hàng';
+				btn.addEventListener('click', function () {
+					btn.disabled = true;
+					apiPost({ mode: 'complete_purchase', whId: r.warehouse, code: r.code }).then(function () {
+						if (typeof opts.onComplete === 'function') opts.onComplete(r);
+						else window.location.reload();
+					}).catch(function (err) {
+						btn.disabled = false;
+						showToast(ids.msg, String(err), true);
+					});
+				});
+				ids.actions.appendChild(btn);
+			}
+			if (opts.showBackLink) {
+				var back = document.createElement('a');
+				back.className = 'mk-kiot-btn mk-kiot-btn--ghost';
+				back.href = 'index.php?module=Warehouse&view=PurchaseHistory&app=INVENTORY';
+				back.textContent = 'Danh sách nhập hàng';
+				ids.actions.appendChild(back);
+			}
+		}
+	}
+
 	/* ---------- Create (giữ logic) ---------- */
 	function initCreate() {
 		var root = document.getElementById('mkPurchaseCreateRoot');
@@ -273,17 +352,34 @@
 		renderLines();
 	}
 
-	/* ---------- List Nhập hàng ---------- */
+	/* ---------- List Nhập hàng + panel phải ---------- */
 	function initHistory() {
 		var root = document.getElementById('mkPurchaseHistoryRoot');
 		if (!root) return;
+		var layout = document.getElementById('mkPurchaseHistLayout');
 		var body = document.getElementById('mkPurchaseHistBody');
 		var msg = document.getElementById('mkPurchaseHistMsg');
 		var qInput = document.getElementById('mkPurchaseHistQ');
 		var whSelect = document.getElementById('mkPurchaseHistWh');
 		var dueSum = document.getElementById('mkPurchaseHistDueSum');
+		var panel = document.getElementById('mkPurchaseSidePanel');
 		var allRows = [];
+		var selectedCode = null;
+		var loadSeq = 0;
 		var timer = null;
+
+		var panelIds = {
+			code: document.getElementById('mkPurchasePanelCode'),
+			status: document.getElementById('mkPurchasePanelStatus'),
+			meta: document.getElementById('mkPurchasePanelMeta'),
+			wh: document.getElementById('mkPurchasePanelWh'),
+			info: document.getElementById('mkPurchasePanelInfo'),
+			lines: document.getElementById('mkPurchasePanelLines'),
+			note: document.getElementById('mkPurchasePanelNote'),
+			totals: document.getElementById('mkPurchasePanelTotals'),
+			actions: document.getElementById('mkPurchasePanelActions'),
+			msg: msg
+		};
 
 		function fillWh() {
 			var list = ((window.MK_WH_DB_STATE || {}).warehouses) || [];
@@ -304,6 +400,65 @@
 			return set;
 		}
 
+		function closePanel() {
+			selectedCode = null;
+			if (panel) panel.hidden = true;
+			if (layout) layout.classList.remove('is-panel-open');
+			root.classList.remove('is-panel-open');
+			Array.prototype.forEach.call(body.querySelectorAll('tr.is-selected'), function (tr) {
+				tr.classList.remove('is-selected');
+			});
+		}
+
+		function markSelected(code) {
+			Array.prototype.forEach.call(body.querySelectorAll('tr[data-code]'), function (tr) {
+				if (tr.getAttribute('data-code') === code) tr.classList.add('is-selected');
+				else tr.classList.remove('is-selected');
+			});
+		}
+
+		function openPanel(code, wh) {
+			if (!panel || !code) return;
+			if (selectedCode === code && !panel.hidden) {
+				closePanel();
+				return;
+			}
+			selectedCode = code;
+			panel.hidden = false;
+			if (layout) layout.classList.add('is-panel-open');
+			root.classList.add('is-panel-open');
+			markSelected(code);
+
+			panelIds.code.textContent = code;
+			panelIds.status.textContent = '…';
+			panelIds.status.className = 'mk-purchase-badge';
+			panelIds.meta.textContent = 'Đang tải chi tiết…';
+			panelIds.wh.innerHTML = '';
+			panelIds.info.innerHTML = '';
+			panelIds.lines.innerHTML = '<tr><td colspan="5">Đang tải…</td></tr>';
+			panelIds.note.textContent = '';
+			panelIds.totals.innerHTML = '';
+			panelIds.actions.innerHTML = '';
+
+			var seq = ++loadSeq;
+			apiPost({ mode: 'get_purchase', code: code, whId: wh || '' }).then(function (res) {
+				if (seq !== loadSeq || selectedCode !== code) return;
+				var r = (res && res.receipt) || {};
+				paintPurchaseReceipt(panelIds, r, {
+					code: code,
+					onComplete: function () {
+						showToast(msg, 'Đã hoàn thành nhập hàng.', false);
+						closePanel();
+						load();
+					}
+				});
+			}).catch(function (err) {
+				if (seq !== loadSeq) return;
+				panelIds.lines.innerHTML = '<tr><td colspan="5">Không tải được chi tiết.</td></tr>';
+				showToast(msg, String(err), true);
+			});
+		}
+
 		function render() {
 			var st = selectedStatuses();
 			var wh = (whSelect.value || '').trim();
@@ -321,8 +476,9 @@
 			body.innerHTML = rows.map(function (r) {
 				var stLabel = statusLabel(r.status);
 				var created = r.createdAt ? new Date(r.createdAt).toLocaleString('vi-VN') : '—';
-				return '<tr data-code="' + esc(r.code) + '" data-wh="' + esc(r.warehouse) + '">' +
-					'<td><a class="mk-kiot-code-link" href="' + detailUrl(r.code, r.warehouse) + '">' + esc(r.code) + '</a></td>' +
+				var sel = selectedCode && selectedCode === r.code ? ' is-selected' : '';
+				return '<tr class="mk-kiot-purchase-row' + sel + '" data-code="' + esc(r.code) + '" data-wh="' + esc(r.warehouse) + '">' +
+					'<td><button type="button" class="mk-kiot-code-link">' + esc(r.code) + '</button></td>' +
 					'<td>' + esc(r.poRef || '—') + '</td>' +
 					'<td>' + esc(created) + '</td>' +
 					'<td>' + esc(r.supplier || '—') + '</td>' +
@@ -344,10 +500,14 @@
 		}
 
 		body.addEventListener('click', function (e) {
-			if (e.target.closest('a')) return;
 			var tr = e.target.closest('tr[data-code]');
 			if (!tr) return;
-			window.location.href = detailUrl(tr.getAttribute('data-code'), tr.getAttribute('data-wh'));
+			openPanel(tr.getAttribute('data-code'), tr.getAttribute('data-wh'));
+		});
+		var closeBtn = document.getElementById('mkPurchasePanelClose');
+		if (closeBtn) closeBtn.addEventListener('click', closePanel);
+		document.addEventListener('keydown', function (e) {
+			if (e.key === 'Escape' && selectedCode) closePanel();
 		});
 		root.querySelectorAll('#mkPurchaseHistFilters input[data-status]').forEach(function (b) {
 			b.addEventListener('change', render);
@@ -361,76 +521,28 @@
 		load();
 	}
 
-	/* ---------- Detail ---------- */
+	/* ---------- Detail (trang full — fallback / deep-link) ---------- */
 	function initDetail() {
 		var root = document.getElementById('mkPurchaseDetailRoot');
 		if (!root) return;
 		var code = root.getAttribute('data-code') || '';
 		var wh = root.getAttribute('data-wh') || '';
 		var msg = document.getElementById('mkPurchaseDetailMsg');
+		var ids = {
+			code: document.getElementById('mkPurchaseDetailCode'),
+			status: document.getElementById('mkPurchaseDetailStatus'),
+			meta: document.getElementById('mkPurchaseDetailMeta'),
+			wh: document.getElementById('mkPurchaseDetailWh'),
+			info: document.getElementById('mkPurchaseDetailInfo'),
+			lines: document.getElementById('mkPurchaseDetailLines'),
+			note: document.getElementById('mkPurchaseDetailNote'),
+			totals: document.getElementById('mkPurchaseDetailTotals'),
+			actions: document.getElementById('mkPurchaseDetailActions'),
+			msg: msg
+		};
 
 		apiPost({ mode: 'get_purchase', code: code, whId: wh }).then(function (res) {
-			var r = (res && res.receipt) || {};
-			document.getElementById('mkPurchaseDetailCode').textContent = r.code || code;
-			var stEl = document.getElementById('mkPurchaseDetailStatus');
-			stEl.textContent = statusLabel(r.status);
-			stEl.className = 'mk-purchase-badge mk-purchase-badge--' + String(r.status || '');
-			var created = r.createdAt ? new Date(r.createdAt).toLocaleString('vi-VN') : '—';
-			document.getElementById('mkPurchaseDetailMeta').textContent =
-				created + (r.vendorCode ? ' · ' + r.vendorCode : '') + (r.supplier ? ' · ' + r.supplier : '');
-			document.getElementById('mkPurchaseDetailWh').innerHTML =
-				'Kho: <strong>' + esc(r.warehouse || '—') + '</strong>';
-			document.getElementById('mkPurchaseDetailInfo').innerHTML =
-				'<div><span>Người tạo</span><strong>' + esc(r.createdBy || '—') + '</strong></div>' +
-				'<div><span>Ngày nhập</span><strong>' + esc(created) + '</strong></div>' +
-				'<div><span>Nhà cung cấp</span><strong>' + esc(r.supplier || '—') + '</strong></div>' +
-				'<div><span>Tham chiếu</span><strong>' + esc(r.poRef || '—') + '</strong></div>';
-
-			var lines = r.lines || [];
-			var tbody = document.getElementById('mkPurchaseDetailLines');
-			if (!lines.length) {
-				tbody.innerHTML = '<tr><td colspan="5">Không có dòng hàng.</td></tr>';
-			} else {
-				tbody.innerHTML = lines.map(function (ln) {
-					var amt = (Number(ln.qty) || 0) * (Number(ln.unit_price) || 0);
-					return '<tr><td>' + esc(ln.sku || '—') + '</td><td>' + esc(ln.name || '—') + '</td>' +
-						'<td class="is-num">' + esc(ln.qty) + '</td><td class="is-num">' + money(ln.unit_price || 0) + '</td>' +
-						'<td class="is-num">' + money(amt) + '</td></tr>';
-				}).join('');
-			}
-			document.getElementById('mkPurchaseDetailNote').textContent =
-				(r.paymentNote || r.note) ? ('Ghi chú: ' + (r.paymentNote || r.note)) : 'Không có ghi chú';
-			document.getElementById('mkPurchaseDetailTotals').innerHTML =
-				'<div class="row"><span>Số lượng mặt hàng</span><strong>' + esc(r.lineCount || 0) + '</strong></div>' +
-				'<div class="row"><span>Tổng tiền hàng</span><strong>' + money(r.amount || 0) + '</strong></div>' +
-				'<div class="row"><span>Giảm giá</span><strong>' + money(r.discount || 0) + '</strong></div>' +
-				'<div class="row total"><span>Tổng cộng</span><strong>' + money(Math.max(0, (r.amount || 0) - (r.discount || 0))) + '</strong></div>' +
-				'<div class="row"><span>Tiền đã trả NCC</span><strong>' + money(r.paidAmount || 0) + '</strong></div>' +
-				'<div class="row"><span>Cần trả NCC</span><strong>' + money(r.dueAmount || 0) + '</strong></div>';
-
-			var actions = document.getElementById('mkPurchaseDetailActions');
-			actions.innerHTML = '';
-			if (String(r.status) === 'draft') {
-				var btn = document.createElement('button');
-				btn.type = 'button';
-				btn.className = 'mk-kiot-btn mk-kiot-btn--primary';
-				btn.textContent = 'Hoàn thành nhập hàng';
-				btn.addEventListener('click', function () {
-					btn.disabled = true;
-					apiPost({ mode: 'complete_purchase', whId: r.warehouse, code: r.code }).then(function () {
-						window.location.reload();
-					}).catch(function (err) {
-						btn.disabled = false;
-						showToast(msg, String(err), true);
-					});
-				});
-				actions.appendChild(btn);
-			}
-			var back = document.createElement('a');
-			back.className = 'mk-kiot-btn mk-kiot-btn--ghost';
-			back.href = 'index.php?module=Warehouse&view=PurchaseHistory&app=INVENTORY';
-			back.textContent = 'Danh sách nhập hàng';
-			actions.appendChild(back);
+			paintPurchaseReceipt(ids, (res && res.receipt) || {}, { code: code, showBackLink: true });
 		}).catch(function (err) {
 			showToast(msg, String(err), true);
 		});
