@@ -140,10 +140,10 @@
 			</div>
 			<div class="mk-admin-kpi-panel-head">
 				<div class="mk-admin-kpi-panel-heading">
-					<span class="mk-admin-kpi-panel-badge">GD 1.4</span>
-					<h2 class="mk-admin-kpi-panel-title">Lớp 990k</h2>
+					<span class="mk-admin-kpi-panel-badge">GD 1.4 · IV</span>
+					<h2 class="mk-admin-kpi-panel-title">Lớp 990k — Đầu ra &amp; chỉ số</h2>
 				</div>
-				<span class="mk-admin-kpi-pill" id="mkAdminKpiGd14Period">Tháng này · SỐ TẠM</span>
+				<span class="mk-admin-kpi-pill" id="mkAdminKpiGd14Period">Tháng này · SỐ TẠM · phần IV</span>
 			</div>
 			<div class="mk-admin-kpi-offline" id="mkAdminKpiGd14Body">
 				<div class="mk-admin-kpi-detail-loading">Đang tải…</div>
