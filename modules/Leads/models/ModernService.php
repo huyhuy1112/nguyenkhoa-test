@@ -15,6 +15,9 @@ class Leads_ModernService {
 	/** true = getLead (đầy đủ options/plan); false = list (nhẹ). */
 	protected static $composeDetailed = false;
 
+	/** @var int */
+	protected static $lastListTotal = 0;
+
 	/** Skip CREATE/ALTER on list pages after the schema has already been applied. */
 	public static function schemaWarm($name) {
 		$path = 'cache/bace/' . preg_replace('/[^a-z0-9_]/', '', (string) $name) . '.ok';
@@ -177,26 +180,37 @@ class Leads_ModernService {
 		return ($res && $adb->num_rows($res) > 0);
 	}
 
-	public static function listLeads($userId = null) {
+	public static function listLeads($userId = null, array $options = array()) {
 		global $current_user;
 		$adb = PearDatabase::getInstance();
 		if (!self::isInstalled($adb)) {
+			self::$lastListTotal = 0;
 			return array();
 		}
 		if ($userId === null && !empty($current_user->id)) {
 			$userId = (int) $current_user->id;
 		}
+		$limit = isset($options['limit']) ? (int) $options['limit'] : 0;
+		if ($limit < 0) {
+			$limit = 0;
+		}
+		if ($limit > 50) {
+			$limit = 50;
+		}
+		$preview = $limit > 0;
 		self::$composeDetailed = false;
 		if (!self::schemaWarm('leads_list')) {
 			self::installSchema($adb);
 			self::markSchemaWarm('leads_list');
 		}
-		self::ensureModernProfilesForAliveLeads();
-		try {
-			require_once 'modules/Leads/models/SalesVerifyService.php';
-			Leads_SalesVerifyService::expireDueGd14Retentions();
-		} catch (Exception $e) {
-			error_log('[gd14_retention] ' . $e->getMessage());
+		if (!$preview) {
+			self::ensureModernProfilesForAliveLeads();
+			try {
+				require_once 'modules/Leads/models/SalesVerifyService.php';
+				Leads_SalesVerifyService::expireDueGd14Retentions();
+			} catch (Exception $e) {
+				error_log('[gd14_retention] ' . $e->getMessage());
+			}
 		}
 		list($ownerSql, $ownerParams) = self::ownerFilterSql('ce', $userId);
 		$sql = "SELECT p.leadid, p.mk_cache_id, p.lead_value, p.last_touch, p.next_action, p.open_tickets,
@@ -213,6 +227,9 @@ class Leads_ModernService {
 			  AND IFNULL(ld.converted, 0) = 0
 			  {$ownerSql}
 			ORDER BY p.last_touch DESC, p.leadid DESC";
+		if ($limit > 0) {
+			$sql .= ' LIMIT ' . $limit;
+		}
 		$res = $adb->pquery($sql, $ownerParams);
 		$rows = array();
 		$leadIds = array();
@@ -252,7 +269,30 @@ class Leads_ModernService {
 				error_log('[listLeads] skip lead ' . $leadId . ': ' . $e->getMessage());
 			}
 		}
-		return self::attachPhoneDupFlags($out);
+		$out = self::attachPhoneDupFlags($out);
+		if ($preview) {
+			$countRes = $adb->pquery(
+				"SELECT COUNT(*) AS n
+				 FROM bace_lead_profile p
+				 INNER JOIN vtiger_leaddetails ld ON ld.leadid = p.leadid
+				 INNER JOIN vtiger_crmentity ce ON ce.crmid = p.leadid AND ce.deleted = 0
+				 WHERE p.is_modern = 1
+				   AND (p.potential_id IS NULL OR p.potential_id = 0)
+				   AND IFNULL(ld.converted, 0) = 0
+				   {$ownerSql}",
+				$ownerParams
+			);
+			self::$lastListTotal = ($countRes && $adb->num_rows($countRes) > 0)
+				? (int) $adb->query_result($countRes, 0, 'n')
+				: count($out);
+		} else {
+			self::$lastListTotal = count($out);
+		}
+		return $out;
+	}
+
+	public static function lastListTotal() {
+		return (int) self::$lastListTotal;
 	}
 
 	/**

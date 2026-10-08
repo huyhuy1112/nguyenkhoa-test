@@ -102,14 +102,61 @@
 
   var _productCatalog = null;
 
+  var _listTotal = 0;
+  var _preview = false;
+  var _onFull = null;
+  var _fullStarted = false;
+
+  function applyLeadList(res) {
+    _memLeads = dedupeLeadsByCrmid(((res && res.leads) || []).map(normalizeLead));
+    _listTotal = res && res.total != null ? Number(res.total) : _memLeads.length;
+    _preview = !!(res && Number(res.preview) === 1);
+    if (Array.isArray(res && res.assignable_users)) {
+      _assignableUsers = res.assignable_users.slice();
+    }
+    if (res && res.product_catalog) {
+      _productCatalog = res.product_catalog;
+    }
+    if (res && res.gd14_questions) {
+      window.MK_GD14_QUESTIONS = res.gd14_questions;
+    }
+  }
+
+  function loadFullLeads() {
+    if (_fullStarted) {
+      return;
+    }
+    _fullStarted = true;
+    apiRequest("list")
+      .then(function (res) {
+        applyLeadList(res);
+        _preview = false;
+        _listTotal = _memLeads.length;
+        _bootstrapped = true;
+        if (typeof _onFull === "function") {
+          _onFull();
+        }
+      })
+      .catch(function () {
+        _preview = false;
+      });
+  }
+
   function bootstrapFromApi() {
-    return apiRequest("list").then(function (res) {
-      _memLeads = dedupeLeadsByCrmid((res.leads || []).map(normalizeLead));
-      _assignableUsers = Array.isArray(res.assignable_users) ? res.assignable_users.slice() : null;
-      _productCatalog = res.product_catalog || null;
-      window.MK_GD14_QUESTIONS = res.gd14_questions || null;
+    return apiRequest("list", { preview: 1 }).then(function (res) {
+      applyLeadList(res);
       _bootstrapped = true;
+      loadFullLeads();
       return _memLeads;
+    }).catch(function () {
+      _fullStarted = true;
+      return apiRequest("list").then(function (res) {
+        applyLeadList(res);
+        _preview = false;
+        _listTotal = _memLeads.length;
+        _bootstrapped = true;
+        return _memLeads;
+      });
     }).then(function () {
       // Auto phone-dedupe disabled: Sheet import may create intentional duplicates.
       return _memLeads;
@@ -265,17 +312,12 @@
       ensureSeeded();
       return Promise.resolve(getLeads());
     }
+    _fullStarted = true;
+    _preview = false;
     return apiRequest("list").then(function (res) {
-      _memLeads = dedupeLeadsByCrmid((res.leads || []).map(normalizeLead));
-      if (Array.isArray(res.assignable_users)) {
-        _assignableUsers = res.assignable_users.slice();
-      }
-      if (res.product_catalog) {
-        _productCatalog = res.product_catalog;
-      }
-      if (res.gd14_questions) {
-        window.MK_GD14_QUESTIONS = res.gd14_questions;
-      }
+      applyLeadList(res);
+      _preview = false;
+      _listTotal = _memLeads.length;
       _bootstrapped = true;
       return _memLeads;
     });
@@ -600,6 +642,18 @@
     KEYS: KEYS,
     ready: ready,
     getLeads: getLeads,
+    listTotal: function () {
+      return _listTotal > (_memLeads ? _memLeads.length : 0) ? _listTotal : (_memLeads ? _memLeads.length : 0);
+    },
+    isPreview: function () {
+      return _preview;
+    },
+    onFull: function (fn) {
+      _onFull = fn;
+      if (!_preview && _fullStarted && _memLeads && _memLeads.length) {
+        fn();
+      }
+    },
     getAssignableUsers: function () {
       if (_assignableUsers && _assignableUsers.length) {
         return _assignableUsers.slice();

@@ -42,7 +42,7 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 					$preview = (int) $request->get('preview') === 1;
 					$contacts = Contacts_ModernService::listContacts(
 						$userId,
-						$preview ? array('limit' => 15) : array()
+						$preview ? array('limit' => 30) : array()
 					);
 					$result = array(
 						'success' => true,

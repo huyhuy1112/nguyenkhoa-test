@@ -4270,12 +4270,14 @@
 
     var summary = $("mk-leads-filter-summary");
     if (summary) {
+      var known = store && store.listTotal ? store.listTotal() : all.length;
       summary.textContent =
         rows.length +
         " / " +
-        all.length +
+        known +
         " " +
-        t("JS_MK_LEADS_COUNT_LABEL", "lead");
+        t("JS_MK_LEADS_COUNT_LABEL", "lead") +
+        (store && store.isPreview && store.isPreview() ? " · đang tải đủ danh sách" : "");
     }
 
     var pag = $("mk-leads-pagination");
@@ -5090,31 +5092,6 @@
       ["region", "Khu vực (1 / 2 / 3)"],
     ];
   }
-      return [
-        ["accountname", "Tên công ty / KH"],
-        ["phone", "SĐT chính"],
-        ["email", "Email"],
-        ["tb_party_b_name", "Họ tên Bên B"],
-        ["tb_party_b_phone", "SĐT Bên B"],
-        ["tb_party_b_email", "Email Bên B"],
-        ["tb_party_b_cccd", "CCCD"],
-        ["tb_store_address", "Địa chỉ cửa hàng"],
-        ["tb_contract_no", "Số hợp đồng"],
-        ["bill_street", "Địa chỉ billing"],
-        ["account_no", "Mã KH"],
-      ];
-    }
-    return [
-      ["name", "Tên khách"],
-      ["phone", "Số điện thoại"],
-      ["email", "Email"],
-      ["address", "Địa chỉ"],
-      ["q1", "Câu 1 – Tình trạng"],
-      ["q2", "Câu 2 – Mô hình"],
-      ["q3", "Câu 3 – Ngân sách"],
-      ["region", "Khu vực (1 / 2 / 3)"],
-    ];
-  }
 
   function rebuildSheetMapGui(target, mapObj) {
     var gui = document.getElementById("mk-sheet-map-gui");
@@ -5793,11 +5770,13 @@
     }
 
     if (!logic || !store) return;
-    var boot = store.refreshLeadsList
-      ? store.refreshLeadsList()
-      : store.ready
-        ? store.ready()
-        : Promise.resolve();
+    if (typeof store.onFull === "function") {
+      store.onFull(function () {
+        renderAll();
+        syncSortHeaders();
+      });
+    }
+    var boot = store.ready ? store.ready() : Promise.resolve();
     boot
       .then(function () {
         decorateStaticIcons();

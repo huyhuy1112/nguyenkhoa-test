@@ -61,14 +61,24 @@ class Leads_ModernApi_Action extends Vtiger_Action_Controller {
 
 			switch ($mode) {
 				case 'list':
-					require_once 'modules/Leads/models/LeadProductsService.php';
-					$response->setResult(array(
+					$preview = (int) $request->get('preview') === 1;
+					$leads = Leads_ModernService::listLeads(
+						$userId,
+						$preview ? array('limit' => 30) : array()
+					);
+					$result = array(
 						'success' => true,
-						'leads' => Leads_ModernService::listLeads($userId),
-						'assignable_users' => Leads_ModernService::listAssignableUsers(),
-						'product_catalog' => Leads_LeadProductsService::catalog(),
-						'gd14_questions' => Leads_SalesVerifyService::getGd14QuestionBank(),
-					));
+						'leads' => $leads,
+						'total' => $preview ? Leads_ModernService::lastListTotal() : count($leads),
+						'preview' => $preview ? 1 : 0,
+					);
+					if (!$preview) {
+						require_once 'modules/Leads/models/LeadProductsService.php';
+						$result['assignable_users'] = Leads_ModernService::listAssignableUsers();
+						$result['product_catalog'] = Leads_LeadProductsService::catalog();
+						$result['gd14_questions'] = Leads_SalesVerifyService::getGd14QuestionBank();
+					}
+					$response->setResult($result);
 					break;
 
 				case 'get':
