@@ -144,11 +144,11 @@
 		</div>
 
 		<aside class="mk-qt-rail" id="mkQtQuoteRail" aria-label="Quote summary">
-			<section id="mkQtSmartDiscount" class="mk-qt-smart" aria-label="Chiết khấu theo nhóm khách">
-				<h2 class="mk-qt-smart__title">Chiết khấu theo nhóm khách</h2>
-				<p class="mk-qt-smart__sub" id="mkQtSmartSub">Chọn khách hàng để áp quy tắc.</p>
+			<section id="mkQtSmartDiscount" class="mk-qt-smart" aria-label="Chiết khấu thông minh">
+				<h2 class="mk-qt-smart__title">Chiết khấu thông minh</h2>
+				<p class="mk-qt-smart__sub" id="mkQtSmartSub">Chọn khách KL để so sánh hai cách chiết khấu.</p>
 				<div class="mk-qt-smart__cards" id="mkQtSmartCards"></div>
-				<p class="mk-qt-smart__reason" id="mkQtSmartReason"></p>
+				<div class="mk-qt-smart__decision" id="mkQtSmartDecision"></div>
 				<dl class="mk-qt-smart__sum" id="mkQtSmartSum"></dl>
 			</section>
 		</aside>

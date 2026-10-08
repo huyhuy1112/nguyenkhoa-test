@@ -3,19 +3,19 @@
 	'use strict';
 
 	var VALUE_TIERS = [
-		{ min: 50000000, percent: 12 },
-		{ min: 20000000, percent: 8 },
-		{ min: 10000000, percent: 5 },
-		{ min: 5000000, percent: 2 },
-		{ min: 0, percent: 0 }
+		{ min: 50000000, percent: 12, label: 'Trên 50 triệu → CK 12%' },
+		{ min: 20000000, percent: 8, label: '20 – 50 triệu → CK 8%' },
+		{ min: 10000000, percent: 5, label: '10 – 20 triệu → CK 5%' },
+		{ min: 5000000, percent: 2, label: '5 – 10 triệu → CK 2%' },
+		{ min: 0, percent: 0, label: 'Dưới 5 triệu → CK 0%' }
 	];
 	var QTY_TIERS = [
-		{ min: 500, percent: 15 },
-		{ min: 200, percent: 10 },
-		{ min: 100, percent: 7 },
-		{ min: 50, percent: 5 },
-		{ min: 20, percent: 3 },
-		{ min: 0, percent: 0 }
+		{ min: 500, percent: 15, label: 'Trên 500 sp → CK 15%' },
+		{ min: 200, percent: 10, label: '200 – 500 sp → CK 10%' },
+		{ min: 100, percent: 7, label: '100 – 200 sp → CK 7%' },
+		{ min: 50, percent: 5, label: '50 – 100 sp → CK 5%' },
+		{ min: 20, percent: 3, label: '20 – 50 sp → CK 3%' },
+		{ min: 0, percent: 0, label: 'Dưới 20 sp → CK 0%' }
 	];
 
 	var applying = false;
@@ -58,47 +58,62 @@
 		return null;
 	}
 
-	function offer(subtotal, tier) {
-		var percent = !tier || subtotal <= 0 ? 0 : tier.percent;
-		var saving = Math.round((subtotal * percent) / 100);
-		return { percent: percent, saving: saving };
+	function offer(base, tier, emptyLabel) {
+		var percent = !tier || base <= 0 ? 0 : tier.percent;
+		var saving = Math.round((base * percent) / 100);
+		return {
+			percent: percent,
+			saving: saving,
+			label: tier && tier.label ? tier.label : emptyLabel
+		};
 	}
 
 	function compare(subtotal, qty) {
-		var byValue = offer(subtotal, findTier(subtotal, VALUE_TIERS));
-		var byQty = offer(subtotal, findTier(qty, QTY_TIERS));
-		if (byValue.saving <= 0 && byQty.saving <= 0) {
-			return {
-				chosen: 'none',
-				percent: 0,
-				saving: 0,
-				difference: 0,
-				reason: subtotal <= 0 ? 'Đơn hàng chưa có sản phẩm hợp lệ.' : 'Chưa đạt bậc chiết khấu nào.',
-				byValue: byValue,
-				byQuantity: byQty
-			};
-		}
+		var byValue = offer(subtotal, findTier(subtotal, VALUE_TIERS), 'Dưới 5 triệu → CK 0%');
+		var byQty = offer(subtotal, findTier(qty, QTY_TIERS), 'Dưới 20 sp → CK 0%');
 		var pickValue = byValue.saving >= byQty.saving;
 		var win = pickValue ? byValue : byQty;
-		var lose = pickValue ? byQty : byValue;
-		var difference = win.saving - lose.saving;
-		var reason;
-		if (difference === 0) {
-			reason = 'Hai cách cùng tiết kiệm ' + money(win.saving) + ' đ, mặc định chọn theo giá trị.';
+		var difference = Math.abs(byValue.saving - byQty.saving);
+		var chosen = 'none';
+		var badge = '';
+		var extra = '';
+		var why = '';
+		if (subtotal <= 0) {
+			why = 'Đơn hàng chưa có sản phẩm hợp lệ.';
+		} else if (byValue.saving <= 0 && byQty.saving <= 0) {
+			why = 'Chưa đạt bậc chiết khấu nào. Đơn này vẫn được so sánh: theo giá trị 0%, theo số lượng 0%.';
+		} else if (difference === 0) {
+			chosen = 'value';
+			badge = 'Đã chọn chiết khấu theo GIÁ TRỊ';
+			extra = 'Hai cách cùng tiết kiệm ' + money(win.saving) + ' đ, mặc định chọn theo giá trị.';
+			why = 'Vì tổng tiền ' + money(subtotal) + ' đ và tổng ' + formatQty(qty) + ' sp cùng đạt bậc ' + byValue.percent + '%.';
 		} else if (pickValue) {
-			reason = 'Chiết khấu theo giá trị (' + byValue.percent + '%) tiết kiệm hơn ' + money(difference) + ' đ so với theo số lượng (' + byQty.percent + '%).';
+			chosen = 'value';
+			badge = 'Đã chọn chiết khấu theo GIÁ TRỊ';
+			extra = 'Tiết kiệm thêm ' + money(difference) + ' đ so với cách kia';
+			why = 'Vì tổng tiền ' + money(subtotal) + ' đ đạt bậc ' + byValue.percent + '%, cao hơn mức ' + byQty.percent + '% theo số lượng (' + formatQty(qty) + ' sp).';
 		} else {
-			reason = 'Chiết khấu theo số lượng (' + byQty.percent + '%) tiết kiệm hơn ' + money(difference) + ' đ so với theo giá trị (' + byValue.percent + '%).';
+			chosen = 'quantity';
+			badge = 'Đã chọn chiết khấu theo SỐ LƯỢNG';
+			extra = 'Tiết kiệm thêm ' + money(difference) + ' đ so với cách kia';
+			why = 'Vì tổng ' + formatQty(qty) + ' sp đạt bậc ' + byQty.percent + '%, cao hơn mức ' + byValue.percent + '% theo giá trị đơn hàng.';
 		}
 		return {
-			chosen: pickValue ? 'value' : 'quantity',
-			percent: win.percent,
-			saving: win.saving,
+			chosen: chosen,
+			percent: chosen === 'none' ? 0 : win.percent,
+			saving: chosen === 'none' ? 0 : win.saving,
 			difference: difference,
-			reason: reason,
+			badge: badge,
+			extra: extra,
+			why: why,
 			byValue: byValue,
 			byQuantity: byQty
 		};
+	}
+
+	function formatQty(qty) {
+		var n = Math.round(Number(qty) || 0);
+		return n.toLocaleString('vi-VN');
 	}
 
 	function readLines() {
@@ -159,10 +174,10 @@
 			box.className = 'mk-qt-smart';
 			box.setAttribute('aria-label', 'Chiết khấu theo nhóm khách');
 			box.innerHTML =
-				'<h2 class="mk-qt-smart__title">Chiết khấu theo nhóm khách</h2>' +
-				'<p class="mk-qt-smart__sub" id="mkQtSmartSub">Chọn khách hàng để áp quy tắc.</p>' +
+				'<h2 class="mk-qt-smart__title">Chiết khấu thông minh</h2>' +
+				'<p class="mk-qt-smart__sub" id="mkQtSmartSub">Chọn khách KL để so sánh hai cách chiết khấu.</p>' +
 				'<div class="mk-qt-smart__cards" id="mkQtSmartCards"></div>' +
-				'<p class="mk-qt-smart__reason" id="mkQtSmartReason"></p>' +
+				'<div class="mk-qt-smart__decision" id="mkQtSmartDecision"></div>' +
 				'<dl class="mk-qt-smart__sum" id="mkQtSmartSum"></dl>';
 		}
 		if (rail && box.parentNode !== rail) {
@@ -173,15 +188,36 @@
 		return box;
 	}
 
-	function card(title, percent, saving, on) {
+	function card(kind, lines, offer, on) {
+		var title = kind === 'value' ? 'Theo GIÁ TRỊ' : 'Theo SỐ LƯỢNG';
+		var icon = kind === 'value' ? 'fa-file-text-o' : 'fa-cubes';
+		var metricLabel = kind === 'value' ? 'Tổng giá trị đơn' : 'Tổng số lượng';
+		var metricValue = kind === 'value'
+			? money(lines.subtotal) + ' đ'
+			: formatQty(lines.qty) + ' sản phẩm';
 		return (
 			'<article class="mk-qt-smart__card' + (on ? ' is-on' : '') + '">' +
-			'<div class="mk-qt-smart__card-h"><span>' + title + '</span>' +
-			(on ? '<em>Đang chọn</em>' : '') +
-			'</div>' +
-			'<strong>' + percent + '%</strong>' +
-			'<span>Tiết kiệm ' + money(saving) + ' đ</span>' +
+			'<div class="mk-qt-smart__card-h"><i class="fa ' + icon + '" aria-hidden="true"></i><span>' + title + '</span></div>' +
+			'<div class="mk-qt-smart__row"><span>' + metricLabel + '</span><b>' + metricValue + '</b></div>' +
+			'<div class="mk-qt-smart__row"><span>Bậc áp dụng</span><b>' + offer.label + '</b></div>' +
+			'<div class="mk-qt-smart__row"><span>Tiết kiệm</span><b>' + money(offer.saving) + ' đ</b></div>' +
 			'</article>'
+		);
+	}
+
+	function decisionHtml(result) {
+		if (!result || !result.badge) {
+			return '<p class="mk-qt-smart__why">' + (result && result.why ? result.why : '') + '</p>';
+		}
+		var extra = result.extra || '';
+		var extraHtml = extra.replace(
+			/(Tiết kiệm thêm )([\d.\s]+)( đ)/,
+			'$1<strong>$2</strong>$3'
+		);
+		return (
+			'<div class="mk-qt-smart__badge"><i class="fa fa-star" aria-hidden="true"></i> ' + result.badge + '</div>' +
+			'<p class="mk-qt-smart__extra">' + extraHtml + '</p>' +
+			'<p class="mk-qt-smart__why">' + result.why + '</p>'
 		);
 	}
 
@@ -189,9 +225,9 @@
 		ensurePanel();
 		var sub = document.getElementById('mkQtSmartSub');
 		var cards = document.getElementById('mkQtSmartCards');
-		var reason = document.getElementById('mkQtSmartReason');
+		var decision = document.getElementById('mkQtSmartDecision');
 		var sum = document.getElementById('mkQtSmartSum');
-		if (!sub || !cards || !reason || !sum) {
+		if (!sub || !cards || !decision || !sum) {
 			return;
 		}
 		var lines = state.lines;
@@ -200,10 +236,11 @@
 		var total = after + vatAmt;
 		sub.textContent = state.subtitle;
 		cards.innerHTML = state.cardsHtml;
-		reason.textContent = state.reason;
+		decision.innerHTML = state.decisionHtml || '';
+		decision.className = 'mk-qt-smart__decision' + (state.decisionHtml ? ' is-on' : '');
 		sum.innerHTML =
 			'<div><dt>Tạm tính</dt><dd>' + money(lines.subtotal) + ' đ</dd></div>' +
-			'<div><dt>Chiết khấu</dt><dd>- ' + money(state.saving) + ' đ</dd></div>' +
+			'<div><dt>Chiết khấu</dt><dd class="is-off">- ' + money(state.saving) + ' đ</dd></div>' +
 			'<div><dt>Sau chiết khấu</dt><dd>' + money(after) + ' đ</dd></div>' +
 			'<div><dt>VAT ' + lines.vat + '%</dt><dd>' + money(vatAmt) + ' đ</dd></div>' +
 			'<div class="is-total"><dt>Tổng thanh toán</dt><dd>' + money(total) + ' đ</dd></div>';
@@ -276,21 +313,18 @@
 		var segment = segmentFromCode(code, channel) || resolved.segment;
 		var lines = readLines();
 		var both = compare(lines.subtotal, lines.qty);
-		var state = { lines: lines, saving: 0, reason: '', subtitle: '', cardsHtml: '' };
+		var state = { lines: lines, saving: 0, subtitle: '', cardsHtml: '', decisionHtml: '' };
 
 		if (!segment) {
 			state.subtitle = 'Chọn khách KL, Miutea hoặc Tuibao để áp chiết khấu.';
-			state.reason = 'Chưa có nhóm khách.';
-			state.cardsHtml = '';
+			state.decisionHtml = '<p class="mk-qt-smart__why">Chưa có nhóm khách. Chọn khách mã KL để thấy lý do chọn cách rẻ hơn.</p>';
 			paint(state);
 			return;
 		}
 
 		if (segment === 'tuibao') {
 			state.subtitle = 'Tuibao — một bảng giá, chiết khấu nhập tay trên từng dòng.';
-			state.reason = 'Không tự so sánh bậc. Đơn giá lấy giá Tuibao.';
-			state.cardsHtml = '<article class="mk-qt-smart__card is-on"><div class="mk-qt-smart__card-h"><span>Chiết khấu tay</span><em>Tuibao</em></div><strong>—</strong><span>Nhân viên nhập trên dòng hàng</span></article>';
-			state.saving = 0;
+			state.decisionHtml = '<p class="mk-qt-smart__why">Không tự so sánh bậc. Đơn giá lấy giá Tuibao. Nhân viên nhập chiết khấu trên dòng hàng.</p>';
 			paint(state);
 			return;
 		}
@@ -298,22 +332,22 @@
 		if (segment === 'miutea') {
 			var only = both.byValue;
 			state.saving = only.saving;
-			state.subtitle = 'Miutea — một bảng giá, chỉ chiết khấu theo tổng giá trị đơn.';
-			state.reason = only.saving > 0
-				? 'Áp ' + only.percent + '% theo tổng giá trị ' + money(lines.subtotal) + ' đ.'
-				: (lines.subtotal <= 0 ? 'Đơn hàng chưa có sản phẩm hợp lệ.' : 'Chưa đạt bậc chiết khấu nào.');
-			state.cardsHtml = card('Theo giá trị đơn', only.percent, only.saving, true);
+			state.subtitle = 'Miutea — chỉ chiết khấu theo tổng giá trị đơn.';
+			state.cardsHtml = card('value', lines, only, true);
+			state.decisionHtml = '<p class="mk-qt-smart__why">' + (only.saving > 0
+				? 'Áp ' + only.percent + '% theo tổng giá trị ' + money(lines.subtotal) + ' đ. Không so với chiết khấu theo số lượng.'
+				: (lines.subtotal <= 0 ? 'Đơn hàng chưa có sản phẩm hợp lệ.' : 'Chưa đạt bậc chiết khấu theo giá trị.')) + '</p>';
 			paint(state);
 			applyPercent(only.percent);
 			return;
 		}
 
 		state.saving = both.saving;
-		state.subtitle = 'KL — so chiết khấu theo số lượng và theo giá trị, lấy mức tiết kiệm hơn.';
-		state.reason = both.reason;
+		state.subtitle = 'So hai cách trên đơn này, chọn cách khách trả ít hơn.';
 		state.cardsHtml =
-			card('Theo giá trị đơn', both.byValue.percent, both.byValue.saving, both.chosen === 'value') +
-			card('Theo số lượng', both.byQuantity.percent, both.byQuantity.saving, both.chosen === 'quantity');
+			card('value', lines, both.byValue, both.chosen === 'value') +
+			card('quantity', lines, both.byQuantity, both.chosen === 'quantity');
+		state.decisionHtml = decisionHtml(both);
 		paint(state);
 		applyPercent(both.percent);
 	}
