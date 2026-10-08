@@ -148,19 +148,29 @@
 
 	function ensurePanel() {
 		var rail = document.getElementById('mkQtQuoteRail');
-		if (!rail || document.getElementById('mkQtSmartDiscount')) {
-			return;
+		var info = document.querySelector('#mkQtQuoteRail .mk-qt-rail-quote-info, .mk-qt-rail-quote-info');
+		if (!rail && info && info.parentNode) {
+			rail = info.parentNode;
 		}
-		var box = document.createElement('section');
-		box.id = 'mkQtSmartDiscount';
-		box.className = 'mk-qt-smart';
-		box.innerHTML =
-			'<h2 class="mk-qt-smart__title">Chiết khấu theo nhóm khách</h2>' +
-			'<p class="mk-qt-smart__sub" id="mkQtSmartSub">Chọn khách hàng để áp quy tắc.</p>' +
-			'<div class="mk-qt-smart__cards" id="mkQtSmartCards"></div>' +
-			'<p class="mk-qt-smart__reason" id="mkQtSmartReason"></p>' +
-			'<dl class="mk-qt-smart__sum" id="mkQtSmartSum"></dl>';
-		rail.insertBefore(box, rail.firstChild);
+		var box = document.getElementById('mkQtSmartDiscount');
+		if (!box) {
+			box = document.createElement('section');
+			box.id = 'mkQtSmartDiscount';
+			box.className = 'mk-qt-smart';
+			box.setAttribute('aria-label', 'Chiết khấu theo nhóm khách');
+			box.innerHTML =
+				'<h2 class="mk-qt-smart__title">Chiết khấu theo nhóm khách</h2>' +
+				'<p class="mk-qt-smart__sub" id="mkQtSmartSub">Chọn khách hàng để áp quy tắc.</p>' +
+				'<div class="mk-qt-smart__cards" id="mkQtSmartCards"></div>' +
+				'<p class="mk-qt-smart__reason" id="mkQtSmartReason"></p>' +
+				'<dl class="mk-qt-smart__sum" id="mkQtSmartSum"></dl>';
+		}
+		if (rail && box.parentNode !== rail) {
+			rail.insertBefore(box, rail.firstChild);
+		} else if (rail && rail.firstElementChild !== box) {
+			rail.insertBefore(box, rail.firstChild);
+		}
+		return box;
 	}
 
 	function card(title, percent, saving, on) {
@@ -345,11 +355,17 @@
 		});
 	}
 
+	window.MkQuoteSmartDiscount = {
+		place: ensurePanel,
+		refresh: refresh
+	};
+
 	$(function () {
 		if (!$('#mkQtCreateWorkspace').length && !$('#EditView').length) {
 			return;
 		}
 		ensurePanel();
+		refresh();
 		$(document).on('mkQuoteDiscountRefresh', function () {
 			resolved = { code: '', segment: '' };
 			loadCode();
@@ -360,6 +376,17 @@
 			}
 			schedule();
 		});
+		var pins = 0;
+		var pinTimer = setInterval(function () {
+			pins += 1;
+			ensurePanel();
+			if (pins === 1 || pins === 4) {
+				refresh();
+			}
+			if (pins >= 16) {
+				clearInterval(pinTimer);
+			}
+		}, 300);
 		setTimeout(loadCode, 600);
 	});
 })(jQuery);

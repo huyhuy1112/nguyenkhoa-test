@@ -2415,6 +2415,19 @@ button.mk-qt-customer-info .fa {
 	text-decoration: underline;
 }
 
+body[data-module="Quotes"][data-view="Edit"] #mkQtSmartDiscount.mk-qt-smart {
+	display: block !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	order: -1;
+	position: relative;
+	z-index: 4;
+	width: 100%;
+	flex: 0 0 auto;
+	height: auto !important;
+	overflow: visible !important;
+	margin: 0 0 16px;
+}
 .mk-qt-smart {
 	background: #f0fdf4;
 	border: 1px solid #bbf7d0;

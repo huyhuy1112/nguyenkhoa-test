@@ -3036,10 +3036,16 @@
 
 		var $info = $editForm.find('.fieldBlockContainer[data-block="LBL_QUOTE_INFORMATION"]').first();
 		if (!$info.length) {
+			if (window.MkQuoteSmartDiscount && typeof window.MkQuoteSmartDiscount.place === 'function') {
+				window.MkQuoteSmartDiscount.place();
+			}
 			return;
 		}
 		if ($info.closest('#mkQtQuoteRail').length) {
 			compactQuoteInfoRail($info);
+			if (window.MkQuoteSmartDiscount && typeof window.MkQuoteSmartDiscount.place === 'function') {
+				window.MkQuoteSmartDiscount.place();
+			}
 			return;
 		}
 		$info.addClass('mk-qt-block mk-qt-rail-quote-info');
@@ -3052,6 +3058,9 @@
 			$rail.prepend($info);
 		}
 		compactQuoteInfoRail($info);
+		if (window.MkQuoteSmartDiscount && typeof window.MkQuoteSmartDiscount.place === 'function') {
+			window.MkQuoteSmartDiscount.place();
+		}
 	}
 
 	/** Drop leftover empty rows (e.g. Bảng giá) and tighten spacing. */
