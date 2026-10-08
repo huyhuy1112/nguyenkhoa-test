@@ -1824,11 +1824,16 @@
         }
         var misaStatus = String($panel.attr("data-misa-status") || "");
         if (misaStatus === "Đã phát hành") {
+          var misaRef = String(
+            $panel.find(".mk-so-misa-chip").attr("data-misa-refno") ||
+              $panel.find(".mk-so-misa-chip__ref").text() ||
+              "",
+          ).trim();
           showOrderActionConfirm({
             title: "Đã phát hành",
-            question: "Đơn hàng này đã phát hành.",
-            hint: "Vui lòng kiểm tra hóa đơn.",
-            icon: "fa-exclamation-circle",
+            question: "Đơn hàng này đã phát hành trên MISA.",
+            hint: misaRef || "Mở lại đơn để xem số chứng từ và số hóa đơn.",
+            icon: "fa-check-circle",
           });
           return;
         }
@@ -3099,6 +3104,31 @@
     }).then(run, function () {});
   }
 
+  function paintMisaChip($panel, label, refno, state, note) {
+    if (!$panel || !$panel.length) {
+      return;
+    }
+    label = String(label || "").trim();
+    refno = String(refno || "").trim();
+    state = String(state || "pending").trim();
+    note = String(note || "").trim();
+    $panel.attr("data-misa-status", label);
+    var $chip = $panel.find(".mk-so-misa-chip");
+    if (!$chip.length || !label) {
+      return;
+    }
+    $chip
+      .removeClass("is-pending is-active is-published is-rejected")
+      .addClass(state ? "is-" + state : "")
+      .attr("data-misa-refno", refno)
+      .prop("hidden", false);
+    $chip.find(".mk-so-misa-chip__status").text(label);
+    var $ref = $chip.find(".mk-so-misa-chip__ref");
+    $ref.text(refno).prop("hidden", !refno);
+    var $note = $chip.find(".mk-so-misa-chip__note");
+    $note.text(note).prop("hidden", !note);
+  }
+
   function transferSalesOrderToMisa(recordId, $trigger) {
     recordId = String(recordId || "");
     if (!recordId) {
@@ -3163,6 +3193,13 @@
         var okMsg =
           (res && (res.message || res.msg)) ||
           "Đã gửi Đơn đặt hàng sang MISA.";
+        paintMisaChip(
+          $trigger ? $trigger.closest(".mk-so-inline-detail") : null,
+          (res && res.misa_status) || "Chờ kế toán",
+          (res && res.misa_refno) || "",
+          (res && res.misa_state) || "pending",
+          "",
+        );
         if (app.helper && app.helper.showSuccessNotification) {
           app.helper.showSuccessNotification({ message: okMsg });
         } else {

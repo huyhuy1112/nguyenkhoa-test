@@ -82,6 +82,9 @@ class Invoice_MisaSyncService {
 			'message' => 'Đã gửi Đơn đặt hàng ' . ($invoiceNo !== '' ? $invoiceNo : ('#' . $invoiceId))
 				. ' sang MISA. Kiểm tra AMIS → Bán hàng → Đơn đặt hàng. Trạng thái CRM: Chờ kế toán.',
 			'invoiceid' => $invoiceId,
+			'misa_status' => self::STATUS_WAIT,
+			'misa_refno' => '',
+			'misa_state' => 'pending',
 		);
 	}
 
@@ -279,12 +282,46 @@ class Invoice_MisaSyncService {
 	}
 
 	protected static function refnoFrom(array $item) {
-		foreach (array('refno_finance', 'inv_no', 'misa_refno') as $key) {
-			if (!empty($item[$key])) {
-				return trim((string) $item[$key]);
-			}
+		$finance = !empty($item['refno_finance']) ? trim((string) $item['refno_finance']) : '';
+		$inv = !empty($item['inv_no']) ? trim((string) $item['inv_no']) : '';
+		$parts = array();
+		if ($finance !== '') {
+			$parts[] = 'Số CT: ' . $finance;
 		}
-		return '';
+		if ($inv !== '' && $inv !== $finance) {
+			$parts[] = 'Số HĐ: ' . $inv;
+		}
+		if (!$parts && !empty($item['misa_refno'])) {
+			return trim((string) $item['misa_refno']);
+		}
+		return implode(' · ', $parts);
+	}
+
+	public static function salesViewForOrder($soId) {
+		self::refreshPending();
+		$row = self::findBySalesOrder((int) $soId);
+		if (!$row) {
+			return array('label' => '', 'refno' => '', 'updated' => '', 'state' => '', 'note' => '');
+		}
+		$state = isset($row['status']) ? (string) $row['status'] : '';
+		$label = ($state === 'published')
+			? 'Đã phát hành'
+			: self::invoiceStatusOf((int) $row['invoiceid']);
+		$message = isset($row['message']) ? trim((string) $row['message']) : '';
+		if ($label === '' && $message !== '') {
+			$label = $message;
+		}
+		$note = '';
+		if ($state === 'rejected' && $message !== '' && $message !== $label) {
+			$note = $message;
+		}
+		return array(
+			'label' => $label,
+			'refno' => isset($row['misa_refno']) ? (string) $row['misa_refno'] : '',
+			'updated' => isset($row['updated_at']) ? (string) $row['updated_at'] : '',
+			'state' => $state,
+			'note' => $note,
+		);
 	}
 
 	protected static function mark($soId, $invoiceId, $orgRefid, $status, $invoiceStatus, $message, $refno) {

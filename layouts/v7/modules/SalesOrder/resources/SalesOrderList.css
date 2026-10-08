@@ -2221,6 +2221,61 @@ body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline
 	color: #08A045;
 }
 
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-misa-chip[hidden] {
+	display: none !important;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-misa-chip {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	margin-top: 8px;
+	padding: 6px 10px;
+	border-radius: 8px;
+	background: #fff7ed;
+	border: 1px solid #fed7aa;
+	color: #9a3412;
+	font-size: 12px;
+	line-height: 1.4;
+	max-width: 520px;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-misa-chip.is-published {
+	background: #ecfdf5;
+	border-color: #6ee7a8;
+	color: #047857;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-misa-chip.is-rejected {
+	background: #fef2f2;
+	border-color: #fecaca;
+	color: #b91c1c;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-misa-chip.is-active {
+	background: #eff6ff;
+	border-color: #bfdbfe;
+	color: #1d4ed8;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-misa-chip__label {
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	opacity: 0.75;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-misa-chip__status {
+	font-weight: 700;
+}
+
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-misa-chip__ref,
+body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-misa-chip__note {
+	font-weight: 600;
+}
+
 body[data-module="SalesOrder"][data-view="List"][data-app="SALES"] .mk-so-inline-detail__branch {
 	font-size: 13px;
 	color: #475569;

@@ -81,7 +81,12 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
 		require_once 'modules/Invoice/models/MisaSyncService.php';
-		$viewer->assign('MK_MISA_STATUS', Invoice_MisaSyncService::invoiceLabelForSalesOrder($recordId));
+		$misaView = Invoice_MisaSyncService::salesViewForOrder($recordId);
+		$viewer->assign('MK_MISA_STATUS', $misaView['label']);
+		$viewer->assign('MK_MISA_REFNO', $misaView['refno']);
+		$viewer->assign('MK_MISA_UPDATED', $misaView['updated']);
+		$viewer->assign('MK_MISA_STATE', $misaView['state']);
+		$viewer->assign('MK_MISA_NOTE', $misaView['note']);
 		$viewer->assign('MODULE_MODEL', $moduleModel);
 		$viewer->assign('USER_MODEL', Users_Record_Model::getCurrentUserModel());
 		$viewer->assign('SELECTED_MENU_CATEGORY', 'SALES');

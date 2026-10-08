@@ -13,6 +13,12 @@
 				<span class="mk-so-inline-detail__customer-name">{if isset($INLINE_CUSTOMER_NAME) && $INLINE_CUSTOMER_NAME neq '' && $INLINE_CUSTOMER_NAME neq '—' && $INLINE_CUSTOMER_NAME neq '--'}{$INLINE_CUSTOMER_NAME}{else}{/if}</span>
 			</div>
 			<div class="mk-so-inline-detail__order-no">{$RECORD->getDisplayValue('salesorder_no')}</div>
+			<div class="mk-so-misa-chip{if $MK_MISA_STATE|default:'' neq ''} is-{$MK_MISA_STATE|escape}{/if}" id="mkSoMisaChip" data-misa-refno="{$MK_MISA_REFNO|default:''|escape}" title="{if $MK_MISA_UPDATED|default:'' neq ''}Cập nhật {$MK_MISA_UPDATED|escape}{/if}" {if $MK_MISA_STATUS|default:'' eq ''}hidden{/if}>
+				<span class="mk-so-misa-chip__label">MISA</span>
+				<strong class="mk-so-misa-chip__status">{$MK_MISA_STATUS|default:''|escape}</strong>
+				<span class="mk-so-misa-chip__ref"{if $MK_MISA_REFNO|default:'' eq ''} hidden{/if}>{$MK_MISA_REFNO|default:''|escape}</span>
+				<span class="mk-so-misa-chip__note"{if $MK_MISA_NOTE|default:'' eq ''} hidden{/if}>{$MK_MISA_NOTE|default:''|escape}</span>
+			</div>
 		</div>
 		{if $INLINE_BRANCH_LABEL neq ''}
 			<div class="mk-so-inline-detail__branch">{$INLINE_BRANCH_LABEL|escape}</div>
