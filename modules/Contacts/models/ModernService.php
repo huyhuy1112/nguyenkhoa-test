@@ -7,6 +7,9 @@ class Contacts_ModernService {
 
 	const MODULE = 'Contacts';
 
+	/** @var int */
+	protected static $lastListTotal = 0;
+
 	/** Lớp học — mỗi lớp đếm Lần 1, Lần 2, Học lại riêng. */
 	const CLASS_REG_CODES = array(
 		'mqbb' => 'MQBB (990k)',
@@ -14,10 +17,17 @@ class Contacts_ModernService {
 		'pcth_cb' => 'PCTH Cơ bản',
 	);
 
-	public static function listContacts($userId = null) {
+	public static function listContacts($userId = null, array $options = array()) {
 		global $current_user;
 		if ($userId === null) {
 			$userId = (int)$current_user->id;
+		}
+		$limit = isset($options['limit']) ? (int) $options['limit'] : 0;
+		if ($limit < 0) {
+			$limit = 0;
+		}
+		if ($limit > 50) {
+			$limit = 50;
 		}
 		$adb = PearDatabase::getInstance();
 		self::ensureOfflineClassCatalog($adb);
@@ -53,13 +63,34 @@ class Contacts_ModernService {
 			WHERE 1=1
 			  {$ownerSql}
 			ORDER BY ce.modifiedtime DESC, cd.contactid DESC";
+		if ($limit > 0) {
+			$sql .= ' LIMIT ' . $limit;
+		}
 		$res = $adb->pquery($sql, $ownerParams);
 		$rows = array();
 		$contactIds = array();
-		for ($i = 0; $i < $adb->num_rows($res); $i++) {
-			$row = $adb->query_result_rowdata($res, $i);
-			$contactIds[] = (int)$row['contactid'];
-			$rows[] = $row;
+		$ownerIds = array();
+		if ($res) {
+			while ($row = $adb->fetchByAssoc($res, -1, false)) {
+				if (!is_array($row)) {
+					break;
+				}
+				$contactIds[] = (int) $row['contactid'];
+				$ownerIds[] = (int) $row['smownerid'];
+				$rows[] = $row;
+			}
+		}
+		$ownerLabels = self::ownerLabelsForIds($ownerIds);
+		$total = count($rows);
+		if ($limit > 0) {
+			$countRes = $adb->pquery(
+				"SELECT COUNT(*) AS n
+				 FROM vtiger_contactdetails cd
+				 INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid AND ce.deleted = 0
+				 WHERE 1=1 {$ownerSql}",
+				$ownerParams
+			);
+			$total = ($countRes && $adb->num_rows($countRes) > 0) ? (int) $adb->query_result($countRes, 0, 'n') : $total;
 		}
 		$tagsByContact = self::getTagsForContactIds($contactIds, $userId);
 		$segmentsByContact = self::getLeadSegmentsForContactIds($contactIds);
@@ -91,10 +122,12 @@ class Contacts_ModernService {
 			if (empty($row['contact_business_model']) && isset($bizByContact[$contactId])) {
 				$row['lead_business_model'] = $bizByContact[$contactId];
 			}
+			$ownerId = (int) $row['smownerid'];
 			$item = self::composeCacheRow(
 				$row,
 				$tags,
-				isset($ltById[$contactId]) ? $ltById[$contactId] : null
+				isset($ltById[$contactId]) ? $ltById[$contactId] : null,
+				isset($ownerLabels[$ownerId]) ? $ownerLabels[$ownerId] : ''
 			);
 			if (isset($gd14ByContact[$contactId])) {
 				$item['verify_lines'] = $gd14ByContact[$contactId]['lines'];
@@ -107,7 +140,12 @@ class Contacts_ModernService {
 			}
 			$out[] = $item;
 		}
+		self::$lastListTotal = $limit > 0 ? $total : count($out);
 		return $out;
+	}
+
+	public static function lastListTotal() {
+		return (int) self::$lastListTotal;
 	}
 
 	/**
@@ -908,7 +946,10 @@ class Contacts_ModernService {
 		$adb = PearDatabase::getInstance();
 		try {
 			require_once 'modules/Leads/models/ModernService.php';
-			Leads_ModernService::installSchema($adb);
+			if (!Leads_ModernService::schemaWarm('leads_profile')) {
+				Leads_ModernService::installSchema($adb);
+				Leads_ModernService::markSchemaWarm('leads_profile');
+			}
 		} catch (Exception $e) {
 			return $map;
 		}
@@ -981,7 +1022,10 @@ class Contacts_ModernService {
 		$adb = PearDatabase::getInstance();
 		try {
 			require_once 'modules/Leads/models/ModernService.php';
-			Leads_ModernService::installSchema($adb);
+			if (!Leads_ModernService::schemaWarm('leads_profile')) {
+				Leads_ModernService::installSchema($adb);
+				Leads_ModernService::markSchemaWarm('leads_profile');
+			}
 		} catch (Exception $e) {
 			return $map;
 		}
@@ -1070,7 +1114,7 @@ class Contacts_ModernService {
 		return '';
 	}
 
-	protected static function composeCacheRow(array $row, array $tags, $lastTouchCalls = null) {
+	protected static function composeCacheRow(array $row, array $tags, $lastTouchCalls = null, $ownerLabel = null) {
 		$contactId = (int)$row['contactid'];
 		$first = decode_html((string)$row['firstname']);
 		$last = decode_html((string)$row['lastname']);
@@ -1139,7 +1183,7 @@ class Contacts_ModernService {
 			'next_action_days_remaining' => $ruleMeta['next_action_days_remaining'],
 			'next_action_days_overdue' => $ruleMeta['next_action_days_overdue'],
 			'converted_at' => $convertedAt,
-			'owner' => self::getOwnerLabel((int)$row['smownerid']),
+			'owner' => $ownerLabel !== null ? (string) $ownerLabel : self::getOwnerLabel((int)$row['smownerid']),
 			'tags' => array_values($tags),
 			'last_touch' => $lastTouchIso,
 			'lastTouchCalls' => $lastTouchCalls,
@@ -2411,6 +2455,39 @@ class Contacts_ModernService {
 				$map[$contactId] = array();
 			}
 			$map[$contactId][] = $tag;
+		}
+		return $map;
+	}
+
+	protected static function ownerLabelsForIds(array $userIds) {
+		$ids = array();
+		foreach ($userIds as $id) {
+			$id = (int) $id;
+			if ($id > 0) {
+				$ids[$id] = $id;
+			}
+		}
+		if (empty($ids)) {
+			return array();
+		}
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT id, userlabel, first_name, last_name FROM vtiger_users WHERE id IN (' . generateQuestionMarks(array_values($ids)) . ')',
+			array_values($ids)
+		);
+		$map = array();
+		if ($res) {
+			while ($row = $adb->fetchByAssoc($res, -1, false)) {
+				if (!is_array($row)) {
+					break;
+				}
+				$id = (int) $row['id'];
+				$label = trim((string) (isset($row['userlabel']) ? $row['userlabel'] : ''));
+				if ($label === '') {
+					$label = trim((string) $row['first_name'] . ' ' . (string) $row['last_name']);
+				}
+				$map[$id] = decode_html($label);
+			}
 		}
 		return $map;
 	}

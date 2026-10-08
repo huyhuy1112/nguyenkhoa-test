@@ -6,6 +6,10 @@
 
   var _contacts = [];
   var _readyPromise = null;
+  var _listTotal = 0;
+  var _preview = false;
+  var _onFull = null;
+  var _fullStarted = false;
 
   function useApi() {
     return !!root.MK_CONTACTS_API_READY;
@@ -32,42 +36,82 @@
     });
   }
 
+  function applyListPayload(res) {
+    _contacts = Array.isArray(res && res.contacts) ? res.contacts : [];
+    _listTotal = res && res.total != null ? Number(res.total) : _contacts.length;
+    _preview = !!(res && Number(res.preview) === 1);
+    if (Array.isArray(res.assignable_users)) {
+      root.MK_CONTACTS_ASSIGNABLE_USERS = res.assignable_users;
+    }
+    if (Array.isArray(res.offline_classes)) {
+      root.MK_OFFLINE_CLASSES = res.offline_classes;
+    }
+    if (Array.isArray(res.gd14_questions)) {
+      root.MK_GD14_QUESTIONS = { questions: res.gd14_questions };
+    }
+    if (Array.isArray(res.gd14_courses)) {
+      root.MK_GD14_COURSES = res.gd14_courses;
+    }
+    if (Array.isArray(res.screening_questions)) {
+      root.MK_SCREENING_QUESTIONS = { questions: res.screening_questions };
+    } else if (res && res.screening_options && Array.isArray(res.screening_options.questions)) {
+      root.MK_SCREENING_QUESTIONS = { questions: res.screening_options.questions };
+    }
+    if (res && res.is_admin != null) {
+      root.MK_CONTACTS_IS_ADMIN = Number(res.is_admin) === 1;
+    }
+  }
+
+  function loadFullList() {
+    if (_fullStarted) {
+      return;
+    }
+    _fullStarted = true;
+    apiRequest("list")
+      .then(function (res) {
+        applyListPayload(res);
+        _preview = false;
+        _listTotal = _contacts.length;
+        if (typeof _onFull === "function") {
+          _onFull();
+        }
+      })
+      .catch(function () {
+        _preview = false;
+      });
+  }
+
   function bootstrap() {
     if (!useApi()) {
       _contacts = [];
+      _listTotal = 0;
+      _preview = false;
       return Promise.resolve(_contacts);
     }
     if (_readyPromise) {
       return _readyPromise;
     }
-    _readyPromise = apiRequest("list")
+    _readyPromise = apiRequest("list", { preview: 1 })
       .then(function (res) {
-        _contacts = Array.isArray(res.contacts) ? res.contacts : [];
-        if (Array.isArray(res.assignable_users)) {
-          root.MK_CONTACTS_ASSIGNABLE_USERS = res.assignable_users;
-        }
-        if (Array.isArray(res.offline_classes)) {
-          root.MK_OFFLINE_CLASSES = res.offline_classes;
-        }
-        if (Array.isArray(res.gd14_questions)) {
-          root.MK_GD14_QUESTIONS = { questions: res.gd14_questions };
-        }
-        if (Array.isArray(res.gd14_courses)) {
-          root.MK_GD14_COURSES = res.gd14_courses;
-        }
-        if (Array.isArray(res.screening_questions)) {
-          root.MK_SCREENING_QUESTIONS = { questions: res.screening_questions };
-        } else if (res.screening_options && Array.isArray(res.screening_options.questions)) {
-          root.MK_SCREENING_QUESTIONS = { questions: res.screening_options.questions };
-        }
-        if (res && res.is_admin != null) {
-          root.MK_CONTACTS_IS_ADMIN = Number(res.is_admin) === 1;
-        }
+        applyListPayload(res);
+        loadFullList();
         return _contacts;
       })
       .catch(function () {
-        _contacts = [];
-        return _contacts;
+        _fullStarted = true;
+        return apiRequest("list")
+          .then(function (res) {
+            applyListPayload(res);
+            _preview = false;
+            _listTotal = _contacts.length;
+            return _contacts;
+          })
+          .catch(function () {
+            _contacts = [];
+            _listTotal = 0;
+            _preview = false;
+            return _contacts;
+          });
       });
     return _readyPromise;
   }
@@ -77,9 +121,28 @@
     getContacts: function () {
       return _contacts.slice();
     },
+    listTotal: function () {
+      return _listTotal > _contacts.length ? _listTotal : _contacts.length;
+    },
+    isPreview: function () {
+      return _preview;
+    },
+    onFull: function (fn) {
+      _onFull = fn;
+      if (!_preview && _fullStarted && _contacts.length) {
+        fn();
+      }
+    },
     refresh: function () {
       _readyPromise = null;
-      return bootstrap();
+      _fullStarted = true;
+      _preview = false;
+      return apiRequest("list").then(function (res) {
+        applyListPayload(res);
+        _preview = false;
+        _listTotal = _contacts.length;
+        return _contacts;
+      });
     },
     remove: function (id) {
       var oid = String(id || "");

@@ -39,24 +39,34 @@ class Contacts_ModernApi_Action extends Vtiger_Action_Controller {
 		try {
 			switch ($mode) {
 				case 'list':
-					require_once 'modules/Leads/models/SalesVerifyService.php';
-					$bank = Leads_SalesVerifyService::getGd14QuestionBank();
-					$screen = Leads_SalesVerifyService::optionsCatalog();
-					$courses = array();
-					foreach (Leads_SalesVerifyService::gd14CourseCatalog() as $code => $spec) {
-						$courses[] = array('code' => $code, 'label' => $spec['label']);
-					}
-					$response->setResult(array(
+					$preview = (int) $request->get('preview') === 1;
+					$contacts = Contacts_ModernService::listContacts(
+						$userId,
+						$preview ? array('limit' => 15) : array()
+					);
+					$result = array(
 						'success' => true,
-						'contacts' => Contacts_ModernService::listContacts($userId),
-						'assignable_users' => Contacts_ModernService::listAssignableUsers(),
-						'offline_classes' => Contacts_ModernService::listOfflineClasses(),
-						'gd14_questions' => isset($bank['questions']) ? $bank['questions'] : array(),
-						'gd14_courses' => $courses,
-						'screening_questions' => isset($screen['questions']) ? $screen['questions'] : array(),
-						'screening_options' => $screen,
+						'contacts' => $contacts,
+						'total' => $preview ? Contacts_ModernService::lastListTotal() : count($contacts),
+						'preview' => $preview ? 1 : 0,
 						'is_admin' => Users_Record_Model::getCurrentUserModel()->isAdminUser() ? 1 : 0,
-					));
+					);
+					if (!$preview) {
+						require_once 'modules/Leads/models/SalesVerifyService.php';
+						$bank = Leads_SalesVerifyService::getGd14QuestionBank();
+						$screen = Leads_SalesVerifyService::optionsCatalog();
+						$courses = array();
+						foreach (Leads_SalesVerifyService::gd14CourseCatalog() as $code => $spec) {
+							$courses[] = array('code' => $code, 'label' => $spec['label']);
+						}
+						$result['assignable_users'] = Contacts_ModernService::listAssignableUsers();
+						$result['offline_classes'] = Contacts_ModernService::listOfflineClasses();
+						$result['gd14_questions'] = isset($bank['questions']) ? $bank['questions'] : array();
+						$result['gd14_courses'] = $courses;
+						$result['screening_questions'] = isset($screen['questions']) ? $screen['questions'] : array();
+						$result['screening_options'] = $screen;
+					}
+					$response->setResult($result);
 					break;
 				case 'gd14_answers':
 					require_once 'modules/Leads/models/SalesVerifyService.php';

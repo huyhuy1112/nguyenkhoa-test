@@ -2012,6 +2012,16 @@
     }
 
     if ($("mk-acc-import-ic")) $("mk-acc-import-ic").innerHTML = ic("import");
+    if (window.MkQuickImport && typeof window.MkQuickImport.bind === "function") {
+      window.MkQuickImport.bind({
+        buttonId: "mk-acc-import-btn",
+        fileInputId: "mk-acc-import-file",
+        module: "Accounts",
+        confirmMessage:
+          "Import danh sách chủ quán từ Excel:\n" +
+          "Chọn file .xlsx, .xls hoặc .csv. Cột được map tự động.\n\nTiếp tục?",
+      });
+    }
     if ($("mk-acc-create-ic")) $("mk-acc-create-ic").innerHTML = ic("plus");
     if ($("mk-acc-search-ic")) $("mk-acc-search-ic").innerHTML = ic("search");
     if ($("mk-acc-segments-icon")) $("mk-acc-segments-icon").innerHTML = ic("filter");

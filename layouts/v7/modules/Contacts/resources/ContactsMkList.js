@@ -2164,8 +2164,14 @@
 
     var summary = $("mk-contacts-filter-summary");
     if (summary) {
+      var known = store && store.listTotal ? store.listTotal() : all.length;
       summary.textContent =
-        rows.length + " / " + all.length + " " + t("JS_MK_CONTACTS_COUNT_LABEL", "khách hàng");
+        rows.length +
+        " / " +
+        known +
+        " " +
+        t("JS_MK_CONTACTS_COUNT_LABEL", "khách hàng") +
+        (store && store.isPreview && store.isPreview() ? " · đang tải đủ danh sách" : "");
     }
     renderPagination(rows.length, totalPages);
 
@@ -2910,6 +2916,11 @@
 
   function init() {
     if (!document.querySelector(".mk-contacts-page")) return;
+    if (store && typeof store.onFull === "function") {
+      store.onFull(function () {
+        renderAll();
+      });
+    }
     if (window.MkLastTouchCall && window.MkLastTouchCall.create) {
       window.__mkContactsLastTouch = window.MkLastTouchCall.create({
         module: "Contacts",
@@ -2957,8 +2968,9 @@
           "Import Contacts từ Excel Kiot (Khách lẻ / Miutea):\n" +
           "Tự map Mã KH, Tên, SĐT, Địa chỉ, Email + tag nhóm.\n\nTiếp tục?",
         onDone: function () {
-          if (store && store.bootstrap) {
-            store.bootstrap().then(function () {
+          var reload = store && (store.refresh || store.bootstrap);
+          if (reload) {
+            (store.refresh || store.bootstrap).call(store).then(function () {
               renderAll();
             });
           } else {
