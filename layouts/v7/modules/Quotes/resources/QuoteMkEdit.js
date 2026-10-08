@@ -948,7 +948,7 @@
 	function clearQuoteCustomerFields() {
 		var $f = $form();
 		$f.find('[name="contact_id"]').val('');
-		$f.find('[name="contact_id_display"]').val('').removeData('mkCustomerModule').removeData('mkLeadId').removeData('mkServiceContractId');
+		$f.find('[name="contact_id_display"]').val('').removeData('mkCustomerModule').removeData('mkCustomerCode').removeData('mkLeadId').removeData('mkServiceContractId');
 		$f.find('[name="potential_id"]').val('');
 		$f.find('[name="potential_id_display"]').val('');
 		$f.find('[name="subject"]').val('');
@@ -958,6 +958,7 @@
 		applyQuotePriceChannel('retail', { clearSc: true });
 		closeCustomerInfoPopover();
 		syncCustomerInfoButtonVisibility();
+		$(document).trigger('mkQuoteDiscountRefresh');
 	}
 
 	function ensureServiceContractLinkFields($f, scId) {
@@ -1435,6 +1436,7 @@
 		var label = $.trim(item.label || '');
 		var $display = $f.find('[name="contact_id_display"]').first();
 		$display.val(label).data('mkCustomerModule', item.module);
+		$display.data('mkCustomerCode', item.customer_code || '');
 		if (item.lead_id) {
 			$display.data('mkLeadId', item.lead_id);
 		} else {
@@ -1519,6 +1521,7 @@
 		$f.find('.mk-qt-customer-ref').addClass('selected');
 		closeCustomerSearchUi();
 		syncCustomerInfoButtonVisibility();
+		$(document).trigger('mkQuoteDiscountRefresh');
 	}
 
 	function searchQuoteCustomers(q, scope) {

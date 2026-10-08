@@ -156,6 +156,7 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 				'servicecontract_id' => $id,
 				'account_id' => $accountId,
 				'price_channel' => 'tuibao',
+				'customer_code' => $code !== '' ? $code : 'TUIBAO',
 			);
 		}
 		return $rows;
@@ -187,7 +188,7 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 			'cd.phone', 'cd.mobile', 'cd.email', 'cd.secondaryemail',
 			'acc.accountname',
 		));
-		$sql = "SELECT cd.contactid, cd.firstname, cd.lastname, cd.phone, cd.mobile, cd.email, cd.secondaryemail,
+		$sql = "SELECT cd.contactid, cd.contact_no, cd.firstname, cd.lastname, cd.phone, cd.mobile, cd.email, cd.secondaryemail,
 				cd.accountid, acc.accountname,
 				ca.mailingstreet, ca.mailingcity
 			FROM vtiger_contactdetails cd
@@ -240,6 +241,7 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 				'contact_id' => $id,
 				'potential_id' => 0,
 				'lead_id' => 0,
+				'customer_code' => decode_html((string) $adb->query_result($res, $i, 'contact_no')),
 			);
 		}
 		return $rows;
