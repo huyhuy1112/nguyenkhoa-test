@@ -7,6 +7,7 @@
 <script type="text/javascript">document.documentElement.classList.add('mk-sc-ui-ready', 'mk-sc-list-sales');</script>
 <script type="text/javascript">window.__MK_SC_UI_BUILD__ = "20260729_sc_no_fanpage1";</script>
 <script type="text/javascript">window.MK_SC_API_READY = true;</script>
+<script type="text/javascript">window.MK_SHEET_SCOPE = 'servicecontracts';</script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkLovableListShell.css')}&mk_v=20260709_lovable_shell4" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkShell.css')}&mk_v=20260711_segments_ui2" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.css')}&mk_v=20260711_segments_ui2" />
@@ -28,7 +29,9 @@ html.mk-sc-ui-ready body[data-module="ServiceContracts"][data-view="List"] #mk-d
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkIcons.js')}&mk_v=20260711_segments_ui2"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsLovableRef.js')}&mk_v=20261006_contacts1"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsLocalStore.js')}&mk_v=20260819_fix8"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsMkList.js')}&mk_v=20261006_no_ellipsis1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsLocalStore.js')}&mk_v=20261008_scsheet1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.js')}&mk_v=20261008_scsheet1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsMkList.js')}&mk_v=20261008_scsheet1"></script>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260820_sheet1" />
 <script type="text/javascript">
 window.__mkSalesPosInlineConfig = {

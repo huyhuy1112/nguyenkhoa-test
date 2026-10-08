@@ -5047,8 +5047,49 @@
     );
   }
 
+  function sheetScope() {
+    return window.MK_SHEET_SCOPE === "servicecontracts" ? "servicecontracts" : "";
+  }
+
   function sheetMapFieldsForTarget(target) {
+    if (target === "servicecontracts") {
+      return [
+        ["full_name", "Họ tên"],
+        ["phone", "Số điện thoại"],
+        ["email", "Email"],
+        ["business_note", "Ghi chú mô hình"],
+        ["franchise_status", "Trạng thái nhượng quyền"],
+        ["data_source", "Nguồn dữ liệu"],
+        ["referrer", "Người giới thiệu"],
+        ["received_date", "Ngày tiếp nhận"],
+      ];
+    }
     if (target === "accounts") {
+      return [
+        ["accountname", "Tên công ty / KH"],
+        ["phone", "SĐT chính"],
+        ["email", "Email"],
+        ["tb_party_b_name", "Họ tên Bên B"],
+        ["tb_party_b_phone", "SĐT Bên B"],
+        ["tb_party_b_email", "Email Bên B"],
+        ["tb_party_b_cccd", "CCCD"],
+        ["tb_store_address", "Địa chỉ cửa hàng"],
+        ["tb_contract_no", "Số hợp đồng"],
+        ["bill_street", "Địa chỉ billing"],
+        ["account_no", "Mã KH"],
+      ];
+    }
+    return [
+      ["name", "Tên khách"],
+      ["phone", "Số điện thoại"],
+      ["email", "Email"],
+      ["address", "Địa chỉ"],
+      ["q1", "Câu 1 – Tình trạng"],
+      ["q2", "Câu 2 – Mô hình"],
+      ["q3", "Câu 3 – Ngân sách"],
+      ["region", "Khu vực (1 / 2 / 3)"],
+    ];
+  }
       return [
         ["accountname", "Tên công ty / KH"],
         ["phone", "SĐT chính"],
@@ -5087,7 +5128,9 @@
       .join("");
     if (hint) {
       hint.innerHTML =
-        target === "accounts"
+        target === "servicecontracts"
+          ? "Map cột sheet → <strong>Khách hàng nhượng quyền tiềm năng</strong>. Trùng SĐT sẽ bỏ qua, không tạo hồ sơ mới."
+          : target === "accounts"
           ? "Map cột Tuibao → <strong>Accounts</strong>. Trùng SĐT sẽ bỏ qua (không tạo Account trùng)."
           : "Map cột lõi + 3 câu Form → <strong>Leads</strong>. CRM tự tính kết quả sơ lược. Trùng SĐT vẫn tạo lead mới.";
     }
@@ -5156,11 +5199,19 @@
       '<div class="mk-leads-sheet-modal__backdrop" data-sheet-close="1"></div>' +
       '<div class="mk-leads-sheet-modal__panel mk-leads-sheet-modal__panel--wide" role="dialog" aria-modal="true" aria-labelledby="mk-sheet-title">' +
       '  <header class="mk-leads-sheet-modal__head">' +
-      '    <h2 id="mk-sheet-title">Google Sheet → Lead / Accounts</h2>' +
+      '    <h2 id="mk-sheet-title">' +
+      (sheetScope() === "servicecontracts"
+        ? "Google Sheet → Khách hàng nhượng quyền tiềm năng"
+        : "Google Sheet → Lead") +
+      "</h2>" +
       '    <button type="button" class="mk-leads-sheet-modal__x" data-sheet-close="1" aria-label="Đóng">×</button>' +
       "  </header>" +
       '  <div class="mk-leads-sheet-modal__body">' +
-      '    <p class="mk-leads-sheet-modal__hint">Landing/ads → <strong>Leads</strong>. Sheet Tuibao nhượng quyền → <strong>Accounts</strong>. Share sheet với email service account (Viewer). Poll mỗi 1 phút lần lượt các nguồn đang bật.</p>' +
+      '    <p class="mk-leads-sheet-modal__hint">' +
+      (sheetScope() === "servicecontracts"
+        ? "Sheet này chỉ đổ vào <strong>Khách hàng nhượng quyền tiềm năng</strong>. Share sheet với email service account (Viewer). Poll mỗi 1 phút."
+        : "Landing/ads → <strong>Leads</strong>. Share sheet với email service account (Viewer). Poll mỗi 1 phút lần lượt các nguồn đang bật.") +
+      "</p>" +
       '    <label class="mk-leads-sheet-field"><span>Service Account JSON <em id="mk-sheet-sa-status"></em></span>' +
       '      <textarea id="mk-sheet-sa" rows="4" placeholder="Dán JSON lần đầu (dùng chung mọi nguồn). Để trống nếu đã cấu hình."></textarea>' +
       "    </label>" +
@@ -5181,8 +5232,9 @@
       "      </label>" +
       '      <label class="mk-leads-sheet-field"><span>Đích import</span>' +
       '        <select id="mk-sheet-edit-target" class="mk-leads-sheet-select">' +
-      '          <option value="leads">Leads (landing / ads)</option>' +
-      '          <option value="accounts">Accounts — KH NQ (Tuibao)</option>' +
+      (sheetScope() === "servicecontracts"
+        ? '          <option value="servicecontracts">Khách hàng nhượng quyền tiềm năng</option>'
+        : '          <option value="leads">Leads (landing / ads)</option>') +
       "        </select>" +
       "      </label>" +
       '      <label class="mk-leads-sheet-field"><span>Link hoặc Spreadsheet ID</span>' +
@@ -5262,6 +5314,11 @@
     var box = document.getElementById("mk-sheet-sources");
     if (!box) return;
     var sources = (settings && settings.sources) || [];
+    if (sheetScope() === "servicecontracts") {
+      sources = sources.filter(function (src) {
+        return src && src.target_module === "servicecontracts";
+      });
+    }
     if (!sources.length) {
       box.innerHTML =
         '<p class="mk-leads-sheet-sources__empty">Chưa có nguồn. Bấm “+ Thêm nguồn” để gắn sheet đầu tiên.</p>';
@@ -5269,8 +5326,14 @@
     }
     box.innerHTML = sources
       .map(function (src) {
+        var dest =
+          src.target_module === "servicecontracts"
+            ? "→ KH nhượng quyền tiềm năng"
+            : src.target_module === "accounts"
+            ? "→ Chủ quán"
+            : "→ Leads";
         var meta = [
-          src.target_module === "accounts" ? "→ KH NQ tiềm năng" : "→ Leads",
+          dest,
           src.enabled ? "Đang bật" : "Tắt",
           src.sheet_range || "Sheet1",
           src.last_poll_at ? "Poll: " + src.last_poll_at : "",
@@ -5331,10 +5394,25 @@
     document.getElementById("mk-sheet-edit-id").value = source && source.id ? String(source.id) : "";
     document.getElementById("mk-sheet-edit-name").value = (source && source.name) || "";
     document.getElementById("mk-sheet-edit-tag").value = (source && source.source_tag) || "";
-    var target =
-      source && source.target_module === "accounts" ? "accounts" : "leads";
+    var target = "leads";
+    if (sheetScope() === "servicecontracts") {
+      target = "servicecontracts";
+    } else if (source && source.target_module === "accounts") {
+      target = "accounts";
+    } else if (source && source.target_module === "servicecontracts") {
+      target = "servicecontracts";
+    }
     var targetEl = document.getElementById("mk-sheet-edit-target");
-    if (targetEl) targetEl.value = target;
+    if (targetEl) {
+      if (sheetScope() === "servicecontracts") {
+        targetEl.innerHTML =
+          '<option value="servicecontracts">Khách hàng nhượng quyền tiềm năng</option>';
+        targetEl.value = "servicecontracts";
+        target = "servicecontracts";
+      } else {
+        targetEl.value = target === "leads" ? "leads" : target;
+      }
+    }
     document.getElementById("mk-sheet-spreadsheet").value = (source && source.spreadsheet_id) || "";
     document.getElementById("mk-sheet-range").value = (source && source.sheet_range) || "Sheet1";
     document.getElementById("mk-sheet-source-enabled").checked =
@@ -5348,7 +5426,9 @@
     if (targetEl && !targetEl._mkBound) {
       targetEl._mkBound = true;
       targetEl.addEventListener("change", function () {
-        rebuildSheetMapGui(targetEl.value === "accounts" ? "accounts" : "leads", {});
+        var next = targetEl.value || "leads";
+        if (next !== "accounts" && next !== "servicecontracts") next = "leads";
+        rebuildSheetMapGui(next, {});
       });
     }
     ed.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -5365,7 +5445,12 @@
     var name = (document.getElementById("mk-sheet-edit-name").value || "").trim();
     var tag = (document.getElementById("mk-sheet-edit-tag").value || "").trim();
     var targetEl = document.getElementById("mk-sheet-edit-target");
-    var target = targetEl && targetEl.value === "accounts" ? "accounts" : "leads";
+    var target = "leads";
+    if (sheetScope() === "servicecontracts") {
+      target = "servicecontracts";
+    } else if (targetEl) {
+      target = targetEl.value === "accounts" || targetEl.value === "servicecontracts" ? targetEl.value : "leads";
+    }
     var spreadsheet = parseSpreadsheetId(document.getElementById("mk-sheet-spreadsheet").value);
     var range = (document.getElementById("mk-sheet-range").value || "").trim() || "Sheet1";
     var enabled = document.getElementById("mk-sheet-source-enabled").checked ? 1 : 0;
@@ -5374,7 +5459,11 @@
     }
     if (!name) {
       name =
-        (target === "accounts" ? "Tuibao " : "Nguồn ") + spreadsheet.slice(0, 8);
+        (target === "servicecontracts"
+          ? "NQ tiềm năng "
+          : target === "accounts"
+          ? "Chủ quán "
+          : "Nguồn ") + spreadsheet.slice(0, 8);
     }
     var map = buildSheetMapFromGui();
     syncSheetMapJsonFromGui();
@@ -5690,9 +5779,9 @@
     window.MkOpenLeadsSheetSettings = openSheetSettings;
 
     var hasList = !!$("mk-leads-tbody");
-    var sheetBtn = $("mk-leads-sheet-btn") || $("mk-acc-sheet-btn");
+    var sheetBtn = $("mk-leads-sheet-btn") || $("mk-sc-sheet-btn");
 
-    // Accounts (Tuibao tiềm năng) loads this file only for Google Sheet modal.
+    // KH nhượng quyền tiềm năng loads this file only to open Google Sheet.
     if (!hasList) {
       if (sheetBtn && store) {
         sheetBtn.addEventListener("click", function (e) {

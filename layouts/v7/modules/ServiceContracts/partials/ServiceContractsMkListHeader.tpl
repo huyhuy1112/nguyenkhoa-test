@@ -11,6 +11,9 @@
 				<span class="mk-leads-btn__ic" id="mk-sc-import-ic" aria-hidden="true"></span>
 				<span class="mk-leads-btn__txt">{vtranslate('LBL_IMPORT', 'Vtiger')}</span>
 			</a>
+			<button type="button" class="mk-leads-btn mk-leads-btn--outline" id="mk-sc-sheet-btn" title="Kết nối Google Sheet riêng cho khách nhượng quyền tiềm năng">
+				<span class="mk-leads-btn__txt">Google Sheet</span>
+			</button>
 			<button type="button" class="mk-leads-btn mk-leads-btn--primary" onclick="window.location.href='index.php?module=ServiceContracts&amp;view=Edit&amp;app=SALES'">
 				<span class="mk-leads-btn__ic" id="mk-sc-create-ic" aria-hidden="true"></span>
 				<span class="mk-leads-btn__txt">{vtranslate('LBL_ADD_RECORD', $MODULE)}</span>

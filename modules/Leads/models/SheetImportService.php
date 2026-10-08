@@ -546,8 +546,13 @@ class Leads_SheetImportService {
 			);
 		} else {
 			if ($name === '') {
-				$name = ($targetModule === 'accounts' ? 'Tuibao ' : 'Nguồn ')
-					. (count(self::listSources()) + 1);
+				if ($targetModule === 'servicecontracts') {
+					$name = 'NQ tiềm năng ' . (count(self::listSources()) + 1);
+				} elseif ($targetModule === 'accounts') {
+					$name = 'Chủ quán ' . (count(self::listSources()) + 1);
+				} else {
+					$name = 'Nguồn ' . (count(self::listSources()) + 1);
+				}
 			}
 			if ($spreadsheetId === '') {
 				throw new Exception('Thiếu Spreadsheet ID / link cho nguồn mới.');
@@ -731,6 +736,10 @@ class Leads_SheetImportService {
 
 	public static function defaultColumnMapForTarget($targetModule) {
 		$targetModule = self::normalizeTargetModule($targetModule);
+		if ($targetModule === 'servicecontracts') {
+			require_once 'modules/ServiceContracts/helpers/SheetIngestService.php';
+			return ServiceContracts_SheetIngestService_Helper::defaultColumnMap();
+		}
 		if ($targetModule === 'accounts') {
 			require_once 'modules/Accounts/helpers/SheetIngestService.php';
 			return Accounts_SheetIngestService_Helper::defaultColumnMap();
@@ -740,6 +749,9 @@ class Leads_SheetImportService {
 
 	public static function normalizeTargetModule($target) {
 		$t = strtolower(trim((string) $target));
+		if ($t === 'servicecontracts' || $t === 'servicecontract' || $t === 'nq' || $t === 'sc') {
+			return 'servicecontracts';
+		}
 		if ($t === 'accounts' || $t === 'account' || $t === 'tuibao' || $t === 'franchise') {
 			return 'accounts';
 		}
@@ -1167,6 +1179,16 @@ class Leads_SheetImportService {
 	 */
 	protected static function pollSource(array $source, $serviceAccountJsonOrPath) {
 		$target = self::normalizeTargetModule(isset($source['target_module']) ? $source['target_module'] : 'leads');
+		if ($target === 'servicecontracts') {
+			require_once 'modules/ServiceContracts/helpers/SheetIngestService.php';
+			return ServiceContracts_SheetIngestService_Helper::pollSource(
+				$source,
+				$serviceAccountJsonOrPath,
+				array(__CLASS__, 'fetchSheetValues'),
+				array(__CLASS__, 'makeRowKey'),
+				array(__CLASS__, 'updateSourcePollMetaPublic')
+			);
+		}
 		if ($target === 'accounts') {
 			require_once 'modules/Accounts/helpers/SheetIngestService.php';
 			return Accounts_SheetIngestService_Helper::pollSource(
