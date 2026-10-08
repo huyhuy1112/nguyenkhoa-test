@@ -22,7 +22,7 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'save_purchase', 'complete_purchase', 'save_issue', 'receipt_action', 'issue_action', 'save_return', 'return_action', 'set_settings', 'qc_upload_image', 'qc_delete_image', 'qc_update', 'import_stock_excel'), true)) {
+		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'save_purchase', 'complete_purchase', 'transfer_purchase_misa', 'save_issue', 'receipt_action', 'issue_action', 'save_return', 'return_action', 'set_settings', 'qc_upload_image', 'qc_delete_image', 'qc_update', 'import_stock_excel'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -159,6 +159,33 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 						'success' => true,
 						'receipts' => Warehouse_WhMgmtService::listPurchaseReceipts($q, $status),
 					));
+					break;
+
+				case 'transfer_purchase_misa':
+					$code = trim((string) $request->get('code'));
+					$whId = trim((string) $request->get('whId'));
+					$payload = $this->decodePayload($request);
+					if ($code === '' && isset($payload['code'])) {
+						$code = trim((string) $payload['code']);
+					}
+					if ($whId === '' && isset($payload['warehouse'])) {
+						$whId = trim((string) $payload['warehouse']);
+					}
+					$receipt = Warehouse_WhMgmtService::getPurchaseReceipt($code, $whId);
+					require_once 'modules/Vtiger/helpers/NkApiConnection.php';
+					require_once 'modules/Invoice/models/MisaSyncService.php';
+					$api = NkApiConnection::adapter('misa');
+					if ($api && method_exists($api, 'prepareConnection')) {
+						$api->prepareConnection();
+					}
+					if (!$api || !method_exists($api, 'isEnabled') || !$api->isEnabled()) {
+						throw new Exception('Kết nối MISA đang tắt. Bật trong Cài đặt → Tích hợp hệ thống.');
+					}
+					$result = Invoice_MisaSyncService::pushGoodsReceipt($api, $receipt);
+					if (!empty($result['error'])) {
+						throw new Exception((string) $result['error']);
+					}
+					$response->setResult($result);
 					break;
 
 				case 'get_purchase':

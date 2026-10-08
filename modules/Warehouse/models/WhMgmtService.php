@@ -1078,6 +1078,7 @@ class Warehouse_WhMgmtService {
 			$name = self::decodeDisplayTextDeep((string) $row['product_name']);
 			$productId = (int) (isset($row['productid']) ? $row['productid'] : 0);
 			$line = array(
+				'productId' => $productId,
 				'sku' => $sku,
 				'name' => $name,
 				'lot' => (string) (isset($row['serial_number']) ? $row['serial_number'] : ''),
@@ -3619,18 +3620,33 @@ class Warehouse_WhMgmtService {
 		$created = isset($row['createdtime']) ? (string) $row['createdtime'] : '';
 		$vendorId = isset($meta['vendorId']) ? (int) $meta['vendorId'] : 0;
 		$vendorCode = '';
+		$vendorAddress = '';
+		$vendorTax = '';
 		if ($vendorId > 0) {
 			$v = self::findVendorById($db, $vendorId);
 			if ($v) {
 				$vendorCode = (string) $v['code'];
+				$vendorAddress = (string) $v['address'];
+				$vendorTax = (string) $v['tax'];
 			}
 		}
+		$misa = array('label' => '', 'refno' => '', 'state' => '', 'note' => '');
+		try {
+			require_once 'modules/Invoice/models/MisaSyncService.php';
+			$misa = Invoice_MisaSyncService::purchaseView((int) $row['receiptid']);
+		} catch (Exception $e) {
+			$misa = array('label' => '', 'refno' => '', 'state' => '', 'note' => '');
+		}
 		return array(
+			'receiptId' => (int) $row['receiptid'],
 			'id' => (string) $row['code'],
 			'code' => (string) $row['code'],
 			'supplier' => self::decodeDisplayTextDeep((string) (isset($row['source_name']) ? $row['source_name'] : '')),
 			'vendorId' => $vendorId,
 			'vendorCode' => $vendorCode,
+			'vendorAddress' => $vendorAddress,
+			'vendorTax' => $vendorTax,
+			'misa' => $misa,
 			'poRef' => (string) (isset($meta['poRef']) ? $meta['poRef'] : ''),
 			'warehouse' => (string) (isset($row['warehouse_id']) ? $row['warehouse_id'] : ''),
 			'status' => (string) (isset($row['status']) ? $row['status'] : ''),
@@ -3786,7 +3802,7 @@ class Warehouse_WhMgmtService {
 
 	protected static function findVendorById(PearDatabase $db, $vendorId) {
 		$rs = $db->pquery(
-			'SELECT v.vendorid, v.vendor_no, v.vendorname, v.phone, v.email, v.street, v.city, v.description
+			'SELECT v.vendorid, v.vendor_no, v.vendorname, v.phone, v.email, v.street, v.city, v.state, v.description
 			 FROM vtiger_vendor v
 			 INNER JOIN vtiger_crmentity ce ON ce.crmid = v.vendorid AND ce.deleted = 0
 			 WHERE v.vendorid = ?
@@ -3804,6 +3820,12 @@ class Warehouse_WhMgmtService {
 			'phone' => (string) (isset($row['phone']) ? $row['phone'] : ''),
 			'email' => (string) (isset($row['email']) ? $row['email'] : ''),
 			'tax' => self::extractVendorTaxFromDescription(isset($row['description']) ? $row['description'] : ''),
+			'address' => self::decodeDisplayTextDeep(trim(
+				(isset($row['street']) ? (string) $row['street'] : '') . ', ' .
+				(isset($row['city']) ? (string) $row['city'] : '') . ', ' .
+				(isset($row['state']) ? (string) $row['state'] : ''),
+				' ,'
+			)),
 		);
 	}
 

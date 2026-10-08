@@ -124,6 +124,45 @@
 		}
 		if (ids.actions) {
 			ids.actions.innerHTML = '';
+			var misa = r.misa || {};
+			var chip = document.createElement('div');
+			chip.className = 'mk-purchase-misa' + (misa.state ? (' is-' + misa.state) : '');
+			if (!misa.label) chip.hidden = true;
+			var chipText = 'MISA: ' + (misa.label || '');
+			if (misa.refno) chipText += ' · ' + misa.refno;
+			if (misa.note) chipText += ' · ' + misa.note;
+			chip.textContent = chipText;
+			ids.actions.appendChild(chip);
+			var misaBtn = document.createElement('button');
+			misaBtn.type = 'button';
+			misaBtn.className = 'mk-kiot-btn mk-kiot-btn--ghost';
+			misaBtn.textContent = 'Chuyển qua MISA';
+			misaBtn.addEventListener('click', function () {
+				if (misa.state === 'published' || misa.refno) {
+					window.alert(misa.refno ? ('Phiếu đã vào Đơn mua hàng. ' + misa.refno) : 'Phiếu này đã vào Đơn mua hàng trên MISA.');
+					return;
+				}
+				if (!window.confirm('Gửi phiếu này sang MISA thành Đơn mua hàng?')) return;
+				misaBtn.disabled = true;
+				apiPost({ mode: 'transfer_purchase_misa', code: r.code, whId: r.warehouse || '' }).then(function (res) {
+					misaBtn.disabled = false;
+					misa = {
+						label: (res && res.misa_status) || 'Chờ kế toán',
+						refno: (res && res.misa_refno) || '',
+						state: (res && res.misa_state) || 'pending',
+						note: ''
+					};
+					r.misa = misa;
+					chip.hidden = false;
+					chip.className = 'mk-purchase-misa is-' + misa.state;
+					chip.textContent = 'MISA: ' + misa.label;
+					showToast(ids.msg, (res && res.message) || 'Đã gửi Đơn mua hàng sang MISA.', false);
+				}).catch(function (err) {
+					misaBtn.disabled = false;
+					showToast(ids.msg, String(err), true);
+				});
+			});
+			ids.actions.appendChild(misaBtn);
 			if (String(r.status) === 'draft') {
 				var btn = document.createElement('button');
 				btn.type = 'button';

@@ -31,6 +31,20 @@ class Invoice_MisaSyncService {
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8',
 			array()
 		);
+		$adb->pquery(
+			'CREATE TABLE IF NOT EXISTS mk_misa_purchase (
+				receiptid INT NOT NULL,
+				code VARCHAR(64) NULL,
+				org_refid VARCHAR(64) NOT NULL,
+				status VARCHAR(32) NOT NULL,
+				message TEXT NULL,
+				misa_refno VARCHAR(128) NULL,
+				updated_at DATETIME NULL,
+				PRIMARY KEY (receiptid),
+				KEY mk_misa_po_org (org_refid)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8',
+			array()
+		);
 	}
 
 	/**
@@ -107,7 +121,13 @@ class Invoice_MisaSyncService {
 				"SELECT salesorderid FROM mk_misa_voucher WHERE status IN ('pending','active') LIMIT 1",
 				array()
 			);
-			if (!$res || $adb->num_rows($res) < 1) {
+			$purchasePending = $adb->pquery(
+				"SELECT receiptid FROM mk_misa_purchase WHERE status IN ('pending','active') LIMIT 1",
+				array()
+			);
+			$hasSales = $res && $adb->num_rows($res) > 0;
+			$hasPurchase = $purchasePending && $adb->num_rows($purchasePending) > 0;
+			if (!$hasSales && !$hasPurchase) {
 				return;
 			}
 			$row = NkApiConnection::getRow('misa');
@@ -204,6 +224,7 @@ class Invoice_MisaSyncService {
 		}
 		$link = self::findByOrgRefid($orgRefid);
 		if (!$link) {
+			self::applyPurchaseResult($orgRefid, $item);
 			return;
 		}
 		if (isset($item['sa_invoice']) && is_array($item['sa_invoice'])) {
@@ -321,6 +342,254 @@ class Invoice_MisaSyncService {
 			'updated' => isset($row['updated_at']) ? (string) $row['updated_at'] : '',
 			'state' => $state,
 			'note' => $note,
+		);
+	}
+
+	public static function purchaseView($receiptId) {
+		self::refreshPending();
+		$row = self::findPurchaseByReceipt((int) $receiptId);
+		if (!$row) {
+			return array('label' => '', 'refno' => '', 'state' => '', 'note' => '');
+		}
+		$state = isset($row['status']) ? (string) $row['status'] : '';
+		$label = isset($row['message']) ? trim((string) $row['message']) : '';
+		if ($state === 'published' && $label === '') {
+			$label = 'Đã lập chứng từ';
+		}
+		if ($label === '') {
+			$label = 'Chờ kế toán';
+		}
+		$note = '';
+		if ($state === 'rejected' && $label !== '' && $label !== 'Kế toán từ chối') {
+			$note = $label;
+			$label = 'Kế toán từ chối';
+		}
+		return array(
+			'label' => $label,
+			'refno' => isset($row['misa_refno']) ? (string) $row['misa_refno'] : '',
+			'state' => $state,
+			'note' => $note,
+		);
+	}
+
+	/**
+	 * Phiếu nhập hàng → Đơn mua hàng AMIS (voucher_type 21, reftype 301).
+	 * @param NkApi_Misa_Adapter $api
+	 * @param array $receipt
+	 * @return array
+	 */
+	public static function pushGoodsReceipt($api, array $receipt) {
+		$receiptId = isset($receipt['receiptId']) ? (int) $receipt['receiptId'] : 0;
+		$code = isset($receipt['code']) ? trim((string) $receipt['code']) : '';
+		if ($receiptId <= 0 || $code === '') {
+			return array('error' => 'Không có phiếu nhập.');
+		}
+		$lines = isset($receipt['lines']) && is_array($receipt['lines']) ? $receipt['lines'] : array();
+		if (!$lines) {
+			return array('error' => 'Phiếu ' . $code . ' chưa có dòng hàng để gửi Đơn mua hàng.');
+		}
+		$vendorName = isset($receipt['supplier']) ? trim((string) $receipt['supplier']) : '';
+		if ($vendorName === '') {
+			return array('error' => 'Phiếu ' . $code . ' chưa có nhà cung cấp.');
+		}
+		$existing = self::findPurchaseByReceipt($receiptId);
+		$existingRef = $existing && isset($existing['misa_refno']) ? trim((string) $existing['misa_refno']) : '';
+		if ($existing && ($existing['status'] === 'published' || $existingRef !== '')) {
+			return array('error' => 'Phiếu này đã vào Đơn mua hàng trên MISA' . ($existingRef !== '' ? (' (' . $existingRef . ')') : '') . '.');
+		}
+
+		$vendorId = isset($receipt['vendorId']) ? (int) $receipt['vendorId'] : 0;
+		$vendorCode = isset($receipt['vendorCode']) ? trim((string) $receipt['vendorCode']) : '';
+		if ($vendorCode === '') {
+			$vendorCode = $vendorId > 0 ? ('NCC' . $vendorId) : ('NCC' . $receiptId);
+		}
+		$vendorGuid = self::guidFrom('vendor-' . ($vendorId > 0 ? $vendorId : $code));
+		$orgRefid = $existing ? $existing['org_refid'] : self::guidFrom('gr-' . $receiptId);
+		$today = date('Y-m-d');
+		$now = date('Y-m-d\TH:i:s.000P');
+		$address = isset($receipt['vendorAddress']) ? trim((string) $receipt['vendorAddress']) : '';
+		$tax = isset($receipt['vendorTax']) ? trim((string) $receipt['vendorTax']) : '';
+		$sub = 0;
+		$details = array();
+		$dictionary = array();
+		$dictionary[] = array(
+			'dictionary_type' => 1,
+			'account_object_id' => $vendorGuid,
+			'account_object_type' => 0,
+			'is_customer' => false,
+			'is_vendor' => true,
+			'is_employee' => false,
+			'inactive' => false,
+			'account_object_code' => $vendorCode,
+			'account_object_name' => $vendorName,
+			'address' => $address,
+			'company_tax_code' => $tax,
+			'country' => 'Việt Nam',
+		);
+		$seq = 0;
+		foreach ($lines as $line) {
+			$seq++;
+			$qty = isset($line['qty']) ? (float) $line['qty'] : 0;
+			$price = isset($line['unit_price']) ? (float) $line['unit_price'] : 0;
+			$amount = round($qty * $price, 2);
+			$sub += $amount;
+			$productId = isset($line['productId']) ? (int) $line['productId'] : 0;
+			$itemCode = isset($line['sku']) ? trim((string) $line['sku']) : '';
+			$itemName = isset($line['name']) ? trim((string) $line['name']) : '';
+			if ($itemCode === '' || $itemCode === '—') {
+				$itemCode = $productId > 0 ? ('SP' . $productId) : ('SP' . $seq);
+			}
+			if ($itemName === '' || $itemName === '—') {
+				$itemName = $itemCode;
+			}
+			$unit = isset($line['unit']) ? trim((string) $line['unit']) : '';
+			if ($unit === '') {
+				$unit = 'Cái';
+			}
+			$itemId = self::guidFrom('po-item-' . ($productId > 0 ? $productId : $itemCode));
+			$details[] = array(
+				'sort_order' => $seq,
+				'quantity' => $qty,
+				'main_quantity' => $qty,
+				'unit_price' => $price,
+				'main_unit_price' => $price,
+				'amount' => $amount,
+				'amount_oc' => $amount,
+				'discount_rate' => 0,
+				'discount_amount' => 0,
+				'discount_amount_oc' => 0,
+				'main_convert_rate' => 1,
+				'vat_rate' => 0,
+				'vat_amount' => 0,
+				'vat_amount_oc' => 0,
+				'description' => $itemName,
+				'inventory_item_id' => $itemId,
+				'inventory_item_code' => $itemCode,
+				'inventory_item_name' => $itemName,
+				'inventory_item_type' => 0,
+				'unit_name' => $unit,
+				'main_unit_name' => $unit,
+			);
+			$dictionary[] = array(
+				'dictionary_type' => 3,
+				'inventory_item_id' => $itemId,
+				'inventory_item_code' => $itemCode,
+				'inventory_item_name' => $itemName,
+				'inventory_item_type' => 0,
+				'unit_name' => $unit,
+				'inactive' => false,
+			);
+		}
+		$discount = isset($receipt['discount']) ? round((float) $receipt['discount'], 2) : 0;
+		$grand = round(max(0, $sub - $discount), 2);
+		$voucher = array(
+			'voucher_type' => 21,
+			'org_refid' => $orgRefid,
+			'org_refno' => $code,
+			'org_reftype' => 1510,
+			'org_reftype_name' => 'Đơn mua hàng',
+			'reftype' => 301,
+			'refdate' => $today,
+			'currency_id' => 'VND',
+			'exchange_rate' => 1,
+			'account_object_id' => $vendorGuid,
+			'account_object_code' => $vendorCode,
+			'account_object_name' => $vendorName,
+			'account_object_address' => $address,
+			'account_object_tax_code' => $tax,
+			'journal_memo' => 'Đơn mua hàng từ CRM ' . $code,
+			'discount_type' => $discount > 0 ? 1 : 0,
+			'discount_rate_voucher' => 0,
+			'total_discount_amount_oc' => $discount,
+			'total_discount_amount' => $discount,
+			'total_amount_oc' => $grand,
+			'total_amount' => $grand,
+			'status' => 1,
+			'created_date' => $now,
+			'modified_date' => $now,
+			'detail' => $details,
+		);
+		$api->saveVoucher($voucher, $dictionary);
+		self::savePurchaseLink($receiptId, $code, $orgRefid, 'pending', 'Chờ kế toán', '');
+		return array(
+			'success' => true,
+			'message' => 'Đã gửi phiếu ' . $code . ' sang MISA thành Đơn mua hàng. Kế toán lập chứng từ trên AMIS khi cần. Trạng thái CRM: Chờ kế toán.',
+			'misa_status' => 'Chờ kế toán',
+			'misa_refno' => '',
+			'misa_state' => 'pending',
+		);
+	}
+
+	protected static function applyPurchaseResult($orgRefid, array $item) {
+		if (isset($item['sa_invoice']) && is_array($item['sa_invoice'])) {
+			foreach (array('publish_status', 'inv_no', 'is_invoice_deleted', 'is_invoice_cancel', 'refno_finance') as $key) {
+				if ((!isset($item[$key]) || $item[$key] === '' || $item[$key] === null) && isset($item['sa_invoice'][$key])) {
+					$item[$key] = $item['sa_invoice'][$key];
+				}
+			}
+		}
+		$link = self::findPurchaseByOrgRefid($orgRefid);
+		if (!$link) {
+			return;
+		}
+		$errorCode = isset($item['error_code']) ? (string) $item['error_code'] : (isset($item['ErrorCode']) ? (string) $item['ErrorCode'] : '');
+		$errorMessage = isset($item['error_message']) ? (string) $item['error_message'] : (isset($item['ErrorMessage']) ? (string) $item['ErrorMessage'] : '');
+		$success = array_key_exists('success', $item) ? !empty($item['success']) : (array_key_exists('Success', $item) ? !empty($item['Success']) : true);
+		if ($errorCode === '99' || stripos($errorMessage, 'callback') !== false) {
+			return;
+		}
+		if (!self::voucherWasCreated($item, $errorCode)) {
+			if (!$success && $errorMessage !== '') {
+				self::savePurchaseLink((int) $link['receiptid'], (string) $link['code'], $orgRefid, 'rejected', $errorMessage, '');
+			}
+			return;
+		}
+		$label = self::misaStatusLabel($item);
+		if ($label === 'Hóa đơn mới') {
+			$label = 'Đã vào Đơn mua hàng';
+		}
+		$bucket = self::statusBucket($label);
+		if ($bucket === 'active' && self::refnoFrom($item) !== '') {
+			$label = 'Đã vào Đơn mua hàng';
+		}
+		self::savePurchaseLink((int) $link['receiptid'], (string) $link['code'], $orgRefid, $bucket, $label, self::refnoFrom($item));
+	}
+
+	protected static function findPurchaseByReceipt($receiptId) {
+		$adb = PearDatabase::getInstance();
+		self::install($adb);
+		$res = $adb->pquery('SELECT * FROM mk_misa_purchase WHERE receiptid = ?', array((int) $receiptId));
+		if (!$res || $adb->num_rows($res) < 1) {
+			return null;
+		}
+		return $adb->query_result_rowdata($res, 0);
+	}
+
+	protected static function findPurchaseByOrgRefid($orgRefid) {
+		$adb = PearDatabase::getInstance();
+		self::install($adb);
+		$res = $adb->pquery('SELECT * FROM mk_misa_purchase WHERE org_refid = ? LIMIT 1', array($orgRefid));
+		if (!$res || $adb->num_rows($res) < 1) {
+			return null;
+		}
+		return $adb->query_result_rowdata($res, 0);
+	}
+
+	protected static function savePurchaseLink($receiptId, $code, $orgRefid, $status, $message, $refno) {
+		$adb = PearDatabase::getInstance();
+		self::install($adb);
+		$now = date('Y-m-d H:i:s');
+		$found = $adb->pquery('SELECT receiptid FROM mk_misa_purchase WHERE receiptid = ?', array((int) $receiptId));
+		if ($found && $adb->num_rows($found) > 0) {
+			$adb->pquery(
+				'UPDATE mk_misa_purchase SET code = ?, org_refid = ?, status = ?, message = ?, misa_refno = ?, updated_at = ? WHERE receiptid = ?',
+				array($code, $orgRefid, $status, $message, $refno, $now, (int) $receiptId)
+			);
+			return;
+		}
+		$adb->pquery(
+			'INSERT INTO mk_misa_purchase (receiptid, code, org_refid, status, message, misa_refno, updated_at) VALUES (?,?,?,?,?,?,?)',
+			array((int) $receiptId, $code, $orgRefid, $status, $message, $refno, $now)
 		);
 	}
 

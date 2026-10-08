@@ -1157,6 +1157,29 @@ body[data-module="Warehouse"][data-view="VendorList"][data-app="INVENTORY"] .mk-
 	gap: 8px;
 	padding-top: 4px;
 }
+.mk-purchase-misa {
+	flex: 1 0 100%;
+	padding: 6px 10px;
+	border-radius: 8px;
+	background: #fff7ed;
+	border: 1px solid #fed7aa;
+	color: #9a3412;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1.4;
+}
+.mk-purchase-misa[hidden] { display: none !important; }
+.mk-purchase-misa.is-published,
+.mk-purchase-misa.is-active {
+	background: #ecfdf5;
+	border-color: #6ee7a8;
+	color: #047857;
+}
+.mk-purchase-misa.is-rejected {
+	background: #fef2f2;
+	border-color: #fecaca;
+	color: #b91c1c;
+}
 
 /* Detail PN */
 .mk-kiot-detail-crumb { margin-bottom: 10px; }
