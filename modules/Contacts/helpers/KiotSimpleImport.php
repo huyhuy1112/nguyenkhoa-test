@@ -53,6 +53,10 @@ class Contacts_KiotSimpleImport_Helper {
 			$sheetRow = $idx + 2;
 			try {
 				$payload = self::mapKiotRow($row, $segment);
+				if ($payload === null) {
+					$stats['skipped']++;
+					continue;
+				}
 				if ($payload['lastname'] === '') {
 					$stats['skipped']++;
 					continue;
@@ -87,7 +91,7 @@ class Contacts_KiotSimpleImport_Helper {
 
 	public static function buildResultMessage(array $stats) {
 		$msg = sprintf(
-			'Import Contacts xong.\n- Dòng Excel: %d\n- Tạo mới: %d\n- Cập nhật: %d\n- Bỏ qua: %d\n- Lỗi: %d\n- Nhóm: %s',
+			"Import Contacts xong.\n- Dòng Excel: %d\n- Tạo mới: %d\n- Cập nhật: %d\n- Bỏ qua: %d\n- Lỗi: %d\n- Nhóm: %s",
 			(int) $stats['total'],
 			(int) $stats['imported'],
 			(int) $stats['updated'],
@@ -198,6 +202,10 @@ class Contacts_KiotSimpleImport_Helper {
 		$gender = self::cell($row, array('gioi_tinh', 'gender'));
 		$note = self::cell($row, array('ghi_chu', 'note', 'notes', 'description'));
 		$typeTag = self::mapCustomerType(self::cell($row, array('loai_khach', 'loai_khach_hang', 'customer_type')));
+
+		if ($name === '' && $code === '' && $phone === '') {
+			return null;
+		}
 
 		$fullAddress = $address;
 		if ($ward !== '') {

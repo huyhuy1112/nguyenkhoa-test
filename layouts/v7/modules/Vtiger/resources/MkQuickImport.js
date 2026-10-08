@@ -19,18 +19,87 @@
     return null;
   }
 
+  function escapeHtml(s) {
+    return String(s || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
   function notify(msg, isError) {
+    var safe = escapeHtml(msg).replace(/\\n/g, "\n").replace(/\n/g, "<br>");
     if (global.app && app.helper) {
       if (isError && app.helper.showErrorNotification) {
-        app.helper.showErrorNotification({ message: msg });
+        app.helper.showErrorNotification({ message: safe });
         return;
       }
       if (!isError && app.helper.showSuccessNotification) {
-        app.helper.showSuccessNotification({ message: msg });
+        app.helper.showSuccessNotification({ message: safe });
         return;
       }
     }
     window.alert(msg);
+  }
+
+  function ensureConfirmStyles() {
+    if (document.getElementById("mkQuickImportConfirmStyle")) {
+      return;
+    }
+    var style = document.createElement("style");
+    style.id = "mkQuickImportConfirmStyle";
+    style.textContent =
+      "#mkQuickImportConfirm{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.45);padding:24px;}" +
+      "#mkQuickImportConfirm .mk-qi-card{width:min(440px,100%);background:#fff;border-radius:16px;box-shadow:0 20px 50px rgba(15,23,42,.18);padding:22px 22px 18px;font-family:inherit;color:#111827;}" +
+      "#mkQuickImportConfirm h3{margin:0 0 8px;font-size:18px;font-weight:700;color:#14532d;}" +
+      "#mkQuickImportConfirm p{margin:0 0 8px;font-size:14px;line-height:1.45;color:#374151;}" +
+      "#mkQuickImportConfirm .mk-qi-file{margin:10px 0 16px;padding:10px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;font-size:13px;color:#166534;word-break:break-all;}" +
+      "#mkQuickImportConfirm .mk-qi-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px;}" +
+      "#mkQuickImportConfirm button{border-radius:999px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid transparent;}" +
+      "#mkQuickImportConfirm .mk-qi-cancel{background:#fff;border-color:#d1d5db;color:#374151;}" +
+      "#mkQuickImportConfirm .mk-qi-ok{background:#15803d;color:#fff;}";
+    document.head.appendChild(style);
+  }
+
+  function confirmImport(message, fileName) {
+    ensureConfirmStyles();
+    return new Promise(function (resolve) {
+      var root = document.createElement("div");
+      root.id = "mkQuickImportConfirm";
+      var lines = String(message || "")
+        .split(/\n+/)
+        .map(function (line) { return line.trim(); })
+        .filter(function (line) {
+          return line && line !== "Tiếp tục?";
+        });
+      var title = lines.shift() || "Nhập dữ liệu từ Excel";
+      var body = lines.map(function (line) {
+        return "<p>" + escapeHtml(line) + "</p>";
+      }).join("");
+      root.innerHTML =
+        '<div class="mk-qi-card" role="dialog" aria-modal="true">' +
+        "<h3>" + escapeHtml(title) + "</h3>" +
+        body +
+        '<div class="mk-qi-file">' + escapeHtml(fileName || "") + "</div>" +
+        '<div class="mk-qi-actions">' +
+        '<button type="button" class="mk-qi-cancel">Huỷ</button>' +
+        '<button type="button" class="mk-qi-ok">Tiếp tục</button>' +
+        "</div></div>";
+      function close(ok) {
+        if (root.parentNode) {
+          root.parentNode.removeChild(root);
+        }
+        resolve(!!ok);
+      }
+      root.addEventListener("click", function (e) {
+        if (e.target === root) {
+          close(false);
+        }
+      });
+      root.querySelector(".mk-qi-cancel").addEventListener("click", function () { close(false); });
+      root.querySelector(".mk-qi-ok").addEventListener("click", function () { close(true); });
+      document.body.appendChild(root);
+      root.querySelector(".mk-qi-ok").focus();
+    });
   }
 
   function bind(opts) {
@@ -76,9 +145,19 @@
 
       var confirmMsg =
         opts.confirmMessage ||
-        ('Import từ file:\n' + file.name + '\n\nTiếp tục?');
-      if (!window.confirm(confirmMsg)) {
-        input.value = '';
+        ("Import từ file:\n" + file.name + "\n\nTiếp tục?");
+      confirmImport(confirmMsg, file.name).then(function (ok) {
+        if (!ok) {
+          input.value = "";
+          return;
+        }
+        startUpload();
+      });
+    });
+
+    function startUpload() {
+      var file = input.files && input.files[0] ? input.files[0] : null;
+      if (!file) {
         return;
       }
 
@@ -139,7 +218,7 @@
           notify((err && err.message) || 'Import thất bại.', true);
           done();
         });
-    });
+    }
   }
 
   global.MkQuickImport = { bind: bind };
