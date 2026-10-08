@@ -133,12 +133,37 @@ class Contacts_KiotSimpleImport_Helper {
 			$s = decode_html($s);
 		}
 		$s = mb_strtolower(trim($s), 'UTF-8');
-		$s = str_replace(array('đ', 'Đ'), array('d', 'd'), $s);
+		$s = self::stripVietnamese($s);
 		if (function_exists('transliterator_transliterate')) {
 			$s = transliterator_transliterate('Any-Latin; Latin-ASCII', $s);
 		}
 		$s = preg_replace('/[^a-z0-9]+/', '_', $s);
 		return trim($s, '_');
+	}
+
+	/**
+	 * Bỏ dấu tiếng Việt không cần extension intl (host không có transliterator).
+	 */
+	protected static function stripVietnamese($s) {
+		static $map = null;
+		if ($map === null) {
+			$map = array(
+				'à' => 'a', 'á' => 'a', 'ạ' => 'a', 'ả' => 'a', 'ã' => 'a',
+				'â' => 'a', 'ầ' => 'a', 'ấ' => 'a', 'ậ' => 'a', 'ẩ' => 'a', 'ẫ' => 'a',
+				'ă' => 'a', 'ằ' => 'a', 'ắ' => 'a', 'ặ' => 'a', 'ẳ' => 'a', 'ẵ' => 'a',
+				'è' => 'e', 'é' => 'e', 'ẹ' => 'e', 'ẻ' => 'e', 'ẽ' => 'e',
+				'ê' => 'e', 'ề' => 'e', 'ế' => 'e', 'ệ' => 'e', 'ể' => 'e', 'ễ' => 'e',
+				'ì' => 'i', 'í' => 'i', 'ị' => 'i', 'ỉ' => 'i', 'ĩ' => 'i',
+				'ò' => 'o', 'ó' => 'o', 'ọ' => 'o', 'ỏ' => 'o', 'õ' => 'o',
+				'ô' => 'o', 'ồ' => 'o', 'ố' => 'o', 'ộ' => 'o', 'ổ' => 'o', 'ỗ' => 'o',
+				'ơ' => 'o', 'ờ' => 'o', 'ớ' => 'o', 'ợ' => 'o', 'ở' => 'o', 'ỡ' => 'o',
+				'ù' => 'u', 'ú' => 'u', 'ụ' => 'u', 'ủ' => 'u', 'ũ' => 'u',
+				'ư' => 'u', 'ừ' => 'u', 'ứ' => 'u', 'ự' => 'u', 'ử' => 'u', 'ữ' => 'u',
+				'ỳ' => 'y', 'ý' => 'y', 'ỵ' => 'y', 'ỷ' => 'y', 'ỹ' => 'y',
+				'đ' => 'd',
+			);
+		}
+		return strtr($s, $map);
 	}
 
 	protected static function cell(array $row, array $aliases) {
@@ -222,7 +247,7 @@ class Contacts_KiotSimpleImport_Helper {
 		$descParts[] = 'Nguồn import: Excel Kiot (' . $segmentTag . ')';
 
 		$displayName = $name !== '' ? $name : ($code !== '' ? $code : ('KH ' . $phone));
-		$contactNo = MkCustomerCode::contactCode($code, $displayName, $phone);
+		$contactNo = MkCustomerCode::contactCode($code, self::stripVietnamese($displayName), $phone);
 
 		return array(
 			'contact_no' => $contactNo,
