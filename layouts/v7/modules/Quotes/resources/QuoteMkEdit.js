@@ -3308,11 +3308,12 @@
 
 		if (!isSalesOrder()) {
 			if (typeof app !== 'undefined' && app.event && typeof app.event.on === 'function') {
-				app.event
-					.off('post.lineItem.New.mkQtDraft')
-					.on('post.lineItem.New.mkQtDraft', function () {
-						markDirty();
-					});
+				if (typeof app.event.off === 'function') {
+					app.event.off('post.lineItem.New.mkQtDraft');
+				}
+				app.event.on('post.lineItem.New.mkQtDraft', function () {
+					markDirty();
+				});
 			}
 
 			$(window)
@@ -3535,7 +3536,9 @@
 		fixFormDisplayEncoding();
 		initTermsRichEditor();
 		syncRail();
-		bindActions();
+		try {
+			bindActions();
+		} catch (err) {}
 		bindPreviewPrint();
 		observeTotals();
 		initStickyHead();

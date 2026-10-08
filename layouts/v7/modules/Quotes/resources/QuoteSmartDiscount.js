@@ -394,10 +394,15 @@
 		refresh: refresh
 	};
 
-	$(function () {
+	var booted = false;
+	function boot() {
+		if (booted) {
+			return;
+		}
 		if (!$('#mkQtCreateWorkspace').length && !$('#EditView').length) {
 			return;
 		}
+		booted = true;
 		ensurePanel();
 		refresh();
 		$(document).on('mkQuoteDiscountRefresh', function () {
@@ -414,13 +419,20 @@
 		var pinTimer = setInterval(function () {
 			pins += 1;
 			ensurePanel();
-			if (pins === 1 || pins === 4) {
+			if (pins === 1 || pins === 4 || pins === 8) {
 				refresh();
+				loadCode();
 			}
 			if (pins >= 16) {
 				clearInterval(pinTimer);
 			}
 		}, 300);
 		setTimeout(loadCode, 600);
+	}
+
+	$(boot);
+	document.addEventListener('DOMContentLoaded', boot);
+	window.addEventListener('load', function () {
+		setTimeout(boot, 50);
 	});
 })(jQuery);
