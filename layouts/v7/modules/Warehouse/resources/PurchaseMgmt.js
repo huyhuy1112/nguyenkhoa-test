@@ -57,6 +57,59 @@
 		return st || '—';
 	}
 
+	function paintMisaChip(chip, misa) {
+		if (!chip) return;
+		misa = misa || {};
+		chip.hidden = !misa.label;
+		var chipText = 'MISA: ' + (misa.label || '');
+		if (misa.refno) chipText += ' · ' + misa.refno;
+		if (misa.note) chipText += ' · ' + misa.note;
+		chip.textContent = chipText;
+		chip.className = 'mk-purchase-misa' + (misa.state ? (' is-' + misa.state) : '');
+	}
+
+	function openPurchaseDialog(opts) {
+		opts = opts || {};
+		return new Promise(function (resolve) {
+			var old = document.getElementById('mkPurchaseMisaDialog');
+			if (old && old.parentNode) old.parentNode.removeChild(old);
+			var root = document.createElement('div');
+			root.id = 'mkPurchaseMisaDialog';
+			root.className = 'mk-purchase-dialog' + (opts.tone ? (' is-' + opts.tone) : '');
+			root.innerHTML =
+				'<div class="mk-purchase-dialog__card" role="dialog" aria-modal="true">' +
+				'<h3></h3><p class="mk-purchase-dialog__text"></p>' +
+				(opts.hint ? '<p class="mk-purchase-dialog__hint"></p>' : '') +
+				'<div class="mk-purchase-dialog__actions">' +
+				(opts.cancelLabel ? '<button type="button" class="mk-purchase-dialog__cancel"></button>' : '') +
+				'<button type="button" class="mk-purchase-dialog__ok"></button>' +
+				'</div></div>';
+			root.querySelector('h3').textContent = opts.title || '';
+			root.querySelector('.mk-purchase-dialog__text').textContent = opts.text || '';
+			if (opts.hint) root.querySelector('.mk-purchase-dialog__hint').textContent = opts.hint;
+			var okBtn = root.querySelector('.mk-purchase-dialog__ok');
+			okBtn.textContent = opts.okLabel || 'Đóng';
+			var cancelBtn = root.querySelector('.mk-purchase-dialog__cancel');
+			if (cancelBtn) cancelBtn.textContent = opts.cancelLabel;
+			function close(ok) {
+				document.removeEventListener('keydown', onKey);
+				if (root.parentNode) root.parentNode.removeChild(root);
+				resolve(!!ok);
+			}
+			function onKey(e) {
+				if (e.key === 'Escape') close(false);
+			}
+			root.addEventListener('click', function (e) {
+				if (e.target === root) close(false);
+			});
+			if (cancelBtn) cancelBtn.addEventListener('click', function () { close(false); });
+			okBtn.addEventListener('click', function () { close(true); });
+			document.addEventListener('keydown', onKey);
+			document.body.appendChild(root);
+			okBtn.focus();
+		});
+	}
+
 	function showToast(el, text, isErr) {
 		if (!el) return;
 		if (!text) { el.hidden = true; el.textContent = ''; return; }
@@ -126,12 +179,7 @@
 			ids.actions.innerHTML = '';
 			var misa = r.misa || {};
 			var chip = document.createElement('div');
-			chip.className = 'mk-purchase-misa' + (misa.state ? (' is-' + misa.state) : '');
-			if (!misa.label) chip.hidden = true;
-			var chipText = 'MISA: ' + (misa.label || '');
-			if (misa.refno) chipText += ' · ' + misa.refno;
-			if (misa.note) chipText += ' · ' + misa.note;
-			chip.textContent = chipText;
+			paintMisaChip(chip, misa);
 			ids.actions.appendChild(chip);
 			var misaBtn = document.createElement('button');
 			misaBtn.type = 'button';
@@ -139,27 +187,60 @@
 			misaBtn.textContent = 'Chuyển qua MISA';
 			misaBtn.addEventListener('click', function () {
 				if (misa.state === 'published' || misa.refno) {
-					window.alert(misa.refno ? ('Phiếu đã vào Đơn mua hàng. ' + misa.refno) : 'Phiếu này đã vào Đơn mua hàng trên MISA.');
+					openPurchaseDialog({
+						title: 'Đơn mua hàng',
+						text: misa.refno
+							? ('Phiếu đã vào Đơn mua hàng. ' + misa.refno)
+							: 'Phiếu này đã vào Đơn mua hàng trên MISA.',
+						okLabel: 'Đóng',
+						tone: 'ok'
+					});
 					return;
 				}
-				if (!window.confirm('Gửi phiếu này sang MISA thành Đơn mua hàng?')) return;
-				misaBtn.disabled = true;
-				apiPost({ mode: 'transfer_purchase_misa', code: r.code, whId: r.warehouse || '' }).then(function (res) {
-					misaBtn.disabled = false;
-					misa = {
-						label: (res && res.misa_status) || 'Chờ kế toán',
-						refno: (res && res.misa_refno) || '',
-						state: (res && res.misa_state) || 'pending',
-						note: ''
-					};
-					r.misa = misa;
-					chip.hidden = false;
-					chip.className = 'mk-purchase-misa is-' + misa.state;
-					chip.textContent = 'MISA: ' + misa.label;
-					showToast(ids.msg, (res && res.message) || 'Đã gửi Đơn mua hàng sang MISA.', false);
-				}).catch(function (err) {
-					misaBtn.disabled = false;
-					showToast(ids.msg, String(err), true);
+				openPurchaseDialog({
+					title: 'Chuyển qua MISA',
+					text: 'Gửi phiếu này sang MISA thành Đơn mua hàng?',
+					hint: 'Phiếu sẽ vào AMIS → Mua hàng → Đơn mua hàng.',
+					cancelLabel: 'Huỷ',
+					okLabel: 'Gửi'
+				}).then(function (ok) {
+					if (!ok) return;
+					misaBtn.disabled = true;
+					apiPost({ mode: 'transfer_purchase_misa', code: r.code, whId: r.warehouse || '' }).then(function (res) {
+						misaBtn.disabled = false;
+						var message = (res && res.message) || 'Đã gửi phiếu sang MISA thành Đơn mua hàng. Trạng thái CRM: Chờ kế toán.';
+						misa = {
+							label: (res && res.misa_status) || 'Chờ kế toán',
+							refno: (res && res.misa_refno) || '',
+							state: (res && res.misa_state) || 'pending',
+							note: ''
+						};
+						r.misa = misa;
+						paintMisaChip(chip, misa);
+						openPurchaseDialog({
+							title: 'Đã gửi Đơn mua hàng',
+							text: message,
+							okLabel: 'Đóng',
+							tone: 'ok'
+						});
+					}).catch(function (err) {
+						misaBtn.disabled = false;
+						var message = String(err || 'Không gửi được phiếu sang MISA.');
+						misa = {
+							label: 'Chưa gửi được',
+							refno: '',
+							state: 'rejected',
+							note: message
+						};
+						r.misa = misa;
+						paintMisaChip(chip, misa);
+						openPurchaseDialog({
+							title: 'Chưa gửi được Đơn mua hàng',
+							text: message,
+							okLabel: 'Đóng',
+							tone: 'error'
+						});
+					});
 				});
 			});
 			ids.actions.appendChild(misaBtn);

@@ -1243,6 +1243,82 @@ body[data-module="Warehouse"][data-view="VendorList"][data-app="INVENTORY"] .mk-
 	color: #b91c1c;
 }
 
+.mk-purchase-dialog {
+	position: fixed;
+	inset: 0;
+	z-index: 40000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(15, 23, 42, 0.45);
+	padding: 24px;
+}
+
+.mk-purchase-dialog__card {
+	width: min(460px, 100%);
+	background: #fff;
+	border-radius: 16px;
+	box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+	padding: 22px 22px 18px;
+	color: #111827;
+}
+
+.mk-purchase-dialog__card h3 {
+	margin: 0 0 8px;
+	font-size: 18px;
+	font-weight: 700;
+	color: #14532d;
+}
+
+.mk-purchase-dialog.is-error h3 {
+	color: #991b1b;
+}
+
+.mk-purchase-dialog__text {
+	margin: 0;
+	font-size: 14px;
+	line-height: 1.5;
+	color: #374151;
+}
+
+.mk-purchase-dialog__hint {
+	margin: 8px 0 0;
+	font-size: 13px;
+	line-height: 1.45;
+	color: #6b7280;
+}
+
+.mk-purchase-dialog__actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 16px;
+}
+
+.mk-purchase-dialog__actions button {
+	border-radius: 999px;
+	padding: 8px 16px;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	border: 1px solid transparent;
+}
+
+.mk-purchase-dialog__cancel {
+	background: #fff;
+	border-color: #d1d5db;
+	color: #374151;
+}
+
+.mk-purchase-dialog__ok {
+	background: #15803d;
+	color: #fff;
+}
+
+.mk-purchase-dialog.is-error .mk-purchase-dialog__ok {
+	background: #b91c1c;
+}
+
 /* Detail PN */
 .mk-kiot-detail-crumb { margin-bottom: 10px; }
 .mk-kiot-detail-crumb a {

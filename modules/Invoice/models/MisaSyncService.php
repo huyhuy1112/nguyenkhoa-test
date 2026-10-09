@@ -447,7 +447,10 @@ class Invoice_MisaSyncService {
 				$unit = 'Cái';
 			}
 			$itemId = self::guidFrom('po-item-' . ($productId > 0 ? $productId : $itemCode));
+			$detailId = self::guidFrom('po-line-' . $receiptId . '-' . $seq);
 			$details[] = array(
+				'ref_detail_id' => $detailId,
+				'refid' => $orgRefid,
 				'sort_order' => $seq,
 				'quantity' => $qty,
 				'main_quantity' => $qty,
@@ -469,6 +472,14 @@ class Invoice_MisaSyncService {
 				'inventory_item_type' => 0,
 				'unit_name' => $unit,
 				'main_unit_name' => $unit,
+				'account_object_id' => $vendorGuid,
+				'account_object_code' => $vendorCode,
+				'account_object_name' => $vendorName,
+				'account_object_address' => $address,
+				'is_promotion' => false,
+				'is_description' => false,
+				'crm_id' => $productId > 0 ? (string) $productId : $itemCode,
+				'state' => 0,
 			);
 			$dictionary[] = array(
 				'dictionary_type' => 3,
@@ -486,7 +497,7 @@ class Invoice_MisaSyncService {
 			'voucher_type' => 21,
 			'org_refid' => $orgRefid,
 			'org_refno' => $code,
-			'org_reftype' => 1510,
+			'org_reftype' => 301,
 			'org_reftype_name' => 'Đơn mua hàng',
 			'reftype' => 301,
 			'refdate' => $today,
@@ -509,15 +520,71 @@ class Invoice_MisaSyncService {
 			'modified_date' => $now,
 			'detail' => $details,
 		);
-		$api->saveVoucher($voucher, $dictionary);
+		$body = $api->saveVoucher($voucher, $dictionary);
+		$immediateError = self::actSaveErrorText($api, $body);
+		if ($immediateError !== '') {
+			self::savePurchaseLink($receiptId, $code, $orgRefid, 'rejected', $immediateError, '');
+			return array('error' => $immediateError);
+		}
 		self::savePurchaseLink($receiptId, $code, $orgRefid, 'pending', 'Chờ kế toán', '');
 		return array(
 			'success' => true,
-			'message' => 'Đã gửi phiếu ' . $code . ' sang MISA thành Đơn mua hàng. Kế toán lập chứng từ trên AMIS khi cần. Trạng thái CRM: Chờ kế toán.',
+			'message' => 'Đã gửi phiếu ' . $code . ' sang MISA thành Đơn mua hàng. Xem AMIS → Mua hàng → Đơn mua hàng. Trạng thái CRM: Chờ kế toán.',
 			'misa_status' => 'Chờ kế toán',
 			'misa_refno' => '',
 			'misa_state' => 'pending',
 		);
+	}
+
+	/**
+	 * Lỗi ngay trong phản hồi save của ACT, khi MISA nhận gói tin nhưng từ chối phiếu.
+	 * @param object|null $api
+	 * @param mixed $body
+	 * @return string
+	 */
+	protected static function actSaveErrorText($api, $body) {
+		if (!is_array($body)) {
+			return '';
+		}
+		$data = isset($body['Data']) ? $body['Data'] : null;
+		if ($api && method_exists($api, 'decodeData')) {
+			$data = $api->decodeData($data);
+		}
+		return self::firstVoucherError(is_array($data) ? $data : array());
+	}
+
+	/**
+	 * @param mixed $node
+	 * @return string
+	 */
+	protected static function firstVoucherError($node) {
+		if (!is_array($node)) {
+			return '';
+		}
+		$success = null;
+		if (array_key_exists('success', $node)) {
+			$success = !empty($node['success']);
+		} elseif (array_key_exists('Success', $node)) {
+			$success = !empty($node['Success']);
+		}
+		$msg = '';
+		if (!empty($node['error_message'])) {
+			$msg = trim((string) $node['error_message']);
+		} elseif (!empty($node['ErrorMessage'])) {
+			$msg = trim((string) $node['ErrorMessage']);
+		}
+		if ($success === false) {
+			return $msg !== '' ? $msg : 'MISA không nhận Đơn mua hàng.';
+		}
+		foreach ($node as $child) {
+			if (is_array($child)) {
+				$nested = self::firstVoucherError($child);
+				if ($nested !== '') {
+					return $nested;
+				}
+			}
+		}
+		return '';
 	}
 
 	protected static function applyPurchaseResult($orgRefid, array $item) {

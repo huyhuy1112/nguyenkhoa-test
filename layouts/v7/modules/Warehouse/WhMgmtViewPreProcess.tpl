@@ -30,7 +30,7 @@
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseWhDetailOverrides.css')}?mk_v=20261009_stockfill1" />
 {elseif $VIEW eq 'PurchaseCreate' || $VIEW eq 'PurchaseHistory' || $VIEW eq 'PurchaseDetail' || $VIEW eq 'VendorList'}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.css')}?mk_v=20261006_stock_import1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/PurchaseMgmt.css')}?mk_v=20261009_kiothead1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/PurchaseMgmt.css')}?mk_v=20261009_misapo2" />
 {else}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.css')}?mk_v=20261006_stock_import1" />
 {/if}
@@ -39,7 +39,7 @@
 {if $VIEW eq 'WhDetail'}
 	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseWhDetailPrototype.js')}?mk_v=20261009_stockfill1"></script>
 {elseif $VIEW eq 'PurchaseCreate' || $VIEW eq 'PurchaseHistory' || $VIEW eq 'PurchaseDetail' || $VIEW eq 'VendorList'}
-	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/PurchaseMgmt.js')}?mk_v=20261008_misa_po1"></script>
+	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/PurchaseMgmt.js')}?mk_v=20261009_misapo2"></script>
 {else}
 	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.js')}?mk_v=20261006_stock_import1"></script>
 {/if}
