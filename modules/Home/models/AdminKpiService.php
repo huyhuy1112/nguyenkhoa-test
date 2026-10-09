@@ -719,6 +719,7 @@ class Home_AdminKpiService {
 		$gd14Rate = self::closeRateByTagPrefix($db, $from, $to, 'gd14_%', 'gd14_da_tham_gia');
 		$receivable = self::sumInvoiceBalance($db);
 		$stock = self::warehouseStockFacts($db);
+		$whTickets = self::warehouseTicketFacts($db);
 		$boards = array(
 			'ceo' => array(
 				'title' => 'CEO',
@@ -779,8 +780,12 @@ class Home_AdminKpiService {
 					$delivery === null
 						? self::reportCard('Đơn giao trễ', 'Chưa đủ dữ liệu', '', 'amber')
 						: self::reportCard('Đơn giao trễ', (string) $delivery['late'], 'Quá hạn giao trên phiếu xuất', 'amber'),
-					self::reportCard('Giao thiếu / sai / hư', 'Chưa đủ dữ liệu', '', 'rose'),
-					self::reportCard('Khiếu nại liên quan giao hàng', 'Chưa đủ dữ liệu', '', 'violet'),
+					$whTickets === null
+						? self::reportCard('Giao thiếu / sai / hư', 'Chưa đủ dữ liệu', 'Chưa có bảng ticket', 'rose')
+						: self::reportCard('Giao thiếu / sai / hư', (string) $whTickets['incidents'], 'Ticket đang mở: thiếu, sai, hư, lỗi, trả hàng', 'rose'),
+					$whTickets === null
+						? self::reportCard('Khiếu nại liên quan giao hàng', 'Chưa đủ dữ liệu', 'Chưa có bảng ticket', 'violet')
+						: self::reportCard('Khiếu nại liên quan giao hàng', (string) $whTickets['complaints'], 'Ticket khiếu nại đang mở', 'violet'),
 				),
 			),
 		);
@@ -969,6 +974,50 @@ class Home_AdminKpiService {
 		return array(
 			'qty' => (int) $db->query_result($r, 0, 'qty'),
 			'expiring' => (int) $db->query_result($r, 0, 'expiring'),
+		);
+	}
+
+	/**
+	 * Open support tickets that feed the warehouse board.
+	 * Incidents: hàng lỗi, giao thiếu, giao sai, hàng hư, trả hàng.
+	 * Complaints: khiếu nại. Closed tickets are finished and not counted.
+	 *
+	 * @return array{incidents:int,complaints:int}|null
+	 */
+	protected static function warehouseTicketFacts(PearDatabase $db) {
+		if (!self::tableExists($db, 'tickets')) {
+			return null;
+		}
+		$serviceFile = 'modules/HelpDesk/models/TicketService.php';
+		if (is_file($serviceFile)) {
+			require_once $serviceFile;
+			if (class_exists('HelpDesk_TicketService')) {
+				try {
+					new HelpDesk_TicketService();
+				} catch (Exception $e) {
+					// Keep counting with the columns that already exist.
+				}
+			}
+		}
+		if (!self::columnExists($db, 'tickets', 'issue_type')
+			|| !self::columnExists($db, 'tickets', 'status')) {
+			return null;
+		}
+		$r = $db->pquery(
+			"SELECT
+				COALESCE(SUM(CASE WHEN issue_type IN ('hang_loi','giao_thieu','giao_sai','hang_hu','tra_hang')
+					AND status <> 'Closed' THEN 1 ELSE 0 END), 0) AS incidents,
+				COALESCE(SUM(CASE WHEN issue_type = 'khieu_nai'
+					AND status <> 'Closed' THEN 1 ELSE 0 END), 0) AS complaints
+			 FROM tickets",
+			array()
+		);
+		if (!$r) {
+			return array('incidents' => 0, 'complaints' => 0);
+		}
+		return array(
+			'incidents' => (int) $db->query_result($r, 0, 'incidents'),
+			'complaints' => (int) $db->query_result($r, 0, 'complaints'),
 		);
 	}
 
