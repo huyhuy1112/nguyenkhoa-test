@@ -79,7 +79,8 @@ window.__mkSalesPosInlineConfig = {
 };
 </script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260821_affdel1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/SalesOrder/resources/List.js')}?mk_v=20261008_misa_status1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkQuickImport.js')}?mk_v=20261009_soimp1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/SalesOrder/resources/List.js')}?mk_v=20261009_soimp1"></script>
 {/if}
 <div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-sales-order-list="1">
 	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}

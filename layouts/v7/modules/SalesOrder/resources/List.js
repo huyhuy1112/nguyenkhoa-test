@@ -4750,6 +4750,27 @@
     tick();
   }
 
+  function bindSalesOrderImport() {
+    if (!window.MkQuickImport || typeof window.MkQuickImport.bind !== "function") {
+      return;
+    }
+    window.MkQuickImport.bind({
+      buttonId: "mk-so-import-btn",
+      fileInputId: "mk-so-import-file",
+      module: "SalesOrder",
+      xlsxOnly: true,
+      xlsxRejectMessage: "Chỉ hỗ trợ file .xlsx (Lịch sử đơn hàng).",
+      confirmMessage:
+        "Import đơn hàng từ Excel Kiot.\n" +
+        "Các dòng cùng mã đặt hàng gộp thành 1 đơn nhiều sản phẩm.\n" +
+        "Nhập lại cùng mã sẽ cập nhật đơn cũ.\n" +
+        "Không trừ tồn kho và không đẩy MISA.",
+      onDone: function () {
+        window.location.reload();
+      },
+    });
+  }
+
   function init() {
     if (!isSalesOrderSalesList()) {
       return;
@@ -4772,6 +4793,7 @@
     patchPlaceListContents();
     patchInlineDetailRowClick();
     bindListEvents();
+    bindSalesOrderImport();
     bindPosSelectionEvents();
     bindPosMassDuplicateButton();
     bindPosMassDeleteButton();

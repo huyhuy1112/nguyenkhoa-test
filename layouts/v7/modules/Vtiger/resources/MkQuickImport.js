@@ -133,7 +133,7 @@
       var name = String(file.name || '').toLowerCase();
       var acceptXlsxOnly = !!opts.xlsxOnly;
       if (acceptXlsxOnly && !/\.xlsx$/i.test(name)) {
-        notify('Chỉ hỗ trợ file .xlsx (Khách lẻ / Miutea).', true);
+        notify(opts.xlsxRejectMessage || 'Chỉ hỗ trợ file .xlsx (Khách lẻ / Miutea).', true);
         input.value = '';
         return;
       }

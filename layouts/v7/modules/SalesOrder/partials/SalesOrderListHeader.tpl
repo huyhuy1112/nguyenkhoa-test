@@ -47,6 +47,11 @@
 				<span>Đặt hàng</span>
 			</button>
 		{/if}
+		<button type="button" class="mk-so-pos-btn mk-so-pos-btn--outline" id="mk-so-import-btn" title="Import Excel lịch sử đơn hàng. Cùng mã đặt hàng là một đơn nhiều sản phẩm.">
+			<i class="fa fa-upload" aria-hidden="true"></i>
+			<span class="mk-leads-btn__txt">Import</span>
+		</button>
+		<input type="file" id="mk-so-import-file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hide" tabindex="-1" aria-hidden="true" />
 		<button type="button" class="mk-so-pos-btn mk-so-pos-btn--outline" id="mk-so-merge-orders-btn" title="Gộp đơn">
 			<i class="fa fa-clone" aria-hidden="true"></i>
 			<span>Gộp đơn</span>
