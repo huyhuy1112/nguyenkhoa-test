@@ -30,7 +30,7 @@
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseWhDetailOverrides.css')}?mk_v=20261009_stockfill1" />
 {elseif $VIEW eq 'PurchaseCreate' || $VIEW eq 'PurchaseHistory' || $VIEW eq 'PurchaseDetail' || $VIEW eq 'VendorList'}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.css')}?mk_v=20261006_stock_import1" />
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/PurchaseMgmt.css')}?mk_v=20261008_misa_po1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/PurchaseMgmt.css')}?mk_v=20261009_kiothead1" />
 {else}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseMgmt.css')}?mk_v=20261006_stock_import1" />
 {/if}

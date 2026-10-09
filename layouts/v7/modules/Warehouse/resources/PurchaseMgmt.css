@@ -20,15 +20,50 @@ html.mk-wh-mgmt-ready body[data-view="PurchaseHistory"] {
 	--mk-wh-shadow: 0 1px 2px rgba(16, 35, 28, 0.04), 0 10px 28px rgba(16, 35, 28, 0.05);
 }
 
-/* Shell layout like WhList */
+/* Shell layout like WhList. Sidebar matches the app column (256px) so the logo stays inside it. */
 body[data-module="Warehouse"][data-view="PurchaseCreate"][data-app="INVENTORY"],
-body[data-module="Warehouse"][data-view="PurchaseHistory"][data-app="INVENTORY"] {
-	--mk-dash-sidebar-w: 239px;
+body[data-module="Warehouse"][data-view="PurchaseHistory"][data-app="INVENTORY"],
+body[data-module="Warehouse"][data-view="PurchaseDetail"][data-app="INVENTORY"],
+body[data-module="Warehouse"][data-view="VendorList"][data-app="INVENTORY"] {
+	--mk-dash-sidebar-w: 256px;
 	--mk-dash-topbar-h: 64px;
 }
 
+body[data-module="Warehouse"][data-view="PurchaseCreate"][data-app="INVENTORY"] .mk-dashboard-sidebar,
+body[data-module="Warehouse"][data-view="PurchaseHistory"][data-app="INVENTORY"] .mk-dashboard-sidebar,
+body[data-module="Warehouse"][data-view="PurchaseDetail"][data-app="INVENTORY"] .mk-dashboard-sidebar,
+body[data-module="Warehouse"][data-view="VendorList"][data-app="INVENTORY"] .mk-dashboard-sidebar {
+	top: 0 !important;
+	height: 100vh !important;
+	width: var(--mk-dash-sidebar-w) !important;
+	overflow: hidden !important;
+	z-index: 1000 !important;
+	background: #ffffff !important;
+}
+
+body[data-module="Warehouse"][data-view="PurchaseCreate"][data-app="INVENTORY"] .mk-dash-sidebar-brand:has(.nguyenkhoa-logo),
+body[data-module="Warehouse"][data-view="PurchaseHistory"][data-app="INVENTORY"] .mk-dash-sidebar-brand:has(.nguyenkhoa-logo),
+body[data-module="Warehouse"][data-view="PurchaseDetail"][data-app="INVENTORY"] .mk-dash-sidebar-brand:has(.nguyenkhoa-logo),
+body[data-module="Warehouse"][data-view="VendorList"][data-app="INVENTORY"] .mk-dash-sidebar-brand:has(.nguyenkhoa-logo) {
+	min-height: 0 !important;
+	padding: 14px 16px 8px !important;
+}
+
+body[data-module="Warehouse"][data-view="PurchaseCreate"][data-app="INVENTORY"] .mk-dash-sidebar-brand .company-logo img.nguyenkhoa-logo,
+body[data-module="Warehouse"][data-view="PurchaseHistory"][data-app="INVENTORY"] .mk-dash-sidebar-brand .company-logo img.nguyenkhoa-logo,
+body[data-module="Warehouse"][data-view="PurchaseDetail"][data-app="INVENTORY"] .mk-dash-sidebar-brand .company-logo img.nguyenkhoa-logo,
+body[data-module="Warehouse"][data-view="VendorList"][data-app="INVENTORY"] .mk-dash-sidebar-brand .company-logo img.nguyenkhoa-logo {
+	max-width: 168px !important;
+	max-height: 64px !important;
+	min-height: 0 !important;
+	width: auto !important;
+	height: auto !important;
+}
+
 body[data-module="Warehouse"][data-view="PurchaseCreate"][data-app="INVENTORY"] .mk-app-shell,
-body[data-module="Warehouse"][data-view="PurchaseHistory"][data-app="INVENTORY"] .mk-app-shell {
+body[data-module="Warehouse"][data-view="PurchaseHistory"][data-app="INVENTORY"] .mk-app-shell,
+body[data-module="Warehouse"][data-view="PurchaseDetail"][data-app="INVENTORY"] .mk-app-shell,
+body[data-module="Warehouse"][data-view="VendorList"][data-app="INVENTORY"] .mk-app-shell {
 	margin-left: var(--mk-dash-sidebar-w) !important;
 	width: calc(100% - var(--mk-dash-sidebar-w)) !important;
 	max-width: calc(100% - var(--mk-dash-sidebar-w)) !important;
@@ -41,7 +76,9 @@ body[data-module="Warehouse"][data-view="PurchaseHistory"][data-app="INVENTORY"]
 }
 
 body[data-module="Warehouse"][data-view="PurchaseCreate"][data-app="INVENTORY"] .mk-topbar,
-body[data-module="Warehouse"][data-view="PurchaseHistory"][data-app="INVENTORY"] .mk-topbar {
+body[data-module="Warehouse"][data-view="PurchaseHistory"][data-app="INVENTORY"] .mk-topbar,
+body[data-module="Warehouse"][data-view="PurchaseDetail"][data-app="INVENTORY"] .mk-topbar,
+body[data-module="Warehouse"][data-view="VendorList"][data-app="INVENTORY"] .mk-topbar {
 	height: 0 !important;
 	margin: 0 !important;
 	padding: 0 !important;
@@ -50,7 +87,9 @@ body[data-module="Warehouse"][data-view="PurchaseHistory"][data-app="INVENTORY"]
 }
 
 body[data-module="Warehouse"][data-view="PurchaseCreate"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
-body[data-module="Warehouse"][data-view="PurchaseHistory"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
+body[data-module="Warehouse"][data-view="PurchaseHistory"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Warehouse"][data-view="PurchaseDetail"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar,
+body[data-module="Warehouse"][data-view="VendorList"][data-app="INVENTORY"] .mk-topbar .mk-dash-app-topbar {
 	position: fixed !important;
 	top: 0 !important;
 	left: var(--mk-dash-sidebar-w) !important;
@@ -794,10 +833,10 @@ body[data-module="Warehouse"][data-view="PurchaseHistory"][data-app="INVENTORY"]
 	letter-spacing: -0.02em;
 }
 
-/* Shell for new views */
+/* Shell for new views — same column width as the purchase list */
 body[data-module="Warehouse"][data-view="PurchaseDetail"][data-app="INVENTORY"],
 body[data-module="Warehouse"][data-view="VendorList"][data-app="INVENTORY"] {
-	--mk-dash-sidebar-w: 239px;
+	--mk-dash-sidebar-w: 256px;
 	--mk-dash-topbar-h: 64px;
 }
 body[data-module="Warehouse"][data-view="PurchaseDetail"][data-app="INVENTORY"] .mk-app-shell,
@@ -834,32 +873,44 @@ body[data-module="Warehouse"][data-view="VendorList"][data-app="INVENTORY"] .mk-
 /* ===== Kiot IA blocks ===== */
 .mk-kiot-top {
 	display: flex;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 	align-items: center;
-	justify-content: space-between;
-	gap: 14px;
-	margin-bottom: 16px;
+	justify-content: flex-start;
+	gap: 16px;
+	margin: 0 0 16px;
+	padding: 14px 16px;
+	background: #ffffff;
+	border: 1px solid var(--mk-wh-border);
+	border-radius: 16px;
+	box-shadow: var(--mk-wh-shadow);
+	position: relative;
+	z-index: 2;
 }
 .mk-kiot-top__left {
 	display: flex;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 	align-items: center;
-	gap: 14px 18px;
-	flex: 1;
+	gap: 16px;
+	flex: 1 1 auto;
 	min-width: 0;
+}
+.mk-kiot-top__right {
+	margin-left: auto;
+	flex: 0 0 auto;
 }
 .mk-kiot-title {
 	margin: 0;
 	font-family: Outfit, sans-serif;
-	font-size: 28px;
+	font-size: 22px;
 	font-weight: 700;
 	letter-spacing: -0.03em;
 	color: var(--mk-wh-text);
 	white-space: nowrap;
+	flex: 0 0 auto;
 }
 .mk-kiot-search {
 	position: relative;
-	flex: 1;
+	flex: 1 1 280px;
 	min-width: 220px;
 	max-width: 420px;
 	display: flex;
@@ -877,9 +928,20 @@ body[data-module="Warehouse"][data-view="VendorList"][data-app="INVENTORY"] .mk-
 	padding: 8px 14px 8px 38px;
 	border: 1px solid #d7e3dd;
 	border-radius: 999px;
-	background: #fff;
+	background: #f6fbf9;
 	font-size: 13.5px;
 	font-family: inherit;
+	box-sizing: border-box;
+}
+@media (max-width: 860px) {
+	.mk-kiot-top,
+	.mk-kiot-top__left {
+		flex-wrap: wrap;
+	}
+	.mk-kiot-search {
+		flex-basis: 100%;
+		max-width: none;
+	}
 }
 .mk-kiot-search input:focus {
 	outline: none;
