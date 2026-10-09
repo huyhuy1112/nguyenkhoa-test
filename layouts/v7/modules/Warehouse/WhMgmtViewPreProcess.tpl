@@ -37,7 +37,7 @@
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseLocalStore.js')}?mk_v=20261006_stock_import1"></script>
 {if $VIEW eq 'WhDetail'}
-	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseWhDetailPrototype.js')}?mk_v=20261006_stock_import1"></script>
+	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/WarehouseWhDetailPrototype.js')}?mk_v=20261009_stockimp1"></script>
 {elseif $VIEW eq 'PurchaseCreate' || $VIEW eq 'PurchaseHistory' || $VIEW eq 'PurchaseDetail' || $VIEW eq 'VendorList'}
 	<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Warehouse/resources/PurchaseMgmt.js')}?mk_v=20261008_misa_po1"></script>
 {else}

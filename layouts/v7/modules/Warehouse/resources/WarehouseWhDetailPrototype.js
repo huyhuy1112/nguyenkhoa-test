@@ -38,12 +38,65 @@
 	}
 
 	function showError(msg) {
-		var text = String(msg || 'Đã xảy ra lỗi');
-		if (typeof window !== 'undefined' && window.app && app.helper && app.helper.showErrorNotification) {
-			app.helper.showErrorNotification({ message: text });
-			return;
+		crmNotify(msg || 'Đã xảy ra lỗi', true);
+	}
+
+	function crmNotify(msg, isError) {
+		var safe = escapeHtml(msg).replace(/\\n/g, '\n').replace(/\n/g, '<br>');
+		if (typeof window !== 'undefined' && window.app && app.helper) {
+			if (isError && app.helper.showErrorNotification) {
+				app.helper.showErrorNotification({ message: safe });
+				return;
+			}
+			if (!isError && app.helper.showSuccessNotification) {
+				app.helper.showSuccessNotification({ message: safe });
+				return;
+			}
 		}
-		window.alert(text);
+		window.alert(String(msg || ''));
+	}
+
+	function confirmCrm(title, lines) {
+		return new Promise(function (resolve) {
+			if (!document.getElementById('mkWhImportConfirmStyle')) {
+				var style = document.createElement('style');
+				style.id = 'mkWhImportConfirmStyle';
+				style.textContent =
+					'#mkWhImportConfirm{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.45);padding:24px;}' +
+					'#mkWhImportConfirm .mk-qi-card{width:min(460px,100%);background:#fff;border-radius:16px;box-shadow:0 20px 50px rgba(15,23,42,.18);padding:22px 22px 18px;color:#111827;}' +
+					'#mkWhImportConfirm h3{margin:0 0 8px;font-size:18px;font-weight:700;color:#14532d;}' +
+					'#mkWhImportConfirm p{margin:0 0 8px;font-size:14px;line-height:1.45;color:#374151;}' +
+					'#mkWhImportConfirm .mk-qi-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;}' +
+					'#mkWhImportConfirm button{border-radius:999px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid transparent;}' +
+					'#mkWhImportConfirm .mk-qi-cancel{background:#fff;border-color:#d1d5db;color:#374151;}' +
+					'#mkWhImportConfirm .mk-qi-ok{background:#15803d;color:#fff;}';
+				document.head.appendChild(style);
+			}
+			var root = document.createElement('div');
+			root.id = 'mkWhImportConfirm';
+			var body = (lines || []).map(function (line) {
+				return '<p>' + escapeHtml(line) + '</p>';
+			}).join('');
+			root.innerHTML =
+				'<div class="mk-qi-card" role="dialog" aria-modal="true">' +
+				'<h3>' + escapeHtml(title || 'Xác nhận') + '</h3>' +
+				body +
+				'<div class="mk-qi-actions">' +
+				'<button type="button" class="mk-qi-cancel">Huỷ</button>' +
+				'<button type="button" class="mk-qi-ok">Tiếp tục</button>' +
+				'</div></div>';
+			function close(ok) {
+				if (root.parentNode) root.parentNode.removeChild(root);
+				resolve(!!ok);
+			}
+			root.addEventListener('click', function (e) {
+				if (e.target === root) close(false);
+			});
+			root.querySelector('.mk-qi-cancel').addEventListener('click', function () { close(false); });
+			root.querySelector('.mk-qi-ok').addEventListener('click', function () { close(true); });
+			document.body.appendChild(root);
+			root.querySelector('.mk-qi-ok').focus();
+		});
 	}
 
 	function decodeEntities(s) {
@@ -3827,16 +3880,15 @@
 				if (!whId) return;
 				var name = String(file.name || '').toLowerCase();
 				if (!/\.xlsx$/i.test(name)) {
-					window.alert('Chỉ hỗ trợ file .xlsx (báo cáo Xuất–Nhập–Tồn).');
+					showError('Chỉ hỗ trợ file .xlsx (báo cáo Xuất–Nhập–Tồn).');
 					importFile.value = '';
 					return;
 				}
-				var ok = window.confirm(
-					'Import tồn kho từ file:\n' + file.name +
-					'\n\nSẽ XÓA tồn hiện tại của kho này rồi ghi lại theo Excel' +
-					'\n(SKU = Mã hàng, tồn = Tồn cuối kỳ, giá/tên từ Hàng hoá, HSD trống).' +
-					'\n\nTiếp tục?'
-				);
+				confirmCrm('Import tồn kho', [
+					file.name,
+					'Sẽ xóa tồn hiện tại của kho này rồi ghi lại theo Excel.',
+					'Mã chưa có trong Hàng hoá sẽ được tạo từ file (SKU và tên), rồi nhập tồn.'
+				]).then(function (ok) {
 				if (!ok) {
 					importFile.value = '';
 					return;
@@ -3849,7 +3901,7 @@
 					importFile.value = '';
 				};
 				if (!(S.warehouseDataActions && typeof S.warehouseDataActions.importStockExcel === 'function')) {
-					window.alert('Chức năng import chưa sẵn sàng (cần chế độ DB).');
+					showError('Chức năng import chưa sẵn sàng (cần chế độ DB).');
 					done();
 					return;
 				}
@@ -3859,19 +3911,21 @@
 					var msg =
 						'Import xong.\n' +
 						'- Excel: ' + (st.excel || 0) + '\n' +
-						'- Khớp catalog: ' + (st.matched || 0) + '\n' +
-						'- Thêm mới: ' + (st.inserted || 0) + '\n' +
-						'- Cập nhật: ' + (st.updated || 0) + '\n' +
-						'- SKU thiếu trên Hàng hoá: ' + (st.missing_sku || 0);
+						'- Khớp hàng hoá: ' + (st.matched || 0) + '\n' +
+						'- Tạo hàng hoá mới: ' + (st.created_sku || 0) + '\n' +
+						'- Thêm tồn: ' + (st.inserted || 0) + '\n' +
+						'- Cập nhật tồn: ' + (st.updated || 0) + '\n' +
+						'- Không nhập được: ' + (st.missing_sku || 0);
 					if (miss && miss.length) {
-						msg += '\n\nSKU thiếu (mẫu):\n- ' + miss.slice(0, 12).join('\n- ');
+						msg += '\n\nKhông nhập được:\n- ' + miss.slice(0, 12).join('\n- ');
 					}
-					window.alert(msg);
+					crmNotify(msg, (st.missing_sku || 0) > 0 && !(st.inserted || st.updated || st.created_sku));
 					renderAll();
 					done();
 				}).fail(function (err) {
-					window.alert((err && err.message) ? err.message : 'Import thất bại.');
+					showError((err && err.message) ? err.message : 'Import thất bại.');
 					done();
+				});
 				});
 			});
 		}

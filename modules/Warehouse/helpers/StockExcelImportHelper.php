@@ -5,7 +5,8 @@
  * Map:
  *   Mã hàng       → catalog sku
  *   Tồn cuối kì   → quantity
- *   name / price  → ProductsServices (not Excel value columns)
+ *   name / price  → ProductsServices when the SKU already exists
+ *   SKU chưa có   → tạo Hàng hoá từ Mã hàng + Tên hàng rồi ghi tồn
  *   HSD           → left null
  */
 class Warehouse_StockExcelImport_Helper {
@@ -112,6 +113,40 @@ class Warehouse_StockExcelImport_Helper {
 		return (float) $v;
 	}
 
+	/**
+	 * Tạo Hàng hoá khi Excel có SKU mà catalog chưa có.
+	 *
+	 * @param string $sku
+	 * @param string $name
+	 * @param int $userId
+	 * @return array{id:int,name:string,price:float}
+	 */
+	protected static function createCatalogProduct($sku, $name, $userId) {
+		$sku = trim((string) $sku);
+		$name = trim((string) $name);
+		if ($name === '') {
+			$name = $sku;
+		}
+		$ownerId = (int) $userId > 0 ? (int) $userId : 1;
+		$record = Vtiger_Record_Model::getCleanInstance('ProductsServices');
+		$record->set('mode', '');
+		$record->set('productsservicesname', $name);
+		$record->set('sku', $sku);
+		$record->set('item_type', 'Product');
+		$record->set('price', 0);
+		$record->set('assigned_user_id', $ownerId);
+		$record->save();
+		$id = (int) $record->getId();
+		if ($id <= 0) {
+			throw new Exception('Không tạo được hàng hoá.');
+		}
+		return array(
+			'id' => $id,
+			'name' => $name,
+			'price' => 0.0,
+		);
+	}
+
 	protected static function decodeName($s) {
 		$s = html_entity_decode((string) $s, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 		$s = html_entity_decode($s, ENT_QUOTES | ENT_HTML5, 'UTF-8');
@@ -172,6 +207,7 @@ class Warehouse_StockExcelImport_Helper {
 		$stats = array(
 			'excel' => 0,
 			'matched' => 0,
+			'created_sku' => 0,
 			'missing_sku' => 0,
 			'updated' => 0,
 			'inserted' => 0,
@@ -192,11 +228,16 @@ class Warehouse_StockExcelImport_Helper {
 			$excelName = isset($row['Tên hàng']) ? trim((string) $row['Tên hàng']) : '';
 
 			if (!isset($catalog[$sku])) {
-				$stats['missing_sku']++;
-				if (count($missing) < 40) {
-					$missing[] = $sku . ($excelName !== '' ? ' (' . $excelName . ')' : '');
+				try {
+					$catalog[$sku] = self::createCatalogProduct($sku, $excelName, $userId);
+					$stats['created_sku']++;
+				} catch (Exception $ex) {
+					$stats['missing_sku']++;
+					if (count($missing) < 40) {
+						$missing[] = $sku . ($excelName !== '' ? ' (' . $excelName . ')' : '') . ': ' . $ex->getMessage();
+					}
+					continue;
 				}
-				continue;
 			}
 
 			$stats['matched']++;
