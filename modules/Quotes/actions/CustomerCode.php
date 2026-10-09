@@ -39,11 +39,24 @@ class Quotes_CustomerCode_Action extends Vtiger_Action_Controller {
 			}
 		}
 
-		if ($segment === '' && $accountId > 0 && class_exists('ProductsServices_PricingEngine_Model')
-			&& ProductsServices_PricingEngine_Model::isTuibaoAccount($accountId)) {
-			$segment = 'tuibao';
-			if ($code === '') {
-				$code = 'TUIBAO';
+		if ($segment === '' && $accountId > 0) {
+			$adb = isset($adb) ? $adb : PearDatabase::getInstance();
+			$accRs = $adb->pquery(
+				'SELECT account_no FROM vtiger_account WHERE accountid = ? LIMIT 1',
+				array($accountId)
+			);
+			$accountNo = '';
+			if ($accRs && $adb->num_rows($accRs) > 0) {
+				$accountNo = trim(decode_html((string) $adb->query_result($accRs, 0, 'account_no')));
+			}
+			$isTuibaoCode = stripos($accountNo, 'TUIBAO') === 0;
+			$isTuibaoAccount = class_exists('ProductsServices_PricingEngine_Model')
+				&& ProductsServices_PricingEngine_Model::isTuibaoAccount($accountId);
+			if ($isTuibaoCode || $isTuibaoAccount) {
+				$segment = 'tuibao';
+				if ($code === '') {
+					$code = $accountNo !== '' ? $accountNo : 'TUIBAO';
+				}
 			}
 		}
 

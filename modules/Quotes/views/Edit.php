@@ -76,6 +76,23 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 					$priceChannel = 'tuibao';
 				}
 			}
+			if ($priceChannel !== 'tuibao' && $accountId > 0) {
+				try {
+					$db = PearDatabase::getInstance();
+					$accRs = $db->pquery(
+						'SELECT account_no FROM vtiger_account WHERE accountid = ? LIMIT 1',
+						array($accountId)
+					);
+					if ($accRs && $db->num_rows($accRs)) {
+						$accountNo = strtoupper(trim(decode_html((string) $db->query_result($accRs, 0, 'account_no'))));
+						if (strpos($accountNo, 'TUIBAO') === 0) {
+							$priceChannel = 'tuibao';
+						}
+					}
+				} catch (Exception $e) {
+					// Keep retail when the account code cannot be read.
+				}
+			}
 		}
 		$viewer->assign('MK_PRICE_CHANNEL', $priceChannel);
 	}

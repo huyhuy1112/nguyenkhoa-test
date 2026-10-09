@@ -479,8 +479,36 @@ class Quotes_ListView_Model extends Inventory_ListView_Model {
 	}
 
 	/**
-	 * Only quotes created from module Khách hàng nhượng quyền (ServiceContracts):
-	 * mk_servicecontract_id > 0 and source SC still active.
+	 * Nhượng quyền: quote gắn chủ quán (mã TUIBAO) hoặc còn link ServiceContracts cũ.
+	 *
+	 * @return string
+	 */
+	protected function franchiseQuoteMatchSql() {
+		return '(
+			(
+				vtiger_quotes.mk_servicecontract_id IS NOT NULL
+				AND vtiger_quotes.mk_servicecontract_id > 0
+				AND EXISTS (
+					SELECT 1
+					FROM vtiger_servicecontracts sc
+					INNER JOIN vtiger_crmentity sce
+						ON sce.crmid = sc.servicecontractsid AND sce.deleted = 0
+					WHERE sc.servicecontractsid = vtiger_quotes.mk_servicecontract_id
+				)
+			)
+			OR EXISTS (
+				SELECT 1
+				FROM vtiger_account acc
+				INNER JOIN vtiger_crmentity ace
+					ON ace.crmid = acc.accountid AND ace.deleted = 0
+				WHERE acc.accountid = vtiger_quotes.accountid
+					AND acc.account_no LIKE \'TUIBAO%\'
+			)
+		)';
+	}
+
+	/**
+	 * Quotes from chủ quán (TUIBAO account) or a still-active ServiceContract link.
 	 *
 	 * @param string $listQuery
 	 * @return string
@@ -498,15 +526,7 @@ class Quotes_ListView_Model extends Inventory_ListView_Model {
 		} else {
 			$fragment = ' AND (
 			/* mk_qt_franchise_filter */
-			vtiger_quotes.mk_servicecontract_id IS NOT NULL
-			AND vtiger_quotes.mk_servicecontract_id > 0
-			AND EXISTS (
-				SELECT 1
-				FROM vtiger_servicecontracts sc
-				INNER JOIN vtiger_crmentity sce
-					ON sce.crmid = sc.servicecontractsid AND sce.deleted = 0
-				WHERE sc.servicecontractsid = vtiger_quotes.mk_servicecontract_id
-			)
+			' . $this->franchiseQuoteMatchSql() . '
 		) ';
 		}
 
@@ -523,7 +543,7 @@ class Quotes_ListView_Model extends Inventory_ListView_Model {
 	}
 
 	/**
-	 * Retail quotes: NOT linked to an active franchise ServiceContract.
+	 * Retail quotes: not a chủ quán (TUIBAO) quote and not an active ServiceContract link.
 	 *
 	 * @param string $listQuery
 	 * @return string
@@ -542,15 +562,7 @@ class Quotes_ListView_Model extends Inventory_ListView_Model {
 
 		$fragment = ' AND (
 			/* mk_qt_retail_filter */
-			vtiger_quotes.mk_servicecontract_id IS NULL
-			OR vtiger_quotes.mk_servicecontract_id = 0
-			OR NOT EXISTS (
-				SELECT 1
-				FROM vtiger_servicecontracts sc
-				INNER JOIN vtiger_crmentity sce
-					ON sce.crmid = sc.servicecontractsid AND sce.deleted = 0
-				WHERE sc.servicecontractsid = vtiger_quotes.mk_servicecontract_id
-			)
+			NOT ' . $this->franchiseQuoteMatchSql() . '
 		) ';
 
 		if (preg_match('/\sORDER\s+BY\s/i', $listQuery)) {

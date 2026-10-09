@@ -1,7 +1,8 @@
 <?php
 /*+***********************************************************************************
- * Quote create: search customer across Contacts / Potentials / Leads / ServiceContracts
- * (Nhượng quyền → Giá Tuibao).
+ * Quote create: search customer across Contacts / Potentials / Leads / Accounts.
+ * Tab Nhượng quyền = Danh sách chủ quán (Accounts) → Giá Tuibao.
+ * Bucket key stays ServiceContracts so the existing tab wiring keeps working.
  *************************************************************************************/
 
 class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
@@ -76,47 +77,48 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 			$out['Leads'] = $this->searchLeads($q, $per);
 		}
 		if ($wantFranchise) {
-			$out['ServiceContracts'] = $this->searchServiceContracts($q, $per);
+			$out['ServiceContracts'] = $this->searchFranchiseAccounts($q, $per);
 		}
 		return $out;
 	}
 
-	protected function hasBaceScProfile($adb) {
-		static $ok = null;
-		if ($ok !== null) {
-			return $ok;
+	protected function accountColumnExists($adb, $column) {
+		static $cache = array();
+		$column = (string) $column;
+		if (array_key_exists($column, $cache)) {
+			return $cache[$column];
 		}
-		$rs = $adb->pquery('SHOW TABLES LIKE ?', array('bace_sc_profile'));
-		$ok = $rs && $adb->num_rows($rs) > 0;
-		return $ok;
+		$rs = $adb->pquery('SHOW COLUMNS FROM vtiger_account LIKE ?', array($column));
+		$cache[$column] = $rs && $adb->num_rows($rs) > 0;
+		return $cache[$column];
 	}
 
 	/**
-	 * Khách hàng nhượng quyền (ServiceContracts) → Giá Tuibao.
+	 * Danh sách chủ quán (Accounts) → Giá Tuibao.
+	 * Same live rows as the Accounts list, not ServiceContracts prospects.
 	 */
-	protected function searchServiceContracts($q, $limit) {
-		if (!Users_Privileges_Model::isPermitted('ServiceContracts', 'DetailView')) {
+	protected function searchFranchiseAccounts($q, $limit) {
+		if (!Users_Privileges_Model::isPermitted('Accounts', 'DetailView')) {
 			return array();
 		}
 		$adb = PearDatabase::getInstance();
-		$hasProfile = $this->hasBaceScProfile($adb);
-		$columns = array('sc.subject', 'sc.contract_no', 'acc.accountname');
-		if ($hasProfile) {
-			$columns = array_merge($columns, array('p.phone', 'p.email', 'p.affiliate_code', 'p.business_note', 'p.address_line'));
+		$hasStore = $this->accountColumnExists($adb, 'tb_store_address');
+		$hasPartyPhone = $this->accountColumnExists($adb, 'tb_party_b_phone');
+		$columns = array('a.accountname', 'a.account_no', 'a.phone', 'a.email1', 'bill.bill_street');
+		if ($hasStore) {
+			$columns[] = 'a.tb_store_address';
+		}
+		if ($hasPartyPhone) {
+			$columns[] = 'a.tb_party_b_phone';
 		}
 		list($where, $params) = $this->buildLikeClause($adb, $q, $columns);
-		$profileJoin = $hasProfile
-			? 'LEFT JOIN bace_sc_profile p ON p.servicecontractsid = sc.servicecontractsid'
-			: '';
-		$profileSelect = $hasProfile
-			? ', p.phone, p.email, p.affiliate_code, p.business_note, p.address_line'
-			: ', NULL AS phone, NULL AS email, NULL AS affiliate_code, NULL AS business_note, NULL AS address_line';
-		$sql = "SELECT sc.servicecontractsid, sc.subject, sc.contract_no, sc.sc_related_to,
-				acc.accountname{$profileSelect}
-			FROM vtiger_servicecontracts sc
-			INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecontractsid AND ce.deleted = 0
-			LEFT JOIN vtiger_account acc ON acc.accountid = sc.sc_related_to
-			{$profileJoin}
+		$storeSelect = $hasStore ? 'a.tb_store_address' : 'NULL AS tb_store_address';
+		$partySelect = $hasPartyPhone ? 'a.tb_party_b_phone' : 'NULL AS tb_party_b_phone';
+		$sql = "SELECT a.accountid, a.accountname, a.account_no, a.phone, a.email1,
+				{$storeSelect}, {$partySelect}, bill.bill_street, bill.bill_city
+			FROM vtiger_account a
+			INNER JOIN vtiger_crmentity ce ON ce.crmid = a.accountid AND ce.deleted = 0 AND ce.setype = 'Accounts'
+			LEFT JOIN vtiger_accountbillads bill ON bill.accountaddressid = a.accountid
 			WHERE {$where}
 			ORDER BY ce.modifiedtime DESC
 			LIMIT " . (int) $limit;
@@ -126,35 +128,40 @@ class Quotes_SearchCustomer_Action extends Vtiger_Action_Controller {
 			return $rows;
 		}
 		for ($i = 0; $i < $adb->num_rows($res); $i++) {
-			$id = (int) $adb->query_result($res, $i, 'servicecontractsid');
-			$subject = decode_html((string) $adb->query_result($res, $i, 'subject'));
-			$contractNo = decode_html((string) $adb->query_result($res, $i, 'contract_no'));
-			$accountId = (int) $adb->query_result($res, $i, 'sc_related_to');
-			$account = decode_html((string) $adb->query_result($res, $i, 'accountname'));
+			$id = (int) $adb->query_result($res, $i, 'accountid');
+			$name = decode_html((string) $adb->query_result($res, $i, 'accountname'));
+			$code = decode_html((string) $adb->query_result($res, $i, 'account_no'));
 			$phone = decode_html((string) $adb->query_result($res, $i, 'phone'));
-			$email = decode_html((string) $adb->query_result($res, $i, 'email'));
-			$code = decode_html((string) $adb->query_result($res, $i, 'affiliate_code'));
-			$businessNote = trim(decode_html((string) $adb->query_result($res, $i, 'business_note')));
-			$addressLine = trim(decode_html((string) $adb->query_result($res, $i, 'address_line')));
-			$address = $businessNote !== '' ? $businessNote : $addressLine;
-			$label = $subject !== '' ? $subject : ($account !== '' ? $account : ('#' . $id));
-			$parts = array_filter(array($code, $contractNo, $account, $phone, $email));
+			if ($phone === '') {
+				$phone = decode_html((string) $adb->query_result($res, $i, 'tb_party_b_phone'));
+			}
+			$email = decode_html((string) $adb->query_result($res, $i, 'email1'));
+			$address = trim(decode_html((string) $adb->query_result($res, $i, 'tb_store_address')));
+			if ($address === '') {
+				$address = trim(decode_html((string) $adb->query_result($res, $i, 'bill_street')));
+				$city = trim(decode_html((string) $adb->query_result($res, $i, 'bill_city')));
+				if ($city !== '') {
+					$address = $address !== '' ? ($address . ', ' . $city) : $city;
+				}
+			}
+			$label = $name !== '' ? $name : ($code !== '' ? $code : ('#' . $id));
+			$parts = array_filter(array($code, $phone, $email));
 			$rows[] = array(
 				'id' => $id,
-				'module' => 'ServiceContracts',
-				'module_label' => 'Nhượng quyền',
+				'module' => 'Accounts',
+				'module_label' => 'Chủ quán',
 				'label' => $label,
 				'subtitle' => implode(' · ', $parts),
 				'phone' => $phone,
 				'email' => $email,
-				'extra' => $account,
+				'extra' => $label,
 				'address' => $address,
-				'business_note' => $businessNote,
+				'business_note' => '',
 				'contact_id' => 0,
 				'potential_id' => 0,
 				'lead_id' => 0,
-				'servicecontract_id' => $id,
-				'account_id' => $accountId,
+				'servicecontract_id' => 0,
+				'account_id' => $id,
 				'price_channel' => 'tuibao',
 				'customer_code' => $code !== '' ? $code : 'TUIBAO',
 			);

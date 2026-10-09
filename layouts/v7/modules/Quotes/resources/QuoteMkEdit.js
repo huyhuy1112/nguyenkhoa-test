@@ -778,6 +778,7 @@
 			parseInt($f.find('[name="mk_servicecontract_id"]').val(), 10) ||
 			parseInt($f.find('[name="servicecontract_id"]').val(), 10) ||
 			0;
+		var accountId = parseInt($f.find('[name="account_id"]').val(), 10) || 0;
 		var subject = $.trim($f.find('[name="subject"]').val() || '');
 		var currentDisplay = $.trim($display.val() || '');
 		var potentialLabel = $.trim($f.find('[name="potential_id_display"]').val() || '');
@@ -805,6 +806,9 @@
 			}
 			if (extra && extra.leadId) {
 				$display.data('mkLeadId', extra.leadId);
+			}
+			if (extra && extra.accountId) {
+				$display.data('mkAccountId', extra.accountId);
 			}
 			markSelected();
 			$f.data('mkQtCustomerHydrated', 1);
@@ -846,6 +850,8 @@
 					$display.data('mkCustomerModule', 'Potentials');
 				} else if (contactId > 0) {
 					$display.data('mkCustomerModule', 'Contacts');
+				} else if (accountId > 0) {
+					$display.data('mkCustomerModule', 'Accounts').data('mkAccountId', accountId);
 				}
 			}
 			markSelected();
@@ -913,6 +919,22 @@
 			return;
 		}
 
+		if (accountId > 0 && !contactId && !potentialId && !scId) {
+			var ownerLabel = accountLabel || subject;
+			if (ownerLabel) {
+				finish(ownerLabel, 'Accounts', { accountId: accountId });
+				return;
+			}
+			fetchRecordDetailsSimple('Accounts', accountId).done(function (data) {
+				finish(
+					$.trim((data && (data.accountname || data.label)) || ('#' + accountId)),
+					'Accounts',
+					{ accountId: accountId }
+				);
+			});
+			return;
+		}
+
 		if (contactId > 0) {
 			fetchRecordDetailsSimple('Contacts', contactId).done(function (data) {
 				var name = '';
@@ -948,7 +970,8 @@
 	function clearQuoteCustomerFields() {
 		var $f = $form();
 		$f.find('[name="contact_id"]').val('');
-		$f.find('[name="contact_id_display"]').val('').removeData('mkCustomerModule').removeData('mkCustomerCode').removeData('mkLeadId').removeData('mkServiceContractId');
+		$f.find('[name="contact_id_display"]').val('').removeData('mkCustomerModule').removeData('mkCustomerCode').removeData('mkLeadId').removeData('mkServiceContractId').removeData('mkAccountId');
+		setHiddenRef($f, 'account_id', 0, '');
 		$f.find('[name="potential_id"]').val('');
 		$f.find('[name="potential_id_display"]').val('');
 		$f.find('[name="subject"]').val('');
@@ -981,7 +1004,7 @@
 
 	/**
 	 * retail = Opp / Leads / Khách hàng (bảng giá lẻ theo bậc HĐ)
-	 * tuibao = Nhượng quyền / ServiceContracts
+	 * tuibao = Nhượng quyền / danh sách chủ quán
 	 */
 	function applyQuotePriceChannel(channel, opts) {
 		opts = opts || {};
@@ -1018,6 +1041,13 @@
 			0;
 		var label = $.trim($display.val() || '');
 
+		var accountId =
+			parseInt($display.data('mkAccountId'), 10) ||
+			parseInt($f.find('[name="account_id"]').val(), 10) ||
+			0;
+		if (mod === 'Accounts' && accountId > 0) {
+			return { module: 'Accounts', record: accountId, label: label };
+		}
 		if ((mod === 'ServiceContracts' || mod === 'Franchise') && scId > 0) {
 			return { module: 'ServiceContracts', record: scId, label: label };
 		}
@@ -1189,9 +1219,11 @@
 			var email = primary.email || primary.email1 || extra.email || extra.email1 || '';
 			var company = primary.company || extra.accountname || primary.accountname || '';
 			var address =
+				primary.tb_store_address ||
 				primary.mailingstreet ||
 				primary.bill_street ||
 				primary.lane ||
+				extra.tb_store_address ||
 				extra.mailingstreet ||
 				extra.bill_street ||
 				'';
@@ -1206,11 +1238,15 @@
 				{
 					label: 'Loại',
 					value:
-						ref.module === 'Contacts'
+						ref.module === 'Accounts'
+							? 'Chủ quán'
+							: ref.module === 'Contacts'
 							? 'Người liên hệ'
 							: ref.module === 'Potentials'
 								? 'Cơ hội'
-								: 'KH tiềm năng'
+								: ref.module === 'ServiceContracts'
+									? 'Nhượng quyền'
+									: 'KH tiềm năng'
 				},
 				{ label: 'SĐT', value: phone },
 				{ label: 'Email', value: email },
@@ -1396,6 +1432,22 @@
 		});
 	}
 
+	function ensureAccountLinkField($f, accountId, label) {
+		$f = $f || $form();
+		accountId = parseInt(accountId, 10) || 0;
+		var $acc = $f.find('[name="account_id"]');
+		if (!$acc.length) {
+			$acc = $('<input type="hidden" name="account_id" />');
+			$f.prepend($acc);
+		}
+		$acc.val(accountId > 0 ? String(accountId) : '');
+		var $accDisp = $f.find('[name="account_id_display"]');
+		if ($accDisp.length) {
+			$accDisp.val(accountId > 0 ? $.trim(label || '') : '');
+		}
+		return accountId;
+	}
+
 	function setHiddenRef($f, field, id, label) {
 		id = parseInt(id, 10) || 0;
 		label = $.trim(label || '');
@@ -1443,8 +1495,23 @@
 			$display.removeData('mkLeadId');
 		}
 		$display.removeData('mkServiceContractId');
+		$display.removeData('mkAccountId');
 
-		if (item.module === 'ServiceContracts' || item.module === 'Franchise') {
+		if (item.module === 'Accounts') {
+			var ownerId = parseInt(item.account_id || item.id, 10) || 0;
+			setHiddenRef($f, 'potential_id', 0, '');
+			setHiddenRef($f, 'contact_id', 0, '');
+			ensureAccountLinkField($f, ownerId, label);
+			$display.val(label).data('mkCustomerModule', 'Accounts').data('mkAccountId', ownerId);
+			$f.find('[name="subject"]').val(label).trigger('change');
+			ensureServiceContractLinkFields($f, 0);
+			fillQuoteCustomerBits(item);
+			var ownerAddr = $.trim(item.address || '');
+			if (ownerAddr) {
+				applyScAddressToQuoteForm($f, ownerAddr);
+			}
+			applyQuotePriceChannel('tuibao', { clearSc: true });
+		} else if (item.module === 'ServiceContracts' || item.module === 'Franchise') {
 			var scId = parseInt(item.servicecontract_id || item.id, 10) || 0;
 			var accountId = parseInt(item.account_id, 10) || 0;
 			setHiddenRef($f, 'potential_id', 0, '');
@@ -1582,7 +1649,7 @@
 		if (moduleName === 'Leads') {
 			return 'lead';
 		}
-		if (moduleName === 'ServiceContracts' || moduleName === 'Franchise') {
+		if (moduleName === 'ServiceContracts' || moduleName === 'Franchise' || moduleName === 'Accounts') {
 			return 'franchise';
 		}
 		return 'contact';
@@ -1691,7 +1758,7 @@
 				'<button type="button" class="mk-qt-customer-tab" data-tab="Contacts" role="tab">' +
 				'<span class="mk-qt-customer-tab__dot mk-qt-customer-tab__dot--contact"></span>Khách hàng' +
 				'<em class="mk-qt-customer-tab__count" data-count="Contacts">0</em></button>' +
-				'<button type="button" class="mk-qt-customer-tab" data-tab="ServiceContracts" role="tab" title="Khách nhượng quyền · giá Tuibao">' +
+				'<button type="button" class="mk-qt-customer-tab" data-tab="ServiceContracts" role="tab" title="Danh sách chủ quán · giá Tuibao">' +
 				'<span class="mk-qt-customer-tab__dot mk-qt-customer-tab__dot--franchise"></span>Nhượng quyền' +
 				'<em class="mk-qt-customer-tab__count" data-count="ServiceContracts">0</em></button>' +
 				'</div>' +
@@ -1731,7 +1798,7 @@
 			});
 			var $hint = $modal.find('#mk-qt-customer-price-hint');
 			if (state.tab === 'ServiceContracts') {
-				$hint.html('Nguồn <strong>Nhượng quyền</strong> → hàng hoá áp <strong>giá Tuibao</strong>');
+				$hint.html('Nguồn <strong>danh sách chủ quán</strong> → hàng hoá áp <strong>giá Tuibao</strong>');
 			} else {
 				$hint.html('Opp / Leads / Khách hàng → <strong>giá lẻ</strong> · Nhượng quyền → <strong>giá Tuibao</strong>');
 			}
