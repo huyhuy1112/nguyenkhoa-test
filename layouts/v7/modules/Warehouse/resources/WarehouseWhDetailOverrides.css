@@ -2090,3 +2090,19 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh
 	background: #fef2f2;
 	border-color: #f87171;
 }
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-proto-btn--fill {
+	border-color: rgba(8, 160, 69, 0.45);
+	color: #087a34;
+}
+
+body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .mk-wh-stock-fill {
+	width: 100%;
+	max-width: 160px;
+	border: 1px solid rgba(64, 98, 126, 0.28);
+	border-radius: 8px;
+	padding: 4px 8px;
+	font: inherit;
+	color: #0f172a;
+	background: #fff;
+}

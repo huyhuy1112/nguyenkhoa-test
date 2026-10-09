@@ -214,6 +214,7 @@
 				transfers: global.MK_WH_DB_STATE.transfers || [],
 				data: global.MK_WH_DB_STATE.data || {},
 				settings: Object.assign({}, DEFAULT_SETTINGS, global.MK_WH_DB_STATE.settings || {}),
+				canStockFillAdmin: global.MK_WH_DB_STATE.canStockFillAdmin ? 1 : 0,
 			};
 			emit();
 			return;
@@ -322,6 +323,9 @@
 			}
 			var def = $.Deferred();
 			apiPost({ mode: 'get', id: whId }).then(function (res) {
+				if (res && res.canStockFillAdmin != null) {
+					state.canStockFillAdmin = res.canStockFillAdmin ? 1 : 0;
+				}
 				if (res && res.data) {
 					patchData(whId, function () { return res.data; });
 				}
@@ -509,6 +513,49 @@
 				code: code,
 				imageId: imageId,
 			}).then(function (res) {
+				if (res && res.data) {
+					patchData(whId, function () { return res.data; });
+				}
+				def.resolve(res);
+			}).fail(function (err) { def.reject(err); });
+			return def.promise();
+		},
+		setStockFill: function (whId, open) {
+			if (!useDb) {
+				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
+			}
+			var def = $.Deferred();
+			apiPost({
+				mode: 'set_stock_fill',
+				whId: whId,
+				open: open ? '1' : '0',
+			}).then(function (res) {
+				if (res && res.canStockFillAdmin != null) {
+					state.canStockFillAdmin = res.canStockFillAdmin ? 1 : 0;
+				}
+				if (res && res.data) {
+					patchData(whId, function () { return res.data; });
+				}
+				def.resolve(res);
+			}).fail(function (err) { def.reject(err); });
+			return def.promise();
+		},
+		saveStockFill: function (whId, stockKey, fields) {
+			if (!useDb) {
+				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
+			}
+			var def = $.Deferred();
+			apiPost({
+				mode: 'save_stock_fill',
+				whId: whId,
+				stockKey: stockKey,
+				expiry: fields && fields.expiry ? fields.expiry : '',
+				location: fields && fields.location ? fields.location : '',
+				lot: fields && fields.lot ? fields.lot : '',
+			}).then(function (res) {
+				if (res && res.canStockFillAdmin != null) {
+					state.canStockFillAdmin = res.canStockFillAdmin ? 1 : 0;
+				}
 				if (res && res.data) {
 					patchData(whId, function () { return res.data; });
 				}

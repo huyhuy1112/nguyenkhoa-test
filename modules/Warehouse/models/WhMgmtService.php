@@ -20,6 +20,7 @@ class Warehouse_WhMgmtService {
 			self::seedAll($db);
 		}
 		self::backfillStockMfgDates($db);
+		self::ensureStockAuditTable($db);
 	}
 
 	/**
@@ -597,6 +598,7 @@ class Warehouse_WhMgmtService {
 			'transfers' => self::listTransfers($db),
 			'data' => $data,
 			'settings' => self::publicSettings(),
+			'canStockFillAdmin' => self::isStockFillAdmin() ? 1 : 0,
 		);
 	}
 
@@ -729,6 +731,8 @@ class Warehouse_WhMgmtService {
 			'issues' => self::loadIssues($db, $warehouseCode),
 			'stock' => self::loadStock($db, $warehouseCode),
 			'returns' => self::loadReturns($warehouseCode),
+			'stockFillOpen' => self::isStockFillOpen($db, $warehouseCode) ? 1 : 0,
+			'stockAudits' => self::loadStockAudits($db, $warehouseCode),
 		);
 	}
 
@@ -797,7 +801,7 @@ class Warehouse_WhMgmtService {
 		}
 		$entry = array(
 			'at' => self::nowIso(),
-			'by' => self::roleDisplayName($role),
+			'by' => self::currentActorName($role),
 			'role' => strtolower(trim((string) $role)) !== '' ? strtolower(trim((string) $role)) : 'manager',
 			'action' => (string) $action,
 		);
@@ -1140,7 +1144,7 @@ class Warehouse_WhMgmtService {
 				'result' => 'pass',
 				'note' => $note,
 				'at' => self::nowIso(),
-				'by' => self::roleDisplayName($role),
+				'by' => self::currentActorName('qc'),
 				'images' => $existingImages,
 			);
 			self::pushTimeline($meta, 'QC đạt', 'qc', $note);
@@ -1155,7 +1159,7 @@ class Warehouse_WhMgmtService {
 				'result' => 'fail',
 				'note' => $note,
 				'at' => self::nowIso(),
-				'by' => self::roleDisplayName($role),
+				'by' => self::currentActorName('qc'),
 				'images' => $existingImages,
 			);
 			self::pushTimeline($meta, 'QC không đạt', 'qc', $note);
@@ -2619,6 +2623,7 @@ class Warehouse_WhMgmtService {
 				$productIds[$productId] = $productId;
 			}
 			$out[] = array(
+				'stockKey' => trim((string) (isset($row['product_key']) ? $row['product_key'] : '')),
 				'sku' => $parsed['sku'],
 				'name' => $parsed['name'],
 				'lot' => $parsed['lot'],
@@ -3262,10 +3267,11 @@ class Warehouse_WhMgmtService {
 		} else {
 			$status = $anyQc ? 'pending_qc' : 'stored';
 		}
+		$actor = self::currentActorName('keeper', $userId);
 		$timeline = array(
 			array(
 				'at' => gmdate('c'),
-				'by' => 'Thủ kho',
+				'by' => $actor,
 				'role' => 'keeper',
 				'action' => $asDraft ? 'Lưu tạm phiếu mua hàng' : 'Tạo phiếu nhập',
 			),
@@ -3278,7 +3284,7 @@ class Warehouse_WhMgmtService {
 				: ($qcLineCount . ' dòng QC theo hàng hoá');
 			$timeline[] = array(
 				'at' => gmdate('c'),
-				'by' => 'Thủ kho',
+				'by' => $actor,
 				'role' => 'keeper',
 				'action' => 'Gửi QC (theo hàng hoá)',
 				'note' => $note,
@@ -3286,7 +3292,7 @@ class Warehouse_WhMgmtService {
 			if ($directLineCount > 0) {
 				$timeline[] = array(
 					'at' => gmdate('c'),
-					'by' => 'Thủ kho',
+					'by' => $actor,
 					'role' => 'keeper',
 					'action' => 'Nhập thẳng tồn kho (dòng không QC)',
 					'note' => $directLineCount . ' dòng',
@@ -3295,7 +3301,7 @@ class Warehouse_WhMgmtService {
 		} else {
 			$timeline[] = array(
 				'at' => gmdate('c'),
-				'by' => 'Thủ kho',
+				'by' => $actor,
 				'role' => 'keeper',
 				'action' => 'Nhập thẳng tồn kho',
 			);
@@ -3396,7 +3402,7 @@ class Warehouse_WhMgmtService {
 
 		$metaArr = array(
 			'poRef' => $poRef,
-			'createdBy' => 'Thủ kho',
+			'createdBy' => $actor,
 			'timeline' => $timeline,
 			'lineNeedsQc' => $lineNeedsQcMeta,
 			'stockedItemIds' => $stockedItemIds,
@@ -4096,9 +4102,10 @@ class Warehouse_WhMgmtService {
 		if ($toWarehouseId !== '' && ($outboundType === '' || $outboundType === 'internal')) {
 			$outboundType = 'transfer';
 		}
-		$createdBy = trim((string) (isset($payload['createdBy']) ? $payload['createdBy'] : 'Thủ kho'));
-		if ($createdBy === '') {
-			$createdBy = 'Thủ kho';
+		$createdBy = trim((string) (isset($payload['createdBy']) ? $payload['createdBy'] : ''));
+		$genericActors = array('Thủ kho', 'QL Tuấn', 'QC Minh', 'Kho', 'QC', 'User', 'Hệ thống');
+		if ($createdBy === '' || in_array($createdBy, $genericActors, true)) {
+			$createdBy = self::currentActorName('manager', $userId);
 		}
 		$status = trim((string) (isset($payload['status']) ? $payload['status'] : 'waiting_print'));
 		if ($status === '') {
@@ -4603,17 +4610,322 @@ class Warehouse_WhMgmtService {
 	}
 
 	protected static function currentUserDisplayName() {
+		return self::currentActorName('qc');
+	}
+
+	/**
+	 * Logged-in CRM user label. Falls back to a role label only when no user is in the request.
+	 */
+	protected static function currentActorName($roleFallback = '', $userId = 0) {
 		global $current_user;
-		if (!empty($current_user) && !empty($current_user->user_name)) {
+		$uid = (int) $userId;
+		if ($uid <= 0 && !empty($current_user) && !empty($current_user->id)) {
+			$uid = (int) $current_user->id;
+		}
+		if ($uid > 0 && !empty($current_user) && (int) $current_user->id === $uid) {
 			$first = trim((string) ($current_user->first_name ?? ''));
 			$last = trim((string) ($current_user->last_name ?? ''));
 			$full = trim($first . ' ' . $last);
 			if ($full !== '') {
 				return $full;
 			}
-			return (string) $current_user->user_name;
+			if (!empty($current_user->user_name)) {
+				return (string) $current_user->user_name;
+			}
 		}
-		return 'QC';
+		if ($uid > 0) {
+			try {
+				$u = Users_Record_Model::getInstanceById($uid, 'Users');
+				if ($u) {
+					$name = trim((string) $u->getName());
+					if ($name !== '') {
+						return $name;
+					}
+					$login = trim((string) $u->get('user_name'));
+					if ($login !== '') {
+						return $login;
+					}
+				}
+			} catch (Exception $e) {
+				// keep role fallback
+			}
+		}
+		return self::roleDisplayName($roleFallback);
+	}
+
+	public static function isStockFillAdmin($userId = 0) {
+		global $current_user;
+		if (!empty($current_user) && function_exists('is_admin') && is_admin($current_user)) {
+			return true;
+		}
+		$uid = (int) $userId;
+		if ($uid <= 0 && !empty($current_user) && !empty($current_user->id)) {
+			$uid = (int) $current_user->id;
+		}
+		if ($uid <= 0) {
+			return false;
+		}
+		$db = PearDatabase::getInstance();
+		$rs = $db->pquery('SELECT is_admin FROM vtiger_users WHERE id = ? AND deleted = 0 LIMIT 1', array($uid));
+		if ($rs && $db->num_rows($rs) > 0) {
+			$flag = strtolower(trim((string) $db->query_result($rs, 0, 'is_admin')));
+			if ($flag === 'on' || $flag === '1') {
+				return true;
+			}
+		}
+		$rs2 = $db->pquery(
+			'SELECT r.rolename FROM vtiger_user2role ur INNER JOIN vtiger_role r ON r.roleid = ur.roleid WHERE ur.userid = ? LIMIT 1',
+			array($uid)
+		);
+		if ($rs2 && $db->num_rows($rs2) > 0) {
+			$role = trim((string) $db->query_result($rs2, 0, 'rolename'));
+			if (strcasecmp($role, 'CEO') === 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected static function ensureStockAuditTable(PearDatabase $db) {
+		static $done = false;
+		if ($done) {
+			return;
+		}
+		$done = true;
+		$db->pquery(
+			'CREATE TABLE IF NOT EXISTS vtiger_warehouse_stock_audit (
+				auditid INT NOT NULL AUTO_INCREMENT,
+				warehouse_id VARCHAR(20) NOT NULL DEFAULT \'\',
+				product_key VARCHAR(255) NOT NULL DEFAULT \'\',
+				sku VARCHAR(128) NOT NULL DEFAULT \'\',
+				product_name VARCHAR(255) NOT NULL DEFAULT \'\',
+				field_name VARCHAR(32) NOT NULL DEFAULT \'\',
+				old_value VARCHAR(255) NOT NULL DEFAULT \'\',
+				new_value VARCHAR(255) NOT NULL DEFAULT \'\',
+				user_id INT NOT NULL DEFAULT 0,
+				user_name VARCHAR(128) NOT NULL DEFAULT \'\',
+				createdtime DATETIME NOT NULL,
+				PRIMARY KEY (auditid),
+				KEY idx_wh_stock_audit (warehouse_id, auditid)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8',
+			array()
+		);
+	}
+
+	protected static function isStockFillOpen(PearDatabase $db, $warehouseCode) {
+		$rs = $db->pquery(
+			'SELECT stock_fill_open FROM vtiger_warehouse WHERE code = ? AND deleted = 0 LIMIT 1',
+			array($warehouseCode)
+		);
+		if (!$rs || $db->num_rows($rs) < 1) {
+			return false;
+		}
+		$v = $db->query_result($rs, 0, 'stock_fill_open');
+		return ($v === 1 || $v === '1' || $v === true);
+	}
+
+	protected static function loadStockAudits(PearDatabase $db, $warehouseCode) {
+		self::ensureStockAuditTable($db);
+		$rs = $db->pquery(
+			'SELECT sku, product_name, field_name, old_value, new_value, user_name, createdtime
+			 FROM vtiger_warehouse_stock_audit
+			 WHERE warehouse_id = ?
+			 ORDER BY auditid DESC
+			 LIMIT 200',
+			array($warehouseCode)
+		);
+		$out = array();
+		if (!$rs) {
+			return $out;
+		}
+		while ($row = $db->fetchByAssoc($rs)) {
+			$at = isset($row['createdtime']) ? trim((string) $row['createdtime']) : '';
+			$out[] = array(
+				'sku' => self::decodeDisplayTextDeep((string) (isset($row['sku']) ? $row['sku'] : '')),
+				'name' => self::decodeDisplayTextDeep((string) (isset($row['product_name']) ? $row['product_name'] : '')),
+				'field' => (string) (isset($row['field_name']) ? $row['field_name'] : ''),
+				'oldValue' => self::decodeDisplayTextDeep((string) (isset($row['old_value']) ? $row['old_value'] : '')),
+				'newValue' => self::decodeDisplayTextDeep((string) (isset($row['new_value']) ? $row['new_value'] : '')),
+				'by' => self::decodeDisplayTextDeep((string) (isset($row['user_name']) ? $row['user_name'] : '')),
+				'at' => $at,
+			);
+		}
+		return $out;
+	}
+
+	protected static function assertCanEditStockFill($warehouseCode, $userId) {
+		if (self::isStockFillAdmin($userId)) {
+			return;
+		}
+		$db = PearDatabase::getInstance();
+		if (!self::isStockFillOpen($db, $warehouseCode)) {
+			throw new Exception('Kho chưa được cấp quyền bổ sung tồn. Nhờ CEO hoặc Admin mở quyền.');
+		}
+		$canWrite = false;
+		try {
+			$canWrite = Users_Privileges_Model::isPermitted('GoodsReceipt', 'CreateView')
+				|| Users_Privileges_Model::isPermitted('GoodsIssue', 'CreateView')
+				|| Users_Privileges_Model::isPermitted('Warehouse', 'CreateView')
+				|| Users_Privileges_Model::isPermitted('Warehouse', 'EditView');
+		} catch (Exception $e) {
+			$canWrite = false;
+		}
+		if (!$canWrite) {
+			throw new Exception('Bạn không có quyền sửa tồn kho.');
+		}
+	}
+
+	public static function setStockFillOpen($warehouseCode, $open, $userId = 0) {
+		$db = PearDatabase::getInstance();
+		self::ensureInstalled();
+		$warehouseCode = trim((string) $warehouseCode);
+		if ($warehouseCode === '') {
+			throw new Exception('Thiếu mã kho.');
+		}
+		if (!self::isStockFillAdmin($userId)) {
+			throw new Exception('Chỉ CEO hoặc Admin mới cấp hoặc thu quyền bổ sung tồn.');
+		}
+		$db->pquery(
+			'UPDATE vtiger_warehouse SET stock_fill_open = ? WHERE code = ? AND deleted = 0',
+			array($open ? 1 : 0, $warehouseCode)
+		);
+		return array(
+			'stockFillOpen' => $open ? 1 : 0,
+			'canStockFillAdmin' => 1,
+			'data' => self::getWarehouseData($db, $warehouseCode),
+		);
+	}
+
+	public static function saveStockFill($warehouseCode, $productKey, array $fields, $userId = 0) {
+		$db = PearDatabase::getInstance();
+		self::ensureInstalled();
+		$warehouseCode = trim((string) $warehouseCode);
+		$productKey = trim((string) $productKey);
+		if ($warehouseCode === '' || $productKey === '') {
+			throw new Exception('Thiếu dòng tồn cần sửa.');
+		}
+		self::assertCanEditStockFill($warehouseCode, $userId);
+
+		$rs = $db->pquery(
+			'SELECT stockid, product_key, product_name, productid, expired_date, storage_location
+			 FROM vtiger_warehouse_stock
+			 WHERE warehouse_id = ? AND product_key = ?
+			 LIMIT 1',
+			array($warehouseCode, $productKey)
+		);
+		if (!$rs || $db->num_rows($rs) < 1) {
+			throw new Exception('Không tìm thấy dòng tồn.');
+		}
+		$row = $db->fetchByAssoc($rs);
+		$stockId = (int) $row['stockid'];
+		$parsed = self::parseStockIdentity($db, $row);
+		$sku = (string) $parsed['sku'];
+		$name = (string) $parsed['name'];
+		$oldExpiry = (string) $parsed['expiry'];
+		$oldLot = trim((string) $parsed['lot']);
+		if ($oldLot === '') {
+			$oldLot = '—';
+		}
+		$oldLocation = trim(self::decodeDisplayTextDeep((string) (isset($row['storage_location']) ? $row['storage_location'] : '')));
+		if ($oldLocation === '—') {
+			$oldLocation = '';
+		}
+
+		$newExpiry = array_key_exists('expiry', $fields) ? self::normalizeDateValue($fields['expiry']) : $oldExpiry;
+		$newLocation = array_key_exists('location', $fields) ? trim((string) $fields['location']) : $oldLocation;
+		if ($newLocation === '—') {
+			$newLocation = '';
+		}
+		$newLot = array_key_exists('lot', $fields) ? trim((string) $fields['lot']) : $oldLot;
+		if ($newLot === '' || $newLot === '—') {
+			$newLot = '—';
+		}
+		if (function_exists('mb_substr')) {
+			$newLocation = mb_substr($newLocation, 0, 120);
+			$newLot = mb_substr($newLot, 0, 80);
+		} else {
+			$newLocation = substr($newLocation, 0, 120);
+			$newLot = substr($newLot, 0, 80);
+		}
+
+		$changes = array();
+		if ($newExpiry !== $oldExpiry) {
+			$changes[] = array('expiry', $oldExpiry, $newExpiry);
+		}
+		if ($newLocation !== $oldLocation) {
+			$changes[] = array('location', $oldLocation, $newLocation);
+		}
+		if ($newLot !== $oldLot) {
+			$changes[] = array('lot', $oldLot === '—' ? '' : $oldLot, $newLot === '—' ? '' : $newLot);
+		}
+		if (empty($changes)) {
+			return array(
+				'unchanged' => 1,
+				'canStockFillAdmin' => self::isStockFillAdmin($userId) ? 1 : 0,
+				'data' => self::getWarehouseData($db, $warehouseCode),
+			);
+		}
+
+		$newKey = $productKey;
+		if ($newLot !== $oldLot || ($newExpiry !== $oldExpiry && preg_match('/:E:\d{4}-\d{2}-\d{2}/', $productKey))) {
+			if (strpos($productKey, '|') !== false) {
+				$newKey = $warehouseCode . '|' . $sku . '|' . $newLot;
+			} else {
+				if (preg_match('/:S:[^:]*/u', $newKey)) {
+					$newKey = preg_replace('/:S:[^:]*/u', ':S:' . $newLot, $newKey, 1);
+				} elseif ($newLot !== '—') {
+					$newKey .= ':S:' . $newLot;
+				}
+				if ($newExpiry !== '' && preg_match('/:E:\d{4}-\d{2}-\d{2}/', $newKey)) {
+					$newKey = preg_replace('/:E:\d{4}-\d{2}-\d{2}/', ':E:' . $newExpiry, $newKey, 1);
+				}
+			}
+		}
+		if ($newKey !== $productKey) {
+			$clash = $db->pquery(
+				'SELECT stockid FROM vtiger_warehouse_stock WHERE product_key = ? AND stockid <> ? LIMIT 1',
+				array($newKey, $stockId)
+			);
+			if ($clash && $db->num_rows($clash) > 0) {
+				throw new Exception('Lô này đã có dòng tồn khác trong kho.');
+			}
+		}
+
+		$expirySql = $newExpiry !== '' ? $newExpiry : null;
+		$now = self::nowSql();
+		$db->pquery(
+			'UPDATE vtiger_warehouse_stock
+			 SET product_key = ?, expired_date = ?, storage_location = ?, updatedby = ?, updatedtime = ?
+			 WHERE stockid = ?',
+			array($newKey, $expirySql, $newLocation, (int) $userId, $now, $stockId)
+		);
+
+		$actor = self::currentActorName('keeper', $userId);
+		foreach ($changes as $change) {
+			$db->pquery(
+				'INSERT INTO vtiger_warehouse_stock_audit
+				 (warehouse_id, product_key, sku, product_name, field_name, old_value, new_value, user_id, user_name, createdtime)
+				 VALUES (?,?,?,?,?,?,?,?,?,?)',
+				array(
+					$warehouseCode,
+					$newKey,
+					$sku,
+					$name,
+					$change[0],
+					$change[1],
+					$change[2],
+					(int) $userId,
+					$actor,
+					$now,
+				)
+			);
+		}
+
+		return array(
+			'unchanged' => 0,
+			'canStockFillAdmin' => self::isStockFillAdmin($userId) ? 1 : 0,
+			'data' => self::getWarehouseData($db, $warehouseCode),
+		);
 	}
 
 	protected static function hydrateQcImageUrls(array &$meta, $warehouseCode, $receiptCode) {
@@ -4741,13 +5053,7 @@ class Warehouse_WhMgmtService {
 			throw new Exception('Không lưu được ảnh lên máy chủ.');
 		}
 
-		$by = self::currentUserDisplayName();
-		if ($role !== '') {
-			$roleName = self::roleDisplayName($role);
-			if ($roleName !== 'QL Tuấn') {
-				$by = $roleName;
-			}
-		}
+		$by = self::currentActorName($role !== '' ? $role : 'qc');
 		$entry = array(
 			'id' => $imageId,
 			'name' => $origName,

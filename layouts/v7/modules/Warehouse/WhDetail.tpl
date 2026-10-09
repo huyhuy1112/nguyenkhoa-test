@@ -6,6 +6,7 @@
 		data-wh-id="{$MK_WH_ID|escape:'html'}"
 		data-can-write="{$MK_WH_CAN_WRITE|default:0}"
 		data-can-qc="{$MK_WH_CAN_QC|default:0}"
+		data-can-admin="{$MK_WH_CAN_ADMIN|default:0}"
 		data-user-name="{$MK_WH_USER_NAME|escape:'html'}">
 		<header class="mk-wh-proto-head">
 			<div class="mk-wh-proto-title">

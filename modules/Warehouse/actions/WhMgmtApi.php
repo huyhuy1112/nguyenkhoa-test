@@ -22,7 +22,7 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 
 	public function validateRequest(Vtiger_Request $request) {
 		$mode = strtolower((string) $request->get('mode'));
-		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'save_purchase', 'complete_purchase', 'transfer_purchase_misa', 'save_issue', 'receipt_action', 'issue_action', 'save_return', 'return_action', 'set_settings', 'qc_upload_image', 'qc_delete_image', 'qc_update', 'import_stock_excel'), true)) {
+		if (in_array($mode, array('save', 'delete', 'archive', 'seed', 'save_receipt', 'save_purchase', 'complete_purchase', 'transfer_purchase_misa', 'save_issue', 'receipt_action', 'issue_action', 'save_return', 'return_action', 'set_settings', 'qc_upload_image', 'qc_delete_image', 'qc_update', 'import_stock_excel', 'set_stock_fill', 'save_stock_fill'), true)) {
 			$request->validateWriteAccess();
 		}
 	}
@@ -69,6 +69,7 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					$response->setResult(array(
 						'success' => true,
 						'warehouse' => $found,
+						'canStockFillAdmin' => Warehouse_WhMgmtService::isStockFillAdmin() ? 1 : 0,
 						'data' => Warehouse_WhMgmtService::getWarehouseData($db, $code),
 					));
 					break;
@@ -432,6 +433,35 @@ class Warehouse_WhMgmtApi_Action extends Vtiger_Action_Controller {
 					$role = trim((string) $request->get('role'));
 					$note = $this->readActionNote($request);
 					$result = Warehouse_WhMgmtService::updateQcRecord($whId, $code, $note, $userId, $role);
+					$response->setResult(array_merge(array('success' => true), $result));
+					break;
+
+				case 'set_stock_fill':
+					global $current_user;
+					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
+					$whId = trim((string) $request->get('whId'));
+					if ($whId === '') {
+						$whId = trim((string) $request->get('id'));
+					}
+					$openRaw = $request->get('open');
+					$open = !($openRaw === '0' || $openRaw === 0 || $openRaw === false || $openRaw === 'false');
+					$result = Warehouse_WhMgmtService::setStockFillOpen($whId, $open, $userId);
+					$response->setResult(array_merge(array('success' => true), $result));
+					break;
+
+				case 'save_stock_fill':
+					global $current_user;
+					$userId = isset($current_user->id) ? (int) $current_user->id : 0;
+					$whId = trim((string) $request->get('whId'));
+					if ($whId === '') {
+						$whId = trim((string) $request->get('id'));
+					}
+					$productKey = trim((string) $request->get('stockKey'));
+					$result = Warehouse_WhMgmtService::saveStockFill($whId, $productKey, array(
+						'expiry' => $request->get('expiry'),
+						'location' => $request->get('location'),
+						'lot' => $request->get('lot'),
+					), $userId);
 					$response->setResult(array_merge(array('success' => true), $result));
 					break;
 
