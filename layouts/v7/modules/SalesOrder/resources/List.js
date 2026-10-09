@@ -4750,6 +4750,140 @@
     tick();
   }
 
+  function normalizeSoListScope(raw) {
+    var s = String(raw || "").toLowerCase().trim();
+    if (s === "franchise" || s === "nq" || s === "nhuong_quyen") {
+      return "franchise";
+    }
+    if (s === "retail" || s === "ban_le") {
+      return "retail";
+    }
+    return "all";
+  }
+
+  function resolveSoListScope() {
+    try {
+      var params = new URLSearchParams(window.location.search || "");
+      var urlRaw = params.get("mk_so_scope");
+      if (urlRaw !== null && urlRaw !== "") {
+        return normalizeSoListScope(urlRaw);
+      }
+    } catch (e0) {
+      /* ignore */
+    }
+    if (
+      window.__mkSoListScope === "franchise" ||
+      window.__mkSoListScope === "retail" ||
+      window.__mkSoListScope === "all"
+    ) {
+      return window.__mkSoListScope;
+    }
+    var hiddenVal = $("#mk-so-scope").val() || "";
+    if ($.trim(hiddenVal) !== "") {
+      return normalizeSoListScope(hiddenVal);
+    }
+    var rootScope = $(".mk-so-pos-page").attr("data-mk-so-scope") || "";
+    if ($.trim(rootScope) !== "") {
+      return normalizeSoListScope(rootScope);
+    }
+    return "all";
+  }
+
+  function loadSoListByScope(scope) {
+    scope = normalizeSoListScope(scope);
+    window.__mkSoListScope = scope;
+    try {
+      if (typeof app !== "undefined" && app.helper && app.helper.showProgress) {
+        app.helper.showProgress();
+      }
+    } catch (eProg) {
+      /* ignore */
+    }
+    try {
+      var u = new URL(window.location.href);
+      u.searchParams.set("module", "SalesOrder");
+      u.searchParams.set("view", "List");
+      u.searchParams.set("app", "SALES");
+      u.searchParams.set("page", "1");
+      u.searchParams.set("nolistcache", "1");
+      u.searchParams.set("search_params", "[]");
+      u.searchParams.delete("search_key");
+      u.searchParams.delete("search_value");
+      if (scope === "franchise" || scope === "retail") {
+        u.searchParams.set("mk_so_scope", scope);
+      } else {
+        u.searchParams.delete("mk_so_scope");
+      }
+      var cv =
+        $("#listViewContent [name='cvid']").val() ||
+        $("#listViewContent [name='viewname']").val() ||
+        "";
+      if (cv) {
+        u.searchParams.set("viewname", cv);
+      }
+      u.searchParams.delete("list_headers");
+      window.location.assign(u.toString());
+    } catch (eNav) {
+      var q =
+        "index.php?module=SalesOrder&view=List&app=SALES&page=1&nolistcache=1&search_params=%5B%5D";
+      if (scope === "franchise") {
+        q += "&mk_so_scope=franchise";
+      } else if (scope === "retail") {
+        q += "&mk_so_scope=retail";
+      }
+      window.location.href = q;
+    }
+  }
+
+  function patchSoScopeListParams() {
+    if (
+      typeof Vtiger_List_Js === "undefined" ||
+      Vtiger_List_Js.prototype._mkSoScopeParamsPatched
+    ) {
+      return;
+    }
+    Vtiger_List_Js.prototype._mkSoScopeParamsPatched = true;
+    var origParams = Vtiger_List_Js.prototype.getDefaultParams;
+    if (typeof origParams === "function") {
+      Vtiger_List_Js.prototype.getDefaultParams = function () {
+        var params = origParams.apply(this, arguments);
+        if (isSalesOrderSalesList()) {
+          params.mk_so_scope = resolveSoListScope();
+          if (!params.app || String(params.app).toUpperCase() === "") {
+            params.app = "SALES";
+          }
+        }
+        return params;
+      };
+    }
+  }
+
+  function bindSoScopeTabs() {
+    if (document.documentElement.getAttribute("data-mk-so-scope-tabs-bound")) {
+      return;
+    }
+    document.documentElement.setAttribute("data-mk-so-scope-tabs-bound", "1");
+    $(document).on("click.mkSoScopeTabs", ".mk-so-scope-tab", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!isSalesOrderSalesList()) {
+        return;
+      }
+      var scope = normalizeSoListScope($(this).attr("data-mk-so-scope"));
+      try {
+        var urlScope = normalizeSoListScope(
+          new URLSearchParams(window.location.search || "").get("mk_so_scope")
+        );
+        if (scope === urlScope && scope === resolveSoListScope()) {
+          return;
+        }
+      } catch (eSkip) {
+        /* always reload */
+      }
+      loadSoListByScope(scope);
+    });
+  }
+
   function bindSalesOrderImport() {
     if (!window.MkQuickImport || typeof window.MkQuickImport.bind !== "function") {
       return;
@@ -4794,6 +4928,8 @@
     patchInlineDetailRowClick();
     bindListEvents();
     bindSalesOrderImport();
+    patchSoScopeListParams();
+    bindSoScopeTabs();
     bindPosSelectionEvents();
     bindPosMassDuplicateButton();
     bindPosMassDeleteButton();

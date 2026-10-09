@@ -498,13 +498,38 @@ class SalesOrder_List_View extends Inventory_List_View {
 	public function initializeListViewContents(Vtiger_Request $request, Vtiger_Viewer $viewer) {
 		$this->applyToolsOrdersDefaults($request);
 		$posMeta = null;
-		if ($this->isSalesListContext($request) && !$this->isToolsOrdersContext($request)) {
+		$salesPos = $this->isSalesListContext($request) && !$this->isToolsOrdersContext($request);
+		if ($salesPos) {
 			$posMeta = $this->applySalesListPosDefaults($request);
 			$this->assignSalesListPosTemplateVars($viewer, $posMeta);
 			$this->resetSalesPosListViewState();
 		}
+		if ($salesPos) {
+			$scope = $this->resolveSoListScope($request);
+			if (!$this->listViewModel) {
+				$moduleName = $request->getModule();
+				$cvId = $this->viewName;
+				if (empty($cvId)) {
+					$customView = new CustomView();
+					$cvId = $customView->getViewId($moduleName);
+					$this->viewName = $cvId;
+				}
+				$listHeaders = $request->get('list_headers', array());
+				$this->listViewModel = Vtiger_ListView_Model::getInstance($moduleName, $cvId, $listHeaders);
+			}
+			$this->listViewModel->set('mk_so_scope', $scope);
+			$viewer->assign('MK_SO_SCOPE', $scope);
+		}
 		$this->ensureSalesOrderPageLimit($request);
 		parent::initializeListViewContents($request, $viewer);
+
+		if ($salesPos) {
+			$scope = $this->resolveSoListScope($request);
+			$viewer->assign('MK_SO_SCOPE', $scope);
+			if ($this->listViewModel) {
+				$this->listViewModel->set('mk_so_scope', $scope);
+			}
+		}
 
 		if (!$this->isToolsOrdersContext($request)) {
 			return;
@@ -524,6 +549,29 @@ class SalesOrder_List_View extends Inventory_List_View {
 			'needed_time' => 'Needed Time',
 			'createdtime' => 'Created Time',
 		));
+	}
+
+	/**
+	 * @return string all|franchise|retail
+	 */
+	protected function resolveSoListScope(Vtiger_Request $request) {
+		$raw = strtolower(trim((string) $request->get('mk_so_scope')));
+		if ($raw === '' && isset($_REQUEST['mk_so_scope'])) {
+			$raw = strtolower(trim((string) $_REQUEST['mk_so_scope']));
+		}
+		if ($raw === '' && isset($_GET['mk_so_scope'])) {
+			$raw = strtolower(trim((string) $_GET['mk_so_scope']));
+		}
+		if ($raw === '' && isset($_POST['mk_so_scope'])) {
+			$raw = strtolower(trim((string) $_POST['mk_so_scope']));
+		}
+		if ($raw === 'franchise' || $raw === 'nhuong_quyen' || $raw === 'nq') {
+			return 'franchise';
+		}
+		if ($raw === 'retail' || $raw === 'ban_le') {
+			return 'retail';
+		}
+		return 'all';
 	}
 
 	/** Sales POS list: 15 records per page (16th goes to next page). */
