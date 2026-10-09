@@ -54,6 +54,7 @@ class Leads_SheetImportService {
 			array()
 		);
 		self::ensureSourcesColumn($adb, 'target_module', "VARCHAR(32) NOT NULL DEFAULT 'leads'");
+		self::ensureSourcesColumn($adb, 'lead_stage', "VARCHAR(16) NOT NULL DEFAULT 'gd11'");
 
 		$adb->pquery(
 			"CREATE TABLE IF NOT EXISTS " . self::TABLE_IMPORT . " (
@@ -472,6 +473,7 @@ class Leads_SheetImportService {
 			'sheet_range' => isset($row['sheet_range']) ? (string) $row['sheet_range'] : 'Sheet1',
 			'column_map' => $map,
 			'source_tag' => isset($row['source_tag']) ? (string) $row['source_tag'] : '',
+			'lead_stage' => self::normalizeLeadStage(isset($row['lead_stage']) ? $row['lead_stage'] : 'gd11'),
 			'target_module' => $target,
 			'enabled' => !empty($row['enabled']),
 			'sort_order' => isset($row['sort_order']) ? (int) $row['sort_order'] : 0,
@@ -508,6 +510,7 @@ class Leads_SheetImportService {
 			$map = self::defaultColumnMapForTarget($targetModule);
 		}
 		$sourceTag = trim((string) (isset($payload['source_tag']) ? $payload['source_tag'] : ''));
+		$leadStage = self::normalizeLeadStage(isset($payload['lead_stage']) ? $payload['lead_stage'] : 'gd11');
 		$enabled = 1;
 		if (array_key_exists('enabled', $payload)) {
 			$en = $payload['enabled'];
@@ -531,16 +534,19 @@ class Leads_SheetImportService {
 			if (!array_key_exists('target_module', $payload) && !empty($existing['target_module'])) {
 				$targetModule = self::normalizeTargetModule($existing['target_module']);
 			}
+			if (!array_key_exists('lead_stage', $payload) && !empty($existing['lead_stage'])) {
+				$leadStage = self::normalizeLeadStage($existing['lead_stage']);
+			}
 			if ($sortOrder === 0 && isset($existing['sort_order'])) {
 				$sortOrder = (int) $existing['sort_order'];
 			}
 			$adb->pquery(
 				'UPDATE ' . self::TABLE_SOURCES . ' SET
 					name=?, spreadsheet_id=?, sheet_range=?, column_map=?, source_tag=?,
-					target_module=?, enabled=?, sort_order=?, modified_at=?
+					lead_stage=?, target_module=?, enabled=?, sort_order=?, modified_at=?
 				 WHERE id=?',
 				array(
-					$name, $spreadsheetId, $range, $mapJson, $sourceTag,
+					$name, $spreadsheetId, $range, $mapJson, $sourceTag, $leadStage,
 					$targetModule, $enabled, $sortOrder, $now, $id,
 				)
 			);
@@ -565,10 +571,10 @@ class Leads_SheetImportService {
 			}
 			$adb->pquery(
 				'INSERT INTO ' . self::TABLE_SOURCES . '
-					(name, spreadsheet_id, sheet_range, column_map, source_tag, target_module, enabled, sort_order, created_at, modified_at)
-				 VALUES (?,?,?,?,?,?,?,?,?,?)',
+					(name, spreadsheet_id, sheet_range, column_map, source_tag, lead_stage, target_module, enabled, sort_order, created_at, modified_at)
+				 VALUES (?,?,?,?,?,?,?,?,?,?,?)',
 				array(
-					$name, $spreadsheetId, $range, $mapJson, $sourceTag,
+					$name, $spreadsheetId, $range, $mapJson, $sourceTag, $leadStage,
 					$targetModule, $enabled, $sortOrder, $now, $now,
 				)
 			);
@@ -756,6 +762,19 @@ class Leads_SheetImportService {
 			return 'accounts';
 		}
 		return 'leads';
+	}
+
+	/**
+	 * Sheet → quy trình xác minh. gd11 = giai đoạn 1.1, gd14 = lớp 990k.
+	 * @param mixed $stage
+	 * @return string
+	 */
+	public static function normalizeLeadStage($stage) {
+		$t = strtolower(trim((string) $stage));
+		if ($t === 'gd14' || $t === '990' || $t === '990k' || $t === '1.4' || $t === 'giai_doan_1.4') {
+			return 'gd14';
+		}
+		return 'gd11';
 	}
 
 	/**
@@ -1430,8 +1449,13 @@ class Leads_SheetImportService {
 		if ($cust !== '') {
 			$tags[] = $cust;
 		}
-		require_once 'modules/Leads/models/OfflineGd11Service.php';
-		$tags = Leads_OfflineGd11Service::ensureProgramTag($tags);
+		$stage = self::normalizeLeadStage(is_array($source) && isset($source['lead_stage']) ? $source['lead_stage'] : 'gd11');
+		if ($stage === 'gd14') {
+			$tags[] = 'gd14_moi_dang_ky';
+		} else {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			$tags = Leads_OfflineGd11Service::ensureProgramTag($tags);
+		}
 
 		$sourceId = 0;
 		$sourceName = '';

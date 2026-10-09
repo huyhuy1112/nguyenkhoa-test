@@ -708,10 +708,32 @@ class Home_AdminKpiService {
 		$mover = self::biggestMover($db, $from, $to, $prevStart, $prevEnd);
 		$delivery = self::deliveryFacts($db, $from, $to);
 		$tier = self::tierCardValue($db, $to);
+		$revenue = self::monthRevenue($db, $from, $to);
+		$margin = $revenue - (float) $companyLines['cost'];
+		$channels = self::monthOrderChannels($db, $from, $to);
+		$newLeads = self::countNewLeads($db, $from, $to);
+		$agingLeads = self::countAgingLeads($db, 7);
+		$myLeads = $userId > 0 ? self::countOwnedLeads($db, $userId) : $newLeads;
+		$callsDue = $userId > 0 ? self::countCallsDue($db, $userId) : self::countCallsDue($db, 0);
+		$gd11Rate = self::closeRateByTag($db, $from, $to, 'mien_phi_offline', 'offline_da_tham_gia');
+		$gd14Rate = self::closeRateByTagPrefix($db, $from, $to, 'gd14_%', 'gd14_da_tham_gia');
+		$receivable = self::sumInvoiceBalance($db);
+		$stock = self::warehouseStockFacts($db);
 		$boards = array(
+			'ceo' => array(
+				'title' => 'CEO',
+				'cards' => array(
+					self::reportCard('Doanh thu tháng', self::formatMoney($revenue), 'Tổng đơn chưa hủy', 'blue'),
+					self::reportCard('Lãi gộp', self::formatMoney($margin), 'Doanh thu trừ giá vốn trên đơn', 'emerald'),
+					self::reportCard('Lead mới', (string) $newLeads, 'Hồ sơ tạo trong tháng', 'cyan'),
+					self::reportCard('Đơn theo kênh', $channels['label'], 'Nhượng quyền và bán lẻ theo mã khách', 'violet'),
+				),
+			),
 			'sale' => array(
 				'title' => 'Sale',
 				'cards' => array(
+					self::reportCard('Lead của tôi', (string) $myLeads, 'Hồ sơ chưa chuyển đổi', 'cyan'),
+					self::reportCard('Việc gọi đến hạn', (string) $callsDue, 'Cuộc gọi hoặc việc đến hạn hôm nay', 'amber'),
 					self::reportCard('Đơn của tôi trong tháng', (string) $ownOrders, '', 'blue'),
 					self::reportCard('Khách tôi phụ trách mua nguyên liệu', (string) $ownLines['ingredient_customers'], 'Khách có đơn nguyên liệu trong tháng', 'emerald'),
 					self::reportCard('Cảnh báo cần xử lý', (string) self::countOpenAlerts($db, $userId), 'Cảnh báo nguyên liệu chưa xong', 'amber'),
@@ -728,6 +750,9 @@ class Home_AdminKpiService {
 				'title' => 'Quản lý',
 				'cards' => array(
 					self::reportCard('Kết quả theo nhân viên', $staff['value'], $staff['hint'], 'blue'),
+					self::reportCard('Lead tồn quá 7 ngày', (string) $agingLeads, 'Chưa chuyển đổi, tạo hơn 7 ngày', 'amber'),
+					self::reportCard('Tỉ lệ chốt giai đoạn 1.1', $gd11Rate, 'Đã tham gia / lead Offline trong tháng', 'emerald'),
+					self::reportCard('Tỉ lệ chốt lớp 990k', $gd14Rate, 'Đã tham gia / lead 990k trong tháng', 'cyan'),
 					self::reportCard('Nhiệm vụ quá hạn theo nhân viên', (string) $overdue['tasks'], $overdue['hint'], 'amber'),
 					self::reportCard('Khách lớn có rủi ro', (string) $risk, 'Khách mua nhiều nhưng không có đơn trong tháng', 'rose'),
 					self::reportCard('Khách / mặt hàng biến động nhiều nhất', $mover['value'], $mover['hint'], 'violet'),
@@ -736,6 +761,7 @@ class Home_AdminKpiService {
 			'accountant' => array(
 				'title' => 'Kế toán',
 				'cards' => array(
+					self::reportCard('Phải thu', $receivable === null ? 'Chưa đủ dữ liệu' : self::formatMoney($receivable), 'Số dư hóa đơn còn lại', 'blue'),
 					self::reportCard('Đơn đã thu, chưa giao xong', (string) self::countPaidNotDelivered($db), 'Hóa đơn đã thu, đơn chưa giao', 'emerald'),
 					self::reportCard('Chứng từ chưa hoàn tất', (string) self::countOpenVouchers($db), 'Đề nghị hóa đơn còn chờ', 'amber'),
 					self::reportCard('Chiết khấu đơn hàng', self::formatMoney($money['discount']), 'Chiết khấu trên đơn trong tháng', 'violet'),
@@ -745,6 +771,8 @@ class Home_AdminKpiService {
 			'warehouse' => array(
 				'title' => 'Kho',
 				'cards' => array(
+					self::reportCard('Tồn kho', $stock === null ? 'Chưa đủ dữ liệu' : (string) $stock['qty'], 'Tổng số lượng đang lưu', 'blue'),
+					self::reportCard('Lô sắp hết hạn', $stock === null ? 'Chưa đủ dữ liệu' : (string) $stock['expiring'], 'Hết hạn trong 30 ngày', 'rose'),
 					$delivery === null
 						? self::reportCard('Giao đúng hạn', 'Chưa đủ dữ liệu', '', 'emerald')
 						: self::reportCard('Giao đúng hạn', (string) $delivery['ontime'], 'Phiếu xuất hoàn tất đúng hạn đơn', 'emerald'),
@@ -756,20 +784,192 @@ class Home_AdminKpiService {
 				),
 			),
 		);
-		if ($persona === 'admin' || $persona === 'ceo') {
+		if ($persona === 'admin' || $persona === 'ceo' || $persona === 'bgd') {
 			return $boards;
 		}
 		$map = array(
 			'supervisor' => 'manager',
+			'sale_manager' => 'manager',
 			'sale' => 'sale',
 			'accountant' => 'accountant',
+			'chief_accountant' => 'accountant',
 			'warehouse' => 'warehouse',
+			'supply' => 'warehouse',
 		);
 		$key = isset($map[$persona]) ? $map[$persona] : '';
 		if ($key === '' || !isset($boards[$key])) {
 			return array();
 		}
 		return array($key => $boards[$key]);
+	}
+
+	protected static function monthRevenue(PearDatabase $db, $from, $to) {
+		list($notCancelSql, $excluded) = self::soNotCancelledSql('so');
+		$params = array_merge($excluded, array($from, $to));
+		$r = $db->pquery(
+			"SELECT COALESCE(SUM(so.total), 0) AS c
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 WHERE $notCancelSql AND ce.createdtime >= ? AND ce.createdtime <= ?",
+			$params
+		);
+		return $r ? (float) $db->query_result($r, 0, 'c') : 0;
+	}
+
+	protected static function monthOrderChannels(PearDatabase $db, $from, $to) {
+		list($notCancelSql, $excluded) = self::soNotCancelledSql('so');
+		$params = array_merge($excluded, array($from, $to));
+		$code = "UPPER(TRIM(IFNULL(so.customerno,'')))";
+		$r = $db->pquery(
+			"SELECT
+				SUM(CASE WHEN $code LIKE 'TUIBAO%' THEN 1 ELSE 0 END) AS franchise,
+				SUM(CASE WHEN $code LIKE 'KL%' OR $code LIKE 'MIUTEA%' THEN 1 ELSE 0 END) AS retail
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 WHERE $notCancelSql AND ce.createdtime >= ? AND ce.createdtime <= ?",
+			$params
+		);
+		$franchise = $r ? (int) $db->query_result($r, 0, 'franchise') : 0;
+		$retail = $r ? (int) $db->query_result($r, 0, 'retail') : 0;
+		return array('label' => 'Nhượng quyền ' . $franchise . ' · Bán lẻ ' . $retail);
+	}
+
+	protected static function countNewLeads(PearDatabase $db, $from, $to) {
+		$r = $db->pquery(
+			"SELECT COUNT(*) AS c FROM vtiger_crmentity
+			 WHERE deleted = 0 AND setype = 'Leads' AND createdtime >= ? AND createdtime <= ?",
+			array($from, $to)
+		);
+		return $r ? (int) $db->query_result($r, 0, 'c') : 0;
+	}
+
+	protected static function countAgingLeads(PearDatabase $db, $days) {
+		if (!self::columnExists($db, 'vtiger_leaddetails', 'converted')) {
+			return 0;
+		}
+		$r = $db->pquery(
+			"SELECT COUNT(*) AS c
+			 FROM vtiger_crmentity ce
+			 INNER JOIN vtiger_leaddetails ld ON ld.leadid = ce.crmid
+			 WHERE ce.deleted = 0 AND ce.setype = 'Leads' AND COALESCE(ld.converted, 0) = 0
+			 AND ce.createdtime < DATE_SUB(NOW(), INTERVAL " . (int) $days . " DAY)",
+			array()
+		);
+		return $r ? (int) $db->query_result($r, 0, 'c') : 0;
+	}
+
+	protected static function countOwnedLeads(PearDatabase $db, $userId) {
+		if (!self::columnExists($db, 'vtiger_leaddetails', 'converted')) {
+			return 0;
+		}
+		$r = $db->pquery(
+			"SELECT COUNT(*) AS c
+			 FROM vtiger_crmentity ce
+			 INNER JOIN vtiger_leaddetails ld ON ld.leadid = ce.crmid
+			 WHERE ce.deleted = 0 AND ce.setype = 'Leads' AND COALESCE(ld.converted, 0) = 0
+			 AND ce.smownerid = ?",
+			array((int) $userId)
+		);
+		return $r ? (int) $db->query_result($r, 0, 'c') : 0;
+	}
+
+	protected static function countCallsDue(PearDatabase $db, $userId) {
+		if (!self::tableExists($db, 'vtiger_activity') || !self::columnExists($db, 'vtiger_activity', 'date_start')) {
+			return 0;
+		}
+		$ownerSql = '';
+		$params = array(date('Y-m-d'));
+		if ($userId > 0) {
+			$ownerSql = ' AND ce.smownerid = ?';
+			$params[] = (int) $userId;
+		}
+		$statusSql = self::columnExists($db, 'vtiger_activity', 'status')
+			? " AND COALESCE(a.status,'') NOT IN ('Completed','Deferred','Cancelled','Held')"
+			: '';
+		$r = $db->pquery(
+			"SELECT COUNT(*) AS c
+			 FROM vtiger_activity a
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = a.activityid AND ce.deleted = 0
+			 WHERE a.date_start <= ? $statusSql $ownerSql",
+			$params
+		);
+		return $r ? (int) $db->query_result($r, 0, 'c') : 0;
+	}
+
+	protected static function closeRateByTag(PearDatabase $db, $from, $to, $entryTag, $doneTag) {
+		if (!self::tableExists($db, 'vtiger_freetags') || !self::tableExists($db, 'vtiger_freetagged_objects')) {
+			return 'Chưa đủ dữ liệu';
+		}
+		$sql = "SELECT COUNT(DISTINCT ce.crmid) AS c
+			 FROM vtiger_crmentity ce
+			 INNER JOIN vtiger_freetagged_objects fo ON fo.object_id = ce.crmid AND fo.module = 'Leads'
+			 INNER JOIN vtiger_freetags t ON t.id = fo.tag_id
+			 WHERE ce.deleted = 0 AND ce.setype = 'Leads'
+			 AND t.tag = ? AND ce.createdtime >= ? AND ce.createdtime <= ?";
+		$entry = $db->pquery($sql, array($entryTag, $from, $to));
+		$done = $db->pquery($sql, array($doneTag, $from, $to));
+		$entryN = $entry ? (int) $db->query_result($entry, 0, 'c') : 0;
+		$doneN = $done ? (int) $db->query_result($done, 0, 'c') : 0;
+		if ($entryN <= 0) {
+			return '0%';
+		}
+		return (string) round(($doneN / $entryN) * 100) . '%';
+	}
+
+	protected static function closeRateByTagPrefix(PearDatabase $db, $from, $to, $prefix, $doneTag) {
+		if (!self::tableExists($db, 'vtiger_freetags') || !self::tableExists($db, 'vtiger_freetagged_objects')) {
+			return 'Chưa đủ dữ liệu';
+		}
+		$base = "SELECT COUNT(DISTINCT ce.crmid) AS c
+			 FROM vtiger_crmentity ce
+			 INNER JOIN vtiger_freetagged_objects fo ON fo.object_id = ce.crmid AND fo.module = 'Leads'
+			 INNER JOIN vtiger_freetags t ON t.id = fo.tag_id
+			 WHERE ce.deleted = 0 AND ce.setype = 'Leads'
+			 AND ce.createdtime >= ? AND ce.createdtime <= ? AND ";
+		$entry = $db->pquery($base . 't.tag LIKE ?', array($from, $to, $prefix));
+		$done = $db->pquery($base . 't.tag = ?', array($from, $to, $doneTag));
+		$entryN = $entry ? (int) $db->query_result($entry, 0, 'c') : 0;
+		$doneN = $done ? (int) $db->query_result($done, 0, 'c') : 0;
+		if ($entryN <= 0) {
+			return '0%';
+		}
+		return (string) round(($doneN / $entryN) * 100) . '%';
+	}
+
+	protected static function sumInvoiceBalance(PearDatabase $db) {
+		if (!self::tableExists($db, 'vtiger_invoice') || !self::columnExists($db, 'vtiger_invoice', 'balance')) {
+			return null;
+		}
+		$r = $db->pquery(
+			"SELECT COALESCE(SUM(inv.balance), 0) AS c
+			 FROM vtiger_invoice inv
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = inv.invoiceid AND ce.deleted = 0
+			 WHERE COALESCE(inv.balance, 0) > 0",
+			array()
+		);
+		return $r ? (float) $db->query_result($r, 0, 'c') : 0;
+	}
+
+	protected static function warehouseStockFacts(PearDatabase $db) {
+		if (!self::tableExists($db, 'vtiger_warehouse_stock') || !self::columnExists($db, 'vtiger_warehouse_stock', 'quantity')) {
+			return null;
+		}
+		$expSql = self::columnExists($db, 'vtiger_warehouse_stock', 'expired_date')
+			? "SUM(CASE WHEN expired_date IS NOT NULL AND expired_date <> '' AND expired_date <> '0000-00-00'
+				AND expired_date >= CURDATE() AND expired_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+				AND COALESCE(quantity, 0) > 0 THEN 1 ELSE 0 END)"
+			: '0';
+		$r = $db->pquery(
+			"SELECT COALESCE(SUM(quantity), 0) AS qty, $expSql AS expiring FROM vtiger_warehouse_stock",
+			array()
+		);
+		if (!$r) {
+			return array('qty' => 0, 'expiring' => 0);
+		}
+		return array(
+			'qty' => (int) $db->query_result($r, 0, 'qty'),
+			'expiring' => (int) $db->query_result($r, 0, 'expiring'),
+		);
 	}
 
 	protected static function reportCard($label, $value, $hint = '', $tone = '') {

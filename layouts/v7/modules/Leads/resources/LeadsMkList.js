@@ -5214,6 +5214,12 @@
         : '          <option value="leads">Leads (landing / ads)</option>') +
       "        </select>" +
       "      </label>" +
+      '      <label class="mk-leads-sheet-field" id="mk-sheet-stage-field"><span>Giai đoạn khi vào Leads</span>' +
+      '        <select id="mk-sheet-edit-stage" class="mk-leads-sheet-select">' +
+      '          <option value="gd11">Giai đoạn 1.1 — xác minh Offline</option>' +
+      '          <option value="gd14">Lớp 990k — xác minh 990k</option>' +
+      "        </select>" +
+      "      </label>" +
       '      <label class="mk-leads-sheet-field"><span>Link hoặc Spreadsheet ID</span>' +
       '        <input type="text" id="mk-sheet-spreadsheet" placeholder="https://docs.google.com/spreadsheets/d/.../edit hoặc ID" autocomplete="off" />' +
       "      </label>" +
@@ -5308,7 +5314,9 @@
             ? "→ KH nhượng quyền tiềm năng"
             : src.target_module === "accounts"
             ? "→ Chủ quán"
-            : "→ Leads";
+            : src.lead_stage === "gd14"
+            ? "→ Leads · 990k"
+            : "→ Leads · Giai đoạn 1.1";
         var meta = [
           dest,
           src.enabled ? "Đang bật" : "Tắt",
@@ -5390,6 +5398,14 @@
         targetEl.value = target === "leads" ? "leads" : target;
       }
     }
+    var stageEl = document.getElementById("mk-sheet-edit-stage");
+    if (stageEl) {
+      stageEl.value = source && source.lead_stage === "gd14" ? "gd14" : "gd11";
+    }
+    var stageField = document.getElementById("mk-sheet-stage-field");
+    if (stageField) {
+      stageField.hidden = target !== "leads";
+    }
     document.getElementById("mk-sheet-spreadsheet").value = (source && source.spreadsheet_id) || "";
     document.getElementById("mk-sheet-range").value = (source && source.sheet_range) || "Sheet1";
     document.getElementById("mk-sheet-source-enabled").checked =
@@ -5405,6 +5421,8 @@
       targetEl.addEventListener("change", function () {
         var next = targetEl.value || "leads";
         if (next !== "accounts" && next !== "servicecontracts") next = "leads";
+        var stageWrap = document.getElementById("mk-sheet-stage-field");
+        if (stageWrap) stageWrap.hidden = next !== "leads";
         rebuildSheetMapGui(next, {});
       });
     }
@@ -5444,9 +5462,12 @@
     }
     var map = buildSheetMapFromGui();
     syncSheetMapJsonFromGui();
+    var stageEl = document.getElementById("mk-sheet-edit-stage");
+    var leadStage = stageEl && stageEl.value === "gd14" ? "gd14" : "gd11";
     var payload = {
       name: name,
       source_tag: tag,
+      lead_stage: target === "leads" ? leadStage : "gd11",
       target_module: target,
       spreadsheet_id: spreadsheet,
       sheet_range: range,
