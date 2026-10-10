@@ -16,9 +16,7 @@ class Warehouse_WhMgmtService {
 		self::ensureProductExpiryWarnDaysField();
 		require_once 'modules/Warehouse/helpers/ReturnHelper.php';
 		Warehouse_Return_Helper::ensureSchema($db);
-		if (!Warehouse_WorkflowSetup_Helper::isInstalled($db)) {
-			self::seedAll($db);
-		}
+		// Không tự tạo kho mẫu, tồn kho giả hay phiếu GRN/GIN khi kho đang trống.
 		self::backfillStockMfgDates($db);
 		self::ensureStockAuditTable($db);
 	}
@@ -243,9 +241,6 @@ class Warehouse_WhMgmtService {
 			$db = PearDatabase::getInstance();
 		}
 		Warehouse_WorkflowSetup_Helper::runAll();
-		self::seedWarehouses($db);
-		self::seedStock($db);
-		self::seedDemoDocuments($db);
 	}
 
 	protected static function seedWarehouses(PearDatabase $db) {
