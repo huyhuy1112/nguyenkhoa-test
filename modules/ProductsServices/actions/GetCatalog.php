@@ -15,9 +15,13 @@ class ProductsServices_GetCatalog_Action extends Vtiger_Action_Controller {
 	public function process(Vtiger_Request $request) {
 		$response = new Vtiger_Response();
 		try {
+			require_once 'modules/ProductsServices/helpers/PriceSetup.php';
+			ProductsServices_PriceSetup_Helper::ensure();
 			$db = PearDatabase::getInstance();
 			$hasPriceLt = $this->columnExists($db, 'vtiger_productsservices', 'price_lt_1m');
+			$hasMiutea = $this->columnExists($db, 'vtiger_productsservices', 'price_miutea');
 			$priceLtCol = $hasPriceLt ? ', IFNULL(ps.price_lt_1m, 0) AS price_lt_1m' : '';
+			$priceMiuteaCol = $hasMiutea ? ', IFNULL(ps.price_miutea, 0) AS price_miutea' : '';
 
 			$sql = "SELECT ps.productsservicesid AS id,
 					ps.productsservicesname AS name,
@@ -29,6 +33,7 @@ class ProductsServices_GetCatalog_Action extends Vtiger_Action_Controller {
 					IFNULL(ps.unit, '') AS unit,
 					ce.createdtime AS createdtime
 					{$priceLtCol}
+					{$priceMiuteaCol}
 				FROM vtiger_productsservices ps
 				INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
 				ORDER BY ps.productsservicesname ASC, ps.productsservicesid ASC";
@@ -50,6 +55,7 @@ class ProductsServices_GetCatalog_Action extends Vtiger_Action_Controller {
 					'price' => (float) $row['price'],
 					'price_lt_1m' => $priceLt,
 					'price_tuibao' => (float) $row['price_tuibao'],
+					'price_miutea' => $hasMiutea ? (float) $row['price_miutea'] : 0,
 					'unit' => decode_html((string) $row['unit']),
 					'createdtime' => (string) $row['createdtime'],
 					'stock' => 0.0,

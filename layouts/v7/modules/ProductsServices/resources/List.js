@@ -407,6 +407,7 @@
 				'<th class="mk-col-ps-name" scope="col">Tên hàng</th>' +
 				'<th class="mk-col-ps-price" scope="col">Giá bán</th>' +
 				'<th class="mk-col-ps-tuibao" scope="col">Giá Tuibao</th>' +
+				'<th class="mk-col-ps-miutea" scope="col">Giá Miutea</th>' +
 				'<th class="mk-col-ps-stock" scope="col">Tồn kho</th>' +
 				'<th class="mk-col-ps-order" scope="col">Khách đặt</th>' +
 				'<th class="mk-col-ps-created" scope="col">Thời gian tạo</th>' +
@@ -420,6 +421,7 @@
 				'<col style="width:44px" />' +
 				'<col style="width:110px" />' +
 				'<col style="width:28%" />' +
+				'<col style="width:110px" />' +
 				'<col style="width:110px" />' +
 				'<col style="width:110px" />' +
 				'<col style="width:90px" />' +
@@ -564,6 +566,9 @@
 			'</span></td>' +
 			'<td class="listViewEntryValue mk-col-ps-tuibao" data-name="price_tuibao"><span class="value">' +
 			esc(formatMoney(it.price_tuibao)) +
+			'</span></td>' +
+			'<td class="listViewEntryValue mk-col-ps-miutea" data-name="price_miutea"><span class="value">' +
+			esc(formatMoney(it.price_miutea)) +
 			'</span></td>' +
 			'<td class="listViewEntryValue mk-col-ps-stock"><span class="' +
 			stockCls +

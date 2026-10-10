@@ -57,6 +57,28 @@ class SalesOrder_Edit_View extends Inventory_Edit_View {
 				$priceChannel = 'tuibao';
 			}
 		}
+		if ($priceChannel !== 'tuibao' && $recordId > 0) {
+			try {
+				if (!isset($rec) || !$rec) {
+					$rec = Vtiger_Record_Model::getInstanceById($recordId, 'SalesOrder');
+				}
+				$contactId = (int) $rec->get('contact_id');
+				if ($contactId > 0) {
+					$db = PearDatabase::getInstance();
+					$cRs = $db->pquery(
+						'SELECT contact_no FROM vtiger_contactdetails WHERE contactid = ? LIMIT 1',
+						array($contactId)
+					);
+					if ($cRs && $db->num_rows($cRs)) {
+						$contactNo = trim(decode_html((string) $db->query_result($cRs, 0, 'contact_no')));
+						if (preg_match('/^MIUTEA_/i', $contactNo)) {
+							$priceChannel = 'miutea';
+						}
+					}
+				}
+			} catch (Exception $e) {
+			}
+		}
 		$viewer->assign('MK_PRICE_CHANNEL', $priceChannel);
 	}
 

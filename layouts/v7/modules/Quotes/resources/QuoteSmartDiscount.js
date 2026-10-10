@@ -17,6 +17,70 @@
 		{ min: 20, percent: 3, label: '20 – 50 sp → CK 3%' },
 		{ min: 0, percent: 0, label: 'Dưới 20 sp → CK 0%' }
 	];
+	var MIUTEA_VALUE_TIERS = VALUE_TIERS.slice();
+
+	function formatTierLabel(tier, higherMin, kind) {
+		var pct = tier.percent;
+		if (kind === 'qty') {
+			if (higherMin == null) {
+				return 'Từ ' + formatQty(tier.min) + ' sản phẩm trở lên → CK ' + pct + '%';
+			}
+			return 'Từ ' + formatQty(tier.min) + ' đến dưới ' + formatQty(higherMin) + ' sản phẩm → CK ' + pct + '%';
+		}
+		var from = money(tier.min);
+		if (higherMin == null) {
+			return 'Từ ' + from + ' đ trở lên → CK ' + pct + '%';
+		}
+		return 'Từ ' + from + ' đ đến dưới ' + money(higherMin) + ' đ → CK ' + pct + '%';
+	}
+
+	function applyTierList(raw, kind) {
+		var rows = (raw || []).map(function (row) {
+			return {
+				min: Number(row.min) || 0,
+				percent: Number(row.percent) || 0
+			};
+		}).sort(function (a, b) {
+			return b.min - a.min;
+		});
+		if (!rows.length) {
+			return null;
+		}
+		return rows.map(function (tier, index) {
+			var higher = index > 0 ? rows[index - 1].min : null;
+			return {
+				min: tier.min,
+				percent: tier.percent,
+				label: formatTierLabel(tier, higher, kind)
+			};
+		});
+	}
+
+	function loadDiscountPolicy() {
+		if (!(window.app && app.request && app.request.post)) {
+			return;
+		}
+		app.request.post({
+			data: { module: 'ProductsServices', action: 'PriceSetup', mode: 'get' }
+		}).then(function (err, res) {
+			if (err || !res) {
+				return;
+			}
+			var valueTiers = applyTierList(res.kl_value, 'money');
+			var qtyTiers = applyTierList(res.kl_qty, 'qty');
+			var miuteaTiers = applyTierList(res.miutea_value, 'money');
+			if (valueTiers) {
+				VALUE_TIERS = valueTiers;
+			}
+			if (qtyTiers) {
+				QTY_TIERS = qtyTiers;
+			}
+			if (miuteaTiers) {
+				MIUTEA_VALUE_TIERS = miuteaTiers;
+			}
+			refresh();
+		});
+	}
 
 	var applying = false;
 	var timer = null;
@@ -151,14 +215,20 @@
 		if (code.indexOf('TUIBAO') === 0 || channel === 'tuibao') {
 			return 'tuibao';
 		}
-		return channel === 'tuibao' ? 'tuibao' : '';
+		if (channel === 'miutea') {
+			return 'miutea';
+		}
+		return '';
 	}
 
 	function currentChannel() {
 		if (window.MkInventoryOdooEdit && typeof window.MkInventoryOdooEdit.getPriceChannel === 'function') {
 			return window.MkInventoryOdooEdit.getPriceChannel();
 		}
-		return window.MK_PRICE_CHANNEL === 'tuibao' ? 'tuibao' : 'retail';
+		if (window.MK_PRICE_CHANNEL === 'tuibao' || window.MK_PRICE_CHANNEL === 'miutea') {
+			return window.MK_PRICE_CHANNEL;
+		}
+		return 'retail';
 	}
 
 	function ensurePanel() {
@@ -330,7 +400,7 @@
 		}
 
 		if (segment === 'miutea') {
-			var only = both.byValue;
+			var only = offer(lines.subtotal, findTier(lines.subtotal, MIUTEA_VALUE_TIERS), 'Chưa đạt bậc chiết khấu');
 			state.saving = only.saving;
 			state.subtitle = 'Miutea — chỉ chiết khấu theo tổng giá trị đơn.';
 			state.cardsHtml = card('value', lines, only, true);
@@ -382,6 +452,17 @@
 				resolved.code = res.customer_code || '';
 				resolved.segment = res.segment || '';
 				$('[name="contact_id_display"]').first().data('mkCustomerCode', resolved.code);
+				if (res.segment === 'miutea' && currentChannel() !== 'tuibao' && currentChannel() !== 'miutea') {
+					var inv = window.MkInventoryOdooEdit;
+					if (inv && typeof inv.setPriceChannel === 'function') {
+						inv.setPriceChannel('miutea', { clearScPrefill: true });
+					} else {
+						window.MK_PRICE_CHANNEL = 'miutea';
+					}
+					if (inv && typeof inv.applyInvoiceTierPricing === 'function') {
+						inv.applyInvoiceTierPricing($('#EditView'), {});
+					}
+				}
 			}
 			refresh();
 		}, function () {
@@ -404,6 +485,7 @@
 		}
 		booted = true;
 		ensurePanel();
+		loadDiscountPolicy();
 		refresh();
 		$(document).on('mkQuoteDiscountRefresh', function () {
 			resolved = { code: '', segment: '' };

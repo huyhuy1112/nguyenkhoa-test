@@ -7,6 +7,9 @@
 			<p class="mk-ps-action-header__subtitle">Quản lý sản phẩm và dịch vụ trong kho</p>
 		</div>
 		<div class="mk-ps-action-header__actions">
+			<button type="button" id="mkPsPriceSetupBtn" class="mk-ps-btn mk-ps-btn--outline">
+				<span class="mk-ps-btn__txt">Bảng giá &amp; chiết khấu</span>
+			</button>
 			{assign var=IMPORT_ACTION value=false}
 			{assign var=ADD_ACTION value=false}
 			{if $MODULE_BASIC_ACTIONS|@count gt 0}

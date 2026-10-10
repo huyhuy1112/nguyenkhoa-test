@@ -1003,9 +1003,15 @@
 	}
 
 	/**
-	 * retail = Opp / Leads / Khách hàng (bảng giá lẻ theo bậc HĐ)
+	 * retail = khách lẻ KL (bảng giá lẻ theo bậc HĐ)
+	 * miutea = Giá Miutea trên từng hàng
 	 * tuibao = Nhượng quyền / danh sách chủ quán
 	 */
+	function channelForRetailCustomer(item) {
+		var code = String((item && item.customer_code) || '').toUpperCase();
+		return code.indexOf('MIUTEA') === 0 ? 'miutea' : 'retail';
+	}
+
 	function applyQuotePriceChannel(channel, opts) {
 		opts = opts || {};
 		var inv = window.MkInventoryOdooEdit;
@@ -1015,7 +1021,7 @@
 				clearScPrefill: opts.clearSc !== false
 			});
 		} else {
-			window.MK_PRICE_CHANNEL = channel === 'tuibao' ? 'tuibao' : 'retail';
+			window.MK_PRICE_CHANNEL = channel === 'tuibao' ? 'tuibao' : (channel === 'miutea' ? 'miutea' : 'retail');
 			if (channel !== 'tuibao') {
 				window.MK_SC_PREFILL = null;
 			} else if (opts.scPrefill) {
@@ -1559,7 +1565,7 @@
 			ensureServiceContractLinkFields($f, 0);
 			$f.find('[name="subject"]').val(label).trigger('change');
 			fillQuoteCustomerBits(item);
-			applyQuotePriceChannel('retail', { clearSc: true });
+			applyQuotePriceChannel(channelForRetailCustomer(item), { clearSc: true });
 		} else if (item.module === 'Potentials') {
 			setHiddenRef($f, 'potential_id', item.potential_id || item.id, label);
 			if (item.contact_id) {
@@ -1573,7 +1579,7 @@
 			$f.find('[name="subject"]').val(label).trigger('change');
 			$f.find('[name="potential_id"]').trigger('change');
 			fillQuoteCustomerBits(item);
-			applyQuotePriceChannel('retail', { clearSc: true });
+			applyQuotePriceChannel(channelForRetailCustomer(item), { clearSc: true });
 		} else if (item.module === 'Leads') {
 			setHiddenRef($f, 'potential_id', 0, '');
 			setHiddenRef($f, 'contact_id', 0, '');
@@ -1581,7 +1587,7 @@
 			$display.val(label);
 			$f.find('[name="subject"]').val(label).trigger('change');
 			fillQuoteCustomerBits(item);
-			applyQuotePriceChannel('retail', { clearSc: true });
+			applyQuotePriceChannel(channelForRetailCustomer(item), { clearSc: true });
 		}
 
 		$f.find('.mk-qt-customer-ref .clearReferenceSelection').removeClass('hide');
@@ -1928,7 +1934,7 @@
 				$f.find('.mk-qt-customer-ref').addClass('selected');
 				$f.find('[name="contact_id_display"]').data('mkCustomerModule', 'Contacts');
 				ensureServiceContractLinkFields($f, 0);
-				applyQuotePriceChannel('retail', { clearSc: true });
+				$(document).trigger('mkQuoteDiscountRefresh');
 			}
 			syncCustomerInfoButtonVisibility();
 		});

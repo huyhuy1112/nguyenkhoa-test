@@ -46,20 +46,25 @@
     if (window.MK_SC_PREFILL && (window.MK_SC_PREFILL.id || window.MK_SC_PREFILL.account_id)) {
       return "tuibao";
     }
+    if (ch === "miutea") {
+      return "miutea";
+    }
     return "retail";
   }
 
   function setPriceChannel(channel, opts) {
     opts = opts || {};
-    var next = channel === "tuibao" || channel === "franchise" || channel === "chain"
-      ? "tuibao"
-      : "retail";
+    var next = "retail";
+    if (channel === "tuibao" || channel === "franchise" || channel === "chain") {
+      next = "tuibao";
+    } else if (channel === "miutea") {
+      next = "miutea";
+    }
     window.MK_PRICE_CHANNEL = next;
     if (next === "tuibao" && opts.scPrefill) {
       window.MK_SC_PREFILL = opts.scPrefill;
     }
-    if (next === "retail" && opts.clearScPrefill !== false) {
-      // Leaving franchise source → retail prices (Opp / Leads / Contacts).
+    if (next !== "tuibao" && opts.clearScPrefill !== false) {
       try {
         window.MK_SC_PREFILL = null;
       } catch (e) {}
@@ -976,6 +981,9 @@
       }
       return parseMoney(meta.price || 0);
     }
+    if (getPriceChannel() === "miutea" && parseMoney(meta.price_miutea) > 0) {
+      return parseMoney(meta.price_miutea);
+    }
     var field = INVOICE_TIER_FIELDS[tierKey];
     if (field && meta[field] !== undefined && meta[field] !== null && meta[field] !== "") {
       return parseMoney(meta[field]);
@@ -1032,7 +1040,26 @@
     var $select = $form
       .find("#mkInvInvoicePriceTierSelect, [name='mk_invoice_price_tier']")
       .first();
-    var isTuibao = getPriceChannel() === "tuibao";
+    var channel = getPriceChannel();
+    var isTuibao = channel === "tuibao";
+    var isMiutea = channel === "miutea";
+    if (isMiutea) {
+      if ($select.length) {
+        $select.prop("disabled", true);
+      }
+      if ($wrap.length) {
+        $wrap
+          .addClass("is-miutea")
+          .removeClass("is-tuibao")
+          .find(".mk-inv-price-tier__label")
+          .text("Bảng giá: Miutea");
+        $wrap
+          .find(".mk-inv-price-tier__hint")
+          .text("Đơn giá lấy Giá Miutea trên hàng hoá. Chưa nhập thì tạm dùng giá bán lẻ theo tổng đơn.");
+        $wrap.find(".mk-inv-price-tier__status").text("Đang áp dụng: Giá Miutea");
+      }
+      return;
+    }
     if (isTuibao) {
       if ($select.length) {
         $select.prop("disabled", true);
@@ -1040,6 +1067,7 @@
       if ($wrap.length) {
         $wrap
           .addClass("is-tuibao")
+          .removeClass("is-miutea")
           .find(".mk-inv-price-tier__label")
           .text("Bảng giá: Tuibao");
         $wrap
@@ -1055,7 +1083,7 @@
       $select.prop("disabled", false);
     }
     if ($wrap.length) {
-      $wrap.removeClass("is-tuibao");
+      $wrap.removeClass("is-tuibao is-miutea");
       $wrap.find(".mk-inv-price-tier__label").text("Bảng giá");
       $wrap
         .find(".mk-inv-price-tier__hint")
@@ -2099,6 +2127,7 @@
           .attr("data-price-gte-5m", p.price_gte_5m)
           .attr("data-price-gte-7m", p.price_gte_7m)
           .attr("data-price-tuibao", p.price_tuibao)
+          .attr("data-price-miutea", p.price_miutea)
           .attr("data-product-group", p.product_group || "")
           .attr("data-sku", p.sku || "")
           .attr("data-unit", p.unit || "")
@@ -5562,6 +5591,7 @@
         .attr("data-price-gte-5m", meta.price_gte_5m)
         .attr("data-price-gte-7m", meta.price_gte_7m)
         .attr("data-price-tuibao", meta.price_tuibao)
+        .attr("data-price-miutea", meta.price_miutea)
         .attr("data-product-group", meta.product_group || "")
         .attr("data-sku", meta.sku || "")
         .attr("data-unit", meta.unit || "")
@@ -5610,6 +5640,12 @@
           meta.price_tuibao != null
             ? meta.price_tuibao
             : $opt.attr("data-price-tuibao"),
+        )
+        .attr(
+          "data-price-miutea",
+          meta.price_miutea != null
+            ? meta.price_miutea
+            : $opt.attr("data-price-miutea"),
         )
         .attr(
           "data-product-group",
@@ -5744,6 +5780,7 @@
       price_gte_5m: $opt.attr("data-price-gte-5m"),
       price_gte_7m: $opt.attr("data-price-gte-7m"),
       price_tuibao: $opt.attr("data-price-tuibao"),
+      price_miutea: $opt.attr("data-price-miutea"),
       product_group: $opt.attr("data-product-group") || "",
       sku: $opt.attr("data-sku") || "",
       unit: $opt.attr("data-unit") || "",
