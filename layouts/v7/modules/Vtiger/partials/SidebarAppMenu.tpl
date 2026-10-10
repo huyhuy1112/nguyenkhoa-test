@@ -35,7 +35,7 @@
 			{assign var=_mkHost value=$smarty.server.HTTP_HOST|default:$smarty.server.SERVER_NAME|default:''|lower}
 			{foreach item=APP_NAME from=$APP_LIST}
 				{if $APP_NAME eq 'ANALYTICS'} {continue}{/if}
-				{if $_mkHost|strstr:'nguyenkhoa-test' && ($APP_NAME eq 'MARKETING' || $APP_NAME eq 'TOOLS')} {continue}{/if}
+				{if $_mkHost|strstr:'nguyenkhoa' && ($APP_NAME eq 'MARKETING' || $APP_NAME eq 'TOOLS')} {continue}{/if}
 				{if !empty($APP_GROUPED_MENU.$APP_NAME)}
 					<div class="dropdown app-modules-dropdown-container">
 						{foreach item=APP_MENU_MODEL from=$APP_GROUPED_MENU.$APP_NAME}

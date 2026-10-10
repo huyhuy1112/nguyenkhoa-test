@@ -11,8 +11,8 @@
 {assign var=APP_GROUPED_MENU value=Settings_MenuEditor_Module_Model::getAllVisibleModules()}
 {assign var=MK_SIDEBAR_APPS value=','|explode:'MARKETING,SALES,INVENTORY,SUPPORT,MANAGEMENT,TOOLS'}
 {assign var=_mkHost value=$smarty.server.HTTP_HOST|default:$smarty.server.SERVER_NAME|default:''|lower}
-{if $_mkHost|strstr:'nguyenkhoa-test'}
-	{* Demo nguyenkhoa-test only — gói khách không có Marketing / Tools *}
+{if $_mkHost|strstr:'nguyenkhoa'}
+	{* Nguyên Khoa — không hiện Tiếp thị và Công cụ *}
 	{assign var=MK_SIDEBAR_APPS value=','|explode:'SALES,INVENTORY,SUPPORT,MANAGEMENT'}
 {/if}
 {assign var=_dashViewActive value=($VIEW eq 'DashBoard' || $VIEW eq 'ModernDashboard')}
