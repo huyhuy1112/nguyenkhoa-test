@@ -1603,33 +1603,39 @@
 		}
 		var editable = canEditStockFields();
 		tbody.innerHTML = rows.map(function (s) {
-			var days = daysUntil(s.expiry);
+			var hasExpiry = !!s.expiry;
+			var days = hasExpiry ? daysUntil(s.expiry) : null;
 			var warnDays = (S.expiryWarnDaysFor && S.expiryWarnDaysFor(s)) || 90;
-			var expLabel = days < 0 ? 'Quá hạn' : 'Còn ' + days + ' ngày';
-			var hsdCls = 'mk-wh-proto-hsd' + (days < 0 ? ' mk-wh-proto-hsd--expired' : (days < warnDays ? ' mk-wh-proto-hsd--soon' : ''));
+			var expLabel = !hasExpiry ? '' : (days < 0 ? 'Quá hạn' : ('Còn ' + days + ' ngày'));
+			var hsdCls = 'mk-wh-stock-col-hsd';
+			if (hasExpiry) {
+				hsdCls += ' mk-wh-proto-hsd' + (days < 0 ? ' mk-wh-proto-hsd--expired' : (days < warnDays ? ' mk-wh-proto-hsd--soon' : ''));
+			}
+			var daysNote = expLabel
+				? '<span class="mk-wh-stock-days">' + escText(expLabel) + '</span>'
+				: (editable && s.stockKey ? '<span class="mk-wh-stock-days">Chưa có HSD</span>' : '');
 			var qtyCls = stockQtyClass(s.qty);
 			var qtyTitle = (Number(s.qty) || 0) < 0 ? 'Tồn kho âm (đã xuất vượt tồn)' : '';
 			var soLabel = S.stockoutLabel ? S.stockoutLabel(s) : 'Không đủ dữ liệu';
 			var soSoon = S.isStockoutSoon ? S.isStockoutSoon(s) : false;
 			var lotCell = escText(s.lot || '—');
-			var expCell = escText(s.expiry || '—') + ' <span class="mk-wh-proto-muted">(' + escText(expLabel) + ')</span>';
+			var expCell = '<span class="mk-wh-stock-date">' + escText(s.expiry || '—') + '</span>' + daysNote;
 			var locCell = escText(s.location || '—');
 			if (editable && s.stockKey) {
 				var keyAttr = encodeURIComponent(s.stockKey);
 				lotCell = '<input class="mk-wh-stock-fill" data-stock-fill="lot" data-stock-key="' + escText(keyAttr) + '" value="' + escText(s.lot && s.lot !== '—' ? s.lot : '') + '" placeholder="Lô" />';
-				expCell = '<input class="mk-wh-stock-fill" type="date" data-stock-fill="expiry" data-stock-key="' + escText(keyAttr) + '" value="' + escText(s.expiry || '') + '" />' +
-					' <span class="mk-wh-proto-muted">(' + escText(expLabel) + ')</span>';
+				expCell = '<input class="mk-wh-stock-fill" type="date" data-stock-fill="expiry" data-stock-key="' + escText(keyAttr) + '" value="' + escText(s.expiry || '') + '" />' + daysNote;
 				locCell = '<input class="mk-wh-stock-fill" data-stock-fill="location" data-stock-key="' + escText(keyAttr) + '" value="' + escText(s.location && s.location !== '—' ? s.location : '') + '" placeholder="Vị trí" />';
 			}
 			return '<tr' + ((Number(s.qty) || 0) < 0 ? ' class="mk-wh-proto-stock-row--neg"' : '') + '>' +
-				'<td><strong>' + escText(formatSkuLabel(s.sku)) + '</strong></td>' +
-				'<td>' + escText(s.name) + '</td>' +
-				'<td>' + lotCell + '</td>' +
+				'<td class="mk-wh-stock-col-sku"><strong>' + escText(formatSkuLabel(s.sku)) + '</strong></td>' +
+				'<td class="mk-wh-stock-col-name">' + escText(s.name) + '</td>' +
+				'<td class="mk-wh-stock-col-lot">' + lotCell + '</td>' +
 				'<td class="' + hsdCls + '">' + expCell + '</td>' +
-				'<td class="' + (soSoon ? 'mk-wh-proto-hsd mk-wh-proto-hsd--soon' : 'mk-wh-proto-muted') + '">' + escText(soLabel) + '</td>' +
-				'<td class="mk-wh-proto-td-right">' + escText(fmtPrice(s.price)) + '</td>' +
-				'<td class="mk-wh-proto-td-right">' + locCell + '</td>' +
-				'<td class="mk-wh-proto-td-right' + qtyCls + '"' + (qtyTitle ? ' title="' + escText(qtyTitle) + '"' : '') + '><strong>' + escText(formatStockQty(s.qty)) + '</strong></td>' +
+				'<td class="mk-wh-stock-col-forecast ' + (soSoon ? 'mk-wh-proto-hsd mk-wh-proto-hsd--soon' : 'mk-wh-proto-muted') + '">' + escText(soLabel) + '</td>' +
+				'<td class="mk-wh-stock-col-price">' + escText(fmtPrice(s.price)) + '</td>' +
+				'<td class="mk-wh-stock-col-loc">' + locCell + '</td>' +
+				'<td class="mk-wh-stock-col-qty' + qtyCls + '"' + (qtyTitle ? ' title="' + escText(qtyTitle) + '"' : '') + '><strong>' + escText(formatStockQty(s.qty)) + '</strong></td>' +
 			'</tr>';
 		}).join('');
 		if (summary && editable) {

@@ -177,18 +177,28 @@
 						</div>
 						<p class="mk-wh-proto-filters__summary" id="mkWhProtoFilterSummary" aria-live="polite"></p>
 					</div>
-					<div class="mk-wh-proto-table-wrap">
-						<table class="mk-wh-proto-table" role="table">
+					<div class="mk-wh-proto-table-wrap mk-wh-stock-table-wrap">
+						<table class="mk-wh-proto-table mk-wh-stock-table" role="table">
+							<colgroup>
+								<col class="mk-wh-stock-col-sku" />
+								<col class="mk-wh-stock-col-name" />
+								<col class="mk-wh-stock-col-lot" />
+								<col class="mk-wh-stock-col-hsd" />
+								<col class="mk-wh-stock-col-forecast" />
+								<col class="mk-wh-stock-col-price" />
+								<col class="mk-wh-stock-col-loc" />
+								<col class="mk-wh-stock-col-qty" />
+							</colgroup>
 							<thead>
 								<tr>
-									<th>SKU</th>
-									<th>Tên hàng</th>
-									<th>Lô</th>
-									<th>HSD</th>
-									<th>Dự kiến hết</th>
-									<th class="mk-wh-proto-td-right">Giá</th>
-									<th class="mk-wh-proto-td-right">Vị trí</th>
-									<th class="mk-wh-proto-td-right">Tồn</th>
+									<th class="mk-wh-stock-col-sku">SKU</th>
+									<th class="mk-wh-stock-col-name">Tên hàng</th>
+									<th class="mk-wh-stock-col-lot">Lô</th>
+									<th class="mk-wh-stock-col-hsd">HSD</th>
+									<th class="mk-wh-stock-col-forecast">Dự kiến hết</th>
+									<th class="mk-wh-stock-col-price">Giá</th>
+									<th class="mk-wh-stock-col-loc">Vị trí</th>
+									<th class="mk-wh-stock-col-qty">Tồn</th>
 								</tr>
 							</thead>
 							<tbody id="mkWhProtoStockTbody"></tbody>
