@@ -256,25 +256,105 @@ class PearDatabase{
 	}
 
 	/**
-	 * Execute SET NAMES UTF-8 on the connection based on configuration.
+	 * Keep the MySQL session on utf8mb4.
+	 * cPanel often defaults the client charset to latin1. SET NAMES was skipped
+	 * when DB_DEFAULT_CHARSET_UTF8 was on, so letters outside Latin-1 (ư, ơ, đ, ấ)
+	 * were stored as "?". utf8mb4 is applied once per connection, then name columns
+	 * that are still latin1 are converted. Characters already saved as "?" stay that
+	 * way until the Excel file is imported again.
 	 */
 	function executeSetNamesUTF8SQL($force = false) {
-		global $default_charset;
-		static $DEFAULTCHARSET = null;
-		if ($DEFAULTCHARSET === null) $DEFAULTCHARSET = strtoupper($default_charset);
-		
-		// Performance Tuning: If database default charset is UTF-8, we don't need this
-		if($DEFAULTCHARSET == 'UTF-8' && ($force || !$this->isdb_default_utf8_charset)) {
-
-			$sql_start_time = microtime(true);
-
-			$setnameSql = "SET NAMES utf8";
-			$this->database->Execute($setnameSql);
-			$this->logSqlTiming($sql_start_time, microtime(true), $setnameSql);
-		}
-
-		// Ensure sql_mode is friendly
+		static $charsetReady = false;
+		// Ensure sql_mode is friendly before any column change.
 		$this->database->Execute("SET SESSION sql_mode = 'NO_ENGINE_SUBSTITUTION'");
+		if (!$charsetReady && isset($this->database)) {
+			$charsetReady = true;
+			$this->applyUtf8mb4Connection();
+			$this->ensureVietnameseTextColumns();
+		}
+	}
+
+	function applyUtf8mb4Connection() {
+		if ($this->dbType == 'mysqli' && !empty($this->database->_connectionID) && function_exists('mysqli_set_charset')) {
+			try {
+				mysqli_set_charset($this->database->_connectionID, 'utf8mb4');
+			} catch (Throwable $e) {
+				// Client library may already be on a charset that can read Vietnamese.
+			}
+		}
+		foreach (array(
+			"SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+			"SET NAMES utf8mb4",
+			"SET NAMES utf8",
+		) as $sql) {
+			try {
+				if ($this->database->Execute($sql)) {
+					return;
+				}
+			} catch (Throwable $e) {
+				// Try the next, older charset name.
+			}
+		}
+	}
+
+	/**
+	 * Convert customer-visible text columns off latin1 so new Vietnamese text survives.
+	 */
+	function ensureVietnameseTextColumns() {
+		$tables = array(
+			'vtiger_account',
+			'vtiger_accountscf',
+			'vtiger_accountbillads',
+			'vtiger_accountshipads',
+			'vtiger_crmentity',
+			'vtiger_salesorder',
+			'vtiger_contactdetails',
+		);
+		$list = "'" . implode("','", $tables) . "'";
+		$sql = "SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT
+			FROM information_schema.COLUMNS
+			WHERE TABLE_SCHEMA = DATABASE()
+			AND TABLE_NAME IN ($list)
+			AND DATA_TYPE IN ('varchar','char','text','tinytext','mediumtext','longtext')
+			AND CHARACTER_SET_NAME IS NOT NULL
+			AND CHARACTER_SET_NAME <> 'utf8mb4'";
+		try {
+			$rs = $this->database->Execute($sql);
+		} catch (Throwable $e) {
+			return;
+		}
+		if (!$rs) {
+			return;
+		}
+		while (!$rs->EOF) {
+			$fetched = $rs->FetchRow();
+			if (!is_array($fetched)) {
+				break;
+			}
+			$row = array_change_key_case($fetched);
+			$table = isset($row['table_name']) ? $row['table_name'] : '';
+			$col = isset($row['column_name']) ? $row['column_name'] : '';
+			$type = isset($row['column_type']) ? strtolower(trim($row['column_type'])) : '';
+			if (!preg_match('/^[A-Za-z0-9_]+$/', $table) || !preg_match('/^[A-Za-z0-9_]+$/', $col)) {
+				continue;
+			}
+			if (!preg_match('/^(?:varchar|char)\(\d+\)$|^(?:tinytext|text|mediumtext|longtext)$/', $type)) {
+				continue;
+			}
+			$nullSql = (isset($row['is_nullable']) && strtoupper($row['is_nullable']) === 'YES') ? 'NULL' : 'NOT NULL';
+			$defaultSql = '';
+			if (array_key_exists('column_default', $row) && $row['column_default'] !== null) {
+				$defaultSql = ' DEFAULT ' . $this->database->qstr($row['column_default']);
+			} elseif ($nullSql === 'NULL') {
+				$defaultSql = ' DEFAULT NULL';
+			}
+			$alter = "ALTER TABLE `$table` MODIFY `$col` $type CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci $nullSql$defaultSql";
+			try {
+				$this->database->Execute($alter);
+			} catch (Throwable $e) {
+				// Leave this column; the connection charset still protects columns already on utf8mb4.
+			}
+		}
 	}
 
 	/**
@@ -861,12 +941,9 @@ class PearDatabase{
 		if ($result) {
 			$this->database->LogSQL($this->enableSQLlog);
 
-			// 'SET NAMES UTF8' needs to be executed even if database has default CHARSET UTF8
-			// as mysql server might be running with different charset!
-			// We will notice problem reading UTF8 characters otherwise.
-			if($this->isdb_default_utf8_charset) {
-				$this->executeSetNamesUTF8SQL(true);
-			}
+			// Always set utf8mb4. The host default is often latin1, and skipping
+			// SET NAMES replaced Vietnamese letters with "?".
+			$this->executeSetNamesUTF8SQL(true);
 		}
 	}
 
