@@ -400,9 +400,16 @@
 				e.preventDefault();
 				var deleteId = deleteBtn.getAttribute('data-mk-wh-delete');
 				var w = S.getState().warehouses.find(function (x) { return x.id === deleteId; });
-				if (w && window.confirm('Xóa ' + decodeEntities(w.name) + '?')) {
+				if (!w) return;
+				var question = 'Xóa ' + decodeEntities(w.name) + '?';
+				var go = function () {
 					S.warehouseActions.remove(deleteId);
 					renderList();
+				};
+				if (typeof window.MkWhConfirm === 'function') {
+					window.MkWhConfirm(question).then(function (ok) { if (ok) go(); });
+				} else if (window.confirm(question)) {
+					go();
 				}
 			}
 		});

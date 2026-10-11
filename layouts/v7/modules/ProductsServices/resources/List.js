@@ -1583,6 +1583,33 @@
 		} else {
 			setTimeout(run, 0);
 		}
+		bindProductImport();
+	}
+
+	function reloadCatalog() {
+		catalogLoaded = false;
+		catalogLoading = false;
+		return fetchCatalog().done(function () {
+			renderFilters();
+			renderCatalogPage();
+		});
+	}
+
+	function bindProductImport() {
+		if (!window.MkQuickImport || typeof window.MkQuickImport.bind !== 'function') {
+			return;
+		}
+		window.MkQuickImport.bind({
+			buttonId: 'mk-ps-import-btn',
+			fileInputId: 'mk-ps-import-file',
+			module: 'ProductsServices',
+			xlsxOnly: true,
+			xlsxRejectMessage: 'Chỉ hỗ trợ file .xlsx (SKU, tên, giá bậc, Giá Tuibao, Giá Miutea).',
+			confirmMessage: 'Import hàng hoá từ Excel:\nGhi vào bảng hiện tại: SKU, tên, giá theo bậc, Giá Tuibao, Giá Miutea.\n\nTiếp tục?',
+			onDone: function () {
+				reloadCatalog();
+			}
+		});
 	}
 
 	if (document.readyState === 'loading') {

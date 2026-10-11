@@ -102,6 +102,43 @@
     });
   }
 
+  function showResult(message, isError) {
+    ensureConfirmStyles();
+    return new Promise(function (resolve) {
+      var root = document.createElement("div");
+      root.id = "mkQuickImportConfirm";
+      var lines = String(message || "")
+        .split(/\n+/)
+        .map(function (line) { return line.trim(); })
+        .filter(Boolean);
+      var title = lines.shift() || (isError ? "Import thất bại" : "Import xong");
+      var body = lines.map(function (line) {
+        return "<p>" + escapeHtml(line) + "</p>";
+      }).join("");
+      root.innerHTML =
+        '<div class="mk-qi-card" role="dialog" aria-modal="true">' +
+        "<h3>" + escapeHtml(title) + "</h3>" +
+        body +
+        '<div class="mk-qi-actions">' +
+        '<button type="button" class="mk-qi-ok">Đóng</button>' +
+        "</div></div>";
+      function close() {
+        if (root.parentNode) {
+          root.parentNode.removeChild(root);
+        }
+        resolve();
+      }
+      root.addEventListener("click", function (e) {
+        if (e.target === root) {
+          close();
+        }
+      });
+      root.querySelector(".mk-qi-ok").addEventListener("click", close);
+      document.body.appendChild(root);
+      root.querySelector(".mk-qi-ok").focus();
+    });
+  }
+
   function bind(opts) {
     opts = opts || {};
     var btn = document.getElementById(opts.buttonId);
@@ -133,12 +170,12 @@
       var name = String(file.name || '').toLowerCase();
       var acceptXlsxOnly = !!opts.xlsxOnly;
       if (acceptXlsxOnly && !/\.xlsx$/i.test(name)) {
-        notify(opts.xlsxRejectMessage || 'Chỉ hỗ trợ file .xlsx (Khách lẻ / Miutea).', true);
+        showResult(opts.xlsxRejectMessage || 'Chỉ hỗ trợ file .xlsx (Khách lẻ / Miutea).', true);
         input.value = '';
         return;
       }
       if (!acceptXlsxOnly && !/\.(xlsx|xls|csv)$/i.test(name)) {
-        notify('Chỉ hỗ trợ file .xlsx / .xls / .csv.', true);
+        showResult('Chỉ hỗ trợ file .xlsx / .xls / .csv.', true);
         input.value = '';
         return;
       }
@@ -161,7 +198,7 @@
         return;
       }
 
-      var labelEl = btn.querySelector('.mk-leads-btn__txt');
+      var labelEl = btn.querySelector('.mk-leads-btn__txt') || btn.querySelector('.mk-ps-btn__txt');
       var prevLabel = labelEl ? labelEl.textContent : btn.textContent;
       btn.setAttribute('disabled', 'disabled');
       if (labelEl) {
@@ -206,17 +243,18 @@
             throw new Error(result.message || 'Import thất bại.');
           }
           var msg = result.message || 'Import hoàn tất.';
-          notify(msg, false);
-          if (typeof opts.onDone === 'function') {
-            opts.onDone(result);
-          } else {
-            window.location.reload();
-          }
           done();
+          showResult(msg, false).then(function () {
+            if (typeof opts.onDone === 'function') {
+              opts.onDone(result);
+            } else {
+              window.location.reload();
+            }
+          });
         })
         .catch(function (err) {
-          notify((err && err.message) || 'Import thất bại.', true);
           done();
+          showResult((err && err.message) || 'Import thất bại.', true);
         });
     }
   }

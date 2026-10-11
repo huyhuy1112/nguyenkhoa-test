@@ -2019,7 +2019,17 @@
         module: "Accounts",
         confirmMessage:
           "Import danh sách chủ quán từ Excel:\n" +
-          "Chọn file .xlsx, .xls hoặc .csv. Cột được map tự động.\n\nTiếp tục?",
+          "File Túi Bao (.xlsx) sẽ tạo chủ quán và giữ mã TUIBAO_.\n\nTiếp tục?",
+        onDone: function () {
+          var reload = store && store.refresh;
+          if (reload) {
+            reload().then(function () {
+              renderAll();
+            });
+          } else {
+            window.location.reload();
+          }
+        },
       });
     }
     if ($("mk-acc-create-ic")) $("mk-acc-create-ic").innerHTML = ic("plus");

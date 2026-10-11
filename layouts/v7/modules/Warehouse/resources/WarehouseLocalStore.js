@@ -5,6 +5,43 @@
 (function (global) {
 	'use strict';
 
+	function mkWhConfirm(message) {
+		var styleId = 'mkWhConfirmStyle';
+		if (!document.getElementById(styleId)) {
+			var style = document.createElement('style');
+			style.id = styleId;
+			style.textContent = '#mkWhConfirm{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.45);padding:24px;}#mkWhConfirm .mk-wh-confirm__card{width:min(440px,100%);background:#fff;border-radius:16px;box-shadow:0 20px 50px rgba(15,23,42,.18);padding:22px 22px 18px;color:#111827;}#mkWhConfirm h3{margin:0 0 8px;font-size:18px;font-weight:700;color:#14532d;}#mkWhConfirm p{margin:0 0 8px;font-size:14px;line-height:1.45;color:#374151;}#mkWhConfirm .mk-wh-confirm__actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}#mkWhConfirm button{border-radius:999px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid transparent;}#mkWhConfirm .mk-wh-confirm__cancel{background:#fff;border-color:#d1d5db;color:#374151;}#mkWhConfirm .mk-wh-confirm__ok{background:#15803d;color:#fff;}';
+			document.head.appendChild(style);
+		}
+		return new Promise(function (resolve) {
+			var root = document.createElement('div');
+			root.id = 'mkWhConfirm';
+			var lines = String(message || '').split(/\n+/).map(function (line) {
+				return line.trim();
+			}).filter(Boolean);
+			var title = lines.shift() || 'Xác nhận';
+			var body = lines.map(function (line) {
+				return '<p>' + line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>';
+			}).join('');
+			function esc(s) {
+				return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+			}
+			root.innerHTML = '<div class="mk-wh-confirm__card" role="dialog" aria-modal="true"><h3>' + esc(title) + '</h3>' + body + '<div class="mk-wh-confirm__actions"><button type="button" class="mk-wh-confirm__cancel">Huỷ</button><button type="button" class="mk-wh-confirm__ok">OK</button></div></div>';
+			function close(ok) {
+				if (root.parentNode) root.parentNode.removeChild(root);
+				resolve(!!ok);
+			}
+			root.addEventListener('click', function (e) {
+				if (e.target === root) close(false);
+			});
+			root.querySelector('.mk-wh-confirm__cancel').addEventListener('click', function () { close(false); });
+			root.querySelector('.mk-wh-confirm__ok').addEventListener('click', function () { close(true); });
+			document.body.appendChild(root);
+			root.querySelector('.mk-wh-confirm__ok').focus();
+		});
+	}
+	global.MkWhConfirm = mkWhConfirm;
+
 	var KEY = 'bace_multi_warehouse_v2';
 	var useDb = false;
 
@@ -290,7 +327,6 @@
 		},
 		remove: function (id) {
 			if (useDb) {
-				if (!window.confirm('Xóa kho này?')) return;
 				apiPost({ mode: 'delete', id: id }).then(reloadPage);
 				return;
 			}

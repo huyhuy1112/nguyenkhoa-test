@@ -20,6 +20,11 @@ class Accounts_ModernService {
 		'facebook', 'tiktok', 'website', 'zalo', 'other', 'other_source',
 	);
 
+	protected static function ensureAccountCfColumns() {
+		require_once 'modules/Accounts/helpers/FranchiseContractService.php';
+		Accounts_FranchiseContractService_Helper::ensureFranchiseFields();
+	}
+
 	public static function installSchema(PearDatabase $adb = null) {
 		if ($adb === null) {
 			$adb = PearDatabase::getInstance();
@@ -74,18 +79,23 @@ class Accounts_ModernService {
 		}
 		$adb = PearDatabase::getInstance();
 		self::installSchema($adb);
+		self::ensureAccountCfColumns();
 		$sql = "SELECT a.accountid, a.accountname, a.phone, a.email1, a.account_no,
-				a.tb_store_address, a.tb_party_b_name, a.tb_party_b_phone,
+				cf.tb_store_address, cf.tb_party_b_name, cf.tb_party_b_phone,
 				p.received_date, p.business_note, p.franchise_status, p.data_source,
 				p.referrer, p.contact_status, p.interaction_materials, p.last_touch AS profile_last_touch,
 				ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description
 			FROM vtiger_account a
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = a.accountid AND ce.deleted = 0
+			LEFT JOIN vtiger_accountscf cf ON cf.accountid = a.accountid
 			LEFT JOIN bace_acc_profile p ON p.accountid = a.accountid
 			ORDER BY ce.createdtime DESC, a.accountid DESC";
 		$res = $adb->pquery($sql, array());
 		$rows = array();
 		$ids = array();
+		if (!$res) {
+			return array();
+		}
 		$n = $adb->num_rows($res);
 		for ($i = 0; $i < $n; $i++) {
 			$row = $adb->query_result_rowdata($res, $i);
@@ -116,14 +126,16 @@ class Accounts_ModernService {
 		}
 		$adb = PearDatabase::getInstance();
 		self::installSchema($adb);
+		self::ensureAccountCfColumns();
 		$res = $adb->pquery(
 			"SELECT a.accountid, a.accountname, a.phone, a.email1, a.account_no,
-				a.tb_store_address, a.tb_party_b_name, a.tb_party_b_phone,
+				cf.tb_store_address, cf.tb_party_b_name, cf.tb_party_b_phone,
 				p.received_date, p.business_note, p.franchise_status, p.data_source,
 				p.referrer, p.contact_status, p.interaction_materials, p.last_touch AS profile_last_touch,
 				ce.smownerid, ce.createdtime, ce.modifiedtime, ce.description
 			FROM vtiger_account a
 			INNER JOIN vtiger_crmentity ce ON ce.crmid = a.accountid AND ce.deleted = 0
+			LEFT JOIN vtiger_accountscf cf ON cf.accountid = a.accountid
 			LEFT JOIN bace_acc_profile p ON p.accountid = a.accountid
 			WHERE a.accountid = ?",
 			array($accountId)

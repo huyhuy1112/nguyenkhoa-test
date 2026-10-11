@@ -41,6 +41,16 @@
 		crmNotify(msg || 'Đã xảy ra lỗi', true);
 	}
 
+	function confirmThen(message, fn) {
+		if (typeof window.MkWhConfirm === 'function') {
+			window.MkWhConfirm(message).then(function (ok) {
+				if (ok) fn();
+			});
+			return;
+		}
+		if (window.confirm(message)) fn();
+	}
+
 	function crmNotify(msg, isError) {
 		var safe = escapeHtml(msg).replace(/\\n/g, '\n').replace(/\n/g, '<br>');
 		if (typeof window !== 'undefined' && window.app && app.helper) {
@@ -4162,26 +4172,29 @@
 				return;
 			}
 			if (action === 'return-confirm' && id) {
-				if (!window.confirm('Xác nhận nhập kho phiếu ' + id + '?\nHàng sẽ cộng vào tồn kho.' + ((d.returns || []).some(function (x) { return (x.id === id || x.code === id) && x.refund; }) ? '\nPhiếu có hoàn tiền: số đã thu trên đơn sẽ giảm.' : ''))) {
-					return;
-				}
-				if (!S.returnActions) return;
-				S.returnActions.confirm(whId, id).then(function () {
-					closeDialog();
-					refreshWarehouseUi();
-				}).fail(function (err) {
-					showError((err && err.message) || 'Không xác nhận được phiếu.');
+				var refundNote = (d.returns || []).some(function (x) { return (x.id === id || x.code === id) && x.refund; })
+					? '\nPhiếu có hoàn tiền: số đã thu trên đơn sẽ giảm.'
+					: '';
+				confirmThen('Xác nhận nhập kho phiếu ' + id + '?\nHàng sẽ cộng vào tồn kho.' + refundNote, function () {
+					if (!S.returnActions) return;
+					S.returnActions.confirm(whId, id).then(function () {
+						closeDialog();
+						refreshWarehouseUi();
+					}).fail(function (err) {
+						showError((err && err.message) || 'Không xác nhận được phiếu.');
+					});
 				});
 				return;
 			}
 			if (action === 'return-cancel' && id) {
-				if (!window.confirm('Hủy phiếu ' + id + '?')) return;
-				if (!S.returnActions) return;
-				S.returnActions.cancel(whId, id).then(function () {
-					closeDialog();
-					refreshWarehouseUi();
-				}).fail(function (err) {
-					showError((err && err.message) || 'Không hủy được phiếu.');
+				confirmThen('Hủy phiếu ' + id + '?', function () {
+					if (!S.returnActions) return;
+					S.returnActions.cancel(whId, id).then(function () {
+						closeDialog();
+						refreshWarehouseUi();
+					}).fail(function (err) {
+						showError((err && err.message) || 'Không hủy được phiếu.');
+					});
 				});
 				return;
 			}
@@ -4199,9 +4212,7 @@
 					showError('Chỉ huỷ được phiếu ở trạng thái Chờ soạn, Đang soạn hoặc Đã soạn.');
 					return;
 				}
-				if (!window.confirm('Huỷ phiếu xuất ' + id + '?\nTồn kho đã trừ (nếu có) sẽ được hoàn lại.')) {
-					return;
-				}
+				confirmThen('Huỷ phiếu xuất ' + id + '?\nTồn kho đã trừ (nếu có) sẽ được hoàn lại.', function () {
 				if (S.useDb && S.useDb() && S.warehouseDataActions && typeof S.warehouseDataActions.issueAction === 'function') {
 					S.warehouseDataActions
 						.issueAction(whId, id, 'issue-cancel', getRole(), 'Huỷ xuất kho')
@@ -4228,6 +4239,7 @@
 					return i;
 				});
 				refreshWarehouseUi();
+				});
 				return;
 			}
 			if (action === 'qc-record' && id) {
@@ -4272,15 +4284,16 @@
 				}
 				var imageId = actionEl.getAttribute('data-image-id') || '';
 				if (!imageId) return;
-				if (!window.confirm('Xóa ảnh này?')) return;
-				S.warehouseDataActions
-					.deleteQcImage(whId, id, imageId)
-					.then(function (res) {
-						reopenReceiptDialog(whId, id, res);
-					})
-					.fail(function (err) {
-						showError((err && err.message) || 'Không xóa được ảnh.');
-					});
+				confirmThen('Xóa ảnh này?', function () {
+					S.warehouseDataActions
+						.deleteQcImage(whId, id, imageId)
+						.then(function (res) {
+							reopenReceiptDialog(whId, id, res);
+						})
+						.fail(function (err) {
+							showError((err && err.message) || 'Không xóa được ảnh.');
+						});
+				});
 				return;
 			}
 			if (id && action === 'qc-update') {
@@ -4314,10 +4327,12 @@
 					RECEIPT_PATH.forEach(function (s) {
 						if (s.key === receiptTarget) receiptStepLabel = s.label;
 					});
-					if (!window.confirm('Quay lại bước "' + (receiptStepLabel || receiptTarget) + '"?\nThao tác sẽ được ghi vào lịch sử.')) {
-						return;
-					}
+					confirmThen('Quay lại bước "' + (receiptStepLabel || receiptTarget) + '"?\nThao tác sẽ được ghi vào lịch sử.', runReceiptAction);
+					return;
 				}
+				runReceiptAction();
+				return;
+				function runReceiptAction() {
 				if (S.useDb && S.useDb()) {
 					var note = '';
 					if (action === 'qc-pass' || action === 'qc-fail') {
@@ -4407,7 +4422,7 @@
 				});
 				refreshWarehouseUi();
 				reopenReceiptDialog(whId, id);
-				return;
+				}
 			}
 
 			// Issue actions
@@ -4420,10 +4435,12 @@
 					ISSUE_PATH.forEach(function (s) {
 						if (s.key === targetStatus) stepLabel = s.label;
 					});
-					if (!window.confirm('Quay lại bước "' + (stepLabel || targetStatus) + '"?\nThao tác sẽ được ghi vào lịch sử.')) {
-						return;
-					}
+					confirmThen('Quay lại bước "' + (stepLabel || targetStatus) + '"?\nThao tác sẽ được ghi vào lịch sử.', runIssueAction);
+					return;
 				}
+				runIssueAction();
+				return;
+				function runIssueAction() {
 				if (S.useDb && S.useDb()) {
 					var reasonDb = '';
 					if (action === 'issue-reject') {
@@ -4506,7 +4523,7 @@
 				});
 				refreshWarehouseUi();
 				reopenIssueDialog(whId, id);
-				return;
+				}
 			}
 		});
 
