@@ -35,7 +35,7 @@
 			{assign var=_mkHost value=$smarty.server.HTTP_HOST|default:$smarty.server.SERVER_NAME|default:''|lower}
 			{foreach item=APP_NAME from=$APP_LIST}
 				{if $APP_NAME eq 'ANALYTICS'} {continue}{/if}
-				{if $_mkHost|strstr:'nguyenkhoa-test' && ($APP_NAME eq 'MARKETING' || $APP_NAME eq 'TOOLS')} {continue}{/if}
+				{if $_mkHost|strstr:'nguyenkhoa' && ($APP_NAME eq 'MARKETING' || $APP_NAME eq 'TOOLS')} {continue}{/if}
 				{if !empty($APP_GROUPED_MENU.$APP_NAME)}
 					<div class="dropdown app-modules-dropdown-container">
 						{foreach item=APP_MENU_MODEL from=$APP_GROUPED_MENU.$APP_NAME}
@@ -69,6 +69,10 @@
 							{foreach item=moduleModel key=moduleName from=$APP_GROUPED_MENU[$APP_NAME]}
 								{* SUPPORT: ẩn Schedule (Calendar) — Schedule chỉ ở MANAGEMENT *}
 								{if $APP_NAME eq 'SUPPORT' && ($moduleName eq 'Calendar' || $moduleName eq 'Schedule')}{continue}{/if}
+								{* SUPPORT: ẩn Hỏi đáp *}
+								{if $APP_NAME eq 'SUPPORT' && $moduleName eq 'Faq'}{continue}{/if}
+								{* MANAGEMENT: ẩn Dự án / Nhiệm vụ dự án *}
+								{if $APP_NAME eq 'MANAGEMENT' && ($moduleName eq 'Project' || $moduleName eq 'ProjectTask' || $moduleName eq 'ProjectMilestone')}{continue}{/if}
 								{* SALES: ProductsServices lives under Kho; hide legacy Products/Services *}
 								{if $APP_NAME eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services' || $moduleName eq 'ProductsServices')}{continue}{/if}
 								{* INVENTORY: ẩn Inbound / Storage / Outbound *}
@@ -80,13 +84,13 @@
 								{elseif $moduleName eq 'Calendar' && $APP_NAME eq 'SUPPORT'}
 									{assign var='translatedModuleLabel' value=vtranslate('LBL_ACTIVITIES','Calendar')}
 								{elseif $moduleName eq 'Accounts'}
-									{assign var='translatedModuleLabel' value='Hợp đồng nhượng quyền'}
+									{assign var='translatedModuleLabel' value='Danh sách chủ quán'}
 								{elseif $moduleName eq 'Contacts'}
 									{assign var='translatedModuleLabel' value='Khách hàng'}
 								{elseif $moduleName eq 'ProductsServices'}
 									{assign var='translatedModuleLabel' value='Hàng hoá'}
 								{elseif $moduleName eq 'ServiceContracts'}
-									{assign var='translatedModuleLabel' value='Khách hàng nhượng quyền'}
+									{assign var='translatedModuleLabel' value='Khách hàng nhượng quyền tiềm năng'}
 								{elseif $moduleName eq 'SupportFAQ'}
 									{assign var='translatedModuleLabel' value='Cảnh báo'}
 								{/if}

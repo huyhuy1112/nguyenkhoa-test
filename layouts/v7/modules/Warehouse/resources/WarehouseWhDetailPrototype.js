@@ -38,12 +38,75 @@
 	}
 
 	function showError(msg) {
-		var text = String(msg || 'Đã xảy ra lỗi');
-		if (typeof window !== 'undefined' && window.app && app.helper && app.helper.showErrorNotification) {
-			app.helper.showErrorNotification({ message: text });
+		crmNotify(msg || 'Đã xảy ra lỗi', true);
+	}
+
+	function confirmThen(message, fn) {
+		if (typeof window.MkWhConfirm === 'function') {
+			window.MkWhConfirm(message).then(function (ok) {
+				if (ok) fn();
+			});
 			return;
 		}
-		window.alert(text);
+		if (window.confirm(message)) fn();
+	}
+
+	function crmNotify(msg, isError) {
+		var safe = escapeHtml(msg).replace(/\\n/g, '\n').replace(/\n/g, '<br>');
+		if (typeof window !== 'undefined' && window.app && app.helper) {
+			if (isError && app.helper.showErrorNotification) {
+				app.helper.showErrorNotification({ message: safe });
+				return;
+			}
+			if (!isError && app.helper.showSuccessNotification) {
+				app.helper.showSuccessNotification({ message: safe });
+				return;
+			}
+		}
+		window.alert(String(msg || ''));
+	}
+
+	function confirmCrm(title, lines) {
+		return new Promise(function (resolve) {
+			if (!document.getElementById('mkWhImportConfirmStyle')) {
+				var style = document.createElement('style');
+				style.id = 'mkWhImportConfirmStyle';
+				style.textContent =
+					'#mkWhImportConfirm{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.45);padding:24px;}' +
+					'#mkWhImportConfirm .mk-qi-card{width:min(460px,100%);background:#fff;border-radius:16px;box-shadow:0 20px 50px rgba(15,23,42,.18);padding:22px 22px 18px;color:#111827;}' +
+					'#mkWhImportConfirm h3{margin:0 0 8px;font-size:18px;font-weight:700;color:#14532d;}' +
+					'#mkWhImportConfirm p{margin:0 0 8px;font-size:14px;line-height:1.45;color:#374151;}' +
+					'#mkWhImportConfirm .mk-qi-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;}' +
+					'#mkWhImportConfirm button{border-radius:999px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid transparent;}' +
+					'#mkWhImportConfirm .mk-qi-cancel{background:#fff;border-color:#d1d5db;color:#374151;}' +
+					'#mkWhImportConfirm .mk-qi-ok{background:#15803d;color:#fff;}';
+				document.head.appendChild(style);
+			}
+			var root = document.createElement('div');
+			root.id = 'mkWhImportConfirm';
+			var body = (lines || []).map(function (line) {
+				return '<p>' + escapeHtml(line) + '</p>';
+			}).join('');
+			root.innerHTML =
+				'<div class="mk-qi-card" role="dialog" aria-modal="true">' +
+				'<h3>' + escapeHtml(title || 'Xác nhận') + '</h3>' +
+				body +
+				'<div class="mk-qi-actions">' +
+				'<button type="button" class="mk-qi-cancel">Huỷ</button>' +
+				'<button type="button" class="mk-qi-ok">Tiếp tục</button>' +
+				'</div></div>';
+			function close(ok) {
+				if (root.parentNode) root.parentNode.removeChild(root);
+				resolve(!!ok);
+			}
+			root.addEventListener('click', function (e) {
+				if (e.target === root) close(false);
+			});
+			root.querySelector('.mk-qi-cancel').addEventListener('click', function () { close(false); });
+			root.querySelector('.mk-qi-ok').addEventListener('click', function () { close(true); });
+			document.body.appendChild(root);
+			root.querySelector('.mk-qi-ok').focus();
+		});
 	}
 
 	function decodeEntities(s) {
@@ -641,11 +704,29 @@
 	// Real CRM permissions from #mkWhDetailRoot data-* (no prototype role picker).
 	function getAccess() {
 		var root = qs('#mkWhDetailRoot');
+		var fromState = false;
+		try {
+			fromState = !!(S.getState && S.getState() && S.getState().canStockFillAdmin);
+		} catch (eAcc) {
+			fromState = false;
+		}
 		return {
 			canWrite: !!(root && root.getAttribute('data-can-write') === '1'),
 			canQc: !!(root && root.getAttribute('data-can-qc') === '1'),
+			canAdmin: !!(root && root.getAttribute('data-can-admin') === '1') || fromState,
 			userName: root ? String(root.getAttribute('data-user-name') || '').trim() : '',
 		};
+	}
+
+	function isStockFillOpen() {
+		var d = S.ensureData(getWhId());
+		return !!(d && (d.stockFillOpen === 1 || d.stockFillOpen === '1' || d.stockFillOpen === true));
+	}
+
+	function canEditStockFields() {
+		var a = getAccess();
+		if (a.canAdmin) return true;
+		return !!(a.canWrite && isStockFillOpen());
 	}
 
 	/** API/timeline role key: manager (write/QC) | viewer */
@@ -916,11 +997,17 @@
 		var active = qs('.mk-wh-proto-tab.is-active');
 		var tabKey = active ? active.getAttribute('data-tab') : 'inbound';
 		var btn = qs('#mkWhProtoCreateBtn');
+		var importBtn = qs('#mkWhProtoImportStockBtn');
 		var canCreate = isWarehouseOps(role) && (tabKey === 'inbound' || tabKey === 'outbound' || tabKey === 'returns');
+		var canImport = isWarehouseOps(role) && tabKey === 'stock';
 		if (btn) {
 			btn.classList.toggle('hide', !canCreate);
 			btn.disabled = !canCreate;
 			btn.textContent = tabKey === 'outbound' ? 'Tạo phiếu xuất' : (tabKey === 'returns' ? 'Tạo phiếu thu hồi' : 'Tạo phiếu nhập');
+		}
+		if (importBtn) {
+			importBtn.classList.toggle('hide', !canImport);
+			importBtn.disabled = !canImport;
 		}
 	}
 
@@ -1524,26 +1611,93 @@
 				summary.textContent = 'Hiển thị ' + rows.length + ' / ' + inStock.length + ' mặt hàng';
 			}
 		}
+		var editable = canEditStockFields();
 		tbody.innerHTML = rows.map(function (s) {
-			var days = daysUntil(s.expiry);
+			var hasExpiry = !!s.expiry;
+			var days = hasExpiry ? daysUntil(s.expiry) : null;
 			var warnDays = (S.expiryWarnDaysFor && S.expiryWarnDaysFor(s)) || 90;
-			var expLabel = days < 0 ? 'Quá hạn' : 'Còn ' + days + ' ngày';
-			var hsdCls = 'mk-wh-proto-hsd' + (days < 0 ? ' mk-wh-proto-hsd--expired' : (days < warnDays ? ' mk-wh-proto-hsd--soon' : ''));
+			var expLabel = !hasExpiry ? '' : (days < 0 ? 'Quá hạn' : ('Còn ' + days + ' ngày'));
+			var hsdCls = 'mk-wh-stock-col-hsd';
+			if (hasExpiry) {
+				hsdCls += ' mk-wh-proto-hsd' + (days < 0 ? ' mk-wh-proto-hsd--expired' : (days < warnDays ? ' mk-wh-proto-hsd--soon' : ''));
+			}
+			var daysNote = expLabel
+				? '<span class="mk-wh-stock-days">' + escText(expLabel) + '</span>'
+				: (editable && s.stockKey ? '<span class="mk-wh-stock-days">Chưa có HSD</span>' : '');
 			var qtyCls = stockQtyClass(s.qty);
 			var qtyTitle = (Number(s.qty) || 0) < 0 ? 'Tồn kho âm (đã xuất vượt tồn)' : '';
 			var soLabel = S.stockoutLabel ? S.stockoutLabel(s) : 'Không đủ dữ liệu';
 			var soSoon = S.isStockoutSoon ? S.isStockoutSoon(s) : false;
+			var lotCell = escText(s.lot || '—');
+			var expCell = '<span class="mk-wh-stock-date">' + escText(s.expiry || '—') + '</span>' + daysNote;
+			var locCell = escText(s.location || '—');
+			if (editable && s.stockKey) {
+				var keyAttr = encodeURIComponent(s.stockKey);
+				lotCell = '<input class="mk-wh-stock-fill" data-stock-fill="lot" data-stock-key="' + escText(keyAttr) + '" value="' + escText(s.lot && s.lot !== '—' ? s.lot : '') + '" placeholder="Lô" />';
+				expCell = '<input class="mk-wh-stock-fill" type="date" data-stock-fill="expiry" data-stock-key="' + escText(keyAttr) + '" value="' + escText(s.expiry || '') + '" />' + daysNote;
+				locCell = '<input class="mk-wh-stock-fill" data-stock-fill="location" data-stock-key="' + escText(keyAttr) + '" value="' + escText(s.location && s.location !== '—' ? s.location : '') + '" placeholder="Vị trí" />';
+			}
 			return '<tr' + ((Number(s.qty) || 0) < 0 ? ' class="mk-wh-proto-stock-row--neg"' : '') + '>' +
-				'<td><strong>' + escText(formatSkuLabel(s.sku)) + '</strong></td>' +
-				'<td>' + escText(s.name) + '</td>' +
-				'<td>' + escText(s.lot) + '</td>' +
-				'<td class="' + hsdCls + '">' + escText(s.expiry || '—') + ' <span class="mk-wh-proto-muted">(' + escText(expLabel) + ')</span></td>' +
-				'<td class="' + (soSoon ? 'mk-wh-proto-hsd mk-wh-proto-hsd--soon' : 'mk-wh-proto-muted') + '">' + escText(soLabel) + '</td>' +
-				'<td class="mk-wh-proto-td-right">' + escText(fmtPrice(s.price)) + '</td>' +
-				'<td class="mk-wh-proto-td-right">' + escText(s.location || '—') + '</td>' +
-				'<td class="mk-wh-proto-td-right' + qtyCls + '"' + (qtyTitle ? ' title="' + escText(qtyTitle) + '"' : '') + '><strong>' + escText(formatStockQty(s.qty)) + '</strong></td>' +
+				'<td class="mk-wh-stock-col-sku"><strong>' + escText(formatSkuLabel(s.sku)) + '</strong></td>' +
+				'<td class="mk-wh-stock-col-name">' + escText(s.name) + '</td>' +
+				'<td class="mk-wh-stock-col-lot">' + lotCell + '</td>' +
+				'<td class="' + hsdCls + '">' + expCell + '</td>' +
+				'<td class="mk-wh-stock-col-forecast ' + (soSoon ? 'mk-wh-proto-hsd mk-wh-proto-hsd--soon' : 'mk-wh-proto-muted') + '">' + escText(soLabel) + '</td>' +
+				'<td class="mk-wh-stock-col-price">' + escText(fmtPrice(s.price)) + '</td>' +
+				'<td class="mk-wh-stock-col-loc">' + locCell + '</td>' +
+				'<td class="mk-wh-stock-col-qty' + qtyCls + '"' + (qtyTitle ? ' title="' + escText(qtyTitle) + '"' : '') + '><strong>' + escText(formatStockQty(s.qty)) + '</strong></td>' +
 			'</tr>';
 		}).join('');
+		if (summary && editable) {
+			var hint = isStockFillOpen()
+				? ' Đang mở quyền bổ sung HSD, vị trí, lô.'
+				: ' CEO/Admin có thể sửa HSD, vị trí, lô.';
+			summary.textContent = (summary.textContent || '') + hint;
+		}
+		bindStockFillInputs();
+	}
+
+	function bindStockFillInputs() {
+		var tbody = qs('#mkWhProtoStockTbody');
+		if (!tbody || tbody.getAttribute('data-fill-bound') === '1') return;
+		tbody.setAttribute('data-fill-bound', '1');
+		tbody.addEventListener('change', function (e) {
+			var el = e.target;
+			if (!el || !el.getAttribute || !el.getAttribute('data-stock-fill')) return;
+			saveStockFillFromInput(el);
+		});
+	}
+
+	function saveStockFillFromInput(el) {
+		var tr = el.closest ? el.closest('tr') : null;
+		if (!tr || tr.getAttribute('data-saving') === '1') return;
+		var keyEl = tr.querySelector('[data-stock-key]');
+		if (!keyEl) return;
+		var stockKey = '';
+		try {
+			stockKey = decodeURIComponent(keyEl.getAttribute('data-stock-key') || '');
+		} catch (eKey) {
+			stockKey = keyEl.getAttribute('data-stock-key') || '';
+		}
+		if (!stockKey) return;
+		var lotEl = tr.querySelector('[data-stock-fill="lot"]');
+		var expEl = tr.querySelector('[data-stock-fill="expiry"]');
+		var locEl = tr.querySelector('[data-stock-fill="location"]');
+		var fields = {
+			lot: lotEl ? String(lotEl.value || '').trim() : '',
+			expiry: expEl ? String(expEl.value || '').trim() : '',
+			location: locEl ? String(locEl.value || '').trim() : '',
+		};
+		tr.setAttribute('data-saving', '1');
+		S.warehouseDataActions.saveStockFill(getWhId(), stockKey, fields).then(function () {
+			tr.removeAttribute('data-saving');
+		}).fail(function (err) {
+			tr.removeAttribute('data-saving');
+			showError((err && err.message) ? err.message : 'Không lưu được tồn kho');
+			if (S.warehouseDataActions.refresh) {
+				S.warehouseDataActions.refresh(getWhId());
+			}
+		});
 	}
 
 	function renderOutbound() {
@@ -1671,7 +1825,12 @@
 			'<td class="mk-wh-return-col-issue"><code>' + escapeHtml(line.issue_code || '') + '</code></td>' +
 			'<td class="mk-wh-return-col-max mk-wh-proto-td-right">' + escapeHtml(maxQty) + '</td>' +
 			'<td class="mk-wh-return-col-qty mk-wh-proto-td-right"><input type="number" min="0" max="' + escText(maxQty) + '" step="0.01" data-f="qty" value="' + escText(qty) + '" /></td>' +
-			'<td class="mk-wh-return-col-act"><button type="button" class="mk-wh-proto-mini-btn" data-mk-return-take-line="1">Lấy hết</button></td>' +
+			'<td class="mk-wh-return-col-act">' +
+				'<button type="button" class="mk-wh-proto-mini-btn" data-mk-return-take-line="1">Lấy hết</button>' +
+				'<button type="button" class="mk-wh-return-remove" data-mk-return-remove-line="1" title="Không thu hồi dòng này" aria-label="Bỏ dòng">' +
+					'<span aria-hidden="true">&times;</span>' +
+				'</button>' +
+			'</td>' +
 			'</tr>';
 	}
 
@@ -1713,6 +1872,37 @@
 		return getReturnModalState(modal).selected.slice();
 	}
 
+	function syncReturnPartyFromSelected(selected) {
+		var partyEl = qs('#mkWhReturnParty');
+		if (!partyEl) return;
+		var names = [];
+		var seen = {};
+		(selected || []).forEach(function (s) {
+			var name = String((s && s.customer) || '').trim();
+			if (!name) return;
+			var key = name.toLowerCase();
+			if (seen[key]) return;
+			seen[key] = true;
+			names.push(name);
+		});
+		partyEl.value = names.join(', ');
+	}
+
+	/** After removing product rows: drop phiếu xuất that no longer have lines; refresh names. */
+	function pruneReturnSelectionByRemainingLines(modal) {
+		if (!modal) return;
+		var remaining = {};
+		qsa('#mkWhReturnLinesBody [data-mk-return-line="1"]').forEach(function (row) {
+			var code = row.getAttribute('data-issue-code') || '';
+			if (code) remaining[code] = true;
+		});
+		var state = getReturnModalState(modal);
+		state.selected = (state.selected || []).filter(function (s) {
+			return !!(s && s.issueCode && remaining[s.issueCode]);
+		});
+		syncReturnPickedUi(modal);
+	}
+
 	function syncReturnPickedUi(modal) {
 		var selected = selectedReturnIssues(modal);
 		var countEl = qs('#mkWhReturnPickedCount');
@@ -1736,11 +1926,12 @@
 			if (!soId && s.salesorderId) soId = s.salesorderId;
 		});
 		if (qs('#mkWhReturnSoId')) qs('#mkWhReturnSoId').value = soId || '';
+		syncReturnPartyFromSelected(selected);
 		if (takeAll) takeAll.hidden = !selected.length;
 		if (hint) {
 			hint.textContent = selected.length
-				? 'Nhập số lượng từng dòng. Để 0 nếu không trả sản phẩm đó.'
-				: 'Chọn phiếu xuất bên trái, rồi nhập số lượng từng dòng. Dòng để 0 sẽ không trả.';
+				? 'Nhập số lượng từng dòng. Bấm × nếu không thu hồi sản phẩm đó.'
+				: 'Chọn phiếu xuất bên trái, rồi nhập số lượng từng dòng. Bấm × nếu không thu hồi sản phẩm đó.';
 		}
 		qsa('#mkWhReturnSourceResults .mk-wh-return-source').forEach(function (btn) {
 			var code = btn.getAttribute('data-issue-code') || '';
@@ -1815,6 +2006,7 @@
 		if (qs('#mkWhReturnSourceLabel')) qs('#mkWhReturnSourceLabel').value = '';
 		if (qs('#mkWhReturnSourceQ')) qs('#mkWhReturnSourceQ').value = '';
 		if (qs('#mkWhReturnNote')) qs('#mkWhReturnNote').value = '';
+		if (qs('#mkWhReturnParty')) qs('#mkWhReturnParty').value = '';
 		var refund = qs('#mkWhReturnRefund');
 		if (refund) refund.checked = false;
 		var results = qs('#mkWhReturnSourceResults');
@@ -1889,6 +2081,15 @@
 				if (!row) return;
 				var qtyEl = row.querySelector('[data-f="qty"]');
 				if (qtyEl) qtyEl.value = row.getAttribute('data-max-qty') || '0';
+				return;
+			}
+			var removeLine = t.closest && t.closest('[data-mk-return-remove-line="1"]');
+			if (removeLine) {
+				var remRow = removeLine.closest('[data-mk-return-line="1"]');
+				if (remRow && remRow.parentNode) {
+					remRow.parentNode.removeChild(remRow);
+					pruneReturnSelectionByRemainingLines(modal);
+				}
 			}
 		});
 		var searchBtn = qs('#mkWhReturnSourceSearchBtn');
@@ -1929,6 +2130,11 @@
 				showError('Chế độ lưu database chưa sẵn sàng.');
 				return;
 			}
+			var party = qs('#mkWhReturnParty') ? String(qs('#mkWhReturnParty').value || '').trim() : '';
+			var noteRaw = qs('#mkWhReturnNote') ? String(qs('#mkWhReturnNote').value || '').trim() : '';
+			var noteParts = [];
+			if (party) noteParts.push('Người/chỗ thu hồi: ' + party);
+			if (noteRaw) noteParts.push(noteRaw);
 			S.returnActions.save(whId, {
 				docType: qs('#mkWhReturnDocType') ? qs('#mkWhReturnDocType').value : 'return',
 				sourceType: qs('#mkWhReturnSourceType') ? qs('#mkWhReturnSourceType').value : 'retail',
@@ -1937,7 +2143,7 @@
 				servicecontractId: parseInt(qs('#mkWhReturnScId') ? qs('#mkWhReturnScId').value : '0', 10) || 0,
 				issueCodes: selected.map(function (s) { return s.issueCode; }),
 				refund: !!(qs('#mkWhReturnRefund') && qs('#mkWhReturnRefund').checked),
-				note: qs('#mkWhReturnNote') ? qs('#mkWhReturnNote').value : '',
+				note: noteParts.join('\n'),
 				lines: lines,
 			}).then(function () {
 				closeReturnModal();
@@ -1958,7 +2164,43 @@
 		}
 	}
 
+	function syncStockFillButton() {
+		var actions = qs('.mk-wh-proto-actions');
+		if (!actions) return;
+		var btn = qs('#mkWhStockFillBtn');
+		if (!getAccess().canAdmin) {
+			if (btn) btn.style.display = 'none';
+			return;
+		}
+		if (!btn) {
+			btn = document.createElement('button');
+			btn.type = 'button';
+			btn.id = 'mkWhStockFillBtn';
+			btn.className = 'mk-wh-proto-btn mk-wh-proto-btn--history mk-wh-proto-btn--fill';
+			var historyBtn = qs('#mkWhAuditHistoryBtn');
+			if (historyBtn && historyBtn.parentNode === actions) {
+				actions.insertBefore(btn, historyBtn);
+			} else {
+				actions.appendChild(btn);
+			}
+			btn.addEventListener('click', function () {
+				var open = isStockFillOpen();
+				btn.disabled = true;
+				S.warehouseDataActions.setStockFill(getWhId(), !open).then(function () {
+					btn.disabled = false;
+					crmNotify(open ? 'Đã tắt quyền bổ sung tồn.' : 'Đã cấp quyền bổ sung HSD, vị trí và lô.', false);
+				}).fail(function (err) {
+					btn.disabled = false;
+					showError((err && err.message) ? err.message : 'Không đổi được quyền');
+				});
+			});
+		}
+		btn.style.display = '';
+		btn.textContent = isStockFillOpen() ? 'Tắt quyền bổ sung tồn' : 'Cấp quyền bổ sung tồn';
+	}
+
 	function renderAll() {
+		syncStockFillButton();
 		renderInbounds();
 		renderQcQueue();
 		renderStock();
@@ -2350,7 +2592,36 @@
 		return 'update';
 	}
 
+	function collectStockFillEvents() {
+		var d = S.ensureData(getWhId());
+		var rows = (d && d.stockAudits) ? d.stockAudits : [];
+		var labels = { expiry: 'HSD', location: 'Vị trí', lot: 'Lô', mfg: 'NSX' };
+		return rows.map(function (r) {
+			var field = labels[r.field] || r.field || 'Tồn';
+			var oldV = r.oldValue ? r.oldValue : '—';
+			var newV = r.newValue ? r.newValue : '—';
+			return {
+				kind: 'stock',
+				docId: r.sku || '—',
+				docStatus: r.name || 'Sửa tồn',
+				partner: '',
+				ref: '',
+				at: r.at || '',
+				by: r.by || '—',
+				role: 'fill',
+				action: 'Sửa ' + field,
+				note: oldV + ' → ' + newV,
+				lineSummary: (r.name || '') + ' ' + (r.sku || ''),
+				lines: [],
+				className: 'update',
+			};
+		});
+	}
+
 	function collectAuditEvents(kind) {
+		if (kind === 'stock') {
+			return collectStockFillEvents();
+		}
 		var whId = getWhId();
 		if (!whId) return [];
 		var d = S.ensureData(whId);
@@ -2406,13 +2677,14 @@
 				'<div class="mk-wh-audit-modal__head">' +
 					'<div>' +
 						'<h3 id="mkWhAuditHistoryTitle">Lịch sử chỉnh sửa</h3>' +
-						'<p class="mk-wh-audit-modal__sub">Nhật ký tạo / cập nhật phiếu nhập &amp; xuất — theo dõi thay đổi để phòng gian lận</p>' +
+						'<p class="mk-wh-audit-modal__sub">Ai nhập, ai duyệt, ai xuất và ai sửa HSD / vị trí / lô</p>' +
 					'</div>' +
 					'<button type="button" class="mk-wh-audit-modal__close" data-mk-audit-close="1" aria-label="Đóng">&times;</button>' +
 				'</div>' +
 				'<div class="mk-wh-audit-modal__tabs" role="tablist">' +
 					'<button type="button" class="mk-wh-audit-tab is-active" data-mk-audit-tab="inbound" role="tab" aria-selected="true">Nhập kho</button>' +
 					'<button type="button" class="mk-wh-audit-tab" data-mk-audit-tab="outbound" role="tab" aria-selected="false">Xuất kho</button>' +
+					'<button type="button" class="mk-wh-audit-tab" data-mk-audit-tab="stock" role="tab" aria-selected="false">Sửa tồn</button>' +
 				'</div>' +
 				'<div class="mk-wh-audit-modal__toolbar">' +
 					'<input type="search" class="mk-wh-audit-modal__search" id="mkWhAuditSearch" placeholder="Tìm mã phiếu, hành động, người thao tác, hàng hoá..." />' +
@@ -2468,7 +2740,8 @@
 		});
 		var countEl = qs('#mkWhAuditCount', modal);
 		if (countEl) {
-			countEl.textContent = events.length + ' sự kiện · ' + (kind === 'outbound' ? 'Xuất kho' : 'Nhập kho');
+			var kindLabel = kind === 'outbound' ? 'Xuất kho' : (kind === 'stock' ? 'Sửa tồn' : 'Nhập kho');
+			countEl.textContent = events.length + ' sự kiện · ' + kindLabel;
 		}
 		var body = qs('#mkWhAuditBody', modal);
 		if (!body) return;
@@ -2541,13 +2814,14 @@
 
 	function roleBadgeLabel(role) {
 		if (role === 'qc') return 'QC';
+		if (role === 'fill') return 'Bổ sung tồn';
 		if (role === 'keeper' || role === 'stock') return 'Thủ kho';
 		return 'Quản lý kho';
 	}
 
 	function openAuditHistoryModal(preferredTab) {
 		var modal = ensureAuditHistoryModal();
-		var tab = preferredTab === 'outbound' ? 'outbound' : 'inbound';
+		var tab = preferredTab === 'outbound' ? 'outbound' : (preferredTab === 'stock' ? 'stock' : 'inbound');
 		modal.querySelectorAll('[data-mk-audit-tab]').forEach(function (b) {
 			var on = b.getAttribute('data-mk-audit-tab') === tab;
 			b.classList.toggle('is-active', on);
@@ -3670,7 +3944,8 @@
 			auditBtn.addEventListener('click', function () {
 				var active = qs('.mk-wh-proto-tab.is-active');
 				var tabKey = active ? active.getAttribute('data-tab') : 'inbound';
-				openAuditHistoryModal(tabKey === 'outbound' ? 'outbound' : 'inbound');
+				var auditTab = tabKey === 'outbound' ? 'outbound' : (tabKey === 'stock' ? 'stock' : 'inbound');
+				openAuditHistoryModal(auditTab);
 			});
 		}
 
@@ -3754,6 +4029,71 @@
 			}
 		});
 
+		var importBtn = qs('#mkWhProtoImportStockBtn');
+		var importFile = qs('#mkWhProtoImportStockFile');
+		if (importBtn && importFile) {
+			importBtn.addEventListener('click', function () {
+				if (importBtn.disabled || importBtn.classList.contains('hide')) return;
+				importFile.value = '';
+				importFile.click();
+			});
+			importFile.addEventListener('change', function () {
+				var file = importFile.files && importFile.files[0] ? importFile.files[0] : null;
+				if (!file) return;
+				var whId = getWhId();
+				if (!whId) return;
+				var name = String(file.name || '').toLowerCase();
+				if (!/\.xlsx$/i.test(name)) {
+					showError('Chỉ hỗ trợ file .xlsx (báo cáo Xuất–Nhập–Tồn).');
+					importFile.value = '';
+					return;
+				}
+				confirmCrm('Import tồn kho', [
+					file.name,
+					'Sẽ xóa tồn hiện tại của kho này rồi ghi lại theo Excel.',
+					'Mã chưa có trong Hàng hoá sẽ được tạo từ file (SKU và tên), rồi nhập tồn.'
+				]).then(function (ok) {
+				if (!ok) {
+					importFile.value = '';
+					return;
+				}
+				importBtn.disabled = true;
+				importBtn.textContent = 'Đang import…';
+				var done = function () {
+					importBtn.disabled = false;
+					importBtn.textContent = 'Import Excel';
+					importFile.value = '';
+				};
+				if (!(S.warehouseDataActions && typeof S.warehouseDataActions.importStockExcel === 'function')) {
+					showError('Chức năng import chưa sẵn sàng (cần chế độ DB).');
+					done();
+					return;
+				}
+				S.warehouseDataActions.importStockExcel(whId, file, true).then(function (res) {
+					var st = (res && res.stats) ? res.stats : {};
+					var miss = (res && res.missing) ? res.missing : [];
+					var msg =
+						'Import xong.\n' +
+						'- Excel: ' + (st.excel || 0) + '\n' +
+						'- Khớp hàng hoá: ' + (st.matched || 0) + '\n' +
+						'- Tạo hàng hoá mới: ' + (st.created_sku || 0) + '\n' +
+						'- Thêm tồn: ' + (st.inserted || 0) + '\n' +
+						'- Cập nhật tồn: ' + (st.updated || 0) + '\n' +
+						'- Không nhập được: ' + (st.missing_sku || 0);
+					if (miss && miss.length) {
+						msg += '\n\nKhông nhập được:\n- ' + miss.slice(0, 12).join('\n- ');
+					}
+					crmNotify(msg, (st.missing_sku || 0) > 0 && !(st.inserted || st.updated || st.created_sku));
+					renderAll();
+					done();
+				}).fail(function (err) {
+					showError((err && err.message) ? err.message : 'Import thất bại.');
+					done();
+				});
+				});
+			});
+		}
+
 		var modal = qs('#mkWhProtoModal');
 		if (modal) {
 			modal.addEventListener('click', function (e) {
@@ -3832,26 +4172,29 @@
 				return;
 			}
 			if (action === 'return-confirm' && id) {
-				if (!window.confirm('Xác nhận nhập kho phiếu ' + id + '?\nHàng sẽ cộng vào tồn kho.' + ((d.returns || []).some(function (x) { return (x.id === id || x.code === id) && x.refund; }) ? '\nPhiếu có hoàn tiền: số đã thu trên đơn sẽ giảm.' : ''))) {
-					return;
-				}
-				if (!S.returnActions) return;
-				S.returnActions.confirm(whId, id).then(function () {
-					closeDialog();
-					refreshWarehouseUi();
-				}).fail(function (err) {
-					showError((err && err.message) || 'Không xác nhận được phiếu.');
+				var refundNote = (d.returns || []).some(function (x) { return (x.id === id || x.code === id) && x.refund; })
+					? '\nPhiếu có hoàn tiền: số đã thu trên đơn sẽ giảm.'
+					: '';
+				confirmThen('Xác nhận nhập kho phiếu ' + id + '?\nHàng sẽ cộng vào tồn kho.' + refundNote, function () {
+					if (!S.returnActions) return;
+					S.returnActions.confirm(whId, id).then(function () {
+						closeDialog();
+						refreshWarehouseUi();
+					}).fail(function (err) {
+						showError((err && err.message) || 'Không xác nhận được phiếu.');
+					});
 				});
 				return;
 			}
 			if (action === 'return-cancel' && id) {
-				if (!window.confirm('Hủy phiếu ' + id + '?')) return;
-				if (!S.returnActions) return;
-				S.returnActions.cancel(whId, id).then(function () {
-					closeDialog();
-					refreshWarehouseUi();
-				}).fail(function (err) {
-					showError((err && err.message) || 'Không hủy được phiếu.');
+				confirmThen('Hủy phiếu ' + id + '?', function () {
+					if (!S.returnActions) return;
+					S.returnActions.cancel(whId, id).then(function () {
+						closeDialog();
+						refreshWarehouseUi();
+					}).fail(function (err) {
+						showError((err && err.message) || 'Không hủy được phiếu.');
+					});
 				});
 				return;
 			}
@@ -3869,9 +4212,7 @@
 					showError('Chỉ huỷ được phiếu ở trạng thái Chờ soạn, Đang soạn hoặc Đã soạn.');
 					return;
 				}
-				if (!window.confirm('Huỷ phiếu xuất ' + id + '?\nTồn kho đã trừ (nếu có) sẽ được hoàn lại.')) {
-					return;
-				}
+				confirmThen('Huỷ phiếu xuất ' + id + '?\nTồn kho đã trừ (nếu có) sẽ được hoàn lại.', function () {
 				if (S.useDb && S.useDb() && S.warehouseDataActions && typeof S.warehouseDataActions.issueAction === 'function') {
 					S.warehouseDataActions
 						.issueAction(whId, id, 'issue-cancel', getRole(), 'Huỷ xuất kho')
@@ -3898,6 +4239,7 @@
 					return i;
 				});
 				refreshWarehouseUi();
+				});
 				return;
 			}
 			if (action === 'qc-record' && id) {
@@ -3942,15 +4284,16 @@
 				}
 				var imageId = actionEl.getAttribute('data-image-id') || '';
 				if (!imageId) return;
-				if (!window.confirm('Xóa ảnh này?')) return;
-				S.warehouseDataActions
-					.deleteQcImage(whId, id, imageId)
-					.then(function (res) {
-						reopenReceiptDialog(whId, id, res);
-					})
-					.fail(function (err) {
-						showError((err && err.message) || 'Không xóa được ảnh.');
-					});
+				confirmThen('Xóa ảnh này?', function () {
+					S.warehouseDataActions
+						.deleteQcImage(whId, id, imageId)
+						.then(function (res) {
+							reopenReceiptDialog(whId, id, res);
+						})
+						.fail(function (err) {
+							showError((err && err.message) || 'Không xóa được ảnh.');
+						});
+				});
 				return;
 			}
 			if (id && action === 'qc-update') {
@@ -3984,10 +4327,12 @@
 					RECEIPT_PATH.forEach(function (s) {
 						if (s.key === receiptTarget) receiptStepLabel = s.label;
 					});
-					if (!window.confirm('Quay lại bước "' + (receiptStepLabel || receiptTarget) + '"?\nThao tác sẽ được ghi vào lịch sử.')) {
-						return;
-					}
+					confirmThen('Quay lại bước "' + (receiptStepLabel || receiptTarget) + '"?\nThao tác sẽ được ghi vào lịch sử.', runReceiptAction);
+					return;
 				}
+				runReceiptAction();
+				return;
+				function runReceiptAction() {
 				if (S.useDb && S.useDb()) {
 					var note = '';
 					if (action === 'qc-pass' || action === 'qc-fail') {
@@ -4077,7 +4422,7 @@
 				});
 				refreshWarehouseUi();
 				reopenReceiptDialog(whId, id);
-				return;
+				}
 			}
 
 			// Issue actions
@@ -4090,10 +4435,12 @@
 					ISSUE_PATH.forEach(function (s) {
 						if (s.key === targetStatus) stepLabel = s.label;
 					});
-					if (!window.confirm('Quay lại bước "' + (stepLabel || targetStatus) + '"?\nThao tác sẽ được ghi vào lịch sử.')) {
-						return;
-					}
+					confirmThen('Quay lại bước "' + (stepLabel || targetStatus) + '"?\nThao tác sẽ được ghi vào lịch sử.', runIssueAction);
+					return;
 				}
+				runIssueAction();
+				return;
+				function runIssueAction() {
 				if (S.useDb && S.useDb()) {
 					var reasonDb = '';
 					if (action === 'issue-reject') {
@@ -4176,7 +4523,7 @@
 				});
 				refreshWarehouseUi();
 				reopenIssueDialog(whId, id);
-				return;
+				}
 			}
 		});
 
@@ -4190,6 +4537,9 @@
 		setActiveTab(initialTab);
 		renderAll();
 		ensureQcLightboxEl();
+		if (S.useDb && S.useDb() && S.warehouseDataActions && S.warehouseDataActions.refresh && getWhId()) {
+			S.warehouseDataActions.refresh(getWhId());
+		}
 	}
 
 	if (document.readyState === 'loading') {

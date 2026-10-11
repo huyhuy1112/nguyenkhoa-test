@@ -1789,11 +1789,12 @@ body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-mute
 }
 
 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table.mk-ps-ba-table {
-	min-width: 960px !important;
+	min-width: 1080px !important;
 }
 
 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table .mk-col-ps-price,
 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table .mk-col-ps-tuibao,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table .mk-col-ps-miutea,
 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table .mk-col-ps-stock,
 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table .mk-col-ps-order {
 	text-align: right !important;

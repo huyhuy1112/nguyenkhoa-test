@@ -95,70 +95,221 @@
 	}
 
 	/* ========== LIST PAGE ========== */
+	var listFilter = { q: '', status: 'all' };
+
+	function warehouseMatchesFilter(w) {
+		if (listFilter.status !== 'all' && w.status !== listFilter.status) {
+			return false;
+		}
+		var q = String(listFilter.q || '').trim().toLowerCase();
+		if (!q) return true;
+		var hay = [w.code, w.name, w.address, w.manager, S.TYPE_LABEL[w.type] || w.type]
+			.map(function (x) { return String(x || '').toLowerCase(); })
+			.join(' ');
+		return hay.indexOf(q) !== -1;
+	}
+
+	function renderListKpi(warehouses) {
+		var el = qs('#mkWhListKpi');
+		if (!el) return;
+		var totalWh = warehouses.length;
+		var active = 0;
+		var sku = 0;
+		var stock = 0;
+		var exp = 0;
+		var so = 0;
+		warehouses.forEach(function (w) {
+			if (w.status === 'active') active += 1;
+			sku += S.skuCountOf(w.id);
+			stock += S.totalStockOf(w.id);
+			var d = S.ensureData(w.id);
+			exp += (d.stock || []).filter(S.isExpiringSoon).length;
+			so += (d.stock || []).filter(S.isStockoutSoon).length;
+		});
+		var items = [
+			{ key: 'wh', label: 'Tổng kho', value: totalWh, sub: active + ' đang hoạt động', tone: 'ink' },
+			{ key: 'sku', label: 'SKU', value: sku, sub: 'Mặt hàng đang theo dõi', tone: 'teal' },
+			{ key: 'stock', label: 'Tồn kho', value: stock, sub: 'Tổng đơn vị', tone: 'ink' },
+			{ key: 'exp', label: 'Gần HSD', value: exp, sub: 'Cần xử lý sớm', tone: exp > 0 ? 'warn' : 'muted' },
+			{ key: 'so', label: 'Sắp hết', value: so, sub: 'Nguy cơ đứt hàng', tone: so > 0 ? 'danger' : 'muted' },
+		];
+		el.innerHTML = items
+			.map(function (it, i) {
+				return (
+					'<div class="mk-wh-list-kpi__card mk-wh-list-kpi__card--' +
+					it.tone +
+					'" style="--mk-i:' +
+					i +
+					'">' +
+					'<span class="mk-wh-list-kpi__label">' +
+					escapeHtml(it.label) +
+					'</span>' +
+					'<strong class="mk-wh-list-kpi__value">' +
+					Number(it.value).toLocaleString('vi-VN') +
+					'</strong>' +
+					'<span class="mk-wh-list-kpi__sub">' +
+					escapeHtml(it.sub) +
+					'</span></div>'
+				);
+			})
+			.join('');
+	}
+
 	function renderList() {
 		var grid = qs('#mkWhMgmtCardGrid');
 		var tbody = qs('#mkWhMgmtTableBody');
 		if (!grid || !tbody) return;
 
 		var state = S.getState();
+		var all = state.warehouses || [];
+		renderListKpi(all);
+		var list = all.filter(warehouseMatchesFilter);
+		var hint = qs('#mkWhListTableHint');
+		if (hint) {
+			hint.textContent =
+				list.length === all.length
+					? list.length + ' kho'
+					: 'Hiển thị ' + list.length + ' / ' + all.length + ' kho';
+		}
+
 		var htmlCards = '';
 		var htmlRows = '';
 
-		state.warehouses.forEach(function (w) {
+		list.forEach(function (w, idx) {
 			var skus = S.skuCountOf(w.id);
 			var stock = S.totalStockOf(w.id);
 			var d = S.ensureData(w.id);
 			var exp = (d.stock || []).filter(S.isExpiringSoon).length;
 			var so = (d.stock || []).filter(S.isStockoutSoon).length;
+			var tone = w.status === 'active' ? 'live' : w.status === 'archived' ? 'archive' : 'idle';
 			htmlCards +=
-				'<article class="mk-wh-mgmt-card">' +
+				'<article class="mk-wh-mgmt-card mk-wh-mgmt-card--' +
+				tone +
+				'" style="--mk-i:' +
+				idx +
+				'">' +
+				'<div class="mk-wh-mgmt-card__glow" aria-hidden="true"></div>' +
 				'<div class="mk-wh-mgmt-card__top">' +
 				'<div class="mk-wh-mgmt-card__identity">' +
-				'<div class="mk-wh-mgmt-card__code">' + escText(w.code) + '</div>' +
+				'<div class="mk-wh-mgmt-card__code">' +
+				escText(w.code) +
+				'</div>' +
 				'<div class="mk-wh-mgmt-card__title-row">' +
-				'<span class="mk-wh-mgmt-card__icon">' + ICON.warehouse + '</span>' +
-				'<span class="mk-wh-mgmt-card__name">' + escText(w.name) + '</span></div></div>' +
+				'<span class="mk-wh-mgmt-card__icon">' +
+				ICON.warehouse +
+				'</span>' +
+				'<span class="mk-wh-mgmt-card__name">' +
+				escText(w.name) +
+				'</span></div></div>' +
 				statusBadge(w.status) +
 				'</div>' +
 				'<div class="mk-wh-mgmt-card__meta">' +
-				'<div class="mk-wh-mgmt-card__meta-row"><span>' + escapeHtml(S.TYPE_LABEL[w.type] || w.type) + '</span></div>' +
-				'<div class="mk-wh-mgmt-card__meta-row">' + ICON.mapPin + '<span>' + escText(w.address || '—') + '</span></div>' +
-				'<div class="mk-wh-mgmt-card__meta-row"><span>QL: ' + escText(w.manager || '—') + '</span></div>' +
+				'<div class="mk-wh-mgmt-card__meta-row"><span class="mk-wh-mgmt-card__type">' +
+				escapeHtml(S.TYPE_LABEL[w.type] || w.type) +
+				'</span></div>' +
+				'<div class="mk-wh-mgmt-card__meta-row">' +
+				ICON.mapPin +
+				'<span>' +
+				escText(w.address || '—') +
+				'</span></div>' +
+				'<div class="mk-wh-mgmt-card__meta-row"><span>QL: ' +
+				escText(w.manager || '—') +
+				'</span></div>' +
 				'</div>' +
 				'<div class="mk-wh-mgmt-card__stats">' +
-				'<div><span class="mk-wh-mgmt-card__stat-label">SKU</span><span class="mk-wh-mgmt-card__stat-value">' + skus + '</span></div>' +
-				'<div><span class="mk-wh-mgmt-card__stat-label">Tồn</span><span class="mk-wh-mgmt-card__stat-value">' + stock.toLocaleString('vi-VN') + '</span></div>' +
-				'<div><span class="mk-wh-mgmt-card__stat-label">HSD</span><span class="mk-wh-mgmt-card__stat-value' + (exp > 0 ? ' mk-wh-mgmt-warn' : '') + '">' + exp + '</span></div>' +
-				'<div><span class="mk-wh-mgmt-card__stat-label">Hết hàng</span><span class="mk-wh-mgmt-card__stat-value' + (so > 0 ? ' mk-wh-mgmt-warn' : '') + '">' + so + '</span></div>' +
+				'<div><span class="mk-wh-mgmt-card__stat-label">SKU</span><span class="mk-wh-mgmt-card__stat-value">' +
+				skus +
+				'</span></div>' +
+				'<div><span class="mk-wh-mgmt-card__stat-label">Tồn</span><span class="mk-wh-mgmt-card__stat-value">' +
+				stock.toLocaleString('vi-VN') +
+				'</span></div>' +
+				'<div><span class="mk-wh-mgmt-card__stat-label">HSD</span><span class="mk-wh-mgmt-card__stat-value' +
+				(exp > 0 ? ' mk-wh-mgmt-warn' : '') +
+				'">' +
+				exp +
+				'</span></div>' +
+				'<div><span class="mk-wh-mgmt-card__stat-label">Hết hàng</span><span class="mk-wh-mgmt-card__stat-value' +
+				(so > 0 ? ' mk-wh-mgmt-warn' : '') +
+				'">' +
+				so +
+				'</span></div>' +
 				'</div>' +
 				'<div class="mk-wh-mgmt-card__actions">' +
-				'<a class="mk-wh-mgmt-btn mk-wh-mgmt-btn--enter" href="' + detailUrl(w.id) + '"><span>Vào kho</span><span class="mk-wh-mgmt-btn__chev" aria-hidden="true">→</span></a>' +
+				'<a class="mk-wh-mgmt-btn mk-wh-mgmt-btn--enter" href="' +
+				detailUrl(w.id) +
+				'"><span>Vào kho</span><span class="mk-wh-mgmt-btn__chev" aria-hidden="true">→</span></a>' +
 				'<div class="mk-wh-mgmt-card__actions-secondary">' +
-				'<button type="button" class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline mk-wh-mgmt-btn--icon" title="Sửa" data-mk-wh-edit="' + escapeHtml(w.id) + '">' + ICON.pencil + '</button>' +
-				'<button type="button" class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline mk-wh-mgmt-btn--icon" title="Lưu trữ" data-mk-wh-archive="' + escapeHtml(w.id) + '">' + ICON.archive + '</button>' +
-				'<button type="button" class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline mk-wh-mgmt-btn--icon mk-wh-mgmt-btn--danger" title="Xóa" data-mk-wh-delete="' + escapeHtml(w.id) + '">' + ICON.trash + '</button>' +
+				'<button type="button" class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline mk-wh-mgmt-btn--icon" title="Sửa" data-mk-wh-edit="' +
+				escapeHtml(w.id) +
+				'">' +
+				ICON.pencil +
+				'</button>' +
+				'<button type="button" class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline mk-wh-mgmt-btn--icon" title="Lưu trữ" data-mk-wh-archive="' +
+				escapeHtml(w.id) +
+				'">' +
+				ICON.archive +
+				'</button>' +
+				'<button type="button" class="mk-wh-mgmt-btn mk-wh-mgmt-btn--outline mk-wh-mgmt-btn--icon mk-wh-mgmt-btn--danger" title="Xóa" data-mk-wh-delete="' +
+				escapeHtml(w.id) +
+				'">' +
+				ICON.trash +
+				'</button>' +
 				'</div></div></article>';
 
 			htmlRows +=
-				'<tr>' +
-				'<td><span class="mk-wh-mgmt-chip">' + escText(w.code) + '</span></td>' +
-				'<td><strong>' + escText(w.name) + '</strong></td>' +
-				'<td>' + escapeHtml(S.TYPE_LABEL[w.type] || w.type) + '</td>' +
-				'<td class="mk-wh-mgmt-muted">' + escText(w.address || '—') + '</td>' +
-				'<td>' + escText(w.manager || '—') + '</td>' +
-				'<td class="mk-wh-mgmt-td-right">' + skus + '</td>' +
-				'<td class="mk-wh-mgmt-td-right"><strong>' + stock.toLocaleString('vi-VN') + '</strong></td>' +
-				'<td class="mk-wh-mgmt-td-right' + (exp > 0 ? ' mk-wh-mgmt-warn' : '') + '">' + exp + '</td>' +
-				'<td class="mk-wh-mgmt-td-right' + (so > 0 ? ' mk-wh-mgmt-warn' : '') + '">' + so + '</td>' +
-				'<td>' + statusBadge(w.status) + '</td>' +
-				'<td class="mk-wh-mgmt-muted">' + fmtDate(w.createdAt) + '</td>' +
+				'<tr class="mk-wh-mgmt-row" style="--mk-i:' +
+				idx +
+				'">' +
+				'<td><span class="mk-wh-mgmt-chip">' +
+				escText(w.code) +
+				'</span></td>' +
+				'<td><strong>' +
+				escText(w.name) +
+				'</strong></td>' +
+				'<td>' +
+				escapeHtml(S.TYPE_LABEL[w.type] || w.type) +
+				'</td>' +
+				'<td class="mk-wh-mgmt-muted">' +
+				escText(w.address || '—') +
+				'</td>' +
+				'<td>' +
+				escText(w.manager || '—') +
+				'</td>' +
 				'<td class="mk-wh-mgmt-td-right">' +
-				'<a class="mk-wh-mgmt-link" href="' + detailUrl(w.id) + '">Vào</a>' +
+				skus +
+				'</td>' +
+				'<td class="mk-wh-mgmt-td-right"><strong>' +
+				stock.toLocaleString('vi-VN') +
+				'</strong></td>' +
+				'<td class="mk-wh-mgmt-td-right' +
+				(exp > 0 ? ' mk-wh-mgmt-warn' : '') +
+				'">' +
+				exp +
+				'</td>' +
+				'<td class="mk-wh-mgmt-td-right' +
+				(so > 0 ? ' mk-wh-mgmt-warn' : '') +
+				'">' +
+				so +
+				'</td>' +
+				'<td>' +
+				statusBadge(w.status) +
+				'</td>' +
+				'<td class="mk-wh-mgmt-muted">' +
+				fmtDate(w.createdAt) +
+				'</td>' +
+				'<td class="mk-wh-mgmt-td-right">' +
+				'<a class="mk-wh-mgmt-link" href="' +
+				detailUrl(w.id) +
+				'">Vào</a>' +
 				'</td></tr>';
 		});
 
-		grid.innerHTML = htmlCards || '<p class="mk-wh-mgmt-empty">Chưa có kho nào.</p>';
-		tbody.innerHTML = htmlRows || '<tr><td colspan="12" class="mk-wh-mgmt-empty">Chưa có kho nào.</td></tr>';
+		grid.innerHTML =
+			htmlCards ||
+			'<div class="mk-wh-mgmt-empty mk-wh-list-empty"><strong>Không có kho phù hợp</strong><span>Thử đổi bộ lọc hoặc tạo kho mới.</span></div>';
+		tbody.innerHTML =
+			htmlRows ||
+			'<tr><td colspan="12" class="mk-wh-mgmt-empty">Không có kho phù hợp bộ lọc.</td></tr>';
 	}
 
 	function bindListEvents() {
@@ -205,28 +356,60 @@
 			createBtn.addEventListener('click', function () { openModal(null); });
 		}
 
+		var search = qs('#mkWhListSearch');
+		if (search) {
+			search.addEventListener('input', function () {
+				listFilter.q = search.value || '';
+				renderList();
+			});
+		}
+		var filters = qs('#mkWhListFilters');
+		if (filters) {
+			filters.addEventListener('click', function (e) {
+				var btn = e.target && e.target.closest ? e.target.closest('[data-mk-wh-filter]') : null;
+				if (!btn) return;
+				listFilter.status = btn.getAttribute('data-mk-wh-filter') || 'all';
+				filters.querySelectorAll('[data-mk-wh-filter]').forEach(function (el) {
+					el.classList.toggle('is-active', el === btn);
+				});
+				renderList();
+			});
+		}
+
 		root.addEventListener('click', function (e) {
 			var t = e.target;
-			if (t.getAttribute && t.getAttribute('data-mk-wh-close') === '1') {
+			if (t.closest && t.closest('[data-mk-wh-close="1"]')) {
 				closeModal();
 				return;
 			}
-			var editId = t.getAttribute && t.getAttribute('data-mk-wh-edit');
-			if (editId) { e.preventDefault(); openModal(editId); return; }
-			var archiveId = t.getAttribute && t.getAttribute('data-mk-wh-archive');
-			if (archiveId) {
+			var editBtn = t.closest ? t.closest('[data-mk-wh-edit]') : null;
+			if (editBtn) {
 				e.preventDefault();
-				S.warehouseActions.archive(archiveId);
+				openModal(editBtn.getAttribute('data-mk-wh-edit'));
+				return;
+			}
+			var archiveBtn = t.closest ? t.closest('[data-mk-wh-archive]') : null;
+			if (archiveBtn) {
+				e.preventDefault();
+				S.warehouseActions.archive(archiveBtn.getAttribute('data-mk-wh-archive'));
 				renderList();
 				return;
 			}
-			var deleteId = t.getAttribute && t.getAttribute('data-mk-wh-delete');
-			if (deleteId) {
+			var deleteBtn = t.closest ? t.closest('[data-mk-wh-delete]') : null;
+			if (deleteBtn) {
 				e.preventDefault();
+				var deleteId = deleteBtn.getAttribute('data-mk-wh-delete');
 				var w = S.getState().warehouses.find(function (x) { return x.id === deleteId; });
-				if (w && window.confirm('Xóa ' + decodeEntities(w.name) + '?')) {
+				if (!w) return;
+				var question = 'Xóa ' + decodeEntities(w.name) + '?';
+				var go = function () {
 					S.warehouseActions.remove(deleteId);
 					renderList();
+				};
+				if (typeof window.MkWhConfirm === 'function') {
+					window.MkWhConfirm(question).then(function (ok) { if (ok) go(); });
+				} else if (window.confirm(question)) {
+					go();
 				}
 			}
 		});
@@ -297,9 +480,33 @@
 	function bindDashboardSettings() {
 		var $cb = jQuery('#mkWhAllowNegativeStock');
 		var $days = jQuery('#mkWhExpiryWarnDays');
+		var $win = jQuery('#mkWhSlowWindowDays');
+		var $doi = jQuery('#mkWhDoiThreshold');
+		var $dsi = jQuery('#mkWhDsiThreshold');
+		var $age = jQuery('#mkWhAgeMax');
 		var $st = jQuery('#mkWhSettingsStatus');
-		if (!$cb.length && !$days.length) {
+		if (!$cb.length && !$days.length && !$win.length) {
 			return;
+		}
+		function applySettingsToForm(settings) {
+			if ($cb.length && settings.wh_allow_negative_stock !== undefined) {
+				$cb.prop('checked', Number(settings.wh_allow_negative_stock) === 1);
+			}
+			if ($days.length && settings.wh_expiry_warn_days) {
+				$days.val(Number(settings.wh_expiry_warn_days));
+			}
+			if ($win.length && settings.wh_slow_window_days) {
+				$win.val(Number(settings.wh_slow_window_days));
+			}
+			if ($doi.length && settings.wh_doi_threshold) {
+				$doi.val(Number(settings.wh_doi_threshold));
+			}
+			if ($dsi.length && settings.wh_dsi_threshold) {
+				$dsi.val(Number(settings.wh_dsi_threshold));
+			}
+			if ($age.length && settings.wh_age_max) {
+				$age.val(Number(settings.wh_age_max));
+			}
 		}
 		function saveSettings(partial) {
 			$st.text('Đang lưu...');
@@ -307,26 +514,21 @@
 				payload: JSON.stringify(partial),
 			}).done(function (result) {
 				var settings = (result && result.settings) || {};
-				if ($cb.length && settings.wh_allow_negative_stock !== undefined) {
-					$cb.prop('checked', Number(settings.wh_allow_negative_stock) === 1);
-				}
-				if ($days.length && settings.wh_expiry_warn_days) {
-					$days.val(Number(settings.wh_expiry_warn_days));
-				}
+				applySettingsToForm(settings);
 				$st.text('Đã lưu.');
 				if (window.MkWarehouseStore && window.MkWarehouseStore.getState) {
 					var st = window.MkWarehouseStore.getState();
 					st.settings = Object.assign({}, st.settings || {}, settings);
 				}
 				renderDashboard();
+				loadSlowMoving();
 			}).fail(function (err) {
 				$st.text(String(err || 'Không lưu được.'));
 			});
 		}
 		whApi('get_settings').done(function (result) {
 			var settings = (result && result.settings) || {};
-			if ($cb.length) $cb.prop('checked', Number(settings.wh_allow_negative_stock) === 1);
-			if ($days.length) $days.val(Number(settings.wh_expiry_warn_days) || 90);
+			applySettingsToForm(settings);
 		}).fail(function () {
 			$st.text('Không tải được cấu hình.');
 		});
@@ -345,6 +547,98 @@
 			$days.val(n);
 			saveSettings({ wh_expiry_warn_days: n });
 		});
+		function bindSlowNum($el, key, minV, maxV, defV) {
+			if (!$el.length) return;
+			$el.off('change.mkWhSlow').on('change.mkWhSlow', function () {
+				var n = parseInt($el.val(), 10);
+				if (!isFinite(n) || n < minV) n = defV;
+				if (n > maxV) n = maxV;
+				$el.val(n);
+				var payload = {};
+				payload[key] = n;
+				saveSettings(payload);
+			});
+		}
+		bindSlowNum($win, 'wh_slow_window_days', 7, 365, 30);
+		bindSlowNum($doi, 'wh_doi_threshold', 1, 730, 60);
+		bindSlowNum($dsi, 'wh_dsi_threshold', 1, 730, 30);
+		bindSlowNum($age, 'wh_age_max', 1, 730, 90);
+
+		jQuery('#mkWhSlowOnlyAlert').off('change.mkWhSlowFilter').on('change.mkWhSlowFilter', function () {
+			renderSlowMovingTable();
+		});
+	}
+
+	var slowMovingCache = { items: [], summary: { alert_count: 0 } };
+
+	function riskBadge(level, label) {
+		var cls = 'mk-wh-proto-pill';
+		if (level === 'mild') cls += ' mk-wh-proto-pill--warn';
+		else if (level === 'warning') cls += ' mk-wh-proto-pill--warn';
+		else if (level === 'critical') cls += ' mk-wh-proto-pill--danger';
+		else cls += ' mk-wh-proto-pill--ok';
+		return '<span class="' + cls + '">' + escapeHtml(label || level || '—') + '</span>';
+	}
+
+	function loadSlowMoving() {
+		var tbody = qs('#mkWhSlowTableBody');
+		if (!tbody) return;
+		tbody.innerHTML = '<tr><td colspan="11" class="mk-wh-proto-muted">Đang tải…</td></tr>';
+		whApi('get_slow_moving', { minRisk: 0 }).done(function (result) {
+			slowMovingCache.items = (result && result.items) || [];
+			slowMovingCache.summary = (result && result.summary) || { alert_count: 0 };
+			renderSlowMovingTable();
+			renderDashboard();
+		}).fail(function (err) {
+			tbody.innerHTML = '<tr><td colspan="11" class="mk-wh-mgmt-empty">' +
+				escapeHtml(String(err || 'Không tải được cảnh báo tồn lâu ngày.')) + '</td></tr>';
+		});
+	}
+
+	function renderSlowMovingTable() {
+		var tbody = qs('#mkWhSlowTableBody');
+		if (!tbody) return;
+		var onlyAlert = jQuery('#mkWhSlowOnlyAlert').is(':checked');
+		var items = (slowMovingCache.items || []).filter(function (it) {
+			return !onlyAlert || Number(it.risk_score) >= 1.0;
+		});
+		if (!items.length) {
+			tbody.innerHTML = '<tr><td colspan="11" class="mk-wh-mgmt-empty">Không có dòng tồn lâu ngày theo bộ lọc hiện tại.</td></tr>';
+			return;
+		}
+		var rows = '';
+		items.forEach(function (it) {
+			var riskWarn = Number(it.risk_score) >= 1.5;
+			rows +=
+				'<tr>' +
+				'<td>' + escapeHtml(it.warehouse_id || '—') + '</td>' +
+				'<td><div class="mk-wh-mgmt-card__name">' + escapeHtml(it.product_name || '—') + '</div>' +
+				(it.sku ? '<div class="mk-wh-mgmt-card__code">' + escapeHtml(it.sku) + '</div>' : '') +
+				'</td>' +
+				'<td class="mk-wh-mgmt-td-right"><strong>' + Number(it.qty || 0).toLocaleString('vi-VN') + '</strong></td>' +
+				'<td class="mk-wh-mgmt-td-right">' + Number(it.avg_sales || 0).toLocaleString('vi-VN', { maximumFractionDigits: 3 }) + '</td>' +
+				'<td class="mk-wh-mgmt-td-right">' + (it.doi == null ? '—' : Number(it.doi).toLocaleString('vi-VN')) + '</td>' +
+				'<td class="mk-wh-mgmt-td-right">' + (it.dsi == null ? '—' : it.dsi) + '</td>' +
+				'<td class="mk-wh-mgmt-td-right">' + (it.age == null ? '—' : it.age) + '</td>' +
+				'<td class="mk-wh-mgmt-td-right">' + Number(it.value || 0).toLocaleString('vi-VN') + '</td>' +
+				'<td class="mk-wh-mgmt-td-right' + (riskWarn ? ' mk-wh-mgmt-warn' : '') + '"><strong>' +
+				Number(it.risk_score || 0).toLocaleString('vi-VN', { maximumFractionDigits: 3 }) +
+				'</strong></td>' +
+				'<td>' + riskBadge(it.risk_level, it.risk_label) + '</td>' +
+				'<td>' + escapeHtml(it.action_hint || '—') + '</td>' +
+				'</tr>';
+		});
+		tbody.innerHTML = rows;
+	}
+
+	function slowCountForWarehouse(whId) {
+		var n = 0;
+		(slowMovingCache.items || []).forEach(function (it) {
+			if (String(it.warehouse_id) === String(whId) && Number(it.risk_score) >= 1.0) {
+				n += 1;
+			}
+		});
+		return n;
 	}
 
 	function renderDashboard() {
@@ -353,17 +647,20 @@
 		if (!kpiEl || !tbody) return;
 
 		var summary = S.computeSummary();
+		var slowAlert = (slowMovingCache.summary && slowMovingCache.summary.alert_count) || 0;
 		kpiEl.innerHTML =
 			kpiCard(ICON.warehouse, 'Tổng số kho', summary.perWh.length, false) +
 			kpiCard(ICON.boxes, 'Tổng tồn kho', summary.totalStock.toLocaleString('vi-VN'), false) +
 			kpiCard(ICON.clock, 'Chờ QC', summary.pendingQC, false) +
 			kpiCard(ICON.file, 'Xuất chờ duyệt', summary.pendingExport, false) +
 			kpiCard(ICON.alert, 'Lô sắp hết hạn', summary.expiring, summary.expiring > 0) +
-			kpiCard(ICON.alert, 'Dự kiến hết hàng', summary.stockoutSoon || 0, (summary.stockoutSoon || 0) > 0);
+			kpiCard(ICON.alert, 'Dự kiến hết hàng', summary.stockoutSoon || 0, (summary.stockoutSoon || 0) > 0) +
+			kpiCard(ICON.alert, 'Tồn lâu ngày', slowAlert, slowAlert > 0);
 
 		var rows = '';
 		summary.perWh.forEach(function (item) {
 			var w = item.w;
+			var slowN = slowCountForWarehouse(w.id);
 			rows +=
 				'<tr>' +
 				'<td><div class="mk-wh-mgmt-card__name">' + escText(w.name) + '</div>' +
@@ -375,11 +672,12 @@
 				'<td class="mk-wh-mgmt-td-right">' + item.pEx + '</td>' +
 				'<td class="mk-wh-mgmt-td-right' + (item.exp > 0 ? ' mk-wh-mgmt-warn' : '') + '">' + item.exp + '</td>' +
 				'<td class="mk-wh-mgmt-td-right' + ((item.stockoutSoon || 0) > 0 ? ' mk-wh-mgmt-warn' : '') + '">' + (item.stockoutSoon || 0) + '</td>' +
+				'<td class="mk-wh-mgmt-td-right' + (slowN > 0 ? ' mk-wh-mgmt-warn' : '') + '">' + slowN + '</td>' +
 				'<td>' + statusBadge(w.status) + '</td>' +
 				'<td class="mk-wh-mgmt-td-right"><a class="mk-wh-mgmt-link" href="' + detailUrl(w.id) + '">Vào kho →</a></td>' +
 				'</tr>';
 		});
-		tbody.innerHTML = rows || '<tr><td colspan="10" class="mk-wh-mgmt-empty">Chưa có dữ liệu.</td></tr>';
+		tbody.innerHTML = rows || '<tr><td colspan="11" class="mk-wh-mgmt-empty">Chưa có dữ liệu.</td></tr>';
 	}
 
 	function kpiCard(iconSvg, label, value, warn) {
@@ -1232,6 +1530,7 @@
 		} else if (view === 'WhDashboard') {
 			renderDashboard();
 			bindDashboardSettings();
+			loadSlowMoving();
 			S.subscribe(renderDashboard);
 		} else if (view === 'WhDetail') {
 			bindDetailEvents();

@@ -80,6 +80,13 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		$viewer->assign('RECORD', $recordModel);
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
+		require_once 'modules/Invoice/models/MisaSyncService.php';
+		$misaView = Invoice_MisaSyncService::salesViewForOrder($recordId);
+		$viewer->assign('MK_MISA_STATUS', $misaView['label']);
+		$viewer->assign('MK_MISA_REFNO', $misaView['refno']);
+		$viewer->assign('MK_MISA_UPDATED', $misaView['updated']);
+		$viewer->assign('MK_MISA_STATE', $misaView['state']);
+		$viewer->assign('MK_MISA_NOTE', $misaView['note']);
 		$viewer->assign('MODULE_MODEL', $moduleModel);
 		$viewer->assign('USER_MODEL', Users_Record_Model::getCurrentUserModel());
 		$viewer->assign('SELECTED_MENU_CATEGORY', 'SALES');
@@ -213,7 +220,7 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 
 	protected function resolveInlineCustomerName(Vtiger_Record_Model $recordModel) {
 		require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
-		$name = Vtiger_MkSalesCustomerName_Helper::resolveDisplayName($recordModel);
+		$name = Vtiger_MkSalesCustomerName_Helper::resolveListStyleName($recordModel);
 		return $name !== '' ? $name : '—';
 	}
 
@@ -333,6 +340,7 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		$displayProducts[1]['final_details']['hdnSubTotal'] = $formatMoney($subTotal);
 		$displayProducts[1]['final_details']['discountTotal_final'] = $formatMoney($discount);
 		$displayProducts[1]['final_details']['discount_amount_final'] = $formatMoney($discountAmountFinal);
+		$displayProducts[1]['final_details']['discount_percentage_final'] = (float) ($rawFinal['discount_percentage_final'] ?? 0);
 		$displayProducts[1]['final_details']['tax_totalamount'] = $formatMoney($tax);
 		$displayProducts[1]['final_details']['shipping_handling_charge'] = $formatMoney($shipping);
 		$displayProducts[1]['final_details']['adjustment'] = $formatMoney($adjustment);

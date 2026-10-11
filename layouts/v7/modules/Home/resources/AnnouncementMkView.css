@@ -1,0 +1,497 @@
+/**
+ * Asana-style announcement modals — loads after custom.css to win specificity.
+ */
+#mainpage-announcement-detail-modal .modal-dialog.ann-detail-dialog.mk-ann-detail-dialog {
+	width: 1040px !important;
+	max-width: calc(100vw - 32px) !important;
+	height: auto !important;
+	max-height: none !important;
+	margin: 4vh auto !important;
+}
+
+#mainpage-announcement-detail-modal .modal-content.mk-ann-detail-content {
+	height: auto !important;
+	max-height: min(88vh, 760px) !important;
+	border: none !important;
+	border-radius: 16px !important;
+	overflow: hidden !important;
+	box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28) !important;
+	display: flex !important;
+	flex-direction: column !important;
+	position: relative !important;
+	background: #fff !important;
+}
+
+#mainpage-announcement-detail-modal .ann-detail-close.mk-ann-close {
+	position: absolute !important;
+	top: 14px !important;
+	right: 14px !important;
+	z-index: 20 !important;
+	opacity: 1 !important;
+	width: 32px !important;
+	height: 32px !important;
+	border-radius: 999px !important;
+	background: #f1f5f9 !important;
+	color: #475569 !important;
+	font-size: 22px !important;
+	line-height: 28px !important;
+	text-shadow: none !important;
+	font-weight: 400 !important;
+}
+
+#mainpage-announcement-detail-modal .modal-body.ann-detail-body.mk-ann-detail-body {
+	padding: 0 !important;
+	position: relative !important;
+	flex: 1 1 auto !important;
+	overflow: hidden !important;
+	min-height: 0 !important;
+	background: #fff !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-detail-layout {
+	display: grid !important;
+	grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.9fr) !important;
+	min-height: 520px !important;
+	max-height: min(88vh, 760px) !important;
+	height: min(88vh, 760px) !important;
+}
+
+#mainpage-announcement-detail-modal .ann-detail-left.mk-ann-detail-main {
+	border-right: 1px solid #e8edf3 !important;
+	padding: 28px 36px 32px !important;
+	overflow: auto !important;
+	background: #fff !important;
+}
+
+#mainpage-announcement-detail-modal .ann-detail-right.mk-ann-detail-side {
+	padding: 20px 18px 16px !important;
+	display: flex !important;
+	flex-direction: column !important;
+	min-height: 0 !important;
+	background: #fafbfc !important;
+	overflow: hidden !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-post-head {
+	display: flex !important;
+	align-items: flex-start !important;
+	justify-content: space-between !important;
+	gap: 12px !important;
+	margin-bottom: 22px !important;
+	padding-right: 36px !important;
+}
+
+#mainpage-announcement-detail-modal .ann-detail-author.mk-ann-detail-author {
+	display: flex !important;
+	align-items: center !important;
+	gap: 12px !important;
+	margin: 0 !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-avatar {
+	width: 44px !important;
+	height: 44px !important;
+	border-radius: 999px !important;
+	background: linear-gradient(135deg, #f472b6, #fb7185) !important;
+	color: #fff !important;
+	font-weight: 800 !important;
+	font-size: 15px !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-detail-author-meta {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 2px !important;
+}
+
+#mainpage-announcement-detail-modal #ann-detail-name.ann-detail-name {
+	font-size: 15px !important;
+	font-weight: 700 !important;
+	color: #1e293b !important;
+}
+
+#mainpage-announcement-detail-modal #ann-detail-time.ann-detail-time-badge {
+	background: transparent !important;
+	color: #94a3b8 !important;
+	padding: 0 !important;
+	font-size: 12px !important;
+	font-weight: 500 !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-post-actions {
+	position: relative !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-menu-btn {
+	border: none !important;
+	background: transparent !important;
+	color: #64748b !important;
+	font-size: 22px !important;
+	line-height: 1 !important;
+	padding: 4px 8px !important;
+	text-decoration: none !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-menu {
+	position: absolute !important;
+	top: 100% !important;
+	right: 0 !important;
+	min-width: 180px !important;
+	background: #fff !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 10px !important;
+	box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14) !important;
+	padding: 6px !important;
+	z-index: 30 !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-menu-item {
+	display: block !important;
+	width: 100% !important;
+	border: none !important;
+	background: transparent !important;
+	text-align: left !important;
+	padding: 10px 12px !important;
+	border-radius: 8px !important;
+	font-size: 13px !important;
+	font-weight: 600 !important;
+	color: #334155 !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-menu-item--danger {
+	color: #dc2626 !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-menu-item:hover {
+	background: #f8fafc !important;
+}
+
+#mainpage-announcement-detail-modal #ann-detail-title.ann-detail-title {
+	margin: 0 0 16px !important;
+	font-size: 28px !important;
+	line-height: 1.25 !important;
+	font-weight: 700 !important;
+	color: #0f172a !important;
+	letter-spacing: -0.02em !important;
+}
+
+#mainpage-announcement-detail-modal #ann-detail-desc.ann-detail-desc {
+	font-size: 15px !important;
+	line-height: 1.7 !important;
+	color: #334155 !important;
+}
+
+#mainpage-announcement-detail-modal #ann-detail-desc.ann-detail-desc p {
+	margin: 0 0 12px !important;
+}
+
+#mainpage-announcement-detail-modal #ann-detail-desc.ann-detail-desc ul {
+	margin: 0 0 14px 1.2em !important;
+	padding: 0 !important;
+}
+
+#mainpage-announcement-detail-modal .ann-detail-tabs.mk-ann-tabs {
+	display: flex !important;
+	gap: 18px !important;
+	margin: 0 0 14px !important;
+	padding: 0 4px 10px !important;
+	border-bottom: 1px solid #e8edf3 !important;
+	background: transparent !important;
+}
+
+#mainpage-announcement-detail-modal .ann-detail-tabs .ann-tab {
+	border: none !important;
+	background: none !important;
+	padding: 6px 0 !important;
+	font-size: 14px !important;
+	font-weight: 600 !important;
+	color: #94a3b8 !important;
+	border-bottom: 2px solid transparent !important;
+	margin-bottom: -11px !important;
+	border-radius: 0 !important;
+}
+
+#mainpage-announcement-detail-modal .ann-detail-tabs .ann-tab.active {
+	color: #0f172a !important;
+	border-bottom-color: #3b82f6 !important;
+	background: transparent !important;
+}
+
+#mainpage-announcement-detail-modal .ann-detail-tabs .ann-tab .badge {
+	margin-left: 6px !important;
+	background: #f472b6 !important;
+	color: #fff !important;
+	border-radius: 999px !important;
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	min-width: 18px !important;
+	padding: 2px 7px !important;
+}
+
+#mainpage-announcement-detail-modal .ann-detail-panel {
+	display: flex !important;
+	flex-direction: column !important;
+	flex: 1 1 auto !important;
+	min-height: 0 !important;
+}
+
+#mainpage-announcement-detail-modal .ann-comments-list.mk-ann-comments {
+	flex: 1 1 auto !important;
+	overflow-y: auto !important;
+	max-height: none !important;
+	margin: 0 0 12px !important;
+	padding: 0 2px !important;
+}
+
+#mainpage-announcement-detail-modal .ann-comment-item.mk-ann-comment {
+	display: flex !important;
+	flex-wrap: nowrap !important;
+	align-items: flex-start !important;
+	gap: 10px !important;
+	padding: 12px 4px !important;
+	border-bottom: none !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-comment-avatar {
+	width: 32px !important;
+	height: 32px !important;
+	font-size: 12px !important;
+	flex-shrink: 0 !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-comment-body {
+	min-width: 0 !important;
+	flex: 1 1 auto !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-comment-line {
+	display: flex !important;
+	align-items: baseline !important;
+	gap: 8px !important;
+	margin-bottom: 2px !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-comment-name {
+	font-size: 13px !important;
+	font-weight: 700 !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-comment-time {
+	font-size: 12px !important;
+	color: #94a3b8 !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-comment-text {
+	font-size: 13px !important;
+	line-height: 1.5 !important;
+	color: #334155 !important;
+	width: 100% !important;
+}
+
+#mainpage-announcement-detail-modal .ann-comment-img {
+	max-width: 180px !important;
+	border-radius: 10px !important;
+	margin-top: 8px !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-composer.ann-add-comment {
+	display: grid !important;
+	grid-template-columns: auto 1fr auto !important;
+	gap: 8px !important;
+	align-items: center !important;
+	margin-top: auto !important;
+	padding: 10px !important;
+	border-radius: 12px !important;
+	background: #fff !important;
+	border: 1px solid #e2e8f0 !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-composer-tools {
+	margin: 0 !important;
+}
+
+#mainpage-announcement-detail-modal .mk-ann-composer textarea {
+	border: none !important;
+	box-shadow: none !important;
+	resize: none !important;
+	min-height: 36px !important;
+	padding: 8px 4px !important;
+	font-size: 13px !important;
+	background: transparent !important;
+	margin: 0 !important;
+}
+
+#mainpage-announcement-detail-modal #ann-detail-comment-add {
+	border-radius: 8px !important;
+	background: #3b82f6 !important;
+	border-color: #3b82f6 !important;
+	font-weight: 700 !important;
+	padding: 6px 14px !important;
+}
+
+/* Create modal — clean white card (override teal header from custom.css) */
+#mainpage-announcement-modal.ann-add-modal .modal-dialog.ann-add-modal-dialog.mk-ann-add-dialog {
+	max-width: 640px !important;
+	width: 92% !important;
+	margin: 5vh auto !important;
+	border-radius: 16px !important;
+	overflow: visible !important;
+	box-shadow: none !important;
+}
+
+#mainpage-announcement-modal .modal-content.ann-add-modal-content.mk-ann-add-content {
+	border: none !important;
+	border-radius: 16px !important;
+	overflow: hidden !important;
+	box-shadow: 0 24px 64px rgba(15, 23, 42, 0.22) !important;
+}
+
+#mainpage-announcement-modal .modal-header.ann-add-modal-header.mk-ann-add-header {
+	background: #fff !important;
+	color: #0f172a !important;
+	border: none !important;
+	border-bottom: 1px solid #eef2f7 !important;
+	padding: 22px 24px 16px !important;
+	display: flex !important;
+	align-items: flex-start !important;
+	justify-content: space-between !important;
+	position: relative !important;
+}
+
+#mainpage-announcement-modal .mk-ann-add-eyebrow {
+	margin: 0 0 4px !important;
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.06em !important;
+	text-transform: uppercase !important;
+	color: #94a3b8 !important;
+}
+
+#mainpage-announcement-modal .mk-ann-add-header .modal-title {
+	margin: 0 !important;
+	font-size: 22px !important;
+	font-weight: 800 !important;
+	color: #0f172a !important;
+	display: block !important;
+}
+
+#mainpage-announcement-modal .modal-header .ann-add-close.mk-ann-close {
+	position: static !important;
+	transform: none !important;
+	color: #64748b !important;
+	opacity: 1 !important;
+	width: 32px !important;
+	height: 32px !important;
+	border-radius: 999px !important;
+	background: #f1f5f9 !important;
+	font-size: 22px !important;
+	line-height: 28px !important;
+	text-shadow: none !important;
+}
+
+#mainpage-announcement-modal .modal-body.ann-add-modal-body.mk-ann-add-body {
+	background: #fff !important;
+	padding: 18px 24px 8px !important;
+}
+
+#mainpage-announcement-modal .ann-add-form .ann-label {
+	font-size: 12px !important;
+	font-weight: 700 !important;
+	color: #64748b !important;
+	margin-bottom: 6px !important;
+}
+
+#mainpage-announcement-modal .ann-add-form .ann-input {
+	border-radius: 10px !important;
+	border: 1px solid #e2e8f0 !important;
+	padding: 10px 12px !important;
+	font-size: 14px !important;
+	background: #f8fafc !important;
+	min-height: 42px !important;
+}
+
+#mainpage-announcement-modal .ann-add-form .ann-input:focus {
+	border-color: #3b82f6 !important;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+	background: #fff !important;
+}
+
+#mainpage-announcement-modal .mk-ann-editor-group .cke {
+	border-radius: 10px !important;
+	border: 1px solid #e2e8f0 !important;
+	overflow: hidden !important;
+}
+
+#mainpage-announcement-modal .mk-ann-add-row {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	gap: 16px 24px !important;
+	align-items: flex-end !important;
+}
+
+#mainpage-announcement-modal .mk-ann-checks {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 8px !important;
+	padding-bottom: 4px !important;
+}
+
+#mainpage-announcement-modal .modal-footer.ann-add-modal-footer.mk-ann-add-footer {
+	background: #fff !important;
+	border-top: 1px solid #eef2f7 !important;
+	padding: 14px 24px 20px !important;
+	display: flex !important;
+	justify-content: flex-end !important;
+	gap: 10px !important;
+}
+
+#mainpage-announcement-modal .ann-btn-cancel {
+	border-radius: 10px !important;
+	border: 1px solid #e2e8f0 !important;
+	background: #fff !important;
+	color: #475569 !important;
+	font-weight: 600 !important;
+	padding: 9px 16px !important;
+}
+
+#mainpage-announcement-modal .ann-btn-submit {
+	border-radius: 10px !important;
+	border: none !important;
+	background: #3b82f6 !important;
+	color: #fff !important;
+	font-weight: 700 !important;
+	padding: 9px 18px !important;
+	box-shadow: 0 8px 18px rgba(59, 130, 246, 0.25) !important;
+}
+
+#mainpage-announcement-modal .ann-btn-submit:hover {
+	background: #2563eb !important;
+	color: #fff !important;
+}
+
+#mainpage-announcement-modal .select2-container--default .select2-selection--multiple {
+	border-radius: 10px !important;
+	border-color: #e2e8f0 !important;
+	min-height: 42px !important;
+	background: #f8fafc !important;
+}
+
+@media (max-width: 900px) {
+	#mainpage-announcement-detail-modal .mk-ann-detail-layout {
+		grid-template-columns: 1fr !important;
+		height: auto !important;
+		max-height: none !important;
+	}
+	#mainpage-announcement-detail-modal .modal-content.mk-ann-detail-content {
+		max-height: 92vh !important;
+	}
+	#mainpage-announcement-detail-modal .ann-detail-left.mk-ann-detail-main {
+		border-right: none !important;
+		border-bottom: 1px solid #e8edf3 !important;
+		max-height: 42vh !important;
+	}
+	#mainpage-announcement-detail-modal .ann-detail-right.mk-ann-detail-side {
+		min-height: 320px !important;
+	}
+}

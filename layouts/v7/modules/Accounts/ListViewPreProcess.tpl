@@ -1,7 +1,92 @@
 {*+**********************************************************************************
- * Accounts List (Sales + Support): dashboard split shell + modern topbar; legacy list nav hidden in CSS.
+ * Accounts List (Sales): Leads-like shell + Google Sheet + tags MkList.
  ************************************************************************************}
-{if (isset($SELECTED_MENU_CATEGORY) && ($SELECTED_MENU_CATEGORY eq 'SALES' || $SELECTED_MENU_CATEGORY eq 'SUPPORT')) || (isset($smarty.get.app) && ($smarty.get.app eq 'SALES' || $smarty.get.app eq 'SUPPORT'))}
+{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SALES') || (isset($smarty.get.app) && $smarty.get.app eq 'SALES')}
+{strip}
+{include file="modules/Vtiger/Header.tpl"}
+<script type="text/javascript">document.documentElement.classList.add('mk-accounts-list-modern', 'mk-acc-list-sales', 'mk-acc-ui-ready', 'mk-sales-list-ready');</script>
+<script type="text/javascript">window.MK_ACC_API_READY = true;</script>
+<script type="text/javascript">window.MK_LEADS_API_READY = true;</script>
+{* Không dùng MkSalesListAntiFouc — list Lovable tự render; anti-FOUC từng ẩn trắng cả trang. *}
+<style type="text/css">
+html.mk-acc-list-sales #modnavigator,
+html.mk-acc-list-sales #sidebar-essentials,
+html.mk-acc-list-sales .essentials-toggle {
+	display: none !important;
+}
+html.mk-acc-list-sales body[data-module="Accounts"][data-view="List"] #mk-dash-main.mk-accounts-list-main {
+	padding: 24px !important;
+}
+html.mk-acc-list-sales body[data-module="Accounts"][data-view="List"] .main-container .content-area,
+html.mk-acc-list-sales body[data-module="Accounts"][data-view="List"] #listViewContent {
+	padding-left: 0 !important;
+	margin-left: 0 !important;
+}
+html.mk-acc-ui-ready body[data-module="Accounts"][data-view="List"] #modnavigator,
+html.mk-acc-ui-ready body[data-module="Accounts"][data-view="List"] #sidebar-essentials {
+	display: none !important;
+}
+.mk-acc-page .mk-leads-tags-add {
+	display: inline-block;
+	margin-left: 4px;
+	opacity: 0.55;
+	font-weight: 700;
+}
+.mk-acc-page .mk-leads-tags-edit {
+	border: 0;
+	background: transparent;
+	padding: 0;
+	text-align: left;
+	cursor: pointer;
+	max-width: 280px;
+}
+</style>
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsList.css')}?mk_v=20261007_tuibao1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkLovableListShell.css')}&mk_v=20260709_lovable_shell4" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkShell.css')}&mk_v=20260711_segments_ui2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkList.css')}&mk_v=20261007_tuibao1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkListLovable.css')}&mk_v=20260916_touchfix2" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkTagPalette.css')}&mk_v=20260715_tag_color_v1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/ServiceContracts/resources/ServiceContractsMkList.css')}?mk_v=20261007_tuibao1" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.css')}?mk_v=20260820_sheet1" />
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/DashboardSidebarNav.js')}"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Leads/resources/LeadsMkIcons.js')}&mk_v=20260711_segments_ui2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsLovableRef.js')}&mk_v=20261007_tuibao1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsLocalStore.js')}&mk_v=20261007_tuibao1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkQuickImport.js')}&mk_v=20261011_tuibao1"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsMkList.js')}&mk_v=20261011_tuibao1"></script>
+<script type="text/javascript">
+window.__mkSalesPosInlineConfig = {
+	module: 'Accounts',
+	drawer: true,
+	tableSelector: '#mk-acc-table',
+	rowSelector: 'tr.mk-leads-row',
+	colspan: 13,
+	enabledSelector: '[data-mk-acc-list]',
+	loadingText: 'Đang tải chi tiết chủ quán...',
+	errorText: 'Không tải được chi tiết.'
+};
+</script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260820_sheet1"></script>
+<div id="mk-dash-split-root" class="mk-dash-split-root" data-mk-dash-split-root="1" data-mk-accounts-list="1" data-mk-acc-list="1">
+	{include file="dashboards/DashboardSidebar.tpl"|vtemplate_path:'Vtiger'}
+	<div class="mk-app-shell">
+		<header class="mk-topbar" role="banner">
+			{include file="partials/DashboardAppTopbar.tpl"|@vtemplate_path:'Vtiger'}
+		</header>
+		<div id="overlayPageContent" class="fade modal content-area overlayPageContent overlay-container-60" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="data"></div>
+			<div class="modal-dialog"></div>
+		</div>
+		<main class="mk-dash-main mk-content mk-accounts-list-main" id="mk-dash-main" role="main">
+		<div class="main-container main-container-{$MODULE} mk-accounts-list-page">
+			<div id="modnavigator" class="module-nav mk-accounts-list-hide-legacy" style="display:none !important" aria-hidden="true"></div>
+			<div id="sidebar-essentials" class="sidebar-essentials hide mk-accounts-list-hide-legacy" style="display:none !important" aria-hidden="true"></div>
+			<div class="listViewPageDiv content-area full-width mk-accounts-list-content" id="listViewContent">
+{/strip}
+
+{elseif (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SUPPORT') || (isset($smarty.get.app) && $smarty.get.app eq 'SUPPORT')}
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 <script type="text/javascript">document.documentElement.classList.add('mk-accounts-list-modern');</script>
@@ -15,10 +100,8 @@ html.mk-sales-list-guard:not(.mk-sales-list-ready) .essentials-toggle {
 </style>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/DashBoard.css')}" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsList.css')}?mk_v=20260710_pos2" />
-{if (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'SUPPORT') || (isset($smarty.get.app) && $smarty.get.app eq 'SUPPORT')}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsMkSalesListSupport.css')}?mk_v=20260603_support1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSupportListTable.css')}?mk_v=20260625_support_search_v1" />
-{/if}
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260810_list_pager_leads1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosList.css')}?mk_v=20260710_pos2" />
@@ -30,7 +113,7 @@ window.__mkSalesPosListConfig = {
 	searchInput: '#mk-acc-pos-search',
 	searchClear: '#mk-acc-pos-search-clear',
 	columnsTrigger: '.mk-pos-trigger-columns',
-	searchFields: ['tb_contract_no', 'accountname', 'phone', 'tb_store_address', 'assigned_user_id']
+	searchFields: ['account_no', 'accountname', 'phone', 'tb_store_address', 'assigned_user_id', 'createdtime']
 };
 window.__mkSalesPosInlineConfig = {
 	module: 'Accounts',
@@ -66,19 +149,9 @@ window.__mkSalesPosInlineConfig = {
 {/strip}
 
 {elseif (isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'MARKETING') || (isset($smarty.get.app) && $smarty.get.app eq 'MARKETING')}
-{* MARKETING branch unchanged — uses MkMarketingListShared *}
 {strip}
 {include file="modules/Vtiger/Header.tpl"}
 <script type="text/javascript">document.documentElement.classList.add('mk-accounts-list-modern');</script>
-<style type="text/css">
-html.mk-accounts-list-modern:not(.mk-accounts-list-ready) #listViewContent { visibility: hidden; }
-html.mk-accounts-list-modern.mk-accounts-list-ready #listViewContent { visibility: visible; }
-html.mk-accounts-list-modern:not(.mk-accounts-list-ready) #modnavigator,
-html.mk-accounts-list-modern:not(.mk-accounts-list-ready) #sidebar-essentials,
-html.mk-accounts-list-modern:not(.mk-accounts-list-ready) .essentials-toggle {
-	display: none !important;
-}
-</style>
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Accounts/resources/AccountsList.css')}?mk_v=20260701_org_quotes_ui1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkMarketingListShared.css')}?mk_v=20260606_pagingflash1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkMarketingListTable.css')}?mk_v=20260617_mkt_align1" onload="document.documentElement.classList.add('mk-accounts-list-ready')" />

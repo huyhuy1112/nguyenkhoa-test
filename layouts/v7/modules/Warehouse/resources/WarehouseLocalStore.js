@@ -5,11 +5,48 @@
 (function (global) {
 	'use strict';
 
+	function mkWhConfirm(message) {
+		var styleId = 'mkWhConfirmStyle';
+		if (!document.getElementById(styleId)) {
+			var style = document.createElement('style');
+			style.id = styleId;
+			style.textContent = '#mkWhConfirm{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.45);padding:24px;}#mkWhConfirm .mk-wh-confirm__card{width:min(440px,100%);background:#fff;border-radius:16px;box-shadow:0 20px 50px rgba(15,23,42,.18);padding:22px 22px 18px;color:#111827;}#mkWhConfirm h3{margin:0 0 8px;font-size:18px;font-weight:700;color:#14532d;}#mkWhConfirm p{margin:0 0 8px;font-size:14px;line-height:1.45;color:#374151;}#mkWhConfirm .mk-wh-confirm__actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}#mkWhConfirm button{border-radius:999px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid transparent;}#mkWhConfirm .mk-wh-confirm__cancel{background:#fff;border-color:#d1d5db;color:#374151;}#mkWhConfirm .mk-wh-confirm__ok{background:#15803d;color:#fff;}';
+			document.head.appendChild(style);
+		}
+		return new Promise(function (resolve) {
+			var root = document.createElement('div');
+			root.id = 'mkWhConfirm';
+			var lines = String(message || '').split(/\n+/).map(function (line) {
+				return line.trim();
+			}).filter(Boolean);
+			var title = lines.shift() || 'Xác nhận';
+			var body = lines.map(function (line) {
+				return '<p>' + line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>';
+			}).join('');
+			function esc(s) {
+				return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+			}
+			root.innerHTML = '<div class="mk-wh-confirm__card" role="dialog" aria-modal="true"><h3>' + esc(title) + '</h3>' + body + '<div class="mk-wh-confirm__actions"><button type="button" class="mk-wh-confirm__cancel">Huỷ</button><button type="button" class="mk-wh-confirm__ok">OK</button></div></div>';
+			function close(ok) {
+				if (root.parentNode) root.parentNode.removeChild(root);
+				resolve(!!ok);
+			}
+			root.addEventListener('click', function (e) {
+				if (e.target === root) close(false);
+			});
+			root.querySelector('.mk-wh-confirm__cancel').addEventListener('click', function () { close(false); });
+			root.querySelector('.mk-wh-confirm__ok').addEventListener('click', function () { close(true); });
+			document.body.appendChild(root);
+			root.querySelector('.mk-wh-confirm__ok').focus();
+		});
+	}
+	global.MkWhConfirm = mkWhConfirm;
+
 	var KEY = 'bace_multi_warehouse_v2';
 	var useDb = false;
 
 	var SEED_WH = [
-		{ id: 'WH-001', code: 'WH-001', name: 'Kho Hồ Chí Minh', type: 'central', address: 'Q.7, TP.HCM', manager: 'QL Tuấn', status: 'active', createdAt: '2026-01-15T08:00:00Z' },
+		{ id: 'WH-001', code: 'WH-001', name: 'Kho trung tâm', type: 'central', address: 'Q.7, TP.HCM', manager: 'QL Tuấn', status: 'active', createdAt: '2026-01-15T08:00:00Z' },
 		{ id: 'WH-002', code: 'WH-002', name: 'Kho Hà Nội', type: 'branch', address: 'Long Biên, Hà Nội', manager: 'QL Nam', status: 'active', createdAt: '2026-02-20T08:00:00Z' },
 		{ id: 'WH-003', code: 'WH-003', name: 'Kho Bình Dương', type: 'branch', address: 'Thuận An, Bình Dương', manager: 'QL Hùng', status: 'active', createdAt: '2026-03-10T08:00:00Z' },
 	];
@@ -87,7 +124,18 @@
 		},
 	};
 
-	var DEFAULT_SETTINGS = { wh_allow_negative_stock: 1, wh_expiry_warn_days: 90 };
+	var DEFAULT_SETTINGS = {
+		wh_allow_negative_stock: 1,
+		wh_expiry_warn_days: 90,
+		wh_slow_window_days: 30,
+		wh_doi_threshold: 60,
+		wh_dsi_threshold: 30,
+		wh_age_max: 90,
+		wh_risk_w1: 0.35,
+		wh_risk_w2: 0.3,
+		wh_risk_w3: 0.2,
+		wh_risk_w4: 0.15,
+	};
 	var STOCKOUT_SOON_DAYS = 14;
 	var state = { warehouses: SEED_WH.slice(), transfers: [], data: JSON.parse(JSON.stringify(SEED_DATA)), settings: Object.assign({}, DEFAULT_SETTINGS) };
 	var hydrated = false;
@@ -203,6 +251,7 @@
 				transfers: global.MK_WH_DB_STATE.transfers || [],
 				data: global.MK_WH_DB_STATE.data || {},
 				settings: Object.assign({}, DEFAULT_SETTINGS, global.MK_WH_DB_STATE.settings || {}),
+				canStockFillAdmin: global.MK_WH_DB_STATE.canStockFillAdmin ? 1 : 0,
 			};
 			emit();
 			return;
@@ -278,7 +327,6 @@
 		},
 		remove: function (id) {
 			if (useDb) {
-				if (!window.confirm('Xóa kho này?')) return;
 				apiPost({ mode: 'delete', id: id }).then(reloadPage);
 				return;
 			}
@@ -311,6 +359,9 @@
 			}
 			var def = $.Deferred();
 			apiPost({ mode: 'get', id: whId }).then(function (res) {
+				if (res && res.canStockFillAdmin != null) {
+					state.canStockFillAdmin = res.canStockFillAdmin ? 1 : 0;
+				}
 				if (res && res.data) {
 					patchData(whId, function () { return res.data; });
 				}
@@ -437,6 +488,56 @@
 			});
 			return def.promise();
 		},
+		importStockExcel: function (whId, file, wipe) {
+			if (!useDb) {
+				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
+			}
+			var def = $.Deferred();
+			var fd = new FormData();
+			fd.append('module', 'Warehouse');
+			fd.append('action', 'WhMgmtApi');
+			fd.append('mode', 'import_stock_excel');
+			fd.append('whId', whId);
+			fd.append('wipe', wipe ? '1' : '0');
+			fd.append('stockExcel', file);
+			try {
+				var csrf = '';
+				if (typeof jQuery !== 'undefined' && jQuery('[name="__vtrftk"]').length) {
+					csrf = jQuery('[name="__vtrftk"]').val() || '';
+				} else if (typeof csrfMagicToken !== 'undefined') {
+					csrf = csrfMagicToken;
+				}
+				if (csrf) {
+					fd.append('__vtrftk', csrf);
+				}
+			} catch (eCsrf) { /* ignore */ }
+			$.ajax({
+				url: 'index.php',
+				method: 'POST',
+				data: fd,
+				processData: false,
+				contentType: false,
+				dataType: 'json',
+			}).done(function (res) {
+				var out = unwrapApiResponse(res);
+				if (!out || out.success === false || out.error) {
+					def.reject({ message: String((out && out.error) || 'Import thất bại') });
+					return;
+				}
+				if (out.data) {
+					patchData(whId, function () { return out.data; });
+				}
+				def.resolve(out);
+			}).fail(function (xhr) {
+				var msg = 'Import thất bại';
+				if (xhr && xhr.responseJSON) {
+					if (xhr.responseJSON.error) msg = xhr.responseJSON.error;
+					else if (xhr.responseJSON.message) msg = xhr.responseJSON.message;
+				}
+				def.reject({ message: String(msg) });
+			});
+			return def.promise();
+		},
 		deleteQcImage: function (whId, code, imageId) {
 			if (!useDb) {
 				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
@@ -448,6 +549,49 @@
 				code: code,
 				imageId: imageId,
 			}).then(function (res) {
+				if (res && res.data) {
+					patchData(whId, function () { return res.data; });
+				}
+				def.resolve(res);
+			}).fail(function (err) { def.reject(err); });
+			return def.promise();
+		},
+		setStockFill: function (whId, open) {
+			if (!useDb) {
+				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
+			}
+			var def = $.Deferred();
+			apiPost({
+				mode: 'set_stock_fill',
+				whId: whId,
+				open: open ? '1' : '0',
+			}).then(function (res) {
+				if (res && res.canStockFillAdmin != null) {
+					state.canStockFillAdmin = res.canStockFillAdmin ? 1 : 0;
+				}
+				if (res && res.data) {
+					patchData(whId, function () { return res.data; });
+				}
+				def.resolve(res);
+			}).fail(function (err) { def.reject(err); });
+			return def.promise();
+		},
+		saveStockFill: function (whId, stockKey, fields) {
+			if (!useDb) {
+				return $.Deferred().reject({ message: 'Chế độ lưu database chưa sẵn sàng.' }).promise();
+			}
+			var def = $.Deferred();
+			apiPost({
+				mode: 'save_stock_fill',
+				whId: whId,
+				stockKey: stockKey,
+				expiry: fields && fields.expiry ? fields.expiry : '',
+				location: fields && fields.location ? fields.location : '',
+				lot: fields && fields.lot ? fields.lot : '',
+			}).then(function (res) {
+				if (res && res.canStockFillAdmin != null) {
+					state.canStockFillAdmin = res.canStockFillAdmin ? 1 : 0;
+				}
 				if (res && res.data) {
 					patchData(whId, function () { return res.data; });
 				}

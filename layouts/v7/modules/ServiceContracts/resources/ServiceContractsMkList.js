@@ -7,7 +7,7 @@
   var ref = window.ServiceContractsLovableRef;
   var store = window.ServiceContractsLocalStore;
   var icons = window.LeadsMkIcons;
-  var COL_COUNT = 12;
+  var COL_COUNT = 13;
 
   function t(key, fallback) {
     if (typeof app !== "undefined" && app.vtranslate) {
@@ -68,6 +68,11 @@
         name: pick("Chưa gọi", "Not called"),
         filters: { contactStatus: "Chưa gọi" },
       },
+      {
+        id: "no_tags",
+        name: pick("Chưa có thẻ", "No tags"),
+        filters: { noTags: true },
+      },
     ];
   }
 
@@ -78,6 +83,8 @@
     contactStatus: ANY,
     referrer: ANY,
     owner: ANY,
+    tag: ANY,
+    noTags: false,
   };
 
   var state = {
@@ -107,11 +114,18 @@
   }
 
   function decodeHtml(s) {
+    if (window.mkDecodeHtml) return window.mkDecodeHtml(s);
     var str = String(s == null ? "" : s);
     if (!str || str.indexOf("&") < 0) return str;
     var el = document.createElement("textarea");
-    el.innerHTML = str;
-    return el.value;
+    var i;
+    for (i = 0; i < 5; i++) {
+      el.innerHTML = str;
+      var next = el.value;
+      if (next === str) break;
+      str = next;
+    }
+    return str;
   }
 
   function esc(s) {
@@ -295,6 +309,7 @@
           c.interaction_3,
           c.interaction_materials,
           c.notes,
+          (c.tags || []).join(" "),
         ]
           .join(" ")
           .toLowerCase();
@@ -305,6 +320,16 @@
             return false;
           }
         }
+      }
+      if (f.noTags && (c.tags || []).length) return false;
+      if (f.tag !== ANY) {
+        var want = String(f.tag || "");
+        var has = false;
+        (c.tags || []).forEach(function (tg) {
+          if (ref && ref.normalizeTag(tg) === want) has = true;
+          else if (String(tg) === want) has = true;
+        });
+        if (!has) return false;
       }
       if (f.franchiseStatus !== ANY && String(c.franchise_status || "") !== f.franchiseStatus) return false;
       if (f.dataSource !== ANY && String(c.data_source || "") !== f.dataSource) return false;
@@ -431,14 +456,12 @@
     return '<span class="mk-leads-phone">' + esc(display || phone) + "</span>";
   }
 
-  function textCell(raw, opts) {
+  function textCell(raw) {
     var n = String(raw || "").trim();
     if (!n) {
       return '<span class="mk-leads-muted">—</span>';
     }
-    var max = opts && opts.max ? opts.max : 80;
-    var short = n.length > max ? n.slice(0, max) + "…" : n;
-    return '<span class="mk-sc-cell-text" title="' + esc(n) + '">' + esc(short) + "</span>";
+    return '<span class="mk-sc-cell-text">' + esc(n) + "</span>";
   }
 
   /** Leads-style click-to-edit cell (phone / business_note) — no need to open inline dropdown. */
@@ -753,6 +776,20 @@
       .join(" ");
   }
 
+  function tagCategoryCell(contract, catKey) {
+    var cats = categorize(contract.tags || []);
+    var raw = cats[catKey];
+    if (!raw) return '<span class="mk-leads-muted">—</span>';
+    var m = tagMeta(raw);
+    return (
+      '<span class="mk-tag ' +
+      esc(m.cls || "mk-tag") +
+      '">' +
+      esc(m.label || raw) +
+      "</span>"
+    );
+  }
+
   function computeKpis(rows) {
     var withPhone = rows.filter(function (c) {
       return !!c.phone;
@@ -931,6 +968,7 @@
     var contactVals = [];
     var referrers = [];
     var owners = [];
+    var tagVals = [];
     rows.forEach(function (c) {
       if (c.franchise_status) statusVals.push(c.franchise_status);
       if (c.data_source) sourceVals.push(c.data_source);
@@ -938,6 +976,13 @@
       if (c.referrer) referrers.push(c.referrer);
       var o = ownerLabel(c);
       if (o) owners.push(o);
+      (c.tags || []).forEach(function (tg) {
+        if (tg) tagVals.push(tg);
+      });
+    });
+    var tagOptions = uniqueSorted(tagVals).map(function (tg) {
+      var key = ref && ref.normalizeTag ? ref.normalizeTag(tg) : String(tg);
+      return [key, tagMeta(tg).label || tg];
     });
     host.innerHTML =
       '<div class="mk-leads-filters-grid">' +
@@ -976,16 +1021,35 @@
           return [o, o];
         })
       ) +
+      fieldSelect(t("LBL_MK_COL_TAGS", "Thẻ"), "tag", tagOptions) +
+      toggleField(t("JS_MK_FILTER_NO_TAGS", "Chưa có thẻ"), "noTags", !!state.filters.noTags, false) +
       "</div>";
     host.hidden = !state.filtersOpen;
     syncFilterControls();
+  }
+
+  function toggleField(label, key, on, warn) {
+    return (
+      '<label class="mk-leads-toggle-field' +
+      (warn ? " mk-leads-toggle-field--warn" : "") +
+      '"><span class="mk-leads-toggle-field__label">' +
+      esc(label) +
+      '</span><input type="checkbox" class="mk-leads-toggle-field__input" data-fkey="' +
+      key +
+      '"' +
+      (on ? " checked" : "") +
+      " /></label>"
+    );
   }
 
   function syncFilterControls() {
     var f = state.filters;
     document.querySelectorAll("#mk-sc-filters-panel [data-fkey]").forEach(function (el) {
       var key = el.getAttribute("data-fkey");
-      if (key && f[key] != null) el.value = f[key];
+      if (key && f[key] != null) {
+        if (el.type === "checkbox") el.checked = !!f[key];
+        else el.value = f[key];
+      }
     });
     var reset = $("mk-sc-reset");
     if (reset) {
@@ -995,7 +1059,9 @@
         f.dataSource !== ANY ||
         f.contactStatus !== ANY ||
         f.referrer !== ANY ||
-        f.owner !== ANY;
+        f.owner !== ANY ||
+        f.tag !== ANY ||
+        f.noTags;
       reset.hidden = !dirty && !state.activeSegment;
     }
   }
@@ -1127,9 +1193,9 @@
       tbody.innerHTML =
         '<tr><td colspan="' +
         COL_COUNT +
-        '" class="mk-leads-empty">' +
-        esc(t("JS_MK_NO_SC_MATCH", "Không có khách chuyển nhượng phù hợp bộ lọc.")) +
-        "</td></tr>";
+        '" class="mk-leads-empty"><div class="mk-leads-empty__inner">' +
+        esc(t("JS_MK_NO_SC_DISPLAY", "Không có khách chuyển nhượng để hiển thị")) +
+        "</div></td></tr>";
     } else {
       tbody.innerHTML = pageRows
         .map(function (c) {
@@ -1165,9 +1231,7 @@
               : c.contract_no
                 ? '<div class="mk-leads-sub">' + esc(c.contract_no) + "</div>"
                 : "") +
-            (c.notes
-              ? '<div class="mk-leads-sub mk-sc-name-note" title="' + esc(c.notes) + '">' + esc(c.notes.length > 60 ? c.notes.slice(0, 60) + "…" : c.notes) + "</div>"
-              : "") +
+            (c.notes ? '<div class="mk-leads-sub mk-sc-name-note">' + esc(c.notes) + "</div>" : "") +
             "</span></span></td>" +
             '<td class="mk-leads-td mk-leads-td--phone">' +
             editableCellHtml("phone", c.phone, rowId, "SĐT") +
@@ -1182,11 +1246,17 @@
             pillCell("data_source", c.data_source) +
             "</td>" +
             '<td class="mk-leads-td">' +
-            textCell(c.referrer, { max: 40 }) +
+            textCell(c.referrer) +
             "</td>" +
             '<td class="mk-leads-td">' +
             pillCell("contact_status", c.contact_status) +
             "</td>" +
+            '<td class="mk-leads-td">' +
+            '<button type="button" class="mk-leads-tags-edit" data-sc-id="' +
+            esc(c.id) +
+            '">' +
+            stackedTags(c.tags) +
+            "</button></td>" +
             '<td class="mk-leads-td mk-sc-td--recent-touch" data-col="recent_touch">' +
             lastTouchCallCell(c) +
             "</td>" +
@@ -1780,7 +1850,11 @@
       if (!el.getAttribute || !el.closest("#mk-sc-filters-panel")) return;
       var key = el.getAttribute("data-fkey");
       if (!key) return;
-      state.filters[key] = el.value;
+      if (el.type === "checkbox") {
+        state.filters[key] = !!el.checked;
+      } else {
+        state.filters[key] = el.value;
+      }
       state.activeSegment = null;
       state.page = 1;
       renderAll();

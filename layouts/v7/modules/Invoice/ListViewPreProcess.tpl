@@ -13,7 +13,7 @@
 {if $MK_INV_IS_SALES}
 {include file="partials/MkSalesListAntiFouc.tpl"|@vtemplate_path:'Vtiger'}
 <script type="text/javascript">document.documentElement.classList.add('mk-invoice-list-sales');</script>
-<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceSalesList.css')}?mk_v=20260804_empty3" />
+<link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceSalesList.css')}?mk_v=20261006_inv_panel3" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListShared.css')}?mk_v=20260810_list_pager_leads1" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesListTable.css')}?mk_v=20260606_sales_search9" />
 <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosList.css')}?mk_v=20260710_pos4" />
@@ -65,7 +65,7 @@ window.__mkSalesPosInlineConfig = {
 };
 </script>
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/MkSalesPosInline.js')}?mk_v=20260820_sheet1"></script>
-<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceList.js')}?mk_v=20260820_panel2"></script>
+<script type="text/javascript" src="{vresource_url('layouts/v7/modules/Invoice/resources/InvoiceList.js')}?mk_v=20261006_inv_panel3"></script>
 {else}
 <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Invoice/resources/ListSupportBoot.js')}?mk_v=20260605_inv_search1"></script>
 {/if}

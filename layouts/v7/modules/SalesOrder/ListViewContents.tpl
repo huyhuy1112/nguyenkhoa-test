@@ -17,7 +17,11 @@
 		</div>
 	</div>
 {elseif $MK_SO_IS_SALES}
-	<div class="mk-so-page mk-so-list-sales-root mk-so-pos-page mk-so-pos-list-enabled">
+	{if !isset($MK_SO_SCOPE) || $MK_SO_SCOPE eq ''}
+		{assign var=MK_SO_SCOPE value='all'}
+	{/if}
+	<div class="mk-so-page mk-so-list-sales-root mk-so-pos-page mk-so-pos-list-enabled" data-mk-so-scope="{$MK_SO_SCOPE|escape}">
+		<input type="hidden" id="mk-so-scope" name="mk_so_scope" value="{$MK_SO_SCOPE|escape}" />
 		<div class="mk-so-pos-layout" id="mk-so-pos-layout">
 			{include file="partials/SalesOrderPosFilterPanel.tpl"|vtemplate_path:$MODULE}
 			<div class="mk-so-pos-main">

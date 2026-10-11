@@ -156,8 +156,8 @@ class Invoice_List_View extends Inventory_List_View {
 			'invoice_no' => 'Mã hóa đơn',
 			'subject' => 'Mã hóa đơn',
 			'createdtime' => 'Thời gian',
-			'account_id' => 'Người liên hệ',
-			'contact_id' => 'Người liên hệ',
+			'account_id' => 'Tên khách hàng',
+			'contact_id' => 'Tên khách hàng',
 			'hdnGrandTotal' => 'Tổng cộng',
 			'total' => 'Tổng cộng',
 			$paidField => 'Khách đã trả',
@@ -237,6 +237,10 @@ class Invoice_List_View extends Inventory_List_View {
 	}
 
 	public function initializeListViewContents(Vtiger_Request $request, Vtiger_Viewer $viewer) {
+		if ($this->isMkInvoiceListApp($request->get('app'))) {
+			require_once 'modules/Invoice/models/MisaSyncService.php';
+			Invoice_MisaSyncService::refreshPending();
+		}
 		if ($this->isSalesListContext($request)) {
 			$posMeta = $this->applyInvoiceSalesListPosDefaults($request);
 			$this->assignInvoiceSalesListPosTemplateVars($viewer, $posMeta);

@@ -13,11 +13,14 @@ require_once 'modules/Vtiger/helpers/NkApi/MisaAdapter.php';
 require_once 'modules/Vtiger/helpers/NkApi/GoogleSheetAdapter.php';
 require_once 'modules/Vtiger/helpers/NkApi/EcommerceAdapter.php';
 require_once 'modules/Vtiger/helpers/NkApi/ZaloOaAdapter.php';
+require_once 'modules/Vtiger/helpers/NkApi/EdubitAdapter.php';
 require_once 'modules/Vtiger/helpers/NkApi/GenericAdapter.php';
 
-class NkApiConnection {
+class NkApiConnection
+{
 
 	const TABLE = 'nk_api_connection';
+	const LOG_TABLE = 'nk_api_sync_log';
 	const MENU_NAME = 'LBL_NK_SYSTEM_INTEGRATIONS';
 	const MENU_LINK = 'index.php?module=Vtiger&parent=Settings&view=Integrations';
 	const MENU_HUB_NAME = 'LBL_NK_INTEGRATION_HUB';
@@ -28,7 +31,8 @@ class NkApiConnection {
 	 */
 	protected static $adapterInstances = array();
 
-	public static function ensureInstalled() {
+	public static function ensureInstalled()
+	{
 		static $done = false;
 		if ($done) {
 			return;
@@ -36,12 +40,14 @@ class NkApiConnection {
 		$done = true;
 		$adb = PearDatabase::getInstance();
 		self::ensureTable($adb);
+		self::ensureLogTable($adb);
 		self::seedRows($adb);
 		self::registerSettingsMenu($adb);
 		self::registerIntegrationHubMenu($adb);
 	}
 
-	protected static function ensureTable(PearDatabase $adb) {
+	protected static function ensureTable(PearDatabase $adb)
+	{
 		$adb->pquery(
 			'CREATE TABLE IF NOT EXISTS ' . self::TABLE . ' (
 				code VARCHAR(64) NOT NULL,
@@ -60,7 +66,32 @@ class NkApiConnection {
 		);
 	}
 
-	protected static function seedRows(PearDatabase $adb) {
+	protected static function ensureLogTable(PearDatabase $adb)
+	{
+		$adb->pquery(
+			'CREATE TABLE IF NOT EXISTS ' . self::LOG_TABLE . ' (
+				logid INT(19) NOT NULL AUTO_INCREMENT,
+				code VARCHAR(64) NOT NULL,
+				event_type VARCHAR(32) NOT NULL,
+				status VARCHAR(16) NOT NULL,
+				title VARCHAR(255) NOT NULL,
+				detail TEXT,
+				records_count INT(11) DEFAULT 0,
+				error_message TEXT,
+				duration_ms INT(11) DEFAULT 0,
+				created_at DATETIME NOT NULL,
+				created_by INT(19) DEFAULT NULL,
+				PRIMARY KEY (logid),
+				KEY idx_code_created (code, created_at),
+				KEY idx_created (created_at),
+				KEY idx_event_type (event_type)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8',
+			array()
+		);
+	}
+
+	protected static function seedRows(PearDatabase $adb)
+	{
 		foreach (array_keys(self::hubCatalogDefinitions()) as $code) {
 			$exists = $adb->pquery(
 				'SELECT code FROM ' . self::TABLE . ' WHERE code = ? LIMIT 1',
@@ -76,7 +107,8 @@ class NkApiConnection {
 		}
 	}
 
-	protected static function registerSettingsMenu(PearDatabase $adb) {
+	protected static function registerSettingsMenu(PearDatabase $adb)
+	{
 		$exists = $adb->pquery(
 			'SELECT fieldid FROM vtiger_settings_field WHERE name = ? LIMIT 1',
 			array(self::MENU_NAME)
@@ -133,7 +165,8 @@ class NkApiConnection {
 		);
 	}
 
-	protected static function registerIntegrationHubMenu(PearDatabase $adb) {
+	protected static function registerIntegrationHubMenu(PearDatabase $adb)
+	{
 		$exists = $adb->pquery(
 			'SELECT fieldid FROM vtiger_settings_field WHERE name = ? LIMIT 1',
 			array(self::MENU_HUB_NAME)
@@ -205,7 +238,8 @@ class NkApiConnection {
 	 * @param string $code
 	 * @return NkApi_Adapter
 	 */
-	public static function adapter($code) {
+	public static function adapter($code)
+	{
 		self::ensureInstalled();
 		$code = trim((string) $code);
 		if (isset(self::$adapterInstances[$code])) {
@@ -216,6 +250,7 @@ class NkApiConnection {
 			'google_sheet' => 'NkApi_GoogleSheet_Adapter',
 			'ecommerce' => 'NkApi_Ecommerce_Adapter',
 			'zalo_oa' => 'NkApi_ZaloOa_Adapter',
+			'edubit' => 'NkApi_Edubit_Adapter',
 		);
 		if (!isset($map[$code]) || !class_exists($map[$code])) {
 			$generic = self::genericAdapterMeta($code);
@@ -233,7 +268,8 @@ class NkApiConnection {
 	/**
 	 * @return array
 	 */
-	public static function catalogForAdmin() {
+	public static function catalogForAdmin()
+	{
 		self::ensureInstalled();
 		$list = array();
 		foreach (array_keys(self::hubCatalogDefinitions()) as $code) {
@@ -251,7 +287,8 @@ class NkApiConnection {
 	 * @param string $code
 	 * @return array|null
 	 */
-	protected static function genericAdapterMeta($code) {
+	protected static function genericAdapterMeta($code)
+	{
 		$defs = self::hubCatalogDefinitions();
 		if (!isset($defs[$code]) || !empty($defs[$code]['use_adapter'])) {
 			return null;
@@ -267,10 +304,11 @@ class NkApiConnection {
 	}
 
 	/**
-	 * Hub dashboard catalog — merges DB/adapters with hub metadata (Phase 1 includes demo stubs).
+	 * Hub dashboard catalog — merges DB/adapters with hub metadata.
 	 * @return array
 	 */
-	public static function catalogForHub() {
+	public static function catalogForHub()
+	{
 		self::ensureInstalled();
 		$list = array();
 		foreach (self::hubCatalogDefinitions() as $code => $def) {
@@ -282,7 +320,8 @@ class NkApiConnection {
 	/**
 	 * @return array
 	 */
-	public static function hubSummary() {
+	public static function hubSummary()
+	{
 		self::ensureInstalled();
 		$connections = self::catalogForHub();
 		$total = count($connections);
@@ -313,79 +352,219 @@ class NkApiConnection {
 			'warning_pct' => $pct($warning),
 			'error' => $error,
 			'error_pct' => $pct($error),
-			'synced_today' => 1280,
+			'synced_today' => self::countSyncedToday(),
 		);
 	}
 
 	/**
-	 * Phase 1 — demo activity feed until sync log table is wired.
-	 * @param int $limit
-	 * @return array
+	 * Đếm số bản ghi đã sync thành công trong hôm nay (từ log thật).
+	 * @return int
 	 */
-	public static function recentActivity($limit = 8) {
-		self::ensureInstalled();
-		$items = array(
-			array('type' => 'success', 'title' => 'Đồng bộ Google Sheet thành công', 'detail' => '42 bản ghi Lead', 'time' => '2 phút trước'),
-			array('type' => 'success', 'title' => 'Đồng bộ MISA thành công', 'detail' => '18 hóa đơn', 'time' => '15 phút trước'),
-			array('type' => 'warning', 'title' => 'Zalo OA — token sắp hết hạn', 'detail' => 'Gia hạn trong 3 ngày', 'time' => '1 giờ trước'),
-			array('type' => 'error', 'title' => 'GHTK — lỗi kết nối API', 'detail' => 'HTTP 503 timeout', 'time' => '2 giờ trước'),
-			array('type' => 'success', 'title' => 'Website — đơn hàng mới', 'detail' => '7 đơn đã import', 'time' => '3 giờ trước'),
-			array('type' => 'success', 'title' => 'Email SMTP — gửi thông báo', 'detail' => '124 email đã gửi', 'time' => '5 giờ trước'),
-			array('type' => 'warning', 'title' => 'Edubit — đồng bộ chậm', 'detail' => 'Hàng đợi 120 bản ghi', 'time' => '6 giờ trước'),
-			array('type' => 'success', 'title' => 'Shopee Express — cập nhật vận đơn', 'detail' => '33 vận đơn', 'time' => '8 giờ trước'),
+	protected static function countSyncedToday()
+	{
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT COALESCE(SUM(records_count), 0) AS total
+			 FROM ' . self::LOG_TABLE . '
+			 WHERE status = ?
+			   AND DATE(created_at) = CURDATE()',
+			array('success')
 		);
-		$limit = max(1, (int) $limit);
-		return array_slice($items, 0, $limit);
+		if ($res && $adb->num_rows($res) > 0) {
+			return (int) $adb->query_result($res, 0, 'total');
+		}
+		return 0;
 	}
 
-	protected static function hubCatalogDefinitions() {
+	/**
+	 * Ghi 1 sự kiện vào log hoạt động.
+	 *
+	 * @param string $code       Mã kết nối (google_sheet, misa, zalo_oa...)
+	 * @param string $eventType  sync | test | config | connect | disconnect | webhook | token_refresh
+	 * @param string $status     success | warning | error
+	 * @param string $title
+	 * @param string $detail
+	 * @param array  $extra      records_count, error_message, duration_ms, user_id
+	 */
+	public static function logActivity($code, $eventType, $status, $title, $detail = '', array $extra = array())
+	{
+		self::ensureInstalled();
+		$adb = PearDatabase::getInstance();
+
+		$code = trim((string) $code);
+		$eventType = trim((string) $eventType);
+		$status = trim((string) $status);
+		$title = trim((string) $title);
+		$detail = (string) $detail;
+
+		if ($code === '' || $title === '') {
+			return;
+		}
+
+		// Chuẩn hoá status
+		if (!in_array($status, array('success', 'warning', 'error'), true)) {
+			$status = 'success';
+		}
+
+		// Cắt title theo độ dài cột
+		if (function_exists('mb_substr')) {
+			$title = mb_substr($title, 0, 255);
+		} else {
+			$title = substr($title, 0, 255);
+		}
+
+		$recordsCount = isset($extra['records_count']) ? (int) $extra['records_count'] : 0;
+		$errorMessage = isset($extra['error_message']) ? (string) $extra['error_message'] : null;
+		$durationMs   = isset($extra['duration_ms'])   ? (int) $extra['duration_ms']   : 0;
+		$userId       = isset($extra['user_id'])       ? (int) $extra['user_id']       : 0;
+
+		$adb->pquery(
+			'INSERT INTO ' . self::LOG_TABLE . '
+				(code, event_type, status, title, detail, records_count, error_message, duration_ms, created_at, created_by)
+			 VALUES (?,?,?,?,?,?,?,?,?,?)',
+			array(
+				$code,
+				$eventType,
+				$status,
+				$title,
+				$detail,
+				$recordsCount,
+				$errorMessage,
+				$durationMs,
+				date('Y-m-d H:i:s'),
+				$userId > 0 ? $userId : null,
+			)
+		);
+	}
+
+	/**
+	 * Lấy hoạt động gần đây từ log thật.
+	 * Fallback về demo data nếu bảng log trống.
+	 *
+	 * @param int    $limit
+	 * @param string $code   Lọc theo mã kết nối ('' = tất cả)
+	 * @return array
+	 */
+	public static function recentActivity($limit = 8, $code = '')
+	{
+		self::ensureInstalled();
+		$adb = PearDatabase::getInstance();
+		$limit = max(1, (int) $limit);
+		$code = trim((string) $code);
+
+		$sql = 'SELECT code, event_type, status, title, detail, records_count, created_at
+				FROM ' . self::LOG_TABLE;
+		$params = array();
+
+		if ($code !== '') {
+			$sql .= ' WHERE code = ?';
+			$params[] = $code;
+		}
+		$sql .= ' ORDER BY created_at DESC, logid DESC LIMIT ?';
+		$params[] = $limit;
+
+		$res = $adb->pquery($sql, $params);
+
+		$items = array();
+		if ($res) {
+			while ($row = $adb->fetchByAssoc($res)) {
+				$status = (string) $row['status'];
+				$type = 'success';
+				if ($status === 'error') {
+					$type = 'error';
+				} elseif ($status === 'warning') {
+					$type = 'warning';
+				}
+
+				$items[] = array(
+					'type'          => $type,
+					'code'          => (string) $row['code'],
+					'event_type'    => (string) $row['event_type'],
+					'title'         => (string) $row['title'],
+					'detail'        => (string) $row['detail'],
+					'records_count' => (int) $row['records_count'],
+					'time'          => self::formatRelativeTime($row['created_at']),
+					'created_at'    => (string) $row['created_at'],
+				);
+			}
+		}
+
+		return $items;
+	}
+
+
+	/**
+	 * Dọn log cũ hơn N ngày. Gọi từ cron task 1 lần/ngày.
+	 *
+	 * @param int $days
+	 * @return int Số bản ghi đã xoá
+	 */
+	public static function pruneOldLogs($days = 90)
+	{
+		self::ensureInstalled();
+		$days = max(1, (int) $days);
+		$adb = PearDatabase::getInstance();
+
+		$countRes = $adb->pquery(
+			'SELECT COUNT(*) AS c FROM ' . self::LOG_TABLE . '
+			 WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)',
+			array($days)
+		);
+		$deleted = 0;
+		if ($countRes && $adb->num_rows($countRes) > 0) {
+			$deleted = (int) $adb->query_result($countRes, 0, 'c');
+		}
+
+		if ($deleted > 0) {
+			$adb->pquery(
+				'DELETE FROM ' . self::LOG_TABLE . '
+				 WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)',
+				array($days)
+			);
+		}
+		return $deleted;
+	}
+
+	protected static function hubCatalogDefinitions()
+	{
 		return array(
 			'google_sheet' => array(
 				'label' => 'Google Sheet',
 				'subtitle' => 'Google Sheets API',
 				'icon' => 'google_sheet',
 				'use_adapter' => true,
-				'sync_hint' => '5 phút trước',
 			),
 			'zalo_oa' => array(
 				'label' => 'Zalo OA',
 				'subtitle' => 'Zalo Official Account',
 				'icon' => 'zalo_oa',
 				'use_adapter' => true,
-				'hub_status' => 'warning',
-				'sync_hint' => '1 giờ trước',
 				'admin_hint' => 'Nhập App ID, Secret Key, OA ID. Kết nối OAuth để lấy Refresh Token — hệ thống tự gia hạn access token.',
 			),
 			'edubit' => array(
 				'label' => 'Edubit',
 				'subtitle' => 'Edubit LMS API',
 				'icon' => 'edubit',
-				'use_adapter' => false,
-				'hub_status' => 'active',
-				'sync_hint' => '20 phút trước',
-				'admin_hint' => 'Đồng bộ học viên và khóa học từ Edubit LMS.',
+				'use_adapter' => true,
+				'admin_hint' => 'Token API + Base URL. Catalog khóa học để Sales chọn tay — không có course_id mặc định.',
 			),
 			'misa' => array(
 				'label' => 'MISA',
 				'subtitle' => 'MISA AMIS API',
 				'icon' => 'misa',
 				'use_adapter' => true,
-				'sync_hint' => '15 phút trước',
 			),
 			'ecommerce' => array(
 				'label' => 'Website',
 				'subtitle' => 'Website / E-commerce',
 				'icon' => 'website',
 				'use_adapter' => true,
-				'sync_hint' => '30 phút trước',
 			),
 			'shopee_express' => array(
 				'label' => 'Shopee Express',
 				'subtitle' => 'Shopee Logistics API',
 				'icon' => 'shopee',
 				'use_adapter' => false,
-				'hub_status' => 'active',
-				'sync_hint' => '45 phút trước',
 				'admin_hint' => 'Partner ID và API key từ Shopee Open Platform.',
 			),
 			'ghtk' => array(
@@ -393,8 +572,6 @@ class NkApiConnection {
 				'subtitle' => 'Giao Hàng Tiết Kiệm',
 				'icon' => 'ghtk',
 				'use_adapter' => false,
-				'hub_status' => 'error',
-				'sync_hint' => '2 giờ trước',
 				'admin_hint' => 'Token API GHTK để tạo và theo dõi vận đơn.',
 			),
 			'email_smtp' => array(
@@ -402,14 +579,13 @@ class NkApiConnection {
 				'subtitle' => 'Outgoing mail server',
 				'icon' => 'email',
 				'use_adapter' => false,
-				'hub_status' => 'active',
-				'sync_hint' => '10 phút trước',
 				'admin_hint' => 'Có thể cấu hình SMTP tại đây hoặc Cài đặt → Máy chủ gửi mail.',
 			),
 		);
 	}
 
-	protected static function buildHubConnectionItem($code, array $def) {
+	protected static function buildHubConnectionItem($code, array $def)
+	{
 		$base = array(
 			'code' => $code,
 			'label' => $def['label'],
@@ -475,7 +651,8 @@ class NkApiConnection {
 		return $base;
 	}
 
-	public static function mapHubStatus($status, $enabled = true) {
+	public static function mapHubStatus($status, $enabled = true)
+	{
 		$status = (string) $status;
 		if ($status === 'error') {
 			return 'error';
@@ -492,7 +669,8 @@ class NkApiConnection {
 		return 'inactive';
 	}
 
-	public static function hubStatusLabel($hubStatus) {
+	public static function hubStatusLabel($hubStatus)
+	{
 		$map = array(
 			'active' => 'LBL_NK_HUB_STATUS_ACTIVE',
 			'warning' => 'LBL_NK_HUB_STATUS_WARNING',
@@ -503,12 +681,16 @@ class NkApiConnection {
 		return vtranslate($key, 'Settings:Vtiger');
 	}
 
-	protected static function formatRelativeTime($datetime) {
+	protected static function formatRelativeTime($datetime)
+	{
 		$ts = strtotime((string) $datetime);
 		if (!$ts) {
 			return (string) $datetime;
 		}
 		$diff = time() - $ts;
+		if ($diff < 0) {
+			return 'Vừa xong';
+		}
 		if ($diff < 60) {
 			return 'Vừa xong';
 		}
@@ -525,7 +707,8 @@ class NkApiConnection {
 	 * @param string $code
 	 * @return array
 	 */
-	public static function getRow($code) {
+	public static function getRow($code)
+	{
 		self::ensureInstalled();
 		$adb = PearDatabase::getInstance();
 		$res = $adb->pquery(
@@ -561,7 +744,8 @@ class NkApiConnection {
 	 * @param array $fields
 	 * @param int $userId
 	 */
-	public static function saveRow($code, array $fields, $userId = 0) {
+	public static function saveRow($code, array $fields, $userId = 0)
+	{
 		self::ensureInstalled();
 		$adb = PearDatabase::getInstance();
 		$current = self::getRow($code);
@@ -609,7 +793,8 @@ class NkApiConnection {
 		}
 	}
 
-	public static function statusLabel($status) {
+	public static function statusLabel($status)
+	{
 		$map = array(
 			'ok' => 'Đã kết nối',
 			'idle' => 'Đã lưu',
@@ -622,7 +807,8 @@ class NkApiConnection {
 		return isset($map[$status]) ? $map[$status] : $status;
 	}
 
-	protected static function decodeJson($raw) {
+	protected static function decodeJson($raw)
+	{
 		if (is_array($raw)) {
 			return $raw;
 		}
@@ -639,10 +825,59 @@ class NkApiConnection {
 		return is_array($decoded) ? $decoded : array();
 	}
 
-	protected static function encodeJson($value) {
+	protected static function encodeJson($value)
+	{
 		if (!is_array($value)) {
 			$value = array();
 		}
 		return json_encode($value, JSON_UNESCAPED_UNICODE);
+	}
+
+	public static function pipelineData()
+	{
+		self::ensureInstalled();
+		$connections = self::catalogForHub();
+
+		// Phân loại theo hướng sync
+		$sources = array();   // nguồn vào CRM
+		$externals = array(); // đích ra từ CRM
+		foreach ($connections as $c) {
+			if (in_array($c['code'], array('ecommerce', 'google_sheet', 'zalo_oa'), true)) {
+				$sources[] = array(
+					'code' => $c['code'],
+					'label' => $c['label'],
+					'icon' => $c['icon'],
+					'status' => $c['hub_status'],
+				);
+			} else {
+				$externals[] = array(
+					'code' => $c['code'],
+					'label' => $c['label'],
+					'icon' => $c['icon'],
+					'status' => $c['hub_status'],
+				);
+			}
+		}
+
+		// Đếm log theo event_type trong 24h
+		$adb = PearDatabase::getInstance();
+		$res = $adb->pquery(
+			'SELECT event_type, status, COUNT(*) AS c
+         FROM ' . self::LOG_TABLE . '
+         WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+         GROUP BY event_type, status',
+			array()
+		);
+		$byEvent = array();
+		while ($res && ($row = $adb->fetchByAssoc($res))) {
+			$byEvent[$row['event_type']][$row['status']] = (int) $row['c'];
+		}
+
+		return array(
+			'sources' => $sources,
+			'externals' => $externals,
+			'events_24h' => $byEvent,
+			'generated_at' => date('Y-m-d H:i:s'),
+		);
 	}
 }

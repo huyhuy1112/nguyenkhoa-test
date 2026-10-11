@@ -10,7 +10,7 @@ class Warehouse_Registry {
 		array(
 			'id' => 'WH-001',
 			'code' => 'WH-001',
-			'name' => 'Kho Hồ Chí Minh',
+			'name' => 'Kho trung tâm',
 			'address' => 'Q.7, TP.HCM',
 		),
 		array(

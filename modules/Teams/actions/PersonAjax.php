@@ -177,24 +177,24 @@ class Teams_PersonAjax_Action extends Vtiger_Action_Controller {
 				
 					if ($lastSeenTimestamp !== false) {
 						$diff = $now - $lastSeenTimestamp;
-						// Online if last_seen is within 2 minutes (120 seconds) - more accurate for real-time status
+						// Online if last_seen is within 2 minutes (120 seconds)
 						if ($diff <= 120 && $diff >= 0) {
 							$isOnline = true;
 							$statusLabel = 'Online';
 						} else {
-						$mins = (int)floor($diff/60);
-						if ($mins < 60) {
-							$statusLabel = $mins . 'm ago';
-						} else {
-							$hrs = (int)floor($mins/60);
-							if ($hrs < 24) {
-								$statusLabel = $hrs . 'h ago';
+							$mins = (int) floor($diff / 60);
+							if ($mins < 60) {
+								$statusLabel = $mins . ' phút trước';
 							} else {
-								$statusLabel = (int)floor($hrs/24) . 'd ago';
+								$hrs = (int) floor($mins / 60);
+								if ($hrs < 24) {
+									$statusLabel = $hrs . ' giờ trước';
+								} else {
+									$statusLabel = (int) floor($hrs / 24) . ' ngày trước';
+								}
 							}
 						}
 					}
-				}
 			}
 			
 			$statusMap[$uid] = array(

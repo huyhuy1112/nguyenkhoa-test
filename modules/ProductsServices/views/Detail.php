@@ -7,6 +7,12 @@ class ProductsServices_Detail_View extends Vtiger_Detail_View {
 		$this->exposeMethod('showListInlineDetail');
 	}
 
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		require_once 'modules/ProductsServices/helpers/PriceSetup.php';
+		ProductsServices_PriceSetup_Helper::ensure();
+		parent::preProcess($request, $display);
+	}
+
 	/**
 	 * Expandable list-row detail panel (Leads / Accounts style) for Kho + Sales lists.
 	 */

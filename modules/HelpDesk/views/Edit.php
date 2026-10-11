@@ -116,6 +116,23 @@ class HelpDesk_Edit_View extends Vtiger_Index_View {
 		$viewer->assign('CONTACTS', $contacts);
 		$viewer->assign('USERS', $users);
 		$viewer->assign('ASSIGNED_USER_IDS', $assignedUserIds);
+		$viewer->assign('ISSUE_TYPES', HelpDesk_TicketService::issueTypes());
+		$viewer->assign('RESOLUTIONS', HelpDesk_TicketService::resolutions());
+		$orders = [];
+		$oRes = $db->pquery(
+			"SELECT so.salesorderid, so.salesorder_no, so.contactid
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 ORDER BY ce.modifiedtime DESC
+			 LIMIT 300",
+			[]
+		);
+		if ($oRes && $db->num_rows($oRes) > 0) {
+			while ($row = $db->fetchByAssoc($oRes)) {
+				$orders[] = $row;
+			}
+		}
+		$viewer->assign('ORDERS', $orders);
 
 		$viewer->view('EditView.tpl', $request->getModule());
 	}

@@ -28,9 +28,6 @@
 			</div>
 			<div class="mk-qt-sticky-head__actions">
 				<a class="mk-qt-btn mk-qt-btn--ghost" href="{$MK_LIST_URL}">{vtranslate('LBL_CANCEL', $MODULE)}</a>
-				<button type="button" class="mk-qt-btn mk-qt-btn--secondary mk-qt-preview-print-btn" id="mkQtPreviewPrintBtn" title="Xem bản in báo giá">
-					<i class="fa fa-print" aria-hidden="true"></i> In
-				</button>
 				<button type="button" class="mk-qt-btn mk-qt-btn--confirm-order" id="mkQtSaveSendTop" title="Xác nhận và lưu báo giá">
 					<i class="fa fa-shopping-cart" aria-hidden="true"></i>
 					<span>Xác nhận đơn hàng</span>
@@ -147,8 +144,13 @@
 		</div>
 
 		<aside class="mk-qt-rail" id="mkQtQuoteRail" aria-label="Quote summary">
-			{* Quote info (Khách hàng / Ghi chú) is moved here by QuoteMkEdit.js *}
-			{* Address card is injected by QuoteMkBa.js *}
+			<section id="mkQtSmartDiscount" class="mk-qt-smart" aria-label="Chiết khấu thông minh">
+				<h2 class="mk-qt-smart__title">Chiết khấu thông minh</h2>
+				<p class="mk-qt-smart__sub" id="mkQtSmartSub">Chọn khách KL để so sánh hai cách chiết khấu.</p>
+				<div class="mk-qt-smart__cards" id="mkQtSmartCards"></div>
+				<div class="mk-qt-smart__decision" id="mkQtSmartDecision"></div>
+				<dl class="mk-qt-smart__sum" id="mkQtSmartSum"></dl>
+			</section>
 		</aside>
 	</div>
 </div>

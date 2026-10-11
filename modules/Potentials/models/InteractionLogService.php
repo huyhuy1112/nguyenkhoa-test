@@ -47,9 +47,13 @@ class Potentials_InteractionLogService {
 			}
 			$contactId = (int) $adb->query_result($res, 0, 'contact_id');
 			$contactName = trim(
-				self::decode($adb->query_result($res, 0, 'firstname')) . ' ' .
-				self::decode($adb->query_result($res, 0, 'lastname'))
+				self::decode($adb->query_result($res, 0, 'lastname')) . ' ' .
+				self::decode($adb->query_result($res, 0, 'firstname'))
 			);
+			$contactName = trim(preg_replace('/\s+/', ' ', str_replace(' .', '', ' ' . $contactName)));
+			if ($contactName === '.' || $contactName === '') {
+				$contactName = '';
+			}
 			$phone = self::pickPhone(
 				$adb->query_result($res, 0, 'c_phone'),
 				$adb->query_result($res, 0, 'c_mobile')

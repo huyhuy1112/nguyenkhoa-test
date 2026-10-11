@@ -30,6 +30,8 @@ class ProductsServices_Edit_View extends Vtiger_Edit_View {
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
+		require_once 'modules/ProductsServices/helpers/PriceSetup.php';
+		ProductsServices_PriceSetup_Helper::ensure();
 		if ($this->isMkModernProductsServicesCreate($request)) {
 			parent::preProcess($request, false);
 			$this->assignModernContext($request);

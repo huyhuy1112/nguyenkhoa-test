@@ -90,14 +90,14 @@
     </script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Calendar/resources/TaskManagement.js')}"></script>
     <link rel="stylesheet" type="text/css" href="{vresource_url('layouts/v7/modules/Import/resources/ImportMkModern.css')}?mk_v=20260620_import_lux7" />
-    <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Import/resources/Import.js')}?v=20260620_import_lux19"></script>
+    <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Import/resources/Import.js')}?v=20261003_import_popup1"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Emails/resources/EmailPreview.js')}"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/Base.js')}"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Google/resources/Settings.js')}"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/CkEditor.js')}"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Documents/resources/Documents.js')}"></script>
     <script type="text/javascript" src="{vresource_url('libraries/DOMPurify/dist/purify.min.js')}"></script>
-    <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernNotifications.js')}?mk_v=20260827_notif_mix1"></script>
+    <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernNotifications.js')}?mk_v=20260923_r1_global1"></script>
     <script type="text/javascript" src="{vresource_url('layouts/v7/modules/Vtiger/resources/ModernProfileDropdown.js')}"></script>
 
     {foreach key=index item=jsModel from=$SCRIPTS}

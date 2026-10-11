@@ -46,20 +46,25 @@
     if (window.MK_SC_PREFILL && (window.MK_SC_PREFILL.id || window.MK_SC_PREFILL.account_id)) {
       return "tuibao";
     }
+    if (ch === "miutea") {
+      return "miutea";
+    }
     return "retail";
   }
 
   function setPriceChannel(channel, opts) {
     opts = opts || {};
-    var next = channel === "tuibao" || channel === "franchise" || channel === "chain"
-      ? "tuibao"
-      : "retail";
+    var next = "retail";
+    if (channel === "tuibao" || channel === "franchise" || channel === "chain") {
+      next = "tuibao";
+    } else if (channel === "miutea") {
+      next = "miutea";
+    }
     window.MK_PRICE_CHANNEL = next;
     if (next === "tuibao" && opts.scPrefill) {
       window.MK_SC_PREFILL = opts.scPrefill;
     }
-    if (next === "retail" && opts.clearScPrefill !== false) {
-      // Leaving franchise source → retail prices (Opp / Leads / Contacts).
+    if (next !== "tuibao" && opts.clearScPrefill !== false) {
       try {
         window.MK_SC_PREFILL = null;
       } catch (e) {}
@@ -370,7 +375,9 @@
     shipText = shipText || "";
 
     if ($bill.length) {
-      if (billText || force) {
+      var currentBill = $.trim($bill.val() || "");
+      // Không ghi đè địa chỉ khách vừa chọn bằng chuỗi rỗng.
+      if (billText || (force && !currentBill)) {
         $bill.val(billText).trigger("change");
       }
     }
@@ -568,7 +575,12 @@
 
     var onOpp = function () {
       setTimeout(function () {
-        fillAddressFromPotential($form, { force: true });
+        var bill = $.trim($form.find('[name="bill_street"]').val() || "");
+        var rail = $.trim($("#mkQtBillStreetRail, #mkSoBillStreetRail").val() || "");
+        if (bill || rail) {
+          return;
+        }
+        fillAddressFromPotential($form, { force: false });
       }, 120);
     };
     var onAccount = function () {
@@ -969,6 +981,9 @@
       }
       return parseMoney(meta.price || 0);
     }
+    if (getPriceChannel() === "miutea" && parseMoney(meta.price_miutea) > 0) {
+      return parseMoney(meta.price_miutea);
+    }
     var field = INVOICE_TIER_FIELDS[tierKey];
     if (field && meta[field] !== undefined && meta[field] !== null && meta[field] !== "") {
       return parseMoney(meta[field]);
@@ -1025,7 +1040,26 @@
     var $select = $form
       .find("#mkInvInvoicePriceTierSelect, [name='mk_invoice_price_tier']")
       .first();
-    var isTuibao = getPriceChannel() === "tuibao";
+    var channel = getPriceChannel();
+    var isTuibao = channel === "tuibao";
+    var isMiutea = channel === "miutea";
+    if (isMiutea) {
+      if ($select.length) {
+        $select.prop("disabled", true);
+      }
+      if ($wrap.length) {
+        $wrap
+          .addClass("is-miutea")
+          .removeClass("is-tuibao")
+          .find(".mk-inv-price-tier__label")
+          .text("Bảng giá: Miutea");
+        $wrap
+          .find(".mk-inv-price-tier__hint")
+          .text("Đơn giá lấy Giá Miutea trên hàng hoá. Chưa nhập thì tạm dùng giá bán lẻ theo tổng đơn.");
+        $wrap.find(".mk-inv-price-tier__status").text("Đang áp dụng: Giá Miutea");
+      }
+      return;
+    }
     if (isTuibao) {
       if ($select.length) {
         $select.prop("disabled", true);
@@ -1033,6 +1067,7 @@
       if ($wrap.length) {
         $wrap
           .addClass("is-tuibao")
+          .removeClass("is-miutea")
           .find(".mk-inv-price-tier__label")
           .text("Bảng giá: Tuibao");
         $wrap
@@ -1048,7 +1083,7 @@
       $select.prop("disabled", false);
     }
     if ($wrap.length) {
-      $wrap.removeClass("is-tuibao");
+      $wrap.removeClass("is-tuibao is-miutea");
       $wrap.find(".mk-inv-price-tier__label").text("Bảng giá");
       $wrap
         .find(".mk-inv-price-tier__hint")
@@ -2092,6 +2127,7 @@
           .attr("data-price-gte-5m", p.price_gte_5m)
           .attr("data-price-gte-7m", p.price_gte_7m)
           .attr("data-price-tuibao", p.price_tuibao)
+          .attr("data-price-miutea", p.price_miutea)
           .attr("data-product-group", p.product_group || "")
           .attr("data-sku", p.sku || "")
           .attr("data-unit", p.unit || "")
@@ -3004,10 +3040,12 @@
       .css({ display: "", visibility: "" })
       .prop("disabled", false)
       .prop("readonly", false);
+    var $modeBtns = $row.find(".mk-inv-discount-mode");
+    $modeBtns.removeClass("is-on");
+    $modeBtns.filter('[data-mode="' + mode + '"]').addClass("is-on");
     $suffix
-      .css({ display: "", visibility: "", cursor: "pointer" })
-      .attr("title", "Bấm để đổi % / đ")
-      .text(mode === "amount" ? "đ" : "%");
+      .css({ display: "none", visibility: "hidden" })
+      .attr("title", "");
     $row.toggleClass("mk-inv-discount--amount", mode === "amount");
     if (mode === "amount") {
       var amount = value != null ? parseMoney(value) : getRowDiscountAmount($row);
@@ -3188,7 +3226,11 @@
         '<button type="button" class="mk-inv-discount-caret" tabindex="-1" title="Chọn % nhanh" aria-label="Chọn % nhanh">' +
         '<i class="fa fa-caret-down" aria-hidden="true"></i></button>' +
         '<select class="mk-inv-discount-select inputElement mk-inv-hide-legacy" title="Chọn % chiết khấu" tabindex="-1" aria-hidden="true"></select>' +
-        '<span class="mk-inv-discount-suffix" title="Bấm để đổi % / đ">%</span>' +
+        '<span class="mk-inv-discount-modes">' +
+        '<button type="button" class="mk-inv-discount-mode" data-mode="percentage" title="Chiết khấu theo phần trăm">%</button>' +
+        '<button type="button" class="mk-inv-discount-mode" data-mode="amount" title="Chiết khấu theo số tiền">đ</button>' +
+        '</span>' +
+        '<span class="mk-inv-discount-suffix" hidden>%</span>' +
         "</div>",
     );
     var $sel = $wrap.find(".mk-inv-discount-select");
@@ -3300,19 +3342,15 @@
         commitRowDiscount($row, $form, value, mode);
       },
     );
-    $suffix.on("mousedown.mkInvDisc click.mkInvDisc", function (e) {
+    $wrap.on("click.mkInvDisc", ".mk-inv-discount-mode", function (e) {
       e.preventDefault();
       e.stopPropagation();
-      var base = calcLineRowTotal($row, $form);
-      var mode = getDiscountMode($row);
-      if (mode === "percentage") {
-        var pct = getRowDiscountPercent($row);
-        commitRowDiscount($row, $form, Math.round((base * pct) / 100), "amount");
-      } else {
-        var amt = getRowDiscountAmount($row);
-        var nextPct = base > 0 ? (amt / base) * 100 : 0;
-        commitRowDiscount($row, $form, clampDiscountPercent(nextPct), "percentage");
+      var nextMode = String($(this).attr("data-mode") || "percentage");
+      if (nextMode !== "amount" && nextMode !== "percentage") {
+        nextMode = "percentage";
       }
+      var raw = $.trim(String($custom.val() || "0"));
+      commitRowDiscount($row, $form, raw, nextMode);
     });
 
     $taxTd
@@ -3934,14 +3972,28 @@
       if (this.value !== "__search__") {
         return;
       }
-      var custom = window.prompt("Nhập đơn vị:", "Đơn vị");
-      if (custom && String(custom).trim()) {
-        custom = String(custom).trim();
-        ensureUnitOptionOnSelect($sel, custom);
-        $sel.val(custom);
-      } else {
-        $sel.val("");
+      var $unitSelect = $sel;
+      var helper = window.app && app.helper ? app.helper : null;
+      if (!helper || !helper.showPromptBox) {
+        $unitSelect.val("");
+        return;
       }
+      helper.showPromptBox({
+        title: "Đơn vị",
+        message: "Nhập đơn vị",
+        placeholder: "Đơn vị",
+        confirmLabel: "Dùng",
+      }).then(function (custom) {
+        custom = String(custom || "").trim();
+        if (custom) {
+          ensureUnitOptionOnSelect($unitSelect, custom);
+          $unitSelect.val(custom);
+        } else {
+          $unitSelect.val("");
+        }
+      }, function () {
+        $unitSelect.val("");
+      });
     });
   }
 
@@ -5539,6 +5591,7 @@
         .attr("data-price-gte-5m", meta.price_gte_5m)
         .attr("data-price-gte-7m", meta.price_gte_7m)
         .attr("data-price-tuibao", meta.price_tuibao)
+        .attr("data-price-miutea", meta.price_miutea)
         .attr("data-product-group", meta.product_group || "")
         .attr("data-sku", meta.sku || "")
         .attr("data-unit", meta.unit || "")
@@ -5587,6 +5640,12 @@
           meta.price_tuibao != null
             ? meta.price_tuibao
             : $opt.attr("data-price-tuibao"),
+        )
+        .attr(
+          "data-price-miutea",
+          meta.price_miutea != null
+            ? meta.price_miutea
+            : $opt.attr("data-price-miutea"),
         )
         .attr(
           "data-product-group",
@@ -5721,6 +5780,7 @@
       price_gte_5m: $opt.attr("data-price-gte-5m"),
       price_gte_7m: $opt.attr("data-price-gte-7m"),
       price_tuibao: $opt.attr("data-price-tuibao"),
+      price_miutea: $opt.attr("data-price-miutea"),
       product_group: $opt.attr("data-product-group") || "",
       sku: $opt.attr("data-sku") || "",
       unit: $opt.attr("data-unit") || "",

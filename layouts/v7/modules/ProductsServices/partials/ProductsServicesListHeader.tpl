@@ -7,6 +7,9 @@
 			<p class="mk-ps-action-header__subtitle">Quản lý sản phẩm và dịch vụ trong kho</p>
 		</div>
 		<div class="mk-ps-action-header__actions">
+			<button type="button" id="mkPsPriceSetupBtn" class="mk-ps-btn mk-ps-btn--outline">
+				<span class="mk-ps-btn__txt">Bảng giá &amp; chiết khấu</span>
+			</button>
 			{assign var=IMPORT_ACTION value=false}
 			{assign var=ADD_ACTION value=false}
 			{if $MODULE_BASIC_ACTIONS|@count gt 0}
@@ -19,15 +22,11 @@
 				{/foreach}
 			{/if}
 			{if $IMPORT_ACTION}
-				<button type="button" id="{$MODULE}_basicAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($IMPORT_ACTION->getLabel())}" class="mk-ps-btn mk-ps-btn--outline"
-						{if stripos($IMPORT_ACTION->getUrl(), 'javascript:')===0}
-					onclick='{$IMPORT_ACTION->getUrl()|substr:strlen("javascript:")};'
-						{else}
-					onclick="Vtiger_Import_Js.triggerImportAction('{$IMPORT_ACTION->getUrl()}')"
-						{/if}>
+				<button type="button" id="mk-ps-import-btn" class="mk-ps-btn mk-ps-btn--outline" title="Import Excel vào bảng hàng hoá hiện tại">
 					<span class="mk-ps-btn__ic" aria-hidden="true">{include file="partials/DashboardTopbarSvgIcon.tpl"|@vtemplate_path:'Vtiger' ICON='IMPORT'}</span>
 					<span class="mk-ps-btn__txt">{vtranslate($IMPORT_ACTION->getLabel(), $MODULE)}</span>
 				</button>
+				<input type="file" id="mk-ps-import-file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hide" tabindex="-1" aria-hidden="true" />
 			{/if}
 			{if $MODULE_SETTING_ACTIONS|@count gt 0}
 				<div class="mk-ps-settings-wrap">

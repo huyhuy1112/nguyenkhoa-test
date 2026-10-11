@@ -739,7 +739,7 @@
     html += '<div class="mk-so-excel-sheet__header">';
     html +=
       '<div class="mk-so-excel-sheet__logo"><img src="layouts/v7/modules/Quotes/resources/images/nguyenkhoa-excel-logo.png" alt="Nguyên Khoa" /></div>';
-    html += '<div class="mk-so-excel-sheet__company">nguyenlieuphachemt</div>';
+    html += '<div class="mk-so-excel-sheet__company">nguyenlieugiasi.vn</div>';
     html +=
       '<div class="mk-so-excel-sheet__company-meta">Địa chỉ: 6/24 Đường số 3, Cư Xá Lữ Gia, Phú Thọ, Hồ Chí Minh<br>Điện thoại: 0973969498</div>';
     html += '<div class="mk-so-excel-sheet__doc-title">HÓA ĐƠN ĐẶT HÀNG</div>';
@@ -963,23 +963,29 @@
       .done(function (html) {
         try {
           var frame = $frame.get(0);
-          var frameWindow = frame && frame.contentWindow;
-          if (!frameWindow || !frameWindow.document) {
+          if (!frame) {
             window.open(printUrl, "_blank");
             return;
           }
-          frameWindow.document.open();
-          frameWindow.document.write(html);
-          frameWindow.document.close();
-          setTimeout(function () {
-            try {
-              frameWindow.document.title = "";
-              frameWindow.focus();
-              frameWindow.print();
-            } catch (err) {
-              window.open(printUrl, "_blank");
-            }
-          }, 220);
+          var blob = new Blob([html], { type: "text/html;charset=utf-8" });
+          var blobUrl = URL.createObjectURL(blob);
+          frame.onload = function () {
+            setTimeout(function () {
+              try {
+                var win = frame.contentWindow;
+                if (win && win.document) {
+                  win.document.title = " ";
+                  win.focus();
+                  win.print();
+                } else {
+                  window.open(printUrl, "_blank");
+                }
+              } catch (errPrint) {
+                window.open(printUrl, "_blank");
+              }
+            }, 80);
+          };
+          frame.src = blobUrl;
         } catch (err) {
           window.open(printUrl, "_blank");
         }
@@ -1762,7 +1768,79 @@
         "&app=SALES";
     });
 
-    /* Confirm order: handled by document delegation in bindPosInlineDetailCapture */
+    $panel[0].addEventListener(
+      "click",
+      function (ev) {
+        var btn =
+          ev.target && ev.target.closest
+            ? ev.target.closest(
+                ".mk-so-inline-detail__confirm-order-btn, .mk-so-inline-detail__cancel-order-btn, .mk-so-inline-detail__misa-btn",
+              )
+            : null;
+        if (!btn || !$panel[0].contains(btn)) {
+          return;
+        }
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (ev.stopImmediatePropagation) {
+          ev.stopImmediatePropagation();
+        }
+        var $btn = $(btn);
+        if ($btn.data("mkBusy")) {
+          return;
+        }
+        var id = String(
+          recordId ||
+            $panel.attr("data-record-id") ||
+            $btn.attr("data-record-id") ||
+            "",
+        );
+        if (!id) {
+          showOrderActionConfirm({
+            title: "Không mở được",
+            question: "Không tìm thấy mã đơn hàng.",
+            hint: "Đóng panel rồi mở lại đơn.",
+            icon: "fa-exclamation-circle",
+          });
+          return;
+        }
+        if ($btn.hasClass("mk-so-inline-detail__confirm-order-btn")) {
+          showOrderActionConfirm({
+            title: "Xác nhận đơn hàng",
+            question: "Xác nhận đơn hàng này?",
+            hint: "Sau khi xác nhận, chọn kho để tạo phiếu xuất kho.",
+            icon: "fa-check",
+          }).then(
+            function () {
+              confirmSalesOrderWithWarehouse($panel, id, $btn);
+            },
+            function () {},
+          );
+          return;
+        }
+        if ($btn.hasClass("mk-so-inline-detail__cancel-order-btn")) {
+          cancelSalesOrder($panel, id, $btn);
+          return;
+        }
+        var misaStatus = String($panel.attr("data-misa-status") || "");
+        if (misaStatus === "Đã phát hành") {
+          var misaRef = String(
+            $panel.find(".mk-so-misa-chip").attr("data-misa-refno") ||
+              $panel.find(".mk-so-misa-chip__ref").text() ||
+              "",
+          ).trim();
+          showOrderActionConfirm({
+            title: "Đã phát hành",
+            question: "Đơn hàng này đã phát hành trên MISA.",
+            hint: misaRef || "Mở lại đơn để xem số chứng từ và số hóa đơn.",
+            icon: "fa-check-circle",
+          });
+          return;
+        }
+        transferSalesOrderToMisa(id, $btn);
+      },
+      true,
+    );
 
     $panel.on("click", ".mk-so-inline-detail__cancel-edit", function (e) {
       e.preventDefault();
@@ -1883,6 +1961,9 @@
           vtUtils.applyFieldElementsView($host);
         }
         initPosInlineDetailPanel($host);
+        if (drawer && MkSalesPosInline.layoutDrawerPanel) {
+          MkSalesPosInline.layoutDrawerPanel($host);
+        }
         if (drawer && MkSalesPosInline.updateDrawerNav) {
           MkSalesPosInline.updateDrawerNav(recordId);
         }
@@ -2091,17 +2172,36 @@
   }
 
   function unwrapMassDupResult(res) {
+    if (typeof res === "string") {
+      var text = res.trim();
+      if (!text) {
+        return {};
+      }
+      try {
+        res = JSON.parse(text);
+      } catch (eParse) {
+        return {};
+      }
+    }
     if (!res || typeof res !== "object") {
       return {};
     }
-    if (res.result && typeof res.result === "object" && (res.result.created || res.result.created_count != null || res.result.message)) {
+    if (
+      res.result &&
+      typeof res.result === "object" &&
+      (res.result.created ||
+        res.result.created_count != null ||
+        res.result.message ||
+        res.result.target_module)
+    ) {
       return res.result;
     }
     return res;
   }
 
   function collectCreatedIds(result) {
-    var raw = result.created || result.createdIds || result.record || [];
+    var raw =
+      (result && (result.created || result.createdIds || result.record)) || [];
     if (!Array.isArray(raw)) {
       raw = raw ? [raw] : [];
     }
@@ -2112,6 +2212,101 @@
       .filter(function (id) {
         return id > 0;
       });
+  }
+
+  function looksLikeDupResult(obj) {
+    if (!obj || typeof obj !== "object") {
+      return false;
+    }
+    if (obj instanceof Error) {
+      return false;
+    }
+    return !!(
+      obj.created ||
+      obj.createdIds ||
+      obj.created_count != null ||
+      obj.target_module === "Quotes"
+    );
+  }
+
+  function raiseDialogsAboveDrawer() {
+    window.setTimeout(function () {
+      var $box = $(".bootbox.modal, .bootbox").filter(":visible").last();
+      if (!$box.length) {
+        return;
+      }
+      $box.css("z-index", "110080");
+      $(".modal-backdrop").last().css("z-index", "110070");
+    }, 30);
+  }
+
+  function quotesListUrlAfterDuplicate(createdIds) {
+    var listUrl =
+      "index.php?module=Quotes&view=List&app=SALES&mk_quote_scope=all&orderby=quote_no&sortorder=DESC&page=1&nolistcache=1&search_params=%5B%5D";
+    if (createdIds && createdIds.length === 1) {
+      listUrl += "&mk_highlight=" + encodeURIComponent(createdIds[0]);
+    }
+    return listUrl;
+  }
+
+  function showSoToQuoteConfirm(ids) {
+    var deferred = $.Deferred();
+    var count = (ids && ids.length) || 1;
+    var title = "Tạo Báo giá";
+    var headline =
+      count === 1
+        ? "Tạo Báo giá từ đơn hàng đã chọn?"
+        : "Tạo Báo giá từ " + count + " đơn hàng đã chọn?";
+    var message =
+      '<div class="mk-quote-convert-modal__body">' +
+      '<div class="mk-quote-convert-modal__icon" aria-hidden="true"><i class="fa fa-file-text-o"></i></div>' +
+      '<p class="mk-quote-convert-modal__title">' +
+      headline +
+      "</p>" +
+      '<p class="mk-quote-convert-modal__hint">Hệ thống sẽ tạo Báo giá bán lẻ mới (copy khách hàng + dòng hàng) và mở danh sách Báo giá.</p>' +
+      "</div>";
+
+    if (typeof bootbox !== "undefined" && bootbox.dialog) {
+      raiseDialogsAboveDrawer();
+      var dlg = bootbox.dialog({
+        title: title,
+        message: message,
+        className: "mk-quote-convert-modal",
+        closeButton: true,
+        buttons: {
+          cancel: {
+            label: "Hủy",
+            className:
+              "btn mk-quote-convert-modal__btn mk-quote-convert-modal__btn--ghost",
+            callback: function () {
+              deferred.reject();
+            },
+          },
+          confirm: {
+            label: "Tạo Báo giá",
+            className:
+              "btn mk-quote-convert-modal__btn mk-quote-convert-modal__btn--primary",
+            callback: function () {
+              deferred.resolve();
+            },
+          },
+        },
+        onEscape: function () {
+          deferred.reject();
+        },
+      });
+      if (dlg) {
+        $(dlg).addClass("mk-quote-convert-modal");
+      }
+      raiseDialogsAboveDrawer();
+      return deferred.promise();
+    }
+    if (window.confirm(headline)) {
+      deferred.resolve();
+    } else {
+      deferred.reject();
+    }
+    return deferred.promise();
   }
 
   function runSalesOrdersMassDuplicate(ids, options) {
@@ -2128,10 +2323,6 @@
       return;
     }
     var skipConfirm = !!options.skipConfirm;
-    var message =
-      ids.length === 1
-        ? "Tạo Báo giá từ đơn hàng đã chọn?"
-        : "Tạo Báo giá từ " + ids.length + " đơn hàng đã chọn?";
     var run = function () {
       var postData = {
         module: "SalesOrder",
@@ -2151,13 +2342,17 @@
         if (app.helper && app.helper.hideProgress) {
           app.helper.hideProgress();
         }
+        if (err && looksLikeDupResult(err) && (res == null || res === "")) {
+          res = err;
+          err = null;
+        }
         if (err) {
           var ajaxErr =
             (err && (err.message || err.error)) || "Không nhân bản được.";
           if (typeof ajaxErr === "object" && ajaxErr.message) {
             ajaxErr = ajaxErr.message;
           }
-          notifyUser("error", ajaxErr);
+          notifyUser("error", String(ajaxErr));
           return;
         }
         var result = unwrapMassDupResult(res);
@@ -2190,14 +2385,9 @@
         });
         notifyUser("ok", okMsg);
         if (createdIds.length > 0) {
-          var listUrl =
-            "index.php?module=Quotes&view=List&app=SALES&mk_quote_scope=all&orderby=quote_no&sortorder=DESC&page=1&nolistcache=1";
-          if (createdIds.length === 1) {
-            listUrl += "&mk_highlight=" + encodeURIComponent(createdIds[0]);
-          }
           window.setTimeout(function () {
-            window.location.href = listUrl;
-          }, 120);
+            window.location.href = quotesListUrlAfterDuplicate(createdIds);
+          }, 80);
         } else {
           notifyUser("error", "Không tạo được Báo giá.");
           collapsePosInlineDetail(getPrimaryTable());
@@ -2209,11 +2399,7 @@
       run();
       return;
     }
-    if (app.helper && app.helper.showConfirmationBox) {
-      app.helper.showConfirmationBox({ message: message }).then(run, function () {});
-    } else if (window.confirm(message)) {
-      run();
-    }
+    showSoToQuoteConfirm(ids).then(run, function () {});
   }
 
   function massDuplicateSalesOrders() {
@@ -2301,7 +2487,33 @@
           }
         }
         if (id > 0) {
-          runSalesOrdersMassDuplicate([id]);
+          runSalesOrdersMassDuplicate([id], { skipConfirm: true });
+        }
+      });
+  }
+
+  function bindInlineToQuoteButton() {
+    $(document)
+      .off("click.mkSoInlineToQuote", ".mk-so-inline-detail__to-quote-btn")
+      .on("click.mkSoInlineToQuote", ".mk-so-inline-detail__to-quote-btn", function (e) {
+        if (!isSalesOrderSalesList()) {
+          return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        var id =
+          parseInt($(this).attr("data-record-id"), 10) ||
+          parseInt($(this).data("recordId"), 10) ||
+          0;
+        if (id <= 0) {
+          var href = $(this).attr("href") || "";
+          var m = href.match(/[?&](?:record|salesorder_id)=(\d+)/);
+          if (m) {
+            id = parseInt(m[1], 10) || 0;
+          }
+        }
+        if (id > 0) {
+          runSalesOrdersMassDuplicate([id], { skipConfirm: true });
         }
       });
   }
@@ -2526,6 +2738,64 @@
     }
   }
 
+  function closeMisaFloatMenu() {
+    $(".mk-so-inline-detail__confirm-menu.is-floating").each(function () {
+      var $menu = $(this);
+      var $home = $menu.data("mkHome");
+      $menu.removeClass("is-floating").removeAttr("style");
+      if (
+        $home &&
+        $home.length &&
+        !$home.children(".mk-so-inline-detail__confirm-menu").length
+      ) {
+        $home.append($menu);
+      }
+      if ($home && $home.length) {
+        $home.removeClass("open");
+      }
+    });
+  }
+
+  function openMisaFloatMenu($btn) {
+    var $split = $btn.closest(".mk-so-inline-detail__confirm-split");
+    var $menu = $split.children(".mk-so-inline-detail__confirm-menu");
+    if (!$menu.length || !$btn.length || !$btn[0].getBoundingClientRect) {
+      return;
+    }
+    if ($menu.hasClass("is-floating")) {
+      closeMisaFloatMenu();
+      return;
+    }
+    closeMisaFloatMenu();
+    var rect = $btn[0].getBoundingClientRect();
+    $menu.data("mkHome", $split);
+    $(document.body).append($menu);
+    $menu.addClass("is-floating").css({
+      display: "block",
+      position: "fixed",
+      visibility: "hidden",
+      top: 0,
+      left: 0,
+      margin: 0,
+      zIndex: 20000,
+    });
+    var width = $menu.outerWidth() || 240;
+    var height = $menu.outerHeight() || 44;
+    var left = rect.left;
+    if (left + width > window.innerWidth - 8) {
+      left = Math.max(8, rect.right - width);
+    }
+    var top = rect.top - height - 8;
+    if (top < 8) {
+      top = rect.bottom + 8;
+    }
+    $menu.css({
+      visibility: "visible",
+      top: top,
+      left: left,
+    });
+  }
+
   function bindPosInlineDetailCapture() {
     if (
       document.documentElement.getAttribute("data-mk-so-inline-detail-bound")
@@ -2563,7 +2833,17 @@
           if (!recordId) {
             return;
           }
-          confirmSalesOrderWithWarehouse($panel, recordId, $btn);
+          showOrderActionConfirm({
+            title: "Xác nhận đơn hàng",
+            question: "Xác nhận đơn hàng này?",
+            hint: "Sau khi xác nhận, chọn kho để tạo phiếu xuất kho.",
+            icon: "fa-check",
+          }).then(
+            function () {
+              confirmSalesOrderWithWarehouse($panel, recordId, $btn);
+            },
+            function () {},
+          );
         },
       );
 
@@ -2589,10 +2869,39 @@
       );
 
     $(document)
+      .off(
+        "click.mkSoMisaMenu",
+        ".mk-so-inline-detail__confirm-caret, .mk-so-inline-detail__misa-standalone-btn",
+      )
+      .on(
+        "click.mkSoMisaMenu",
+        ".mk-so-inline-detail__confirm-caret, .mk-so-inline-detail__misa-standalone-btn",
+        function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          openMisaFloatMenu($(this));
+        },
+      );
+
+    $(document)
+      .off("click.mkSoMisaMenuClose")
+      .on("click.mkSoMisaMenuClose", function (e) {
+        if (
+          $(e.target).closest(
+            ".mk-so-inline-detail__confirm-menu, .mk-so-inline-detail__confirm-caret, .mk-so-inline-detail__misa-standalone-btn",
+          ).length
+        ) {
+          return;
+        }
+        closeMisaFloatMenu();
+      });
+
+    $(document)
       .off("click.mkSoMisa", ".mk-so-inline-detail__misa-btn")
       .on("click.mkSoMisa", ".mk-so-inline-detail__misa-btn", function (e) {
         e.preventDefault();
         e.stopPropagation();
+        closeMisaFloatMenu();
         var $link = $(this);
         var $panel = $link.closest(".mk-so-inline-detail");
         var recordId =
@@ -2603,6 +2912,68 @@
         }
         transferSalesOrderToMisa(recordId, $link);
       });
+  }
+
+  function showOrderActionConfirm(opts) {
+    opts = opts || {};
+    var deferred = $.Deferred();
+    var icon = String(opts.icon || "fa-check").replace(/[^a-z0-9\-]/gi, "");
+    var $pop = $(
+      '<div class="mk-so-action-pop" role="dialog" aria-modal="true">' +
+        '<div class="mk-so-action-pop__backdrop" data-mk-pop-close="1"></div>' +
+        '<div class="mk-so-action-pop__card">' +
+          '<div class="mk-so-action-pop__head">' +
+            '<span class="mk-so-action-pop__title"></span>' +
+            '<button type="button" class="mk-so-action-pop__x" data-mk-pop-close="1" aria-label="Đóng">&times;</button>' +
+          "</div>" +
+          '<div class="mk-so-action-pop__body">' +
+            '<div class="mk-so-action-pop__icon" aria-hidden="true"><i class="fa ' +
+            icon +
+            '"></i></div>' +
+            '<p class="mk-so-action-pop__question"></p>' +
+            '<p class="mk-so-action-pop__hint"></p>' +
+          "</div>" +
+          '<div class="mk-so-action-pop__foot">' +
+            '<button type="button" class="mk-so-action-pop__btn mk-so-action-pop__btn--ghost" data-mk-pop-close="1">Hủy</button>' +
+            '<button type="button" class="mk-so-action-pop__btn mk-so-action-pop__btn--ok">Xác nhận</button>' +
+          "</div>" +
+        "</div>" +
+      "</div>",
+    );
+    $pop.find(".mk-so-action-pop__title").text(opts.title || "Xác nhận");
+    $pop.find(".mk-so-action-pop__question").text(opts.question || "");
+    if (opts.hint) {
+      $pop.find(".mk-so-action-pop__hint").text(opts.hint);
+    } else {
+      $pop.find(".mk-so-action-pop__hint").remove();
+    }
+    function close(ok) {
+      $pop.remove();
+      $(document).off("keydown.mkSoActionPop");
+      if (ok) {
+        deferred.resolve();
+      } else {
+        deferred.reject();
+      }
+    }
+    $pop.on("click", ".mk-so-action-pop__btn--ok", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      close(true);
+    });
+    $pop.on("click", "[data-mk-pop-close]", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      close(false);
+    });
+    $(document).on("keydown.mkSoActionPop", function (e) {
+      if (e.key === "Escape" || e.keyCode === 27) {
+        close(false);
+      }
+    });
+    $(".mk-so-action-pop").remove();
+    $(document.body).append($pop);
+    return deferred.promise();
   }
 
   function cancelSalesOrder($panel, recordId, $btn) {
@@ -2725,15 +3096,37 @@
           });
       }
     };
-    if (app.helper && app.helper.showConfirmationBox) {
-      app.helper
-        .showConfirmationBox({ message: message })
-        .then(function () {
-          run();
-        });
-    } else if (window.confirm(message)) {
-      run();
+    showOrderActionConfirm({
+      title: "Huỷ đơn hàng",
+      question: "Huỷ đơn hàng này?",
+      hint: "Hệ thống sẽ hoàn kho nếu đơn đã trừ tồn.",
+      icon: "fa-ban",
+    }).then(run, function () {});
+  }
+
+  function paintMisaChip($panel, label, refno, state, note) {
+    if (!$panel || !$panel.length) {
+      return;
     }
+    label = String(label || "").trim();
+    refno = String(refno || "").trim();
+    state = String(state || "pending").trim();
+    note = String(note || "").trim();
+    $panel.attr("data-misa-status", label);
+    var $chip = $panel.find(".mk-so-misa-chip");
+    if (!$chip.length || !label) {
+      return;
+    }
+    $chip
+      .removeClass("is-pending is-active is-published is-rejected")
+      .addClass(state ? "is-" + state : "")
+      .attr("data-misa-refno", refno)
+      .prop("hidden", false);
+    $chip.find(".mk-so-misa-chip__status").text(label);
+    var $ref = $chip.find(".mk-so-misa-chip__ref");
+    $ref.text(refno).prop("hidden", !refno);
+    var $note = $chip.find(".mk-so-misa-chip__note");
+    $note.text(note).prop("hidden", !note);
   }
 
   function transferSalesOrderToMisa(recordId, $trigger) {
@@ -2744,8 +3137,6 @@
     if ($trigger && $trigger.data("mkBusy")) {
       return;
     }
-    var message =
-      "Chuyển đơn hàng #" + recordId + " đến kế toán MISA?";
     var run = function () {
       if ($trigger && $trigger.length) {
         $trigger.data("mkBusy", 1);
@@ -2801,7 +3192,14 @@
         }
         var okMsg =
           (res && (res.message || res.msg)) ||
-          "Đã gửi đơn hàng sang kế toán MISA.";
+          "Đã gửi Đơn đặt hàng sang MISA.";
+        paintMisaChip(
+          $trigger ? $trigger.closest(".mk-so-inline-detail") : null,
+          (res && res.misa_status) || "Chờ kế toán",
+          (res && res.misa_refno) || "",
+          (res && res.misa_state) || "pending",
+          "",
+        );
         if (app.helper && app.helper.showSuccessNotification) {
           app.helper.showSuccessNotification({ message: okMsg });
         } else {
@@ -2809,11 +3207,12 @@
         }
       });
     };
-    if (app.helper && app.helper.showConfirmationBox) {
-      app.helper.showConfirmationBox({ message: message }).then(run);
-    } else if (window.confirm(message)) {
-      run();
-    }
+    showOrderActionConfirm({
+      title: "Chuyển qua MISA",
+      question: "Gửi đơn này sang MISA thành Đơn đặt hàng?",
+      hint: "Đơn sẽ vào AMIS → Bán hàng → Đơn đặt hàng. Kế toán lập chứng từ bán hàng trên MISA khi cần.",
+      icon: "fa-share-square-o",
+    }).then(run, function () {});
   }
 
   function paidFieldName() {
@@ -4163,6 +4562,12 @@
     ) {
       window.MkSalesListShared.relocatePaginationFooter();
     }
+    if (
+      window.MkSalesListShared &&
+      typeof window.MkSalesListShared.ensureTotalPageCount === "function"
+    ) {
+      window.MkSalesListShared.ensureTotalPageCount();
+    }
     if (typeof window.mkSalesListAfterAjax === "function") {
       window.mkSalesListAfterAjax();
     }
@@ -4217,6 +4622,7 @@
     bindPosMassDuplicateButton();
     bindPosMassDeleteButton();
     bindInlineDuplicateButton();
+    bindInlineToQuoteButton();
     syncPosRowSelectedClass();
     syncPosMassActionButtons();
     if (
@@ -4224,6 +4630,24 @@
       typeof window.MkSalesListShared.relocatePaginationFooter === "function"
     ) {
       window.MkSalesListShared.relocatePaginationFooter();
+    }
+    if (
+      window.MkSalesListShared &&
+      typeof window.MkSalesListShared.ensureTotalPageCount === "function"
+    ) {
+      window.MkSalesListShared.ensureTotalPageCount();
+      setTimeout(function () {
+        window.MkSalesListShared.ensureTotalPageCount();
+      }, 200);
+      setTimeout(function () {
+        window.MkSalesListShared.ensureTotalPageCount();
+      }, 800);
+    }
+    if (
+      window.MkSalesListShared &&
+      typeof window.MkSalesListShared.autoLoadTotalRecordCount === "function"
+    ) {
+      window.MkSalesListShared.autoLoadTotalRecordCount();
     }
     document.documentElement.classList.add("mk-sales-list-ready");
     if (
@@ -4326,6 +4750,161 @@
     tick();
   }
 
+  function normalizeSoListScope(raw) {
+    var s = String(raw || "").toLowerCase().trim();
+    if (s === "franchise" || s === "nq" || s === "nhuong_quyen") {
+      return "franchise";
+    }
+    if (s === "retail" || s === "ban_le") {
+      return "retail";
+    }
+    return "all";
+  }
+
+  function resolveSoListScope() {
+    try {
+      var params = new URLSearchParams(window.location.search || "");
+      var urlRaw = params.get("mk_so_scope");
+      if (urlRaw !== null && urlRaw !== "") {
+        return normalizeSoListScope(urlRaw);
+      }
+    } catch (e0) {
+      /* ignore */
+    }
+    if (
+      window.__mkSoListScope === "franchise" ||
+      window.__mkSoListScope === "retail" ||
+      window.__mkSoListScope === "all"
+    ) {
+      return window.__mkSoListScope;
+    }
+    var hiddenVal = $("#mk-so-scope").val() || "";
+    if ($.trim(hiddenVal) !== "") {
+      return normalizeSoListScope(hiddenVal);
+    }
+    var rootScope = $(".mk-so-pos-page").attr("data-mk-so-scope") || "";
+    if ($.trim(rootScope) !== "") {
+      return normalizeSoListScope(rootScope);
+    }
+    return "all";
+  }
+
+  function loadSoListByScope(scope) {
+    scope = normalizeSoListScope(scope);
+    window.__mkSoListScope = scope;
+    try {
+      if (typeof app !== "undefined" && app.helper && app.helper.showProgress) {
+        app.helper.showProgress();
+      }
+    } catch (eProg) {
+      /* ignore */
+    }
+    try {
+      var u = new URL(window.location.href);
+      u.searchParams.set("module", "SalesOrder");
+      u.searchParams.set("view", "List");
+      u.searchParams.set("app", "SALES");
+      u.searchParams.set("page", "1");
+      u.searchParams.set("nolistcache", "1");
+      u.searchParams.set("search_params", "[]");
+      u.searchParams.delete("search_key");
+      u.searchParams.delete("search_value");
+      if (scope === "franchise" || scope === "retail") {
+        u.searchParams.set("mk_so_scope", scope);
+      } else {
+        u.searchParams.delete("mk_so_scope");
+      }
+      var cv =
+        $("#listViewContent [name='cvid']").val() ||
+        $("#listViewContent [name='viewname']").val() ||
+        "";
+      if (cv) {
+        u.searchParams.set("viewname", cv);
+      }
+      u.searchParams.delete("list_headers");
+      window.location.assign(u.toString());
+    } catch (eNav) {
+      var q =
+        "index.php?module=SalesOrder&view=List&app=SALES&page=1&nolistcache=1&search_params=%5B%5D";
+      if (scope === "franchise") {
+        q += "&mk_so_scope=franchise";
+      } else if (scope === "retail") {
+        q += "&mk_so_scope=retail";
+      }
+      window.location.href = q;
+    }
+  }
+
+  function patchSoScopeListParams() {
+    if (
+      typeof Vtiger_List_Js === "undefined" ||
+      Vtiger_List_Js.prototype._mkSoScopeParamsPatched
+    ) {
+      return;
+    }
+    Vtiger_List_Js.prototype._mkSoScopeParamsPatched = true;
+    var origParams = Vtiger_List_Js.prototype.getDefaultParams;
+    if (typeof origParams === "function") {
+      Vtiger_List_Js.prototype.getDefaultParams = function () {
+        var params = origParams.apply(this, arguments);
+        if (isSalesOrderSalesList()) {
+          params.mk_so_scope = resolveSoListScope();
+          if (!params.app || String(params.app).toUpperCase() === "") {
+            params.app = "SALES";
+          }
+        }
+        return params;
+      };
+    }
+  }
+
+  function bindSoScopeTabs() {
+    if (document.documentElement.getAttribute("data-mk-so-scope-tabs-bound")) {
+      return;
+    }
+    document.documentElement.setAttribute("data-mk-so-scope-tabs-bound", "1");
+    $(document).on("click.mkSoScopeTabs", ".mk-so-scope-tab", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!isSalesOrderSalesList()) {
+        return;
+      }
+      var scope = normalizeSoListScope($(this).attr("data-mk-so-scope"));
+      try {
+        var urlScope = normalizeSoListScope(
+          new URLSearchParams(window.location.search || "").get("mk_so_scope")
+        );
+        if (scope === urlScope && scope === resolveSoListScope()) {
+          return;
+        }
+      } catch (eSkip) {
+        /* always reload */
+      }
+      loadSoListByScope(scope);
+    });
+  }
+
+  function bindSalesOrderImport() {
+    if (!window.MkQuickImport || typeof window.MkQuickImport.bind !== "function") {
+      return;
+    }
+    window.MkQuickImport.bind({
+      buttonId: "mk-so-import-btn",
+      fileInputId: "mk-so-import-file",
+      module: "SalesOrder",
+      xlsxOnly: true,
+      xlsxRejectMessage: "Chỉ hỗ trợ file .xlsx (Lịch sử đơn hàng).",
+      confirmMessage:
+        "Import đơn hàng từ Excel Kiot.\n" +
+        "Các dòng cùng mã đặt hàng gộp thành 1 đơn nhiều sản phẩm.\n" +
+        "Nhập lại cùng mã sẽ cập nhật đơn cũ.\n" +
+        "Không trừ tồn kho và không đẩy MISA.",
+      onDone: function () {
+        window.location.reload();
+      },
+    });
+  }
+
   function init() {
     if (!isSalesOrderSalesList()) {
       return;
@@ -4348,10 +4927,14 @@
     patchPlaceListContents();
     patchInlineDetailRowClick();
     bindListEvents();
+    bindSalesOrderImport();
+    patchSoScopeListParams();
+    bindSoScopeTabs();
     bindPosSelectionEvents();
     bindPosMassDuplicateButton();
     bindPosMassDeleteButton();
     bindInlineDuplicateButton();
+    bindInlineToQuoteButton();
     initDebugHelpers();
     scheduleInitialEnhancements();
   }

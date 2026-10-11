@@ -59,11 +59,13 @@ class HelpDesk_List_View extends Vtiger_Index_View {
 		$moduleName = $request->getModule();
 		$viewer     = $this->getViewer($request);
 		$db         = PearDatabase::getInstance();
+		HelpDesk_TicketService::getInstance();
 
 		// Basic filters
 		$statusFilter   = trim((string)$request->get('status'));
 		$priorityFilter = trim((string)$request->get('priority'));
 		$searchText     = trim((string)$request->get('search'));
+		$issueFilter    = trim((string)$request->get('issue_type'));
 
 		$page      = (int)$request->get('page');
 		$page      = $page > 0 ? $page : 1;
@@ -87,6 +89,10 @@ class HelpDesk_List_View extends Vtiger_Index_View {
 			$where   .= ' AND (t.ticket_code LIKE ? OR t.subject LIKE ?)';
 			$params[] = '%' . $searchText . '%';
 			$params[] = '%' . $searchText . '%';
+		}
+		if ($issueFilter !== '' && isset(HelpDesk_TicketService::issueTypes()[$issueFilter])) {
+			$where   .= ' AND t.issue_type = ?';
+			$params[] = $issueFilter;
 		}
 
 		// Total count
@@ -193,6 +199,8 @@ class HelpDesk_List_View extends Vtiger_Index_View {
 		$viewer->assign('FILTER_STATUS', $statusFilter);
 		$viewer->assign('FILTER_PRIORITY', $priorityFilter);
 		$viewer->assign('FILTER_SEARCH', $searchText);
+		$viewer->assign('FILTER_ISSUE', $issueFilter);
+		$viewer->assign('ISSUE_TYPES', HelpDesk_TicketService::issueTypes());
 
 		$viewer->view('ListViewContents.tpl', $moduleName);
 	}

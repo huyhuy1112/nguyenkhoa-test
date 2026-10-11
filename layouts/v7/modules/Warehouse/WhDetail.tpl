@@ -6,6 +6,7 @@
 		data-wh-id="{$MK_WH_ID|escape:'html'}"
 		data-can-write="{$MK_WH_CAN_WRITE|default:0}"
 		data-can-qc="{$MK_WH_CAN_QC|default:0}"
+		data-can-admin="{$MK_WH_CAN_ADMIN|default:0}"
 		data-user-name="{$MK_WH_USER_NAME|escape:'html'}">
 		<header class="mk-wh-proto-head">
 			<div class="mk-wh-proto-title">
@@ -99,7 +100,11 @@
 			<section class="mk-wh-proto-stage">
 				<header class="mk-wh-proto-stage__head">
 					<h2 class="mk-wh-proto-stage__title" id="mkWhProtoStageTitle">Danh sách phiếu nhập</h2>
-					<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--primary" id="mkWhProtoCreateBtn">Tạo phiếu nhập</button>
+					<div class="mk-wh-proto-stage__actions">
+						<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--outline hide" id="mkWhProtoImportStockBtn" title="Import tồn từ file Excel báo cáo Xuất–Nhập–Tồn">Import Excel</button>
+						<input type="file" id="mkWhProtoImportStockFile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hide" tabindex="-1" aria-hidden="true" />
+						<button type="button" class="mk-wh-proto-btn mk-wh-proto-btn--primary" id="mkWhProtoCreateBtn">Tạo phiếu nhập</button>
+					</div>
 				</header>
 				<div class="mk-wh-proto-pane" id="mkWhProtoPaneInbound">
 					<div class="mk-wh-proto-table-wrap">
@@ -172,18 +177,28 @@
 						</div>
 						<p class="mk-wh-proto-filters__summary" id="mkWhProtoFilterSummary" aria-live="polite"></p>
 					</div>
-					<div class="mk-wh-proto-table-wrap">
-						<table class="mk-wh-proto-table" role="table">
+					<div class="mk-wh-proto-table-wrap mk-wh-stock-table-wrap">
+						<table class="mk-wh-proto-table mk-wh-stock-table" role="table">
+							<colgroup>
+								<col class="mk-wh-stock-col-sku" />
+								<col class="mk-wh-stock-col-name" />
+								<col class="mk-wh-stock-col-lot" />
+								<col class="mk-wh-stock-col-hsd" />
+								<col class="mk-wh-stock-col-forecast" />
+								<col class="mk-wh-stock-col-price" />
+								<col class="mk-wh-stock-col-loc" />
+								<col class="mk-wh-stock-col-qty" />
+							</colgroup>
 							<thead>
 								<tr>
-									<th>SKU</th>
-									<th>Tên hàng</th>
-									<th>Lô</th>
-									<th>HSD</th>
-									<th>Dự kiến hết</th>
-									<th class="mk-wh-proto-td-right">Giá</th>
-									<th class="mk-wh-proto-td-right">Vị trí</th>
-									<th class="mk-wh-proto-td-right">Tồn</th>
+									<th class="mk-wh-stock-col-sku">SKU</th>
+									<th class="mk-wh-stock-col-name">Tên hàng</th>
+									<th class="mk-wh-stock-col-lot">Lô</th>
+									<th class="mk-wh-stock-col-hsd">HSD</th>
+									<th class="mk-wh-stock-col-forecast">Dự kiến hết</th>
+									<th class="mk-wh-stock-col-price">Giá</th>
+									<th class="mk-wh-stock-col-loc">Vị trí</th>
+									<th class="mk-wh-stock-col-qty">Tồn</th>
 								</tr>
 							</thead>
 							<tbody id="mkWhProtoStockTbody"></tbody>
@@ -301,7 +316,16 @@
 		<header class="mk-wh-proto-modal__head">
 			<div class="mk-wh-proto-modal__head-main">
 				<span class="mk-wh-proto-modal__eyebrow">KHO</span>
-				<h3 class="mk-wh-proto-modal__title" id="mkWhReturnModalTitle">Tạo phiếu thu hồi / trả hàng</h3>
+				<div class="mk-wh-return-title-row">
+					<h3 class="mk-wh-proto-modal__title" id="mkWhReturnModalTitle">Tạo phiếu thu hồi / trả hàng</h3>
+					<div class="mk-wh-proto-field mk-wh-return-doctype">
+						<label for="mkWhReturnDocType">Loại phiếu</label>
+						<select id="mkWhReturnDocType" form="mkWhReturnForm">
+							<option value="return">Trả hàng</option>
+							<option value="recall">Thu hồi</option>
+						</select>
+					</div>
+				</div>
 				<p class="mk-wh-proto-modal__sub">Gộp nhiều phiếu xuất của kho này. Chỉ nhập lại những dòng đã chọn số lượng — không bắt buộc trả hết.</p>
 			</div>
 			<button type="button" class="mk-wh-proto-modal__close" data-mk-return-close="1" aria-label="Đóng">
@@ -312,11 +336,8 @@
 			<div class="mk-wh-return-workspace">
 				<aside class="mk-wh-return-pane mk-wh-return-pane--issues">
 					<div class="mk-wh-proto-field">
-						<label for="mkWhReturnDocType">Loại phiếu</label>
-						<select id="mkWhReturnDocType">
-							<option value="return">Trả hàng</option>
-							<option value="recall">Thu hồi</option>
-						</select>
+						<label for="mkWhReturnParty">Người / chỗ thu hồi</label>
+						<input type="text" id="mkWhReturnParty" placeholder="Tự điền theo khách trên phiếu xuất đã chọn" autocomplete="off" maxlength="255" />
 					</div>
 					<div class="mk-wh-proto-field">
 						<label for="mkWhReturnSourceQ">Phiếu xuất kho</label>
@@ -360,7 +381,7 @@
 							<span class="mk-wh-proto-lines__ttl">Sản phẩm cần trả</span>
 							<button type="button" class="mk-wh-proto-mini-btn" id="mkWhReturnTakeAll" hidden>Lấy hết</button>
 						</div>
-						<p class="mk-wh-return-hint" id="mkWhReturnLinesHint">Chọn phiếu xuất bên trái, rồi nhập số lượng từng dòng. Dòng để 0 sẽ không trả.</p>
+						<p class="mk-wh-return-hint" id="mkWhReturnLinesHint">Chọn phiếu xuất bên trái, rồi nhập số lượng từng dòng. Bấm × nếu không thu hồi sản phẩm đó.</p>
 						<div class="mk-wh-proto-table-wrap mk-wh-proto-lines__tableWrap">
 							<table class="mk-wh-proto-table mk-wh-proto-lines__table mk-wh-return-lines">
 								<thead>

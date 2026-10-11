@@ -204,6 +204,9 @@ class Accounts_SimpleImport_Helper {
 		if (preg_match('/^KH\d+/i', $value)) {
 			return true;
 		}
+		if (preg_match('/^TUIBAO([_-].+)?$/i', $value)) {
+			return true;
+		}
 		if (!ctype_digit($value)) {
 			return false;
 		}
@@ -473,6 +476,9 @@ class Accounts_SimpleImport_Helper {
 		if (preg_match('/^KH\d+/i', $raw)) {
 			return strtoupper($raw);
 		}
+		if (preg_match('/^TUIBAO([_-].*)?$/i', $raw, $tb)) {
+			return 'TUIBAO' . (isset($tb[1]) ? $tb[1] : '');
+		}
 		$digits = preg_replace('/\D/', '', self::normalizeExcelCellNumber($raw));
 		if ($digits === '') {
 			return '';
@@ -513,6 +519,9 @@ class Accounts_SimpleImport_Helper {
 
 	public static function resolveAccountNoForStagingRow(array $row, &$runningNum) {
 		$raw = self::extractRawCustomerCodeFromRow($row);
+		if (preg_match('/^TUIBAO/i', trim($raw))) {
+			return self::formatCustomerAccountNo($raw);
+		}
 		$numeric = self::extractNumericCustomerCode($raw);
 		if ($numeric !== null) {
 			$runningNum = $numeric;
@@ -679,6 +688,7 @@ class Accounts_SimpleImport_Helper {
 			'organization name' => 'accountname',
 			'account name' => 'accountname',
 			'tên' => 'accountname',
+			'tên khách hàng' => 'accountname',
 			'tên ngắn gọn thường gọi' => 'accountname',
 			'company code' => 'cf_855',
 			'mã công ty' => 'cf_855',
@@ -687,6 +697,9 @@ class Accounts_SimpleImport_Helper {
 			'trang web' => 'website',
 			'primary phone' => 'phone',
 			'phone' => 'phone',
+			'điện thoại' => 'phone',
+			'sđt' => 'phone',
+			'sdt' => 'phone',
 			'số điện thoại liên hệ' => 'phone',
 			'secondary phone' => 'otherphone',
 			'other phone' => 'otherphone',

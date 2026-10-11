@@ -17,20 +17,25 @@
 				{/if}
 			</div>
 			<div class="mk-acc-detail-hero__text">
+				{assign var=MK_ACC_TITLE value=$RECORD->getName()|decode_html|trim}
 				<h1 class="mk-acc-detail-hero__title">
-					<span class="recordLabel" title="{$RECORD->getName()}">
+					<span class="recordLabel" title="{$MK_ACC_TITLE|escape:'html'}">
 						{foreach item=NAME_FIELD from=$MODULE_MODEL->getNameFields()}
 							{assign var=FIELD_MODEL value=$MODULE_MODEL->getField($NAME_FIELD)}
 							{if $FIELD_MODEL->getPermissions()}
-								<span class="{$NAME_FIELD}">{trim($RECORD->get($NAME_FIELD))}</span>&nbsp;
+								<span class="{$NAME_FIELD}">{$RECORD->get($NAME_FIELD)|decode_html|trim|escape:'html'}</span>&nbsp;
 							{/if}
 						{/foreach}
 					</span>
 				</h1>
 				{include file="DetailViewHeaderFieldsView.tpl"|vtemplate_path:$MODULE}
-				<div class="mk-acc-detail-hero__maplink">
-					<span class="mk-acc-detail-hero__map-ic" aria-hidden="true">{include file="partials/AccountsDetailSvgIcon.tpl"|@vtemplate_path:$MODULE ICON='MAP'}</span>
-					<a class="showMap" href="javascript:void(0);" onclick="Vtiger_Index_Js.showMap(this);" data-module="{$RECORD->getModule()->getName()}" data-record="{$RECORD->getId()}">{vtranslate('LBL_SHOW_MAP', $MODULE_NAME)}</a>
+				<div class="mk-acc-detail-hero__meta-row">
+					<div class="mk-acc-detail-hero__maplink">
+						<a class="showMap" href="javascript:void(0);" onclick="Vtiger_Index_Js.showMap(this);" data-module="{$RECORD->getModule()->getName()}" data-record="{$RECORD->getId()}">{vtranslate('LBL_SHOW_MAP', $MODULE_NAME)}</a>
+					</div>
+					<div class="mk-acc-detail-hero__tags mk-acc-detail-hero__tags--inline">
+						{include file="DetailViewTagList.tpl"|vtemplate_path:$MODULE}
+					</div>
 				</div>
 			</div>
 		</div>

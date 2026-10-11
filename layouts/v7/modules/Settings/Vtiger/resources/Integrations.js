@@ -26,7 +26,26 @@ Vtiger.Class("Settings_Vtiger_Integrations_Js", {}, {
 			}
 			var code = btn.data("code");
 			var form = root.find('.nk-integ-form[data-code="' + code + '"]');
-			self.testConnection(form, btn);
+			self.testConnection(form, btn, {});
+		});
+		root.on("click", ".nk-integ-gs-test", function (e) {
+			e.preventDefault();
+			var btn = jQuery(this);
+			if (btn.hasClass("is-busy")) {
+				return;
+			}
+			var form = root.find('.nk-integ-form[data-code="google_sheet"]');
+			var sourceId = parseInt(btn.attr("data-source-id") || btn.data("sourceId") || "0", 10) || 0;
+			self.testConnection(form, btn, { source_id: sourceId });
+		});
+		root.on("click", ".nk-integ-gs-test-all", function (e) {
+			e.preventDefault();
+			var btn = jQuery(this);
+			if (btn.hasClass("is-busy")) {
+				return;
+			}
+			var form = root.find('.nk-integ-form[data-code="google_sheet"]');
+			self.testConnection(form, btn, { test_all: 1 });
 		});
 		root.on("click", ".nk-integ-zalo-oauth", function (e) {
 			e.preventDefault();
@@ -157,6 +176,18 @@ Vtiger.Class("Settings_Vtiger_Integrations_Js", {}, {
 				}
 				return;
 			}
+			if (name === "sources_json") {
+				var rawSrc = String(val || "").trim();
+				if (!rawSrc) {
+					return;
+				}
+				try {
+					payload.sources = JSON.parse(rawSrc);
+				} catch (err2) {
+					throw new Error("Danh sách nguồn (sources_json) không phải JSON hợp lệ.");
+				}
+				return;
+			}
 			if (el.attr("type") === "password" || name === "service_account_json") {
 				if (String(val || "").trim() === "") {
 					return;
@@ -167,7 +198,7 @@ Vtiger.Class("Settings_Vtiger_Integrations_Js", {}, {
 		return payload;
 	},
 
-	post: function (mode, code, payload) {
+	post: function (mode, code, payload, extra) {
 		var data = {
 			module: app.getModuleName(),
 			parent: app.getParentModuleName(),
@@ -178,6 +209,11 @@ Vtiger.Class("Settings_Vtiger_Integrations_Js", {}, {
 		if (payload) {
 			data.payload = JSON.stringify(payload);
 		}
+		if (extra && typeof extra === "object") {
+			jQuery.each(extra, function (k, v) {
+				data[k] = v;
+			});
+		}
 		return app.request.post({ data: data });
 	},
 
@@ -186,6 +222,7 @@ Vtiger.Class("Settings_Vtiger_Integrations_Js", {}, {
 			return;
 		}
 		btn.toggleClass("is-busy", !!busy);
+		btn.prop("disabled", !!busy);
 	},
 
 	notify: function (message, isError) {
@@ -233,24 +270,128 @@ Vtiger.Class("Settings_Vtiger_Integrations_Js", {}, {
 		});
 	},
 
-	testConnection: function (form, testBtn) {
+	testConnection: function (form, testBtn, opts) {
 		var self = this;
 		var code = form.data("code");
+		opts = opts || {};
+		var extra = {};
+		var payload = null;
+		if (opts.source_id) {
+			extra.source_id = opts.source_id;
+			payload = { source_id: opts.source_id };
+		}
+		if (opts.test_all) {
+			extra.test_all = 1;
+			payload = { test_all: 1 };
+		}
 		this.setBusy(testBtn, true);
-		this.post("test", code, null).then(function (err, data) {
+		this.post("test", code, payload, extra).then(function (err, data) {
 			self.setBusy(testBtn, false);
 			if (err) {
 				var msg = (err && err.message) || "Test thất bại.";
 				self.showMessage(form, msg, true);
 				self.notify(msg, true);
+				if (opts.source_id) {
+					self.patchSourceRow(form, opts.source_id, { success: false, message: msg, error: msg });
+				}
 				return;
 			}
 			self.applyConnection(form, data && data.connection);
 			var ok = !!(data && data.success);
-			var msg = (data && data.message) || (ok ? "Kết nối thành công." : "Chưa kết nối được.");
-			self.showMessage(form, msg, !ok);
-			self.notify(msg, !ok);
+			var msg2 = (data && data.message) || (ok ? "Kết nối thành công." : "Chưa kết nối được.");
+			self.showMessage(form, msg2, !ok);
+			self.notify(msg2, !ok);
+			if (opts.source_id) {
+				self.patchSourceRow(form, opts.source_id, data || {});
+			}
+			if (data && data.results && data.results.length) {
+				data.results.forEach(function (r) {
+					if (r && r.source_id) {
+						self.patchSourceRow(form, r.source_id, r);
+					}
+				});
+			}
 		});
+	},
+
+	patchSourceRow: function (form, sourceId, result) {
+		var row = form.find('.nk-integ-gs-item[data-source-id="' + sourceId + '"]');
+		if (!row.length) {
+			return;
+		}
+		var ok = !!(result && result.success);
+		row.removeClass("nk-integ-gs-item--ok nk-integ-gs-item--error nk-integ-gs-item--idle");
+		row.addClass(ok ? "nk-integ-gs-item--ok" : "nk-integ-gs-item--error");
+		var errEl = row.find("[data-role=gs-source-error]");
+		var text = ok
+			? (result.message || "OK")
+			: (result.error || result.message || "Lỗi không xác định");
+		errEl.text(text);
+		errEl.toggleClass("is-empty", false);
+		errEl.toggleClass("is-ok", ok);
+	},
+
+	renderSourcesList: function (form, sourcesUi) {
+		var wrap = form.find("[data-role=gs-sources]");
+		if (!wrap.length) {
+			return;
+		}
+		var list = wrap.find("[data-role=gs-list]");
+		var empty = wrap.find("[data-role=gs-empty]");
+		if (!sourcesUi || !sourcesUi.length) {
+			if (list.length) {
+				list.remove();
+			}
+			if (!empty.length) {
+				wrap.append('<p class="nk-integ-gs-empty" data-role="gs-empty">Chưa có nguồn trong danh sách.</p>');
+			}
+			return;
+		}
+		if (empty.length) {
+			empty.remove();
+		}
+		if (!list.length) {
+			list = jQuery('<ul class="nk-integ-gs-list" data-role="gs-list"></ul>');
+			wrap.append(list);
+		}
+		var html = "";
+		sourcesUi.forEach(function (src) {
+			var status = src.status || "idle";
+			var en = src.enabled
+				? '<span class="nk-integ-gs-pill nk-integ-gs-pill--on">Bật</span>'
+				: '<span class="nk-integ-gs-pill nk-integ-gs-pill--off">Tắt</span>';
+			var err = src.last_error || "—";
+			var errClass = src.last_error ? "" : " is-empty";
+			html +=
+				'<li class="nk-integ-gs-item nk-integ-gs-item--' +
+				status +
+				'" data-source-id="' +
+				src.id +
+				'">' +
+				'<div class="nk-integ-gs-item__main">' +
+				'<div class="nk-integ-gs-item__title">' +
+				'<span class="nk-integ-gs-item__name">' +
+				jQuery("<div>").text(src.name || "#" + src.id).html() +
+				"</span>" +
+				en +
+				'<span class="nk-integ-gs-pill">' +
+				jQuery("<div>").text(src.target_label || "Leads").html() +
+				"</span></div>" +
+				'<div class="nk-integ-gs-item__meta"><code>' +
+				jQuery("<div>").text(src.spreadsheet_short || "—").html() +
+				"</code><span>· tab " +
+				jQuery("<div>").text(src.sheet_range || "Sheet1").html() +
+				"</span></div>" +
+				'<p class="nk-integ-gs-item__err' +
+				errClass +
+				'" data-role="gs-source-error">' +
+				jQuery("<div>").text(err).html() +
+				"</p></div>" +
+				'<button type="button" class="mk-settings-btn mk-settings-btn--outline nk-integ-gs-test" data-code="google_sheet" data-source-id="' +
+				src.id +
+				'"><span class="nk-integ-btn__label">Test</span></button></li>';
+		});
+		list.html(html);
 	},
 
 	applyConnection: function (form, conn) {
@@ -278,6 +419,34 @@ Vtiger.Class("Settings_Vtiger_Integrations_Js", {}, {
 		}
 
 		form.find('input[name="enabled"]').prop("checked", !!conn.enabled);
+
+		if (conn.code === "google_sheet" && conn.extra) {
+			var gs = conn.extra;
+			if (gs.spreadsheet_id != null) {
+				form.find('input[name="spreadsheet_id"]').val(gs.spreadsheet_id);
+			}
+			if (gs.sheet_range != null) {
+				form.find('input[name="sheet_range"]').val(gs.sheet_range);
+			}
+			if (gs.column_map_json != null) {
+				form.find('textarea[name="column_map"]').val(gs.column_map_json);
+			}
+			if (gs.sources_json != null) {
+				form.find('textarea[name="sources_json"]').val(gs.sources_json);
+			}
+			if (gs.sources_summary) {
+				form.find("[data-role=gs-summary]").val(gs.sources_summary);
+			}
+			if (gs.sources_ui) {
+				this.renderSourcesList(form, gs.sources_ui);
+			}
+			if (gs.service_account_email) {
+				var chip = form.find("[data-role=sa-chip] span").last();
+				if (chip.length) {
+					chip.text("Đã cấu hình: " + gs.service_account_email);
+				}
+			}
+		}
 
 		if (conn.code === "zalo_oa" && conn.extra) {
 			var ex = conn.extra;

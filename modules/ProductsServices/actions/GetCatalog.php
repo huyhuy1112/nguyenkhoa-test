@@ -15,9 +15,13 @@ class ProductsServices_GetCatalog_Action extends Vtiger_Action_Controller {
 	public function process(Vtiger_Request $request) {
 		$response = new Vtiger_Response();
 		try {
+			require_once 'modules/ProductsServices/helpers/PriceSetup.php';
+			ProductsServices_PriceSetup_Helper::ensure();
 			$db = PearDatabase::getInstance();
 			$hasPriceLt = $this->columnExists($db, 'vtiger_productsservices', 'price_lt_1m');
+			$hasMiutea = $this->columnExists($db, 'vtiger_productsservices', 'price_miutea');
 			$priceLtCol = $hasPriceLt ? ', IFNULL(ps.price_lt_1m, 0) AS price_lt_1m' : '';
+			$priceMiuteaCol = $hasMiutea ? ', IFNULL(ps.price_miutea, 0) AS price_miutea' : '';
 
 			$sql = "SELECT ps.productsservicesid AS id,
 					ps.productsservicesname AS name,
@@ -29,6 +33,7 @@ class ProductsServices_GetCatalog_Action extends Vtiger_Action_Controller {
 					IFNULL(ps.unit, '') AS unit,
 					ce.createdtime AS createdtime
 					{$priceLtCol}
+					{$priceMiuteaCol}
 				FROM vtiger_productsservices ps
 				INNER JOIN vtiger_crmentity ce ON ce.crmid = ps.productsservicesid AND ce.deleted = 0
 				ORDER BY ps.productsservicesname ASC, ps.productsservicesid ASC";
@@ -50,6 +55,7 @@ class ProductsServices_GetCatalog_Action extends Vtiger_Action_Controller {
 					'price' => (float) $row['price'],
 					'price_lt_1m' => $priceLt,
 					'price_tuibao' => (float) $row['price_tuibao'],
+					'price_miutea' => $hasMiutea ? (float) $row['price_miutea'] : 0,
 					'unit' => decode_html((string) $row['unit']),
 					'createdtime' => (string) $row['createdtime'],
 					'stock' => 0.0,
@@ -57,6 +63,12 @@ class ProductsServices_GetCatalog_Action extends Vtiger_Action_Controller {
 					'stock_by_wh' => array(),
 					'image_url' => '',
 					'starred' => 0,
+					// >>> THÊM >>> dự kiến hết hàng
+					'avg_sales_per_day' => 0.0,
+					'sold_qty' => 0.0,
+					'sold_days' => 0,
+					'days_left' => null,
+					'stockout_date' => '',
 				);
 			}
 
@@ -65,6 +77,7 @@ class ProductsServices_GetCatalog_Action extends Vtiger_Action_Controller {
 			$soMap = $this->mapOpenSalesOrderDemand($db, $ids);
 			$imageMap = $this->mapProductImages($db, $ids);
 			$starMap = $this->mapStarred($db, $ids);
+			$salesRateMap = $this->mapSalesRate($db, $ids, 30);
 
 			foreach ($items as &$item) {
 				$pid = $item['id'];
@@ -82,6 +95,25 @@ class ProductsServices_GetCatalog_Action extends Vtiger_Action_Controller {
 				}
 				if (isset($starMap[$pid])) {
 					$item['starred'] = (int) $starMap[$pid];
+				}
+
+				if (isset($salesRateMap[$pid])) {
+					$rate = $salesRateMap[$pid];
+					$item['avg_sales_per_day'] = (float) $rate['avg_per_day'];
+					$item['sold_qty'] = (float) $rate['sold_qty'];
+					$item['sold_days'] = (int) $rate['days'];
+				}
+
+				// Tính số ngày còn lại
+				$stock = (float) $item['stock'];
+				$avg = (float) $item['avg_sales_per_day'];
+				if ($avg > 0 && $stock > 0) {
+					$daysLeft = $stock / $avg;
+					$item['days_left'] = round($daysLeft, 1);
+					$item['stockout_date'] = date('d-m-Y', strtotime('+' . (int) ceil($daysLeft) . ' days'));
+				} elseif ($stock <= 0) {
+					$item['days_left'] = 0;
+					$item['stockout_date'] = date('d-m-Y');
 				}
 			}
 			unset($item);
@@ -256,6 +288,85 @@ class ProductsServices_GetCatalog_Action extends Vtiger_Action_Controller {
 			}
 			while ($row = $db->fetchByAssoc($rs)) {
 				$map[(int) $row['productid']] = (float) $row['qty'];
+			}
+		}
+		return $map;
+	}
+
+	/**
+	 * Tốc độ bán trung bình/ngày từ lịch sử bán thực tế.
+	 *
+	 * Nguồn: vtiger_inventoryproductrel join vtiger_salesorder
+	 * Chỉ tính đơn "đã bán" — loại Cancelled / Rejected.
+	 * Mặc định lấy N ngày gần nhất (tham số $windowDays).
+	 *
+	 * @param PearDatabase $db
+	 * @param array $productIds
+	 * @param int $windowDays
+	 * @return array<int, array{avg_per_day: float, sold_qty: float, days: int}>
+	 */
+	protected function mapSalesRate(PearDatabase $db, array $productIds, $windowDays = 30) {
+		$map = array();
+		if (empty($productIds)
+			|| !$this->tableExists($db, 'vtiger_inventoryproductrel')
+			|| !$this->tableExists($db, 'vtiger_salesorder')) {
+			return $map;
+		}
+
+		$windowDays = max(1, (int) $windowDays);
+		// Cửa sổ thời gian: từ hôm nay lùi lại $windowDays ngày
+		$fromDate = date('Y-m-d 00:00:00', strtotime('-' . $windowDays . ' days'));
+
+		$chunks = array_chunk(array_values(array_unique(array_map('intval', $productIds))), 400);
+		foreach ($chunks as $chunk) {
+			$chunk = array_filter($chunk);
+			if (empty($chunk)) {
+				continue;
+			}
+			$marks = generateQuestionMarks($chunk);
+			$params = $chunk;
+			$params[] = $fromDate;
+
+			$rs = $db->pquery(
+				"SELECT ip.productid,
+						SUM(ip.quantity) AS sold_qty,
+						MIN(ce.createdtime) AS first_sold,
+						MAX(ce.createdtime) AS last_sold
+				FROM vtiger_inventoryproductrel ip
+				INNER JOIN vtiger_salesorder so ON so.salesorderid = ip.id
+				INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+				WHERE ip.productid IN ({$marks})
+				AND ce.createdtime >= ?
+				AND (so.sostatus IS NULL OR so.sostatus = '' OR so.sostatus NOT IN (
+						'Cancelled','Rejected'
+				))
+				GROUP BY ip.productid",
+				$params
+			);
+			if (!$rs) {
+				continue;
+			}
+			while ($row = $db->fetchByAssoc($rs)) {
+				$pid = (int) $row['productid'];
+				$soldQty = (float) $row['sold_qty'];
+
+				// Số ngày thực tế: từ lần bán đầu đến hôm nay, tối thiểu 1
+				$firstMs = strtotime((string) $row['first_sold']);
+				$nowMs = time();
+				$spanDays = ($firstMs && $nowMs > $firstMs)
+					? (int) floor(($nowMs - $firstMs) / 86400)
+					: 0;
+				$spanDays = max(1, min($spanDays, $windowDays));
+
+				// Nếu bán rải rác quá ít ngày, dùng windowDays cho ổn định
+				// (tránh chia cho 1 ngày gây avg quá cao)
+				$denom = max($spanDays, 7); // tối thiểu 7 ngày để làm mượt
+
+				$map[$pid] = array(
+					'sold_qty'    => $soldQty,
+					'days'        => $denom,
+					'avg_per_day' => $soldQty > 0 ? ($soldQty / $denom) : 0.0,
+				);
 			}
 		}
 		return $map;

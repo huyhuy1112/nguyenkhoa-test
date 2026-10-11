@@ -140,6 +140,7 @@
     customerType: null,
     leadSource: null,
     customerStatus: null,
+    studyPath: null,
     intent: null,
     entry: null,
     franchise: null,
@@ -371,6 +372,7 @@
     pushTag(state.customerType);
     pushTag(state.leadSource);
     pushTag(state.customerStatus);
+    pushTag(state.studyPath);
     pushTag(state.intent);
     pushTag(state.entry);
     pushTag(state.entryBranch);
@@ -494,7 +496,11 @@
       state.customerType = tag;
       syncCustomerTypePanel();
     } else if (group === "lead-source") state.leadSource = tag;
-    else if (group === "customer-status") {
+    else if (group === "study-path") {
+      state.studyPath = tag;
+      var hint = $("mk-td-study-path-hint");
+      if (hint) hint.hidden = true;
+    } else if (group === "customer-status") {
       state.customerStatus = btn.getAttribute("data-segment") || null;
     } else if (group === "purchase-status") {
       state.purchaseStatus = tag;
@@ -690,10 +696,34 @@
     if (btn) setChoiceGroup("customer-status", btn, { force: true });
   }
 
+  function studyPathFromTags(tags) {
+    var list = tags || [];
+    var ref = window.LeadsLovableRef;
+    var norm = ref && ref.normalizeTagKey
+      ? ref.normalizeTagKey
+      : function (raw) { return String(raw || "").trim().toLowerCase(); };
+    var gd14 = null;
+    var program = null;
+    for (var i = 0; i < list.length; i++) {
+      var key = norm(list[i]);
+      if (key.indexOf("gd14_") === 0 && !gd14) gd14 = key;
+      if ((key === "mien_phi_online" || key === "mien_phi_offline") && !program) program = key;
+    }
+    return gd14 || program;
+  }
+
   function applyTagsFromLead(tags, lead) {
     activateChoice("customer-type", findTag(tags, TAG_POOLS.customerType) || "individual");
     if (lead && lead.segment) activateSegment(lead.segment);
     activateChoice("lead-source", findTag(tags, TAG_POOLS.leadSource));
+    var pathTag = studyPathFromTags(tags);
+    if (pathTag && pathTag.indexOf("gd14_") === 0) {
+      activateChoice("study-path", "gd14_moi_dang_ky");
+      state.studyPath = pathTag;
+      renderTags();
+    } else {
+      activateChoice("study-path", pathTag);
+    }
     // Purchase Status trước — không để purchase tag spill sang Nguyên liệu
     activateChoice("purchase-status", findTag(tags, TAG_POOLS.purchaseStatus));
     setSelectByTag("mk-td-district", findTag(tags, TAG_POOLS.region));
@@ -763,9 +793,9 @@
     if ($("mk-td-address")) $("mk-td-address").value = address;
   }
 
-  function hydrateFromStore(recordId) {
+  function resolveLeadFromStore(recordId) {
     var store = window.LeadsLocalStore;
-    if (!store || !recordId || typeof store.getLead !== "function") return;
+    if (!store || !recordId || typeof store.getLead !== "function") return null;
     var lead = store.getLead(recordId);
     if (!lead && store.getLeads) {
       var all = store.getLeads();
@@ -776,7 +806,11 @@
         }
       }
     }
-    if (!lead) return;
+    return lead || null;
+  }
+
+  function hydrateFromLead(lead) {
+    if (!lead) return false;
 
     if ($("mk-td-name")) $("mk-td-name").value = lead.name || "";
     if ($("mk-td-phone")) $("mk-td-phone").value = digitsOnly(lead.phone || "");
@@ -819,6 +853,28 @@
 
     applyTagsFromLead(lead.tags || [], lead);
     refreshSearchSelectTriggers();
+    return true;
+  }
+
+  function hydrateFromStore(recordId) {
+    return hydrateFromLead(resolveLeadFromStore(recordId));
+  }
+
+  function hydrateFromBootstrap() {
+    var boot = window.MK_LEAD_EDIT_BOOTSTRAP;
+    if (!boot || typeof boot !== "object") return false;
+    try {
+      var store = window.LeadsLocalStore;
+      if (store && typeof store.getLead === "function") {
+        // Seed mem cache so later save/update can resolve crmid.
+        if (typeof store.fetchLead === "function" && boot.crmid) {
+          /* no-op — upsert via hydrate path below if store exposes upsert */
+        }
+      }
+    } catch (e0) {
+      /* ignore */
+    }
+    return hydrateFromLead(boot);
   }
 
   function buildLeadPatch() {
@@ -900,6 +956,14 @@
       alert("Số điện thoại phải đủ 10 số.");
       return;
     }
+    if (!isEditMode() && !state.studyPath) {
+      var studyHint = $("mk-td-study-path-hint");
+      if (studyHint) studyHint.hidden = false;
+      alert("Vui lòng chọn Học Online, Học Offline hoặc 990k.");
+      var studySec = document.querySelector('[data-section="study-path"]');
+      if (studySec && studySec.scrollIntoView) studySec.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     if (state.customerType === "company") {
       var companyName = ($("mk-td-company-name") && $("mk-td-company-name").value) || "";
       if (!companyName.trim()) {
@@ -978,7 +1042,19 @@
           window.location.href = LIST_URL;
           return;
         }
-
+        var pathLabel =
+          state.studyPath === "mien_phi_online"
+            ? "Online (GD 1.2)"
+            : state.studyPath === "mien_phi_offline"
+              ? "Offline (GD 1.1)"
+              : String(state.studyPath || "").indexOf("gd14_") === 0
+                ? "990k (GD 1.4)"
+                : "";
+        if (window.app && app.helper && app.helper.showSuccessNotification && pathLabel) {
+          app.helper.showSuccessNotification({
+            message: "Đã tạo Lead " + pathLabel + " — mở Xác minh trên danh sách Lead.",
+          });
+        }
         var leadObj = lead && lead.id ? lead : { id: (lead && (lead.crmid || lead.id)) || recordId };
         return Promise.resolve(autoConvertToOppIfNeeded(leadObj)).then(function (convertRes) {
           if (convertRes && (convertRes.success !== false) && (convertRes.potentialId || convertRes.redirect)) {
@@ -1038,6 +1114,10 @@
     syncCustomerTypePanel();
 
     var recordId = getEditRecordId();
+    // Immediate PHP bootstrap so the form is never blank while API loads.
+    if (recordId && isEditMode()) {
+      hydrateFromBootstrap();
+    }
     var boot = store && store.ready ? store.ready() : Promise.resolve();
     boot.then(function () {
       if (recordId && isEditMode()) {
@@ -1046,14 +1126,22 @@
             ? store.reloadLead(recordId)
             : store && store.fetchLead
               ? store.fetchLead(recordId, true)
-              : Promise.resolve();
+              : Promise.resolve(null);
         load
-          .then(function () {
-            hydrateFromStore(recordId);
+          .then(function (lead) {
+            if (lead && typeof lead === "object") {
+              hydrateFromLead(lead);
+              return;
+            }
+            if (!hydrateFromStore(recordId)) {
+              hydrateFromBootstrap();
+            }
           })
           .catch(function (err) {
             console.error("Lead edit hydrate failed", err);
-            renderTags();
+            if (!hydrateFromBootstrap() && !hydrateFromStore(recordId)) {
+              renderTags();
+            }
           });
         return;
       }

@@ -8,11 +8,21 @@ class Contacts_ContactTagCatalog {
 
 	/** Canonical keys allowed on Contact (from BA Excel). */
 	protected static $allowedKeys = array(
-		// Loại khách (Trạng thái khách từ Lead)
+		// Loại khách — công ty | cá nhân
+		'ca_nhan', 'cong_ty', 'individual', 'company',
+		// Nhóm NVL / kênh import
+		'miutea', 'khach_le',
+		// Tình trạng khách (Đã/Chưa có quán… — không còn gọi là loại khách)
 		'co_quan', 'chuan_bi_mo', 'gia_dinh', 'moi_quen', 'da_co_quan_he',
-		// Tag lớp học / chương trình
+		// Tag lớp học / chương trình / sản phẩm (Lead → Contact)
 		'chua_mqbh', 'da_tg_free', 'da_tg_fb1', 'thu_3',
 		'pcth', 'van_hanh', 'mkt', 'lop_khac',
+		'mien_phi_online', 'mien_phi_offline',
+		'da_mqbb', 'da_990k', 'da_pcth', 'da_pcthcb', 'combo_mo_quan',
+		'gd14_moi_dang_ky', 'gd14_chua_xep_buoi', 'gd14_da_xac_nhan_lich', 'gd14_khong_tham_gia', 'gd14_da_tham_gia',
+		// Offline R1 status (filter con Offline)
+		'offline_hen_goi_lai', 'offline_khong_nghe_may', 'offline_sai_thong_tin',
+		'offline_hen_lich_lai', 'offline_chuyen_chuong_trinh', 'offline_ngung_cskh',
 		// Tag nguyên liệu / chăm sóc
 		'tiem_nang', 'mua_lan_dau', 'mua_lai', 'mua_on_dinh', 'dang_cham_soc',
 		'dang_tu_van', 'kh_can_nhac', 'khong_mua', 'ngung_mua',
@@ -70,6 +80,34 @@ class Contacts_ContactTagCatalog {
 		'van_hanh' => 'van_hanh',
 		'mkt' => 'mkt',
 		'lop_khac' => 'lop_khac',
+		'mien_phi_online' => 'mien_phi_online',
+		'mien phi online' => 'mien_phi_online',
+		'mien_phi_offline' => 'mien_phi_offline',
+		'mien phi offline' => 'mien_phi_offline',
+		'da_mqbb' => 'da_mqbb',
+		'da mqbb' => 'da_mqbb',
+		'đã mqbb' => 'da_mqbb',
+		'da_990k' => 'da_990k',
+		'da 990k' => 'da_990k',
+		'đã 990k' => 'da_990k',
+		'da_pcth' => 'da_pcth',
+		'da pcth' => 'da_pcth',
+		'đã pcth' => 'da_pcth',
+		'da_pcthcb' => 'da_pcthcb',
+		'da pcthcb' => 'da_pcthcb',
+		'đã pcthcb' => 'da_pcthcb',
+		'da_pcth_cb' => 'da_pcthcb',
+		'individual' => 'ca_nhan',
+		'ca_nhan' => 'ca_nhan',
+		'cá nhân' => 'ca_nhan',
+		'company' => 'cong_ty',
+		'cong_ty' => 'cong_ty',
+		'công ty' => 'cong_ty',
+		'doanh_nghiep' => 'cong_ty',
+		'miutea' => 'miutea',
+		'khach_le' => 'khach_le',
+		'khachle' => 'khach_le',
+		'khách lẻ' => 'khach_le',
 	);
 
 	public static function normalizeKey($tagName) {

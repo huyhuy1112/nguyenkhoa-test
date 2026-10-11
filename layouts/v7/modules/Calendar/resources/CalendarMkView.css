@@ -1344,3 +1344,151 @@ html.mk-cal-ui-ready body[data-module="Calendar"] .bootbox.mk-cal-type-choice-mo
         min-width: 0;
     }
 }
+
+/* ========== NK refresh 2026-09 — slate/green, keep FullCalendar behavior ========== */
+html.mk-cal-ui-ready body[data-module="Calendar"] {
+	--mk-cal-ink: #0f172a;
+	--mk-cal-muted: #64748b;
+	--mk-cal-line: #e2e8f0;
+	--mk-cal-soft: #f8fafc;
+	--mk-cal-accent: #0f8a4b;
+	--mk-cal-accent-soft: #e6f6ec;
+	--mk-cal-today: #ecfdf5;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-layout {
+	gap: 16px;
+	padding: 12px 16px 20px;
+	background: var(--mk-cal-soft);
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-layout__aside {
+	background: #fff;
+	border: 1px solid var(--mk-cal-line);
+	border-radius: 14px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	padding: 12px;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-layout__main {
+	background: #fff;
+	border: 1px solid var(--mk-cal-line);
+	border-radius: 14px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	overflow: hidden;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-toolbar {
+	border-bottom: 1px solid var(--mk-cal-line);
+	padding: 12px 16px;
+	background: #fff;
+	gap: 12px;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-toolbar__title {
+	color: var(--mk-cal-ink);
+	font-weight: 800;
+	letter-spacing: -0.02em;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-view-tab {
+	border-radius: 8px;
+	border: 1px solid transparent;
+	color: var(--mk-cal-muted);
+	font-weight: 600;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-view-tab.is-active {
+	background: var(--mk-cal-accent-soft);
+	color: var(--mk-cal-accent);
+	border-color: #bbf7d0;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-nav-btn--today {
+	border-radius: 8px;
+	border: 1px solid var(--mk-cal-line);
+	background: #fff;
+	color: var(--mk-cal-ink);
+	font-weight: 600;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-nav-arrow,
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-nav-icon {
+	border-radius: 8px;
+	border: 1px solid var(--mk-cal-line);
+	background: #fff;
+	color: var(--mk-cal-ink);
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-action-btn {
+	border-radius: 10px;
+	border: 1px solid var(--mk-cal-line);
+	background: var(--mk-cal-soft);
+	color: var(--mk-cal-ink);
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-action-btn:hover {
+	border-color: #bbf7d0;
+	background: var(--mk-cal-accent-soft);
+	color: var(--mk-cal-accent);
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-mini-title,
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-activities-title {
+	color: var(--mk-cal-ink);
+	font-weight: 700;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-activitytypes-card,
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-activities-card,
+html.mk-cal-ui-ready body[data-module="Calendar"] .mk-cal-mini-wrap {
+	border: 1px solid var(--mk-cal-line);
+	border-radius: 12px;
+	background: #fff;
+	padding: 10px;
+	margin-bottom: 10px;
+}
+
+/* FullCalendar skin overrides (replace beige/pink) */
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc,
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-day-header,
+html.mk-cal-ui-ready body[data-module="Calendar"] .CalendarViewPageDiv,
+html.mk-cal-ui-ready body[data-module="Calendar"] #mycalendar,
+html.mk-cal-ui-ready body[data-module="Calendar"] .calendarview {
+	color: var(--mk-cal-ink) !important;
+	background: #fff !important;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-day-header {
+	color: var(--mk-cal-muted) !important;
+	border-color: var(--mk-cal-line) !important;
+	font-weight: 600 !important;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-body .fc-widget-content,
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-day-grid .fc-day:not(.fc-today),
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-time-grid .fc-day:not(.fc-today) {
+	border-color: var(--mk-cal-line) !important;
+	background: #fff !important;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-day-grid .fc-day.fc-today,
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-time-grid .fc-day.fc-today,
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-day-grid .fc-day.fc-today,
+html.mk-cal-ui-ready body:has(.CalendarViewPageDiv) .fc-time-grid .fc-day.fc-today {
+	background: var(--mk-cal-today) !important;
+	border-color: #bbf7d0 !important;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-now-indicator,
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-now-indicator-line {
+	border-color: #ef4444 !important;
+	background: #ef4444 !important;
+}
+
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-event,
+html.mk-cal-ui-ready body[data-module="Calendar"] .fc-time-grid-event {
+	border-radius: 6px !important;
+	border-width: 0 !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}

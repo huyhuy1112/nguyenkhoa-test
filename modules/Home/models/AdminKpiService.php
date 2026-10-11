@@ -213,6 +213,844 @@ class Home_AdminKpiService {
 		);
 	}
 
+	public static function getCompanyOverview() {
+		$db = PearDatabase::getInstance();
+		$cal = self::businessCalendar($db);
+		$revenue = self::sumSoRevenueBetween($db, $cal['month_start'], $cal['month_end']);
+		$prevStart = date('Y-m-d 00:00:00', strtotime($cal['month_start'] . ' -1 month'));
+		$prevEnd = date('Y-m-d 23:59:59', strtotime($cal['month_start'] . ' -1 second'));
+		$previous = self::sumSoRevenueBetween($db, $prevStart, $prevEnd);
+		$delta = $previous > 0
+			? round((($revenue - $previous) / $previous) * 100, 1) . '%'
+			: '0%';
+		$split = self::revenueByProduct('month');
+		$byKey = array();
+		foreach ((isset($split['items']) ? $split['items'] : array()) as $item) {
+			$byKey[$item['key']] = isset($item['amount']) ? (float) $item['amount'] : 0;
+		}
+		$payers = self::countPayingCustomers($cal['month_start'], $cal['month_end']);
+		$avg = $payers > 0 ? self::formatMoney($revenue / $payers) : '0';
+		return array(
+			'business' => array(
+				self::reportCard('Tổng giá trị bán trong tháng', self::formatMoney($revenue), 'Đơn chưa hủy', 'violet'),
+				self::reportCard('Biến động so với tháng trước', $delta, '', 'emerald'),
+				self::reportCard('Giá trị khóa học có phí', self::formatMoney(isset($byKey['course']) ? $byKey['course'] : 0), '', 'blue'),
+				self::reportCard('Giá trị nguyên liệu', self::formatMoney(isset($byKey['ingredient']) ? $byKey['ingredient'] : 0), '', 'amber'),
+				self::reportCard('Giá trị nhượng quyền', self::formatMoney(isset($byKey['franchise']) ? $byKey['franchise'] : 0), '', 'rose'),
+				self::reportCard('Hợp đồng nhượng quyền', (string) self::countServiceContracts($db), '', 'rose'),
+				self::reportCard('Đơn đang xử lý', (string) self::countOrdersProcessing($db), '', 'cyan'),
+				self::reportCard('Số khách trả tiền', (string) $payers, '', 'emerald'),
+				self::reportCard('Giá trị bình quân / khách', $avg, '', 'blue'),
+				self::reportCard('Mức đạt mục tiêu', 'Chưa đủ dữ liệu', 'Chưa có mục tiêu được duyệt trên CRM', 'amber'),
+			),
+			'courses' => self::courseOverviewCards($db, $cal['month_start'], $cal['month_end']),
+		);
+	}
+
+	protected static function countPayingCustomers($from, $to) {
+		$db = PearDatabase::getInstance();
+		list($notCancelSql, $excluded) = self::soNotCancelledSql('so');
+		$params = array_merge($excluded, array($from, $to));
+		$r = $db->pquery(
+			"SELECT COUNT(DISTINCT IF(so.contactid > 0, CONCAT('c', so.contactid), CONCAT('a', so.accountid))) AS c
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 WHERE $notCancelSql
+			 AND ce.createdtime >= ? AND ce.createdtime <= ?
+			 AND (so.contactid > 0 OR so.accountid > 0)",
+			$params
+		);
+		return $r ? (int) $db->query_result($r, 0, 'c') : 0;
+	}
+
+	protected static function courseOverviewCards(PearDatabase $db, $from, $to) {
+		$counts = self::leadCourseCounts($db, $from, $to);
+		return array(
+			self::reportCard('Khách trong luồng Offline', (string) $counts['offline_all'], 'Cùng tháng với doanh thu', 'blue'),
+			self::reportCard('Đã xác nhận lịch Offline', (string) $counts['offline_dated'], '', 'cyan'),
+			self::reportCard('Đã tham gia Offline', (string) $counts['offline_attend'], '', 'emerald'),
+			self::reportCard('Khách Online trong kỳ', (string) $counts['online_all'], '', 'blue'),
+			self::reportCard('Online đã điền form', (string) $counts['online_form'], '', 'cyan'),
+			self::reportCard('Hồ sơ 990k trong kỳ', (string) $counts['gd14'], '', 'violet'),
+		);
+	}
+
+	protected static function leadCourseCounts(PearDatabase $db, $from, $to) {
+		$out = array(
+			'offline_all' => 0,
+			'offline_dated' => 0,
+			'offline_attend' => 0,
+			'online_all' => 0,
+			'online_form' => 0,
+			'gd14' => 0,
+		);
+		if (!self::tableExists($db, 'bace_lead_profile')) {
+			return $out;
+		}
+		$r = $db->pquery(
+			"SELECT
+				SUM(CASE WHEN p.offline_status IS NOT NULL AND p.offline_status <> '' THEN 1 ELSE 0 END) AS offline_all,
+				SUM(CASE WHEN p.offline_status = 'offline_da_xac_nhan_lich' THEN 1 ELSE 0 END) AS offline_dated,
+				SUM(CASE WHEN p.offline_status = 'offline_da_tham_gia' THEN 1 ELSE 0 END) AS offline_attend,
+				SUM(CASE WHEN p.online_status IS NOT NULL AND p.online_status <> '' THEN 1 ELSE 0 END) AS online_all,
+				SUM(CASE WHEN p.online_status IS NOT NULL AND p.online_status <> '' AND p.online_status <> 'online_chua_dien_form' THEN 1 ELSE 0 END) AS online_form
+			 FROM vtiger_leaddetails ld
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ld.leadid AND ce.deleted = 0
+			 INNER JOIN bace_lead_profile p ON p.leadid = ld.leadid
+			 WHERE ce.createdtime >= ? AND ce.createdtime <= ?",
+			array($from, $to)
+		);
+		if ($r && $db->num_rows($r)) {
+			$row = $db->fetchByAssoc($r);
+			foreach (array('offline_all', 'offline_dated', 'offline_attend', 'online_all', 'online_form') as $key) {
+				$out[$key] = isset($row[$key]) ? (int) $row[$key] : 0;
+			}
+		}
+		if (self::tableExists($db, 'vtiger_freetags') && self::tableExists($db, 'vtiger_freetagged_objects')) {
+			$g = $db->pquery(
+				"SELECT COUNT(DISTINCT ld.leadid) AS c
+				 FROM vtiger_leaddetails ld
+				 INNER JOIN vtiger_crmentity ce ON ce.crmid = ld.leadid AND ce.deleted = 0
+				 INNER JOIN vtiger_freetagged_objects fo ON fo.object_id = ld.leadid AND fo.module = 'Leads'
+				 INNER JOIN vtiger_freetags t ON t.id = fo.tag_id
+				 WHERE ce.createdtime >= ? AND ce.createdtime <= ?
+				 AND (t.tag LIKE 'gd14\\_%' OR t.tag IN ('990k','990','gd14_990'))",
+				array($from, $to)
+			);
+			$out['gd14'] = $g ? (int) $db->query_result($g, 0, 'c') : 0;
+		}
+		return $out;
+	}
+
+	protected static function monthOrderFacts(PearDatabase $db, $from, $to, $ownerId = 0) {
+		$empty = array('ingredient_customers' => 0, 'cross_orders' => 0, 'cost' => 0, 'study_to_material' => 0);
+		list($notCancelSql, $excluded) = self::soNotCancelledSql('so');
+		$ownerSql = '';
+		$params = $excluded;
+		if ($ownerId > 0) {
+			$ownerSql = ' AND ce.smownerid = ?';
+			$params[] = (int) $ownerId;
+		}
+		$params[] = $from;
+		$params[] = $to;
+		$costSql = self::columnExists($db, 'vtiger_products', 'purchase_cost')
+			? 'SUM(ip.quantity * COALESCE(pr.purchase_cost, 0))'
+			: '0';
+		$r = $db->pquery(
+			"SELECT so.salesorderid, so.contactid,
+				COALESCE(pr.productname, sv.servicename, '') AS pname,
+				COALESCE(pr.productcategory, '') AS pcat,
+				COALESCE(sv.servicecategory, '') AS scat,
+				$costSql AS cost
+			 FROM vtiger_inventoryproductrel ip
+			 INNER JOIN vtiger_salesorder so ON so.salesorderid = ip.id
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 LEFT JOIN vtiger_products pr ON pr.productid = ip.productid
+			 LEFT JOIN vtiger_service sv ON sv.serviceid = ip.productid
+			 WHERE $notCancelSql $ownerSql
+			 AND ce.createdtime >= ? AND ce.createdtime <= ?
+			 GROUP BY so.salesorderid, so.contactid, ip.productid,
+			          COALESCE(pr.productname, sv.servicename, ''),
+			          COALESCE(pr.productcategory, ''), COALESCE(sv.servicecategory, '')",
+			$params
+		);
+		if (!$r) {
+			return $empty;
+		}
+		$orders = array();
+		$ingredientContacts = array();
+		$cost = 0;
+		while ($row = $db->fetchByAssoc($r)) {
+			$id = (int) $row['salesorderid'];
+			$bucket = self::classifyProductBucket((string) $row['pname'], (string) $row['pcat'], (string) $row['scat']);
+			if (!isset($orders[$id])) {
+				$orders[$id] = array('contact' => (int) $row['contactid'], 'buckets' => array());
+			}
+			$orders[$id]['buckets'][$bucket] = true;
+			$cost += (float) $row['cost'];
+			if ($bucket === 'ingredient' && (int) $row['contactid'] > 0) {
+				$ingredientContacts[(int) $row['contactid']] = true;
+			}
+		}
+		$cross = 0;
+		foreach ($orders as $order) {
+			if (!empty($order['buckets']['course']) && !empty($order['buckets']['ingredient'])) {
+				$cross++;
+			}
+		}
+		return array(
+			'ingredient_customers' => count($ingredientContacts),
+			'cross_orders' => $cross,
+			'cost' => $cost,
+			'study_to_material' => self::countStudyToMaterial($db, array_keys($ingredientContacts)),
+		);
+	}
+
+	protected static function countStudyToMaterial(PearDatabase $db, array $contactIds) {
+		if (empty($contactIds) || !self::tableExists($db, 'bace_lead_profile') || !self::columnExists($db, 'bace_lead_profile', 'contact_id')) {
+			return 0;
+		}
+		$ids = array_values(array_unique(array_map('intval', $contactIds)));
+		$ph = implode(',', array_fill(0, count($ids), '?'));
+		$r = $db->pquery(
+			"SELECT COUNT(DISTINCT p.contact_id) AS c
+			 FROM bace_lead_profile p
+			 WHERE p.contact_id IN ($ph)
+			 AND (
+				p.offline_status = 'offline_da_tham_gia'
+				OR (p.online_status IS NOT NULL AND p.online_status <> '' AND COALESCE(p.edubit_progress_pct, 0) >= 100)
+			 )",
+			$ids
+		);
+		return $r ? (int) $db->query_result($r, 0, 'c') : 0;
+	}
+
+	protected static function monthMoneyFacts(PearDatabase $db, $from, $to, $ownerId = 0) {
+		$out = array('vat' => 0, 'discount' => 0);
+		list($notCancelSql, $excluded) = self::soNotCancelledSql('so');
+		$ownerSql = '';
+		$params = $excluded;
+		if ($ownerId > 0) {
+			$ownerSql = ' AND ce.smownerid = ?';
+			$params[] = (int) $ownerId;
+		}
+		$params[] = $from;
+		$params[] = $to;
+		$vatExpr = self::columnExists($db, 'vtiger_salesorder', 'pre_tax_total')
+			? 'SUM(GREATEST(COALESCE(so.total, 0) - COALESCE(so.pre_tax_total, 0), 0))'
+			: '0';
+		$discountExpr = self::columnExists($db, 'vtiger_salesorder', 'discount_amount')
+			? 'SUM(COALESCE(so.discount_amount, 0))'
+			: '0';
+		$r = $db->pquery(
+			"SELECT $vatExpr AS vat, $discountExpr AS discount
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 WHERE $notCancelSql $ownerSql
+			 AND ce.createdtime >= ? AND ce.createdtime <= ?",
+			$params
+		);
+		if ($r && $db->num_rows($r)) {
+			$out['vat'] = (float) $db->query_result($r, 0, 'vat');
+			$out['discount'] = (float) $db->query_result($r, 0, 'discount');
+		}
+		return $out;
+	}
+
+	protected static function countOpenAlerts(PearDatabase $db, $ownerId = 0) {
+		if (!self::tableExists($db, 'mk_nl_alerts')) {
+			return 0;
+		}
+		if ($ownerId > 0) {
+			$r = $db->pquery(
+				"SELECT COUNT(*) AS c
+				 FROM mk_nl_alerts a
+				 INNER JOIN vtiger_crmentity ce ON ce.crmid = a.contact_id AND ce.deleted = 0
+				 WHERE a.status NOT IN ('done','na') AND ce.smownerid = ?",
+				array((int) $ownerId)
+			);
+		} else {
+			$r = $db->pquery(
+				"SELECT COUNT(*) AS c FROM mk_nl_alerts WHERE status NOT IN ('done','na')",
+				array()
+			);
+		}
+		return $r ? (int) $db->query_result($r, 0, 'c') : 0;
+	}
+
+	protected static function tierCardValue(PearDatabase $db, $monthEnd) {
+		if (!self::tableExists($db, 'mk_nl_settings')) {
+			return null;
+		}
+		$gold = null;
+		$silver = null;
+		$r = $db->pquery(
+			"SELECT setting_key, setting_value FROM mk_nl_settings WHERE setting_key IN ('tier_gold','tier_silver')",
+			array()
+		);
+		if ($r) {
+			while ($row = $db->fetchByAssoc($r)) {
+				$value = trim((string) $row['setting_value']);
+				if ($value === '' || !is_numeric(str_replace(',', '.', $value))) {
+					continue;
+				}
+				$num = (float) str_replace(',', '.', $value);
+				if ($row['setting_key'] === 'tier_gold') {
+					$gold = $num;
+				} else {
+					$silver = $num;
+				}
+			}
+		}
+		if ($gold === null && $silver === null) {
+			return null;
+		}
+		$from = date('Y-m-d 00:00:00', strtotime($monthEnd . ' -90 days'));
+		list($notCancelSql, $excluded) = self::soNotCancelledSql('so');
+		$params = array_merge($excluded, array($from, $monthEnd));
+		$q = $db->pquery(
+			"SELECT so.contactid, SUM(COALESCE(so.total, 0)) AS amount
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 WHERE $notCancelSql AND so.contactid > 0
+			 AND ce.createdtime >= ? AND ce.createdtime <= ?
+			 AND (LOWER(COALESCE(so.sostatus,'')) LIKE '%deliver%'
+			   OR LOWER(COALESCE(so.sostatus,'')) LIKE '%giao%'
+			   OR LOWER(COALESCE(so.sostatus,'')) = 'paid')
+			 GROUP BY so.contactid",
+			$params
+		);
+		$counts = array('Đồng' => 0, 'Bạc' => 0, 'Vàng' => 0);
+		if ($q) {
+			while ($row = $db->fetchByAssoc($q)) {
+				$amount = (float) $row['amount'];
+				if ($gold !== null && $amount >= $gold) {
+					$counts['Vàng']++;
+				} elseif ($silver !== null && $amount >= $silver) {
+					$counts['Bạc']++;
+				} elseif ($silver !== null) {
+					$counts['Đồng']++;
+				}
+			}
+		}
+		return 'Đồng ' . $counts['Đồng'] . ' · Bạc ' . $counts['Bạc'] . ' · Vàng ' . $counts['Vàng'];
+	}
+
+	protected static function staffResultCard(PearDatabase $db) {
+		$split = self::revenueBySale('month', true);
+		$items = isset($split['items']) ? $split['items'] : array();
+		if (!$items) {
+			return array('value' => '0', 'hint' => 'Chưa có đơn trong tháng');
+		}
+		$top = $items[0];
+		return array(
+			'value' => self::formatMoney(isset($top['revenue']) ? $top['revenue'] : 0),
+			'hint' => (isset($top['name']) ? $top['name'] : 'Nhân viên') . ' · ' . count($items) . ' nhân viên có đơn',
+		);
+	}
+
+	protected static function overdueTaskFacts(PearDatabase $db) {
+		if (!self::tableExists($db, 'vtiger_activity') || !self::columnExists($db, 'vtiger_activity', 'due_date')) {
+			return array('tasks' => 0, 'hint' => '');
+		}
+		$r = $db->pquery(
+			"SELECT COUNT(*) AS tasks, COUNT(DISTINCT ce.smownerid) AS people
+			 FROM vtiger_activity a
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = a.activityid AND ce.deleted = 0
+			 WHERE a.activitytype = 'Task'
+			 AND a.due_date IS NOT NULL AND a.due_date <> '' AND a.due_date < CURDATE()
+			 AND (a.taskstatus IS NULL OR a.taskstatus NOT IN ('Completed','Complete','Hoàn thành','Cancelled','Deferred'))",
+			array()
+		);
+		$tasks = $r ? (int) $db->query_result($r, 0, 'tasks') : 0;
+		$people = $r ? (int) $db->query_result($r, 0, 'people') : 0;
+		return array('tasks' => $tasks, 'hint' => $people . ' nhân viên');
+	}
+
+	protected static function atRiskCustomerCount(PearDatabase $db, $from, $to) {
+		list($notCancelSql, $excluded) = self::soNotCancelledSql('so');
+		$r = $db->pquery(
+			"SELECT so.contactid,
+				SUM(COALESCE(so.total, 0)) AS lifetime,
+				SUM(CASE WHEN ce.createdtime >= ? AND ce.createdtime <= ? THEN 1 ELSE 0 END) AS in_month
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 WHERE $notCancelSql AND so.contactid > 0
+			 GROUP BY so.contactid",
+			array_merge(array($from, $to), $excluded)
+		);
+		if (!$r) {
+			return 0;
+		}
+		$rows = array();
+		$sum = 0;
+		while ($row = $db->fetchByAssoc($r)) {
+			$rows[] = $row;
+			$sum += (float) $row['lifetime'];
+		}
+		if (!$rows) {
+			return 0;
+		}
+		$avg = $sum / count($rows);
+		$risk = 0;
+		foreach ($rows as $row) {
+			if ((float) $row['lifetime'] >= $avg && (int) $row['in_month'] === 0) {
+				$risk++;
+			}
+		}
+		return $risk;
+	}
+
+	protected static function biggestMover(PearDatabase $db, $from, $to, $prevStart, $prevEnd) {
+		list($notCancelSql, $excluded) = self::soNotCancelledSql('so');
+		$params = array_merge(array($from, $to, $prevStart, $prevEnd), $excluded);
+		$r = $db->pquery(
+			"SELECT so.contactid,
+				TRIM(CONCAT(COALESCE(cd.firstname,''), ' ', COALESCE(cd.lastname,''))) AS name,
+				SUM(CASE WHEN ce.createdtime >= ? AND ce.createdtime <= ? THEN COALESCE(so.total, 0) ELSE 0 END) AS cur_amt,
+				SUM(CASE WHEN ce.createdtime >= ? AND ce.createdtime <= ? THEN COALESCE(so.total, 0) ELSE 0 END) AS prev_amt
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 LEFT JOIN vtiger_contactdetails cd ON cd.contactid = so.contactid
+			 WHERE $notCancelSql AND so.contactid > 0
+			 GROUP BY so.contactid, cd.firstname, cd.lastname",
+			$params
+		);
+		$best = null;
+		if ($r) {
+			while ($row = $db->fetchByAssoc($r)) {
+				$delta = (float) $row['cur_amt'] - (float) $row['prev_amt'];
+				if ($best === null || abs($delta) > abs($best['delta'])) {
+					$name = trim((string) $row['name']);
+					$best = array('name' => $name !== '' ? $name : ('KH #' . (int) $row['contactid']), 'delta' => $delta);
+				}
+			}
+		}
+		if ($best === null || $best['delta'] == 0) {
+			return array('value' => '0', 'hint' => 'Không đổi so với tháng trước');
+		}
+		$sign = $best['delta'] > 0 ? '+' : '';
+		return array('value' => $best['name'], 'hint' => $sign . self::formatMoney($best['delta']));
+	}
+
+	protected static function countPaidNotDelivered(PearDatabase $db) {
+		if (!self::tableExists($db, 'vtiger_invoice') || !self::columnExists($db, 'vtiger_invoice', 'salesorderid')) {
+			return 0;
+		}
+		list($notCancelSql, $excluded) = self::soNotCancelledSql('so');
+		$paidSql = self::columnExists($db, 'vtiger_invoice', 'balance')
+			? "(LOWER(COALESCE(inv.invoicestatus,'')) IN ('paid','đã thanh toán','da thanh toan') OR (COALESCE(inv.total,0) > 0 AND COALESCE(inv.balance,0) <= 0))"
+			: "LOWER(COALESCE(inv.invoicestatus,'')) IN ('paid','đã thanh toán','da thanh toan')";
+		$r = $db->pquery(
+			"SELECT COUNT(DISTINCT so.salesorderid) AS c
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 INNER JOIN vtiger_invoice inv ON inv.salesorderid = so.salesorderid
+			 INNER JOIN vtiger_crmentity ie ON ie.crmid = inv.invoiceid AND ie.deleted = 0
+			 WHERE $notCancelSql
+			 AND NOT (LOWER(COALESCE(so.sostatus,'')) LIKE '%deliver%'
+			       OR LOWER(COALESCE(so.sostatus,'')) LIKE '%giao%'
+			       OR LOWER(COALESCE(so.sostatus,'')) = 'paid')
+			 AND $paidSql",
+			$excluded
+		);
+		return $r ? (int) $db->query_result($r, 0, 'c') : 0;
+	}
+
+	protected static function countOpenVouchers(PearDatabase $db) {
+		if (!self::tableExists($db, 'mk_misa_voucher')) {
+			return 0;
+		}
+		$r = $db->pquery(
+			"SELECT COUNT(*) AS c FROM mk_misa_voucher WHERE status IN ('pending','active')",
+			array()
+		);
+		return $r ? (int) $db->query_result($r, 0, 'c') : 0;
+	}
+
+	protected static function deliveryFacts(PearDatabase $db, $from, $to) {
+		if (!self::tableExists($db, 'vtiger_goodsissue')
+			|| !self::columnExists($db, 'vtiger_goodsissue', 'salesorder_id')
+			|| !self::columnExists($db, 'vtiger_goodsissue', 'status')
+			|| !self::columnExists($db, 'vtiger_goodsissue', 'issued_date')
+			|| !self::columnExists($db, 'vtiger_salesorder', 'duedate')) {
+			return null;
+		}
+		$fromDay = substr($from, 0, 10);
+		$toDay = substr($to, 0, 10);
+		$r = $db->pquery(
+			"SELECT
+				SUM(CASE
+					WHEN gi.status = 'completed'
+					 AND (so.duedate IS NULL OR so.duedate = '' OR so.duedate = '0000-00-00' OR gi.issued_date <= so.duedate)
+					THEN 1 ELSE 0 END) AS ontime,
+				SUM(CASE
+					WHEN so.duedate IS NOT NULL AND so.duedate <> '' AND so.duedate <> '0000-00-00'
+					 AND (
+						(gi.status = 'completed' AND gi.issued_date > so.duedate)
+						OR (gi.status <> 'completed' AND so.duedate < ?)
+					 )
+					THEN 1 ELSE 0 END) AS late
+			 FROM vtiger_goodsissue gi
+			 INNER JOIN vtiger_salesorder so ON so.salesorderid = gi.salesorder_id
+			 WHERE gi.deleted = 0 AND gi.salesorder_id > 0
+			 AND (
+				(gi.issued_date >= ? AND gi.issued_date <= ?)
+				OR (so.duedate >= ? AND so.duedate <= ?)
+			 )",
+			array($toDay, $fromDay, $toDay, $fromDay, $toDay)
+		);
+		if (!$r) {
+			return array('ontime' => 0, 'late' => 0);
+		}
+		return array(
+			'ontime' => (int) $db->query_result($r, 0, 'ontime'),
+			'late' => (int) $db->query_result($r, 0, 'late'),
+		);
+	}
+
+	public static function getRoleBoards($persona, $userId = 0) {
+		$persona = (string) $persona;
+		$userId = (int) $userId;
+		$db = PearDatabase::getInstance();
+		$cal = self::businessCalendar($db);
+		$from = $cal['month_start'];
+		$to = $cal['month_end'];
+		$prevStart = date('Y-m-d 00:00:00', strtotime($from . ' -1 month'));
+		$prevEnd = date('Y-m-d 23:59:59', strtotime($from . ' -1 second'));
+		$ownOrders = $userId > 0 ? self::countOwnedOrders($userId) : 0;
+		$companyLines = self::monthOrderFacts($db, $from, $to, 0);
+		$ownLines = $userId > 0 ? self::monthOrderFacts($db, $from, $to, $userId) : $companyLines;
+		$money = self::monthMoneyFacts($db, $from, $to, 0);
+		$staff = self::staffResultCard($db);
+		$overdue = self::overdueTaskFacts($db);
+		$risk = self::atRiskCustomerCount($db, $from, $to);
+		$mover = self::biggestMover($db, $from, $to, $prevStart, $prevEnd);
+		$delivery = self::deliveryFacts($db, $from, $to);
+		$tier = self::tierCardValue($db, $to);
+		$revenue = self::monthRevenue($db, $from, $to);
+		$margin = $revenue - (float) $companyLines['cost'];
+		$channels = self::monthOrderChannels($db, $from, $to);
+		$newLeads = self::countNewLeads($db, $from, $to);
+		$agingLeads = self::countAgingLeads($db, 7);
+		$myLeads = $userId > 0 ? self::countOwnedLeads($db, $userId) : $newLeads;
+		$callsDue = $userId > 0 ? self::countCallsDue($db, $userId) : self::countCallsDue($db, 0);
+		$gd11Rate = self::closeRateByTag($db, $from, $to, 'mien_phi_offline', 'offline_da_tham_gia');
+		$gd14Rate = self::closeRateByTagPrefix($db, $from, $to, 'gd14_%', 'gd14_da_tham_gia');
+		$receivable = self::sumInvoiceBalance($db);
+		$stock = self::warehouseStockFacts($db);
+		$whTickets = self::warehouseTicketFacts($db);
+		$boards = array(
+			'ceo' => array(
+				'title' => 'CEO',
+				'cards' => array(
+					self::reportCard('Doanh thu tháng', self::formatMoney($revenue), 'Tổng đơn chưa hủy', 'blue'),
+					self::reportCard('Lãi gộp', self::formatMoney($margin), 'Doanh thu trừ giá vốn trên đơn', 'emerald'),
+					self::reportCard('Lead mới', (string) $newLeads, 'Hồ sơ tạo trong tháng', 'cyan'),
+					self::reportCard('Đơn theo kênh', $channels['label'], 'Nhượng quyền và bán lẻ theo mã khách', 'violet'),
+				),
+			),
+			'sale' => array(
+				'title' => 'Sale',
+				'cards' => array(
+					self::reportCard('Lead của tôi', (string) $myLeads, 'Hồ sơ chưa chuyển đổi', 'cyan'),
+					self::reportCard('Việc gọi đến hạn', (string) $callsDue, 'Cuộc gọi hoặc việc đến hạn hôm nay', 'amber'),
+					self::reportCard('Đơn của tôi trong tháng', (string) $ownOrders, '', 'blue'),
+					self::reportCard('Khách tôi phụ trách mua nguyên liệu', (string) $ownLines['ingredient_customers'], 'Khách có đơn nguyên liệu trong tháng', 'emerald'),
+					self::reportCard('Cảnh báo cần xử lý', (string) self::countOpenAlerts($db, $userId), 'Cảnh báo nguyên liệu chưa xong', 'amber'),
+					self::reportCard('Chuyển từ học sang mua nguyên liệu', (string) $ownLines['study_to_material'], 'Đã học và có đơn nguyên liệu', 'cyan'),
+					$tier === null
+						? self::reportCard('Ngưỡng Đồng / Bạc / Vàng', 'Chưa đủ dữ liệu', 'Chờ Nguyên Khoa duyệt ngưỡng', 'violet')
+						: self::reportCard('Ngưỡng Đồng / Bạc / Vàng', $tier, 'Theo ngưỡng đã lưu', 'violet'),
+					self::reportCard('VAT', self::formatMoney($money['vat']), 'Thuế trên đơn chưa hủy', 'rose'),
+					self::reportCard('Giá vốn', self::formatMoney($companyLines['cost']), 'Giá vốn sản phẩm trên đơn', 'amber'),
+					self::reportCard('Bán chéo', (string) $companyLines['cross_orders'], 'Đơn có cả khóa học và nguyên liệu', 'blue'),
+				),
+			),
+			'manager' => array(
+				'title' => 'Quản lý',
+				'cards' => array(
+					self::reportCard('Kết quả theo nhân viên', $staff['value'], $staff['hint'], 'blue'),
+					self::reportCard('Lead tồn quá 7 ngày', (string) $agingLeads, 'Chưa chuyển đổi, tạo hơn 7 ngày', 'amber'),
+					self::reportCard('Tỉ lệ chốt giai đoạn 1.1', $gd11Rate, 'Đã tham gia / lead Offline trong tháng', 'emerald'),
+					self::reportCard('Tỉ lệ chốt lớp 990k', $gd14Rate, 'Đã tham gia / lead 990k trong tháng', 'cyan'),
+					self::reportCard('Nhiệm vụ quá hạn theo nhân viên', (string) $overdue['tasks'], $overdue['hint'], 'amber'),
+					self::reportCard('Khách lớn có rủi ro', (string) $risk, 'Khách mua nhiều nhưng không có đơn trong tháng', 'rose'),
+					self::reportCard('Khách / mặt hàng biến động nhiều nhất', $mover['value'], $mover['hint'], 'violet'),
+				),
+			),
+			'accountant' => array(
+				'title' => 'Kế toán',
+				'cards' => array(
+					self::reportCard('Phải thu', $receivable === null ? 'Chưa đủ dữ liệu' : self::formatMoney($receivable), 'Số dư hóa đơn còn lại', 'blue'),
+					self::reportCard('Đơn đã thu, chưa giao xong', (string) self::countPaidNotDelivered($db), 'Hóa đơn đã thu, đơn chưa giao', 'emerald'),
+					self::reportCard('Chứng từ chưa hoàn tất', (string) self::countOpenVouchers($db), 'Đề nghị hóa đơn còn chờ', 'amber'),
+					self::reportCard('Chiết khấu đơn hàng', self::formatMoney($money['discount']), 'Chiết khấu trên đơn trong tháng', 'violet'),
+					self::reportCard('Quà theo hạng', 'Chưa đủ dữ liệu', '', 'rose'),
+				),
+			),
+			'warehouse' => array(
+				'title' => 'Kho',
+				'cards' => array(
+					self::reportCard('Tồn kho', $stock === null ? 'Chưa đủ dữ liệu' : (string) $stock['qty'], 'Tổng số lượng đang lưu', 'blue'),
+					self::reportCard('Lô sắp hết hạn', $stock === null ? 'Chưa đủ dữ liệu' : (string) $stock['expiring'], 'Hết hạn trong 30 ngày', 'rose'),
+					$delivery === null
+						? self::reportCard('Giao đúng hạn', 'Chưa đủ dữ liệu', '', 'emerald')
+						: self::reportCard('Giao đúng hạn', (string) $delivery['ontime'], 'Phiếu xuất hoàn tất đúng hạn đơn', 'emerald'),
+					$delivery === null
+						? self::reportCard('Đơn giao trễ', 'Chưa đủ dữ liệu', '', 'amber')
+						: self::reportCard('Đơn giao trễ', (string) $delivery['late'], 'Quá hạn giao trên phiếu xuất', 'amber'),
+					$whTickets === null
+						? self::reportCard('Giao thiếu / sai / hư', 'Chưa đủ dữ liệu', 'Chưa có bảng ticket', 'rose')
+						: self::reportCard('Giao thiếu / sai / hư', (string) $whTickets['incidents'], 'Ticket đang mở: thiếu, sai, hư, lỗi, trả hàng', 'rose'),
+					$whTickets === null
+						? self::reportCard('Khiếu nại liên quan giao hàng', 'Chưa đủ dữ liệu', 'Chưa có bảng ticket', 'violet')
+						: self::reportCard('Khiếu nại liên quan giao hàng', (string) $whTickets['complaints'], 'Ticket khiếu nại đang mở', 'violet'),
+				),
+			),
+		);
+		if ($persona === 'admin' || $persona === 'ceo' || $persona === 'bgd') {
+			return $boards;
+		}
+		$map = array(
+			'supervisor' => 'manager',
+			'sale_manager' => 'manager',
+			'sale' => 'sale',
+			'accountant' => 'accountant',
+			'chief_accountant' => 'accountant',
+			'warehouse' => 'warehouse',
+			'supply' => 'warehouse',
+		);
+		$key = isset($map[$persona]) ? $map[$persona] : '';
+		if ($key === '' || !isset($boards[$key])) {
+			return array();
+		}
+		return array($key => $boards[$key]);
+	}
+
+	protected static function monthRevenue(PearDatabase $db, $from, $to) {
+		list($notCancelSql, $excluded) = self::soNotCancelledSql('so');
+		$params = array_merge($excluded, array($from, $to));
+		$r = $db->pquery(
+			"SELECT COALESCE(SUM(so.total), 0) AS c
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 WHERE $notCancelSql AND ce.createdtime >= ? AND ce.createdtime <= ?",
+			$params
+		);
+		return $r ? (float) $db->query_result($r, 0, 'c') : 0;
+	}
+
+	protected static function monthOrderChannels(PearDatabase $db, $from, $to) {
+		list($notCancelSql, $excluded) = self::soNotCancelledSql('so');
+		$params = array_merge($excluded, array($from, $to));
+		$code = "UPPER(TRIM(IFNULL(so.customerno,'')))";
+		$r = $db->pquery(
+			"SELECT
+				SUM(CASE WHEN $code LIKE 'TUIBAO%' THEN 1 ELSE 0 END) AS franchise,
+				SUM(CASE WHEN $code LIKE 'KL%' OR $code LIKE 'MIUTEA%' THEN 1 ELSE 0 END) AS retail
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 WHERE $notCancelSql AND ce.createdtime >= ? AND ce.createdtime <= ?",
+			$params
+		);
+		$franchise = $r ? (int) $db->query_result($r, 0, 'franchise') : 0;
+		$retail = $r ? (int) $db->query_result($r, 0, 'retail') : 0;
+		return array('label' => 'Nhượng quyền ' . $franchise . ' · Bán lẻ ' . $retail);
+	}
+
+	protected static function countNewLeads(PearDatabase $db, $from, $to) {
+		$r = $db->pquery(
+			"SELECT COUNT(*) AS c FROM vtiger_crmentity
+			 WHERE deleted = 0 AND setype = 'Leads' AND createdtime >= ? AND createdtime <= ?",
+			array($from, $to)
+		);
+		return $r ? (int) $db->query_result($r, 0, 'c') : 0;
+	}
+
+	protected static function countAgingLeads(PearDatabase $db, $days) {
+		if (!self::columnExists($db, 'vtiger_leaddetails', 'converted')) {
+			return 0;
+		}
+		$r = $db->pquery(
+			"SELECT COUNT(*) AS c
+			 FROM vtiger_crmentity ce
+			 INNER JOIN vtiger_leaddetails ld ON ld.leadid = ce.crmid
+			 WHERE ce.deleted = 0 AND ce.setype = 'Leads' AND COALESCE(ld.converted, 0) = 0
+			 AND ce.createdtime < DATE_SUB(NOW(), INTERVAL " . (int) $days . " DAY)",
+			array()
+		);
+		return $r ? (int) $db->query_result($r, 0, 'c') : 0;
+	}
+
+	protected static function countOwnedLeads(PearDatabase $db, $userId) {
+		if (!self::columnExists($db, 'vtiger_leaddetails', 'converted')) {
+			return 0;
+		}
+		$r = $db->pquery(
+			"SELECT COUNT(*) AS c
+			 FROM vtiger_crmentity ce
+			 INNER JOIN vtiger_leaddetails ld ON ld.leadid = ce.crmid
+			 WHERE ce.deleted = 0 AND ce.setype = 'Leads' AND COALESCE(ld.converted, 0) = 0
+			 AND ce.smownerid = ?",
+			array((int) $userId)
+		);
+		return $r ? (int) $db->query_result($r, 0, 'c') : 0;
+	}
+
+	protected static function countCallsDue(PearDatabase $db, $userId) {
+		if (!self::tableExists($db, 'vtiger_activity') || !self::columnExists($db, 'vtiger_activity', 'date_start')) {
+			return 0;
+		}
+		$ownerSql = '';
+		$params = array(date('Y-m-d'));
+		if ($userId > 0) {
+			$ownerSql = ' AND ce.smownerid = ?';
+			$params[] = (int) $userId;
+		}
+		$statusSql = self::columnExists($db, 'vtiger_activity', 'status')
+			? " AND COALESCE(a.status,'') NOT IN ('Completed','Deferred','Cancelled','Held')"
+			: '';
+		$r = $db->pquery(
+			"SELECT COUNT(*) AS c
+			 FROM vtiger_activity a
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = a.activityid AND ce.deleted = 0
+			 WHERE a.date_start <= ? $statusSql $ownerSql",
+			$params
+		);
+		return $r ? (int) $db->query_result($r, 0, 'c') : 0;
+	}
+
+	protected static function closeRateByTag(PearDatabase $db, $from, $to, $entryTag, $doneTag) {
+		if (!self::tableExists($db, 'vtiger_freetags') || !self::tableExists($db, 'vtiger_freetagged_objects')) {
+			return 'Chưa đủ dữ liệu';
+		}
+		$sql = "SELECT COUNT(DISTINCT ce.crmid) AS c
+			 FROM vtiger_crmentity ce
+			 INNER JOIN vtiger_freetagged_objects fo ON fo.object_id = ce.crmid AND fo.module = 'Leads'
+			 INNER JOIN vtiger_freetags t ON t.id = fo.tag_id
+			 WHERE ce.deleted = 0 AND ce.setype = 'Leads'
+			 AND t.tag = ? AND ce.createdtime >= ? AND ce.createdtime <= ?";
+		$entry = $db->pquery($sql, array($entryTag, $from, $to));
+		$done = $db->pquery($sql, array($doneTag, $from, $to));
+		$entryN = $entry ? (int) $db->query_result($entry, 0, 'c') : 0;
+		$doneN = $done ? (int) $db->query_result($done, 0, 'c') : 0;
+		if ($entryN <= 0) {
+			return '0%';
+		}
+		return (string) round(($doneN / $entryN) * 100) . '%';
+	}
+
+	protected static function closeRateByTagPrefix(PearDatabase $db, $from, $to, $prefix, $doneTag) {
+		if (!self::tableExists($db, 'vtiger_freetags') || !self::tableExists($db, 'vtiger_freetagged_objects')) {
+			return 'Chưa đủ dữ liệu';
+		}
+		$base = "SELECT COUNT(DISTINCT ce.crmid) AS c
+			 FROM vtiger_crmentity ce
+			 INNER JOIN vtiger_freetagged_objects fo ON fo.object_id = ce.crmid AND fo.module = 'Leads'
+			 INNER JOIN vtiger_freetags t ON t.id = fo.tag_id
+			 WHERE ce.deleted = 0 AND ce.setype = 'Leads'
+			 AND ce.createdtime >= ? AND ce.createdtime <= ? AND ";
+		$entry = $db->pquery($base . 't.tag LIKE ?', array($from, $to, $prefix));
+		$done = $db->pquery($base . 't.tag = ?', array($from, $to, $doneTag));
+		$entryN = $entry ? (int) $db->query_result($entry, 0, 'c') : 0;
+		$doneN = $done ? (int) $db->query_result($done, 0, 'c') : 0;
+		if ($entryN <= 0) {
+			return '0%';
+		}
+		return (string) round(($doneN / $entryN) * 100) . '%';
+	}
+
+	protected static function sumInvoiceBalance(PearDatabase $db) {
+		if (!self::tableExists($db, 'vtiger_invoice') || !self::columnExists($db, 'vtiger_invoice', 'balance')) {
+			return null;
+		}
+		$r = $db->pquery(
+			"SELECT COALESCE(SUM(inv.balance), 0) AS c
+			 FROM vtiger_invoice inv
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = inv.invoiceid AND ce.deleted = 0
+			 WHERE COALESCE(inv.balance, 0) > 0",
+			array()
+		);
+		return $r ? (float) $db->query_result($r, 0, 'c') : 0;
+	}
+
+	protected static function warehouseStockFacts(PearDatabase $db) {
+		if (!self::tableExists($db, 'vtiger_warehouse_stock') || !self::columnExists($db, 'vtiger_warehouse_stock', 'quantity')) {
+			return null;
+		}
+		$expSql = self::columnExists($db, 'vtiger_warehouse_stock', 'expired_date')
+			? "SUM(CASE WHEN expired_date IS NOT NULL AND expired_date <> '' AND expired_date <> '0000-00-00'
+				AND expired_date >= CURDATE() AND expired_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+				AND COALESCE(quantity, 0) > 0 THEN 1 ELSE 0 END)"
+			: '0';
+		$r = $db->pquery(
+			"SELECT COALESCE(SUM(quantity), 0) AS qty, $expSql AS expiring FROM vtiger_warehouse_stock",
+			array()
+		);
+		if (!$r) {
+			return array('qty' => 0, 'expiring' => 0);
+		}
+		return array(
+			'qty' => (int) $db->query_result($r, 0, 'qty'),
+			'expiring' => (int) $db->query_result($r, 0, 'expiring'),
+		);
+	}
+
+	/**
+	 * Open support tickets that feed the warehouse board.
+	 * Incidents: hàng lỗi, giao thiếu, giao sai, hàng hư, trả hàng.
+	 * Complaints: khiếu nại. Closed tickets are finished and not counted.
+	 *
+	 * @return array{incidents:int,complaints:int}|null
+	 */
+	protected static function warehouseTicketFacts(PearDatabase $db) {
+		if (!self::tableExists($db, 'tickets')) {
+			return null;
+		}
+		$serviceFile = 'modules/HelpDesk/models/TicketService.php';
+		if (is_file($serviceFile)) {
+			require_once $serviceFile;
+			if (class_exists('HelpDesk_TicketService')) {
+				try {
+					new HelpDesk_TicketService();
+				} catch (Exception $e) {
+					// Keep counting with the columns that already exist.
+				}
+			}
+		}
+		if (!self::columnExists($db, 'tickets', 'issue_type')
+			|| !self::columnExists($db, 'tickets', 'status')) {
+			return null;
+		}
+		$r = $db->pquery(
+			"SELECT
+				COALESCE(SUM(CASE WHEN issue_type IN ('hang_loi','giao_thieu','giao_sai','hang_hu','tra_hang')
+					AND status <> 'Closed' THEN 1 ELSE 0 END), 0) AS incidents,
+				COALESCE(SUM(CASE WHEN issue_type = 'khieu_nai'
+					AND status <> 'Closed' THEN 1 ELSE 0 END), 0) AS complaints
+			 FROM tickets",
+			array()
+		);
+		if (!$r) {
+			return array('incidents' => 0, 'complaints' => 0);
+		}
+		return array(
+			'incidents' => (int) $db->query_result($r, 0, 'incidents'),
+			'complaints' => (int) $db->query_result($r, 0, 'complaints'),
+		);
+	}
+
+	protected static function reportCard($label, $value, $hint = '', $tone = '') {
+		$value = (string) $value;
+		return array(
+			'label' => $label,
+			'value' => $value,
+			'hint' => $hint,
+			'tone' => $tone,
+			'missing' => ($value === 'Chưa đủ dữ liệu'),
+		);
+	}
+
+	protected static function formatMoney($amount) {
+		return number_format((float) $amount, 0, ',', '.');
+	}
+
+	protected static function countOwnedOrders($userId) {
+		$db = PearDatabase::getInstance();
+		$cal = self::businessCalendar($db);
+		list($notCancelSql, $excluded) = self::soNotCancelledSql('so');
+		$params = array_merge(array((int) $userId), $excluded, array($cal['month_start'], $cal['month_end']));
+		$r = $db->pquery(
+			"SELECT COUNT(*) AS c FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 WHERE ce.smownerid = ? AND $notCancelSql
+			 AND ce.createdtime >= ? AND ce.createdtime <= ?",
+			$params
+		);
+		return $r ? (int) $db->query_result($r, 0, 'c') : 0;
+	}
+
 	/**
 	 * @param string $section customers|leads|revenue|quotes|orders|franchise
 	 * @param array $opts
@@ -993,12 +1831,1431 @@ class Home_AdminKpiService {
 	 * @return array
 	 */
 	public static function getWidgets(array $chartOpts = array()) {
+		self::setStagePeriod(
+			isset($chartOpts['stage_period']) ? $chartOpts['stage_period'] : 'month',
+			isset($chartOpts['stage_offset']) ? $chartOpts['stage_offset'] : 0
+		);
 		return array(
 			'funnel' => self::getSalesFunnel(),
 			'revenue_chart' => self::getRevenueChart($chartOpts),
 			'performance' => self::getPerformance(),
 			'alerts' => self::getAlerts(),
+			'offline_gd11' => self::getOfflineGd11(),
+			'online_gd12' => self::getOnlineGd12(),
+			'gd14' => self::getGd14(),
+			'gd14_pcth' => self::getGd14Course('pcth'),
+			'gd14_mqbb' => self::getGd14Course('mqbb'),
+			'gd14_combo' => self::getGd14Course('combo'),
+			'materials' => self::getMaterialsBoard(),
+			'company_report' => self::getCompanyOverview(),
+			'stage_nav' => self::stageNavMeta(),
 		);
+	}
+
+	/**
+	 * GD 1.1: tỷ lệ và trạng thái của hồ sơ tạo trong tháng này. Bấm số ra đúng danh sách.
+	 * @return array
+	 */
+	public static function getOfflineGd11() {
+		$db = PearDatabase::getInstance();
+		$soon = array(
+			'Chốt sản phẩm có phí trong 30 ngày sau lớp',
+			'Mua nguyên liệu trong 30 ngày sau lớp',
+			'Độ khớp form với kết luận sau gọi',
+		);
+		if (!self::tableExists($db, 'bace_lead_profile')) {
+			return self::emptyStageBoard($soon);
+		}
+		$rows = self::fetchMonthLeadRows($db, " AND p.offline_status IS NOT NULL AND p.offline_status <> ''");
+		$labels = array(
+			'offline_hen_goi_lai' => 'Hẹn gọi lại',
+			'offline_khong_nghe_may' => 'Không nghe máy',
+			'offline_sai_thong_tin' => 'Sai thông tin',
+			'offline_chua_xac_nhan_lich' => 'Chưa xác nhận lịch',
+			'offline_hen_lich_lai' => 'Hẹn lịch lại',
+			'offline_da_xac_nhan_lich' => 'Đã xác nhận lịch',
+			'offline_da_tham_gia' => 'Đã tham gia',
+			'offline_khong_tham_gia' => 'Không tham gia',
+			'offline_chuyen_chuong_trinh' => 'Chuyển chương trình',
+			'offline_ngung_cskh_tam' => 'Ngưng chăm sóc tạm',
+			'offline_ngung_cskh' => 'Ngưng CSKH',
+		);
+		$miss = array('offline_hen_goi_lai' => 1, 'offline_khong_nghe_may' => 1, 'offline_sai_thong_tin' => 1);
+		$counts = array();
+		$levels = array('sieu_tiem_nang' => 0, 'tiem_nang' => 0, 'binh_thuong' => 0);
+		$levelDated = array('sieu_tiem_nang' => 0, 'tiem_nang' => 0, 'binh_thuong' => 0);
+		$levelAttend = array('sieu_tiem_nang' => 0, 'tiem_nang' => 0, 'binh_thuong' => 0);
+		$regionDated = array('kv1' => 0, 'kv2' => 0, 'kv3' => 0);
+		$regionAttend = array('kv1' => 0, 'kv2' => 0, 'kv3' => 0);
+		$total = 0;
+		$contacted = 0;
+		$eligible = 0;
+		$attended = 0;
+		$dated = 0;
+		foreach ($rows as $row) {
+			$status = strtolower(trim((string) $row['offline_status']));
+			$total++;
+			if (!isset($counts[$status])) {
+				$counts[$status] = 0;
+			}
+			$counts[$status]++;
+			if (!isset($miss[$status])) {
+				$contacted++;
+				if ((string) $row['eligibility_result'] === 'du_dk') {
+					$eligible++;
+				}
+			}
+			if ($status === 'offline_da_tham_gia') {
+				$attended++;
+			}
+			if (in_array($status, array('offline_da_xac_nhan_lich', 'offline_da_tham_gia', 'offline_khong_tham_gia'), true)) {
+				$dated++;
+			}
+			$level = strtolower(trim((string) $row['potential_level']));
+			$isDated = self::gd11DatedStatus($status);
+			if (isset($levels[$level])) {
+				$levels[$level]++;
+				if ($isDated) {
+					$levelDated[$level]++;
+				}
+				if ($status === 'offline_da_tham_gia') {
+					$levelAttend[$level]++;
+				}
+			}
+			$region = self::stageRegionKey($row['area'], $row['district']);
+			if ($region !== '') {
+				if ($isDated) {
+					$regionDated[$region]++;
+				}
+				if ($status === 'offline_da_tham_gia') {
+					$regionAttend[$region]++;
+				}
+			}
+		}
+		$colors = array(
+			'offline_hen_goi_lai' => '#f59e0b',
+			'offline_khong_nghe_may' => '#fb7185',
+			'offline_sai_thong_tin' => '#e11d48',
+			'offline_chua_xac_nhan_lich' => '#f59e0b',
+			'offline_hen_lich_lai' => '#d97706',
+			'offline_da_xac_nhan_lich' => '#06b6d4',
+			'offline_da_tham_gia' => '#10b981',
+			'offline_khong_tham_gia' => '#f43f5e',
+			'offline_chuyen_chuong_trinh' => '#7c3aed',
+			'offline_ngung_cskh_tam' => '#94a3b8',
+			'offline_ngung_cskh' => '#64748b',
+		);
+		$stages = array(
+			self::stageCountCard('Trong luồng Offline', $total, 'gd11:all', '#2563eb'),
+		);
+		foreach ($labels as $key => $label) {
+			$stages[] = self::stageCountCard($label, isset($counts[$key]) ? $counts[$key] : 0, 'gd11:status:' . $key, $colors[$key]);
+		}
+		$levelLabels = array(
+			'sieu_tiem_nang' => 'Siêu tiềm năng',
+			'tiem_nang' => 'Tiềm năng',
+			'binh_thuong' => 'Bình thường',
+		);
+		$levelItems = array();
+		foreach ($levelLabels as $key => $label) {
+			$levelItems[] = self::stageRateCard($label, $levelAttend[$key], $levelDated[$key], 'gd11:level-attend:' . $key);
+		}
+		$datedRegion = array();
+		$attendRegion = array();
+		foreach (array('kv1' => 'Khu vực 1', 'kv2' => 'Khu vực 2', 'kv3' => 'Khu vực 3') as $key => $label) {
+			$datedRegion[] = self::stageCountCard($label, $regionDated[$key], 'gd11:region-dated:' . $key, '#2563eb');
+			$attendRegion[] = self::stageCountCard($label, $regionAttend[$key], 'gd11:region-attend:' . $key, '#10b981');
+		}
+		$follow = self::countFollowOrders($db, self::classAnchors($rows, 'offline_da_tham_gia', 'offline_class_date'));
+		$form = self::formMatchCounts($rows);
+		return array(
+			'period_label' => self::stagePeriodCaption(),
+			'rates' => array(
+				self::stageRateCard('Liên hệ được', $contacted, $total, 'gd11:contacted'),
+				self::stageRateCard('Giữ đủ điều kiện', $eligible, $contacted, 'gd11:eligible'),
+				self::stageRateCard('Chốt được ngày học', $dated, $eligible, 'gd11:dated'),
+				self::stageRateCard('Tham gia / đã chốt ngày', $attended, $dated, 'gd11:attended'),
+				self::stageRateCard('Chuyển đổi cả phễu', $attended, $total, 'gd11:funnel'),
+				self::stageRateCard('Khớp form với kết luận sau gọi', $form['matched'], $form['compared'], 'gd11:form_match'),
+				self::stageRateCard('Chốt khóa có phí trong 30 ngày sau lớp', $follow['course'], $attended, 'gd11:paid30'),
+				self::stageRateCard('Mua nguyên liệu trong 30 ngày sau lớp', $follow['ingredient'], $attended, 'gd11:mat30'),
+			),
+			'stages' => $stages,
+			'splits' => array(
+				array('title' => 'Tỷ lệ tham gia theo mức tiềm năng', 'items' => $levelItems),
+				array('title' => 'Đã chốt ngày theo khu vực', 'items' => $datedRegion),
+				array('title' => 'Có mặt theo khu vực', 'items' => $attendRegion),
+			),
+			'soon' => array(),
+			'total' => $total,
+			'attend_rate' => $dated > 0 ? round(($attended / $dated) * 100, 1) : 0,
+		);
+	}
+
+	/**
+	 * GD 1.2: phễu tháng này, kèm tiến độ EduBit. Bấm số ra danh sách.
+	 * @return array
+	 */
+	public static function getOnlineGd12() {
+		$db = PearDatabase::getInstance();
+		$soon = array(
+			'Chọn sản phẩm khác',
+			'Hồ sơ đủ một trong bốn đầu ra',
+			'Chốt sản phẩm có phí trong 30 ngày sau bàn giao',
+			'Mua nguyên liệu trong 30 ngày',
+			'Hiệu quả từng lần nhắc và gia hạn',
+			'Số lượng theo khu vực ở bốn mốc',
+		);
+		if (!self::tableExists($db, 'bace_lead_profile')) {
+			return self::emptyStageBoard($soon);
+		}
+		$rows = self::fetchMonthLeadRows($db, " AND p.online_status IS NOT NULL AND p.online_status <> ''");
+		$total = 0;
+		$pending = 0;
+		$qualified = 0;
+		$notQualified = 0;
+		$stopped = 0;
+		$activated = 0;
+		$reached80 = 0;
+		$complete = 0;
+		$levelKeys = array('sieu_tiem_nang', 'tiem_nang', 'binh_thuong');
+		$levelOn = array('sieu_tiem_nang' => 0, 'tiem_nang' => 0, 'binh_thuong' => 0);
+		$levelAct = array('sieu_tiem_nang' => 0, 'tiem_nang' => 0, 'binh_thuong' => 0);
+		$level80 = array('sieu_tiem_nang' => 0, 'tiem_nang' => 0, 'binh_thuong' => 0);
+		$regionMile = array();
+		foreach (array('form', 'qualified', 'activated', 'done') as $mile) {
+			$regionMile[$mile] = array('kv1' => 0, 'kv2' => 0, 'kv3' => 0);
+		}
+		$terminal = 0;
+		$reminded = 0;
+		$remindedMoved = 0;
+		$renewed = 0;
+		$renewedMoved = 0;
+		$blockedRows = array();
+		foreach ($rows as $row) {
+			$status = strtolower(trim((string) $row['online_status']));
+			$total++;
+			$progress = (float) $row['edubit_progress_pct'];
+			$hasAccount = self::stageHasTimestamp($row['edubit_activated_at'])
+				|| in_array($status, array('online_dang_hoc', 'online_dat_80'), true);
+			$hit80 = $status === 'online_dat_80' || $progress >= 80;
+			$hit100 = $progress >= 100;
+			if ($status === 'online_chua_dien_form') {
+				$pending++;
+			} elseif ($status === 'online_khong_du_dk') {
+				$notQualified++;
+			} elseif ($status === 'online_ngung_cskh') {
+				$stopped++;
+			} elseif ($status === 'online_chua_dk_tk') {
+				$qualified++;
+			}
+			if ($hasAccount) {
+				$activated++;
+			}
+			if ($hit80) {
+				$reached80++;
+			}
+			if ($hit100) {
+				$complete++;
+			}
+			$region = self::stageRegionKey($row['area'], $row['district']);
+			if ($region !== '' && isset($regionMile['form'][$region])) {
+				if ($status !== 'online_chua_dien_form') {
+					$regionMile['form'][$region]++;
+				}
+				if ($status === 'online_chua_dk_tk' || $hasAccount) {
+					$regionMile['qualified'][$region]++;
+				}
+				if ($hasAccount) {
+					$regionMile['activated'][$region]++;
+				}
+				if ($hit100) {
+					$regionMile['done'][$region]++;
+				}
+			}
+			if ($hit100 || in_array($status, array('online_hoan_thanh', 'online_dat_80', 'online_het_han', 'online_khong_du_dk'), true)) {
+				$terminal++;
+			}
+			$remindCount = isset($row['online_reminder_count']) ? (int) $row['online_reminder_count'] : 0;
+			if ($remindCount > 0) {
+				$reminded++;
+				if ($status !== 'online_chua_dien_form' || $hasAccount) {
+					$remindedMoved++;
+				}
+			}
+			$renewCount = isset($row['edubit_renew_count']) ? (int) $row['edubit_renew_count'] : 0;
+			if ($renewCount > 0) {
+				$renewed++;
+				if ($hit80 || $hit100) {
+					$renewedMoved++;
+				}
+			}
+			if ($status === 'online_khong_du_dk') {
+				$blockedRows[] = $row;
+			}
+			$level = strtolower(trim((string) $row['potential_level']));
+			if (in_array($level, $levelKeys, true)) {
+				$levelOn[$level]++;
+				if ($hasAccount) {
+					$levelAct[$level]++;
+				}
+				if ($hit80) {
+					$level80[$level]++;
+				}
+			}
+		}
+		$formFilled = max(0, $total - $pending);
+		$passed = $qualified + $activated;
+		$stages = array(
+			self::stageCountCard('Vào Zalo OA', $total, 'gd12:all', '#2563eb'),
+			self::stageCountCard('Chưa điền form', $pending, 'gd12:bucket:pending', '#f59e0b'),
+			self::stageCountCard('Đã điền form', $formFilled, 'gd12:bucket:form', '#06b6d4'),
+			self::stageCountCard('Đủ điều kiện, chờ tài khoản', $qualified, 'gd12:bucket:qualified', '#10b981'),
+			self::stageCountCard('Không đủ điều kiện', $notQualified, 'gd12:bucket:blocked', '#f43f5e'),
+			self::stageCountCard('Ngưng CSKH', $stopped, 'gd12:bucket:stopped', '#64748b'),
+			self::stageCountCard('Đã kích hoạt EduBit', $activated, 'gd12:bucket:activated', '#8b5cf6'),
+			self::stageCountCard('Đạt 80%', $reached80, 'gd12:bucket:p80', '#a855f7'),
+			self::stageCountCard('Học hết 100%', $complete, 'gd12:bucket:p100', '#7c3aed'),
+		);
+		$levelLabels = array(
+			'sieu_tiem_nang' => 'Siêu tiềm năng',
+			'tiem_nang' => 'Tiềm năng',
+			'binh_thuong' => 'Bình thường',
+		);
+		$levelItems = array();
+		foreach ($levelLabels as $key => $label) {
+			$levelItems[] = self::stageRateCard($label . ' đạt 80%', $level80[$key], $levelAct[$key], 'gd12:level80:' . $key);
+		}
+		$regionItems = array();
+		$regionNames = array('kv1' => 'KV1', 'kv2' => 'KV2', 'kv3' => 'KV3');
+		$mileLabels = array(
+			'form' => 'Đã điền form',
+			'qualified' => 'Đủ điều kiện',
+			'activated' => 'Đã kích hoạt',
+			'done' => 'Học hết 100%',
+		);
+		foreach ($mileLabels as $mile => $mileLabel) {
+			foreach ($regionNames as $key => $regionLabel) {
+				$regionItems[] = self::stageCountCard(
+					$mileLabel . ' · ' . $regionLabel,
+					$regionMile[$mile][$key],
+					'gd12:region:' . $mile . ':' . $key,
+					'#2563eb'
+				);
+			}
+		}
+		$paidAfter = self::countFollowOrders($db, self::classAnchors($rows, '', 'edubit_activated_at'));
+		$choseOther = self::countFollowOrders($db, self::classAnchors($blockedRows, '', 'created_fallback'));
+		return array(
+			'period_label' => self::stagePeriodCaption(),
+			'rates' => array(
+				self::stageRateCard('Điền form', $formFilled, $total, 'gd12:bucket:form'),
+				self::stageRateCard('Đủ điều kiện', $passed, $formFilled, 'gd12:bucket:passed'),
+				self::stageRateCard('Kích hoạt', $activated, $passed, 'gd12:bucket:activated'),
+				self::stageRateCard('Đạt 80%', $reached80, $activated, 'gd12:bucket:p80'),
+				self::stageRateCard('Học hết 100%', $complete, $activated, 'gd12:bucket:p100'),
+				self::stageRateCard('Cả phễu đạt 80%', $reached80, $total, 'gd12:bucket:p80'),
+				self::stageRateCard('Đủ một trong bốn đầu ra', $terminal, $total, 'gd12:terminal'),
+				self::stageRateCard('Chọn sản phẩm khác', $choseOther['course'], $notQualified, 'gd12:other_product'),
+				self::stageRateCard('Chốt khóa có phí trong 30 ngày sau bàn giao', $paidAfter['course'], $activated, 'gd12:paid30'),
+				self::stageRateCard('Mua nguyên liệu trong 30 ngày', $paidAfter['ingredient'], $activated, 'gd12:mat30'),
+				self::stageRateCard('Nhắc rồi đi tiếp', $remindedMoved, $reminded, 'gd12:remind'),
+				self::stageRateCard('Gia hạn rồi đạt 80%', $renewedMoved, $renewed, 'gd12:renew'),
+			),
+			'stages' => $stages,
+			'splits' => array(
+				array('title' => 'Đạt 80% theo mức tiềm năng', 'items' => $levelItems),
+				array('title' => 'Bốn mốc theo khu vực', 'items' => $regionItems),
+			),
+			'soon' => array(),
+			'total' => $total,
+			'form_rate' => $total > 0 ? round(($formFilled / $total) * 100, 1) : 0,
+			'qualify_rate' => $formFilled > 0 ? round(($passed / $formFilled) * 100, 1) : 0,
+		);
+	}
+
+	/**
+	 * GD 1.4 phần IV: đầu ra · tiêu chuẩn · chỉ số (4.1–4.7) trên hồ sơ 990k trong kỳ.
+	 * @return array
+	 */
+	public static function getGd14() {
+		return self::buildGd14Board(null);
+	}
+
+	/**
+	 * Board tương đương 990k, lọc theo khoá PCTH / MQBB / Combo.
+	 * @param string $course pcth|mqbb|combo
+	 * @return array
+	 */
+	public static function getGd14Course($course) {
+		$course = strtolower(trim((string) $course));
+		if (!in_array($course, array('pcth', 'mqbb', 'combo'), true)) {
+			return self::emptyStageBoard(array());
+		}
+		return self::buildGd14Board($course);
+	}
+
+	/**
+	 * Board Nguyên liệu theo Word: NL01–NL23 + QL01–QL17.
+	 * @return array
+	 */
+	public static function getMaterialsBoard() {
+		require_once 'modules/HelpDesk/models/MaterialAlertService.php';
+		return HelpDesk_MaterialAlertService::dashboardBoard();
+	}
+
+	/**
+	 * Board GD 1.4 theo phần IV (Đầu ra · Tiêu chuẩn · Chỉ số).
+	 * @param string|null $courseFilter null = toàn bộ GD1.4 (tab 990k); pcth|mqbb|combo = tab riêng
+	 * @return array
+	 */
+	protected static function buildGd14Board($courseFilter = null) {
+		$labels = array(
+			null => array('short' => '990k', 'title' => 'Hồ sơ mới trong kỳ (IV)', 'paid' => 'Lớp 990k đã thanh toán'),
+			'pcth' => array('short' => 'PCTH', 'title' => 'Hồ sơ PCTH trong kỳ', 'paid' => 'PCTH đã thanh toán'),
+			'mqbb' => array('short' => 'MQBB', 'title' => 'Hồ sơ MQBB trong kỳ', 'paid' => 'MQBB đã thanh toán'),
+			'combo' => array('short' => 'Combo', 'title' => 'Hồ sơ Combo trong kỳ', 'paid' => 'Combo đã thanh toán'),
+		);
+		$meta = isset($labels[$courseFilter]) ? $labels[$courseFilter] : $labels[null];
+		$prefix = $meta['short'];
+		$soon = array(
+			'IV.4.4.6 Chi phí quảng cáo (Marketing nhập tay Ngày + Chi phí) — chưa có form nhập trên CRM',
+			'IV.4.7 Phân quyền xem theo role Kinh doanh / Sales / Marketing — đang dùng chung board',
+		);
+		$db = PearDatabase::getInstance();
+		if (!self::tableExists($db, 'bace_lead_profile') || !self::tableExists($db, 'vtiger_freetags')) {
+			return self::emptyStageBoard($soon);
+		}
+		$catalog = array(
+			'gd14_moi_dang_ky' => $prefix . ' — Mới đăng ký',
+			'gd14_hen_goi_lai' => $prefix . ' — Hẹn gọi lại',
+			'gd14_khong_nghe_may' => $prefix . ' — Không nghe máy',
+			'gd14_sai_thong_tin' => $prefix . ' — Sai thông tin liên hệ',
+			'gd14_dang_can_nhac' => $prefix . ' — Đang cân nhắc',
+			'gd14_cho_thanh_toan' => $prefix . ' — Chờ thanh toán',
+			'gd14_chua_xep_buoi' => $prefix . ' — Chưa xếp buổi học',
+			'gd14_da_xac_nhan_lich' => $prefix . ' — Đã xác nhận lịch học',
+			'gd14_khong_tham_gia' => $prefix . ' — Không tham gia lớp học',
+			'gd14_da_tham_gia' => $prefix . ' — Đã tham gia lớp học',
+			'gd14_ngung_cham_soc' => $prefix . ' — Ngưng chăm sóc',
+		);
+		$packed = self::fetchGd14MonthRows($db);
+		if ($courseFilter !== null) {
+			$filtered = array();
+			foreach ($packed as $row) {
+				if (self::gd14PreferredCourse($row) === $courseFilter) {
+					$filtered[] = $row;
+				}
+			}
+			$packed = $filtered;
+		}
+		$tagCounts = array();
+		foreach (array_keys($catalog) as $slug) {
+			$tagCounts[$slug] = 0;
+		}
+		$verified = 0;
+		$invited = 0;
+		$blocked = 0;
+		$contacted = 0;
+		$advised = 0;
+		$chose = 0;
+		$closed = 0;
+		$hasForm = 0;
+		$formChanged = 0;
+		$contradict = 0;
+		$sources = array();
+		$sourceAll = array();
+		$courses = array('lop_990k' => 0, 'pcth' => 0, 'mqbb' => 0, 'combo' => 0);
+		$miss = array('gd14_moi_dang_ky' => 1, 'gd14_hen_goi_lai' => 1, 'gd14_khong_nghe_may' => 1, 'gd14_sai_thong_tin' => 1);
+		// Tag bắt đầu từ ⑥ Chờ thanh toán = đã chọn khoá (IV.4.4.1 #4)
+		$choseTags = array(
+			'gd14_cho_thanh_toan' => 1,
+			'gd14_chua_xep_buoi' => 1,
+			'gd14_da_xac_nhan_lich' => 1,
+			'gd14_khong_tham_gia' => 1,
+			'gd14_da_tham_gia' => 1,
+		);
+		$scheduledTags = array(
+			'gd14_chua_xep_buoi' => 1,
+			'gd14_da_xac_nhan_lich' => 1,
+			'gd14_khong_tham_gia' => 1,
+			'gd14_da_tham_gia' => 1,
+		);
+		$confirmedTags = array(
+			'gd14_da_xac_nhan_lich' => 1,
+			'gd14_khong_tham_gia' => 1,
+			'gd14_da_tham_gia' => 1,
+		);
+		$scopePrefix = $courseFilter !== null ? ($courseFilter . '__') : '';
+		foreach ($packed as $row) {
+			$tag = $row['tag'];
+			if (isset($tagCounts[$tag])) {
+				$tagCounts[$tag]++;
+			}
+			if (!empty($row['verified'])) {
+				$verified++;
+			}
+			if ($row['invite'] === 1) {
+				$invited++;
+			} elseif ($row['invite'] === 0) {
+				$blocked++;
+			}
+			if ($row['course'] !== '' && isset($courses[$row['course']])) {
+				$courses[$row['course']]++;
+			}
+			if (!isset($miss[$tag])) {
+				$contacted++;
+			}
+			if (!empty($row['advised'])) {
+				$advised++;
+			}
+			$didChoose = isset($choseTags[$tag]) || $row['course'] !== '';
+			if ($didChoose) {
+				$chose++;
+			}
+			if ($row['course'] !== '') {
+				$closed++;
+			}
+			if (!empty($row['has_form'])) {
+				$hasForm++;
+				if (!empty($row['form_changed'])) {
+					$formChanged++;
+				}
+			}
+			if (!empty($row['contradict'])) {
+				$contradict++;
+			}
+			$src = $row['source'] !== '' ? $row['source'] : 'Chưa ghi nguồn';
+			if (!isset($sourceAll[$src])) {
+				$sourceAll[$src] = 0;
+			}
+			$sourceAll[$src]++;
+			if ($tag === 'gd14_sai_thong_tin') {
+				if (!isset($sources[$src])) {
+					$sources[$src] = 0;
+				}
+				$sources[$src]++;
+			}
+		}
+		$total = count($packed);
+		$paid990 = (int) $courses['lop_990k'];
+		$highClosed = (int) $courses['pcth'] + (int) $courses['mqbb'] + (int) $courses['combo'];
+		$scheduled = 0;
+		$confirmed = 0;
+		foreach ($scheduledTags as $slug => $_) {
+			$scheduled += (int) $tagCounts[$slug];
+		}
+		foreach ($confirmedTags as $slug => $_) {
+			$confirmed += (int) $tagCounts[$slug];
+		}
+		$exitAttended = (int) $tagCounts['gd14_da_tham_gia'];
+		$exitStop = (int) $tagCounts['gd14_ngung_cham_soc'];
+		$stages = array(self::stageCountCard($meta['title'], $total, 'gd14:' . $scopePrefix . 'all', '#2563eb'));
+		foreach ($catalog as $slug => $label) {
+			$stages[] = self::stageCountCard($label, $tagCounts[$slug], 'gd14:' . $scopePrefix . 'tag:' . $slug, '#0f766e');
+		}
+		if ($courseFilter !== null) {
+			$courseItems = array(
+				self::stageCountCard($meta['paid'], $courses[$courseFilter], 'gd14:' . $scopePrefix . 'course:' . $courseFilter, '#10b981'),
+			);
+		} else {
+			$courseItems = array(
+				self::stageCountCard('Lớp 990k đã thanh toán', $courses['lop_990k'], 'gd14:course:lop_990k', '#10b981'),
+				self::stageCountCard('Pha chế tổng hợp', $courses['pcth'], 'gd14:course:pcth', '#2563eb'),
+				self::stageCountCard('Mở quán bài bản', $courses['mqbb'], 'gd14:course:mqbb', '#7c3aed'),
+				self::stageCountCard('Combo mở quán', $courses['combo'], 'gd14:course:combo', '#b45309'),
+			);
+		}
+		$classified = $invited + $blocked;
+		$sourceBadItems = array();
+		foreach ($sources as $src => $count) {
+			$sourceBadItems[] = self::stageCountCard($src, $count, 'gd14:' . $scopePrefix . 'source:' . $src, '#e11d48');
+		}
+		$sourceAllItems = array();
+		foreach ($sourceAll as $src => $count) {
+			$sourceAllItems[] = self::stageCountCard($src, $count, 'gd14:' . $scopePrefix . 'source_all:' . $src, '#6366f1');
+		}
+
+		$onTime = 0;
+		$attend30 = 0;
+		$attend60 = 0;
+		$attend90 = 0;
+		foreach ($packed as $row) {
+			$created = isset($row['createdtime']) ? strtotime((string) $row['createdtime']) : false;
+			$touch = isset($row['last_touch']) ? strtotime((string) $row['last_touch']) : false;
+			// IV.4.4.1 #1 — liên hệ đầu trong 30 phút kể từ tạo hồ sơ (ngoài giờ: cải tiến sau)
+			if ($created && $touch && $touch >= $created && ($touch - $created) <= 1800) {
+				$onTime++;
+			}
+			if ($row['tag'] !== 'gd14_da_tham_gia') {
+				continue;
+			}
+			// IV.4.4.1 #6 — cửa sổ từ Ngày thanh toán xác nhận
+			$paidAt = !empty($row['paid_at']) ? strtotime((string) $row['paid_at']) : false;
+			$stamp = !empty($row['class_date']) ? strtotime((string) $row['class_date']) : false;
+			if (!$stamp && !empty($row['modified_at'])) {
+				$stamp = strtotime((string) $row['modified_at']);
+			}
+			$anchor = $paidAt ? $paidAt : $created;
+			if (!$anchor || !$stamp || $stamp < $anchor) {
+				continue;
+			}
+			$days = (int) floor(($stamp - $anchor) / 86400);
+			if ($days <= 30) {
+				$attend30++;
+			}
+			if ($days <= 60) {
+				$attend60++;
+			}
+			if ($days <= 90) {
+				$attend90++;
+			}
+		}
+		$money = self::cohortOrderMoney($db, $packed);
+		$avgOrder = ($money['kept'] > 0) ? ($money['amount'] / $money['kept']) : 0;
+		$revPerLead = ($total > 0) ? ($money['amount'] / $total) : 0;
+
+		// IV.4.4.1 KPI phễu + một phần 4.4.2–4.4.4 (nhãn theo Word)
+		$rates = array(
+			self::stageRateCard('KPI1 Liên hệ đúng hạn (30 phút)', $onTime, $total, 'gd14:' . $scopePrefix . 'sla30'),
+			self::stageRateCard('KPI2 Liên hệ được', $contacted, $total, 'gd14:' . $scopePrefix . 'contacted'),
+			self::stageRateCard('KPI3 Tư vấn đủ', $advised, $contacted, 'gd14:' . $scopePrefix . 'advised'),
+			self::stageRateCard('KPI4 Chọn khoá', $chose, $advised > 0 ? $advised : $contacted, 'gd14:' . $scopePrefix . 'chose'),
+			self::stageRateCard('KPI5 Chốt đơn', $closed, $chose, 'gd14:' . $scopePrefix . 'closed'),
+			self::stageRateCard('KPI6 Tham gia lớp ≤30 ngày (SỐ TẠM)', $attend30, $paid990 > 0 ? $paid990 : $total, 'gd14:' . $scopePrefix . 'attend30'),
+			self::stageRateCard('KPI6 Tham gia lớp ≤60 ngày (SỐ TẠM)', $attend60, $paid990 > 0 ? $paid990 : $total, 'gd14:' . $scopePrefix . 'attend60'),
+			self::stageRateCard('KPI6 Tham gia lớp ≤90 ngày (SỐ TẠM)', $attend90, $paid990 > 0 ? $paid990 : $total, 'gd14:' . $scopePrefix . 'attend90'),
+			self::stageRateCard('KPI7 Chốt khoá cao hơn', $highClosed, $closed, 'gd14:' . $scopePrefix . 'high_close'),
+			self::stageRateCard('Được mời Combo / Mở quán (sau xác minh)', $invited, $classified, 'gd14:' . $scopePrefix . 'invited'),
+			self::stageRateCard('Bị chặn Combo / Mở quán (sau xác minh)', $blocked, $classified, 'gd14:' . $scopePrefix . 'blocked'),
+			self::stageRateCard('IV.4.4.3 Huỷ / xin hoàn khoá cao', $money['cancelled'], $money['orders'] > 0 ? $money['orders'] : $highClosed, 'gd14:' . $scopePrefix . 'cancel'),
+			self::stageRateCard('IV.4.4.4 Đổi đáp án form → xác minh', $formChanged, $hasForm, 'gd14:' . $scopePrefix . 'form_changed'),
+			self::stageRateCard('IV.4.4.4 Cờ đáp án mâu thuẫn', $contradict, $verified, 'gd14:' . $scopePrefix . 'contradict'),
+			self::stageRateCard('IV.4.4.5 Xếp buổi / đã thanh toán 990k', $scheduled, $paid990 > 0 ? $paid990 : $closed, 'gd14:' . $scopePrefix . 'scheduled'),
+			self::stageRateCard('IV.4.4.5 Xác nhận lịch / đã xếp', $confirmed, $scheduled, 'gd14:' . $scopePrefix . 'confirmed'),
+			self::stageRateCard('IV.4.4.5 Có mặt / đã xác nhận lịch', $exitAttended, $confirmed, 'gd14:' . $scopePrefix . 'tag:gd14_da_tham_gia'),
+		);
+
+		$splits = array(
+			array(
+				'title' => 'IV.4.1 Ba đầu ra cuối',
+				'items' => array(
+					self::stageCountCard('Đầu ra 1 — Đã tham gia lớp 990k (⑩)', $exitAttended, 'gd14:' . $scopePrefix . 'tag:gd14_da_tham_gia', '#0f766e'),
+					self::stageCountCard('Đầu ra 2 — Chốt khoá cao hơn', $highClosed, 'gd14:' . $scopePrefix . 'high_close', '#7c3aed'),
+					self::stageCountCard('Đầu ra 3 — Ngưng chăm sóc (⑪)', $exitStop, 'gd14:' . $scopePrefix . 'tag:gd14_ngung_cham_soc', '#e11d48'),
+				),
+			),
+			array('title' => 'IV.4.3 / thanh toán đã xác nhận', 'items' => $courseItems),
+			array(
+				'title' => 'IV.4.4.2 Giá trị (KPI 8–9)',
+				'items' => array(
+					array_merge(
+						self::stageCountCard('KPI8 Giá trị đơn bình quân', $money['kept'], 'gd14:' . $scopePrefix . 'orders', '#10b981'),
+						array('value' => self::formatMoney($avgOrder))
+					),
+					array_merge(
+						self::stageCountCard('KPI9 Doanh thu / hồ sơ mới', $total, 'gd14:' . $scopePrefix . 'all', '#2563eb'),
+						array('value' => self::formatMoney($revPerLead))
+					),
+					array_merge(
+						self::stageCountCard('Tổng học phí thu (chưa hủy)', $money['kept'], 'gd14:' . $scopePrefix . 'revenue', '#059669'),
+						array('value' => self::formatMoney($money['amount']))
+					),
+				),
+			),
+		);
+		if (!empty($sourceAllItems)) {
+			$splits[] = array('title' => 'IV.4.4.5 Phân bố theo Nguồn khách', 'items' => $sourceAllItems);
+		}
+		if (!empty($sourceBadItems)) {
+			$splits[] = array('title' => 'IV.4.4.4 Chất lượng form — Sai thông tin theo nguồn', 'items' => $sourceBadItems);
+		}
+		return array(
+			'period_label' => self::stagePeriodCaption() . ' · GD14 phần IV · chưa đặt mục tiêu số',
+			'rates' => $rates,
+			'stages' => $stages,
+			'splits' => $splits,
+			'soon' => $soon,
+			'total' => $total,
+			'course' => $courseFilter,
+			'section' => 'IV',
+		);
+	}
+
+	protected static function gd14PreferredCourse(array $row) {
+		$preferred = isset($row['preferred']) ? strtolower(trim((string) $row['preferred'])) : '';
+		if ($preferred !== '') {
+			return $preferred;
+		}
+		return isset($row['course']) ? strtolower(trim((string) $row['course'])) : '';
+	}
+
+	protected static function profileSelectExtra(PearDatabase $db) {
+		$sql = '';
+		foreach (array(
+			'form_c1', 'form_c2', 'form_c3', 'verify_c1', 'verify_c2', 'verify_c3',
+			'contact_id', 'offline_class_date', 'online_reminder_count', 'edubit_renew_count',
+			'last_touch', 'modified_at',
+		) as $col) {
+			if (self::columnExists($db, 'bace_lead_profile', $col)) {
+				$sql .= ', p.`' . $col . '`';
+			}
+		}
+		return $sql;
+	}
+
+	protected static function formMatchCounts(array $rows) {
+		$compared = 0;
+		$matched = 0;
+		foreach ($rows as $row) {
+			$filled = true;
+			$same = true;
+			foreach (array('c1', 'c2', 'c3') as $part) {
+				$form = isset($row['form_' . $part]) ? strtoupper(trim((string) $row['form_' . $part])) : '';
+				$verify = isset($row['verify_' . $part]) ? strtoupper(trim((string) $row['verify_' . $part])) : '';
+				if ($form === '' || $verify === '') {
+					$filled = false;
+					break;
+				}
+				if ($form !== $verify) {
+					$same = false;
+				}
+			}
+			if (!$filled) {
+				continue;
+			}
+			$compared++;
+			if ($same) {
+				$matched++;
+			}
+		}
+		return array('compared' => $compared, 'matched' => $matched);
+	}
+
+	protected static function classAnchors(array $rows, $statusEquals, $dateField) {
+		$out = array();
+		foreach ($rows as $row) {
+			if ($statusEquals !== '') {
+				$status = strtolower(trim((string) (isset($row['offline_status']) ? $row['offline_status'] : '')));
+				if ($status !== $statusEquals) {
+					continue;
+				}
+			}
+			$raw = '';
+			if ($dateField === 'createdtime' || $dateField === 'created_fallback') {
+				$raw = isset($row['createdtime']) ? trim((string) $row['createdtime']) : '';
+			} elseif ($dateField !== '' && isset($row[$dateField])) {
+				$raw = trim((string) $row[$dateField]);
+			}
+			if ($raw === '' || $raw === '0000-00-00' || $raw === '0000-00-00 00:00:00') {
+				if ($statusEquals !== '' && isset($row['createdtime'])) {
+					$raw = trim((string) $row['createdtime']);
+				} else {
+					continue;
+				}
+			}
+			if ($raw === '' || $raw === '0000-00-00' || $raw === '0000-00-00 00:00:00') {
+				continue;
+			}
+			$ts = $raw !== '' ? strtotime($raw) : false;
+			if (!$ts) {
+				continue;
+			}
+			$out[] = array(
+				'contact' => isset($row['contact_id']) ? (int) $row['contact_id'] : 0,
+				'phone' => isset($row['phone']) ? (string) $row['phone'] : '',
+				'start' => $ts,
+			);
+		}
+		return $out;
+	}
+
+	protected static function resolveAnchorContacts(PearDatabase $db, array $anchors) {
+		$phones = array();
+		foreach ($anchors as $i => $anchor) {
+			if (!empty($anchor['contact'])) {
+				continue;
+			}
+			$digits = preg_replace('/\D+/', '', isset($anchor['phone']) ? $anchor['phone'] : '');
+			if (strlen($digits) >= 9) {
+				$phones[$i] = substr($digits, -9);
+			}
+		}
+		if (!$phones || !self::tableExists($db, 'vtiger_contactdetails')) {
+			return $anchors;
+		}
+		$r = $db->pquery(
+			'SELECT contactid, mobile, phone FROM vtiger_contactdetails cd
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid AND ce.deleted = 0',
+			array()
+		);
+		$map = array();
+		if ($r) {
+			while ($row = $db->fetchByAssoc($r)) {
+				foreach (array('mobile', 'phone') as $field) {
+					$digits = preg_replace('/\D+/', '', (string) $row[$field]);
+					if (strlen($digits) >= 9) {
+						$map[substr($digits, -9)] = (int) $row['contactid'];
+					}
+				}
+			}
+		}
+		foreach ($phones as $i => $tail) {
+			if (isset($map[$tail])) {
+				$anchors[$i]['contact'] = $map[$tail];
+			}
+		}
+		return $anchors;
+	}
+
+	protected static function countFollowOrders(PearDatabase $db, array $anchors) {
+		$empty = array('course' => 0, 'ingredient' => 0);
+		if (!$anchors) {
+			return $empty;
+		}
+		$anchors = self::resolveAnchorContacts($db, $anchors);
+		$byContact = array();
+		$min = null;
+		$max = null;
+		foreach ($anchors as $anchor) {
+			if ($anchor['contact'] <= 0) {
+				continue;
+			}
+			$byContact[$anchor['contact']][] = $anchor['start'];
+			$end = $anchor['start'] + (30 * 86400);
+			if ($min === null || $anchor['start'] < $min) {
+				$min = $anchor['start'];
+			}
+			if ($max === null || $end > $max) {
+				$max = $end;
+			}
+		}
+		if (!$byContact || $min === null) {
+			return $empty;
+		}
+		list($notCancelSql, $excluded) = self::soNotCancelledSql('so');
+		$ids = array_keys($byContact);
+		$ph = implode(',', array_fill(0, count($ids), '?'));
+		$params = array_merge($excluded, $ids, array(date('Y-m-d H:i:s', $min), date('Y-m-d H:i:s', $max)));
+		$r = $db->pquery(
+			"SELECT so.contactid, ce.createdtime AS createdtime,
+				COALESCE(pr.productname, sv.servicename, '') AS pname,
+				COALESCE(pr.productcategory, '') AS pcat,
+				COALESCE(sv.servicecategory, '') AS scat
+			 FROM vtiger_inventoryproductrel ip
+			 INNER JOIN vtiger_salesorder so ON so.salesorderid = ip.id
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 LEFT JOIN vtiger_products pr ON pr.productid = ip.productid
+			 LEFT JOIN vtiger_service sv ON sv.serviceid = ip.productid
+			 WHERE $notCancelSql AND so.contactid IN ($ph)
+			 AND ce.createdtime >= ? AND ce.createdtime <= ?",
+			$params
+		);
+		$hit = array();
+		if ($r) {
+			while ($row = $db->fetchByAssoc($r)) {
+				$contact = (int) $row['contactid'];
+				$when = strtotime((string) $row['createdtime']);
+				if (!$when || empty($byContact[$contact])) {
+					continue;
+				}
+				$inside = false;
+				foreach ($byContact[$contact] as $start) {
+					if ($when >= $start && $when <= ($start + 30 * 86400)) {
+						$inside = true;
+						break;
+					}
+				}
+				if (!$inside) {
+					continue;
+				}
+				$bucket = self::classifyProductBucket((string) $row['pname'], (string) $row['pcat'], (string) $row['scat']);
+				if ($bucket === 'course' || $bucket === 'ingredient') {
+					$hit[$contact][$bucket] = true;
+				}
+			}
+		}
+		$course = 0;
+		$ingredient = 0;
+		foreach ($hit as $flags) {
+			if (!empty($flags['course'])) {
+				$course++;
+			}
+			if (!empty($flags['ingredient'])) {
+				$ingredient++;
+			}
+		}
+		return array('course' => $course, 'ingredient' => $ingredient);
+	}
+
+	protected static function cohortOrderMoney(PearDatabase $db, array $packed) {
+		$out = array('amount' => 0, 'kept' => 0, 'orders' => 0, 'cancelled' => 0);
+		$contacts = array();
+		foreach ($packed as $row) {
+			if (!empty($row['contact_id'])) {
+				$contacts[(int) $row['contact_id']] = true;
+			}
+		}
+		if (!$contacts) {
+			$anchors = array();
+			foreach ($packed as $row) {
+				$anchors[] = array(
+					'contact' => isset($row['contact_id']) ? (int) $row['contact_id'] : 0,
+					'phone' => isset($row['phone']) ? $row['phone'] : '',
+					'start' => 1,
+				);
+			}
+			foreach (self::resolveAnchorContacts($db, $anchors) as $anchor) {
+				if ($anchor['contact'] > 0) {
+					$contacts[$anchor['contact']] = true;
+				}
+			}
+		}
+		if (!$contacts) {
+			return $out;
+		}
+		$ids = array_keys($contacts);
+		$ph = implode(',', array_fill(0, count($ids), '?'));
+		list($from, $to) = self::stageMonthBounds();
+		$r = $db->pquery(
+			"SELECT so.salesorderid, so.sostatus, COALESCE(so.total, 0) AS total
+			 FROM vtiger_salesorder so
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = so.salesorderid AND ce.deleted = 0
+			 WHERE so.contactid IN ($ph)
+			 AND ce.createdtime >= ? AND ce.createdtime <= ?",
+			array_merge($ids, array($from, $to))
+		);
+		$seen = array();
+		if ($r) {
+			while ($row = $db->fetchByAssoc($r)) {
+				$id = (int) $row['salesorderid'];
+				if (isset($seen[$id])) {
+					continue;
+				}
+				$seen[$id] = true;
+				$out['orders']++;
+				$status = strtolower(trim((string) $row['sostatus']));
+				$cancelled = strpos($status, 'cancel') !== false || strpos($status, 'hủy') !== false || strpos($status, 'huy') !== false || $status === 'rejected' || $status === 'từ chối';
+				if ($cancelled) {
+					$out['cancelled']++;
+				} else {
+					$out['kept']++;
+					$out['amount'] += (float) $row['total'];
+				}
+			}
+		}
+		return $out;
+	}
+
+	protected static function emptyStageBoard(array $soon) {
+		return array(
+			'period_label' => self::stagePeriodCaption(),
+			'rates' => array(),
+			'stages' => array(),
+			'splits' => array(),
+			'soon' => $soon,
+			'total' => 0,
+		);
+	}
+
+	protected static function stageCountCard($label, $count, $drillKey, $color) {
+		return array(
+			'label' => $label,
+			'value' => (string) (int) $count,
+			'count' => (int) $count,
+			'color' => $color,
+			'drill' => array('type' => 'stage_people', 'key' => $drillKey),
+		);
+	}
+
+	protected static function stageRateCard($label, $num, $den, $drillKey) {
+		$num = (int) $num;
+		$den = (int) $den;
+		$pct = $den > 0 ? round(($num / $den) * 100, 1) : 0;
+		return array(
+			'label' => $label . ' · ' . $num . '/' . $den,
+			'value' => $pct . '%',
+			'count' => $num,
+			'color' => '#047857',
+			'drill' => array('type' => 'stage_people', 'key' => $drillKey),
+		);
+	}
+
+	protected static $stagePeriod = 'month';
+	protected static $stageOffset = 0;
+
+	protected static function setStagePeriod($period, $offset = 0) {
+		$period = strtolower(trim((string) $period));
+		self::$stagePeriod = in_array($period, array('month', 'quarter', 'year'), true) ? $period : 'month';
+		self::$stageOffset = max(0, min(120, (int) $offset));
+	}
+
+	/**
+	 * @return array{0:string,1:string} from,to datetime
+	 */
+	protected static function stageMonthBounds() {
+		$offset = self::$stageOffset;
+		if (self::$stagePeriod === 'year') {
+			$year = (int) date('Y') - $offset;
+			return array($year . '-01-01 00:00:00', $year . '-12-31 23:59:59');
+		}
+		if (self::$stagePeriod === 'quarter') {
+			$nowQ = (int) ceil(((int) date('n')) / 3);
+			$idx = ((int) date('Y') * 4 + $nowQ - 1) - $offset;
+			$year = (int) floor($idx / 4);
+			$q = ($idx % 4) + 1;
+			$start = ($q - 1) * 3 + 1;
+			$from = $year . '-' . sprintf('%02d', $start) . '-01 00:00:00';
+			$end = strtotime($year . '-' . sprintf('%02d', $start + 2) . '-01');
+			return array($from, date('Y-m-t 23:59:59', $end));
+		}
+		$ts = strtotime(date('Y-m-01') . ' -' . $offset . ' months');
+		return array(date('Y-m-01 00:00:00', $ts), date('Y-m-t 23:59:59', $ts));
+	}
+
+	protected static function stagePeriodNameOnly() {
+		if (self::$stagePeriod === 'year') {
+			$year = (int) date('Y') - self::$stageOffset;
+			return 'Năm ' . $year;
+		}
+		if (self::$stagePeriod === 'quarter') {
+			$nowQ = (int) ceil(((int) date('n')) / 3);
+			$idx = ((int) date('Y') * 4 + $nowQ - 1) - self::$stageOffset;
+			$year = (int) floor($idx / 4);
+			$q = ($idx % 4) + 1;
+			return 'Quý ' . $q . '/' . $year;
+		}
+		$ts = strtotime(date('Y-m-01') . ' -' . self::$stageOffset . ' months');
+		return 'Tháng ' . date('m/Y', $ts);
+	}
+
+	protected static function stagePeriodCaption() {
+		return self::stagePeriodNameOnly() . ' · theo ngày tạo hồ sơ · SỐ TẠM';
+	}
+
+	protected static function stagePeriodShort() {
+		return self::stagePeriodNameOnly();
+	}
+
+	protected static function stageNavMeta() {
+		return array(
+			'period' => self::$stagePeriod,
+			'offset' => self::$stageOffset,
+			'label' => self::stagePeriodNameOnly(),
+			'can_next' => self::$stageOffset > 0,
+			'can_prev' => self::$stageOffset < 120,
+		);
+	}
+
+	protected static function fetchMonthLeadRows(PearDatabase $db, $extraWhere) {
+		list($from, $to) = self::stageMonthBounds();
+		$r = $db->pquery(
+			"SELECT ld.leadid AS id,
+				TRIM(CONCAT(COALESCE(ld.firstname,''), ' ', COALESCE(ld.lastname,''))) AS name,
+				COALESCE(NULLIF(la.mobile, ''), NULLIF(la.phone, ''), '') AS phone,
+				ce.createdtime AS createdtime,
+				p.offline_status, p.online_status, p.eligibility_result, p.potential_level,
+				p.area, p.district, p.edubit_progress_pct, p.edubit_activated_at, p.verify_extra_json
+				" . self::profileSelectExtra($db) . "
+			 FROM vtiger_leaddetails ld
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ld.leadid AND ce.deleted = 0
+			 LEFT JOIN bace_lead_profile p ON p.leadid = ld.leadid
+			 LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = ld.leadid
+			 WHERE ce.createdtime >= ? AND ce.createdtime <= ?
+			 {$extraWhere}",
+			array($from, $to)
+		);
+		$rows = array();
+		if ($r) {
+			while ($row = $db->fetchByAssoc($r)) {
+				$rows[] = $row;
+			}
+		}
+		return $rows;
+	}
+
+	protected static function fetchGd14MonthRows(PearDatabase $db) {
+		list($from, $to) = self::stageMonthBounds();
+		$r = $db->pquery(
+			"SELECT ld.leadid AS id,
+				TRIM(CONCAT(COALESCE(ld.firstname,''), ' ', COALESCE(ld.lastname,''))) AS name,
+				COALESCE(NULLIF(la.mobile, ''), NULLIF(la.phone, ''), '') AS phone,
+				ld.leadsource AS source, t.tag AS tag_name, p.verify_extra_json, ce.createdtime AS createdtime
+				" . self::profileSelectExtra($db) . "
+			 FROM vtiger_leaddetails ld
+			 INNER JOIN vtiger_crmentity ce ON ce.crmid = ld.leadid AND ce.deleted = 0
+			 INNER JOIN vtiger_freetagged_objects fo ON fo.object_id = ld.leadid AND fo.module = 'Leads'
+			 INNER JOIN vtiger_freetags t ON t.id = fo.tag_id
+			 LEFT JOIN bace_lead_profile p ON p.leadid = ld.leadid
+			 LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = ld.leadid
+			 WHERE ce.createdtime >= ? AND ce.createdtime <= ?
+			 AND (t.tag LIKE 'gd14\\_%' OR t.tag IN ('990k','990','gd14_990'))",
+			array($from, $to)
+		);
+		$byId = array();
+		$order = array_keys(array(
+			'gd14_moi_dang_ky' => 1,
+			'gd14_hen_goi_lai' => 1,
+			'gd14_khong_nghe_may' => 1,
+			'gd14_sai_thong_tin' => 1,
+			'gd14_dang_can_nhac' => 1,
+			'gd14_cho_thanh_toan' => 1,
+			'gd14_chua_xep_buoi' => 1,
+			'gd14_da_xac_nhan_lich' => 1,
+			'gd14_khong_tham_gia' => 1,
+			'gd14_da_tham_gia' => 1,
+			'gd14_ngung_cham_soc' => 1,
+		));
+		if ($r) {
+			while ($row = $db->fetchByAssoc($r)) {
+				$id = (int) $row['id'];
+				$tag = self::normalizeGd14Tag($row['tag_name']);
+				if ($tag === '') {
+					continue;
+				}
+				$extra = self::decodeGd14Extra($row['verify_extra_json']);
+				$rank = array_search($tag, $order, true);
+				if (!isset($byId[$id]) || $rank > $byId[$id]['rank']) {
+					$byId[$id] = array(
+						'id' => $id,
+						'name' => $row['name'],
+						'phone' => $row['phone'],
+						'tag' => $tag,
+						'rank' => $rank === false ? -1 : $rank,
+						'verified' => !empty($extra['gd14_verified']) ? 1 : 0,
+						'invite' => self::gd14InviteFlag($extra),
+						'course' => !empty($extra['gd14_paid_at']) ? strtolower(trim((string) (isset($extra['gd14_course']) ? $extra['gd14_course'] : ''))) : '',
+						'preferred' => strtolower(trim((string) (isset($extra['gd14_course']) ? $extra['gd14_course'] : ''))),
+						'paid_at' => !empty($extra['gd14_paid_at']) ? (string) $extra['gd14_paid_at'] : '',
+						'class_date' => !empty($extra['gd14_class_date']) ? (string) $extra['gd14_class_date'] : '',
+						'advised' => (!empty($extra['gd14_verified']) && trim((string) (isset($extra['gd14_goal']) ? $extra['gd14_goal'] : '')) !== '') ? 1 : 0,
+						'has_form' => self::gd14HasForm($extra) ? 1 : 0,
+						'form_changed' => self::gd14FormChanged($extra) ? 1 : 0,
+						'contradict' => self::gd14Contradict($extra) ? 1 : 0,
+						'source' => trim((string) $row['source']),
+						'status' => $tag,
+						'createdtime' => isset($row['createdtime']) ? (string) $row['createdtime'] : '',
+						'last_touch' => isset($row['last_touch']) ? (string) $row['last_touch'] : '',
+						'modified_at' => isset($row['modified_at']) ? (string) $row['modified_at'] : '',
+						'contact_id' => isset($row['contact_id']) ? (int) $row['contact_id'] : 0,
+					);
+				}
+			}
+		}
+		return array_values($byId);
+	}
+
+	protected static function normalizeGd14Tag($tag) {
+		$tag = strtolower(trim((string) $tag));
+		if ($tag === '990k' || $tag === '990' || $tag === 'gd14_990') {
+			return 'gd14_moi_dang_ky';
+		}
+		if (strpos($tag, 'gd14_') === 0) {
+			return $tag;
+		}
+		return '';
+	}
+
+	protected static function decodeGd14Extra($raw) {
+		$data = json_decode((string) $raw, true);
+		return is_array($data) ? $data : array();
+	}
+
+	protected static function gd14InviteFlag(array $extra) {
+		if (empty($extra['gd14_result']) || !is_array($extra['gd14_result'])) {
+			return null;
+		}
+		if (!isset($extra['gd14_result']['invited'])) {
+			return null;
+		}
+		return !empty($extra['gd14_result']['invited']) ? 1 : 0;
+	}
+
+	protected static function gd11DatedStatus($status) {
+		return in_array($status, array('offline_da_xac_nhan_lich', 'offline_da_tham_gia', 'offline_khong_tham_gia'), true);
+	}
+
+	protected static function gd14HasForm(array $extra) {
+		return !empty($extra['gd14_form_answers']) && is_array($extra['gd14_form_answers']);
+	}
+
+	protected static function gd14FormChanged(array $extra) {
+		if (!self::gd14HasForm($extra) || empty($extra['gd14_answers']) || !is_array($extra['gd14_answers'])) {
+			return false;
+		}
+		foreach ($extra['gd14_form_answers'] as $qid => $code) {
+			$got = isset($extra['gd14_answers'][$qid]) ? strtolower(trim((string) $extra['gd14_answers'][$qid])) : '';
+			if ($got !== '' && $got !== strtolower(trim((string) $code))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected static function gd14Contradict(array $extra) {
+		return !empty($extra['gd14_result']) && is_array($extra['gd14_result']) && !empty($extra['gd14_result']['contradict']);
+	}
+
+	protected static function stageRegionKey($area, $district) {
+		$s = mb_strtolower(trim((string) $area . ' ' . (string) $district), 'UTF-8');
+		if (strpos($s, 'kv1') !== false || strpos($s, 'khu vực 1') !== false || strpos($s, 'khu vuc 1') !== false) {
+			return 'kv1';
+		}
+		if (strpos($s, 'kv2') !== false || strpos($s, 'khu vực 2') !== false || strpos($s, 'khu vuc 2') !== false) {
+			return 'kv2';
+		}
+		if (strpos($s, 'kv3') !== false || strpos($s, 'khu vực 3') !== false || strpos($s, 'khu vuc 3') !== false) {
+			return 'kv3';
+		}
+		return '';
+	}
+
+	protected static function stageHasTimestamp($value) {
+		$value = trim((string) $value);
+		return $value !== '' && $value !== '0000-00-00 00:00:00';
+	}
+
+	protected static function drillStagePeople(PearDatabase $db, $key) {
+		$parts = explode(':', (string) $key, 3);
+		$stage = isset($parts[0]) ? $parts[0] : '';
+		$kind = isset($parts[1]) ? $parts[1] : '';
+		$arg = isset($parts[2]) ? $parts[2] : '';
+		$rows = array();
+		$title = 'Danh sách';
+		if ($stage === 'gd11') {
+			$all = self::fetchMonthLeadRows($db, " AND p.offline_status IS NOT NULL AND p.offline_status <> ''");
+			$picked = array();
+			foreach ($all as $row) {
+				if (self::gd11RowMatches($row, $kind, $arg)) {
+					$picked[] = $row;
+				}
+			}
+			$title = self::gd11DrillTitle($kind, $arg);
+			$rows = self::mapStagePeople($picked, 'offline_status');
+		} elseif ($stage === 'gd12') {
+			$all = self::fetchMonthLeadRows($db, " AND p.online_status IS NOT NULL AND p.online_status <> ''");
+			$picked = array();
+			foreach ($all as $row) {
+				$ok = ($kind === 'level80')
+					? self::gd12LevelMatches($row, $kind, $arg)
+					: self::gd12RowMatches($row, $kind, $arg);
+				if ($ok) {
+					$picked[] = $row;
+				}
+			}
+			$title = 'Online 1.2 — ' . $arg;
+			$rows = self::mapStagePeople($picked, 'online_status');
+		} elseif ($stage === 'gd14') {
+			$scope = '';
+			if (preg_match('/^(pcth|mqbb|combo)__(.+)$/', $kind, $m)) {
+				$scope = $m[1];
+				$kind = $m[2];
+			}
+			$all = self::fetchGd14MonthRows($db);
+			$picked = array();
+			foreach ($all as $row) {
+				if ($scope !== '' && self::gd14PreferredCourse($row) !== $scope) {
+					continue;
+				}
+				if (self::gd14RowMatches($row, $kind, $arg)) {
+					$picked[] = $row;
+				}
+			}
+			$title = ($scope !== '' ? strtoupper($scope) : '990k') . ' — ' . ($arg !== '' ? $arg : $kind);
+			$rows = self::mapStagePeople($picked, 'status');
+		}
+		if (count($rows) > 200) {
+			$rows = array_slice($rows, 0, 200);
+		}
+		return array(
+			'title' => $title . ' · ' . self::stagePeriodShort() . ' (' . count($rows) . ')',
+			'module' => 'StageRoster',
+			'hint' => 'Bấm Chi tiết để mở hồ sơ. Đây là đúng những người tạo nên con số vừa bấm.',
+			'columns' => array('name', 'phone', 'status', 'actions'),
+			'rows' => $rows,
+		);
+	}
+
+	protected static function gd11RowMatches(array $row, $kind, $arg) {
+		$status = strtolower(trim((string) $row['offline_status']));
+		$miss = array('offline_hen_goi_lai', 'offline_khong_nghe_may', 'offline_sai_thong_tin');
+		if ($kind === 'all') {
+			return true;
+		}
+		if ($kind === 'status') {
+			return $status === $arg;
+		}
+		if ($kind === 'contacted') {
+			return !in_array($status, $miss, true);
+		}
+		if ($kind === 'eligible') {
+			return !in_array($status, $miss, true) && (string) $row['eligibility_result'] === 'du_dk';
+		}
+		if ($kind === 'attended' || $kind === 'funnel') {
+			return $status === 'offline_da_tham_gia';
+		}
+		if ($kind === 'dated') {
+			return self::gd11DatedStatus($status);
+		}
+		if ($kind === 'level-attend') {
+			return $status === 'offline_da_tham_gia' && strtolower(trim((string) $row['potential_level'])) === $arg;
+		}
+		if ($kind === 'region-dated') {
+			return self::gd11DatedStatus($status) && self::stageRegionKey($row['area'], $row['district']) === $arg;
+		}
+		if ($kind === 'region-attend') {
+			return $status === 'offline_da_tham_gia' && self::stageRegionKey($row['area'], $row['district']) === $arg;
+		}
+		if ($kind === 'level') {
+			return strtolower(trim((string) $row['potential_level'])) === $arg;
+		}
+		if ($kind === 'region') {
+			return self::stageRegionKey($row['area'], $row['district']) === $arg;
+		}
+		return false;
+	}
+
+	protected static function gd11DrillTitle($kind, $arg) {
+		$names = array(
+			'all' => 'Offline 1.1 — trong luồng',
+			'contacted' => 'Offline 1.1 — đã liên hệ được',
+			'eligible' => 'Offline 1.1 — giữ đủ điều kiện',
+			'attended' => 'Offline 1.1 — đã tham gia',
+			'status' => 'Offline 1.1 — ' . $arg,
+			'level' => 'Offline 1.1 — ' . $arg,
+			'region' => 'Offline 1.1 — ' . $arg,
+		);
+		return isset($names[$kind]) ? $names[$kind] : 'Offline 1.1';
+	}
+
+	protected static function gd12RowMatches(array $row, $kind, $bucket) {
+		if ($kind === 'all') {
+			return true;
+		}
+		$status = strtolower(trim((string) $row['online_status']));
+		$progress = (float) $row['edubit_progress_pct'];
+		$activated = self::stageHasTimestamp($row['edubit_activated_at'])
+			|| in_array($status, array('online_dang_hoc', 'online_dat_80'), true);
+		if ($bucket === 'pending') {
+			return $status === 'online_chua_dien_form';
+		}
+		if ($bucket === 'form') {
+			return $status !== 'online_chua_dien_form';
+		}
+		if ($bucket === 'qualified') {
+			return $status === 'online_chua_dk_tk';
+		}
+		if ($bucket === 'blocked') {
+			return $status === 'online_khong_du_dk';
+		}
+		if ($bucket === 'stopped') {
+			return $status === 'online_ngung_cskh';
+		}
+		if ($bucket === 'passed') {
+			return $status === 'online_chua_dk_tk' || $activated;
+		}
+		if ($bucket === 'activated') {
+			return $activated;
+		}
+		if ($bucket === 'p80') {
+			return $status === 'online_dat_80' || $progress >= 80;
+		}
+		if ($bucket === 'p100') {
+			return $progress >= 100;
+		}
+		return false;
+	}
+
+	protected static function gd12LevelMatches(array $row, $kind, $arg) {
+		$level = strtolower(trim((string) $row['potential_level']));
+		if ($level !== $arg) {
+			return false;
+		}
+		$status = strtolower(trim((string) $row['online_status']));
+		$progress = (float) $row['edubit_progress_pct'];
+		$activated = self::stageHasTimestamp($row['edubit_activated_at'])
+			|| in_array($status, array('online_dang_hoc', 'online_dat_80'), true);
+		if ($kind === 'level80') {
+			return $status === 'online_dat_80' || $progress >= 80;
+		}
+		return false;
+	}
+
+	protected static function gd14RowMatches(array $row, $kind, $arg) {
+		if ($kind === 'all') {
+			return true;
+		}
+		if ($kind === 'tag') {
+			return $row['tag'] === $arg;
+		}
+		if ($kind === 'verified') {
+			return !empty($row['verified']);
+		}
+		if ($kind === 'invited') {
+			return $row['invite'] === 1;
+		}
+		if ($kind === 'blocked') {
+			return $row['invite'] === 0;
+		}
+		if ($kind === 'course') {
+			return $row['course'] === $arg;
+		}
+		if ($kind === 'contacted') {
+			return !in_array($row['tag'], array('gd14_moi_dang_ky', 'gd14_hen_goi_lai', 'gd14_khong_nghe_may', 'gd14_sai_thong_tin'), true);
+		}
+		if ($kind === 'advised') {
+			return !empty($row['advised']);
+		}
+		if ($kind === 'chose') {
+			return in_array($row['tag'], array('gd14_cho_thanh_toan', 'gd14_chua_xep_buoi', 'gd14_da_xac_nhan_lich', 'gd14_khong_tham_gia', 'gd14_da_tham_gia'), true)
+				|| $row['course'] !== ''
+				|| self::gd14PreferredCourse($row) !== '';
+		}
+		if ($kind === 'closed') {
+			return $row['course'] !== '';
+		}
+		if ($kind === 'form_changed') {
+			return !empty($row['form_changed']);
+		}
+		if ($kind === 'contradict') {
+			return !empty($row['contradict']);
+		}
+		if ($kind === 'source') {
+			$src = $row['source'] !== '' ? $row['source'] : 'Chưa ghi nguồn';
+			return $row['tag'] === 'gd14_sai_thong_tin' && $src === $arg;
+		}
+		if ($kind === 'source_all') {
+			$src = $row['source'] !== '' ? $row['source'] : 'Chưa ghi nguồn';
+			return $src === $arg;
+		}
+		if ($kind === 'high_close') {
+			return in_array($row['course'], array('pcth', 'mqbb', 'combo'), true);
+		}
+		if ($kind === 'scheduled') {
+			return in_array($row['tag'], array('gd14_chua_xep_buoi', 'gd14_da_xac_nhan_lich', 'gd14_khong_tham_gia', 'gd14_da_tham_gia'), true);
+		}
+		if ($kind === 'confirmed') {
+			return in_array($row['tag'], array('gd14_da_xac_nhan_lich', 'gd14_khong_tham_gia', 'gd14_da_tham_gia'), true);
+		}
+		if ($kind === 'sla30' || $kind === 'attend30' || $kind === 'attend60' || $kind === 'attend90' || $kind === 'cancel' || $kind === 'revenue' || $kind === 'orders') {
+			return true;
+		}
+		return false;
+	}
+
+	protected static function mapStagePeople(array $rows, $statusField) {
+		$out = array();
+		foreach ($rows as $row) {
+			$id = (int) $row['id'];
+			$out[] = array(
+				'id' => $id,
+				'name' => self::decodeText(isset($row['name']) ? $row['name'] : '') ?: ('#' . $id),
+				'phone' => self::decodeText(isset($row['phone']) ? $row['phone'] : ''),
+				'status' => isset($row[$statusField]) ? (string) $row[$statusField] : '',
+				'detail_url' => 'index.php?module=Leads&view=Detail&record=' . $id . '&app=SALES',
+			);
+		}
+		return $out;
 	}
 
 	/** Stage 2 — Sales Funnel */
@@ -1687,6 +3944,10 @@ class Home_AdminKpiService {
 	 * @return array
 	 */
 	public static function getDrilldown($type, array $opts = array()) {
+		self::setStagePeriod(
+			isset($opts['stage_period']) ? $opts['stage_period'] : 'month',
+			isset($opts['stage_offset']) ? $opts['stage_offset'] : 0
+		);
 		$type = strtolower(trim((string) $type));
 		$key = isset($opts['key']) ? (string) $opts['key'] : '';
 		$id = isset($opts['id']) ? (int) $opts['id'] : 0;
@@ -1721,6 +3982,8 @@ class Home_AdminKpiService {
 				return self::drillSalesOrdersByContact($db, $id);
 			case 'customers':
 				return self::drillContacts($db, $key);
+			case 'stage_people':
+				return self::drillStagePeople($db, $key);
 			case 'leads_period':
 				return self::drillLeadsByPeriod($db, $key !== '' ? $key : 'today');
 			case 'leads_urgency':

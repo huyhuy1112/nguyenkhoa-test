@@ -76,6 +76,52 @@ class Quotes_Edit_View extends Inventory_Edit_View {
 					$priceChannel = 'tuibao';
 				}
 			}
+			if ($priceChannel !== 'tuibao' && $accountId > 0) {
+				try {
+					$db = PearDatabase::getInstance();
+					$accRs = $db->pquery(
+						'SELECT account_no FROM vtiger_account WHERE accountid = ? LIMIT 1',
+						array($accountId)
+					);
+					if ($accRs && $db->num_rows($accRs)) {
+						$accountNo = strtoupper(trim(decode_html((string) $db->query_result($accRs, 0, 'account_no'))));
+						if (strpos($accountNo, 'TUIBAO') === 0) {
+							$priceChannel = 'tuibao';
+						}
+					}
+				} catch (Exception $e) {
+					// Keep retail when the account code cannot be read.
+				}
+			}
+		}
+		if ($priceChannel !== 'tuibao') {
+			$contactId = (int) $request->get('contact_id');
+			if ($contactId <= 0 && $recordId > 0) {
+				try {
+					if (!isset($rec) || !$rec) {
+						$rec = Vtiger_Record_Model::getInstanceById($recordId, 'Quotes');
+					}
+					$contactId = (int) $rec->get('contact_id');
+				} catch (Exception $e) {
+					$contactId = 0;
+				}
+			}
+			if ($contactId > 0) {
+				try {
+					$db = PearDatabase::getInstance();
+					$cRs = $db->pquery(
+						'SELECT contact_no FROM vtiger_contactdetails WHERE contactid = ? LIMIT 1',
+						array($contactId)
+					);
+					if ($cRs && $db->num_rows($cRs)) {
+						$contactNo = trim(decode_html((string) $db->query_result($cRs, 0, 'contact_no')));
+						if (preg_match('/^MIUTEA_/i', $contactNo)) {
+							$priceChannel = 'miutea';
+						}
+					}
+				} catch (Exception $e) {
+				}
+			}
 		}
 		$viewer->assign('MK_PRICE_CHANNEL', $priceChannel);
 	}

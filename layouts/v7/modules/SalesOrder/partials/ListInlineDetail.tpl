@@ -2,7 +2,7 @@
 {strip}
 {assign var=FINAL_DETAILS value=$RELATED_PRODUCTS.1.final_details}
 {assign var=INLINE_SOSTATUS value=$RECORD->get('sostatus')}
-<div class="mk-so-inline-detail is-edit-mode" data-always-edit="1" data-record-id="{$RECORD->getId()}" data-module="SalesOrder" data-sostatus="{$INLINE_SOSTATUS|escape}" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|escape}" data-excel-url="index.php?module=SalesOrder&amp;action=ExportExcelForSale&amp;record={$RECORD->getId()}" data-amount-words="{$INLINE_AMOUNT_WORDS|default:''|escape}" data-created-date="{$INLINE_CREATED_DATE|default:''|escape}" data-grand-raw="{$INLINE_GRAND_RAW|default:0|escape}" data-paid-field="{$INLINE_PAID_FIELD|default:'received'|escape}" data-subtotal-raw="{$FINAL_DETAILS.hdnSubTotal|default:'0'|escape}">
+<div class="mk-so-inline-detail is-edit-mode" data-always-edit="1" data-record-id="{$RECORD->getId()}" data-module="SalesOrder" data-misa-status="{$MK_MISA_STATUS|default:''|escape}" data-sostatus="{$INLINE_SOSTATUS|escape}" data-detail-url="{$INLINE_DETAIL_URL|escape}" data-print-url="{$INLINE_PRINT_URL|escape}" data-print-download-url="{$INLINE_PRINT_DOWNLOAD_URL|escape}" data-excel-url="index.php?module=SalesOrder&amp;action=ExportExcelForSale&amp;record={$RECORD->getId()}" data-amount-words="{$INLINE_AMOUNT_WORDS|default:''|escape}" data-created-date="{$INLINE_CREATED_DATE|default:''|escape}" data-grand-raw="{$INLINE_GRAND_RAW|default:0|escape}" data-paid-field="{$INLINE_PAID_FIELD|default:'received'|escape}" data-subtotal-raw="{$FINAL_DETAILS.hdnSubTotal|default:'0'|escape}">
 	<div class="mk-so-inline-detail__tabs" role="tablist">
 		<button type="button" class="mk-so-inline-detail__tab is-active" role="tab" aria-selected="true">Thông tin</button>
 	</div>
@@ -10,9 +10,15 @@
 	<div class="mk-so-inline-detail__hero">
 		<div class="mk-so-inline-detail__hero-main">
 			<div class="mk-so-inline-detail__customer">
-				<span class="mk-so-inline-detail__customer-name">{if isset($INLINE_CUSTOMER_NAME) && $INLINE_CUSTOMER_NAME neq '' && $INLINE_CUSTOMER_NAME neq '—'}{$INLINE_CUSTOMER_NAME}{else}--{/if}</span>
+				<span class="mk-so-inline-detail__customer-name">{if isset($INLINE_CUSTOMER_NAME) && $INLINE_CUSTOMER_NAME neq '' && $INLINE_CUSTOMER_NAME neq '—' && $INLINE_CUSTOMER_NAME neq '--'}{$INLINE_CUSTOMER_NAME}{else}{/if}</span>
 			</div>
 			<div class="mk-so-inline-detail__order-no">{$RECORD->getDisplayValue('salesorder_no')}</div>
+			<div class="mk-so-misa-chip{if $MK_MISA_STATE|default:'' neq ''} is-{$MK_MISA_STATE|escape}{/if}" id="mkSoMisaChip" data-misa-refno="{$MK_MISA_REFNO|default:''|escape}" title="{if $MK_MISA_UPDATED|default:'' neq ''}Cập nhật {$MK_MISA_UPDATED|escape}{/if}" {if $MK_MISA_STATUS|default:'' eq ''}hidden{/if}>
+				<span class="mk-so-misa-chip__label">MISA</span>
+				<strong class="mk-so-misa-chip__status">{$MK_MISA_STATUS|default:''|escape}</strong>
+				<span class="mk-so-misa-chip__ref"{if $MK_MISA_REFNO|default:'' eq ''} hidden{/if}>{$MK_MISA_REFNO|default:''|escape}</span>
+				<span class="mk-so-misa-chip__note"{if $MK_MISA_NOTE|default:'' eq ''} hidden{/if}>{$MK_MISA_NOTE|default:''|escape}</span>
+			</div>
 		</div>
 		{if $INLINE_BRANCH_LABEL neq ''}
 			<div class="mk-so-inline-detail__branch">{$INLINE_BRANCH_LABEL|escape}</div>
@@ -117,6 +123,12 @@
 				<span class="mk-so-inline-detail__total-label">Tổng tiền hàng</span>
 				<strong class="mk-so-inline-detail__total-value mk-so-inline-detail__subtotal-value">{$FINAL_DETAILS.hdnSubTotal|default:'0'}</strong>
 			</div>
+			{assign var=SO_DISC_PCT value=$FINAL_DETAILS.discount_percentage_final|default:0}
+			{assign var=SO_DISC_MONEY value=$FINAL_DETAILS.discountTotal_final|default:'0'}
+			<div class="mk-so-inline-detail__total-row">
+				<span class="mk-so-inline-detail__total-label">Chiết khấu</span>
+				<strong class="mk-so-inline-detail__total-value">{if $SO_DISC_PCT > 0}{$SO_DISC_PCT}% · {/if}{$SO_DISC_MONEY}</strong>
+			</div>
 			<div class="mk-so-inline-detail__total-row mk-so-inline-detail__total-row--paid" data-field-name="{$INLINE_PAID_FIELD|default:'received'|escape}">
 				<span class="mk-so-inline-detail__total-label">Khách đã trả</span>
 				<span class="mk-so-inline-detail__paid-view">{$INLINE_PAID_DISPLAY|default:'0'}</span>
@@ -154,31 +166,16 @@
 				&& $INLINE_SOSTATUS neq 'Hoàn thành' && $INLINE_SOSTATUS neq 'Cancelled' && $INLINE_SOSTATUS neq 'Đã hủy'
 				&& $INLINE_SOSTATUS neq 'Đã huỷ'
 			)}
-			<div class="mk-so-inline-detail__confirm-split btn-group">
-				{if !$SO_ALREADY_CONFIRMED}
-				<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__confirm-order-btn" title="Xác nhận đơn hàng và tạo phiếu xuất kho">
-					<i class="fa fa-check" aria-hidden="true"></i>
-					<span>Xác nhận đơn hàng</span>
-				</button>
-				<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__confirm-caret dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Thêm thao tác" aria-label="Thêm thao tác">
-					<span class="caret" aria-hidden="true"></span>
-				</button>
-				{else}
-				<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__misa-standalone-btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Thao tác kế toán">
-					<i class="fa fa-share-square-o" aria-hidden="true"></i>
-					<span>Kế toán</span>
-					<span class="caret" aria-hidden="true"></span>
-				</button>
-				{/if}
-				<ul class="dropdown-menu dropdown-menu-right mk-so-inline-detail__confirm-menu" role="menu">
-					<li role="presentation">
-						<a href="#" role="menuitem" class="mk-so-inline-detail__misa-btn" data-record-id="{$RECORD->getId()}" title="Chuyển đơn hàng sang kế toán MISA">
-							<i class="fa fa-share-square-o" aria-hidden="true"></i>
-							<span>Chuyển đến kế toán MISA</span>
-						</a>
-					</li>
-				</ul>
-			</div>
+			{if !$SO_ALREADY_CONFIRMED}
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--primary mk-so-inline-detail__confirm-order-btn" title="Xác nhận đơn hàng và tạo phiếu xuất kho">
+				<i class="fa fa-check" aria-hidden="true"></i>
+				<span>Xác nhận đơn hàng</span>
+			</button>
+			{/if}
+			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__misa-btn" data-record-id="{$RECORD->getId()}" title="Gửi sang AMIS thành Đơn đặt hàng">
+				<i class="fa fa-share-square-o" aria-hidden="true"></i>
+				<span>Chuyển qua MISA</span>
+			</button>
 			{if $SO_CAN_CANCEL}
 			<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__cancel-order-btn" title="Huỷ đơn và hoàn kho (nếu đã trừ tồn)">
 				<i class="fa fa-ban" aria-hidden="true"></i>
@@ -193,7 +190,7 @@
 				<i class="fa fa-copy" aria-hidden="true"></i>
 				<span>Nhân bản</span>
 			</a>
-			<a class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__to-quote-btn" href="index.php?module=Quotes&view=Edit&app=SALES&salesorder_id={$RECORD->getId()}" title="Tạo báo giá từ đơn hàng này">
+			<a class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__to-quote-btn" href="index.php?module=Quotes&view=Edit&app=SALES&salesorder_id={$RECORD->getId()}" data-record-id="{$RECORD->getId()}" title="Tạo báo giá từ đơn hàng này">
 				<i class="fa fa-file-text-o" aria-hidden="true"></i>
 				<span>Tạo báo giá</span>
 			</a>

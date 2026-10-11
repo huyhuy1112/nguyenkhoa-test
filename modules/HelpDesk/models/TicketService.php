@@ -26,6 +26,131 @@ class HelpDesk_TicketService {
 
 	public function __construct() {
 		$this->db = PearDatabase::getInstance();
+		$this->ensureSchema();
+	}
+
+	public static function issueTypes() {
+		return array(
+			'ho_tro' => 'Hỗ trợ thường',
+			'hang_loi' => 'Hàng lỗi',
+			'giao_thieu' => 'Giao thiếu',
+			'giao_sai' => 'Giao sai',
+			'hang_hu' => 'Hàng hư',
+			'tra_hang' => 'Trả hàng',
+			'khieu_nai' => 'Khiếu nại',
+		);
+	}
+
+	public static function resolutions() {
+		return array(
+			'' => 'Chưa có kết quả',
+			'giao_bu' => 'Giao bù',
+			'doi_hang' => 'Đổi hàng',
+			'hoan_tien' => 'Hoàn tiền',
+			'da_phan_hoi' => 'Đã phản hồi khách',
+		);
+	}
+
+	public static function incidentTypes() {
+		return array('hang_loi', 'giao_thieu', 'giao_sai', 'hang_hu', 'tra_hang');
+	}
+
+	public function ensureSchema() {
+		static $done = false;
+		if ($done) {
+			return;
+		}
+		$done = true;
+		$this->db->pquery(
+			'CREATE TABLE IF NOT EXISTS tickets (
+				id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				ticket_code VARCHAR(32) NOT NULL,
+				customer_id INT UNSIGNED NOT NULL,
+				project_id INT UNSIGNED NULL,
+				salesorder_id INT UNSIGNED NULL,
+				subject VARCHAR(255) NOT NULL,
+				description TEXT NULL,
+				issue_type VARCHAR(32) NOT NULL DEFAULT \'ho_tro\',
+				resolution VARCHAR(32) NULL,
+				priority VARCHAR(16) NOT NULL DEFAULT \'Medium\',
+				status VARCHAR(32) NOT NULL DEFAULT \'Open\',
+				created_by INT UNSIGNED NOT NULL DEFAULT 0,
+				sla_due_at DATETIME NULL,
+				is_overdue TINYINT(1) NOT NULL DEFAULT 0,
+				created_at DATETIME NOT NULL,
+				updated_at DATETIME NULL,
+				closed_at DATETIME NULL,
+				KEY idx_ticket_customer (customer_id),
+				KEY idx_ticket_status (status)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+			array()
+		);
+		foreach (array(
+			'salesorder_id' => 'INT UNSIGNED NULL',
+			'issue_type' => "VARCHAR(32) NOT NULL DEFAULT 'ho_tro'",
+			'resolution' => 'VARCHAR(32) NULL',
+			'sla_due_at' => 'DATETIME NULL',
+			'is_overdue' => 'TINYINT(1) NOT NULL DEFAULT 0',
+			'closed_at' => 'DATETIME NULL',
+		) as $column => $ddl) {
+			$col = $this->db->pquery('SHOW COLUMNS FROM tickets LIKE ?', array($column));
+			if (!$col || $this->db->num_rows($col) < 1) {
+				$this->db->pquery('ALTER TABLE tickets ADD COLUMN ' . $column . ' ' . $ddl, array());
+			}
+		}
+		$this->db->pquery(
+			'CREATE TABLE IF NOT EXISTS ticket_assignments (
+				ticket_id INT UNSIGNED NOT NULL,
+				user_id INT UNSIGNED NOT NULL,
+				assigned_at DATETIME NULL,
+				PRIMARY KEY (ticket_id, user_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+			array()
+		);
+		$this->db->pquery(
+			'CREATE TABLE IF NOT EXISTS ticket_files (
+				id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				ticket_id INT UNSIGNED NOT NULL,
+				file_path VARCHAR(255) NOT NULL,
+				file_type VARCHAR(64) NULL,
+				uploaded_by INT UNSIGNED NOT NULL DEFAULT 0,
+				uploaded_at DATETIME NULL
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+			array()
+		);
+		$this->db->pquery(
+			'CREATE TABLE IF NOT EXISTS ticket_time_logs (
+				id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				ticket_id INT UNSIGNED NOT NULL,
+				user_id INT UNSIGNED NOT NULL DEFAULT 0,
+				minutes_spent INT NOT NULL DEFAULT 0,
+				note TEXT NULL,
+				created_at DATETIME NULL
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+			array()
+		);
+		$this->db->pquery(
+			'CREATE TABLE IF NOT EXISTS ticket_activity_logs (
+				id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				ticket_id INT UNSIGNED NOT NULL,
+				action_type VARCHAR(32) NOT NULL,
+				old_value TEXT NULL,
+				new_value TEXT NULL,
+				changed_by INT UNSIGNED NOT NULL DEFAULT 0,
+				changed_at DATETIME NULL
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+			array()
+		);
+		$this->db->pquery(
+			'CREATE TABLE IF NOT EXISTS ticket_rules (
+				id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				condition_json TEXT NULL,
+				auto_priority VARCHAR(16) NULL,
+				sla_minutes INT NULL,
+				auto_assign_user_id INT UNSIGNED NULL
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+			array()
+		);
 	}
 
 	public static function getInstance(): self {
@@ -71,6 +196,17 @@ class HelpDesk_TicketService {
 		$description = (string)($data['description'] ?? '');
 		$priority    = $data['priority'] ?? 'Medium';
 		$status      = $data['status'] ?? 'Open';
+		$types = self::issueTypes();
+		$issueType = isset($data['issue_type']) ? (string) $data['issue_type'] : 'ho_tro';
+		if (!isset($types[$issueType])) {
+			$issueType = 'ho_tro';
+		}
+		$resolutions = self::resolutions();
+		$resolution = isset($data['resolution']) ? (string) $data['resolution'] : '';
+		if (!isset($resolutions[$resolution])) {
+			$resolution = '';
+		}
+		$salesOrderId = !empty($data['salesorder_id']) ? (int) $data['salesorder_id'] : null;
 
 		if ($customerId <= 0 || $subject === '') {
 			throw new Exception('customer_id and subject are required');
@@ -79,15 +215,18 @@ class HelpDesk_TicketService {
 		$ticketCode = $this->generateTicketCode();
 
 		$sql = 'INSERT INTO tickets
-			(ticket_code, customer_id, project_id, subject, description, priority, status, created_by, created_at, updated_at)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())';
+			(ticket_code, customer_id, project_id, salesorder_id, subject, description, issue_type, resolution, priority, status, created_by, created_at, updated_at)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())';
 
 		$params = [
 			$ticketCode,
 			$customerId,
 			$projectId,
+			$salesOrderId,
 			$subject,
 			$description,
+			$issueType,
+			$resolution !== '' ? $resolution : null,
 			$priority,
 			$status,
 			$currentUserId,
@@ -126,7 +265,20 @@ class HelpDesk_TicketService {
 		$fields = [];
 		$params = [];
 
-		$updatable = ['customer_id', 'project_id', 'subject', 'description', 'priority'];
+		$updatable = ['customer_id', 'project_id', 'salesorder_id', 'subject', 'description', 'issue_type', 'resolution', 'priority'];
+
+		if (array_key_exists('issue_type', $data) && !isset(self::issueTypes()[(string) $data['issue_type']])) {
+			$data['issue_type'] = 'ho_tro';
+		}
+		if (array_key_exists('resolution', $data) && !isset(self::resolutions()[(string) $data['resolution']])) {
+			$data['resolution'] = '';
+		}
+		if (array_key_exists('salesorder_id', $data) && (int) $data['salesorder_id'] <= 0) {
+			$data['salesorder_id'] = null;
+		}
+		if (array_key_exists('resolution', $data) && $data['resolution'] === '') {
+			$data['resolution'] = null;
+		}
 
 		foreach ($updatable as $field) {
 			if (array_key_exists($field, $data)) {

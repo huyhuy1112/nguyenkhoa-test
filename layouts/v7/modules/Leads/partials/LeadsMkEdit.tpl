@@ -8,6 +8,9 @@
 {else}
 	{assign var=MK_CANCEL_URL value=$MK_LIST_URL}
 {/if}
+{if $MK_IS_EDIT && isset($MK_LEAD_EDIT_BOOTSTRAP_JSON)}
+<script type="text/javascript">window.MK_LEAD_EDIT_BOOTSTRAP = {$MK_LEAD_EDIT_BOOTSTRAP_JSON};</script>
+{/if}
 <div class="mk-td-create" id="mk-td-create" data-record-id="{$MK_LEAD_RECORD_ID|escape:'html'}"{if $MK_IS_EDIT} data-mode="edit"{/if}>
 	<header class="mk-td-create__head">
 		<nav class="mk-td-create__crumb" aria-label="Breadcrumb">
@@ -149,6 +152,36 @@
 							<textarea id="mk-td-notes" class="mk-td-textarea" rows="3" placeholder="Ghi chú cho team sales / CS…"></textarea>
 						</div>
 					</div>
+				</div>
+			</section>
+
+			<section class="mk-td-card mk-td-card--highlight" data-section="study-path">
+				<header class="mk-td-card__head">
+					<span class="mk-td-card__num">02B</span>
+					<div>
+						<h2 class="mk-td-card__title"><span class="mk-td-card__ico" aria-hidden="true">◈</span> Hình thức học</h2>
+						<p class="mk-td-card__desc"><strong>Bắt buộc</strong> — chọn Online (GD 1.2), Offline (GD 1.1) hoặc 990k (GD 1.4) để mở xác minh</p>
+					</div>
+				</header>
+				<div class="mk-td-card__body">
+					<div class="mk-td-choice-row mk-td-choice-row--3" role="group" aria-label="Hình thức học">
+						<button type="button" class="mk-td-choice mk-td-choice--tile" data-tag="mien_phi_online" data-group="study-path" data-value="online" id="mk-td-study-online">
+							<span class="mk-td-choice__ico">◉</span>
+							<span class="mk-td-choice__label">Học Online</span>
+							<span class="mk-td-choice__hint">GD 1.2 — xác minh 4 câu → cấp TK Edubit → KH</span>
+						</button>
+						<button type="button" class="mk-td-choice mk-td-choice--tile" data-tag="mien_phi_offline" data-group="study-path" data-value="offline" id="mk-td-study-offline">
+							<span class="mk-td-choice__ico">◎</span>
+							<span class="mk-td-choice__label">Học Offline</span>
+							<span class="mk-td-choice__hint">GD 1.1 — xác minh Bộ B → Opp</span>
+						</button>
+						<button type="button" class="mk-td-choice mk-td-choice--tile" data-tag="gd14_moi_dang_ky" data-group="study-path" data-value="gd14" id="mk-td-study-990k">
+							<span class="mk-td-choice__ico">◈</span>
+							<span class="mk-td-choice__label">990k</span>
+							<span class="mk-td-choice__hint">GD 1.4 — gắn tag Mới đăng ký, mở xác minh 990k</span>
+						</button>
+					</div>
+					<p class="mk-td-field-hint" id="mk-td-study-path-hint" hidden>Vui lòng chọn Học Online, Học Offline hoặc 990k.</p>
 				</div>
 			</section>
 

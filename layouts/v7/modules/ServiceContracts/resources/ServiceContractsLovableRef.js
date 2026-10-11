@@ -91,10 +91,16 @@
     vang: { vi: "Vàng", en: "Gold", cat: "tier", cls: "mk-tag--vang" },
     bac: { vi: "Bạc", en: "Silver", cat: "tier", cls: "mk-tag--bac" },
     dong: { vi: "Đồng", en: "Bronze", cat: "tier", cls: "mk-tag--dong" },
+    ca_nhan: { vi: "Cá nhân", en: "Individual", cat: "customerType", cls: "mk-tag--ca-nhan" },
+    cong_ty: { vi: "Công ty", en: "Company", cat: "customerType", cls: "mk-tag--cong-ty" },
   };
 
-  /** Loại khách — khớp Trạng thái khách trên Lead (Đã/Chưa có quán, Gia đình). */
-  var CUSTOMER_RANK_TAGS = ["co_quan", "chuan_bi_mo", "gia_dinh", "moi_quen", "da_co_quan_he"];
+  /** Loại khách — công ty / cá nhân (giống Contacts) */
+  var CUSTOMER_TYPE_TAGS = ["ca_nhan", "cong_ty"];
+  /** Tình trạng khách — khớp Contacts */
+  var CUSTOMER_STATUS_TAGS = ["co_quan", "chuan_bi_mo", "gia_dinh", "moi_quen", "da_co_quan_he"];
+  /** @deprecated alias */
+  var CUSTOMER_RANK_TAGS = CUSTOMER_STATUS_TAGS;
   var CLASS_TAGS = ["chua_mqbh", "da_tg_free", "da_tg_fb1", "thu_3", "pcth", "van_hanh", "mkt", "lop_khac"];
   var MATERIAL_TAGS = [
     "tiem_nang", "mua_lan_dau", "mua_lai", "mua_on_dinh", "dang_cham_soc",
@@ -139,7 +145,9 @@
 
   function categorizeTags(tags) {
     return {
-      customerRank: findTagInPool(tags, CUSTOMER_RANK_TAGS),
+      customerType: findTagInPool(tags, CUSTOMER_TYPE_TAGS),
+      customerStatus: findTagInPool(tags, CUSTOMER_STATUS_TAGS),
+      customerRank: findTagInPool(tags, CUSTOMER_STATUS_TAGS),
       classTag: findTagInPool(tags, CLASS_TAGS),
       material: findTagInPool(tags, MATERIAL_TAGS),
       franchise: findTagInPool(tags, FRANCHISE_TAGS),
@@ -173,8 +181,9 @@
 
   /** Groups for list / inline tag editor — same BA buckets as Opp / Leads. */
   var CREATE_TAG_GROUPS = [
+    { id: "customerType", labelVi: "Loại khách", labelEn: "Customer type", tags: CUSTOMER_TYPE_TAGS },
     { id: "tier", labelVi: "Hạng khách", labelEn: "Tier", tags: TIER_TAGS },
-    { id: "customerRank", labelVi: "Loại khách", labelEn: "Customer type", tags: CUSTOMER_RANK_TAGS },
+    { id: "customerStatus", labelVi: "Tình trạng khách", labelEn: "Customer status", tags: CUSTOMER_STATUS_TAGS },
     { id: "class", labelVi: "Tag lớp học", labelEn: "Class", tags: CLASS_TAGS },
     { id: "material", labelVi: "Tag nguyên liệu", labelEn: "Material", tags: MATERIAL_TAGS },
     { id: "franchise", labelVi: "Tag nhượng quyền", labelEn: "Franchise", tags: FRANCHISE_TAGS },
@@ -206,6 +215,8 @@
 
   root.ServiceContractsLovableRef = {
     TAG_META_RAW: TAG_META_RAW,
+    CUSTOMER_TYPE_TAGS: CUSTOMER_TYPE_TAGS,
+    CUSTOMER_STATUS_TAGS: CUSTOMER_STATUS_TAGS,
     CUSTOMER_RANK_TAGS: CUSTOMER_RANK_TAGS,
     CLASS_TAGS: CLASS_TAGS,
     MATERIAL_TAGS: MATERIAL_TAGS,

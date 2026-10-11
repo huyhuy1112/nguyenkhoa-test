@@ -54,14 +54,20 @@
     }
   }
 
-  function setActiveTab(viewName) {
-    var key = VIEW_REVERSE[viewName] || "week";
+  function setActiveTabKey(key) {
+    if (!key || !VIEW_MAP[key]) {
+      key = "week";
+    }
     $(".mk-cal-view-tab")
       .removeClass("is-active")
       .attr("aria-selected", "false");
     $('.mk-cal-view-tab[data-view="' + key + '"]')
       .addClass("is-active")
       .attr("aria-selected", "true");
+  }
+
+  function setActiveTab(viewName) {
+    setActiveTabKey(VIEW_REVERSE[viewName] || "week");
   }
 
   function moveMiniCalendar() {
@@ -90,39 +96,49 @@
       return;
     }
 
-    $("#mk-cal-today").on("click.mkCalUi", function () {
+    $("#mk-cal-today").off("click.mkCalUi").on("click.mkCalUi", function () {
       $cal.fullCalendar("today");
     });
-    $("#mk-cal-prev").on("click.mkCalUi", function () {
+    $("#mk-cal-prev").off("click.mkCalUi").on("click.mkCalUi", function () {
       $cal.fullCalendar("prev");
     });
-    $("#mk-cal-next").on("click.mkCalUi", function () {
+    $("#mk-cal-next").off("click.mkCalUi").on("click.mkCalUi", function () {
       $cal.fullCalendar("next");
     });
 
-    $(".mk-cal-view-tab").on("click.mkCalUi", function () {
-      var view = $(this).data("view");
-      var fcView = VIEW_MAP[view];
-      if (fcView) {
+    // Set is-active immediately on click; do not rely only on viewRender
+    // (FullCalendar emits viewRender on the Calendar instance, not #mycalendar).
+    $(".mk-cal-view-tab")
+      .off("click.mkCalUi")
+      .on("click.mkCalUi", function () {
+        var view = $(this).data("view");
+        var fcView = VIEW_MAP[view];
+        if (!fcView) {
+          return;
+        }
+        setActiveTabKey(view);
         $cal.fullCalendar("changeView", fcView);
-      }
-    });
+        var v = $cal.fullCalendar("getView");
+        if (v) {
+          syncToolbarTitle(v);
+        }
+      });
 
-    $("#mk-cal-picker").on("click.mkCalUi", function () {
+    $("#mk-cal-picker").off("click.mkCalUi").on("click.mkCalUi", function () {
       var $goto = $cal.find(".vt-goto-date");
       if ($goto.length) {
         $goto.trigger("click");
       }
     });
 
-    $("#mk-cal-mini-prev").on("click.mkCalUi", function () {
+    $("#mk-cal-mini-prev").off("click.mkCalUi").on("click.mkCalUi", function () {
       var $mini = $("#calendar-mini");
       if ($mini.length && $mini.fullCalendar) {
         $mini.fullCalendar("prev");
         syncMiniTitle();
       }
     });
-    $("#mk-cal-mini-next").on("click.mkCalUi", function () {
+    $("#mk-cal-mini-next").off("click.mkCalUi").on("click.mkCalUi", function () {
       var $mini = $("#calendar-mini");
       if ($mini.length && $mini.fullCalendar) {
         $mini.fullCalendar("next");
@@ -130,17 +146,24 @@
       }
     });
 
-    $("#mk-cal-choose-year").on("click.mkCalUi", function () {
-      var url = "index.php?module=Calendar&view=Year&app=MANAGEMENT";
-      window.location.href = url;
-    });
+    $("#mk-cal-choose-year")
+      .off("click.mkCalUi")
+      .on("click.mkCalUi", function () {
+        var url = "index.php?module=Calendar&view=Year&app=MANAGEMENT";
+        window.location.href = url;
+      });
 
-    $cal.on("viewRender.mkCalUi", function (view) {
-      if (view && view.name) {
-        setActiveTab(view.name);
-      }
-      syncToolbarTitle(view);
-    });
+    // Bind on FullCalendar instance (EmitterMixin), not the DOM node.
+    var fc = $cal.data("fullCalendar");
+    if (fc && typeof fc.on === "function") {
+      fc.off("viewRender.mkCalUi");
+      fc.on("viewRender.mkCalUi", function (view) {
+        if (view && view.name) {
+          setActiveTab(view.name);
+        }
+        syncToolbarTitle(view);
+      });
+    }
   }
 
   function syncMiniTitle() {

@@ -46,7 +46,7 @@
 					<h2>{vtranslate('LBL_MK_SC_FRANCHISE_INFO', $MODULE)}</h2>
 					<div class="mk-sc-franchise-aff-slot">
 						<span class="mk-sc-franchise-aff" id="mkScAffiliateBadge" hidden></span>
-						<label class="mk-sc-aff-toggle" title="Tắt chỉ ẩn mã, không xóa">
+						<label class="mk-sc-aff-toggle" title="Tắt: xóa mã khỏi hệ thống. Bật: tạo lại mã giới thiệu.">
 							<input type="checkbox" id="mkScAffVisible" disabled="disabled" />
 							<span class="mk-sc-aff-toggle__ui" aria-hidden="true"></span>
 							<span class="mk-sc-aff-toggle__label">Cho phép giới thiệu</span>

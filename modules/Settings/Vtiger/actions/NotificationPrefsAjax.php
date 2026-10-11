@@ -56,6 +56,30 @@ class Settings_Vtiger_NotificationPrefsAjax_Action extends Vtiger_Action_Control
 					'volume' => $sound['volume'],
 					'message' => 'Đã lưu tùy chọn thông báo',
 				));
+			} elseif ($mode === 'saveR1Settings') {
+				require_once 'modules/Vtiger/models/R1ReminderSettings.php';
+				if (!Vtiger_R1ReminderSettings::isAdminUser($user)) {
+					throw new AppException(vtranslate('LBL_PERMISSION_DENIED', 'Vtiger'));
+				}
+				$days = $request->get('work_days');
+				if (is_string($days)) {
+					$decodedDays = json_decode($days, true);
+					if (is_array($decodedDays)) {
+						$days = $decodedDays;
+					}
+				}
+				$saved = Vtiger_R1ReminderSettings::save(array(
+					'work_start' => $request->get('work_start'),
+					'work_end' => $request->get('work_end'),
+					'gap_hours' => $request->get('gap_hours'),
+					'max_attempts' => $request->get('max_attempts'),
+					'work_days' => $days,
+				), $userId);
+				$response->setResult(array(
+					'success' => true,
+					'settings' => $saved,
+					'message' => 'Đã lưu lịch nhắc R1 (công ty)',
+				));
 			} else {
 				$response->setError(400, 'Unknown mode');
 			}

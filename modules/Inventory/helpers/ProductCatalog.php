@@ -16,10 +16,14 @@ class Inventory_ProductCatalog_Helper {
 		$hasNeedsQc = self::columnExists($db, 'vtiger_productsservices', 'needs_qc');
 		$unitCol = $hasUnit ? ', ps.unit' : '';
 		$needsQcCol = $hasNeedsQc ? ', ps.needs_qc' : '';
+		if (is_file('modules/ProductsServices/helpers/PriceSetup.php')) {
+			require_once 'modules/ProductsServices/helpers/PriceSetup.php';
+			ProductsServices_PriceSetup_Helper::ensure();
+		}
 		$tierCols = array();
 		foreach (array(
 			'price_lt_1m', 'price_gte_1m', 'price_gte_3m', 'price_gte_5m', 'price_gte_7m',
-			'price_tuibao', 'product_group',
+			'price_tuibao', 'price_miutea', 'product_group',
 		) as $col) {
 			if (self::columnExists($db, 'vtiger_productsservices', $col)) {
 				$tierCols[] = 'ps.' . $col;
@@ -85,6 +89,8 @@ class Inventory_ProductCatalog_Helper {
 					? (float) $row['price_gte_7m'] : null,
 				'price_tuibao' => isset($row['price_tuibao']) && $row['price_tuibao'] !== null && $row['price_tuibao'] !== ''
 					? (float) $row['price_tuibao'] : null,
+				'price_miutea' => isset($row['price_miutea']) && $row['price_miutea'] !== null && $row['price_miutea'] !== ''
+					? (float) $row['price_miutea'] : null,
 			);
 			$out[] = $item;
 		}
