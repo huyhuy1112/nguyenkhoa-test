@@ -243,17 +243,56 @@ jQuery.Class(
         htmlSupportEnable: data.hasOwnProperty("htmlSupportEnable")
           ? data["htmlSupportEnable"]
           : true,
-        callback: function (result) {
+			callback: function (result) {
 				if (result) {
 					aDeferred.resolve();
 				} else {
 					aDeferred.reject();
 				}
-        },
+			},
 		});
 		
-        return aDeferred.promise();
-    },
+		return aDeferred.promise();
+	},
+	showPromptBox: function (data) {
+		var aDeferred = jQuery.Deferred();
+		data = data || {};
+		var title = data.title || "Nhập thông tin";
+		var question = data.message || "";
+		var placeholder = data.placeholder || "";
+		var html = ''
+			+ '<div class="mk-ui-confirm">'
+			+ '<span class="mk-ui-confirm__icon mk-ui-confirm__icon--primary" aria-hidden="true"><i class="fa fa-pencil"></i></span>'
+			+ '<div class="mk-ui-confirm__copy">'
+			+ '<div class="mk-ui-confirm__question">' + jQuery("<div>").text(question).html() + '</div>'
+			+ '<input id="mk-ui-prompt-input" class="inputElement" type="text" style="width:100%;margin-top:10px;" placeholder="' + jQuery("<div>").text(placeholder).html() + '" />'
+			+ '</div></div>';
+		bootbox.confirm({
+			title: title,
+			message: html,
+			buttons: {
+				cancel: {
+					label: data.cancelLabel || "Hủy",
+					className: "btn mk-ui-confirm__btn mk-ui-confirm__btn--cancel",
+				},
+				confirm: {
+					label: data.confirmLabel || "Lưu",
+					className: "btn mk-ui-confirm__btn mk-ui-confirm__btn--primary",
+				},
+			},
+			callback: function (result) {
+				if (!result) {
+					aDeferred.reject();
+					return;
+				}
+				var value = "";
+				var input = document.getElementById("mk-ui-prompt-input");
+				if (input) value = String(input.value || "").trim();
+				aDeferred.resolve(value);
+			},
+		});
+		return aDeferred.promise();
+	},
     showAlertBox: function (data, cb) {
       var message = data["message"];
       if (typeof cb == "function") {

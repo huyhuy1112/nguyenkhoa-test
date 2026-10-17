@@ -95,6 +95,11 @@
 									<a href="#" class="removeSorting"><i class="fa fa-remove"></i></a>
 								{/if}
 							</th>
+							{if $LIST_HEADER_NAME eq 'received' || $LIST_HEADER_NAME eq 'paid' || $LIST_HEADER_NAME eq 'mk_customer_paid' || $LIST_HEADER_NAME eq 'paid_amount' || $LIST_HEADER_NAME eq 'amount_paid' || (isset($MK_SO_POS_PAID_FIELD) && $MK_SO_POS_PAID_FIELD neq '' && $LIST_HEADER_NAME eq $MK_SO_POS_PAID_FIELD)}
+								<th class="mk-so-col-remaining" nowrap="nowrap">
+									<span class="mk-so-pos-th-label">Còn lại</span>
+								</th>
+							{/if}
 							{if $LIST_HEADER_NAME eq 'account_id' || $LIST_HEADER_NAME eq 'contact_id'}
 								<th class="mk-so-col-warehouse" nowrap="nowrap">
 									<span class="mk-so-pos-th-label">Kho</span>
@@ -145,6 +150,11 @@
 										</span>
 									</span>
 								</td>
+								{if $LISTVIEW_HEADERNAME eq 'received' || $LISTVIEW_HEADERNAME eq 'paid' || $LISTVIEW_HEADERNAME eq 'mk_customer_paid' || $LISTVIEW_HEADERNAME eq 'paid_amount' || $LISTVIEW_HEADERNAME eq 'amount_paid' || (isset($MK_SO_POS_PAID_FIELD) && $MK_SO_POS_PAID_FIELD neq '' && $LISTVIEW_HEADERNAME eq $MK_SO_POS_PAID_FIELD)}
+									<td class="listViewEntryValue mk-so-col-remaining" data-name="mk_remaining">
+										<span class="fieldValue"><span class="value">{$LISTVIEW_ENTRY->get('mk_remaining')|default:'0'|escape}</span></span>
+									</td>
+								{/if}
 								{if $LISTVIEW_HEADERNAME eq 'account_id' || $LISTVIEW_HEADERNAME eq 'contact_id'}
 									<td class="listViewEntryValue mk-so-col-warehouse" data-name="mk_warehouse_name">
 										<span class="fieldValue"><span class="value">{$LISTVIEW_ENTRY->get('mk_warehouse_name')|default:'—'|escape}</span></span>
@@ -155,7 +165,7 @@
 					{/foreach}
 					{if isset($LISTVIEW_ENTRIES_COUNT) && $LISTVIEW_ENTRIES_COUNT eq '0'}
 						<tr class="emptyRecordsDiv">
-							{assign var=COLSPAN_WIDTH value={php7_count($LISTVIEW_HEADERS)}+2}
+							{assign var=COLSPAN_WIDTH value={php7_count($LISTVIEW_HEADERS)}+3}
 							<td colspan="{$COLSPAN_WIDTH}">
 								<div class="emptyRecordsContent">
 									{vtranslate('LBL_NO')} {vtranslate($MODULE, $MODULE)} {vtranslate('LBL_FOUND')}.

@@ -72,9 +72,30 @@ class Potentials_LastTouchCallService {
 		return Vtiger_MkLastTouchCallHelper::formatLogLine($n, $calledAt, $result, $note);
 	}
 
-	public static function logCall($recordId, $result, $note = '', $userId = null) {
+	public static function logCall($recordId, $result, $note = '', $userId = null, $opts = array()) {
 		self::ensureSchema();
-		return Vtiger_MkLastTouchCallHelper::logCall(self::cfg(), $recordId, $result, $note, $userId);
+		$out = Vtiger_MkLastTouchCallHelper::logCall(self::cfg(), $recordId, $result, $note, $userId);
+		// Offline GD 1.1: Không nghe máy trên Opp → đếm miss / dừng tạm (trừ khi đã đếm riêng).
+		if (!empty($opts['skip_offline'])) {
+			return $out;
+		}
+		try {
+			$resultNorm = trim((string) $result);
+			if ($resultNorm === self::RESULT_MISSED || $resultNorm === 'Không nghe máy') {
+				require_once 'modules/Leads/models/ConvertService.php';
+				require_once 'modules/Leads/models/OfflineGd11Service.php';
+				$leadId = (int) Leads_ConvertService::getLinkedLeadIdByPotential((int) $recordId);
+				if ($leadId > 0) {
+					$offlineMeta = Leads_OfflineGd11Service::onLastTouchMissed($leadId, $userId);
+					if (is_array($offlineMeta)) {
+						$out['offline'] = $offlineMeta;
+					}
+				}
+			}
+		} catch (Exception $e) {
+			$out['offline_error'] = $e->getMessage();
+		}
+		return $out;
 	}
 
 	public static function bumpLastTouch($recordId, $when) {

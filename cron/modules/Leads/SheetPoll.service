@@ -1,6 +1,6 @@
 <?php
 /*+***********************************************************************************
- * Poll Google Sheet → create modern Leads (new rows only). Frequency: 60s.
+ * Poll Google Sheets → create modern Leads (new rows only, multi-source). Frequency: 60s.
  *************************************************************************************/
 
 require_once 'modules/Leads/models/SheetImportService.php';

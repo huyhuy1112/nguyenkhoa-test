@@ -91,6 +91,22 @@ class Leads_Edit_View extends Vtiger_Edit_View {
 			$createTagGroups,
 			JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
 		));
+
+		// Prefill edit form from PHP so UI is not empty if JS API hydrate fails.
+		$editBootstrap = null;
+		if (!empty($recordId)) {
+			try {
+				require_once 'modules/Leads/models/ModernService.php';
+				global $current_user;
+				$editBootstrap = Leads_ModernService::getLead($recordId, (int) $current_user->id);
+			} catch (Exception $e) {
+				$editBootstrap = null;
+			}
+		}
+		$viewer->assign('MK_LEAD_EDIT_BOOTSTRAP_JSON', json_encode(
+			$editBootstrap,
+			JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+		));
 	}
 
 	public function requiresPermission(\Vtiger_Request $request) {

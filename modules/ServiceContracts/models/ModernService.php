@@ -37,8 +37,13 @@ class ServiceContracts_ModernService {
 			),
 			'contact_status' => array(
 				'Chưa gọi',
+				'Đã gọi/Đã tư vấn',
 				'Đã gửi tư vấn',
+				'Chưa liên hệ được',
+				'Thuê bao/Sai số',
 				'Thuê bao',
+				'Gọi lại sau',
+				'Ngưng chăm sóc',
 				'Ko nghe Máy Lần 1',
 				'Ko nghe Máy Lần 2',
 				'Ko nghe Máy Lần 3',
@@ -134,6 +139,11 @@ class ServiceContracts_ModernService {
 			/** Hạng A/B/C/D của chính khách này — dùng khi người khác nhập mã AFF của họ. */
 			'affiliate_tier_prefix' => "CHAR(1) DEFAULT 'D'",
 			'affiliate_visible' => 'TINYINT(1) NOT NULL DEFAULT 1',
+			'nq_r1_miss' => 'TINYINT UNSIGNED NOT NULL DEFAULT 0',
+			'nq_r1_bad' => 'TINYINT UNSIGNED NOT NULL DEFAULT 0',
+			'nq_r1_callback' => 'TINYINT UNSIGNED NOT NULL DEFAULT 0',
+			'nq_r1_stopped' => 'TINYINT(1) NOT NULL DEFAULT 0',
+			'nq_callback_at' => 'DATETIME DEFAULT NULL',
 		);
 		foreach ($cols as $name => $def) {
 			$check = $adb->pquery("SHOW COLUMNS FROM bace_sc_profile LIKE ?", array($name));
@@ -288,7 +298,7 @@ class ServiceContracts_ModernService {
 	}
 
 	/**
-	 * Toggle whether AFF code is shown / usable for referral. Does not delete the code.
+	 * Toggle AFF: ON = tạo/hiện mã; OFF = xóa mã khỏi DB (mint lại khi bật).
 	 */
 	public static function setAffiliateVisible($contractId, $visible) {
 		$contractId = (int) $contractId;
@@ -303,14 +313,22 @@ class ServiceContracts_ModernService {
 		self::ensureProfileRow($contractId);
 		$flag = $visible ? 1 : 0;
 		$now = date('Y-m-d H:i:s');
-		$code = self::getAffiliateCode($contractId);
-		if ($flag === 1 && $code === '') {
+		$code = '';
+
+		if ($flag === 1) {
 			$code = self::generateAffiliateCode($contractId);
+			$adb->pquery(
+				'UPDATE bace_sc_profile SET affiliate_visible = 1, modified_at = ? WHERE servicecontractsid = ?',
+				array($now, $contractId)
+			);
+		} else {
+			$adb->pquery(
+				'UPDATE bace_sc_profile SET affiliate_code = NULL, affiliate_visible = 0, modified_at = ? WHERE servicecontractsid = ?',
+				array($now, $contractId)
+			);
+			$code = '';
 		}
-		$adb->pquery(
-			'UPDATE bace_sc_profile SET affiliate_visible = ?, modified_at = ? WHERE servicecontractsid = ?',
-			array($flag, $now, $contractId)
-		);
+
 		$contract = self::getFranchise($contractId);
 		return array(
 			'success' => true,
@@ -474,6 +492,12 @@ class ServiceContracts_ModernService {
 			 ORDER BY servicecontractsid ASC, call_n ASC",
 			$ids
 		);
+		$r1ById = array();
+		$r1res = $adb->pquery(
+			"SELECT servicecontractsid, nq_r1_miss AS miss, nq_r1_bad AS bad, nq_r1_callback AS callback, nq_r1_stopped AS stopped
+			 FROM bace_sc_profile WHERE servicecontractsid IN ($placeholders)",
+			$ids
+		);
 		$byId = array();
 		if ($res) {
 			while ($row = $adb->fetchByAssoc($res)) {
@@ -495,23 +519,20 @@ class ServiceContracts_ModernService {
 				);
 			}
 		}
+		if ($r1res) {
+			while ($row = $adb->fetchByAssoc($r1res)) {
+				$r1ById[(int) $row['servicecontractsid']] = array(
+					'miss' => (int) $row['miss'],
+					'bad' => (int) $row['bad'],
+					'callback' => (int) $row['callback'],
+					'stopped' => (int) $row['stopped'],
+				);
+			}
+		}
 		foreach ($ids as $id) {
 			$calls = isset($byId[$id]) ? $byId[$id] : array();
-			$count = count($calls);
-			$lastResult = $count > 0 ? $calls[$count - 1]['result'] : '';
-			$canAdd = $count < 3 && $lastResult !== 'Nghe máy';
-			$out[$id] = array(
-				'calls' => $calls,
-				'count' => $count,
-				'next_n' => $canAdd ? ($count + 1) : 0,
-				'can_add' => $canAdd,
-				'max_calls' => 3,
-				'hint' => $canAdd
-					? ('Call #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → dừng chuỗi gọi.')
-					: ($lastResult === 'Nghe máy'
-						? 'Đã nghe máy — kết thúc chuỗi Last Touch Call.'
-						: 'Đã đủ 3 lần gọi Last Touch.'),
-			);
+			$stored = isset($r1ById[$id]) ? $r1ById[$id] : array('miss' => 0, 'bad' => 0, 'callback' => 0, 'stopped' => 0);
+			$out[$id] = ServiceContracts_LastTouchCallService::summaryFromCalls($calls, $stored);
 		}
 		return $out;
 	}

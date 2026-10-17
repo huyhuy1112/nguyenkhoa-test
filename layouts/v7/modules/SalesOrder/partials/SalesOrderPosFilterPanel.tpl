@@ -49,13 +49,7 @@
 						</button>
 					{/foreach}
 				{else}
-					<button type="button" class="mk-so-pos-filter-chip" data-value="Created"><span class="mk-so-pos-filter-chip__text">Phiếu tạm</span><i class="fa fa-times mk-so-pos-filter-chip__remove" aria-hidden="true"></i></button>
-					<button type="button" class="mk-so-pos-filter-chip" data-value="waiting_print"><span class="mk-so-pos-filter-chip__text">Chờ soạn</span><i class="fa fa-times mk-so-pos-filter-chip__remove" aria-hidden="true"></i></button>
-					<button type="button" class="mk-so-pos-filter-chip" data-value="picking"><span class="mk-so-pos-filter-chip__text">Đang soạn</span><i class="fa fa-times mk-so-pos-filter-chip__remove" aria-hidden="true"></i></button>
-					<button type="button" class="mk-so-pos-filter-chip" data-value="packed"><span class="mk-so-pos-filter-chip__text">Đã soạn</span><i class="fa fa-times mk-so-pos-filter-chip__remove" aria-hidden="true"></i></button>
-					<button type="button" class="mk-so-pos-filter-chip" data-value="shipped"><span class="mk-so-pos-filter-chip__text">Đã giao</span><i class="fa fa-times mk-so-pos-filter-chip__remove" aria-hidden="true"></i></button>
-					<button type="button" class="mk-so-pos-filter-chip" data-value="Approved"><span class="mk-so-pos-filter-chip__text">Đã xác nhận</span><i class="fa fa-times mk-so-pos-filter-chip__remove" aria-hidden="true"></i></button>
-					<button type="button" class="mk-so-pos-filter-chip" data-value="Delivered"><span class="mk-so-pos-filter-chip__text">Hoàn thành</span><i class="fa fa-times mk-so-pos-filter-chip__remove" aria-hidden="true"></i></button>
+					<button type="button" class="mk-so-pos-filter-chip" data-value="Paid"><span class="mk-so-pos-filter-chip__text">Đã xác nhận</span><i class="fa fa-times mk-so-pos-filter-chip__remove" aria-hidden="true"></i></button>
 				{/if}
 			</div>
 			<div class="mk-so-pos-filter-status-pool" id="mk-so-filter-status-pool">
@@ -120,6 +114,24 @@
 					<option value="Cần Thơ">Cần Thơ</option>
 				</select>
 				<i class="fa fa-chevron-down mk-so-pos-filter-select__ic" aria-hidden="true"></i>
+			</div>
+		</section>
+
+		<section class="mk-so-pos-filter-section">
+			<h3 class="mk-so-pos-filter-section__title">Còn lại</h3>
+			<div class="mk-so-pos-filter-options" role="radiogroup" aria-label="Còn lại">
+				<label class="mk-so-pos-filter-option">
+					<input type="radio" name="mk_so_filter_balance" value="all" checked />
+					<span class="mk-so-pos-filter-option__text">Tất cả</span>
+				</label>
+				<label class="mk-so-pos-filter-option">
+					<input type="radio" name="mk_so_filter_balance" value="due" />
+					<span class="mk-so-pos-filter-option__text">Còn nợ</span>
+				</label>
+				<label class="mk-so-pos-filter-option">
+					<input type="radio" name="mk_so_filter_balance" value="settled" />
+					<span class="mk-so-pos-filter-option__text">Đã trả hết</span>
+				</label>
 			</div>
 		</section>
 

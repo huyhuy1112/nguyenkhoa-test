@@ -3167,3 +3167,71 @@ body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-group-box__add {
 		padding: 8px 14px 36px !important;
 	}
 }
+
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-qty-rules {
+	grid-column: 1 / -1;
+	margin: 8px 0 4px;
+	padding: 14px 16px;
+	border: 1px solid #d7e5db;
+	border-radius: 12px;
+	background: #f7faf8;
+}
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-qty-rules h3 {
+	margin: 0 0 4px;
+	font-size: 15px;
+	font-weight: 700;
+	color: #14231a;
+}
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-qty-rules > p {
+	margin: 0 0 10px;
+	font-size: 13px;
+	color: #4b6356;
+}
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-qty-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-qty-min,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-qty-tier {
+	height: 36px;
+	border: 1px solid #c9ddd0;
+	border-radius: 8px;
+	padding: 0 10px;
+	background: #fff;
+	color: #14231a;
+}
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-qty-min {
+	width: 88px;
+}
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-qty-unit {
+	min-width: 42px;
+	font-weight: 600;
+	color: #1f4d32;
+}
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-qty-remove,
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-qty-add {
+	border: 0;
+	border-radius: 8px;
+	cursor: pointer;
+	font-weight: 600;
+}
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-qty-remove {
+	width: 32px;
+	height: 32px;
+	background: #fff;
+	color: #9f1239;
+	border: 1px solid #fecdd3;
+}
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-qty-add {
+	height: 34px;
+	padding: 0 12px;
+	background: #0b1f17;
+	color: #fff;
+}
+html.mk-ps-create-ready body[data-module="ProductsServices"][data-view="Edit"] .mk-ps-qty-empty {
+	margin: 0 0 8px;
+	font-size: 13px;
+	color: #6b7280;
+}

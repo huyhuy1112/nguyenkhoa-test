@@ -14,9 +14,17 @@
   }
 
   function decodeHtmlEntities(s) {
+    if (window.mkDecodeHtml) return window.mkDecodeHtml(s);
     var ta = document.createElement("textarea");
-    ta.innerHTML = String(s == null ? "" : s);
-    return ta.value;
+    var str = String(s == null ? "" : s);
+    var i;
+    for (i = 0; i < 5; i++) {
+      ta.innerHTML = str;
+      var next = ta.value;
+      if (next === str) break;
+      str = next;
+    }
+    return str;
   }
 
   function lastTouchCallLogHtml(row, escFn) {

@@ -1,6 +1,6 @@
 <?php
 /*+***********************************************************************************
- * Google Sheet → Leads realtime import (poll 1 phút, 1 nguồn, config, force-create).
+ * Google Sheet → Leads realtime import (poll 1 phút, nhiều nguồn, force-create).
  *************************************************************************************/
 
 require_once 'modules/Leads/models/ModernService.php';
@@ -8,6 +8,7 @@ require_once 'modules/Leads/models/ModernService.php';
 class Leads_SheetImportService {
 
 	const TABLE_SETTINGS = 'bace_lead_sheet_settings';
+	const TABLE_SOURCES = 'bace_lead_sheet_sources';
 	const TABLE_IMPORT = 'bace_lead_sheet_import';
 	const TABLE_MERGE_LOG = 'bace_lead_merge_log';
 
@@ -33,6 +34,29 @@ class Leads_SheetImportService {
 		);
 
 		$adb->pquery(
+			"CREATE TABLE IF NOT EXISTS " . self::TABLE_SOURCES . " (
+				id INT(11) NOT NULL AUTO_INCREMENT,
+				name VARCHAR(128) NOT NULL DEFAULT '',
+				spreadsheet_id VARCHAR(128) NOT NULL DEFAULT '',
+				sheet_range VARCHAR(128) NOT NULL DEFAULT 'Sheet1',
+				column_map MEDIUMTEXT,
+				source_tag VARCHAR(64) DEFAULT '',
+				enabled TINYINT(1) NOT NULL DEFAULT 1,
+				sort_order INT(11) NOT NULL DEFAULT 0,
+				last_poll_at DATETIME DEFAULT NULL,
+				last_error TEXT,
+				last_result VARCHAR(512) DEFAULT NULL,
+				created_at DATETIME DEFAULT NULL,
+				modified_at DATETIME DEFAULT NULL,
+				PRIMARY KEY (id),
+				KEY idx_enabled_sort (enabled, sort_order, id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+			array()
+		);
+		self::ensureSourcesColumn($adb, 'target_module', "VARCHAR(32) NOT NULL DEFAULT 'leads'");
+		self::ensureSourcesColumn($adb, 'lead_stage', "VARCHAR(16) NOT NULL DEFAULT 'gd11'");
+
+		$adb->pquery(
 			"CREATE TABLE IF NOT EXISTS " . self::TABLE_IMPORT . " (
 				id INT(11) NOT NULL AUTO_INCREMENT,
 				sheet_row_key VARCHAR(191) NOT NULL,
@@ -45,6 +69,11 @@ class Leads_SheetImportService {
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8",
 			array()
 		);
+		self::ensureImportColumn($adb, 'source_id', "INT(11) DEFAULT NULL");
+		self::ensureImportIndex($adb, 'idx_source', 'source_id');
+
+		require_once 'modules/Accounts/helpers/SheetIngestService.php';
+		Accounts_SheetIngestService_Helper::installSchema($adb);
 
 		$adb->pquery(
 			"CREATE TABLE IF NOT EXISTS " . self::TABLE_MERGE_LOG . " (
@@ -66,7 +95,109 @@ class Leads_SheetImportService {
 			self::ensureProfileColumn($adb, 'sheet_source', "TINYINT(1) DEFAULT 0");
 			self::ensureProfileColumn($adb, 'sheet_row_key', "VARCHAR(191) DEFAULT NULL");
 			self::ensureProfileColumn($adb, 'qa_raw', "MEDIUMTEXT DEFAULT NULL");
+			self::ensureProfileColumn($adb, 'sheet_source_id', "INT(11) DEFAULT NULL");
+			self::ensureProfileColumn($adb, 'sheet_source_name', "VARCHAR(128) DEFAULT NULL");
 		}
+
+		self::migrateLegacySingleSource($adb);
+	}
+
+	protected static function ensureImportColumn(PearDatabase $adb, $column, $definition) {
+		$colRes = $adb->pquery('SHOW COLUMNS FROM ' . self::TABLE_IMPORT . ' LIKE ?', array($column));
+		if (!$colRes || $adb->num_rows($colRes) < 1) {
+			$adb->pquery('ALTER TABLE ' . self::TABLE_IMPORT . ' ADD COLUMN ' . $column . ' ' . $definition, array());
+		}
+	}
+
+	protected static function ensureSourcesColumn(PearDatabase $adb, $column, $definition) {
+		$colRes = $adb->pquery('SHOW COLUMNS FROM ' . self::TABLE_SOURCES . ' LIKE ?', array($column));
+		if (!$colRes || $adb->num_rows($colRes) < 1) {
+			$adb->pquery('ALTER TABLE ' . self::TABLE_SOURCES . ' ADD COLUMN ' . $column . ' ' . $definition, array());
+		}
+	}
+
+	protected static function ensureImportIndex(PearDatabase $adb, $indexName, $column) {
+		$idx = $adb->pquery('SHOW INDEX FROM ' . self::TABLE_IMPORT . ' WHERE Key_name = ?', array($indexName));
+		if (!$idx || $adb->num_rows($idx) < 1) {
+			$adb->pquery('ALTER TABLE ' . self::TABLE_IMPORT . ' ADD KEY ' . $indexName . ' (' . $column . ')', array());
+		}
+	}
+
+	/**
+	 * Read setting without installSchema (safe inside installSchema / migrate).
+	 */
+	protected static function readSettingRaw(PearDatabase $adb, $key, $default = '') {
+		$key = trim((string) $key);
+		if ($key === '') {
+			return $default;
+		}
+		$res = $adb->pquery(
+			'SELECT setting_value FROM ' . self::TABLE_SETTINGS . ' WHERE setting_key = ? LIMIT 1',
+			array($key)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return $default;
+		}
+		$val = $adb->query_result($res, 0, 'setting_value');
+		if ($val === null) {
+			return $default;
+		}
+		$val = (string) $val;
+		if (function_exists('decode_html')) {
+			$val = decode_html($val);
+		} else {
+			$val = html_entity_decode($val, ENT_QUOTES, 'UTF-8');
+		}
+		return $val;
+	}
+
+	/**
+	 * One-time: copy legacy single spreadsheet_* settings into sources table.
+	 */
+	protected static function migrateLegacySingleSource(PearDatabase $adb) {
+		$countRes = $adb->pquery('SELECT COUNT(*) AS c FROM ' . self::TABLE_SOURCES, array());
+		$count = ($countRes && $adb->num_rows($countRes) > 0) ? (int) $adb->query_result($countRes, 0, 'c') : 0;
+		if ($count > 0) {
+			return;
+		}
+		$spreadsheetId = trim((string) self::readSettingRaw($adb, 'spreadsheet_id', ''));
+		if ($spreadsheetId === '') {
+			return;
+		}
+		$range = trim((string) self::readSettingRaw($adb, 'sheet_range', 'Sheet1'));
+		if ($range === '') {
+			$range = 'Sheet1';
+		}
+		$mapRaw = self::readSettingRaw($adb, 'column_map', '{}');
+		$map = json_decode($mapRaw, true);
+		if (!is_array($map) || empty($map)) {
+			$map = self::defaultColumnMap();
+		}
+		$enabled = self::readSettingRaw($adb, 'enabled', '0') === '1' ? 1 : 0;
+		$now = date('Y-m-d H:i:s');
+		$lastPoll = trim((string) self::readSettingRaw($adb, 'last_poll_at', ''));
+		$lastError = trim((string) self::readSettingRaw($adb, 'last_error', ''));
+		$lastResult = trim((string) self::readSettingRaw($adb, 'last_result', ''));
+		$adb->pquery(
+			'INSERT INTO ' . self::TABLE_SOURCES . '
+				(name, spreadsheet_id, sheet_range, column_map, source_tag, enabled, sort_order,
+				 last_poll_at, last_error, last_result, created_at, modified_at)
+			 VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+			array(
+				'Nguồn mặc định',
+				$spreadsheetId,
+				$range,
+				json_encode($map, JSON_UNESCAPED_UNICODE),
+				'',
+				$enabled,
+				0,
+				$lastPoll !== '' ? $lastPoll : null,
+				$lastError !== '' ? $lastError : null,
+				$lastResult !== '' ? $lastResult : null,
+				$now,
+				$now,
+			)
+		);
 	}
 
 	protected static function ensureProfileColumn(PearDatabase $adb, $column, $definition) {
@@ -135,20 +266,46 @@ class Leads_SheetImportService {
 	 * @return array
 	 */
 	public static function getSettings() {
-		$mapRaw = self::getSetting('column_map', '{}');
-		$map = json_decode($mapRaw, true);
-		if (!is_array($map) || empty($map)) {
-			$map = self::defaultColumnMap();
+		$sources = self::listSources();
+		$primary = !empty($sources[0]) ? $sources[0] : null;
+		$map = $primary && !empty($primary['column_map']) && is_array($primary['column_map'])
+			? $primary['column_map']
+			: self::defaultColumnMap();
+		$lastPoll = '';
+		$lastError = '';
+		$lastResult = '';
+		foreach ($sources as $src) {
+			if (!empty($src['last_poll_at']) && ($lastPoll === '' || strcmp((string) $src['last_poll_at'], $lastPoll) > 0)) {
+				$lastPoll = (string) $src['last_poll_at'];
+			}
+			if ($lastError === '' && !empty($src['last_error'])) {
+				$lastError = (string) $src['last_error'];
+			}
+			if ($lastResult === '' && !empty($src['last_result'])) {
+				$lastResult = (string) $src['last_result'];
+			}
+		}
+		if ($lastPoll === '') {
+			$lastPoll = self::getSetting('last_poll_at', '');
+		}
+		if ($lastError === '') {
+			$lastError = self::getSetting('last_error', '');
+		}
+		if ($lastResult === '') {
+			$lastResult = self::getSetting('last_result', '');
 		}
 		return array(
 			'enabled' => self::getSetting('enabled', '0') === '1',
-			'spreadsheet_id' => self::getSetting('spreadsheet_id', ''),
-			'sheet_range' => self::getSetting('sheet_range', 'Sheet1'),
+			'spreadsheet_id' => $primary ? (string) $primary['spreadsheet_id'] : self::getSetting('spreadsheet_id', ''),
+			'sheet_range' => $primary ? (string) $primary['sheet_range'] : self::getSetting('sheet_range', 'Sheet1'),
 			'column_map' => $map,
 			'service_account_json' => self::getSetting('service_account_json', ''),
-			'last_poll_at' => self::getSetting('last_poll_at', ''),
-			'last_error' => self::getSetting('last_error', ''),
-			'last_result' => self::getSetting('last_result', ''),
+			'last_poll_at' => $lastPoll,
+			'last_error' => $lastError,
+			'last_result' => $lastResult,
+			'sources' => $sources,
+			'sources_count' => count($sources),
+			'enabled_sources_count' => self::countEnabledSources($sources),
 		);
 	}
 
@@ -162,27 +319,6 @@ class Leads_SheetImportService {
 			$en = $payload['enabled'];
 			self::setSetting('enabled', ($en === true || $en === 1 || $en === '1' || $en === 'true') ? '1' : '0', $userId);
 		}
-		if (array_key_exists('spreadsheet_id', $payload)) {
-			self::setSetting('spreadsheet_id', trim((string) $payload['spreadsheet_id']), $userId);
-		}
-		if (array_key_exists('sheet_range', $payload)) {
-			$range = trim((string) $payload['sheet_range']);
-			if ($range === '') {
-				$range = 'Sheet1';
-			}
-			self::setSetting('sheet_range', $range, $userId);
-		}
-		if (array_key_exists('column_map', $payload)) {
-			$map = $payload['column_map'];
-			if (is_string($map)) {
-				$decoded = json_decode($map, true);
-				$map = is_array($decoded) ? $decoded : self::defaultColumnMap();
-			}
-			if (!is_array($map)) {
-				$map = self::defaultColumnMap();
-			}
-			self::setSetting('column_map', json_encode($map, JSON_UNESCAPED_UNICODE), $userId);
-		}
 		if (array_key_exists('service_account_json', $payload)) {
 			$json = trim((string) $payload['service_account_json']);
 			// Prefer storing file path (avoids to_html corruption of PEM/JSON in DB).
@@ -194,7 +330,341 @@ class Leads_SheetImportService {
 			}
 			self::setSetting('service_account_json', $json, $userId);
 		}
+
+		// Multi-source bulk replace / upsert list
+		if (array_key_exists('sources', $payload) && is_array($payload['sources'])) {
+			self::replaceSourcesFromPayload($payload['sources'], $userId);
+		} elseif (
+			array_key_exists('spreadsheet_id', $payload)
+			|| array_key_exists('sheet_range', $payload)
+			|| array_key_exists('column_map', $payload)
+			|| array_key_exists('source_name', $payload)
+			|| array_key_exists('source_tag', $payload)
+			|| array_key_exists('source_id', $payload)
+		) {
+			// Backward-compatible single-source save → upsert one source
+			$sourcePayload = array();
+			if (array_key_exists('source_id', $payload)) {
+				$sourcePayload['id'] = (int) $payload['source_id'];
+			}
+			if (array_key_exists('source_name', $payload)) {
+				$sourcePayload['name'] = $payload['source_name'];
+			} elseif (array_key_exists('name', $payload) && !isset($payload['sources'])) {
+				$sourcePayload['name'] = $payload['name'];
+			}
+			if (array_key_exists('spreadsheet_id', $payload)) {
+				$sourcePayload['spreadsheet_id'] = self::parseSpreadsheetId($payload['spreadsheet_id']);
+			}
+			if (array_key_exists('sheet_range', $payload)) {
+				$sourcePayload['sheet_range'] = $payload['sheet_range'];
+			}
+			if (array_key_exists('column_map', $payload)) {
+				$sourcePayload['column_map'] = $payload['column_map'];
+			}
+			if (array_key_exists('source_tag', $payload)) {
+				$sourcePayload['source_tag'] = $payload['source_tag'];
+			}
+			if (array_key_exists('source_enabled', $payload)) {
+				$sourcePayload['enabled'] = $payload['source_enabled'];
+			} elseif (array_key_exists('enabled', $payload) && empty($payload['sources'])) {
+				// When editing the only/primary source from legacy UI, mirror master enabled onto that source.
+				$sources = self::listSources();
+				if (count($sources) <= 1) {
+					$sourcePayload['enabled'] = $payload['enabled'];
+				}
+			}
+			if (!empty($sourcePayload['spreadsheet_id']) || !empty($sourcePayload['id']) || count(self::listSources()) === 0) {
+				if (empty($sourcePayload['name'])) {
+					$sourcePayload['name'] = 'Nguồn mặc định';
+				}
+				self::saveSource($sourcePayload, $userId);
+			}
+			// Keep legacy keys in sync for anything still reading them
+			$primary = self::getPrimarySource();
+			if ($primary) {
+				self::setSetting('spreadsheet_id', $primary['spreadsheet_id'], $userId);
+				self::setSetting('sheet_range', $primary['sheet_range'], $userId);
+				self::setSetting('column_map', json_encode($primary['column_map'], JSON_UNESCAPED_UNICODE), $userId);
+			}
+		}
+
 		return self::getSettings();
+	}
+
+	public static function parseSpreadsheetId($input) {
+		$s = trim((string) $input);
+		if ($s === '') {
+			return '';
+		}
+		if (preg_match('#/spreadsheets/d/([a-zA-Z0-9-_]+)#', $s, $m)) {
+			return $m[1];
+		}
+		return trim(preg_replace('/[?#].*$/', '', $s));
+	}
+
+	protected static function countEnabledSources(array $sources) {
+		$n = 0;
+		foreach ($sources as $src) {
+			if (!empty($src['enabled'])) {
+				$n++;
+			}
+		}
+		return $n;
+	}
+
+	/**
+	 * @return array|null
+	 */
+	public static function getPrimarySource() {
+		$sources = self::listSources();
+		return !empty($sources[0]) ? $sources[0] : null;
+	}
+
+	/**
+	 * @return array[]
+	 */
+	public static function listSources() {
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$res = $adb->pquery(
+			'SELECT * FROM ' . self::TABLE_SOURCES . ' ORDER BY sort_order ASC, id ASC',
+			array()
+		);
+		$out = array();
+		if ($res) {
+			$rows = $adb->num_rows($res);
+			for ($i = 0; $i < $rows; $i++) {
+				$out[] = self::hydrateSourceRow($adb, $res, $i);
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * @param int $id
+	 * @return array|null
+	 */
+	public static function getSource($id) {
+		$id = (int) $id;
+		if ($id <= 0) {
+			return null;
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$res = $adb->pquery('SELECT * FROM ' . self::TABLE_SOURCES . ' WHERE id = ? LIMIT 1', array($id));
+		if (!$res || $adb->num_rows($res) < 1) {
+			return null;
+		}
+		return self::hydrateSourceRow($adb, $res, 0);
+	}
+
+	protected static function hydrateSourceRow(PearDatabase $adb, $res, $i) {
+		$row = $adb->query_result_rowdata($res, $i);
+		$mapRaw = isset($row['column_map']) ? (string) $row['column_map'] : '';
+		$target = self::normalizeTargetModule(isset($row['target_module']) ? $row['target_module'] : 'leads');
+		$map = json_decode($mapRaw, true);
+		if (!is_array($map) || empty($map)) {
+			$map = self::defaultColumnMapForTarget($target);
+		}
+		return array(
+			'id' => isset($row['id']) ? (int) $row['id'] : 0,
+			'name' => isset($row['name']) ? (string) $row['name'] : '',
+			'spreadsheet_id' => isset($row['spreadsheet_id']) ? (string) $row['spreadsheet_id'] : '',
+			'sheet_range' => isset($row['sheet_range']) ? (string) $row['sheet_range'] : 'Sheet1',
+			'column_map' => $map,
+			'source_tag' => isset($row['source_tag']) ? (string) $row['source_tag'] : '',
+			'lead_stage' => self::normalizeLeadStage(isset($row['lead_stage']) ? $row['lead_stage'] : 'gd11'),
+			'target_module' => $target,
+			'enabled' => !empty($row['enabled']),
+			'sort_order' => isset($row['sort_order']) ? (int) $row['sort_order'] : 0,
+			'last_poll_at' => isset($row['last_poll_at']) ? (string) $row['last_poll_at'] : '',
+			'last_error' => isset($row['last_error']) ? (string) $row['last_error'] : '',
+			'last_result' => isset($row['last_result']) ? (string) $row['last_result'] : '',
+		);
+	}
+
+	/**
+	 * @param array $payload
+	 * @param int $userId
+	 * @return array
+	 */
+	public static function saveSource(array $payload, $userId = 0) {
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$id = isset($payload['id']) ? (int) $payload['id'] : 0;
+		$name = trim((string) (isset($payload['name']) ? $payload['name'] : ''));
+		$spreadsheetId = self::parseSpreadsheetId(isset($payload['spreadsheet_id']) ? $payload['spreadsheet_id'] : '');
+		$range = trim((string) (isset($payload['sheet_range']) ? $payload['sheet_range'] : 'Sheet1'));
+		if ($range === '') {
+			$range = 'Sheet1';
+		}
+		$targetModule = self::normalizeTargetModule(
+			isset($payload['target_module']) ? $payload['target_module'] : 'leads'
+		);
+		$map = isset($payload['column_map']) ? $payload['column_map'] : null;
+		if (is_string($map)) {
+			$decoded = json_decode($map, true);
+			$map = is_array($decoded) ? $decoded : self::defaultColumnMapForTarget($targetModule);
+		}
+		if (!is_array($map) || empty($map)) {
+			$map = self::defaultColumnMapForTarget($targetModule);
+		}
+		$sourceTag = trim((string) (isset($payload['source_tag']) ? $payload['source_tag'] : ''));
+		$leadStage = self::normalizeLeadStage(isset($payload['lead_stage']) ? $payload['lead_stage'] : 'gd11');
+		$enabled = 1;
+		if (array_key_exists('enabled', $payload)) {
+			$en = $payload['enabled'];
+			$enabled = ($en === true || $en === 1 || $en === '1' || $en === 'true') ? 1 : 0;
+		}
+		$sortOrder = isset($payload['sort_order']) ? (int) $payload['sort_order'] : 0;
+		$now = date('Y-m-d H:i:s');
+		$mapJson = json_encode($map, JSON_UNESCAPED_UNICODE);
+
+		if ($id > 0) {
+			$existing = self::getSource($id);
+			if (!$existing) {
+				throw new Exception('Không tìm thấy nguồn Google Sheet #' . $id);
+			}
+			if ($name === '') {
+				$name = $existing['name'] !== '' ? $existing['name'] : ('Nguồn #' . $id);
+			}
+			if ($spreadsheetId === '') {
+				$spreadsheetId = $existing['spreadsheet_id'];
+			}
+			if (!array_key_exists('target_module', $payload) && !empty($existing['target_module'])) {
+				$targetModule = self::normalizeTargetModule($existing['target_module']);
+			}
+			if (!array_key_exists('lead_stage', $payload) && !empty($existing['lead_stage'])) {
+				$leadStage = self::normalizeLeadStage($existing['lead_stage']);
+			}
+			if ($sortOrder === 0 && isset($existing['sort_order'])) {
+				$sortOrder = (int) $existing['sort_order'];
+			}
+			$adb->pquery(
+				'UPDATE ' . self::TABLE_SOURCES . ' SET
+					name=?, spreadsheet_id=?, sheet_range=?, column_map=?, source_tag=?,
+					lead_stage=?, target_module=?, enabled=?, sort_order=?, modified_at=?
+				 WHERE id=?',
+				array(
+					$name, $spreadsheetId, $range, $mapJson, $sourceTag, $leadStage,
+					$targetModule, $enabled, $sortOrder, $now, $id,
+				)
+			);
+		} else {
+			if ($name === '') {
+				if ($targetModule === 'servicecontracts') {
+					$name = 'NQ tiềm năng ' . (count(self::listSources()) + 1);
+				} elseif ($targetModule === 'accounts') {
+					$name = 'Chủ quán ' . (count(self::listSources()) + 1);
+				} else {
+					$name = 'Nguồn ' . (count(self::listSources()) + 1);
+				}
+			}
+			if ($spreadsheetId === '') {
+				throw new Exception('Thiếu Spreadsheet ID / link cho nguồn mới.');
+			}
+			if ($sortOrder === 0) {
+				$maxRes = $adb->pquery('SELECT MAX(sort_order) AS m FROM ' . self::TABLE_SOURCES, array());
+				$sortOrder = ($maxRes && $adb->num_rows($maxRes) > 0)
+					? ((int) $adb->query_result($maxRes, 0, 'm') + 10)
+					: 10;
+			}
+			$adb->pquery(
+				'INSERT INTO ' . self::TABLE_SOURCES . '
+					(name, spreadsheet_id, sheet_range, column_map, source_tag, lead_stage, target_module, enabled, sort_order, created_at, modified_at)
+				 VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+				array(
+					$name, $spreadsheetId, $range, $mapJson, $sourceTag, $leadStage,
+					$targetModule, $enabled, $sortOrder, $now, $now,
+				)
+			);
+			$id = (int) $adb->getLastInsertID();
+			if ($id <= 0) {
+				$find = $adb->pquery(
+					'SELECT id FROM ' . self::TABLE_SOURCES . ' WHERE spreadsheet_id = ? AND sheet_range = ? ORDER BY id DESC LIMIT 1',
+					array($spreadsheetId, $range)
+				);
+				if ($find && $adb->num_rows($find) > 0) {
+					$id = (int) $adb->query_result($find, 0, 'id');
+				}
+			}
+		}
+
+		$saved = self::getSource($id);
+		if (!$saved) {
+			throw new Exception('Lưu nguồn Google Sheet thất bại.');
+		}
+		return $saved;
+	}
+
+	/**
+	 * @param int $id
+	 * @return bool
+	 */
+	public static function deleteSource($id) {
+		$id = (int) $id;
+		if ($id <= 0) {
+			return false;
+		}
+		$adb = PearDatabase::getInstance();
+		self::installSchema($adb);
+		$adb->pquery('DELETE FROM ' . self::TABLE_SOURCES . ' WHERE id = ?', array($id));
+		return true;
+	}
+
+	/**
+	 * Replace-all style save used by Settings when posting full sources[].
+	 * Existing IDs are updated; missing IDs are deleted; rows without id are inserted.
+	 *
+	 * @param array $rows
+	 * @param int $userId
+	 */
+	protected static function replaceSourcesFromPayload(array $rows, $userId = 0) {
+		if (empty($rows)) {
+			// Empty list = no-op (avoid accidental wipe from partial payload).
+			return;
+		}
+		$keepIds = array();
+		$sort = 0;
+		foreach ($rows as $row) {
+			if (!is_array($row)) {
+				continue;
+			}
+			$sort += 10;
+			$row['sort_order'] = isset($row['sort_order']) ? (int) $row['sort_order'] : $sort;
+			$saved = self::saveSource($row, $userId);
+			if (!empty($saved['id'])) {
+				$keepIds[] = (int) $saved['id'];
+			}
+		}
+		if (empty($keepIds)) {
+			return;
+		}
+		$existing = self::listSources();
+		foreach ($existing as $src) {
+			$sid = (int) $src['id'];
+			if ($sid > 0 && !in_array($sid, $keepIds, true)) {
+				self::deleteSource($sid);
+			}
+		}
+	}
+
+	protected static function updateSourcePollMeta($sourceId, $lastError, $lastResult) {
+		$adb = PearDatabase::getInstance();
+		$now = date('Y-m-d H:i:s');
+		$adb->pquery(
+			'UPDATE ' . self::TABLE_SOURCES . ' SET last_poll_at=?, last_error=?, last_result=?, modified_at=? WHERE id=?',
+			array(
+				$now,
+				$lastError !== '' ? $lastError : null,
+				$lastResult !== '' ? $lastResult : null,
+				$now,
+				(int) $sourceId,
+			)
+		);
+		self::setSetting('last_poll_at', $now);
+		self::setSetting('last_error', $lastError);
+		self::setSetting('last_result', $lastResult);
 	}
 
 	/**
@@ -268,6 +738,43 @@ class Leads_SheetImportService {
 			'region' => '',
 			'screening' => '',
 		);
+	}
+
+	public static function defaultColumnMapForTarget($targetModule) {
+		$targetModule = self::normalizeTargetModule($targetModule);
+		if ($targetModule === 'servicecontracts') {
+			require_once 'modules/ServiceContracts/helpers/SheetIngestService.php';
+			return ServiceContracts_SheetIngestService_Helper::defaultColumnMap();
+		}
+		if ($targetModule === 'accounts') {
+			require_once 'modules/Accounts/helpers/SheetIngestService.php';
+			return Accounts_SheetIngestService_Helper::defaultColumnMap();
+		}
+		return self::defaultColumnMap();
+	}
+
+	public static function normalizeTargetModule($target) {
+		$t = strtolower(trim((string) $target));
+		if ($t === 'servicecontracts' || $t === 'servicecontract' || $t === 'nq' || $t === 'sc') {
+			return 'servicecontracts';
+		}
+		if ($t === 'accounts' || $t === 'account' || $t === 'tuibao' || $t === 'franchise') {
+			return 'accounts';
+		}
+		return 'leads';
+	}
+
+	/**
+	 * Sheet → quy trình xác minh. gd11 = giai đoạn 1.1, gd14 = lớp 990k.
+	 * @param mixed $stage
+	 * @return string
+	 */
+	public static function normalizeLeadStage($stage) {
+		$t = strtolower(trim((string) $stage));
+		if ($t === 'gd14' || $t === '990' || $t === '990k' || $t === '1.4' || $t === 'giai_doan_1.4') {
+			return 'gd14';
+		}
+		return 'gd11';
 	}
 
 	/**
@@ -371,40 +878,217 @@ class Leads_SheetImportService {
 
 	/**
 	 * Connectivity check (no lead import). Used by Settings → Tích hợp hệ thống.
+	 * @param int|null $sourceId optional specific source; null = nguồn đầu / primary
 	 * @return array
 	 */
-	public static function testConnection() {
+	public static function testConnection($sourceId = null) {
 		$settings = self::getSettings();
-		if ($settings['spreadsheet_id'] === '') {
-			return array('success' => false, 'error' => 'Thiếu Spreadsheet ID / link.');
+		$saEmail = '';
+		try {
+			if (trim((string) $settings['service_account_json']) !== '') {
+				$creds = self::loadServiceAccount($settings['service_account_json']);
+				$saEmail = isset($creds['client_email']) ? (string) $creds['client_email'] : '';
+			}
+		} catch (Exception $e) {
+			$err = self::humanizeSheetError($e->getMessage(), null, '');
+			return array(
+				'success' => false,
+				'error' => $err,
+				'error_code' => 'service_account',
+				'message' => $err,
+			);
 		}
 		if (trim((string) $settings['service_account_json']) === '') {
-			return array('success' => false, 'error' => 'Chưa có Service Account JSON.');
+			$err = 'Chưa có Service Account JSON. Vào Tích hợp hệ thống → Google Sheet → Nâng cao, dán JSON (có client_email + private_key), rồi Lưu.';
+			return array(
+				'success' => false,
+				'error' => $err,
+				'error_code' => 'missing_sa',
+				'message' => $err,
+			);
+		}
+		$source = null;
+		if ($sourceId !== null && (int) $sourceId > 0) {
+			$source = self::getSource((int) $sourceId);
+			if (!$source) {
+				$err = 'Không tìm thấy nguồn Google Sheet #' . (int) $sourceId . '.';
+				return array(
+					'success' => false,
+					'error' => $err,
+					'error_code' => 'source_not_found',
+					'source_id' => (int) $sourceId,
+					'message' => $err,
+				);
+			}
+		} else {
+			$source = self::getPrimarySource();
+		}
+		$label = ($source && !empty($source['name']))
+			? (string) $source['name']
+			: (($source && !empty($source['id'])) ? ('#' . $source['id']) : 'nguồn mặc định');
+		if (!$source || trim((string) $source['spreadsheet_id']) === '') {
+			$err = 'Nguồn "' . $label . '" thiếu Spreadsheet ID / link Google Sheet.';
+			if ($source && !empty($source['id'])) {
+				self::updateSourcePollMeta((int) $source['id'], $err, 'test_fail');
+			}
+			return array(
+				'success' => false,
+				'error' => $err,
+				'error_code' => 'missing_spreadsheet',
+				'source_id' => $source ? (int) $source['id'] : 0,
+				'source_name' => $label,
+				'message' => $err,
+			);
 		}
 		try {
 			$rows = self::fetchSheetValues(
-				$settings['spreadsheet_id'],
-				$settings['sheet_range'],
+				$source['spreadsheet_id'],
+				$source['sheet_range'],
 				$settings['service_account_json']
 			);
 			$n = is_array($rows) ? count($rows) : 0;
+			$msg = 'Kết nối "' . $label . '" thành công. Đọc được ' . $n . ' dòng (gồm header)'
+				. ' · sheet_range=' . $source['sheet_range']
+				. ($saEmail !== '' ? (' · SA=' . $saEmail) : '');
+			if (!empty($source['id'])) {
+				self::updateSourcePollMeta((int) $source['id'], '', 'test_ok:' . $n . ' rows');
+			}
 			return array(
 				'success' => true,
-				'message' => 'Kết nối Google Sheet thành công. Đọc được ' . $n . ' dòng (gồm header).',
+				'message' => $msg,
 				'rows' => $n,
+				'source_id' => (int) $source['id'],
+				'source_name' => $label,
+				'spreadsheet_id' => (string) $source['spreadsheet_id'],
+				'sheet_range' => (string) $source['sheet_range'],
+				'service_account_email' => $saEmail,
 			);
 		} catch (Exception $e) {
-			return array('success' => false, 'error' => $e->getMessage());
+			$err = self::humanizeSheetError($e->getMessage(), $source, $saEmail);
+			if (!empty($source['id'])) {
+				self::updateSourcePollMeta((int) $source['id'], $err, 'test_fail');
+			}
+			return array(
+				'success' => false,
+				'error' => $err,
+				'error_code' => 'google_api',
+				'source_id' => (int) $source['id'],
+				'source_name' => $label,
+				'spreadsheet_id' => (string) $source['spreadsheet_id'],
+				'sheet_range' => (string) $source['sheet_range'],
+				'service_account_email' => $saEmail,
+				'raw_error' => $e->getMessage(),
+				'message' => $err,
+			);
 		}
 	}
 
 	/**
-	 * Poll sheet once; only new rows create leads.
+	 * Test lần lượt mọi nguồn đã cấu hình (kể cả đang tắt) — báo cáo từng cái.
+	 * @return array
+	 */
+	public static function testAllConnections() {
+		$sources = self::listSources();
+		if (empty($sources)) {
+			$one = self::testConnection(null);
+			$one['results'] = array($one);
+			$one['tested'] = 1;
+			$one['passed'] = !empty($one['success']) ? 1 : 0;
+			$one['failed'] = !empty($one['success']) ? 0 : 1;
+			return $one;
+		}
+		$results = array();
+		$passed = 0;
+		$failed = 0;
+		foreach ($sources as $src) {
+			$r = self::testConnection((int) $src['id']);
+			$results[] = $r;
+			if (!empty($r['success'])) {
+				$passed++;
+			} else {
+				$failed++;
+			}
+		}
+		$ok = ($failed === 0 && $passed > 0);
+		$msg = $ok
+			? ('Tất cả ' . $passed . ' nguồn kết nối OK.')
+			: ($passed . '/' . ($passed + $failed) . ' nguồn OK · ' . $failed . ' nguồn lỗi — xem chi tiết từng dòng.');
+		return array(
+			'success' => $ok,
+			'message' => $msg,
+			'error' => $ok ? '' : $msg,
+			'tested' => $passed + $failed,
+			'passed' => $passed,
+			'failed' => $failed,
+			'results' => $results,
+		);
+	}
+
+	/**
+	 * Diễn giải lỗi Google / cấu hình cho Sales & Admin đọc được.
+	 * @param string $raw
+	 * @param array|null $source
+	 * @param string $saEmail
+	 * @return string
+	 */
+	public static function humanizeSheetError($raw, $source = null, $saEmail = '') {
+		$raw = trim((string) $raw);
+		$label = '';
+		if (is_array($source)) {
+			$label = !empty($source['name']) ? (string) $source['name'] : ('#' . (int) $source['id']);
+		}
+		$prefix = $label !== '' ? ('Nguồn "' . $label . '": ') : '';
+		$low = mb_strtolower($raw, 'UTF-8');
+		$hintSa = $saEmail !== '' ? $saEmail : 'email service account trong JSON đã lưu';
+
+		if ($raw === '') {
+			return $prefix . 'Lỗi không xác định khi đọc Google Sheet.';
+		}
+		if (strpos($low, 'service account') !== false && strpos($low, 'không hợp lệ') !== false) {
+			return $prefix . 'Service Account JSON không hợp lệ (cần client_email + private_key). ' . $raw;
+		}
+		if (strpos($low, 'chưa cấu hình') !== false || (strpos($low, 'missing') !== false && strpos($low, 'service') !== false)) {
+			return $prefix . 'Chưa cấu hình Service Account JSON.';
+		}
+		if (strpos($low, 'permission') !== false
+			|| strpos($low, 'the caller does not have permission') !== false
+			|| strpos($low, '403') !== false
+			|| strpos($low, 'access_denied') !== false
+			|| strpos($low, 'insufficient') !== false) {
+			return $prefix . 'Không có quyền đọc spreadsheet. Mở Google Sheet → Share → thêm "'
+				. $hintSa . '" với quyền Viewer. Chi tiết Google: ' . $raw;
+		}
+		if (strpos($low, 'not found') !== false
+			|| strpos($low, '404') !== false
+			|| strpos($low, 'unable to parse range') !== false
+			|| strpos($low, 'unable to parse') !== false) {
+			$range = is_array($source) && !empty($source['sheet_range']) ? $source['sheet_range'] : '';
+			return $prefix . 'Không tìm thấy spreadsheet hoặc sai tên tab (sheet_range'
+				. ($range !== '' ? ('="' . $range . '"') : '')
+				. '). Kiểm tra link/ID và tên sheet. Chi tiết: ' . $raw;
+		}
+		if (strpos($low, 'invalid_grant') !== false || strpos($low, 'jwt') !== false || strpos($low, 'ký jwt') !== false) {
+			return $prefix . 'Service Account không ký được token (private_key sai / JSON bị cắt). Dán lại JSON đầy đủ. Chi tiết: ' . $raw;
+		}
+		if (strpos($low, 'http') !== false && (strpos($low, 'failed') !== false || strpos($low, 'timed out') !== false)) {
+			return $prefix . 'Máy chủ CRM không gọi được Google API (mạng / firewall). Chi tiết: ' . $raw;
+		}
+		return $prefix . ($raw !== '' ? $raw : 'Lỗi không xác định khi đọc Google Sheet.');
+	}
+
+	/**
+	 * Poll all enabled sources (master enabled must be on).
 	 * @return array
 	 */
 	public static function pollOnce() {
+		return self::pollAllSources();
+	}
+
+	/**
+	 * @return array
+	 */
+	public static function pollAllSources() {
 		global $current_user;
-		// CRMEntity::save requires a valid user (cron / sheet_poll_now without session).
 		if (empty($current_user) || empty($current_user->id)) {
 			$current_user = Users::getActiveAdminUser();
 		}
@@ -415,43 +1099,184 @@ class Leads_SheetImportService {
 		if (empty($settings['enabled'])) {
 			return array('success' => true, 'skipped' => true, 'reason' => 'disabled', 'imported' => 0);
 		}
-		if ($settings['spreadsheet_id'] === '') {
-			$msg = 'Thiếu spreadsheet_id.';
+		if (trim((string) $settings['service_account_json']) === '') {
+			$msg = 'Chưa có Service Account JSON.';
 			self::setSetting('last_error', $msg);
 			return array('success' => false, 'error' => $msg, 'imported' => 0);
 		}
 
-		try {
-			$rows = self::fetchSheetValues($settings['spreadsheet_id'], $settings['sheet_range'], $settings['service_account_json']);
-		} catch (Exception $e) {
-			$msg = $e->getMessage();
+		$sources = self::listSources();
+		$enabled = array();
+		foreach ($sources as $src) {
+			if (!empty($src['enabled']) && $src['spreadsheet_id'] !== '') {
+				$enabled[] = $src;
+			}
+		}
+		if (empty($enabled)) {
+			$msg = 'Chưa có nguồn Google Sheet nào được bật.';
 			self::setSetting('last_error', $msg);
 			self::setSetting('last_poll_at', date('Y-m-d H:i:s'));
-			return array('success' => false, 'error' => $msg, 'imported' => 0);
+			return array('success' => false, 'error' => $msg, 'imported' => 0, 'sources' => array());
+		}
+
+		$totalImported = 0;
+		$totalSkipped = 0;
+		$allErrors = array();
+		$perSource = array();
+		$ok = true;
+		foreach ($enabled as $src) {
+			$result = self::pollSource($src, $settings['service_account_json']);
+			$perSource[] = array(
+				'source_id' => (int) $src['id'],
+				'name' => $src['name'],
+				'target_module' => isset($src['target_module']) ? $src['target_module'] : 'leads',
+				'imported' => isset($result['imported']) ? (int) $result['imported'] : 0,
+				'skipped_existing' => isset($result['skipped_existing']) ? (int) $result['skipped_existing'] : 0,
+				'error' => isset($result['error']) ? $result['error'] : '',
+				'summary' => isset($result['summary']) ? $result['summary'] : '',
+			);
+			$totalImported += isset($result['imported']) ? (int) $result['imported'] : 0;
+			$totalSkipped += isset($result['skipped_existing']) ? (int) $result['skipped_existing'] : 0;
+			if (!empty($result['error'])) {
+				$ok = false;
+				$allErrors[] = $src['name'] . ': ' . $result['error'];
+			} elseif (!empty($result['errors']) && is_array($result['errors'])) {
+				foreach (array_slice($result['errors'], 0, 3) as $err) {
+					$allErrors[] = $src['name'] . ': ' . $err;
+				}
+			}
+		}
+
+		$summary = 'sources=' . count($enabled) . '; imported=' . $totalImported
+			. '; skipped_existing=' . $totalSkipped . '; errors=' . count($allErrors);
+		$errText = count($allErrors) ? implode(' | ', array_slice($allErrors, 0, 8)) : '';
+		self::setSetting('last_error', $errText);
+		self::setSetting('last_poll_at', date('Y-m-d H:i:s'));
+		self::setSetting('last_result', $summary);
+
+		return array(
+			'success' => $ok || $totalImported > 0 || empty($allErrors),
+			'imported' => $totalImported,
+			'skipped_existing' => $totalSkipped,
+			'errors' => $allErrors,
+			'summary' => $summary,
+			'sources' => $perSource,
+		);
+	}
+
+	/**
+	 * Poll one source by id (respects master enabled).
+	 * @param int $sourceId
+	 * @return array
+	 */
+	public static function pollSourceById($sourceId) {
+		global $current_user;
+		if (empty($current_user) || empty($current_user->id)) {
+			$current_user = Users::getActiveAdminUser();
+		}
+		$settings = self::getSettings();
+		if (empty($settings['enabled'])) {
+			return array('success' => true, 'skipped' => true, 'reason' => 'disabled', 'imported' => 0);
+		}
+		$source = self::getSource((int) $sourceId);
+		if (!$source) {
+			return array('success' => false, 'error' => 'Không tìm thấy nguồn #' . (int) $sourceId, 'imported' => 0);
+		}
+		if (empty($source['enabled'])) {
+			return array('success' => true, 'skipped' => true, 'reason' => 'source_disabled', 'imported' => 0);
+		}
+		if (trim((string) $settings['service_account_json']) === '') {
+			return array('success' => false, 'error' => 'Chưa có Service Account JSON.', 'imported' => 0);
+		}
+		return self::pollSource($source, $settings['service_account_json']);
+	}
+
+	/**
+	 * @param array $source
+	 * @param string $serviceAccountJsonOrPath
+	 * @return array
+	 */
+	protected static function pollSource(array $source, $serviceAccountJsonOrPath) {
+		$target = self::normalizeTargetModule(isset($source['target_module']) ? $source['target_module'] : 'leads');
+		if ($target === 'servicecontracts') {
+			require_once 'modules/ServiceContracts/helpers/SheetIngestService.php';
+			return ServiceContracts_SheetIngestService_Helper::pollSource(
+				$source,
+				$serviceAccountJsonOrPath,
+				array(__CLASS__, 'fetchSheetValues'),
+				array(__CLASS__, 'makeRowKey'),
+				array(__CLASS__, 'updateSourcePollMetaPublic')
+			);
+		}
+		if ($target === 'accounts') {
+			require_once 'modules/Accounts/helpers/SheetIngestService.php';
+			return Accounts_SheetIngestService_Helper::pollSource(
+				$source,
+				$serviceAccountJsonOrPath,
+				array(__CLASS__, 'fetchSheetValues'),
+				array(__CLASS__, 'makeRowKey'),
+				array(__CLASS__, 'updateSourcePollMetaPublic')
+			);
+		}
+		return self::pollLeadsSource($source, $serviceAccountJsonOrPath);
+	}
+
+	/**
+	 * Public wrapper for Accounts ingest callback.
+	 */
+	public static function updateSourcePollMetaPublic($sourceId, $lastError, $lastResult) {
+		self::updateSourcePollMeta($sourceId, $lastError, $lastResult);
+	}
+
+	/**
+	 * @param array $source
+	 * @param string $serviceAccountJsonOrPath
+	 * @return array
+	 */
+	protected static function pollLeadsSource(array $source, $serviceAccountJsonOrPath) {
+		$sourceId = (int) $source['id'];
+		$spreadsheetId = trim((string) $source['spreadsheet_id']);
+		$range = trim((string) $source['sheet_range']);
+		if ($range === '') {
+			$range = 'Sheet1';
+		}
+		$colMap = isset($source['column_map']) && is_array($source['column_map'])
+			? $source['column_map']
+			: self::defaultColumnMap();
+
+		try {
+			$rows = self::fetchSheetValues($spreadsheetId, $range, $serviceAccountJsonOrPath);
+		} catch (Exception $e) {
+			$msg = $e->getMessage();
+			self::updateSourcePollMeta($sourceId, $msg, '');
+			return array('success' => false, 'error' => $msg, 'imported' => 0, 'source_id' => $sourceId);
 		}
 
 		if (count($rows) < 2) {
-			self::setSetting('last_error', '');
-			self::setSetting('last_poll_at', date('Y-m-d H:i:s'));
-			self::setSetting('last_result', '0 rows (header only or empty)');
-			return array('success' => true, 'imported' => 0, 'skipped_existing' => 0, 'errors' => array());
+			$summary = '0 rows (header only or empty)';
+			self::updateSourcePollMeta($sourceId, '', $summary);
+			return array(
+				'success' => true,
+				'imported' => 0,
+				'skipped_existing' => 0,
+				'errors' => array(),
+				'summary' => $summary,
+				'source_id' => $sourceId,
+			);
 		}
 
 		$header = self::normalizeHeaderRow($rows[0]);
-		$colMap = $settings['column_map'];
 		$imported = 0;
 		$skippedExisting = 0;
 		$errors = array();
-		$spreadsheetId = $settings['spreadsheet_id'];
 
 		for ($i = 1; $i < count($rows); $i++) {
 			$row = $rows[$i];
 			if (!is_array($row)) {
 				continue;
 			}
-			// Row index in sheet is 1-based; data starts at sheet row 2
 			$sheetRowNum = $i + 1;
-			$rowKey = self::makeRowKey($spreadsheetId, $settings['sheet_range'], $sheetRowNum);
+			$rowKey = self::makeRowKey($spreadsheetId, $range, $sheetRowNum);
 			if (self::importKeyExists($rowKey)) {
 				$skippedExisting++;
 				continue;
@@ -461,7 +1286,7 @@ class Leads_SheetImportService {
 				continue;
 			}
 			try {
-				$payload = self::mapRowToLeadPayload($assoc, $colMap, $rowKey);
+				$payload = self::mapRowToLeadPayload($assoc, $colMap, $rowKey, $source);
 				if ($payload['phone'] === '' || $payload['name'] === '') {
 					$errors[] = "Row {$sheetRowNum}: thiếu tên hoặc SĐT";
 					continue;
@@ -479,7 +1304,7 @@ class Leads_SheetImportService {
 					isset($payload['_form_c2']) ? $payload['_form_c2'] : '',
 					isset($payload['_form_c3']) ? $payload['_form_c3'] : ''
 				);
-				self::recordImport($rowKey, $leadId, $assoc);
+				self::recordImport($rowKey, $leadId, $assoc, $sourceId);
 				$imported++;
 			} catch (Exception $ex) {
 				$errors[] = "Row {$sheetRowNum}: " . $ex->getMessage();
@@ -487,9 +1312,8 @@ class Leads_SheetImportService {
 		}
 
 		$summary = "imported={$imported}; skipped_existing={$skippedExisting}; errors=" . count($errors);
-		self::setSetting('last_error', count($errors) ? implode(' | ', array_slice($errors, 0, 5)) : '');
-		self::setSetting('last_poll_at', date('Y-m-d H:i:s'));
-		self::setSetting('last_result', $summary);
+		$errText = count($errors) ? implode(' | ', array_slice($errors, 0, 5)) : '';
+		self::updateSourcePollMeta($sourceId, $errText, $summary);
 
 		return array(
 			'success' => true,
@@ -497,6 +1321,8 @@ class Leads_SheetImportService {
 			'skipped_existing' => $skippedExisting,
 			'errors' => $errors,
 			'summary' => $summary,
+			'source_id' => $sourceId,
+			'target_module' => 'leads',
 		);
 	}
 
@@ -513,11 +1339,17 @@ class Leads_SheetImportService {
 		return ($res && $adb->num_rows($res) > 0);
 	}
 
-	protected static function recordImport($rowKey, $leadId, array $assoc) {
+	protected static function recordImport($rowKey, $leadId, array $assoc, $sourceId = 0) {
 		$adb = PearDatabase::getInstance();
 		$adb->pquery(
-			'INSERT INTO ' . self::TABLE_IMPORT . ' (sheet_row_key, leadid, raw_json, imported_at) VALUES (?,?,?,?)',
-			array($rowKey, (int) $leadId, json_encode($assoc, JSON_UNESCAPED_UNICODE), date('Y-m-d H:i:s'))
+			'INSERT INTO ' . self::TABLE_IMPORT . ' (sheet_row_key, leadid, raw_json, imported_at, source_id) VALUES (?,?,?,?,?)',
+			array(
+				$rowKey,
+				(int) $leadId,
+				json_encode($assoc, JSON_UNESCAPED_UNICODE),
+				date('Y-m-d H:i:s'),
+				$sourceId > 0 ? (int) $sourceId : null,
+			)
 		);
 	}
 
@@ -553,9 +1385,10 @@ class Leads_SheetImportService {
 	 * @param array $assoc header=>value
 	 * @param array $colMap
 	 * @param string $rowKey
+	 * @param array|null $source optional source meta
 	 * @return array lead payload
 	 */
-	public static function mapRowToLeadPayload(array $assoc, array $colMap, $rowKey) {
+	public static function mapRowToLeadPayload(array $assoc, array $colMap, $rowKey, $source = null) {
 		$name = self::getMappedCell($assoc, $colMap, 'name');
 		$phone = preg_replace('/\D+/', '', self::getMappedCell($assoc, $colMap, 'phone'));
 		if (strlen($phone) === 9 && preg_match('/^[3-9]/', $phone)) {
@@ -572,6 +1405,11 @@ class Leads_SheetImportService {
 		$c1 = self::parseFormQ1($q1Raw);
 		$c2 = self::parseFormQ2($q2Raw);
 		$c3 = self::parseFormQ3($q3Raw);
+		// Legacy Q2 = G (học gia đình / sở thích): không còn trong C2 mới → đẩy sang C1 = C.
+		if (self::isLegacyFamilyHobbyAnswer($q2Raw)) {
+			$c1 = 'C';
+			$c2 = '';
+		}
 		$screening = self::computeSoLuocResult($c1, $c2, $c3);
 		if ($screening === '') {
 			$screening = self::normalizeScreeningResult(self::getMappedCell($assoc, $colMap, 'screening'));
@@ -606,10 +1444,30 @@ class Leads_SheetImportService {
 			$qa['Câu 3 – Ngân sách'] = $q3Raw;
 		}
 
-		$tags = array();
+		$tags = array('other'); // Google Sheet → Nguồn = Khác
 		$cust = self::customerTagFromQ1($c1);
 		if ($cust !== '') {
 			$tags[] = $cust;
+		}
+		$stage = self::normalizeLeadStage(is_array($source) && isset($source['lead_stage']) ? $source['lead_stage'] : 'gd11');
+		if ($stage === 'gd14') {
+			$tags[] = 'gd14_moi_dang_ky';
+		} else {
+			require_once 'modules/Leads/models/OfflineGd11Service.php';
+			$tags = Leads_OfflineGd11Service::ensureProgramTag($tags);
+		}
+
+		$sourceId = 0;
+		$sourceName = '';
+		if (is_array($source)) {
+			$sourceId = isset($source['id']) ? (int) $source['id'] : 0;
+			$sourceName = isset($source['name']) ? trim((string) $source['name']) : '';
+			if ($sourceName !== '') {
+				$qa['_sheet_source'] = $sourceName;
+			}
+			if (!empty($source['source_tag'])) {
+				$qa['_sheet_source_tag'] = trim((string) $source['source_tag']);
+			}
 		}
 
 		return array(
@@ -623,6 +1481,8 @@ class Leads_SheetImportService {
 			'screening_result' => $screening,
 			'sheet_source' => 1,
 			'sheet_row_key' => $rowKey,
+			'sheet_source_id' => $sourceId,
+			'sheet_source_name' => $sourceName,
 			'qa_raw' => $qa,
 			'_form_c1' => $c1,
 			'_form_c2' => $c2,
@@ -630,23 +1490,24 @@ class Leads_SheetImportService {
 		);
 	}
 
-	/** @return string A|B|C|D|'' */
+	/** @return string A|B|C|'' */
 	public static function parseFormQ1($raw) {
 		$code = self::parseLeadingLetter($raw, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-		if ($code !== '') {
+		if ($code === 'D' || $code === 'G') {
+			// Legacy D (Q1) / G (Q2 nhầm cột) = gia đình → C mới.
+			return 'C';
+		}
+		if ($code === 'A' || $code === 'B' || $code === 'C') {
 			return $code;
 		}
 		$f = self::fold($raw);
 		if ($f === '') {
 			return '';
 		}
-		if (strpos($f, 'gia dinh') !== false || strpos($f, 'so thich') !== false || strpos($f, 'hoc de biet') !== false) {
-			return 'D';
-		}
-		if (strpos($f, 'gap van de') !== false || strpos($f, 'cai thien') !== false) {
+		if (strpos($f, 'gia dinh') !== false || strpos($f, 'so thich') !== false || strpos($f, 'hoc de biet') !== false || strpos($f, 'hoc pha che') !== false) {
 			return 'C';
 		}
-		if (strpos($f, 'da co quan') !== false || strpos($f, 'cap nhat') !== false) {
+		if (strpos($f, 'da co quan') !== false) {
 			return 'B';
 		}
 		if (strpos($f, 'chuan bi mo') !== false || strpos($f, 'mo quan') !== false) {
@@ -655,67 +1516,146 @@ class Leads_SheetImportService {
 		return '';
 	}
 
-	/** @return string A–G|'' */
-	public static function parseFormQ2($raw) {
+	/**
+	 * Legacy Q2 = G hoặc text học gia đình / sở thích (không còn trong C2 mới).
+	 * @return bool
+	 */
+	public static function isLegacyFamilyHobbyAnswer($raw) {
 		$code = self::parseLeadingLetter($raw, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-		if ($code !== '') {
+		if ($code === 'G') {
+			return true;
+		}
+		$f = self::fold($raw);
+		if ($f === '') {
+			return false;
+		}
+		return (
+			strpos($f, 'gia dinh') !== false
+			|| strpos($f, 'so thich') !== false
+			|| strpos($f, 'hoc pha che cho gia') !== false
+			|| strpos($f, 'pha che cho gia dinh') !== false
+		);
+	}
+
+	/** @return string A|B|'' */
+	public static function parseFormQ2($raw) {
+		if (self::isLegacyFamilyHobbyAnswer($raw)) {
+			// Không map vào C2 — caller đẩy sang C1 = C.
+			return '';
+		}
+		$code = self::parseLeadingLetter($raw, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+		if ($code === 'A' || $code === 'B') {
+			// Legacy "A. Xe đẩy…" → B (vỉa hè); "A. Thuê mặt bằng…" → A.
+			$f = self::fold($raw);
+			if ($code === 'A' && $f !== '' && (
+				strpos($f, 'xe day') !== false
+				|| strpos($f, 'via he') !== false
+				|| strpos($f, 'mang di') !== false
+				|| (strpos($f, 'online') !== false && strpos($f, 'mat bang') === false)
+			)) {
+				return 'B';
+			}
 			return $code;
+		}
+		// Legacy A–G map → A (mặt bằng) / B (vỉa hè·online)
+		if (in_array($code, array('C', 'D', 'E', 'F'), true)) {
+			return 'A';
 		}
 		$f = self::fold($raw);
 		if ($f === '') {
 			return '';
 		}
-		if (strpos($f, 'gia dinh') !== false || strpos($f, 'so thich') !== false) {
-			return 'G';
-		}
-		if (strpos($f, 'xe day') !== false) {
-			return 'A';
-		}
-		if (strpos($f, 'topping') !== false) {
+		if (strpos($f, 'via he') !== false || strpos($f, 'online') !== false || strpos($f, 'xe day') !== false || strpos($f, 'mang di') !== false || strpos($f, 'tai nha') !== false) {
 			return 'B';
 		}
-		if (strpos($f, 'pha may') !== false) {
-			return 'C';
-		}
-		if (strpos($f, 'san vuon') !== false) {
-			return 'E';
-		}
-		if (strpos($f, 'khong gian mo') !== false) {
-			return 'F';
-		}
-		if (strpos($f, 'may lanh') !== false || strpos($f, 'ca phe may') !== false) {
-			return 'D';
+		if (strpos($f, 'mat bang') !== false || strpos($f, 'thue') !== false || strpos($f, 'may lanh') !== false || strpos($f, 'san vuon') !== false || strpos($f, 'topping') !== false || strpos($f, 'pha may') !== false) {
+			return 'A';
 		}
 		return '';
 	}
 
-	/** @return string A–E|'' */
+	/** @return string A–F|'' */
 	public static function parseFormQ3($raw) {
 		$code = self::parseLeadingLetter($raw, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-		if ($code !== '') {
+		$f = self::fold($raw);
+
+		// Legacy sheet E = ≥500tr → F (trước khi trả E theo chữ cái).
+		if ($code === 'E') {
+			if ($f === '' || strpos($f, '500') !== false) {
+				// "E. Từ 500…" hoặc "E" trần (sheet cũ) → F; "E. 400–500" vẫn E.
+				if (strpos($f, '400') !== false && strpos($f, '500') !== false && strpos($f, 'tro len') === false && strpos($f, 'tu 500') === false) {
+					return 'E';
+				}
+				return 'F';
+			}
+			return 'E';
+		}
+
+		if ($code === 'F') {
+			return 'F';
+		}
+
+		// Chữ A–D: giữ mã; bổ sung remap khoảng sheet cũ qua text bên dưới nếu cần.
+		if ($code !== '' && strpos('ABCD', $code) !== false) {
+			$fromText = self::parseFormQ3FromBudgetText($f);
+			// Sheet cũ: "A. Dưới 50" / "B. 50–100" / "C. 100–300" / "D. 300–500"
+			if ($fromText !== '') {
+				return $fromText;
+			}
 			return $code;
 		}
-		$f = self::fold($raw);
+
 		if ($f === '') {
 			return '';
 		}
-		if (strpos($f, 'duoi 50') !== false || preg_match('/\b< ?50\b/', $f) || $f === 'a') {
-			return 'A';
+		return self::parseFormQ3FromBudgetText($f);
+	}
+
+	/**
+	 * Map mô tả ngân sách (kể cả thang sheet cũ) → mã A–F mới.
+	 * @return string A–F|''
+	 */
+	protected static function parseFormQ3FromBudgetText($f) {
+		$f = trim((string) $f);
+		if ($f === '') {
+			return '';
 		}
-		if (strpos($f, '500') !== false && (strpos($f, 'tro len') !== false || strpos($f, 'tro len') !== false || strpos($f, 'tu 500') !== false)) {
+		if (strpos($f, '500') !== false && (strpos($f, 'tro len') !== false || strpos($f, 'tu 500') !== false || strpos($f, 'tren 500') !== false || strpos($f, '>=') !== false)) {
+			return 'F';
+		}
+		if ((strpos($f, '400') !== false && strpos($f, '500') !== false) || preg_match('/\b400\b.*\b500\b/', $f)) {
 			return 'E';
 		}
-		if (strpos($f, '300') !== false && strpos($f, '500') !== false) {
+		// Sheet cũ: "Từ 300 đến dưới 500" (không có mốc 400) → D
+		if ((strpos($f, '300') !== false && strpos($f, '500') !== false) || preg_match('/\b300\b.*\b500\b/', $f)) {
 			return 'D';
 		}
-		if (strpos($f, '100') !== false && strpos($f, '300') !== false) {
+		if ((strpos($f, '300') !== false && strpos($f, '400') !== false) || preg_match('/\b300\b.*\b400\b/', $f)) {
+			return 'D';
+		}
+		if ((strpos($f, '200') !== false && strpos($f, '300') !== false) || preg_match('/\b200\b.*\b300\b/', $f)) {
 			return 'C';
 		}
-		if ((strpos($f, '50') !== false && strpos($f, '100') !== false) || strpos($f, '50 100') !== false) {
+		// Sheet cũ: "Từ 100 đến dưới 300" → C (bao phủ nửa trên)
+		if ((strpos($f, '100') !== false && strpos($f, '300') !== false) || preg_match('/\b100\b.*\b300\b/', $f)) {
+			return 'C';
+		}
+		if ((strpos($f, '100') !== false && strpos($f, '200') !== false) || preg_match('/\b100\b.*\b200\b/', $f)) {
 			return 'B';
 		}
-		if (strpos($f, 'tu 500') !== false || strpos($f, 'tren 500') !== false) {
-			return 'E';
+		// Sheet cũ: "Từ 50 đến dưới 100" → A (dưới 100 mới)
+		if ((strpos($f, '50') !== false && strpos($f, '100') !== false) || preg_match('/\b50\b.*\b100\b/', $f)) {
+			return 'A';
+		}
+		if (
+			preg_match('/\bduoi 100\b/', $f)
+			|| preg_match('/\bduoi 50\b/', $f)
+			|| preg_match('/\b< ?100\b/', $f)
+			|| preg_match('/\b< ?50\b/', $f)
+			|| (strpos($f, 'duoi') !== false && strpos($f, '50') !== false)
+			|| (strpos($f, 'duoi') !== false && strpos($f, '100') !== false && strpos($f, '200') === false)
+		) {
+			return 'A';
 		}
 		return '';
 	}
@@ -735,8 +1675,8 @@ class Leads_SheetImportService {
 	}
 
 	/**
-	 * Bộ A – 6 rule, dừng khi khớp.
-	 * @return string so_luoc_du_dk|can_xm_muc_dich|can_xm_mo_hinh|so_luoc_khong_dk|''
+	 * Sàng lọc sơ bộ từ form 3 câu (GD1.1 mới).
+	 * @return string so_luoc_du_dk|so_luoc_khong_dk|''
 	 */
 	public static function computeSoLuocResult($c1, $c2, $c3) {
 		$c1 = strtoupper(trim((string) $c1));
@@ -745,24 +1685,15 @@ class Leads_SheetImportService {
 		if ($c1 === '' && $c2 === '' && $c3 === '') {
 			return '';
 		}
-		$family = ($c1 === 'D' || $c2 === 'G');
-		$highBudget = in_array($c3, array('C', 'D', 'E'), true);
-		if ($family && $highBudget) {
-			return 'can_xm_muc_dich';
+		require_once 'modules/Leads/models/SalesVerifyService.php';
+		$result = Leads_SalesVerifyService::compute(array('c1' => $c1, 'c2' => $c2, 'c3' => $c3));
+		if (empty($result['success'])) {
+			return '';
 		}
-		if ($family) {
+		if (isset($result['eligibility_result']) && $result['eligibility_result'] === 'khong_du_dk') {
 			return 'so_luoc_khong_dk';
 		}
-		if ($c3 === 'A') {
-			return 'so_luoc_khong_dk';
-		}
-		if ($c2 === 'A' && $c3 === 'B') {
-			return 'so_luoc_khong_dk';
-		}
-		if ($c2 === 'A' && $highBudget) {
-			return 'can_xm_mo_hinh';
-		}
-		if ($c1 !== '' && $c2 !== '' && $c3 !== '') {
+		if (isset($result['eligibility_result']) && $result['eligibility_result'] === 'du_dk') {
 			return 'so_luoc_du_dk';
 		}
 		return '';
@@ -773,10 +1704,10 @@ class Leads_SheetImportService {
 		if ($c1 === 'A') {
 			return 'chuan_bi_mo';
 		}
-		if ($c1 === 'B' || $c1 === 'C') {
+		if ($c1 === 'B') {
 			return 'co_quan';
 		}
-		if ($c1 === 'D') {
+		if ($c1 === 'C' || $c1 === 'D') {
 			return 'gia_dinh';
 		}
 		return '';
@@ -1039,6 +1970,6 @@ class Leads_SheetImportService {
 		if ($existing) {
 			return;
 		}
-		Vtiger_Cron::register($name, $handler, 60, 'Leads', 1, 0, 'Poll Google Sheet into modern Leads');
+		Vtiger_Cron::register($name, $handler, 60, 'Leads', 1, 0, 'Poll Google Sheets (multi-source) into modern Leads');
 	}
 }

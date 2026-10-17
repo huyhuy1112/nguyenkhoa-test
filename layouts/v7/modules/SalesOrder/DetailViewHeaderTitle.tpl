@@ -18,12 +18,13 @@
 				{/if}
 			</div>
 			<div class="mk-so-detail-hero__text mk-so-detail-hero__content recordBasicInfo">
+				{assign var=MK_SO_TITLE value=$RECORD->getName()|decode_html|trim}
 				<h1 class="mk-so-detail-hero__title">
-					<span class="recordLabel" title="{$RECORD->getName()|escape:'html'}">
+					<span class="recordLabel" title="{$MK_SO_TITLE|escape:'html'}">
 						{foreach item=NAME_FIELD from=$MODULE_MODEL->getNameFields()}
 							{assign var=FIELD_MODEL value=$MODULE_MODEL->getField($NAME_FIELD)}
 							{if $FIELD_MODEL->getPermissions()}
-								<span class="{$NAME_FIELD}">{trim($RECORD->get($NAME_FIELD))}</span>
+								<span class="{$NAME_FIELD}">{$RECORD->get($NAME_FIELD)|decode_html|trim|escape:'html'}</span>
 							{/if}
 						{/foreach}
 					</span>

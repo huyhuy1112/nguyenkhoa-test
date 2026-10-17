@@ -118,6 +118,9 @@ class Quotes_Save_Action extends Inventory_Save_Action {
 		MkEntityNumbering::ensureModuleSequence('Quotes');
 
 		$recordModel = parent::saveRecord($request);
+		if ($recordModel) {
+			$this->persistQuoteCustomerContact($request, (int) $recordModel->getId());
+		}
 
 		// Tag quotes created from ServiceContracts (Khách hàng nhượng quyền).
 		if ($recordModel) {
@@ -215,5 +218,163 @@ class Quotes_Save_Action extends Inventory_Save_Action {
 			$viewer->assign('ERROR_MESSAGE', $e->getMessage());
 			$viewer->view('OperationNotPermitted.tpl', 'Vtiger');
 		}
+	}
+
+	/**
+	 * Ghi SĐT, email, địa chỉ vào báo giá để danh sách đọc được.
+	 */
+	protected function persistQuoteCustomerContact(Vtiger_Request $request, $quoteId) {
+		$quoteId = (int) $quoteId;
+		if ($quoteId <= 0) {
+			return;
+		}
+		$phone = trim((string) $request->get('mk_customer_phone'));
+		$email = trim((string) $request->get('mk_customer_email'));
+		$address = trim((string) $request->get('bill_street'));
+		$adb = PearDatabase::getInstance();
+		$contactId = (int) $request->get('contact_id');
+		$potentialId = (int) $request->get('potential_id');
+		if ($phone === '' || $email === '' || $address === '') {
+			$fromContact = $this->lookupContactContact($adb, $contactId);
+			if ($phone === '') {
+				$phone = $fromContact['phone'];
+			}
+			if ($email === '') {
+				$email = $fromContact['email'];
+			}
+			if ($address === '') {
+				$address = $fromContact['address'];
+			}
+		}
+		if ($phone === '' || $email === '' || $address === '') {
+			$fromOpp = $this->lookupPotentialContact($adb, $potentialId);
+			if ($phone === '') {
+				$phone = $fromOpp['phone'];
+			}
+			if ($email === '') {
+				$email = $fromOpp['email'];
+			}
+			if ($address === '') {
+				$address = $fromOpp['address'];
+			}
+		}
+		$this->ensureQuoteContactColumns($adb);
+		if ($phone !== '') {
+			$adb->pquery('UPDATE vtiger_quotes SET mk_customer_phone = ? WHERE quoteid = ?', array($phone, $quoteId));
+		}
+		if ($email !== '') {
+			$adb->pquery('UPDATE vtiger_quotes SET mk_customer_email = ? WHERE quoteid = ?', array($email, $quoteId));
+		}
+		if ($address === '' || $address === '-' || $address === '--') {
+			return;
+		}
+		$exists = $adb->pquery('SELECT quotebilladdressid FROM vtiger_quotesbillads WHERE quotebilladdressid = ?', array($quoteId));
+		if ($exists && $adb->num_rows($exists) > 0) {
+			$adb->pquery('UPDATE vtiger_quotesbillads SET bill_street = ? WHERE quotebilladdressid = ?', array($address, $quoteId));
+		}
+	}
+
+	protected function ensureQuoteContactColumns($adb) {
+		$columns = array(
+			'mk_customer_phone' => 'VARCHAR(50) DEFAULT NULL',
+			'mk_customer_email' => 'VARCHAR(100) DEFAULT NULL',
+		);
+		foreach ($columns as $name => $def) {
+			$res = $adb->pquery('SHOW COLUMNS FROM vtiger_quotes LIKE ?', array($name));
+			if ($res && $adb->num_rows($res) > 0) {
+				continue;
+			}
+			$adb->pquery('ALTER TABLE vtiger_quotes ADD COLUMN ' . $name . ' ' . $def, array());
+		}
+	}
+
+	protected function lookupContactContact($adb, $contactId) {
+		$out = array('phone' => '', 'email' => '', 'address' => '');
+		$contactId = (int) $contactId;
+		if ($contactId <= 0) {
+			return $out;
+		}
+		$res = $adb->pquery(
+			'SELECT cd.phone, cd.mobile, cd.email, ca.mailingstreet, ca.mailingcity
+			 FROM vtiger_contactdetails cd
+			 LEFT JOIN vtiger_contactaddress ca ON ca.contactaddressid = cd.contactid
+			 WHERE cd.contactid = ?',
+			array($contactId)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return $out;
+		}
+		$mobile = trim(decode_html((string) $adb->query_result($res, 0, 'mobile')));
+		$phone = trim(decode_html((string) $adb->query_result($res, 0, 'phone')));
+		$out['phone'] = $mobile !== '' ? $mobile : $phone;
+		$out['email'] = trim(decode_html((string) $adb->query_result($res, 0, 'email')));
+		$street = trim(decode_html((string) $adb->query_result($res, 0, 'mailingstreet')));
+		$city = trim(decode_html((string) $adb->query_result($res, 0, 'mailingcity')));
+		if ($street !== '' && $city !== '' && stripos($street, $city) === false) {
+			$street .= ', ' . $city;
+		} elseif ($street === '') {
+			$street = $city;
+		}
+		$out['address'] = $street;
+		return $out;
+	}
+
+	protected function lookupPotentialContact($adb, $potentialId) {
+		$out = array('phone' => '', 'email' => '', 'address' => '');
+		$potentialId = (int) $potentialId;
+		if ($potentialId <= 0) {
+			return $out;
+		}
+		$res = $adb->pquery(
+			'SELECT pp.phone AS pot_phone, pp.address_line AS pot_address, pp.district AS pot_district,
+				la.phone AS lead_phone, la.mobile AS lead_mobile, la.lane AS lead_lane,
+				lp.address_line AS lead_address, lp.district AS lead_district, ld.email AS lead_email,
+				cd.phone AS contact_phone, cd.mobile AS contact_mobile, cd.email AS contact_email
+			 FROM vtiger_potential p
+			 LEFT JOIN bace_potential_profile pp ON pp.potentialid = p.potentialid
+			 LEFT JOIN bace_lead_profile lp ON lp.potential_id = p.potentialid
+			 LEFT JOIN vtiger_leaddetails ld ON ld.leadid = lp.leadid
+			 LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = lp.leadid
+			 LEFT JOIN vtiger_contactdetails cd ON cd.contactid = p.contact_id
+			 WHERE p.potentialid = ?',
+			array($potentialId)
+		);
+		if (!$res || $adb->num_rows($res) < 1) {
+			return $out;
+		}
+		foreach (array('pot_phone', 'contact_mobile', 'contact_phone', 'lead_mobile', 'lead_phone') as $col) {
+			$value = trim(decode_html((string) $adb->query_result($res, 0, $col)));
+			if ($value !== '' && $value !== '-' && $value !== '--') {
+				$out['phone'] = $value;
+				break;
+			}
+		}
+		$email = trim(decode_html((string) $adb->query_result($res, 0, 'contact_email')));
+		if ($email === '') {
+			$email = trim(decode_html((string) $adb->query_result($res, 0, 'lead_email')));
+		}
+		$out['email'] = $email;
+		$street = '';
+		foreach (array('pot_address', 'lead_address', 'lead_lane') as $col) {
+			$value = trim(decode_html((string) $adb->query_result($res, 0, $col)));
+			if ($value !== '' && $value !== '-' && $value !== '--') {
+				$street = $value;
+				break;
+			}
+		}
+		$district = trim(decode_html((string) $adb->query_result($res, 0, 'pot_district')));
+		if ($district === '' || $district === '-') {
+			$district = trim(decode_html((string) $adb->query_result($res, 0, 'lead_district')));
+		}
+		if ($district === '-' || $district === '--') {
+			$district = '';
+		}
+		if ($street !== '' && $district !== '' && stripos($street, $district) === false) {
+			$street .= ', ' . $district;
+		} elseif ($street === '') {
+			$street = $district;
+		}
+		$out['address'] = $street;
+		return $out;
 	}
 }

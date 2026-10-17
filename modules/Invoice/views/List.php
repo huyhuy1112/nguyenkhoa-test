@@ -106,9 +106,6 @@ class Invoice_List_View extends Inventory_List_View {
 		} elseif ($this->isInvoiceListFieldAvailable($moduleModel, 'contact_id')) {
 			$preferredHeaders[] = 'contact_id';
 		}
-		if ($paidField) {
-			$preferredHeaders[] = $paidField;
-		}
 		if ($statusField) {
 			$preferredHeaders[] = $statusField;
 		}
@@ -156,12 +153,11 @@ class Invoice_List_View extends Inventory_List_View {
 			'invoice_no' => 'Mã hóa đơn',
 			'subject' => 'Mã hóa đơn',
 			'createdtime' => 'Thời gian',
-			'account_id' => 'Người liên hệ',
-			'contact_id' => 'Người liên hệ',
+			'account_id' => 'Tên khách hàng',
+			'contact_id' => 'Tên khách hàng',
 			'hdnGrandTotal' => 'Tổng cộng',
 			'total' => 'Tổng cộng',
-			$paidField => 'Khách đã trả',
-			$statusField => 'Trạng thái',
+			$statusField => 'Trạng thái MISA',
 			$numberField => 'Mã hóa đơn',
 		);
 
@@ -227,6 +223,10 @@ class Invoice_List_View extends Inventory_List_View {
 	}
 
 	public function process(Vtiger_Request $request) {
+		if ($this->isSalesListContext($request)) {
+			require_once 'modules/Invoice/models/MisaSyncService.php';
+			Invoice_MisaSyncService::ensureInvoicesForCompletedOrders();
+		}
 		$viewer = $this->getViewer($request);
 		if ($this->isSalesListContext($request)) {
 			$posMeta = $this->applyInvoiceSalesListPosDefaults($request);
@@ -237,6 +237,10 @@ class Invoice_List_View extends Inventory_List_View {
 	}
 
 	public function initializeListViewContents(Vtiger_Request $request, Vtiger_Viewer $viewer) {
+		if ($this->isMkInvoiceListApp($request->get('app'))) {
+			require_once 'modules/Invoice/models/MisaSyncService.php';
+			Invoice_MisaSyncService::refreshPending();
+		}
 		if ($this->isSalesListContext($request)) {
 			$posMeta = $this->applyInvoiceSalesListPosDefaults($request);
 			$this->assignInvoiceSalesListPosTemplateVars($viewer, $posMeta);

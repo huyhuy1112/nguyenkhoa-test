@@ -2394,16 +2394,7 @@ html.mk-project-detail-management body[data-module="Project"][data-view="Detail"
 }
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell > .mk-project-shell-footer.app-footer.mk-app-footer {
-	display: block !important;
-	flex: 0 0 auto !important;
-	margin-top: auto !important;
-	width: 100% !important;
-	max-width: 100% !important;
-	margin-left: 0 !important;
-	box-sizing: border-box !important;
-	position: relative !important;
-	z-index: 5 !important;
-	border: none !important;
+	display: none !important;
 }
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .footer:not(.app-footer) {
@@ -3221,11 +3212,7 @@ html.mk-project-detail-management body[data-module="Project"][data-view="Detail"
 }
 
 html.mk-project-detail-management body[data-module="Project"][data-view="Detail"][data-app="MANAGEMENT"] .mk-app-shell > .mk-project-shell-footer.app-footer {
-	margin-top: auto !important;
-	flex-shrink: 0 !important;
-	width: 100% !important;
-	border-top: 1px solid #e4eaf0 !important;
-	background: #ffffff !important;
+	display: none !important;
 }
 
 /* Icon dock — nhóm icon liên quan bên phải tab bar */

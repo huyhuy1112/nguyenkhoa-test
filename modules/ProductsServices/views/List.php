@@ -92,6 +92,8 @@ class ProductsServices_List_View extends Vtiger_List_View {
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
+		require_once 'modules/ProductsServices/helpers/PriceSetup.php';
+		ProductsServices_PriceSetup_Helper::ensure();
 		if (!$this->viewName) {
 			$this->viewName = $request->get('viewname');
 		}

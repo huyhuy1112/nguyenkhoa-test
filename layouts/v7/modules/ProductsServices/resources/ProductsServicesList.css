@@ -1721,6 +1721,21 @@ body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-name
 	color: #14231a;
 }
 
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-name-copy {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	gap: 2px;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-qty-note {
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 1.35;
+	color: #3d6b4f;
+	white-space: normal;
+}
+
 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-star {
 	display: inline-flex;
 	align-items: center;
@@ -1789,14 +1804,22 @@ body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-mute
 }
 
 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table.mk-ps-ba-table {
-	min-width: 960px !important;
+	min-width: 1664px !important;
+	width: max(100%, 1664px) !important;
+	max-width: none !important;
 }
 
 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table .mk-col-ps-price,
 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table .mk-col-ps-tuibao,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table .mk-col-ps-miutea,
 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table .mk-col-ps-stock,
 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table .mk-col-ps-order {
 	text-align: right !important;
+}
+
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table .mk-col-ps-unit {
+	text-align: left !important;
+	white-space: nowrap;
 }
 
 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listview-table .mk-col-ps-star {
@@ -2052,4 +2075,57 @@ body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list .mk-ps-ba-l
 			border-width 0.28s ease,
 			visibility 0s linear 0.28s;
 	}
+}
+
+/* Laptop: keep mã hàng and tên hàng fully readable; scroll sideways instead of crushing columns. */
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listViewContent #listview-table,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listViewContent #listview-table {
+	min-width: 1664px !important;
+	width: max(100%, 1664px) !important;
+	max-width: none !important;
+	table-layout: auto !important;
+}
+
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listViewContent #listview-table th.mk-col-ps-sku,
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listViewContent #listview-table td.mk-col-ps-sku,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listViewContent #listview-table th.mk-col-ps-sku,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listViewContent #listview-table td.mk-col-ps-sku {
+	width: 240px !important;
+	min-width: 240px !important;
+	max-width: none !important;
+	white-space: nowrap !important;
+	overflow: visible !important;
+	text-overflow: clip !important;
+}
+
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listViewContent #listview-table th.mk-col-ps-name,
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listViewContent #listview-table td.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listViewContent #listview-table th.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listViewContent #listview-table td.mk-col-ps-name {
+	width: 360px !important;
+	min-width: 360px !important;
+	max-width: none !important;
+	height: auto !important;
+	white-space: normal !important;
+	overflow: visible !important;
+	text-overflow: clip !important;
+	vertical-align: middle !important;
+}
+
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listViewContent #listview-table .mk-ps-name-text,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listViewContent #listview-table .mk-ps-name-text,
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listViewContent #listview-table td.mk-col-ps-name .value,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listViewContent #listview-table td.mk-col-ps-name .value {
+	display: block;
+	max-width: none !important;
+	white-space: normal !important;
+	overflow: visible !important;
+	text-overflow: clip !important;
+	overflow-wrap: anywhere;
+	line-height: 1.35;
+}
+
+html.mk-ps-list-v2 body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listViewContent #listview-table tbody tr.listViewEntries td.mk-col-ps-name,
+body[data-module="ProductsServices"][data-view="List"].mk-ps-ba-list #listViewContent #listview-table tbody tr.listViewEntries td.mk-col-ps-name {
+	height: auto !important;
 }

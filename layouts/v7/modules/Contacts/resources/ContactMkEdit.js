@@ -5,7 +5,7 @@
 (function ($) {
 	'use strict';
 
-	var MK_BUILD = '20260803_ct_polish1';
+	var MK_BUILD = '20261013_ct_name1';
 	var selectedTags = {};
 	var oppSearchCache = null;
 	var slimLayoutDone = false;
@@ -259,18 +259,37 @@
 			$f.append($input);
 		}
 		$input.val(value == null ? '' : value);
+		return $input;
+	}
+
+	function usableCustomerName(value) {
+		var name = String(value || '').replace(/\s+/g, ' ').trim();
+		if (!name || name === '.' || name === '-' || name === '--' || name === '—' || name === '–') {
+			return '';
+		}
+		return name;
+	}
+
+	function visibleCustomerName() {
+		var found = '';
+		$('.mk-ct-cust-display').each(function () {
+			var name = usableCustomerName($(this).val());
+			if (name) found = name;
+		});
+		return found;
 	}
 
 	function softDefaultRequired($f) {
 		if (!$f || !$f.length) return;
 		var name =
-			String($('.mk-ct-cust-display').val() || '').trim() ||
-			String($f.find('[name="lastname"]').val() || '').trim() ||
+			visibleCustomerName() ||
+			usableCustomerName($f.find('[name="lastname"]').val()) ||
 			'Khách hàng';
-		var $ln = $f.find('[name="lastname"]');
-		if ($ln.length) {
-			$ln.val(name);
-			$ln.removeAttr('data-rule-required').removeClass('validate[required]').attr('aria-required', 'false');
+		var $ln = ensureHidden($f, 'lastname', name);
+		$ln.removeAttr('data-rule-required').removeClass('validate[required]').attr('aria-required', 'false');
+		var $fn = $f.find('[name="firstname"]');
+		if ($fn.length && !usableCustomerName($fn.val())) {
+			$fn.val('');
 		}
 		// Do not bind Opp → Accounts; clear org reference
 		$f.find('[name="account_id"]').val('');
@@ -354,9 +373,9 @@
 		if (!opp) return;
 		var label = oppLabel(opp) || String(opp.name || '').trim();
 		var $display = $('.mk-ct-cust-display');
-		if (label) {
+		if (label && usableCustomerName(label)) {
 			$display.val(label);
-			$f.find('[name="lastname"]').val(label);
+			ensureHidden($f, 'lastname', label);
 			$('.mk-ct-cust-ref').addClass('selected');
 			$('.mk-ct-cust-ref .clearReferenceSelection').removeClass('hide');
 		}
@@ -572,8 +591,8 @@
 		$account.attr('type', 'hidden');
 
 		var seed =
-			String($f.find('[name="lastname"]').val() || '').trim() ||
-			String($displayStock.val() || '').trim();
+			usableCustomerName($f.find('[name="lastname"]').val()) ||
+			usableCustomerName($displayStock.val());
 
 		var $wrap = $(
 			'<div class="mk-ct-cust-ref' +
@@ -595,14 +614,14 @@
 		$td.append($wrap);
 		var $display = $wrap.find('.mk-ct-cust-display');
 		$display.val(seed);
-		if (seed) $f.find('[name="lastname"]').val(seed);
+		if (seed) ensureHidden($f, 'lastname', seed);
 
 		loadOppSearchCache();
 
 		var suggestTimer = null;
 		$display.on('input.mkCtCust', function () {
 			var val = String($display.val() || '');
-			$f.find('[name="lastname"]').val(val);
+			ensureHidden($f, 'lastname', val);
 			$f.find('[name="account_id"]').val('');
 			$wrap.toggleClass('selected', !!val.trim());
 			$wrap.find('.clearReferenceSelection').toggleClass('hide', !val.trim());
@@ -628,7 +647,7 @@
 			else {
 				var label = $(this).attr('data-name') || '';
 				$display.val(label);
-				$f.find('[name="lastname"]').val(label);
+				ensureHidden($f, 'lastname', label);
 			}
 			$wrap.find('.mk-ct-cust-suggest').hide().empty();
 		});
@@ -636,7 +655,7 @@
 		$wrap.on('click.mkCtCust', '.clearReferenceSelection', function (e) {
 			e.preventDefault();
 			$display.val('').focus();
-			$f.find('[name="lastname"]').val('');
+			ensureHidden($f, 'lastname', '');
 			$f.find('[name="account_id"]').val('');
 			ensureHidden($f, 'mk_source_opp_id', '');
 			$wrap.removeClass('selected');
@@ -750,7 +769,7 @@
 				var key = $chip.attr('data-tag');
 				var group = $chip.attr('data-group');
 				var turningOn = !$chip.hasClass('is-on');
-				if (group && turningOn) {
+				if (group && turningOn && group !== 'class') {
 					$('#mkCtTagsBody .mk-ct-tag-group[data-group="' + group + '"] .mk-ct-tag-chip.is-on').each(
 						function () {
 							var k = $(this).attr('data-tag');

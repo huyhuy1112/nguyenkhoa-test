@@ -8,8 +8,8 @@ class MkEntityNumbering {
 	/** @var array<string, array{prefix: string, width: int, start: string}> */
 	public static $PADDED_MODULES = array(
 		'Potentials' => array('prefix' => 'CH', 'width' => 5, 'start' => '00001'), // Cơ hội (Opportunity)
-		'Contacts'   => array('prefix' => 'LH', 'width' => 5, 'start' => '00001'), // Liên hệ
-		'Accounts'   => array('prefix' => 'KH', 'width' => 5, 'start' => '00001'), // Khách hàng / Tổ chức
+		'Contacts'   => array('prefix' => 'KH', 'width' => 5, 'start' => '00001'), // Khách hàng
+		'Accounts'   => array('prefix' => 'Tuibao', 'width' => 5, 'start' => '00001'), // Nhượng quyền Tuibao
 		'Quotes'     => array('prefix' => 'BG', 'width' => 5, 'start' => '00001'), // Báo giá
 		'SalesOrder' => array('prefix' => 'DH', 'width' => 5, 'start' => '00001'), // Đơn hàng
 	);

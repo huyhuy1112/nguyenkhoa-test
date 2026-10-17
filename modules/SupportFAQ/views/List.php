@@ -44,7 +44,7 @@ class SupportFAQ_List_View extends Vtiger_Index_View {
 		$headerScriptInstances = parent::getHeaderScripts($request);
 		$jsFileNames = array(
 			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngineStore.js?mk_v=20260811_alerts_fix1',
-			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleAlerts.js?mk_v=20260811_alerts_fix1',
+			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleAlerts.js?mk_v=20261016_nlopen2',
 		);
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
 		return array_merge($headerScriptInstances, $jsScriptInstances);
@@ -53,7 +53,7 @@ class SupportFAQ_List_View extends Vtiger_Index_View {
 	public function getHeaderCss(Vtiger_Request $request) {
 		$headerCssInstances = parent::getHeaderCss($request);
 		$cssFileNames = array(
-			'~layouts/v7/modules/SupportFAQ/resources/SupportFAQList.css',
+			'~layouts/v7/modules/SupportFAQ/resources/SupportFAQList.css?mk_v=20261016_nlopen2',
 			'~layouts/v7/modules/HelpDesk/resources/MkTagRuleEngine.css?mk_v=20260811_alerts_fix1',
 		);
 		$cssInstances = $this->checkAndConvertCssStyles($cssFileNames);
@@ -86,6 +86,14 @@ class SupportFAQ_List_View extends Vtiger_Index_View {
 		}
 		if (!isset($bootstrap['alerts']) || !is_array($bootstrap['alerts'])) {
 			$bootstrap['alerts'] = array();
+		}
+		$bootstrap['nl_alerts'] = array();
+		try {
+			require_once 'modules/HelpDesk/models/MaterialAlertService.php';
+			HelpDesk_MaterialAlertService::refresh();
+			$bootstrap['nl_alerts'] = HelpDesk_MaterialAlertService::listAlerts();
+		} catch (Exception $e) {
+			$bootstrap['nl_error'] = $e->getMessage();
 		}
 		$json = json_encode(
 			$bootstrap,

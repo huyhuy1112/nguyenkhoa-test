@@ -34,8 +34,11 @@ class Quotes_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 			}
 
 			$quoteStage = (string) $quoteModel->get('quotestage');
-			if (!Quotes_QuoteBaService_Helper::isConfirmedQuoteStage($quoteStage)) {
-				throw new Exception('Chỉ báo giá ở trạng thái Báo giá mới được xác nhận đơn hàng.');
+			if (Quotes_QuoteBaService_Helper::isCancelledQuoteStage($quoteStage)) {
+				throw new Exception('Báo giá đã huỷ, không chuyển được thành đơn hàng.');
+			}
+			if (!Quotes_QuoteBaService_Helper::isConfirmedQuoteStage($quoteStage) && !Quotes_QuoteBaService_Helper::isDraftQuoteStage($quoteStage)) {
+				throw new Exception('Chỉ báo giá ở trạng thái Phiếu tạm mới được chuyển thành đơn hàng.');
 			}
 
 			if (method_exists($quoteModel, 'hasLinkedSalesOrder') && $quoteModel->hasLinkedSalesOrder()) {
@@ -85,7 +88,7 @@ class Quotes_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 				'list_url' => 'index.php?module=SalesOrder&view=List&app=SALES',
 				'already_exists' => false,
 				'quote_trashed' => true,
-				'message' => 'Đã tạo đơn hàng (Phiếu tạm) từ báo giá.',
+				'message' => 'Đã tạo đơn hàng (Đã xác nhận) từ báo giá.',
 			));
 		} catch (Exception $e) {
 			$response->setResult(array(
@@ -188,8 +191,8 @@ class Quotes_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 				}
 			}
 
-			// From quote → always Phiếu tạm; warehouse outbound happens on SO confirm.
-			$soModel->set('sostatus', 'Created');
+			// Quote → order is already paid. Warehouse outbound happens on SO confirm.
+			$soModel->set('sostatus', 'Paid');
 			if ($soModel->get('assigned_user_id') === '' || $soModel->get('assigned_user_id') === null) {
 				$soModel->set('assigned_user_id', $currentUser->getId());
 			}
@@ -221,6 +224,10 @@ class Quotes_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 
 			$this->copyInventoryLines($quoteId, $salesOrderId);
 			$this->copyCurrencyAndTotals($quoteId, $salesOrderId);
+			$db->pquery(
+				'UPDATE vtiger_salesorder SET sostatus = ? WHERE salesorderid = ?',
+				array('Paid', $salesOrderId)
+			);
 
 			if ($this->countInventoryLines($salesOrderId) <= 0) {
 				throw new Exception('Sao chép dòng hàng sang đơn hàng thất bại.');

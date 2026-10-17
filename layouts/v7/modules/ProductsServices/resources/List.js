@@ -8,7 +8,7 @@
 	var CANONICAL_HEADERS = ['sku', 'productsservicesname', 'price_lt_1m', 'price_tuibao'];
 	var PAGE_SIZE = 20;
 	var SEARCH_DEBOUNCE_MS = 180;
-	var COL_COUNT = 10;
+	var COL_COUNT = 12;
 	var FILTER_PANEL_STORAGE_KEY = 'mk_ps_filters_open_v1';
 
 	var catalogItems = [];
@@ -98,6 +98,60 @@
 			return String(Math.round(n));
 		}
 		return String(Math.round(n * 100) / 100);
+	}
+
+	function qtyUnitKey(raw) {
+		var s = String(raw || '').toLowerCase();
+		if (s.indexOf('thùng') >= 0 || s.indexOf('thung') >= 0) return 'thung';
+		if (s.indexOf('bịch') >= 0 || s.indexOf('bich') >= 0) return 'bich';
+		if (s.indexOf('hộp') >= 0 || s.indexOf('hop') >= 0) return 'hop';
+		if (s.indexOf('lon') >= 0) return 'lon';
+		if (s.indexOf('bao') >= 0) return 'bao';
+		if (s.indexOf('bình') >= 0 || s.indexOf('binh') >= 0) return 'binh';
+		if (s.indexOf('chai') >= 0) return 'chai';
+		if (s.indexOf('gói') >= 0 || s.indexOf('goi') >= 0) return 'goi';
+		return '';
+	}
+
+	function qtyScheduleNote(it) {
+		var pack = it && it.kl_qty_rules;
+		if (!pack || !pack.rules || !pack.rules.length) {
+			return '';
+		}
+		var words = {
+			lon: 'lon',
+			bich: 'bịch',
+			hop: 'hộp',
+			bao: 'bao',
+			thung: 'thùng',
+			binh: 'bình',
+			chai: 'chai',
+			goi: 'gói'
+		};
+		var phrases = {
+			gte_3m: 'giá trên 3 triệu',
+			gte_5m: 'giá trên 5 triệu',
+			gte_7m: 'giá trên 7 triệu'
+		};
+		var sell = qtyUnitKey(pack.sell_unit);
+		var parts = [];
+		pack.rules.forEach(function (rule) {
+			var phrase = phrases[rule.tier];
+			var min = Number(rule.min) || 0;
+			if (!phrase || !(min > 0)) {
+				return;
+			}
+			var ruleUnit = qtyUnitKey(rule.unit);
+			if (ruleUnit === 'thung' && sell !== 'thung' && Number(pack.per_thung) > 0) {
+				parts.push(
+					'Từ ' + (min * Number(pack.per_thung)) + ' ' + (words[sell] || 'đơn vị') +
+					' (' + min + ' thùng): ' + phrase
+				);
+				return;
+			}
+			parts.push('Từ ' + min + ' ' + (words[ruleUnit] || words[sell] || 'đơn vị') + ': ' + phrase);
+		});
+		return parts.join('. ');
 	}
 
 	function formatCreated(raw) {
@@ -407,7 +461,9 @@
 				'<th class="mk-col-ps-name" scope="col">Tên hàng</th>' +
 				'<th class="mk-col-ps-price" scope="col">Giá bán</th>' +
 				'<th class="mk-col-ps-tuibao" scope="col">Giá Tuibao</th>' +
+				'<th class="mk-col-ps-miutea" scope="col">Giá Miutea</th>' +
 				'<th class="mk-col-ps-stock" scope="col">Tồn kho</th>' +
+				'<th class="mk-col-ps-unit" scope="col">Đơn vị tính</th>' +
 				'<th class="mk-col-ps-order" scope="col">Khách đặt</th>' +
 				'<th class="mk-col-ps-created" scope="col">Thời gian tạo</th>' +
 				'<th class="mk-col-ps-stockout" scope="col">Dự kiến hết hàng</th>' +
@@ -418,16 +474,87 @@
 			'<colgroup>' +
 				'<col style="width:48px" />' +
 				'<col style="width:44px" />' +
-				'<col style="width:110px" />' +
-				'<col style="width:28%" />' +
-				'<col style="width:110px" />' +
-				'<col style="width:110px" />' +
-				'<col style="width:90px" />' +
-				'<col style="width:90px" />' +
-				'<col style="width:140px" />' +
+				'<col style="width:240px" />' +
+				'<col style="width:360px" />' +
 				'<col style="width:120px" />' +
+				'<col style="width:130px" />' +
+				'<col style="width:130px" />' +
+				'<col style="width:88px" />' +
+				'<col style="width:110px" />' +
+				'<col style="width:96px" />' +
+				'<col style="width:148px" />' +
+				'<col style="width:150px" />' +
 				'</colgroup>'
 		);
+	}
+
+	function formatDate(d) {
+		if (!(d instanceof Date) || isNaN(d.getTime())) {
+			return '';
+		}
+		var dd = String(d.getDate()).padStart(2, '0');
+		var mm = String(d.getMonth() + 1).padStart(2, '0');
+		var yyyy = d.getFullYear();
+		return dd + '/' + mm + '/' + yyyy;
+	}
+
+	function avgSalesPerDay(it) {
+		// Backend đã tính sẵn
+		var v = Number(it.avg_sales_per_day);
+		if (isFinite(v) && v > 0) return v;
+	
+		// Fallback (nếu backend chưa trả)
+		var soldQty = Number(it.sold_qty);
+		var soldDays = Number(it.sold_days) || 30;
+		if (isFinite(soldQty) && soldQty > 0 && soldDays > 0) {
+			return soldQty / soldDays;
+		}
+		return 0;
+	}
+
+	function stockoutInfo(it) {
+		var stock = itemStock(it);
+	
+		// Backend trả sẵn
+		if (it.days_left !== null && it.days_left !== undefined && it.days_left !== '') {
+			var daysLeft = Number(it.days_left);
+			if (daysLeft <= 0 || stock <= 0) {
+				return { text: 'Đã hết', cls: 'mk-ps-num mk-ps-num--out', title: 'Tồn kho = 0' };
+			}
+			var etaText = it.stockout_date
+				? formatDate(new Date(it.stockout_date))
+				: '';
+			var cls = 'mk-ps-stockout';
+			if (daysLeft <= 3)      cls += ' mk-ps-stockout--danger';
+			else if (daysLeft <= 7) cls += ' mk-ps-stockout--warn';
+			else                    cls += ' mk-ps-stockout--ok';
+			return {
+				text: Math.floor(daysLeft) + ' ngày' + (etaText ? ' (' + etaText + ')' : ''),
+				cls: cls,
+				title: 'Tồn: ' + formatQty(stock) + ' • Bán/ngày: ' + formatQty(it.avg_sales_per_day)
+			};
+		}
+
+		//Fallback: tính avg_sales_per_day / sold_qty
+		var avg = avgSalesPerDay(it);
+		if (!avg || avg <= 0) {
+			return { text: '—', cls: 'mk-ps-muted', title: 'Chưa có dữ liệu bán' };
+		}
+		if (stock <= 0) {
+			return { text: 'Đã hết', cls: 'mk-ps-num mk-ps-num--out', title: 'Tồn kho = 0' };
+		}
+		var daysLeft2 = stock / avg;
+		var eta = new Date();
+		eta.setDate(eta.getDate() + Math.ceil(daysLeft2));
+		var cls2 = 'mk-ps-stockout';
+		if (daysLeft2 <= 3)      cls2 += ' mk-ps-stockout--danger';
+		else if (daysLeft2 <= 7) cls2 += ' mk-ps-stockout--warn';
+		else                     cls2 += ' mk-ps-stockout--ok';
+		return {
+			text: Math.floor(daysLeft2) + ' ngày (' + formatDate(eta) + ')',
+			cls: cls2,
+			title: 'Tồn: ' + formatQty(stock) + ' • Bán/ngày: ' + formatQty(Math.round(avg * 100) / 100)
+		};
 	}
 
 	function buildRowHtml(it) {
@@ -459,6 +586,8 @@
 			'">' +
 			(isStarred ? '★' : '☆') +
 			'</button>';
+		var so = stockoutInfo(it);
+		var qtyNote = qtyScheduleNote(it);
 
 		return (
 			'<tr class="listViewEntries mk-ps-client-row" data-id="' +
@@ -484,21 +613,32 @@
 			'<td class="listViewEntryValue mk-col-ps-name" data-name="productsservicesname">' +
 			'<div class="mk-ps-name-cell">' +
 			thumbHtml +
+			'<div class="mk-ps-name-copy">' +
 			'<span class="mk-ps-name-text" title="' +
 			esc(name) +
 			'">' +
 			esc(name) +
-			'</span></div></td>' +
+			'</span>' +
+			(qtyNote
+				? '<span class="mk-ps-qty-note">' + esc(qtyNote) + '</span>'
+				: '') +
+			'</div></div></td>' +
 			'<td class="listViewEntryValue mk-col-ps-price" data-name="price_lt_1m"><span class="value">' +
 			esc(formatMoney(it.price_lt_1m != null ? it.price_lt_1m : it.price)) +
 			'</span></td>' +
 			'<td class="listViewEntryValue mk-col-ps-tuibao" data-name="price_tuibao"><span class="value">' +
 			esc(formatMoney(it.price_tuibao)) +
 			'</span></td>' +
+			'<td class="listViewEntryValue mk-col-ps-miutea" data-name="price_miutea"><span class="value">' +
+			esc(formatMoney(it.price_miutea)) +
+			'</span></td>' +
 			'<td class="listViewEntryValue mk-col-ps-stock"><span class="' +
 			stockCls +
 			'">' +
 			esc(formatQty(stock)) +
+			'</span></td>' +
+			'<td class="listViewEntryValue mk-col-ps-unit" data-name="unit"><span class="value">' +
+			esc(String(it.unit || '').trim() || '—') +
 			'</span></td>' +
 			'<td class="listViewEntryValue mk-col-ps-order"><span class="' +
 			orderCls +
@@ -508,7 +648,10 @@
 			'<td class="listViewEntryValue mk-col-ps-created"><span class="value">' +
 			esc(formatCreated(it.createdtime)) +
 			'</span></td>' +
-			'<td class="listViewEntryValue mk-col-ps-stockout"><span class="mk-ps-muted">---</span></td>' +
+			'<td class="listViewEntryValue mk-col-ps-stockout">' +
+				'<span class="' + esc(so.cls) + '"' +
+				(so.title ? ' title="' + esc(so.title) + '"' : '') +
+				'>' + esc(so.text) + '</span></td>' +
 			'</tr>'
 		);
 	}
@@ -1505,6 +1648,33 @@
 		} else {
 			setTimeout(run, 0);
 		}
+		bindProductImport();
+	}
+
+	function reloadCatalog() {
+		catalogLoaded = false;
+		catalogLoading = false;
+		return fetchCatalog().done(function () {
+			renderFilters();
+			renderCatalogPage();
+		});
+	}
+
+	function bindProductImport() {
+		if (!window.MkQuickImport || typeof window.MkQuickImport.bind !== 'function') {
+			return;
+		}
+		window.MkQuickImport.bind({
+			buttonId: 'mk-ps-import-btn',
+			fileInputId: 'mk-ps-import-file',
+			module: 'ProductsServices',
+			xlsxOnly: true,
+			xlsxRejectMessage: 'Chỉ hỗ trợ file .xlsx (SKU, tên, giá bậc, Giá Tuibao, Giá Miutea).',
+			confirmMessage: 'Import hàng hoá từ Excel:\nGhi vào bảng hiện tại: SKU, tên, giá theo bậc, Giá Tuibao, Giá Miutea.\n\nTiếp tục?',
+			onDone: function () {
+				reloadCatalog();
+			}
+		});
 	}
 
 	if (document.readyState === 'loading') {

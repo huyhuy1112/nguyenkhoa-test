@@ -65,6 +65,9 @@
         phone_dup: false,
         phone_dup_count: 1,
         qa_raw: null,
+        products: [],
+        can_edit_pipeline: 0,
+        pipeline_closed: 0,
       },
       lead,
     );
@@ -97,12 +100,63 @@
     });
   }
 
+  var _productCatalog = null;
+
+  var _listTotal = 0;
+  var _preview = false;
+  var _onFull = null;
+  var _fullStarted = false;
+
+  function applyLeadList(res) {
+    _memLeads = dedupeLeadsByCrmid(((res && res.leads) || []).map(normalizeLead));
+    _listTotal = res && res.total != null ? Number(res.total) : _memLeads.length;
+    _preview = !!(res && Number(res.preview) === 1);
+    if (Array.isArray(res && res.assignable_users)) {
+      _assignableUsers = res.assignable_users.slice();
+    }
+    if (res && res.product_catalog) {
+      _productCatalog = res.product_catalog;
+    }
+    if (res && res.gd14_questions) {
+      window.MK_GD14_QUESTIONS = res.gd14_questions;
+    }
+  }
+
+  function loadFullLeads() {
+    if (_fullStarted) {
+      return;
+    }
+    _fullStarted = true;
+    apiRequest("list")
+      .then(function (res) {
+        applyLeadList(res);
+        _preview = false;
+        _listTotal = _memLeads.length;
+        _bootstrapped = true;
+        if (typeof _onFull === "function") {
+          _onFull();
+        }
+      })
+      .catch(function () {
+        _preview = false;
+      });
+  }
+
   function bootstrapFromApi() {
-    return apiRequest("list").then(function (res) {
-      _memLeads = dedupeLeadsByCrmid((res.leads || []).map(normalizeLead));
-      _assignableUsers = Array.isArray(res.assignable_users) ? res.assignable_users.slice() : null;
+    return apiRequest("list", { preview: 1 }).then(function (res) {
+      applyLeadList(res);
       _bootstrapped = true;
+      loadFullLeads();
       return _memLeads;
+    }).catch(function () {
+      _fullStarted = true;
+      return apiRequest("list").then(function (res) {
+        applyLeadList(res);
+        _preview = false;
+        _listTotal = _memLeads.length;
+        _bootstrapped = true;
+        return _memLeads;
+      });
     }).then(function () {
       // Auto phone-dedupe disabled: Sheet import may create intentional duplicates.
       return _memLeads;
@@ -258,11 +312,12 @@
       ensureSeeded();
       return Promise.resolve(getLeads());
     }
+    _fullStarted = true;
+    _preview = false;
     return apiRequest("list").then(function (res) {
-      _memLeads = dedupeLeadsByCrmid((res.leads || []).map(normalizeLead));
-      if (Array.isArray(res.assignable_users)) {
-        _assignableUsers = res.assignable_users.slice();
-      }
+      applyLeadList(res);
+      _preview = false;
+      _listTotal = _memLeads.length;
       _bootstrapped = true;
       return _memLeads;
     });
@@ -462,9 +517,40 @@
     });
   }
 
-  function pollSheetNow() {
+  function saveSheetSource(source) {
+    if (!useApi()) return Promise.resolve(null);
+    return apiRequest("sheet_source_save", {
+      payload: JSON.stringify(source || {}),
+    }).then(function (res) {
+      return res;
+    });
+  }
+
+  function deleteSheetSource(id) {
+    if (!useApi()) return Promise.resolve(null);
+    return apiRequest("sheet_source_delete", {
+      payload: JSON.stringify({ id: id }),
+    }).then(function (res) {
+      return res;
+    });
+  }
+
+  function testSheetSource(id) {
     if (!useApi()) return Promise.resolve({});
-    return apiRequest("sheet_poll_now").then(function (res) {
+    return apiRequest("sheet_source_test", {
+      payload: JSON.stringify({ id: id || 0 }),
+    }).then(function (res) {
+      return res;
+    });
+  }
+
+  function pollSheetNow(sourceId) {
+    if (!useApi()) return Promise.resolve({});
+    var payload = {};
+    if (sourceId) payload.source_id = sourceId;
+    return apiRequest("sheet_poll_now", {
+      payload: JSON.stringify(payload),
+    }).then(function (res) {
       return res;
     });
   }
@@ -512,6 +598,40 @@
     return Promise.resolve();
   }
 
+  function getProductCatalog() {
+    return _productCatalog;
+  }
+
+  function productUpsert(leadId, group, productName) {
+    return apiRequest("product_upsert", {
+      record: leadId,
+      payload: JSON.stringify({ id: leadId, group: group, product_name: productName || "" }),
+    }).then(function (res) {
+      if (res.lead) upsertMemLead(res.lead);
+      return res;
+    });
+  }
+
+  function productSetStage(productId, stage) {
+    return apiRequest("product_set_stage", {
+      product_id: productId,
+      payload: JSON.stringify({ product_id: productId, stage: stage }),
+    }).then(function (res) {
+      if (res.lead) upsertMemLead(res.lead);
+      return res;
+    });
+  }
+
+  function productRemove(productId) {
+    return apiRequest("product_remove", {
+      product_id: productId,
+      payload: JSON.stringify({ product_id: productId }),
+    }).then(function (res) {
+      if (res.lead) upsertMemLead(res.lead);
+      return res;
+    });
+  }
+
   if (!useApi()) {
     ensureSeeded();
   }
@@ -522,6 +642,18 @@
     KEYS: KEYS,
     ready: ready,
     getLeads: getLeads,
+    listTotal: function () {
+      return _listTotal > (_memLeads ? _memLeads.length : 0) ? _listTotal : (_memLeads ? _memLeads.length : 0);
+    },
+    isPreview: function () {
+      return _preview;
+    },
+    onFull: function (fn) {
+      _onFull = fn;
+      if (!_preview && _fullStarted && _memLeads && _memLeads.length) {
+        fn();
+      }
+    },
     getAssignableUsers: function () {
       if (_assignableUsers && _assignableUsers.length) {
         return _assignableUsers.slice();
@@ -548,11 +680,18 @@
     mergeLeads: mergeLeads,
     getSheetSettings: getSheetSettings,
     saveSheetSettings: saveSheetSettings,
+    saveSheetSource: saveSheetSource,
+    deleteSheetSource: deleteSheetSource,
+    testSheetSource: testSheetSource,
     pollSheetNow: pollSheetNow,
     sheetPollStatus: sheetPollStatus,
     getSegments: getSegments,
     saveSegments: saveSegments,
     resetDemo: resetDemo,
     ensureSeeded: ensureSeeded,
+    getProductCatalog: getProductCatalog,
+    productUpsert: productUpsert,
+    productSetStage: productSetStage,
+    productRemove: productRemove,
   };
 })(typeof window !== "undefined" ? window : this);

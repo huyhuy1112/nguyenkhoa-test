@@ -17,7 +17,7 @@
 		// BA: Nguồn data = kênh (Website/Zalo/Facebook/TikTok) hoặc "Được giới thiệu".
 		// "Được giới thiệu" chỉ tự set khi nhập mã giới thiệu hợp lệ.
 		data_source: ["Website", "Zalo", "Facebook", "TikTok", "Được giới thiệu"],
-		contact_status: ["Chưa gọi", "Đã gửi tư vấn", "Thuê bao", "Ko nghe Máy Lần 1", "Ko nghe Máy Lần 2", "Ko nghe Máy Lần 3"],
+		contact_status: ["Chưa gọi", "Đã gọi/Đã tư vấn", "Đã gửi tư vấn", "Chưa liên hệ được", "Thuê bao/Sai số", "Thuê bao", "Gọi lại sau", "Ngưng chăm sóc", "Ko nghe Máy Lần 1", "Ko nghe Máy Lần 2", "Ko nghe Máy Lần 3"],
 	};
 	var PAYMENT_OPTIONS = ["Chuyển khoản", "Tiền mặt", "Thẻ", "Ví"];
 	var DEFAULT_RETENTION_DAYS = 180;
@@ -271,8 +271,8 @@
 		$toggle.prop("disabled", !id);
 		$toggle.prop("checked", vis);
 		$badge.prop("hidden", !shown).text(shown ? String(code).trim().toUpperCase() : "");
-		if ($hint.length && id && shown) {
-			$hint.text(String(code).trim().toUpperCase());
+		if ($hint.length) {
+			$hint.text(shown ? String(code).trim().toUpperCase() : "");
 		}
 	}
 
@@ -709,7 +709,7 @@
 					.toggleClass("is-done", !canAdd);
 				$hint.text(
 					lt.hint ||
-						"Call #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → dừng chuỗi gọi."
+						"R1 mỗi tag tối đa 3. Không nghe máy nhắc sau 3 giờ. Nghe máy → Đã gọi/Đã tư vấn."
 				);
 				if (!calls.length) {
 					$list.html(
@@ -767,11 +767,15 @@
 			'<p class="mk-lead-lt-modal__meta" id="mk-sc-edit-lt-meta"></p>' +
 			'<label class="mk-lead-lt-modal__label" for="mk-sc-edit-lt-result">Kết quả cuộc gọi</label>' +
 			'<select id="mk-sc-edit-lt-result" class="mk-lead-lt-modal__select" autocomplete="off">' +
-			'<option value="Không nghe máy">Không nghe máy</option>' +
-			'<option value="Nghe máy">Nghe máy</option></select>' +
+			'<option value="Không nghe máy">Không nghe máy — Chưa liên hệ được</option>' +
+			'<option value="Thuê bao/Sai số">Thuê bao / Sai số</option>' +
+			'<option value="Gọi lại sau">Gọi lại sau</option>' +
+			'<option value="Nghe máy">Nghe máy — Đã gọi/Đã tư vấn</option></select>' +
+			'<label class="mk-lead-lt-modal__label" for="mk-sc-edit-lt-callback" id="mk-sc-edit-lt-callback-wrap" hidden>Giờ hẹn gọi lại</label>' +
+			'<input id="mk-sc-edit-lt-callback" class="mk-lead-lt-modal__select inputElement" type="datetime-local" hidden />' +
 			'<label class="mk-lead-lt-modal__label" for="mk-sc-edit-lt-note">Ghi chú</label>' +
 			'<textarea id="mk-sc-edit-lt-note" class="mk-lead-lt-modal__note inputElement" rows="6" placeholder="Ví dụ: Khách quan tâm mặt bằng"></textarea>' +
-			'<p class="mk-lead-lt-modal__tip">Chọn <strong>Nghe máy</strong> → Liên hệ = Đã gửi tư vấn (không sang Opp). Ghi chú hiện ở <strong>Tương tác gần đây</strong> (Last Touch Call). <strong>Không nghe máy</strong> → nhắc sau khoảng 5 giờ.</p>' +
+			'<p class="mk-lead-lt-modal__tip">Mỗi tag R1 tối đa 3 lần. <strong>Không nghe máy</strong> nhắc sau 3 giờ. Hết 3 lượt một tag thì ngưng chăm sóc. <strong>Nghe máy</strong> gắn Đã gọi/Đã tư vấn.</p>' +
 			"</div>" +
 			'<div class="mk-lead-lt-modal__foot">' +
 			'<button type="button" class="btn btn-default" data-mk-sc-edit-lt-close="1">Hủy</button>' +
@@ -783,16 +787,27 @@
 				wrap.hidden = true;
 			}
 		});
+		$("#mk-sc-edit-lt-result").on("change", function () {
+			var on = String($(this).val() || "") === "Gọi lại sau";
+			$("#mk-sc-edit-lt-callback-wrap").prop("hidden", !on);
+			$("#mk-sc-edit-lt-callback").prop("hidden", !on);
+		});
 		$("#mk-sc-edit-lt-save").on("click", function () {
 			var rid = wrap._mkScId;
 			var result = String($("#mk-sc-edit-lt-result").val() || "").trim();
 			var note = String($("#mk-sc-edit-lt-note").val() || "").trim();
+			var callbackAt = String($("#mk-sc-edit-lt-callback").val() || "").trim();
 			if (!rid || !result) return;
+			if (result === "Gọi lại sau" && !callbackAt) {
+				window.alert("Gọi lại sau cần giờ hẹn cụ thể.");
+				return;
+			}
 			apiRequest("last_touch_call_log", {
 				record: rid,
 				id: rid,
 				call_result: result,
 				note: note,
+				callback_at: result === "Gọi lại sau" ? callbackAt : "",
 			})
 				.then(function () {
 					wrap.hidden = true;
@@ -965,6 +980,7 @@
 			return;
 		}
 
+		var creating = !String(payload.id || "").trim();
 		setSaving(true);
 		runDuplicateCheck()
 			.then(function (dup) {
@@ -981,11 +997,11 @@
 				if (!res) return;
 				var c = (res && res.contract) || {};
 				var id = c.id || c.crmid || payload.id;
-				if (id) {
-					window.location.href = detailUrl(id);
+				if (creating || !id) {
+					window.location.href = listUrl();
 					return;
 				}
-				window.location.href = listUrl();
+				window.location.href = detailUrl(id);
 			})
 			.catch(function (err) {
 				setSaving(false);

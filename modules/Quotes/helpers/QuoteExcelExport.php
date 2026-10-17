@@ -12,7 +12,7 @@ class Quotes_QuoteExcelExport_Helper {
 	const COL_LAST = 'H';
 
 	// Nguyên Khoa defaults (used when org profile still has TDB placeholders)
-	const NK_COMPANY_NAME = 'nguyenlieuphachemt';
+	const NK_COMPANY_NAME = 'nguyenlieugiasi.vn';
 	const NK_ADDRESS = '6/24 Đường số 3, Cư Xá Lữ Gia, Phú Thọ, Hồ Chí Minh';
 	const NK_PHONE = '0973969498';
 
@@ -373,6 +373,7 @@ class Quotes_QuoteExcelExport_Helper {
 
 		$receiver = '';
 		$contactId = $focus->column_fields['contact_id'] ?? '';
+		$contactStreet = '';
 		if (!empty($contactId)) {
 			$focusContact = CRMEntity::getInstance('Contacts');
 			$focusContact->retrieve_entity_info($contactId, 'Contacts');
@@ -386,8 +387,18 @@ class Quotes_QuoteExcelExport_Helper {
 			if ($email === '') {
 				$email = $focusContact->column_fields['email'] ?? '';
 			}
+			$contactStreet = self::decode($focusContact->column_fields['mailingstreet'] ?? '');
+			$contactCity = self::decode($focusContact->column_fields['mailingcity'] ?? '');
+			if ($contactCity !== '' && $contactStreet !== '' && stripos($contactStreet, $contactCity) === false) {
+				$contactStreet .= ', ' . $contactCity;
+			} elseif ($contactStreet === '') {
+				$contactStreet = $contactCity;
+			}
 		}
 
+		if ($receiver === '') {
+			$receiver = self::decode($focus->column_fields['subject'] ?? '');
+		}
 		if (!empty($focus->column_fields['mk_client_company'])) {
 			$accountName = self::normalizeAccountName($focus->column_fields['mk_client_company']);
 		}
@@ -396,6 +407,24 @@ class Quotes_QuoteExcelExport_Helper {
 		}
 		if (!empty($focus->column_fields['mk_customer_email'])) {
 			$email = $focus->column_fields['mk_customer_email'];
+		}
+		if ($address === '') {
+			$address = self::decode($focus->column_fields['bill_street'] ?? '');
+		}
+		if ($address === '') {
+			$address = self::decode($focus->column_fields['ship_street'] ?? '');
+		}
+		if ($phone === '' || $address === '') {
+			$fromOpp = self::lookupPotentialContact($focus->column_fields['potential_id'] ?? 0);
+			if ($phone === '' && $fromOpp['phone'] !== '') {
+				$phone = $fromOpp['phone'];
+			}
+			if ($address === '' && $fromOpp['address'] !== '') {
+				$address = $fromOpp['address'];
+			}
+		}
+		if ($address === '' && $contactStreet !== '') {
+			$address = $contactStreet;
 		}
 
 		$quoteNo = $focus->column_fields['quote_no'] ?? '';
@@ -476,6 +505,66 @@ class Quotes_QuoteExcelExport_Helper {
 	 */
 	public static function getSaleExportContext(CRMEntity $focus) {
 		return self::gatherQuoteContext($focus);
+	}
+
+	/**
+	 * Phone and address stored on the Opp (and the lead it came from).
+	 * @return array{phone:string,address:string}
+	 */
+	protected static function lookupPotentialContact($potentialId) {
+		$out = array('phone' => '', 'address' => '');
+		$potentialId = (int) $potentialId;
+		if ($potentialId <= 0) {
+			return $out;
+		}
+		try {
+			$adb = PearDatabase::getInstance();
+			$res = $adb->pquery(
+				'SELECT pp.phone AS pot_phone, pp.address_line AS pot_address, pp.district AS pot_district,
+					la.phone AS lead_phone, la.mobile AS lead_mobile, la.lane AS lead_lane,
+					lp.address_line AS lead_address, lp.district AS lead_district
+				 FROM vtiger_potential p
+				 LEFT JOIN bace_potential_profile pp ON pp.potentialid = p.potentialid
+				 LEFT JOIN bace_lead_profile lp ON lp.potential_id = p.potentialid
+				 LEFT JOIN vtiger_leadaddress la ON la.leadaddressid = lp.leadid
+				 WHERE p.potentialid = ?',
+				array($potentialId)
+			);
+			if (!$res || $adb->num_rows($res) < 1) {
+				return $out;
+			}
+			foreach (array('pot_phone', 'lead_mobile', 'lead_phone') as $col) {
+				$phone = trim(self::decode((string) $adb->query_result($res, 0, $col)));
+				if ($phone !== '' && $phone !== '-' && $phone !== '--') {
+					$out['phone'] = $phone;
+					break;
+				}
+			}
+			$street = '';
+			foreach (array('pot_address', 'lead_address', 'lead_lane') as $col) {
+				$street = trim(self::decode((string) $adb->query_result($res, 0, $col)));
+				if ($street !== '' && $street !== '-' && $street !== '--') {
+					break;
+				}
+				$street = '';
+			}
+			$district = trim(self::decode((string) $adb->query_result($res, 0, 'pot_district')));
+			if ($district === '' || $district === '-') {
+				$district = trim(self::decode((string) $adb->query_result($res, 0, 'lead_district')));
+			}
+			if ($district === '-' || $district === '--') {
+				$district = '';
+			}
+			if ($street !== '' && $district !== '' && stripos($street, $district) === false) {
+				$street .= ', ' . $district;
+			} elseif ($street === '') {
+				$street = $district;
+			}
+			$out['address'] = $street;
+		} catch (Exception $e) {
+			return $out;
+		}
+		return $out;
 	}
 
 	public static function formatDateViLongPublic($dateDmY) {
@@ -657,12 +746,12 @@ class Quotes_QuoteExcelExport_Helper {
 			if ($listPrice <= 0 && $totalAfterDiscount > 0) {
 				$listPrice = ($totalAfterDiscount + $discount) / $quantity;
 			}
-			$total = ($quantity * $listPrice) - $discount;
+			$total = $quantity * $listPrice;
 			if ($total <= 0 && $productTotal > 0) {
-				$total = $productTotal - $discount;
+				$total = $productTotal;
 			}
 			if ($total <= 0 && $totalAfterDiscount > 0) {
-				$total = $totalAfterDiscount;
+				$total = $totalAfterDiscount + $discount;
 			}
 
 			$label = $productName;

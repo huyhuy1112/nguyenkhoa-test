@@ -1,0 +1,20 @@
+<?php
+/*+***********************************************************************************
+ * GD 1.2 Online — nhắc D0 chưa điền form (OA KB-02a/b/c). Frequency: 1 giờ.
+ * Logic: cách 3 ngày / tối đa 3 lần rồi ngưng CSKH.
+ *************************************************************************************/
+
+require_once 'modules/Leads/models/OnlineGd12Service.php';
+
+try {
+	global $current_user;
+	if (empty($current_user) || empty($current_user->id)) {
+		$current_user = Users::getActiveAdminUser();
+	}
+	Leads_OnlineGd12Service::installSchema();
+	$result = Leads_OnlineGd12Service::processD0Reminders(100);
+	echo 'Online GD1.2 D0 reminders: sent=' . (isset($result['sent']) ? $result['sent'] : 0)
+		. ' stopped=' . (isset($result['stopped']) ? $result['stopped'] : 0);
+} catch (Exception $e) {
+	echo 'Online GD1.2 D0 exception: ' . $e->getMessage();
+}

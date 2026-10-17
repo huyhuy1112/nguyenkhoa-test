@@ -6,14 +6,7 @@
 * Portions created by vtiger are Copyright (C) vtiger.
 * All Rights Reserved.
 ************************************************************************************}
-
-{assign var=MK_SKIP_GLOBAL_APP_FOOTER value=false}
-{if $MODULE_NAME eq 'Project' && ($VIEW eq 'Detail' || $VIEW eq 'List') && ((isset($SELECTED_MENU_CATEGORY) && $SELECTED_MENU_CATEGORY eq 'MANAGEMENT') || (isset($smarty.get.app) && $smarty.get.app eq 'MANAGEMENT'))}
-	{assign var=MK_SKIP_GLOBAL_APP_FOOTER value=true}
-{/if}
-{if !$MK_SKIP_GLOBAL_APP_FOOTER}
-{include file="partials/MkAppFooter.tpl"|vtemplate_path:'Vtiger'}
-{/if}
+{* App footer removed — pages end with content only. *}
 </div>
 <div id='overlayPage' class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
 	<!-- arrow is added to point arrow to the clicked element (Ex:- TaskManagement), 

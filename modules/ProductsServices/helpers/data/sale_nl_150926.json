@@ -1,0 +1,618 @@
+[
+  {
+    "name": "Trân châu 3Q Ngọc Trai Hoàng Hải (2kg/bịch)",
+    "price_lt_1m": 45000,
+    "price_gte_1m": 45000,
+    "price_gte_3m": 45000,
+    "price_gte_5m": 45000,
+    "price_gte_7m": 45000
+  },
+  {
+    "name": "Trân châu 3Q Caramel Hoàng Hải (2kg/bịch)",
+    "price_lt_1m": 45000,
+    "price_gte_1m": 45000,
+    "price_gte_3m": 45000,
+    "price_gte_5m": 45000,
+    "price_gte_7m": 45000
+  },
+  {
+    "name": "Trân Châu 3Q hương Ô long (2kg/bịch)",
+    "price_lt_1m": 62000,
+    "price_gte_1m": 62000,
+    "price_gte_3m": 62000,
+    "price_gte_5m": 62000,
+    "price_gte_7m": 62000
+  },
+  {
+    "name": "Trân châu đen Nguyên Khoa (1kg)",
+    "price_lt_1m": 35000,
+    "price_gte_1m": 33000,
+    "price_gte_3m": 31000,
+    "price_gte_5m": 29000,
+    "price_gte_7m": 28000
+  },
+  {
+    "name": "Thạch dừa hương xoài Nguyên Khoa",
+    "price_lt_1m": 138000,
+    "price_gte_1m": 133000,
+    "price_gte_3m": 131000,
+    "price_gte_5m": 129000,
+    "price_gte_7m": 125000
+  },
+  {
+    "name": "Thạch dừa hương xoài Nguyên Khoa (1kg)",
+    "price_lt_1m": 40000,
+    "price_gte_1m": 38000,
+    "price_gte_3m": 37000,
+    "price_gte_5m": 36000,
+    "price_gte_7m": 35000
+  },
+  {
+    "name": "Thạch dừa Nguyên Khoa (1kg)",
+    "price_lt_1m": 35000,
+    "price_gte_1m": 33000,
+    "price_gte_3m": 32000,
+    "price_gte_5m": 31000,
+    "price_gte_7m": 30000
+  },
+  {
+    "name": "Hạt Nổ Củ Năng trắng",
+    "price_lt_1m": 65000,
+    "price_gte_1m": 63000,
+    "price_gte_3m": 62000,
+    "price_gte_5m": 61000,
+    "price_gte_7m": 60000
+  },
+  {
+    "name": "Hạt Nổ Củ Năng hồng",
+    "price_lt_1m": 65000,
+    "price_gte_1m": 63000,
+    "price_gte_3m": 62000,
+    "price_gte_5m": 61000,
+    "price_gte_7m": 60000
+  },
+  {
+    "name": "Hạt nổ củ năng hồng Zestty",
+    "price_lt_1m": 65000,
+    "price_gte_1m": 63000,
+    "price_gte_3m": 62000,
+    "price_gte_5m": 61000,
+    "price_gte_7m": 60000
+  },
+  {
+    "name": "Thạch Hạt Thuỷ Tinh Trái Cây",
+    "price_lt_1m": 80000,
+    "price_gte_1m": 80000,
+    "price_gte_3m": 80000,
+    "price_gte_5m": 80000,
+    "price_gte_7m": 80000
+  },
+  {
+    "name": "Rau câu Sóc Vàng",
+    "price_lt_1m": 60000,
+    "price_gte_1m": 60000,
+    "price_gte_3m": 60000,
+    "price_gte_5m": 60000,
+    "price_gte_7m": 60000
+  },
+  {
+    "name": "Đào ngâm Hose 820gr",
+    "price_lt_1m": 33000,
+    "price_gte_1m": 33000,
+    "price_gte_3m": 33000,
+    "price_gte_5m": 33000,
+    "price_gte_7m": 33000
+  },
+  {
+    "name": "Vải Ngâm Thanh Hà 565g ( Lon)",
+    "price_lt_1m": 38000,
+    "price_gte_1m": 38000,
+    "price_gte_3m": 38000,
+    "price_gte_5m": 38000,
+    "price_gte_7m": 38000
+  },
+  {
+    "name": "Bột sữa Nguyên Khoa M32 ( 20Kg/bao)",
+    "price_lt_1m": 1430000,
+    "price_gte_1m": 1430000,
+    "price_gte_3m": 1400000,
+    "price_gte_5m": 1370000,
+    "price_gte_7m": 1330000
+  },
+  {
+    "name": "Bột sữa Nguyên Khoa M32 ( 1Kg/bịch)",
+    "price_lt_1m": 84000,
+    "price_gte_1m": 80000,
+    "price_gte_3m": 78000,
+    "price_gte_5m": 77000,
+    "price_gte_7m": 75000
+  },
+  {
+    "name": "Bột Trà sữa dưa lưới 1kg",
+    "price_lt_1m": 129000,
+    "price_gte_1m": 124000,
+    "price_gte_3m": 121000,
+    "price_gte_5m": 119000,
+    "price_gte_7m": 115000
+  },
+  {
+    "name": "Bột Trà sữa Sầu Riêng 1kg",
+    "price_lt_1m": 129000,
+    "price_gte_1m": 124000,
+    "price_gte_3m": 121000,
+    "price_gte_5m": 119000,
+    "price_gte_7m": 115000
+  },
+  {
+    "name": "Bột Trà sữa dâu 1kg",
+    "price_lt_1m": 129000,
+    "price_gte_1m": 124000,
+    "price_gte_3m": 121000,
+    "price_gte_5m": 119000,
+    "price_gte_7m": 115000
+  },
+  {
+    "name": "Bột Trà sữa Khoai Môn Tím 1kg",
+    "price_lt_1m": 129000,
+    "price_gte_1m": 124000,
+    "price_gte_3m": 121000,
+    "price_gte_5m": 119000,
+    "price_gte_7m": 115000
+  },
+  {
+    "name": "Bột Trà sữa Socola Nguyên Khoa 1kg",
+    "price_lt_1m": 139000,
+    "price_gte_1m": 134000,
+    "price_gte_3m": 131000,
+    "price_gte_5m": 129000,
+    "price_gte_7m": 125000
+  },
+  {
+    "name": "Bột Trà sữa Matcha Nguyên Khoa 1kg",
+    "price_lt_1m": 149000,
+    "price_gte_1m": 144000,
+    "price_gte_3m": 141000,
+    "price_gte_5m": 139000,
+    "price_gte_7m": 135000
+  },
+  {
+    "name": "Pudding Dâu Nguyên Khoa 1kg",
+    "price_lt_1m": 165000,
+    "price_gte_1m": 159000,
+    "price_gte_3m": 156000,
+    "price_gte_5m": 154000,
+    "price_gte_7m": 150000
+  },
+  {
+    "name": "Pudding Dưa lưới Nguyên Khoa 1kg",
+    "price_lt_1m": 165000,
+    "price_gte_1m": 159000,
+    "price_gte_3m": 156000,
+    "price_gte_5m": 154000,
+    "price_gte_7m": 150000
+  },
+  {
+    "name": "Pudding Khoai Môn Nguyên Khoa 1kg",
+    "price_lt_1m": 165000,
+    "price_gte_1m": 159000,
+    "price_gte_3m": 156000,
+    "price_gte_5m": 154000,
+    "price_gte_7m": 150000
+  },
+  {
+    "name": "Pudding Socola Nguyên Khoa 1kg",
+    "price_lt_1m": 165000,
+    "price_gte_1m": 159000,
+    "price_gte_3m": 156000,
+    "price_gte_5m": 154000,
+    "price_gte_7m": 150000
+  },
+  {
+    "name": "Pudding Trứng Nguyên Khoa 1kg",
+    "price_lt_1m": 165000,
+    "price_gte_1m": 159000,
+    "price_gte_3m": 156000,
+    "price_gte_5m": 154000,
+    "price_gte_7m": 150000
+  },
+  {
+    "name": "Bột Khúc Bạch hoa đậu biếc Nguyên Khoa (1Kg)",
+    "price_lt_1m": 244000,
+    "price_gte_1m": 239000,
+    "price_gte_3m": 236000,
+    "price_gte_5m": 234000,
+    "price_gte_7m": 229000
+  },
+  {
+    "name": "Bột Khúc Bạch nguyên vị Nguyên Khoa (1Kg)",
+    "price_lt_1m": 189000,
+    "price_gte_1m": 179000,
+    "price_gte_3m": 175000,
+    "price_gte_5m": 169000,
+    "price_gte_7m": 160000
+  },
+  {
+    "name": "Bột Kem Trứng Nguyên Khoa 1kg (sử dụng nước lạnh)",
+    "price_lt_1m": 225000,
+    "price_gte_1m": 220000,
+    "price_gte_3m": 215000,
+    "price_gte_5m": 210000,
+    "price_gte_7m": 205000
+  },
+  {
+    "name": "Bột Kem Milk Foam Đa Năng 1kg (sử dụng nước lạnh)",
+    "price_lt_1m": 215000,
+    "price_gte_1m": 210000,
+    "price_gte_3m": 205000,
+    "price_gte_5m": 200000,
+    "price_gte_7m": 195000
+  },
+  {
+    "name": "Bột ca cao nguyên chất Meiko",
+    "price_lt_1m": 200000,
+    "price_gte_1m": 195000,
+    "price_gte_3m": 190000,
+    "price_gte_5m": 185000,
+    "price_gte_7m": 180000
+  },
+  {
+    "name": "Bột Mat Cha (500g) - MỦ ĐỎ",
+    "price_lt_1m": 390000,
+    "price_gte_1m": 380000,
+    "price_gte_3m": 375000,
+    "price_gte_5m": 370000,
+    "price_gte_7m": 365000
+  },
+  {
+    "name": "Bột Mat Cha Nguyên Chất Nguyên Khoa 200g (Gu Đài Loan)",
+    "price_lt_1m": 150000,
+    "price_gte_1m": 150000,
+    "price_gte_3m": 150000,
+    "price_gte_5m": 150000,
+    "price_gte_7m": 150000
+  },
+  {
+    "name": "Bột Mat Cha Nguyên Chất Resso 500g (Gu Nhật)",
+    "price_lt_1m": 450000,
+    "price_gte_1m": 450000,
+    "price_gte_3m": 450000,
+    "price_gte_5m": 450000,
+    "price_gte_7m": 450000
+  },
+  {
+    "name": "Bột Frappe Silver 1kg",
+    "price_lt_1m": 112000,
+    "price_gte_1m": 112000,
+    "price_gte_3m": 112000,
+    "price_gte_5m": 112000,
+    "price_gte_7m": 112000
+  },
+  {
+    "name": "Bột pho mai mặn Maylaysia (Verozyme)",
+    "price_lt_1m": 145000,
+    "price_gte_1m": 145000,
+    "price_gte_3m": 145000,
+    "price_gte_5m": 145000,
+    "price_gte_7m": 145000
+  },
+  {
+    "name": "Syrup Mật ong Nguyên Khoa 730ml",
+    "price_lt_1m": 65000,
+    "price_gte_1m": 62000,
+    "price_gte_3m": 60000,
+    "price_gte_5m": 58000,
+    "price_gte_7m": 56000
+  },
+  {
+    "name": "Syrup Đào Nguyên Khoa 730ml",
+    "price_lt_1m": 59000,
+    "price_gte_1m": 57000,
+    "price_gte_3m": 55000,
+    "price_gte_5m": 53000,
+    "price_gte_7m": 51000
+  },
+  {
+    "name": "Syrup Bạc Hà Nguyên Khoa 730ml",
+    "price_lt_1m": 59000,
+    "price_gte_1m": 57000,
+    "price_gte_3m": 55000,
+    "price_gte_5m": 53000,
+    "price_gte_7m": 51000
+  },
+  {
+    "name": "Syrup Lá Dứa",
+    "price_lt_1m": 59000,
+    "price_gte_1m": 57000,
+    "price_gte_3m": 55000,
+    "price_gte_5m": 53000,
+    "price_gte_7m": 51000
+  },
+  {
+    "name": "Syrup Blue Curacao Nguyên Khoa 730ml",
+    "price_lt_1m": 59000,
+    "price_gte_1m": 57000,
+    "price_gte_3m": 55000,
+    "price_gte_5m": 53000,
+    "price_gte_7m": 51000
+  },
+  {
+    "name": "Syrup Lựu Zestty",
+    "price_lt_1m": 130000,
+    "price_gte_1m": 126000,
+    "price_gte_3m": 124000,
+    "price_gte_5m": 122000,
+    "price_gte_7m": 120000
+  },
+  {
+    "name": "Syrup Việt Quất RESSO 730ml",
+    "price_lt_1m": 95000,
+    "price_gte_1m": 92000,
+    "price_gte_3m": 89000,
+    "price_gte_5m": 87000,
+    "price_gte_7m": 85000
+  },
+  {
+    "name": "Syrup Xoài RESSO 2.5kg",
+    "price_lt_1m": 259000,
+    "price_gte_1m": 255000,
+    "price_gte_3m": 250000,
+    "price_gte_5m": 245000,
+    "price_gte_7m": 240000
+  },
+  {
+    "name": "Syrup Chanh Dây RESSO 2.5kg",
+    "price_lt_1m": 259000,
+    "price_gte_1m": 255000,
+    "price_gte_3m": 250000,
+    "price_gte_5m": 245000,
+    "price_gte_7m": 240000
+  },
+  {
+    "name": "Syrup Đường Đen RESSO 2.5kg",
+    "price_lt_1m": 249000,
+    "price_gte_1m": 240000,
+    "price_gte_3m": 235000,
+    "price_gte_5m": 230000,
+    "price_gte_7m": 220000
+  },
+  {
+    "name": "Syrup Bí Đao RESSO 2.5kg",
+    "price_lt_1m": 199000,
+    "price_gte_1m": 195000,
+    "price_gte_3m": 190000,
+    "price_gte_5m": 185000,
+    "price_gte_7m": 180000
+  },
+  {
+    "name": "Cà phê Hoàng Kim (Resso)",
+    "price_lt_1m": 360000,
+    "price_gte_1m": 355000,
+    "price_gte_3m": 350000,
+    "price_gte_5m": 345000,
+    "price_gte_7m": 340000
+  },
+  {
+    "name": "Mứt Vải 1L Good Heart 1L",
+    "price_lt_1m": 135000,
+    "price_gte_1m": 135000,
+    "price_gte_3m": 135000,
+    "price_gte_5m": 135000,
+    "price_gte_7m": 135000
+  },
+  {
+    "name": "Mứt Mận mộc châu 1L Good Heart 1L",
+    "price_lt_1m": 145000,
+    "price_gte_1m": 145000,
+    "price_gte_3m": 145000,
+    "price_gte_5m": 145000,
+    "price_gte_7m": 145000
+  },
+  {
+    "name": "Mứt Xoài 1L Good Heart 1L",
+    "price_lt_1m": 125000,
+    "price_gte_1m": 125000,
+    "price_gte_3m": 125000,
+    "price_gte_5m": 125000,
+    "price_gte_7m": 125000
+  },
+  {
+    "name": "Mứt Mãng cầu 1kg Good Heart 1L",
+    "price_lt_1m": 135000,
+    "price_gte_1m": 135000,
+    "price_gte_3m": 135000,
+    "price_gte_5m": 135000,
+    "price_gte_7m": 135000
+  },
+  {
+    "name": "Sốt Đào Resso 1L",
+    "price_lt_1m": 109000,
+    "price_gte_1m": 106000,
+    "price_gte_3m": 104000,
+    "price_gte_5m": 102000,
+    "price_gte_7m": 99000
+  },
+  {
+    "name": "Sốt Xoài Resso 1L",
+    "price_lt_1m": 119000,
+    "price_gte_1m": 115000,
+    "price_gte_3m": 112000,
+    "price_gte_5m": 109000,
+    "price_gte_7m": 105000
+  },
+  {
+    "name": "Sốt Dâu Tây Resso 1L",
+    "price_lt_1m": 119000,
+    "price_gte_1m": 115000,
+    "price_gte_3m": 112000,
+    "price_gte_5m": 109000,
+    "price_gte_7m": 105000
+  },
+  {
+    "name": "Sốt Vải Resso 1L",
+    "price_lt_1m": 139000,
+    "price_gte_1m": 135000,
+    "price_gte_3m": 132000,
+    "price_gte_5m": 129000,
+    "price_gte_7m": 125000
+  },
+  {
+    "name": "Sốt Việt Quất Resso 1L",
+    "price_lt_1m": 139000,
+    "price_gte_1m": 135000,
+    "price_gte_3m": 132000,
+    "price_gte_5m": 129000,
+    "price_gte_7m": 125000
+  },
+  {
+    "name": "Trà đen thượng hạng 1kg Nguyên Khoa",
+    "price_lt_1m": 145000,
+    "price_gte_1m": 140000,
+    "price_gte_3m": 135000,
+    "price_gte_5m": 130000,
+    "price_gte_7m": 125000
+  },
+  {
+    "name": "Trà Thái Xanh Con Voi Vàng",
+    "price_lt_1m": 70000,
+    "price_gte_1m": 70000,
+    "price_gte_3m": 70000,
+    "price_gte_5m": 70000,
+    "price_gte_7m": 70000
+  },
+  {
+    "name": "Trà Thái Đỏ Con Voi Vàng",
+    "price_lt_1m": 60000,
+    "price_gte_1m": 60000,
+    "price_gte_3m": 60000,
+    "price_gte_5m": 60000,
+    "price_gte_7m": 60000
+  },
+  {
+    "name": "Trà Đen Mộc Vị NK 500g",
+    "price_lt_1m": 85000,
+    "price_gte_1m": 83000,
+    "price_gte_3m": 81000,
+    "price_gte_5m": 79000,
+    "price_gte_7m": 75000
+  },
+  {
+    "name": "Trà Đen NK 500g",
+    "price_lt_1m": 75000,
+    "price_gte_1m": 73000,
+    "price_gte_3m": 71000,
+    "price_gte_5m": 69000,
+    "price_gte_7m": 65000
+  },
+  {
+    "name": "Lục Trà Lài Nguyên Khoa 500g",
+    "price_lt_1m": 80000,
+    "price_gte_1m": 78000,
+    "price_gte_3m": 76000,
+    "price_gte_5m": 74000,
+    "price_gte_7m": 70000
+  },
+  {
+    "name": "Trà Đào túi lọc 10g (Resso)",
+    "price_lt_1m": 190000,
+    "price_gte_1m": 185000,
+    "price_gte_3m": 180000,
+    "price_gte_5m": 175000,
+    "price_gte_7m": 170000
+  },
+  {
+    "name": "Trà Hibiscus 200g (Good heart)",
+    "price_lt_1m": 90000,
+    "price_gte_1m": 88000,
+    "price_gte_3m": 86000,
+    "price_gte_5m": 84000,
+    "price_gte_7m": 82000
+  },
+  {
+    "name": "Hồng trà Cổ Phong (Resso)",
+    "price_lt_1m": 150000,
+    "price_gte_1m": 145000,
+    "price_gte_3m": 140000,
+    "price_gte_5m": 135000,
+    "price_gte_7m": 130000
+  },
+  {
+    "name": "Trà đen lài (Resso)",
+    "price_lt_1m": 85000,
+    "price_gte_1m": 82000,
+    "price_gte_3m": 79000,
+    "price_gte_5m": 76000,
+    "price_gte_7m": 72000
+  },
+  {
+    "name": "Trà Lài túi lọc 10g (Resso)",
+    "price_lt_1m": 285000,
+    "price_gte_1m": 280000,
+    "price_gte_3m": 275000,
+    "price_gte_5m": 270000,
+    "price_gte_7m": 265000
+  },
+  {
+    "name": "Trà Olong túi lọc 10g (Resso)",
+    "price_lt_1m": 325000,
+    "price_gte_1m": 320000,
+    "price_gte_3m": 315000,
+    "price_gte_5m": 310000,
+    "price_gte_7m": 305000
+  },
+  {
+    "name": "Trà đen Ngọc Tịnh túi lọc 10g (Resso)",
+    "price_lt_1m": 290000,
+    "price_gte_1m": 285000,
+    "price_gte_3m": 280000,
+    "price_gte_5m": 275000,
+    "price_gte_7m": 270000
+  },
+  {
+    "name": "Đường Tấn Phúc",
+    "price_lt_1m": 300000,
+    "price_gte_1m": 300000,
+    "price_gte_3m": 300000,
+    "price_gte_5m": 300000,
+    "price_gte_7m": 300000
+  },
+  {
+    "name": "Pho mai Rotana Ai Cập",
+    "price_lt_1m": 900000,
+    "price_gte_1m": 900000,
+    "price_gte_3m": 900000,
+    "price_gte_5m": 900000,
+    "price_gte_7m": 900000
+  },
+  {
+    "name": "Ca đong Đức 100ml",
+    "price_lt_1m": 55000,
+    "price_gte_1m": 55000,
+    "price_gte_3m": 55000,
+    "price_gte_5m": 55000,
+    "price_gte_7m": 55000
+  },
+  {
+    "name": "Ca đong Đức 250ml",
+    "price_lt_1m": 85000,
+    "price_gte_1m": 85000,
+    "price_gte_3m": 85000,
+    "price_gte_5m": 85000,
+    "price_gte_7m": 85000
+  },
+  {
+    "name": "Ca đong Đức 500ml",
+    "price_lt_1m": 95000,
+    "price_gte_1m": 95000,
+    "price_gte_3m": 95000,
+    "price_gte_5m": 95000,
+    "price_gte_7m": 95000
+  },
+  {
+    "name": "Ca đong Đức 3000ml",
+    "price_lt_1m": 350000,
+    "price_gte_1m": 350000,
+    "price_gte_3m": 350000,
+    "price_gte_5m": 350000,
+    "price_gte_7m": 350000
+  }
+]

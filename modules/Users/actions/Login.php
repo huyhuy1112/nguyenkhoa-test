@@ -21,6 +21,7 @@ class Users_Login_Action extends Vtiger_Action_Controller {
 	function process(Vtiger_Request $request) {
 		$username = $request->get('username');
 		$password = $request->getRaw('password');
+		self::rememberUsername($request);
 
 		// Ensure we don't reuse an existing authenticated session
 		// (prevents UI showing previous account after logging in as another user).
@@ -74,6 +75,32 @@ class Users_Login_Action extends Vtiger_Action_Controller {
 			header ('Location: index.php?module=Users&parent=Settings&view=Login&error=login');
 			exit;
 		}
+	}
+
+	/**
+	 * Ghi nhớ chỉ lưu tên tài khoản. Không lưu mật khẩu.
+	 */
+	protected static function rememberUsername(Vtiger_Request $request) {
+		$username = trim((string) $request->get('username'));
+		if (strlen($username) > 100) {
+			$username = substr($username, 0, 100);
+		}
+		$remember = (string) $request->get('remember') === '1';
+		$secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+			|| (isset($_SERVER['SERVER_PORT']) && (string) $_SERVER['SERVER_PORT'] === '443');
+		$options = array(
+			'path' => '/',
+			'secure' => $secure,
+			'httponly' => true,
+			'samesite' => 'Lax',
+		);
+		if ($remember && $username !== '') {
+			$options['expires'] = time() + (180 * 86400);
+			setcookie('nk_login_user', $username, $options);
+			return;
+		}
+		$options['expires'] = time() - 3600;
+		setcookie('nk_login_user', '', $options);
 	}
 
 }

@@ -1,7 +1,23 @@
 {* POS-style list toolbar — search + Đặt hàng + Gộp đơn + Nhân bản + Xóa *}
 {strip}
 <div class="mk-so-pos-toolbar" role="region" aria-label="Đơn hàng">
-	<h1 class="mk-so-pos-toolbar__title">Đặt hàng</h1>
+	<div class="mk-so-pos-toolbar__brand">
+		<h1 class="mk-so-pos-toolbar__title">Đặt hàng</h1>
+		<nav class="mk-so-scope-tabs" role="tablist" aria-label="Lọc đơn hàng">
+			{if !isset($MK_SO_SCOPE) || $MK_SO_SCOPE eq ''}
+				{assign var=MK_SO_SCOPE value='all'}
+			{/if}
+			<button type="button" class="mk-so-scope-tab{if $MK_SO_SCOPE eq 'all'} is-active{/if}" role="tab" aria-selected="{if $MK_SO_SCOPE eq 'all'}true{else}false{/if}" data-mk-so-scope="all" id="mk-so-scope-all">
+				<span class="mk-so-scope-tab__label">Tất cả</span>
+			</button>
+			<button type="button" class="mk-so-scope-tab{if $MK_SO_SCOPE eq 'franchise'} is-active{/if}" role="tab" aria-selected="{if $MK_SO_SCOPE eq 'franchise'}true{else}false{/if}" data-mk-so-scope="franchise" id="mk-so-scope-franchise">
+				<span class="mk-so-scope-tab__label">Nhượng quyền</span>
+			</button>
+			<button type="button" class="mk-so-scope-tab{if $MK_SO_SCOPE eq 'retail'} is-active{/if}" role="tab" aria-selected="{if $MK_SO_SCOPE eq 'retail'}true{else}false{/if}" data-mk-so-scope="retail" id="mk-so-scope-retail">
+				<span class="mk-so-scope-tab__label">Bán lẻ</span>
+			</button>
+		</nav>
+	</div>
 	<div class="mk-so-pos-toolbar__search-wrap">
 		<div class="mk-so-pos-search" role="search">
 			<span class="mk-so-pos-search__ic" aria-hidden="true"><i class="fa fa-search"></i></span>
@@ -47,6 +63,11 @@
 				<span>Đặt hàng</span>
 			</button>
 		{/if}
+		<button type="button" class="mk-so-pos-btn mk-so-pos-btn--outline" id="mk-so-import-btn" title="Import Excel lịch sử đơn hàng. Cùng mã đặt hàng là một đơn nhiều sản phẩm.">
+			<i class="fa fa-upload" aria-hidden="true"></i>
+			<span class="mk-leads-btn__txt">Import</span>
+		</button>
+		<input type="file" id="mk-so-import-file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hide" tabindex="-1" aria-hidden="true" />
 		<button type="button" class="mk-so-pos-btn mk-so-pos-btn--outline" id="mk-so-merge-orders-btn" title="Gộp đơn">
 			<i class="fa fa-clone" aria-hidden="true"></i>
 			<span>Gộp đơn</span>

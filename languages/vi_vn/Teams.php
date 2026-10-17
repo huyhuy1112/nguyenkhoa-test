@@ -4,11 +4,11 @@
  * ("License"); You may not use this file except in compliance with the License.
  *************************************************************************************/
 $languageStrings = array(
-	'LBL_PEOPLE' => 'Người',
+	'LBL_PEOPLE' => 'Nhân sự',
 	'LBL_GROUPS' => 'Nhóm',
-	'LBL_ALL_PEOPLE' => 'Tất cả người',
+	'LBL_ALL_PEOPLE' => 'Tất cả nhân sự',
 	'LBL_ACTIVE' => 'Hoạt động',
-	'LBL_SEARCH_PEOPLE' => 'Tìm người',
+	'LBL_SEARCH_PEOPLE' => 'Tìm nhân sự',
 	'LBL_PERSON' => 'Người',
 	'LBL_NAME' => 'Tên',
 	'LBL_EMAIL' => 'Email',
@@ -23,4 +23,5 @@ $languageStrings = array(
 	'LBL_TENURE_1_4' => '1 đến 4 năm',
 	'LBL_TENURE_5_7' => '5 năm đến 7 năm',
 	'LBL_TENURE_7_10' => '7 năm đến 10 năm',
+	'LBL_ADD_PERSON' => 'Thêm tài khoản',
 );

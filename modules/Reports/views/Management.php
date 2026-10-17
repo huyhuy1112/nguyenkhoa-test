@@ -104,31 +104,9 @@ class Reports_Management_View extends Vtiger_Index_View {
 			$ownersForDisplay[$oid] = $this->managementDecodeDisplayPlain($oname);
 		}
 
-		// MKT SALE only — dữ liệu thật từ Leads / Calendar / Potentials
-		if ($filters['report_type'] === 'project' || $filters['report_type'] === 'task') {
-			$filters['report_type'] = 'mkt';
-		}
-		if ($filters['report_type'] === 'all') {
-			$filters['report_type'] = 'mkt';
-		}
-		require_once 'modules/Reports/models/MktSaleReportService.php';
-		$mktReport = Reports_MktSaleReportService::build($filters);
-
 		$viewer->assign('CURRENT_USER', $currentUser);
 		$viewer->assign('REPORT_FILTERS', $filters);
 		$viewer->assign('REPORT_OWNERS', $ownersForDisplay);
-		$viewer->assign('REPORT_PROJECT_ROWS', array());
-		$viewer->assign('REPORT_TASK_ROWS', array());
-		$viewer->assign('REPORT_MKT_ROWS', isset($mktReport['daily']) ? $mktReport['daily'] : array());
-		$viewer->assign('REPORT_KPI_ROWS', isset($mktReport['summary']) ? array($mktReport['summary']) : array());
-		$viewer->assign('REPORT_MKT_SALE', $mktReport);
-		$viewer->assign('REPORT_MKT_CHART_JSON', json_encode(isset($mktReport['daily']) ? $mktReport['daily'] : array()));
-		$viewer->assign('REPORT_MKT_MONTHLY_JSON', json_encode(isset($mktReport['monthly']) ? $mktReport['monthly'] : array()));
-		$viewer->assign('REPORT_MKT_KPI_JSON', json_encode(isset($mktReport['summary']) ? $mktReport['summary'] : array()));
-		$viewer->assign('REPORT_MKT_TOTALS_JSON', json_encode(isset($mktReport['daily_total']) ? $mktReport['daily_total'] : array()));
-		$viewer->assign('REPORT_MKT_CLASS_JSON', json_encode(isset($mktReport['class_days']) ? $mktReport['class_days'] : array()));
-		$viewer->assign('REPORT_MKT_STATUS_JSON', json_encode(isset($mktReport['status_matrix']) ? $mktReport['status_matrix'] : array()));
-		$viewer->assign('REPORT_MKT_FUNNEL_ROWS', isset($mktReport['status_matrix']['rows']) ? $mktReport['status_matrix']['rows'] : array());
 		$viewer->assign('REPORT_SAVED_CONFIGS', $savedConfigs);
 		$viewer->assign('ACTIVE_CONFIG_ID', $activeConfigId);
 

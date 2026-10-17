@@ -35,6 +35,21 @@ class Accounts_SimpleImport_Action extends Vtiger_Action_Controller {
 				throw new Exception('Invalid module');
 			}
 
+			if (!empty($_FILES['import_file']) && is_array($_FILES['import_file'])) {
+				require_once 'modules/Accounts/helpers/TuibaoKiotImport.php';
+				$user = Users_Record_Model::getCurrentUserModel();
+				$tuibao = Accounts_TuibaoKiotImport_Helper::tryImportUpload(
+					$_FILES['import_file'],
+					(int) $user->getId()
+				);
+				if (is_array($tuibao)) {
+					$VTIGER_BULK_SAVE_MODE = $previousBulkSaveMode;
+					$response->setResult($tuibao);
+					$response->emit();
+					return;
+				}
+			}
+
 			Accounts_SimpleImport_Helper::resetImportMetaState();
 
 			if (empty($_FILES['import_file']) || empty($_FILES['import_file']['tmp_name'])) {

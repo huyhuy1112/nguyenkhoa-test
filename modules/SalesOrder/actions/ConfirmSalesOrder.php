@@ -50,16 +50,24 @@ class SalesOrder_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 			$existingGi = GoodsIssue_CreateFromSalesOrder_Helper::findBySalesOrderId($recordId);
 
 			if ($alreadyConfirmed && $existingGi > 0) {
+				$db = PearDatabase::getInstance();
+				$db->pquery(
+					'UPDATE vtiger_salesorder SET sostatus = ? WHERE salesorderid = ?',
+					array('Delivered', $recordId)
+				);
+				$soModel->set('sostatus', 'Delivered');
+				require_once 'modules/Invoice/models/MisaSyncService.php';
+				Invoice_MisaSyncService::ensureInvoiceForSalesOrder($soModel);
 				$this->trashLinkedQuote($soModel);
 				$whUrl = $this->buildWarehouseOutboundUrlFromIssue($existingGi);
 				$response->setResult(array(
 					'success' => true,
 					'salesorderid' => $recordId,
 					'salesorder_no' => $soModel->get('salesorder_no'),
-					'sostatus' => $status !== '' ? $status : 'waiting_print',
+					'sostatus' => 'Delivered',
 					'goodsissueid' => $existingGi,
 					'already_confirmed' => true,
-					'message' => 'Đơn hàng đã được xác nhận và đã có phiếu xuất kho.',
+					'message' => 'Đơn đã chuyển sang Hóa đơn và đã có phiếu xuất kho.',
 					'list_url' => 'index.php?module=SalesOrder&view=List&app=SALES',
 					'detail_url' => $soModel->getDetailViewUrl() . '&app=SALES',
 					'warehouse_url' => $whUrl,
@@ -90,13 +98,7 @@ class SalesOrder_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 				throw new Exception('Không đủ tồn kho để xác nhận đơn. ' . implode(' ', $stockWarnings));
 			}
 
-			// Match GI initial status: Chờ soạn (waiting_print).
 			$db = PearDatabase::getInstance();
-			$db->pquery(
-				'UPDATE vtiger_salesorder SET sostatus = ? WHERE salesorderid = ?',
-				array('waiting_print', $recordId)
-			);
-			$soModel->set('sostatus', 'waiting_print');
 
 			$userId = (int) Users_Record_Model::getCurrentUserModel()->getId();
 			$goodsIssueId = $existingGi > 0
@@ -119,10 +121,19 @@ class SalesOrder_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 				Warehouse_WhMgmtService::deductStockForGoodsIssue($goodsIssueId, $warehouse['id'], $userId);
 			}
 
-			require_once 'modules/GoodsIssue/helpers/SyncSalesOrderStatus.php';
-			GoodsIssue_SyncSalesOrderStatus_Helper::syncFromIssueId($goodsIssueId, 'waiting_print');
+			$db->pquery(
+				'UPDATE vtiger_salesorder SET sostatus = ? WHERE salesorderid = ?',
+				array('Delivered', $recordId)
+			);
+			$soModel->set('sostatus', 'Delivered');
+			require_once 'modules/Invoice/models/MisaSyncService.php';
+			try {
+				Invoice_MisaSyncService::ensureInvoiceForSalesOrder($soModel);
+			} catch (Exception $invoiceError) {
+				throw new Exception('Đã xuất kho nhưng chưa tạo được hóa đơn. ' . $invoiceError->getMessage());
+			}
 
-			$message = 'Đã xác nhận đơn hàng và tạo phiếu xuất kho (Chờ soạn). Tồn kho đã được trừ.';
+			$message = 'Đã xác nhận đơn hàng. Đơn chuyển sang Hóa đơn.';
 			if ($allowNegative && !empty($stockWarnings)) {
 				$message .= ' Lưu ý tồn kho (cho phép âm): ' . implode(' ', $stockWarnings);
 			}
@@ -134,7 +145,7 @@ class SalesOrder_ConfirmSalesOrder_Action extends Vtiger_Action_Controller {
 				'success' => true,
 				'salesorderid' => $recordId,
 				'salesorder_no' => $soModel->get('salesorder_no'),
-				'sostatus' => 'waiting_print',
+				'sostatus' => 'Delivered',
 				'goodsissueid' => $goodsIssueId,
 				'warehouse_id' => $warehouse['id'],
 				'warehouse_name' => $warehouse['name'],

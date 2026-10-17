@@ -365,6 +365,32 @@ function isPermitted($module,$actionname,$record_id='')
 			return $permission;
 		}
 
+		// Sales and Kế toán can open the Tuibao franchise-prospect list even when
+		// the profile does not include ServiceContracts. Read only.
+		if ($module === 'ServiceContracts') {
+			require_once 'modules/ServiceContracts/helpers/FranchiseListAccess.php';
+			if (ServiceContracts_FranchiseListAccess_Helper::currentUserCanSee()) {
+				$actionKey = strtolower(trim((string) $actionname));
+				if ($actionKey === '' || $actionKey === 'index' || $actionKey === 'detailview' || $actionKey === 'listview') {
+					$log->debug('Exiting isPermitted method ...');
+					return 'yes';
+				}
+			}
+		}
+
+		// Kế toán can open and add Danh mục nhà cung cấp even when the profile omits Vendors.
+		if ($module === 'Vendors') {
+			require_once 'modules/Vendors/helpers/CatalogAccess.php';
+			if (Vendors_CatalogAccess_Helper::currentUserCanManage()) {
+				$actionKey = strtolower(trim((string) $actionname));
+				$vendorActions = array('', 'index', 'detailview', 'listview', 'createview', 'editview', 'save');
+				if (in_array($actionKey, $vendorActions, true)) {
+					$log->debug('Exiting isPermitted method ...');
+					return 'yes';
+				}
+			}
+		}
+
 		//If no actionid, then allow action is vtiger_tab permission is available
 		if($actionid === '')
 		{

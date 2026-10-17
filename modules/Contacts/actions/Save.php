@@ -20,6 +20,12 @@ class Contacts_Save_Action extends Vtiger_Save_Action {
 		require_once 'modules/Contacts/helpers/PhoneField.php';
 		Contacts_PhoneField_Helper::sanitizeRequest($request);
 		Contacts_PhoneField_Helper::validateRequest($request);
+		if (!$request->get('returntab_label')
+			&& !$request->get('relationOperation')
+			&& !($request->get('returnmodule') && $request->get('returnview'))
+		) {
+			$request->set('returnToList', '1');
+		}
 		parent::process($request);
 	}
 

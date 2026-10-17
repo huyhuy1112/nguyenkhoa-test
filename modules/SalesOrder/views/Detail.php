@@ -80,6 +80,13 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		$viewer->assign('RECORD', $recordModel);
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('MODULE_NAME', $moduleName);
+		require_once 'modules/Invoice/models/MisaSyncService.php';
+		$misaView = Invoice_MisaSyncService::salesViewForOrder($recordId);
+		$viewer->assign('MK_MISA_STATUS', $misaView['label']);
+		$viewer->assign('MK_MISA_REFNO', $misaView['refno']);
+		$viewer->assign('MK_MISA_UPDATED', $misaView['updated']);
+		$viewer->assign('MK_MISA_STATE', $misaView['state']);
+		$viewer->assign('MK_MISA_NOTE', $misaView['note']);
 		$viewer->assign('MODULE_MODEL', $moduleModel);
 		$viewer->assign('USER_MODEL', Users_Record_Model::getCurrentUserModel());
 		$viewer->assign('SELECTED_MENU_CATEGORY', 'SALES');
@@ -213,7 +220,7 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 
 	protected function resolveInlineCustomerName(Vtiger_Record_Model $recordModel) {
 		require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
-		$name = Vtiger_MkSalesCustomerName_Helper::resolveDisplayName($recordModel);
+		$name = Vtiger_MkSalesCustomerName_Helper::resolveListStyleName($recordModel);
 		return $name !== '' ? $name : '—';
 	}
 
@@ -333,6 +340,7 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		$displayProducts[1]['final_details']['hdnSubTotal'] = $formatMoney($subTotal);
 		$displayProducts[1]['final_details']['discountTotal_final'] = $formatMoney($discount);
 		$displayProducts[1]['final_details']['discount_amount_final'] = $formatMoney($discountAmountFinal);
+		$displayProducts[1]['final_details']['discount_percentage_final'] = (float) ($rawFinal['discount_percentage_final'] ?? 0);
 		$displayProducts[1]['final_details']['tax_totalamount'] = $formatMoney($tax);
 		$displayProducts[1]['final_details']['shipping_handling_charge'] = $formatMoney($shipping);
 		$displayProducts[1]['final_details']['adjustment'] = $formatMoney($adjustment);
@@ -480,31 +488,30 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 	protected function getPosStatusLabelMap() {
 		return array(
 			'Created' => 'Phiếu tạm',
-			'Approved' => 'Đã xác nhận',
-			'Delivered' => 'Hoàn thành',
-			'Cancelled' => 'Đã hủy',
-			'Pending' => 'Đang chờ',
-			'Paid' => 'Đã thanh toán',
-			'Sent' => 'Đã gửi',
-			'Rejected' => 'Từ chối',
-			'waiting_print' => 'Chờ soạn',
-			'picking' => 'Đang soạn',
-			'packed' => 'Đã soạn',
-			'shipped' => 'Đã giao',
-			'rejected' => 'Từ chối',
-			'Đã duyệt' => 'Đã xác nhận',
 			'Đã tạo' => 'Phiếu tạm',
-			'Đang chờ xử lý' => 'Đang chờ',
-			'Đang giao hàng' => 'Đang giao hàng',
+			'Draft' => 'Phiếu tạm',
+			'Nháp' => 'Phiếu tạm',
+			'Phiếu tạm' => 'Phiếu tạm',
+			'Paid' => 'Đã xác nhận',
+			'Approved' => 'Đã xác nhận',
+			'Đã xác nhận' => 'Đã xác nhận',
+			'Đã duyệt' => 'Đã xác nhận',
+			'Đã thanh toán' => 'Đã xác nhận',
+			'Delivered' => 'Hoàn thành',
+			'Đang sử dụng' => 'Hoàn thành',
+			'waiting_print' => 'Hoàn thành',
+			'picking' => 'Hoàn thành',
+			'packed' => 'Hoàn thành',
+			'Chờ soạn' => 'Hoàn thành',
+			'Đang soạn' => 'Hoàn thành',
+			'Đã soạn' => 'Hoàn thành',
 			'Hoàn thành' => 'Hoàn thành',
-			'Đã gửi' => 'Đã gửi',
-			'Đã thanh toán' => 'Đã thanh toán',
+			'Đã hoàn thành' => 'Hoàn thành',
+			'shipped' => 'Hoàn thành',
+			'Đã giao' => 'Hoàn thành',
+			'Đang giao hàng' => 'Hoàn thành',
+			'Cancelled' => 'Đã hủy',
 			'Đã hủy' => 'Đã hủy',
-			'Từ chối' => 'Từ chối',
-			'Chờ soạn' => 'Chờ soạn',
-			'Đang soạn' => 'Đang soạn',
-			'Đã soạn' => 'Đã soạn',
-			'Đã giao' => 'Đã giao',
 		);
 	}
 
@@ -659,6 +666,14 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 		if ($dataType === 'date' || $dataType === 'datetime') {
 			$editValue = $fieldModel->getUITypeModel()->getDisplayValue($rawValue);
 		}
+		if (in_array($fieldName, array('received', 'paid_amount', 'amount_paid', 'paid', 'mk_customer_paid'), true)) {
+			$paidAmount = (float) $rawValue;
+			if ($paidAmount < 0) {
+				$paidAmount = 0;
+			}
+			$value = CurrencyField::convertToUserFormat($paidAmount, null, true);
+			$editValue = $value;
+		}
 		$picklistValues = array();
 		if ($dataType === 'picklist') {
 			if ($this->isPosStatusFieldName($fieldName)) {
@@ -692,11 +707,6 @@ class SalesOrder_Detail_View extends Inventory_Detail_View {
 				'label' => 'Người tạo',
 				'label_hints' => array('Người tạo', 'Creator', 'Created By'),
 				'virtual' => 'creator',
-			),
-			array(
-				'names' => array('leadsource'),
-				'label' => 'Kênh bán',
-				'label_hints' => array('Kênh bán', 'Lead Source', 'Source', 'Funnel'),
 			),
 			array(
 				'names' => array('received', 'paid_amount', 'amount_paid', 'paid', 'mk_customer_paid'),

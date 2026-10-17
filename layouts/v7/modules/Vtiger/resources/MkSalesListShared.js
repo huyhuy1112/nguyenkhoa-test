@@ -980,12 +980,211 @@
 			return;
 		}
 		if ($totalEl.hasClass('hide') && $totalEl.find('.mk-so-total-count').length) {
+			ensureTotalPageCount();
 			return;
 		}
 		if (!$totalEl.find('.showTotalCountIcon').length && $totalEl.find('.mk-so-total-count').length) {
+			ensureTotalPageCount();
 			return;
 		}
 		listInstance.totalNumOfRecords($totalEl);
+		setTimeout(ensureTotalPageCount, 50);
+	}
+
+	/** Persist total pages across AJAX page changes (footer HTML is rebuilt empty). */
+	var mkCachedTotalPagesByKey = {};
+
+	function pageCountCacheKey($lv) {
+		var mod = '';
+		var viewname = '';
+		try {
+			mod = (document.body && document.body.getAttribute('data-module')) || '';
+			viewname = String(($lv && $lv.find('#viewname').val()) || ($lv && $lv.find('[name="viewname"]').val()) || '');
+		} catch (eKey) {
+			/* ignore */
+		}
+		return mod + '|' + viewname;
+	}
+
+	function getCachedTotalPages($lv) {
+		var key = pageCountCacheKey($lv);
+		var n = parseInt(mkCachedTotalPagesByKey[key], 10);
+		return n > 0 ? n : 0;
+	}
+
+	function setCachedTotalPages($lv, pageCount) {
+		var n = parseInt(pageCount, 10);
+		if (!n || n < 1) {
+			return;
+		}
+		mkCachedTotalPagesByKey[pageCountCacheKey($lv)] = n;
+	}
+
+	function syncPageJumpTotalMirror($lv, pageCount) {
+		$lv = $lv && $lv.length ? $lv : getListViewContainer();
+		if (!$lv.length) {
+			return;
+		}
+		var text = pageCount != null ? String(pageCount) : '';
+		if (!text) {
+			var $vis = $lv.find('.mk-so-filter-row__footer #totalPageCount').first();
+			if (!$vis.length) {
+				$vis = $lv.find('#totalPageCount').first();
+			}
+			text = String($vis.text() || '').trim();
+		}
+		if (!text || text === '…' || text === '...') {
+			return;
+		}
+		setCachedTotalPages($lv, text);
+		/* Always write into the visible footer first (POS hides #listview-actions). */
+		var $targets = $lv.find('.mk-so-filter-row__footer #totalPageCount, .mk-so-filter-row__footer .mk-so-pagejump-total');
+		if (!$targets.length) {
+			$targets = $lv.find('#totalPageCount, .mk-so-pagejump-total');
+		}
+		$targets.each(function () {
+			jQuery(this).text(text);
+		});
+	}
+
+	function parsePageCountPayload(data) {
+		var payload = data;
+		if (payload && payload.result && typeof payload.result === 'object') {
+			payload = payload.result;
+		}
+		if (typeof payload === 'string') {
+			try {
+				payload = JSON.parse(payload);
+				if (payload && payload.result && typeof payload.result === 'object') {
+					payload = payload.result;
+				}
+			} catch (eParse) {
+				payload = null;
+			}
+		}
+		if (!payload || typeof payload !== 'object') {
+			return { page: 0, numberOfRecords: null };
+		}
+		return {
+			page: parseInt(payload.page, 10) || 0,
+			numberOfRecords:
+				payload.numberOfRecords != null
+					? payload.numberOfRecords
+					: payload.count != null
+						? payload.count
+						: null
+		};
+	}
+
+	/**
+	 * Fill "#current / total" PageJump label (and dropdown mirror) without waiting for a click.
+	 * Survives page changes by restoring from cache when footer HTML is rebuilt empty.
+	 */
+	function ensureTotalPageCount() {
+		if (!shouldRelocatePaginationFooter() || typeof Vtiger_List_Js === 'undefined') {
+			return;
+		}
+		var listInstance = Vtiger_List_Js.getInstance && Vtiger_List_Js.getInstance();
+		if (!listInstance) {
+			return;
+		}
+		var $lv = listInstance.getListViewContainer
+			? listInstance.getListViewContainer()
+			: getListViewContainer();
+		if (!$lv.length) {
+			$lv = getListViewContainer();
+		}
+		if (!$lv.length) {
+			return;
+		}
+		var $footer = $lv.find('.mk-so-filter-row__footer').first();
+		var $totalPage = $footer.find('#totalPageCount').first();
+		if (!$totalPage.length) {
+			$totalPage = $lv.find('#totalPageCount').first();
+		}
+		if (!$totalPage.length) {
+			return;
+		}
+		var existing = String($totalPage.text() || '').trim();
+		/* Ignore placeholder-only / ellipsis leftovers */
+		if (existing && existing !== '…' && existing !== '...') {
+			syncPageJumpTotalMirror($lv, existing);
+			return;
+		}
+
+		var pageLimit = parseInt($lv.find('#pageLimit').val(), 10);
+		if (!pageLimit || pageLimit < 1) {
+			pageLimit = 15;
+		}
+
+		/* Restore immediately so page 2+ never flash "…" */
+		var cached = getCachedTotalPages($lv);
+		if (cached > 0) {
+			syncPageJumpTotalMirror($lv, cached);
+		}
+
+		var totalCount = String($lv.find('#totalCount').val() || '').trim();
+		if (totalCount && totalCount !== '0') {
+			var pagesFromTotal = Math.ceil(parseInt(totalCount, 10) / pageLimit);
+			if (!pagesFromTotal || pagesFromTotal < 1) {
+				pagesFromTotal = 1;
+			}
+			syncPageJumpTotalMirror($lv, pagesFromTotal);
+			return;
+		}
+
+		/* Soft fallback: Next enabled ⇒ ≥2; Prev enabled on empty total ⇒ at least current page */
+		var $next = $footer.find('#NextPageButton').first();
+		if (!$next.length) {
+			$next = $lv.find('#NextPageButton').first();
+		}
+		var $prev = $footer.find('#PreviousPageButton').first();
+		if (!$prev.length) {
+			$prev = $lv.find('#PreviousPageButton').first();
+		}
+		var curPage = parseInt($lv.find('#pageNumber').val(), 10) || 1;
+		if ($next.length && !$next.is(':disabled') && !$next.prop('disabled')) {
+			syncPageJumpTotalMirror($lv, Math.max(2, curPage + 1, cached));
+		} else if ($prev.length && !$prev.is(':disabled') && !$prev.prop('disabled')) {
+			syncPageJumpTotalMirror($lv, Math.max(curPage, cached || 1));
+		} else if (!cached) {
+			syncPageJumpTotalMirror($lv, Math.max(1, curPage));
+		}
+
+		if (typeof listInstance.getPageCount !== 'function') {
+			return;
+		}
+		if ($lv.data('mkEnsuringPageCount')) {
+			return;
+		}
+		$lv.data('mkEnsuringPageCount', 1);
+		listInstance.getPageCount().then(function (data) {
+			$lv.data('mkEnsuringPageCount', 0);
+			var parsed = parsePageCountPayload(data);
+			var pageCount = parsed.page;
+			if (!pageCount || pageCount < 1) {
+				pageCount = 1;
+			}
+			if (parsed.numberOfRecords != null) {
+				$lv.find('#totalCount').val(parsed.numberOfRecords);
+				var lim = parseInt($lv.find('#pageLimit').val(), 10) || pageLimit;
+				var recomputed = Math.ceil(parseInt(parsed.numberOfRecords, 10) / lim);
+				if (recomputed > pageCount) {
+					pageCount = recomputed;
+				}
+			}
+			syncPageJumpTotalMirror($lv, pageCount);
+			if (typeof listInstance.showPagingInfo === 'function') {
+				listInstance.showPagingInfo();
+			}
+			try {
+				syncFooterPageInfo($lv);
+			} catch (eSync) {
+				/* ignore */
+			}
+		}, function () {
+			$lv.data('mkEnsuringPageCount', 0);
+		});
 	}
 
 	function applyCommonUi(options) {
@@ -1005,6 +1204,7 @@
 		relocatePaginationFooter();
 		syncFooterPageInfo();
 		autoLoadTotalRecordCount();
+		ensureTotalPageCount();
 		if (supportsLayoutToggle()) {
 			applyLayoutMode(getSavedLayoutMode());
 		}
@@ -1055,6 +1255,41 @@
 			} catch (e) {
 				/* ignore */
 			}
+			try {
+				syncPageJumpTotalMirror(listViewContainer);
+			} catch (e2) {
+				/* ignore */
+			}
+			try {
+				ensureTotalPageCount();
+			} catch (e3) {
+				/* ignore */
+			}
+		};
+	}
+
+	var getPageCountPatched = false;
+	function patchGetPageCount() {
+		if (getPageCountPatched || typeof Vtiger_List_Js === 'undefined') {
+			return;
+		}
+		if (typeof Vtiger_List_Js.prototype.getPageCount !== 'function') {
+			return;
+		}
+		getPageCountPatched = true;
+		var originalGetPageCount = Vtiger_List_Js.prototype.getPageCount;
+		Vtiger_List_Js.prototype.getPageCount = function () {
+			var deferred = jQuery.Deferred();
+			originalGetPageCount.call(this).then(function (data) {
+				var parsed = parsePageCountPayload(data);
+				deferred.resolve({
+					page: parsed.page || 1,
+					numberOfRecords: parsed.numberOfRecords != null ? parsed.numberOfRecords : 0
+				});
+			}, function (err) {
+				deferred.reject(err);
+			});
+			return deferred.promise();
 		};
 	}
 
@@ -1172,6 +1407,8 @@
 			if (shouldBootMkSalesListShared()) {
 				setTimeout(function () {
 					applyCommonUi();
+					ensureTotalPageCount();
+					setTimeout(ensureTotalPageCount, 120);
 					if (isPotentialsSalesList() && typeof window.mkPotentialsListAfterAjax === 'function') {
 						window.mkPotentialsListAfterAjax();
 					}
@@ -1186,6 +1423,14 @@
 			.off('click.mkSalesPageJump mousedown.mkSalesPageJump', '#PageJumpDropDown, #PageJumpDropDown *')
 			.on('click.mkSalesPageJump mousedown.mkSalesPageJump', '#PageJumpDropDown, #PageJumpDropDown *', function (e) {
 				e.stopPropagation();
+			});
+		$(document)
+			.off('click.mkSalesPageJumpSync', '#PageJump')
+			.on('click.mkSalesPageJumpSync', '#PageJump', function () {
+				setTimeout(function () {
+					ensureTotalPageCount();
+					syncPageJumpTotalMirror();
+				}, 0);
 			});
 	}
 
@@ -2584,6 +2829,7 @@
 		whenVtigerListReady(function () {
 			if (isMkEnhancedList()) {
 				patchShowPagingInfo();
+				patchGetPageCount();
 				patchPlaceListContents();
 				patchPostLoadListViewRecords();
 			}
@@ -2631,6 +2877,7 @@
 		syncToolbarFromFragment: syncToolbarFromFragment,
 		dedupePaginationFooters: dedupePaginationFooters,
 		autoLoadTotalRecordCount: autoLoadTotalRecordCount,
+		ensureTotalPageCount: ensureTotalPageCount,
 		ensureSalesListTableUi: ensureSalesListTableUi,
 		runSalesListSearch: runSalesListSearch,
 		syncSearchButtonState: syncSearchButtonState,

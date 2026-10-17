@@ -1,0 +1,728 @@
+[
+  {
+    "name": "Trân châu đen Nguyên Khoa (1kg)",
+    "sell_unit": "bich",
+    "per_thung": 20,
+    "rules": [
+      {
+        "min": 40,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 80,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 100,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Thạch dừa hương xoài Nguyên Khoa",
+    "sell_unit": "hop",
+    "per_thung": 4,
+    "rules": [
+      {
+        "min": 2,
+        "unit": "thung",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 4,
+        "unit": "thung",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 6,
+        "unit": "thung",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Thạch dừa hương xoài Nguyên Khoa (1kg)",
+    "sell_unit": "hop",
+    "per_thung": 20,
+    "rules": [
+      {
+        "min": 40,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 80,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 100,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Thạch dừa Nguyên Khoa (1kg)",
+    "sell_unit": "bich",
+    "per_thung": 20,
+    "rules": [
+      {
+        "min": 40,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 80,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 100,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Hạt Nổ Củ Năng trắng",
+    "sell_unit": "lon",
+    "per_thung": 12,
+    "rules": [
+      {
+        "min": 2,
+        "unit": "thung",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 4,
+        "unit": "thung",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 6,
+        "unit": "thung",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Hạt Nổ Củ Năng hồng",
+    "sell_unit": "lon",
+    "per_thung": 12,
+    "rules": [
+      {
+        "min": 2,
+        "unit": "thung",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 4,
+        "unit": "thung",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 6,
+        "unit": "thung",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Hạt nổ củ năng hồng Zestty",
+    "sell_unit": "lon",
+    "per_thung": 12,
+    "rules": [
+      {
+        "min": 2,
+        "unit": "thung",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 4,
+        "unit": "thung",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 6,
+        "unit": "thung",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Bột sữa Nguyên Khoa M32 ( 20Kg/bao)",
+    "sell_unit": "bao",
+    "per_thung": 0,
+    "rules": [
+      {
+        "min": 2,
+        "unit": "bao",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 3,
+        "unit": "bao",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 4,
+        "unit": "bao",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Bột sữa Nguyên Khoa M32 ( 1Kg/bịch)",
+    "sell_unit": "bich",
+    "per_thung": 0,
+    "rules": [
+      {
+        "min": 20,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 40,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 60,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Bột Trà sữa dưa lưới 1kg",
+    "sell_unit": "bich",
+    "per_thung": 10,
+    "rules": [
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 15,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 20,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Pudding Dâu Nguyên Khoa 1kg",
+    "sell_unit": "bich",
+    "per_thung": 10,
+    "rules": [
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 15,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 20,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Bột Khúc Bạch hoa đậu biếc Nguyên Khoa (1Kg)",
+    "sell_unit": "bich",
+    "per_thung": 10,
+    "rules": [
+      {
+        "min": 5,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 15,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Bột Kem Trứng Nguyên Khoa 1kg (sử dụng nước lạnh)",
+    "sell_unit": "bich",
+    "per_thung": 10,
+    "rules": [
+      {
+        "min": 5,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 15,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Bột Kem Milk Foam Đa Năng 1kg (sử dụng nước lạnh)",
+    "sell_unit": "bich",
+    "per_thung": 10,
+    "rules": [
+      {
+        "min": 5,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 15,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Bột ca cao nguyên chất Meiko",
+    "sell_unit": "bich",
+    "per_thung": 10,
+    "rules": [
+      {
+        "min": 5,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 15,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Syrup Mật ong Nguyên Khoa 730ml",
+    "sell_unit": "binh",
+    "per_thung": 12,
+    "rules": [
+      {
+        "min": 2,
+        "unit": "thung",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 4,
+        "unit": "thung",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 6,
+        "unit": "thung",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Cà phê Hoàng Kim (Resso)",
+    "sell_unit": "bich",
+    "per_thung": 10,
+    "rules": [
+      {
+        "min": 5,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 15,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Sốt Đào Resso 1L",
+    "sell_unit": "binh",
+    "per_thung": 12,
+    "rules": [
+      {
+        "min": 2,
+        "unit": "thung",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 4,
+        "unit": "thung",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 6,
+        "unit": "thung",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Sốt Xoài Resso 1L",
+    "sell_unit": "binh",
+    "per_thung": 12,
+    "rules": [
+      {
+        "min": 2,
+        "unit": "thung",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 4,
+        "unit": "thung",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 6,
+        "unit": "thung",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Sốt Dâu Tây Resso 1L",
+    "sell_unit": "binh",
+    "per_thung": 12,
+    "rules": [
+      {
+        "min": 2,
+        "unit": "thung",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 4,
+        "unit": "thung",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 6,
+        "unit": "thung",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Sốt Vải Resso 1L",
+    "sell_unit": "binh",
+    "per_thung": 12,
+    "rules": [
+      {
+        "min": 2,
+        "unit": "thung",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 4,
+        "unit": "thung",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 6,
+        "unit": "thung",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Sốt Việt Quất Resso 1L",
+    "sell_unit": "binh",
+    "per_thung": 12,
+    "rules": [
+      {
+        "min": 2,
+        "unit": "thung",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 4,
+        "unit": "thung",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 6,
+        "unit": "thung",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Trà đen thượng hạng 1kg Nguyên Khoa",
+    "sell_unit": "bich",
+    "per_thung": 0,
+    "rules": [
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 20,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 30,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Trà Đen Mộc Vị NK 500g",
+    "sell_unit": "bich",
+    "per_thung": 15,
+    "rules": [
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 20,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 30,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Trà Đen NK 500g",
+    "sell_unit": "bich",
+    "per_thung": 15,
+    "rules": [
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 20,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 30,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Lục Trà Lài Nguyên Khoa 500g",
+    "sell_unit": "bich",
+    "per_thung": 15,
+    "rules": [
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 20,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 30,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Trà Đào túi lọc 10g (Resso)",
+    "sell_unit": "bich",
+    "per_thung": 10,
+    "rules": [
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 20,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 30,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Trà Hibiscus 200g (Good heart)",
+    "sell_unit": "bich",
+    "per_thung": 20,
+    "rules": [
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 20,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 30,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Hồng trà Cổ Phong (Resso)",
+    "sell_unit": "bich",
+    "per_thung": 10,
+    "rules": [
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 20,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 30,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Trà đen lài (Resso)",
+    "sell_unit": "bich",
+    "per_thung": 10,
+    "rules": [
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 20,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 30,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Trà Lài túi lọc 10g (Resso)",
+    "sell_unit": "bich",
+    "per_thung": 10,
+    "rules": [
+      {
+        "min": 5,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 15,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Trà Olong túi lọc 10g (Resso)",
+    "sell_unit": "bich",
+    "per_thung": 10,
+    "rules": [
+      {
+        "min": 5,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 15,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  },
+  {
+    "name": "Trà đen Ngọc Tịnh túi lọc 10g (Resso)",
+    "sell_unit": "bich",
+    "per_thung": 10,
+    "rules": [
+      {
+        "min": 5,
+        "unit": "bich",
+        "tier": "gte_3m"
+      },
+      {
+        "min": 10,
+        "unit": "bich",
+        "tier": "gte_5m"
+      },
+      {
+        "min": 15,
+        "unit": "bich",
+        "tier": "gte_7m"
+      }
+    ]
+  }
+]

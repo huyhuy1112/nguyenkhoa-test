@@ -9,6 +9,10 @@ class Inventory_ProductCatalog_Helper {
 	 * @return array<int, array{id:int,name:string,price:float,type:string,sku:string,unit:string,stock:float,qty_po:float,qty_so:float}>
 	 */
 	public static function listActiveProducts($limit = 5000) {
+		if (is_file('modules/ProductsServices/helpers/SalePriceApply.php')) {
+			require_once 'modules/ProductsServices/helpers/SalePriceApply.php';
+			ProductsServices_SalePriceApply_Helper::ensureApplied();
+		}
 		$db = PearDatabase::getInstance();
 		$limit = max(1, min(10000, (int) $limit));
 
@@ -16,10 +20,14 @@ class Inventory_ProductCatalog_Helper {
 		$hasNeedsQc = self::columnExists($db, 'vtiger_productsservices', 'needs_qc');
 		$unitCol = $hasUnit ? ', ps.unit' : '';
 		$needsQcCol = $hasNeedsQc ? ', ps.needs_qc' : '';
+		if (is_file('modules/ProductsServices/helpers/PriceSetup.php')) {
+			require_once 'modules/ProductsServices/helpers/PriceSetup.php';
+			ProductsServices_PriceSetup_Helper::ensure();
+		}
 		$tierCols = array();
 		foreach (array(
 			'price_lt_1m', 'price_gte_1m', 'price_gte_3m', 'price_gte_5m', 'price_gte_7m',
-			'price_tuibao', 'product_group',
+			'price_tuibao', 'price_miutea', 'product_group', 'kl_qty_rules', 'mk_no_discount',
 		) as $col) {
 			if (self::columnExists($db, 'vtiger_productsservices', $col)) {
 				$tierCols[] = 'ps.' . $col;
@@ -85,6 +93,10 @@ class Inventory_ProductCatalog_Helper {
 					? (float) $row['price_gte_7m'] : null,
 				'price_tuibao' => isset($row['price_tuibao']) && $row['price_tuibao'] !== null && $row['price_tuibao'] !== ''
 					? (float) $row['price_tuibao'] : null,
+				'price_miutea' => isset($row['price_miutea']) && $row['price_miutea'] !== null && $row['price_miutea'] !== ''
+					? (float) $row['price_miutea'] : null,
+				'kl_qty_rules' => self::decodeQtyRules(isset($row['kl_qty_rules']) ? $row['kl_qty_rules'] : ''),
+				'mk_no_discount' => !empty($row['mk_no_discount']) ? 1 : 0,
 			);
 			$out[] = $item;
 		}
@@ -107,6 +119,32 @@ class Inventory_ProductCatalog_Helper {
 		unset($item);
 
 		return $out;
+	}
+
+	protected static function decodeQtyRules($raw) {
+		$raw = trim((string) $raw);
+		if ($raw === '') {
+			return null;
+		}
+		// fetchByAssoc chạy to_html, nên dấu " trong JSON thành &quot; và json_decode trả về rỗng.
+		if (function_exists('decode_html')) {
+			$raw = decode_html($raw);
+		} else {
+			$prev = $raw;
+			for ($i = 0; $i < 5; $i++) {
+				$decoded = html_entity_decode($prev, ENT_QUOTES, 'UTF-8');
+				if (!is_string($decoded) || $decoded === $prev) {
+					break;
+				}
+				$prev = $decoded;
+			}
+			$raw = $prev;
+		}
+		$data = json_decode($raw, true);
+		if (!is_array($data) || empty($data['rules']) || !is_array($data['rules'])) {
+			return null;
+		}
+		return $data;
 	}
 
 	protected static function columnExists(PearDatabase $db, $table, $column) {

@@ -259,7 +259,8 @@ class ServiceContracts_ModernApi_Action extends Vtiger_Action_Controller {
 						$recordId,
 						(string) $result,
 						(string) $note,
-						$userId
+						$userId,
+						(string) $request->get('callback_at')
 					);
 					$response->setResult(array_merge(array('success' => true), $logged, array(
 						'lastTouchCalls' => $logged,

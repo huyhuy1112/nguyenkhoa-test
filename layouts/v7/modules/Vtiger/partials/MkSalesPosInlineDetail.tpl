@@ -19,6 +19,17 @@
 		</div>
 	</div>
 
+	{if !empty($MK_VERIFY_LINES)}
+		<div class="mk-so-inline-detail__notes">
+			<div class="mk-so-inline-detail__notes-label">Xác minh từ Lead</div>
+			<ul class="mk-so-inline-detail__verify-lines" style="list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;">
+				{foreach from=$MK_VERIFY_LINES item=MK_VERIFY_LINE}
+					<li style="display:flex;justify-content:space-between;gap:12px;font-size:13px;"><span>{$MK_VERIFY_LINE.label|escape}</span><strong>{$MK_VERIFY_LINE.value|escape}</strong></li>
+				{/foreach}
+			</ul>
+		</div>
+	{/if}
+
 	{if isset($INLINE_INFO_FIELDS) && $INLINE_INFO_FIELDS|@count gt 0}
 		<div class="mk-so-inline-detail__fields">
 			<h3 class="mk-so-inline-detail__sec-title">Thông tin</h3>
@@ -67,6 +78,38 @@
 		</div>
 	{/if}
 
+	{if $MODULE eq 'Potentials'}
+		{assign var=ATT value=$INLINE_ATTENDANCE|default:[]}
+		<div class="mk-so-inline-detail__attendance" data-mk-opp-attendance="1" data-record-id="{$RECORD->getId()|escape}">
+			<h3 class="mk-so-inline-detail__sec-title">Tham gia</h3>
+			{if !empty($ATT.eligible)}
+				<p class="mk-so-inline-detail__attendance-status">
+					<strong>{if $ATT.status_label}{$ATT.status_label|escape}{else}—{/if}</strong>
+					{if !empty($ATT.class_date)}
+						<span class="mk-so-inline-detail__attendance-meta"> · Lớp {$ATT.class_date|escape}</span>
+					{/if}
+					{if !empty($ATT.checked_in_at_label)}
+						<br/><span class="mk-so-inline-detail__attendance-meta">Lúc: {$ATT.checked_in_at_label|escape}</span>
+					{/if}
+				</p>
+				{if !empty($ATT.can_edit)}
+					<div class="mk-so-inline-detail__attendance-actions">
+						<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-opps-checkin__btn mk-opps-checkin__btn--ok" data-mk-opp-checkin="da_tham_gia" data-opp-id="{$RECORD->getId()|escape}">Đã tham gia</button>
+						<button type="button" class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-opps-checkin__btn mk-opps-checkin__btn--no" data-mk-opp-checkin="khong_tham_gia" data-opp-id="{$RECORD->getId()|escape}">Không tham gia</button>
+					</div>
+				{elseif !empty($ATT.can_reschedule)}
+					<p class="mk-so-inline-detail__attendance-hint">{if $ATT.status eq 'offline_ngung_cskh_tam'}Dừng tạm — chốt lịch mới ở cột Tham gia trên list (được 3 lần no-show mới).{else}Không đến — chốt lịch mới ở cột Tham gia trên list.{/if}</p>
+				{elseif !empty($ATT.locked)}
+					<p class="mk-so-inline-detail__attendance-hint">Đã ghi nhận · khóa chọn lại</p>
+				{else}
+					<p class="mk-so-inline-detail__attendance-hint">Chỉ Admin ghi nhận tham gia tại lớp.</p>
+				{/if}
+			{else}
+				<p class="mk-so-inline-detail__attendance-empty">Chưa đến bước điểm danh (cần đã xác nhận lịch Offline).</p>
+			{/if}
+		</div>
+	{/if}
+
 	{assign var=MK_EDITABLE_TAGS value=($MODULE eq 'Leads' || $MODULE eq 'Potentials' || $MODULE eq 'Contacts')}
 	{if empty($INLINE_HIDE_TAGS)}
 	<div class="mk-so-inline-detail__tags{if $MK_EDITABLE_TAGS} is-editable{/if}"{if $MK_EDITABLE_TAGS} data-editable-tags="1"{/if}>
@@ -95,6 +138,40 @@
 	{/if}
 
 	{if $MODULE eq 'Leads' || $MODULE eq 'ServiceContracts' || $MODULE eq 'Potentials' || $MODULE eq 'Contacts'}
+		{if $MODULE eq 'Contacts' && $NL_METRICS}
+			<div class="mk-so-inline-detail__notes">
+				<h3 class="mk-so-inline-detail__sec-title">Chỉ số nguyên liệu</h3>
+				<div class="mk-nl-board">
+					<div class="mk-nl-board__status">
+						<div><em>Vòng đời</em><strong>{$NL_METRICS.ct09_life|escape}</strong></div>
+						<div><em>Hạng</em><strong>{$NL_METRICS.ct09_tier|escape}</strong></div>
+					</div>
+					<div class="mk-nl-board__grid">
+						<article class="mk-nl-tile"><small>CT01</small><span>Tổng đã mua</span><strong>{$NL_METRICS.ct01|escape}</strong></article>
+						<article class="mk-nl-tile{if $NL_METRICS.ct02 eq 'chưa đủ dữ liệu'} is-empty{/if}"><small>CT02</small><span>Mua 90 ngày</span><strong>{$NL_METRICS.ct02|escape}</strong></article>
+						<article class="mk-nl-tile{if $NL_METRICS.ct03 eq 'chưa đủ dữ liệu'} is-empty{/if}"><small>CT03</small><span>Số đơn</span><strong>{$NL_METRICS.ct03|escape}</strong></article>
+						<article class="mk-nl-tile{if $NL_METRICS.ct04 eq 'chưa đủ dữ liệu'} is-empty{/if}"><small>CT04</small><span>Đơn trung bình</span><strong>{$NL_METRICS.ct04|escape}</strong></article>
+						<article class="mk-nl-tile{if $NL_METRICS.ct05 eq 'chưa đủ dữ liệu'} is-empty{/if}"><small>CT05</small><span>Mua gần nhất</span><strong>{$NL_METRICS.ct05|escape}</strong></article>
+						<article class="mk-nl-tile{if $NL_METRICS.ct07 eq 'chưa đủ dữ liệu'} is-empty{/if}"><small>CT07</small><span>Khoảng cách mua</span><strong>{$NL_METRICS.ct07|escape}</strong></article>
+						<article class="mk-nl-tile"><small>CT08</small><span>Chờ giao</span><strong>{$NL_METRICS.ct08|escape}</strong></article>
+					</div>
+				</div>
+			</div>
+		{/if}
+		{if ($MODULE eq 'Leads' || $MODULE eq 'Contacts') && !empty($MK_CARE_LOG)}
+			<div class="mk-so-inline-detail__notes">
+				<h3 class="mk-so-inline-detail__sec-title">Lịch sử chăm sóc</h3>
+				<ul style="list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;">
+					{foreach from=$MK_CARE_LOG item=CARE}
+						<li style="background:#f8fafc;border-radius:8px;padding:8px 10px;font-size:13px;">
+							<strong>{$CARE.result|escape}</strong>
+							<span style="color:#64748b;"> · {$CARE.step|escape} · {$CARE.user|escape} · {$CARE.at|escape}</span>
+							{if $CARE.note neq ''}<div>{$CARE.note|escape}</div>{/if}
+						</li>
+					{/foreach}
+				</ul>
+			</div>
+		{/if}
 		{assign var=LT value=$INLINE_LAST_TOUCH|default:[]}
 		{assign var=LT_CAN_ADD value=true}
 		{if isset($LT.can_add) && empty($LT.can_add)}{assign var=LT_CAN_ADD value=false}{/if}
@@ -103,6 +180,12 @@
 		{assign var=LT_MAX value=$LT.max_calls|default:3}
 		{assign var=LT_HINT value=$LT.hint|default:''}
 		{assign var=LT_CALLS value=$LT.calls|default:[]}
+		{assign var=ATT_LT value=$INLINE_ATTENDANCE|default:[]}
+		{assign var=MISS_N value=$ATT_LT.post_noshow_miss|default:0}
+		{assign var=CAN_UNREACH value=false}
+		{if !empty($ATT_LT.can_unreachable)}{assign var=CAN_UNREACH value=true}{/if}
+		{assign var=SHOW_UNREACH value=false}
+		{if $MODULE eq 'Potentials' && ($CAN_UNREACH || $MISS_N gt 0 || $ATT_LT.status eq 'offline_ngung_cskh_tam')}{assign var=SHOW_UNREACH value=true}{/if}
 		<div class="mk-so-inline-detail__last-touch"
 			data-role="last-touch"
 			data-record-id="{$RECORD->getId()|escape}"
@@ -111,6 +194,8 @@
 			data-lt-hint="{$LT_HINT|escape}"
 			data-lt-count="{$LT_COUNT|escape}"
 			data-lt-max="{$LT_MAX|escape}"
+			data-lt-miss="{$MISS_N|escape}"
+			{if $CAN_UNREACH} data-lt-can-unreachable="1"{/if}
 			{if !empty($LT.reminder_at_label)} data-lt-reminder="{$LT.reminder_at_label|escape}"{/if}
 			{if empty($LT_CAN_ADD)} data-lt-locked="1"{/if}>
 			<div class="mk-so-inline-detail__last-touch-head">
@@ -118,20 +203,34 @@
 					<h3 class="mk-so-inline-detail__sec-title">{if $MODULE eq 'ServiceContracts' || $MODULE eq 'Leads' || $MODULE eq 'Potentials'}Tương tác{else}Cuộc gọi{/if}</h3>
 					<span class="mk-so-inline-detail__last-touch-badge{if empty($LT_CAN_ADD)} is-done{else} is-open{/if}" data-role="lt-badge">{$LT_COUNT|escape}/{$LT_MAX|escape}</span>
 				</div>
-				<button type="button"
-					class="mk-so-inline-detail__action mk-so-inline-detail__action--call mk-so-inline-detail__call-btn{if empty($LT_CAN_ADD)} is-locked{/if}"
-					data-record-id="{$RECORD->getId()|escape}"
-					data-lt-module="{$MODULE|escape}"
-					data-lt-next="{$LT_NEXT|escape}"
-					data-lt-hint="{$LT_HINT|escape}"
-					{if !empty($LT.reminder_at_label)} data-lt-reminder="{$LT.reminder_at_label|escape}"{/if}
-					{if empty($LT_CAN_ADD)} disabled="disabled" aria-disabled="true"{/if}
-					title="{if empty($LT_CAN_ADD)}{if $LT_HINT neq ''}{$LT_HINT|escape}{else}Đã đủ số lần gọi Last Touch{/if}{else}Ghi cuộc gọi Last Touch #{if $LT_NEXT}{$LT_NEXT|escape}{else}1{/if}{/if}">
-					<i class="fa fa-phone" aria-hidden="true"></i>
-					<span>{if empty($LT_CAN_ADD)}Đã đủ gọi{else}Ghi cuộc gọi{/if}</span>
-				</button>
+				<div class="mk-so-inline-detail__last-touch-actions">
+					<button type="button"
+						class="mk-so-inline-detail__action mk-so-inline-detail__action--call mk-so-inline-detail__call-btn{if empty($LT_CAN_ADD)} is-locked{/if}"
+						data-record-id="{$RECORD->getId()|escape}"
+						data-lt-module="{$MODULE|escape}"
+						data-lt-next="{$LT_NEXT|escape}"
+						data-lt-hint="{$LT_HINT|escape}"
+						{if !empty($LT.reminder_at_label)} data-lt-reminder="{$LT.reminder_at_label|escape}"{/if}
+						{if empty($LT_CAN_ADD)} disabled="disabled" aria-disabled="true"{/if}
+						title="{if empty($LT_CAN_ADD)}{if $LT_HINT neq ''}{$LT_HINT|escape}{else}Đã đủ số lần gọi Last Touch{/if}{else}Ghi cuộc gọi Last Touch #{if $LT_NEXT}{$LT_NEXT|escape}{else}1{/if}{/if}">
+						<i class="fa fa-phone" aria-hidden="true"></i>
+						<span>{if empty($LT_CAN_ADD)}Đã đủ gọi{else}Ghi cuộc gọi{/if}</span>
+					</button>
+					{if $SHOW_UNREACH}
+						<button type="button"
+							class="mk-so-inline-detail__action mk-so-inline-detail__action--outline mk-so-inline-detail__unreachable-btn{if empty($CAN_UNREACH)} is-locked{/if}"
+							data-mk-opp-unreachable="1"
+							data-record-id="{$RECORD->getId()|escape}"
+							data-lt-miss="{$MISS_N|escape}"
+							{if empty($CAN_UNREACH)} disabled="disabled" aria-disabled="true"{/if}
+							title="Không gọi được 3 lần → Dừng CSKH tạm thời (đặt lịch lại 3 lần)">
+							<span>Không gọi được</span>
+							<span class="mk-so-inline-detail__unreachable-count" data-role="lt-miss-badge">{if $ATT_LT.status eq 'offline_ngung_cskh_tam'}3/3{else}{$MISS_N|escape}/3{/if}</span>
+						</button>
+					{/if}
+				</div>
 			</div>
-			<p class="mk-so-inline-detail__last-touch-hint" data-role="lt-hint" title="{if $LT_HINT neq ''}{$LT_HINT|escape}{/if}">{if $LT_HINT neq '' && ($LT_COUNT gt 0 || empty($LT_CAN_ADD))}{$LT_HINT|escape}{elseif $MODULE eq 'ServiceContracts'}Call #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → Liên hệ Đã gửi tư vấn.{elseif $MODULE eq 'Leads'}Call #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → Opp.{else}Call #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → dừng chuỗi gọi.{/if}</p>
+			<p class="mk-so-inline-detail__last-touch-hint" data-role="lt-hint" title="{if $LT_HINT neq ''}{$LT_HINT|escape}{/if}">{if $LT_HINT neq '' && ($LT_COUNT gt 0 || empty($LT_CAN_ADD))}{$LT_HINT|escape}{elseif $MODULE eq 'ServiceContracts'}Call #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → Liên hệ Đã gửi tư vấn.{elseif $MODULE eq 'Leads'}Call #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → Opp.{elseif $MODULE eq 'Potentials'}Call #1 → 5 giờ → #2 → #3. Không gọi được 3 lần (sau XN lịch) → Dừng CSKH tạm · đặt lịch lại 3 lần.{else}Call #1 → 5 giờ → #2 → #3. Không nghe máy: nhắc sau 5 giờ. Nghe máy → dừng chuỗi gọi.{/if}</p>
 			<ul class="mk-so-inline-detail__last-touch-list" data-role="lt-list">
 				{if $LT_CALLS|@count gt 0}
 					{foreach from=$LT_CALLS item=CALL}
@@ -141,7 +240,7 @@
 						</li>
 					{/foreach}
 				{else}
-					<li class="mk-so-inline-detail__last-touch-empty">Chưa có Call #1 — bấm “Ghi cuộc gọi”.</li>
+					<li class="mk-so-inline-detail__last-touch-empty">Chưa có Call #1 — bấm “Ghi cuộc gọi” hoặc “Không gọi được”.</li>
 				{/if}
 			</ul>
 		</div>
@@ -248,7 +347,7 @@
 				<i class="fa fa-file-text-o" aria-hidden="true"></i>
 				<span>Báo giá</span>
 			</a>
-			<label class="mk-so-inline-detail__aff-toggle" title="Tắt chỉ ẩn mã, không xóa">
+				<label class="mk-so-inline-detail__aff-toggle" title="Tắt: xóa mã khỏi hệ thống. Bật: tạo lại mã giới thiệu.">
 				<input type="checkbox" class="mk-so-inline-detail__aff-visible-input"{if !empty($INLINE_SC_AFF_VISIBLE)} checked="checked"{/if} />
 				<span class="mk-so-inline-detail__aff-toggle-ui" aria-hidden="true"></span>
 				<span class="mk-so-inline-detail__aff-toggle-label">Cho phép giới thiệu</span>

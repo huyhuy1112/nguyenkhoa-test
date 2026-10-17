@@ -21,11 +21,14 @@ class SalesOrder_ListView_Model extends Inventory_ListView_Model {
 			require_once 'modules/Vtiger/helpers/MkSalesCustomerName.php';
 			$warehouseNames = $this->loadWarehouseNamesBySalesOrderIds(array_keys($listViewRecordModels));
 			foreach ($listViewRecordModels as $recordId => $recordModel) {
-				$corrected = $this->resolveDisplayGrandTotal($recordModel);
-				if ($corrected !== null) {
-					$formatted = CurrencyField::convertToUserFormat($corrected, null, true);
+				$figures = $this->resolveDisplayAmounts($recordModel);
+				if ($figures !== null) {
+					$formatted = CurrencyField::convertToUserFormat($figures['grand'], null, true);
 					$recordModel->set('hdnGrandTotal', $formatted);
 					$recordModel->set('total', $formatted);
+					$recordModel->set('mk_remaining', CurrencyField::convertToUserFormat($figures['remaining'], null, true));
+				} else {
+					$recordModel->set('mk_remaining', CurrencyField::convertToUserFormat(0, null, true));
 				}
 				$listViewRecordModels[$recordId] = Vtiger_MkSalesCustomerName_Helper::applyListCustomerColumn($recordModel);
 				$whName = isset($warehouseNames[(int) $recordId]) ? $warehouseNames[(int) $recordId] : '';
@@ -83,11 +86,13 @@ class SalesOrder_ListView_Model extends Inventory_ListView_Model {
 	}
 
 	/**
-	 * List "Tổng cộng" for SALES BA:
-	 * Unit prices already include VAT — do NOT invent +8% tax (that caused 1tr → 1.08tr after quote confirm).
-	 * Prefer DB header total; fall back to line sum − discount + ship + adjustment − paid.
+	 * List money for SALES BA.
+	 * Tổng cộng is the order total. Còn lại is that total minus Khách đã trả.
+	 * Unit prices already include VAT — do not invent +8% tax.
+	 *
+	 * @return array{grand:float,remaining:float}|null
 	 */
-	protected function resolveDisplayGrandTotal(Vtiger_Record_Model $recordModel) {
+	protected function resolveDisplayAmounts(Vtiger_Record_Model $recordModel) {
 		$recordId = (int) $recordModel->getId();
 		if ($recordId <= 0) {
 			return null;
@@ -169,15 +174,17 @@ class SalesOrder_ListView_Model extends Inventory_ListView_Model {
 		if ($grand <= 0 && $headerTotal > 0) {
 			$grand = $headerTotal;
 		}
-		if ($grand <= 0) {
+		if ($grand <= 0 && $paid <= 0) {
 			return null;
 		}
-
 		$remaining = $grand - $paid;
 		if ($remaining < 0) {
 			$remaining = 0;
 		}
-		return $remaining;
+		return array(
+			'grand' => $grand,
+			'remaining' => $remaining,
+		);
 	}
 
 	protected function isToolsOrdersContext() {
@@ -341,20 +348,128 @@ class SalesOrder_ListView_Model extends Inventory_ListView_Model {
 
 	public function getQuery() {
 		$listQuery = parent::getQuery();
-		if (!$this->isToolsOrdersContext()) {
+		if ($this->isToolsOrdersContext()) {
+			$userTeam = $this->getUserTeam();
+			if ($userTeam === null) {
+				return $listQuery;
+			}
+
+			$this->toolsOrdersDebugLog('getQuery: userTeam=' . $userTeam);
+			$escapedTeam = PearDatabase::getInstance()->sql_escape_string($userTeam);
+			// Custom internal-order fields were created on vtiger_salesorder table (not vtiger_salesordercf).
+			$sqlClause = " AND vtiger_salesorder.team_group = '" . $escapedTeam . "'";
+			$this->toolsOrdersDebugLog('getQuery: sqlClause=' . $sqlClause);
+			return $listQuery . $sqlClause;
+		}
+
+		$scope = $this->resolveSalesOrderListScope();
+		if ($scope === 'franchise') {
+			return $this->appendBalanceModeFilter($this->appendSalesOrderScopeFilter($listQuery, 'franchise'));
+		}
+		if ($scope === 'retail') {
+			return $this->appendBalanceModeFilter($this->appendSalesOrderScopeFilter($listQuery, 'retail'));
+		}
+		return $this->appendBalanceModeFilter($listQuery);
+	}
+
+	/**
+	 * Filter Còn lại: due = still unpaid, settled = paid in full.
+	 */
+	protected function appendBalanceModeFilter($listQuery) {
+		$listQuery = (string) $listQuery;
+		$mode = isset($_REQUEST['mk_balance_mode']) ? trim((string) $_REQUEST['mk_balance_mode']) : '';
+		if ($listQuery === '' || ($mode !== 'due' && $mode !== 'settled')) {
+			return $listQuery;
+		}
+		if (stripos($listQuery, 'mk_balance_mode_filter') !== false) {
+			return $listQuery;
+		}
+		$remain = '(IFNULL(vtiger_salesorder.total,0) - IFNULL(vtiger_salesorder.received,0))';
+		if ($mode === 'due') {
+			return $listQuery . ' AND ' . $remain . ' > 0.5 /* mk_balance_mode_filter */';
+		}
+		return $listQuery . ' AND IFNULL(vtiger_salesorder.total,0) > 0 AND ' . $remain . ' <= 0.5 /* mk_balance_mode_filter */';
+	}
+
+	/**
+	 * Sales list tabs: franchise = customer code TUIBAO, retail = KL or MIUTEA.
+	 * Prefer vtiger_salesorder.customerno. If that is empty, fall back to the linked account/contact code.
+	 *
+	 * @return string all|franchise|retail
+	 */
+	protected function resolveSalesOrderListScope() {
+		$raw = strtolower(trim((string) $this->get('mk_so_scope')));
+		if ($raw === '' && isset($_REQUEST['mk_so_scope'])) {
+			$raw = strtolower(trim((string) $_REQUEST['mk_so_scope']));
+		}
+		if ($raw === 'franchise' || $raw === 'nhuong_quyen' || $raw === 'nq') {
+			return 'franchise';
+		}
+		if ($raw === 'retail' || $raw === 'ban_le') {
+			return 'retail';
+		}
+		return 'all';
+	}
+
+	/**
+	 * @param string $listQuery
+	 * @param string $scope franchise|retail
+	 * @return string
+	 */
+	protected function appendSalesOrderScopeFilter($listQuery, $scope) {
+		$listQuery = (string) $listQuery;
+		$marker = $scope === 'franchise' ? 'mk_so_scope_franchise' : 'mk_so_scope_retail';
+		if ($listQuery === '' || stripos($listQuery, $marker) !== false) {
 			return $listQuery;
 		}
 
-		$userTeam = $this->getUserTeam();
-		if ($userTeam === null) {
-			return $listQuery;
+		$code = "UPPER(TRIM(IFNULL(vtiger_salesorder.customerno,'')))";
+		if ($scope === 'franchise') {
+			$codeMatch = $code . " LIKE 'TUIBAO%'";
+			$accountMatch = "UPPER(TRIM(IFNULL(soa.account_no,''))) LIKE 'TUIBAO%'";
+			$contactMatch = "UPPER(TRIM(IFNULL(soc.contact_no,''))) LIKE 'TUIBAO%'";
+		} else {
+			$codeMatch = "(" . $code . " LIKE 'KL%' OR " . $code . " LIKE 'MIUTEA%')";
+			$accountMatch = "(UPPER(TRIM(IFNULL(soa.account_no,''))) LIKE 'KL%' OR UPPER(TRIM(IFNULL(soa.account_no,''))) LIKE 'MIUTEA%')";
+			$contactMatch = "(UPPER(TRIM(IFNULL(soc.contact_no,''))) LIKE 'KL%' OR UPPER(TRIM(IFNULL(soc.contact_no,''))) LIKE 'MIUTEA%')";
 		}
 
-		$this->toolsOrdersDebugLog('getQuery: userTeam=' . $userTeam);
-		$escapedTeam = PearDatabase::getInstance()->sql_escape_string($userTeam);
-		// Custom internal-order fields were created on vtiger_salesorder table (not vtiger_salesordercf).
-		$sqlClause = " AND vtiger_salesorder.team_group = '" . $escapedTeam . "'";
-		$this->toolsOrdersDebugLog('getQuery: sqlClause=' . $sqlClause);
-		return $listQuery . $sqlClause;
+		$fragment = " AND (
+			/* " . $marker . " */
+			(
+				TRIM(IFNULL(vtiger_salesorder.customerno,'')) <> ''
+				AND " . $codeMatch . "
+			)
+			OR (
+				TRIM(IFNULL(vtiger_salesorder.customerno,'')) = ''
+				AND (
+					EXISTS (
+						SELECT 1 FROM vtiger_account soa
+						INNER JOIN vtiger_crmentity soae
+							ON soae.crmid = soa.accountid AND soae.deleted = 0
+						WHERE soa.accountid = vtiger_salesorder.accountid
+							AND " . $accountMatch . "
+					)
+					OR EXISTS (
+						SELECT 1 FROM vtiger_contactdetails soc
+						INNER JOIN vtiger_crmentity soce
+							ON soce.crmid = soc.contactid AND soce.deleted = 0
+						WHERE soc.contactid = vtiger_salesorder.contactid
+							AND " . $contactMatch . "
+					)
+				)
+			)
+		) ";
+
+		if (preg_match('/\sORDER\s+BY\s/i', $listQuery)) {
+			return preg_replace('/\sORDER\s+BY\s/i', $fragment . ' ORDER BY ', $listQuery, 1);
+		}
+		if (preg_match('/\sGROUP\s+BY\s/i', $listQuery)) {
+			return preg_replace('/\sGROUP\s+BY\s/i', $fragment . ' GROUP BY ', $listQuery, 1);
+		}
+		if (preg_match('/\sLIMIT\s+/i', $listQuery)) {
+			return preg_replace('/\sLIMIT\s+/i', $fragment . ' LIMIT ', $listQuery, 1);
+		}
+		return $listQuery . $fragment;
 	}
 }

@@ -261,6 +261,12 @@ class Leads_Detail_View extends Vtiger_Index_View {
 		$viewer->assign('INLINE_CAN_CONVERT', $canConvert);
 		$viewer->assign('INLINE_POTENTIAL_URL', $potentialUrl);
 		$viewer->assign('INLINE_LAST_TOUCH', $lastTouch);
+		try {
+			require_once 'modules/Vtiger/models/CareActivityService.php';
+			$viewer->assign('MK_CARE_LOG', Vtiger_CareActivityService::listFor('Leads', $recordId));
+		} catch (Exception $e) {
+			$viewer->assign('MK_CARE_LOG', array());
+		}
 		return $viewer->view('partials/MkSalesPosInlineDetail.tpl', 'Vtiger', true);
 	}
 

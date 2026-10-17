@@ -736,6 +736,19 @@ class Vtiger_NotificationService {
 		$svc = HelpDesk_TagRuleEngineService::getInstance();
 		if (method_exists($svc, 'upsertDismissal')) {
 			$svc->upsertDismissal((int)$userId, $parsed['lead_id'], $parsed['rule_id'], null);
+			try {
+				require_once 'modules/Vtiger/models/CareActivityService.php';
+				Vtiger_CareActivityService::log(
+					'Leads',
+					$parsed['lead_id'],
+					'CSKH',
+					'Xác nhận đã xử lý thông báo',
+					(string) $parsed['rule_id'],
+					$userId
+				);
+			} catch (Exception $e) {
+				// ignore
+			}
 			self::bustCskhCache();
 			return true;
 		}
@@ -765,10 +778,36 @@ class Vtiger_NotificationService {
 		$row['is_read'] = isset($row['is_read']) ? (int)$row['is_read'] : 0;
 		$mod = isset($row['module']) ? $row['module'] : 'Vtiger';
 		$rid = isset($row['recordid']) ? (int)$row['recordid'] : 0;
-		if ($rid > 0 && empty($row['detail_url'])) {
-			$row['detail_url'] = 'index.php?module=' . $mod . '&view=Detail&record=' . $rid;
-		}
+		$row['detail_url'] = self::detailUrlForModule(
+			$mod,
+			$rid,
+			isset($row['detail_url']) ? $row['detail_url'] : ''
+		);
 		return $row;
+	}
+
+	/**
+	 * Trang chi tiết mới của bán hàng chỉ mở khi link có app=SALES.
+	 */
+	public static function detailUrlForModule($module, $recordId, $existing = '') {
+		$module = preg_replace('/[^A-Za-z0-9_]/', '', (string) $module);
+		$recordId = (int) $recordId;
+		$url = trim((string) $existing);
+		if ($url === '' && $recordId > 0 && $module !== '') {
+			$url = 'index.php?module=' . $module . '&view=Detail&record=' . $recordId;
+		}
+		$needsSalesApp = array(
+			'ServiceContracts' => true,
+			'Contacts' => true,
+			'Accounts' => true,
+			'Quotes' => true,
+			'SalesOrder' => true,
+			'Invoice' => true,
+		);
+		if ($url !== '' && isset($needsSalesApp[$module]) && !preg_match('/(?:^|[?&])app=/', $url)) {
+			$url .= (strpos($url, '?') === false ? '?' : '&') . 'app=SALES';
+		}
+		return $url;
 	}
 
 	/**

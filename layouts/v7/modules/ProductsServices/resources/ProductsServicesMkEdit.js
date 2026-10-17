@@ -21,7 +21,6 @@
 		'Con',
 		'Kg',
 		'Bộ',
-		'Set',
 		'Lít'
 	];
 	var UNIT_STORAGE_KEY = 'mk_ps_custom_units_v1';
@@ -244,16 +243,45 @@
 		} catch (e) { /* ignore */ }
 	}
 
+	function canonicalUnit(raw) {
+		var s = String(raw || '').trim().toLowerCase();
+		var fold = s
+			.replace(/[áàảãạăắằẳẵặâấầẩẫậ]/g, 'a')
+			.replace(/[éèẻẽẹêếềểễệ]/g, 'e')
+			.replace(/[íìỉĩị]/g, 'i')
+			.replace(/[óòỏõọôốồổỗộơớờởỡợ]/g, 'o')
+			.replace(/[úùủũụưứừửữự]/g, 'u')
+			.replace(/[ýỳỷỹỵ]/g, 'y')
+			.replace(/đ/g, 'd');
+		var map = {
+			pcs: 'Cái', piece: 'Cái', cai: 'Cái',
+			box: 'Hộp', hop: 'Hộp',
+			set: 'Bộ', bo: 'Bộ',
+			kg: 'Kg',
+			bich: 'Bịch', bao: 'Bao', lon: 'Lon', hu: 'Hũ', goi: 'Gói',
+			can: 'Can', thung: 'Thùng', binh: 'Bình', chai: 'Chai',
+			cuon: 'Cuộn', con: 'Con', lit: 'Lít', liter: 'Lít', litre: 'Lít'
+		};
+		if (map[fold]) return map[fold];
+		for (var i = 0; i < UNIT_PRESETS.length; i++) {
+			if (canonicalUnitKey(UNIT_PRESETS[i]) === fold) return UNIT_PRESETS[i];
+		}
+		return String(raw || '').trim();
+	}
+
+	function canonicalUnitKey(label) {
+		return String(label || '').trim().toLowerCase()
+			.replace(/[áàảãạăắằẳẵặâấầẩẫậ]/g, 'a')
+			.replace(/[éèẻẽẹêếềểễệ]/g, 'e')
+			.replace(/[íìỉĩị]/g, 'i')
+			.replace(/[óòỏõọôốồổỗộơớờởỡợ]/g, 'o')
+			.replace(/[úùủũụưứừửữự]/g, 'u')
+			.replace(/[ýỳỷỹỵ]/g, 'y')
+			.replace(/đ/g, 'd');
+	}
+
 	function allUnits() {
-		var out = [];
-		var seen = {};
-		UNIT_PRESETS.concat(loadCustomUnits()).forEach(function (u) {
-			var key = String(u || '').trim();
-			if (!key || seen[key]) return;
-			seen[key] = true;
-			out.push(key);
-		});
-		return out;
+		return UNIT_PRESETS.slice();
 	}
 
 	function enhanceUnitField() {
@@ -268,9 +296,7 @@
 		}
 		$select.data('mkPsUnitReady', true);
 
-		var current = String($select.val() || '').trim();
-		var mapOld = { pcs: 'cái', box: 'hộp', set: 'set', kg: 'kg', Piece: 'cái', Box: 'hộp', Set: 'set' };
-		if (mapOld[current]) current = mapOld[current];
+		var current = canonicalUnit($select.val() || '');
 
 		var units = allUnits();
 		if (current && units.indexOf(current) < 0) {
@@ -281,7 +307,6 @@
 			'<div class="mk-ps-unit-box">' +
 				'<div class="mk-ps-unit-box__row">' +
 					'<select class="mk-ps-unit-box__select inputElement" aria-label="Đơn vị tính"></select>' +
-					'<button type="button" class="mk-ps-unit-box__add" title="Thêm đơn vị">+</button>' +
 				'</div>' +
 			'</div>'
 		);
@@ -316,25 +341,7 @@
 		$host.append($wrap);
 
 		$uiSelect.on('change', function () {
-			syncHidden($(this).val());
-		});
-
-		$wrap.find('.mk-ps-unit-box__add').on('click', function (e) {
-			e.preventDefault();
-			var next = window.prompt('Thêm đơn vị tính mới:', '');
-			if (next === null) return;
-			next = String(next).trim();
-			if (!next) return;
-			var customs = loadCustomUnits();
-			if (customs.indexOf(next) < 0 && UNIT_PRESETS.indexOf(next) < 0) {
-				customs.push(next);
-				saveCustomUnits(customs);
-			}
-			if (!$uiSelect.find('option').filter(function () { return $(this).val() === next; }).length) {
-				$uiSelect.append($('<option></option>').attr('value', next).text(next));
-			}
-			$uiSelect.val(next);
-			syncHidden(next);
+			syncHidden(canonicalUnit($(this).val()));
 		});
 	}
 
@@ -575,6 +582,9 @@
 	}
 
 	function triggerSave() {
+		if (typeof syncQtyRulesHidden === 'function') {
+			syncQtyRulesHidden();
+		}
 		var $save = $form().find('.saveButton').first();
 		if ($save.length) {
 			$save.trigger('click');
@@ -652,6 +662,7 @@
 				$field.addClass('mk-ps-compact-field--hero');
 			}
 			if (fname === 'price' || fname === 'wholesale_price'
+				|| fname === 'price_tuibao' || fname === 'price_miutea'
 				|| fname === 'price_lt_1m' || fname === 'price_gte_1m'
 				|| fname === 'price_gte_3m' || fname === 'price_gte_5m'
 				|| fname === 'price_gte_7m') {
@@ -781,6 +792,215 @@
 		});
 	}
 
+	var QTY_UNIT_WORD = {
+		lon: 'lon',
+		bich: 'bịch',
+		hop: 'hộp',
+		bao: 'bao',
+		thung: 'thùng',
+		binh: 'bình',
+		chai: 'chai',
+		goi: 'gói',
+		cai: 'cái',
+		hu: 'hũ',
+		can: 'can',
+		cuon: 'cuộn',
+		con: 'con',
+		kg: 'kg',
+		bo: 'bộ',
+		set: 'set',
+		lit: 'lít'
+	};
+	var QTY_TIERS = [
+		{ value: 'gte_3m', label: 'Giá trên 3 triệu' },
+		{ value: 'gte_5m', label: 'Giá trên 5 triệu' },
+		{ value: 'gte_7m', label: 'Giá trên 7 triệu' }
+	];
+
+	function qtyUnitKey(raw) {
+		var s = String(raw || '').toLowerCase();
+		if (s.indexOf('thùng') >= 0 || s.indexOf('thung') >= 0) return 'thung';
+		if (s.indexOf('bịch') >= 0 || s.indexOf('bich') >= 0) return 'bich';
+		if (s.indexOf('hộp') >= 0 || s.indexOf('hop') >= 0) return 'hop';
+		if (s.indexOf('lon') >= 0) return 'lon';
+		if (s.indexOf('bao') >= 0) return 'bao';
+		if (s.indexOf('bình') >= 0 || s.indexOf('binh') >= 0) return 'binh';
+		if (s.indexOf('chai') >= 0) return 'chai';
+		if (s.indexOf('gói') >= 0 || s.indexOf('goi') >= 0) return 'goi';
+		if (s.indexOf('hũ') >= 0 || s.indexOf('hu') >= 0) return 'hu';
+		if (s.indexOf('can') >= 0) return 'can';
+		if (s.indexOf('cuộn') >= 0 || s.indexOf('cuon') >= 0) return 'cuon';
+		if (s.indexOf('cái') >= 0 || s.indexOf('cai') >= 0) return 'cai';
+		if (s.indexOf('bộ') >= 0 || s === 'bo') return 'bo';
+		if (s.indexOf('lít') >= 0 || s.indexOf('lit') >= 0) return 'lit';
+		if (s.indexOf('kg') >= 0) return 'kg';
+		if (s.indexOf('set') >= 0) return 'set';
+		if (s.indexOf('con') >= 0) return 'con';
+		return '';
+	}
+
+	function currentSellUnit() {
+		var raw = String($form().find('select[name="unit"]').first().val() || '').trim();
+		var pack = window.MK_PS_QTY_RULES || {};
+		var key = qtyUnitKey(raw) || qtyUnitKey(pack.sell_unit);
+		var word = QTY_UNIT_WORD[key] || raw || 'đơn vị';
+		return { key: key, word: word };
+	}
+
+	function stepsFromPack(pack) {
+		var rules = pack && pack.rules ? pack.rules : [];
+		var sell = qtyUnitKey(pack && pack.sell_unit);
+		var per = Number(pack && pack.per_thung) || 0;
+		var steps = [];
+		rules.forEach(function (rule) {
+			var min = Number(rule.min) || 0;
+			if (!(min > 0)) return;
+			var ruleUnit = qtyUnitKey(rule.unit);
+			var qty = min;
+			if (ruleUnit === 'thung' && sell !== 'thung' && per > 0) {
+				qty = min * per;
+			}
+			steps.push({ qty: qty, tier: rule.tier || 'gte_3m' });
+		});
+		steps.sort(function (a, b) { return a.qty - b.qty; });
+		return steps;
+	}
+
+	function payloadFromSteps(steps) {
+		var origin = window.MK_PS_QTY_ORIGIN || { sell_unit: '', per_thung: 0 };
+		var sell = currentSellUnit();
+		var sellKey = sell.key || origin.sell_unit || 'cai';
+		var per = sellKey && sellKey === origin.sell_unit ? (Number(origin.per_thung) || 0) : 0;
+		var rules = [];
+		steps.forEach(function (step) {
+			var qty = parseInt(step.qty, 10) || 0;
+			if (!(qty > 0)) return;
+			if (per > 0 && sellKey !== 'thung' && qty % per === 0) {
+				rules.push({ min: qty / per, unit: 'thung', tier: step.tier });
+				return;
+			}
+			rules.push({ min: qty, unit: sellKey, tier: step.tier });
+		});
+		return {
+			sell_unit: sellKey,
+			per_thung: per,
+			rules: rules
+		};
+	}
+
+	function readEditorSteps($box) {
+		var steps = [];
+		$box.find('.mk-ps-qty-row').each(function () {
+			var qty = parseInt($(this).find('.mk-ps-qty-min').val(), 10) || 0;
+			var tier = String($(this).find('.mk-ps-qty-tier').val() || '');
+			if (qty > 0 && tier) {
+				steps.push({ qty: qty, tier: tier });
+			}
+		});
+		steps.sort(function (a, b) { return a.qty - b.qty; });
+		return steps;
+	}
+
+	function syncQtyRulesHidden() {
+		var $box = $('#mkPsQtyRules');
+		if (!$box.length) return;
+		var payload = payloadFromSteps(readEditorSteps($box));
+		window.MK_PS_QTY_RULES = payload;
+		$box.find('#mkPsQtyRulesValue').val(JSON.stringify(payload));
+		$box.find('.mk-ps-qty-empty').toggle(!$box.find('.mk-ps-qty-row').length);
+	}
+
+	function qtyTierSelect(selected) {
+		var html = '<select class="mk-ps-qty-tier">';
+		QTY_TIERS.forEach(function (item) {
+			html += '<option value="' + item.value + '"' + (item.value === selected ? ' selected' : '') + '>' + item.label + '</option>';
+		});
+		html += '</select>';
+		return html;
+	}
+
+	function qtyRowHtml(step) {
+		var qty = step && step.qty ? step.qty : '';
+		var tier = step && step.tier ? step.tier : 'gte_3m';
+		return (
+			'<div class="mk-ps-qty-row">' +
+			'<span>Từ</span>' +
+			'<input type="number" min="1" step="1" class="mk-ps-qty-min" value="' + qty + '" />' +
+			'<span class="mk-ps-qty-unit"></span>' +
+			qtyTierSelect(tier) +
+			'<button type="button" class="mk-ps-qty-remove" aria-label="Xóa mốc">×</button>' +
+			'</div>'
+		);
+	}
+
+	function refreshQtyUnitWords() {
+		var word = currentSellUnit().word;
+		$('#mkPsQtyRules .mk-ps-qty-unit').text(word);
+	}
+
+	function mountQtyRulesEditor() {
+		var $formEl = $form();
+		if (!$formEl.length) return;
+		if ($('#mkPsQtyRules').length) {
+			refreshQtyUnitWords();
+			return;
+		}
+		var pack = window.MK_PS_QTY_RULES || { rules: [] };
+		if (!window.MK_PS_QTY_ORIGIN) {
+			window.MK_PS_QTY_ORIGIN = {
+				sell_unit: qtyUnitKey(pack.sell_unit),
+				per_thung: Number(pack.per_thung) || 0
+			};
+		}
+		var steps = stepsFromPack(pack);
+		var $box = $(
+			'<section class="mk-ps-qty-rules" id="mkPsQtyRules">' +
+			'<h3>Chiết khấu theo số lượng</h3>' +
+			'<p>Từ bao nhiêu đơn vị thì dùng cột giá nào. Để trống nếu món này không giảm theo số lượng.</p>' +
+			'<div class="mk-ps-qty-rows"></div>' +
+			'<p class="mk-ps-qty-empty">Món này chưa có mốc số lượng.</p>' +
+			'<button type="button" class="mk-ps-qty-add">Thêm mốc</button>' +
+			'<input type="hidden" name="mk_kl_qty_rules" id="mkPsQtyRulesValue" value="" />' +
+			'</section>'
+		);
+		var $rows = $box.find('.mk-ps-qty-rows');
+		steps.forEach(function (step) {
+			$rows.append(qtyRowHtml(step));
+		});
+		var $block = $formEl.find('.mk-ps-block--primary').first();
+		if (!$block.length) {
+			$block = $formEl.find('.fieldBlockContainer').first();
+		}
+		if ($block.length) {
+			$block.append($box);
+		} else {
+			$formEl.append($box);
+		}
+		$box.on('click', '.mk-ps-qty-add', function () {
+			$rows.append(qtyRowHtml({ qty: '', tier: 'gte_3m' }));
+			refreshQtyUnitWords();
+			$box.find('.mk-ps-qty-empty').hide();
+			syncQtyRulesHidden();
+		});
+		$box.on('click', '.mk-ps-qty-remove', function () {
+			$(this).closest('.mk-ps-qty-row').remove();
+			syncQtyRulesHidden();
+		});
+		$box.on('input change', '.mk-ps-qty-min, .mk-ps-qty-tier', function () {
+			syncQtyRulesHidden();
+		});
+		$formEl.off('change.mkQtyUnit').on('change.mkQtyUnit', 'select[name="unit"]', function () {
+			var next = currentSellUnit();
+			if (window.MK_PS_QTY_RULES) {
+				window.MK_PS_QTY_RULES.sell_unit = next.key || window.MK_PS_QTY_RULES.sell_unit;
+			}
+			refreshQtyUnitWords();
+			syncQtyRulesHidden();
+		});
+		refreshQtyUnitWords();
+		syncQtyRulesHidden();
+	}
+
 	function markPainted() {
 		document.documentElement.classList.add('mk-ps-create-painted', 'mk-ps-create-ready');
 		if (document.body) {
@@ -807,6 +1027,7 @@
 			window.MkCurrency.applyToDom('#mkPsFormHost');
 		}
 		bindActions();
+		mountQtyRulesEditor();
 		markPainted();
 	}
 

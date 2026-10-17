@@ -22,8 +22,8 @@ class Accounts_ListView_Model extends Vtiger_ListView_Model {
 	}
 
 	private function getModernOrganizationsListFieldOrder() {
-		// Tuibao list: số HĐ, tên công ty, SĐT, địa chỉ, phụ trách
-		return array('tb_contract_no', 'accountname', 'phone', 'tb_store_address', 'assigned_user_id');
+		// KH NQ tiềm năng (Leads-like): ngày tạo, tên, SĐT, địa chỉ, mã, phụ trách
+		return array('createdtime', 'accountname', 'phone', 'tb_store_address', 'account_no', 'assigned_user_id');
 	}
 
 	/**
@@ -67,10 +67,11 @@ class Accounts_ListView_Model extends Vtiger_ListView_Model {
 		}
 
 		$labelOverrides = array(
-			'tb_contract_no' => 'Số hợp đồng',
-			'accountname' => 'Tên công ty',
-			'phone' => 'Số điện thoại',
+			'createdtime' => 'Ngày tạo',
+			'accountname' => 'Khách hàng',
+			'phone' => 'Điện thoại',
 			'tb_store_address' => 'Địa chỉ',
+			'account_no' => 'Mã Tuibao',
 			'assigned_user_id' => 'Phụ trách',
 		);
 		foreach ($filtered as $fieldName => $fieldInstance) {

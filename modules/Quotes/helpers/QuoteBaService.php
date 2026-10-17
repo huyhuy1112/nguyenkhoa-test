@@ -619,8 +619,29 @@ class Quotes_QuoteBaService_Helper {
 		return false;
 	}
 
+	public static function isCancelledQuoteStage($stage) {
+		$stage = trim((string) $stage);
+		if ($stage === '') {
+			return false;
+		}
+		$cancelled = array('Rejected', 'Huỷ', 'Hủy', 'Cancelled', 'Đã hủy', 'Đã huỷ', 'Đã từ chối', 'Từ chối', 'Đã từ chối');
+		foreach ($cancelled as $value) {
+			if (strcasecmp($stage, $value) === 0) {
+				return true;
+			}
+		}
+		$plain = mb_strtolower(preg_replace('/[\x{0300}-\x{036f}]/u', '', $stage), 'UTF-8');
+		return (strpos($plain, 'tu choi') !== false)
+			|| (strpos($plain, 'từ chối') !== false)
+			|| (strpos($plain, 'huy') !== false)
+			|| (strpos($plain, 'hủy') !== false)
+			|| (strpos($plain, 'huỷ') !== false)
+			|| (strpos($plain, 'cancel') !== false)
+			|| (strpos($plain, 'reject') !== false);
+	}
+
 	public static function isConfirmedQuoteStage($stage) {
-		if (self::isDraftQuoteStage($stage)) {
+		if (self::isDraftQuoteStage($stage) || self::isCancelledQuoteStage($stage)) {
 			return false;
 		}
 		$stage = trim((string) $stage);
@@ -642,16 +663,25 @@ class Quotes_QuoteBaService_Helper {
 			return '';
 		}
 		$map = array(
-			'Created' => 'Nháp',
-			'Nháp' => 'Nháp',
-			'Draft' => 'Nháp',
-			'Đã tạo' => 'Nháp',
-			'Báo giá' => 'Báo giá',
-			'Accepted' => 'Báo giá',
-			'Confirmed' => 'Báo giá',
-			'Xác nhận' => 'Báo giá',
-			'Chấp nhận' => 'Báo giá',
-			'Delivered' => 'Báo giá',
+			'Created' => 'Phiếu tạm',
+			'Nháp' => 'Phiếu tạm',
+			'Draft' => 'Phiếu tạm',
+			'Đã tạo' => 'Phiếu tạm',
+			'Báo giá' => 'Phiếu tạm',
+			'Accepted' => 'Phiếu tạm',
+			'Confirmed' => 'Phiếu tạm',
+			'Xác nhận' => 'Phiếu tạm',
+			'Chấp nhận' => 'Phiếu tạm',
+			'Delivered' => 'Phiếu tạm',
+			'Rejected' => 'Huỷ',
+			'Huỷ' => 'Huỷ',
+			'Hủy' => 'Huỷ',
+			'Cancelled' => 'Huỷ',
+			'Đã hủy' => 'Huỷ',
+			'Đã huỷ' => 'Huỷ',
+			'Đã từ chối' => 'Huỷ',
+			'Đã từ chối' => 'Huỷ',
+			'Từ chối' => 'Huỷ',
 		);
 		if (isset($map[$stage])) {
 			return $map[$stage];
@@ -661,7 +691,10 @@ class Quotes_QuoteBaService_Helper {
 				return $label;
 			}
 		}
-		return $stage;
+		if (self::isCancelledQuoteStage($stage)) {
+			return 'Huỷ';
+		}
+		return 'Phiếu tạm';
 	}
 
 	/**

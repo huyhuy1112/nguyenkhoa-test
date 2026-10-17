@@ -26,6 +26,11 @@ class Home_AdminKpiApi_Action extends Vtiger_Action_Controller {
 	}
 
 	public function validateRequest(Vtiger_Request $request) {
+		$mode = strtolower((string) $request->get('mode'));
+		if ($mode === 'save_ad_spend') {
+			$request->validateWriteAccess();
+			return;
+		}
 		$request->validateReadAccess();
 	}
 
@@ -73,8 +78,40 @@ class Home_AdminKpiApi_Action extends Vtiger_Action_Controller {
 								'key' => (string) $request->get('key'),
 								'id' => (int) $request->get('id'),
 								'year' => (int) $request->get('year'),
+								'stage_period' => (string) $request->get('stage_period'),
+								'stage_offset' => (int) $request->get('stage_offset'),
 							)
 						),
+					));
+					break;
+
+				case 'role_boards':
+					$user = Users_Record_Model::getCurrentUserModel();
+					$persona = Home_AdminKpiAccess_Helper::getPersona($user);
+					$response->setResult(array(
+						'success' => true,
+						'persona' => $persona,
+						'boards' => Home_AdminKpiService::getRoleBoards(
+							$persona,
+							(int) $user->getId(),
+							(string) $request->get('report_period')
+						),
+					));
+					break;
+
+				case 'save_ad_spend':
+					require_once 'modules/Reports/models/MktSheetReportService.php';
+					$user = Users_Record_Model::getCurrentUserModel();
+					$amount = Reports_MktSheetReportService::parseMoneyInput($request->get('amount'));
+					Reports_MktSheetReportService::saveSpend(
+						(string) $request->get('spend_date'),
+						$amount,
+						(int) $user->getId()
+					);
+					$bounds = Home_AdminKpiService::reportPeriodBounds((string) $request->get('report_period'));
+					$response->setResult(array(
+						'success' => true,
+						'sheet' => Reports_MktSheetReportService::payload(null, $bounds['from'], $bounds['to']),
 					));
 					break;
 
@@ -88,6 +125,8 @@ class Home_AdminKpiApi_Action extends Vtiger_Action_Controller {
 						'dimension' => (string) $request->get('dimension'),
 						'sale_id' => (int) $request->get('sale_id'),
 						'year' => (int) $request->get('year'),
+						'stage_period' => (string) $request->get('stage_period'),
+						'stage_offset' => (int) $request->get('stage_offset'),
 					);
 					if ($mode === 'funnel') {
 						$payload = array('funnel' => Home_AdminKpiService::getSalesFunnel());

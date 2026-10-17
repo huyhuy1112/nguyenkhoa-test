@@ -2313,7 +2313,7 @@ html.mk-project-list-management body[data-module="Project"][data-view="List"][da
 /* ========================================================================== */
 
 html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] {
-	--mk-app-footer-h: 54px;
+	--mk-app-footer-h: 0px;
 }
 
 html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] #page > .app-footer {
@@ -2353,17 +2353,12 @@ html.mk-project-list-management body[data-module="Project"][data-view="List"][da
 html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main,
 html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-dash-main.mk-project-list-main {
 	flex: 1 1 auto !important;
-	min-height: calc(100vh - var(--mk-dash-topbar-h, 64px) - var(--mk-app-footer-h, 54px)) !important;
+	min-height: calc(100vh - var(--mk-dash-topbar-h, 64px)) !important;
 	overflow: visible !important;
 }
 
 html.mk-project-list-management body[data-module="Project"][data-view="List"][data-app="MANAGEMENT"] .mk-app-shell > .mk-project-shell-footer.app-footer.mk-app-footer {
-	display: block !important;
-	flex: 0 0 auto !important;
-	margin-top: auto !important;
-	width: 100% !important;
-	margin-left: 0 !important;
-	z-index: 5 !important;
+	display: none !important;
 }
 
 /* Pagination footer dưới bảng */

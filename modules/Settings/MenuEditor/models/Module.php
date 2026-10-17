@@ -80,6 +80,18 @@ class Settings_MenuEditor_Module_Model extends Settings_Vtiger_Module_Model {
 					if ($appKey === 'MANAGEMENT' && $moduleName === 'Contacts') {
 						continue;
 					}
+					// Hỗ trợ: ẩn Hỏi đáp (Faq) — khách không dùng
+					if ($appKey === 'SUPPORT' && $moduleName === 'Faq') {
+						continue;
+					}
+					// Quản lý: ẩn Dự án / Nhiệm vụ dự án — khách không dùng
+					if ($appKey === 'MANAGEMENT' && ($moduleName === 'Project' || $moduleName === 'ProjectTask' || $moduleName === 'ProjectMilestone')) {
+						continue;
+					}
+					// App PROJECT gốc (nếu còn): cũng ẩn để không lộ lại
+					if ($appKey === 'PROJECT' && ($moduleName === 'Project' || $moduleName === 'ProjectTask' || $moduleName === 'ProjectMilestone')) {
+						continue;
+					}
 					$modules[$appKey][$moduleName] = $moduleModel;
 				}
 			}
@@ -97,11 +109,55 @@ class Settings_MenuEditor_Module_Model extends Settings_Vtiger_Module_Model {
 			}
 		}
 
+		self::ensureFranchiseProspectsMenu($modules);
+		self::ensureVendorCatalogMenu($modules);
 		if (!empty($modules['SALES'])) {
 			$modules['SALES'] = self::sortSalesAppModules($modules['SALES']);
 		}
 
 		return $modules;
+	}
+
+	/**
+	 * Show Khách hàng nhượng quyền tiềm năng under Tuibao for Sales and Kế toán.
+	 */
+	protected static function ensureFranchiseProspectsMenu(array &$modules) {
+		require_once 'modules/ServiceContracts/helpers/FranchiseListAccess.php';
+		if (!ServiceContracts_FranchiseListAccess_Helper::currentUserCanSee()) {
+			return;
+		}
+		if (!empty($modules['SALES']['ServiceContracts'])) {
+			return;
+		}
+		$moduleModel = Vtiger_Module_Model::getInstance('ServiceContracts');
+		if (!$moduleModel || !$moduleModel->isActive()) {
+			return;
+		}
+		if (!isset($modules['SALES']) || !is_array($modules['SALES'])) {
+			$modules['SALES'] = array();
+		}
+		$modules['SALES']['ServiceContracts'] = $moduleModel;
+	}
+
+	/**
+	 * Show Kho so Kế toán can open Danh mục nhà cung cấp.
+	 */
+	protected static function ensureVendorCatalogMenu(array &$modules) {
+		require_once 'modules/Vendors/helpers/CatalogAccess.php';
+		if (!Vendors_CatalogAccess_Helper::currentUserCanManage()) {
+			return;
+		}
+		if (!empty($modules['INVENTORY'])) {
+			return;
+		}
+		$moduleModel = Vtiger_Module_Model::getInstance('Warehouse');
+		if (!$moduleModel || !$moduleModel->isActive()) {
+			$moduleModel = Vtiger_Module_Model::getInstance('Vendors');
+		}
+		if (!$moduleModel || !$moduleModel->isActive()) {
+			return;
+		}
+		$modules['INVENTORY'] = array($moduleModel->getName() => $moduleModel);
 	}
 
 	/**

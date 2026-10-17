@@ -55,7 +55,33 @@ class Settings_Vtiger_IntegrationsAjax_Action extends Settings_Vtiger_Basic_Acti
 			NkApiConnection::ensureInstalled();
 			$code = trim((string) $request->get('code'));
 			$adapter = NkApiConnection::adapter($code);
-			$result = $adapter->test();
+			$options = array();
+			$sourceId = (int) $request->get('source_id');
+			if ($sourceId <= 0) {
+				$payload = $this->decodePayload($request);
+				if (isset($payload['source_id'])) {
+					$sourceId = (int) $payload['source_id'];
+				}
+				if (!empty($payload['test_all'])) {
+					$options['test_all'] = 1;
+				}
+			}
+			if ($sourceId > 0) {
+				$options['source_id'] = $sourceId;
+			}
+			if ((int) $request->get('test_all') === 1) {
+				$options['test_all'] = 1;
+			}
+			if (method_exists($adapter, 'test')) {
+				$ref = new ReflectionMethod($adapter, 'test');
+				if ($ref->getNumberOfParameters() > 0) {
+					$result = $adapter->test($options);
+				} else {
+					$result = $adapter->test();
+				}
+			} else {
+				$result = array('success' => false, 'message' => 'Adapter không hỗ trợ test.');
+			}
 			$result['connection'] = $adapter->getConfigForAdmin();
 			$response->setResult($result);
 		} catch (Exception $e) {
@@ -102,8 +128,8 @@ class Settings_Vtiger_IntegrationsAjax_Action extends Settings_Vtiger_Basic_Acti
 		$payload = array();
 		$keys = array(
 			'enabled', 'base_url', 'api_key', 'username', 'password',
-			'spreadsheet_id', 'sheet_range', 'service_account_json', 'column_map',
-			'app_id', 'oa_id', 'secret_key', 'refresh_token', 'access_token',
+			'spreadsheet_id', 'sheet_range', 'service_account_json', 'column_map', 'sources_json', 'source_name', 'source_tag', 'source_id',
+			'app_id', 'oa_id', 'secret_key', 'refresh_token', 'access_token', 'follow_url',
 		);
 		foreach ($keys as $key) {
 			$val = $request->getRaw($key);

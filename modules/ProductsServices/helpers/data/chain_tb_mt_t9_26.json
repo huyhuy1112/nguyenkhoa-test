@@ -1,0 +1,432 @@
+[
+  {
+    "name": "Trân châu đen Nguyên Khoa (1kg)",
+    "price": 28000,
+    "no_discount": 0
+  },
+  {
+    "name": "Thạch dừa hương xoài Nguyên Khoa",
+    "price": 125000,
+    "no_discount": 0
+  },
+  {
+    "name": "Thạch dừa Nguyên Khoa (1kg)",
+    "price": 30000,
+    "no_discount": 0
+  },
+  {
+    "name": "Thạch dừa hương xoài Nguyên Khoa (1kg)",
+    "price": 35000,
+    "no_discount": 0
+  },
+  {
+    "name": "Trân châu 3Q Ngọc Trai Hoàng Hải (2kg/bịch)",
+    "price": 45000,
+    "no_discount": 1
+  },
+  {
+    "name": "Trân châu 3Q Caramel Hoàng Hải (2kg/bịch)",
+    "price": 45000,
+    "no_discount": 1
+  },
+  {
+    "name": "Trân Châu 3Q hương Ô long (2kg/bịch)",
+    "price": 60000,
+    "no_discount": 1
+  },
+  {
+    "name": "Hạt Nổ Củ Năng trắng",
+    "price": 60000,
+    "no_discount": 1
+  },
+  {
+    "name": "Hạt Nổ Củ Năng hồng",
+    "price": 60000,
+    "no_discount": 1
+  },
+  {
+    "name": "Hạt nổ củ năng hồng Zestty",
+    "price": 60000,
+    "no_discount": 1
+  },
+  {
+    "name": "Thạch Hạt Thuỷ Tinh Trái Cây",
+    "price": 80000,
+    "no_discount": 1
+  },
+  {
+    "name": "Rau câu Sóc Vàng",
+    "price": 60000,
+    "no_discount": 1
+  },
+  {
+    "name": "Đào ngâm Hose 820gr",
+    "price": 33000,
+    "no_discount": 1
+  },
+  {
+    "name": "Vải thiều ngâm nước đường 565g (Lon)",
+    "price": 38000,
+    "no_discount": 1
+  },
+  {
+    "name": "Vải Ngâm Resk 565g ( Lon)",
+    "price": 40000,
+    "no_discount": 1
+  },
+  {
+    "name": "Bột sữa Nguyên Khoa M32 ( 20Kg/bao)",
+    "price": 1330000,
+    "no_discount": 0
+  },
+  {
+    "name": "Bột sữa Nguyên Khoa M32 ( 1Kg/bịch)",
+    "price": 75000,
+    "no_discount": 0
+  },
+  {
+    "name": "Bột Trà sữa dưa lưới 1kg",
+    "price": 115000,
+    "no_discount": 0
+  },
+  {
+    "name": "Bột Trà sữa Sầu Riêng 1kg",
+    "price": 115000,
+    "no_discount": 0
+  },
+  {
+    "name": "Bột Trà sữa dâu 1kg",
+    "price": 115000,
+    "no_discount": 0
+  },
+  {
+    "name": "Bột Trà sữa Khoai Môn Tím 1kg",
+    "price": 115000,
+    "no_discount": 0
+  },
+  {
+    "name": "Bột Trà sữa Socola Nguyên Khoa 1kg",
+    "price": 125000,
+    "no_discount": 0
+  },
+  {
+    "name": "Bột Trà sữa Matcha Nguyên Khoa 1kg",
+    "price": 135000,
+    "no_discount": 0
+  },
+  {
+    "name": "Pudding Dâu Nguyên Khoa 1kg",
+    "price": 150000,
+    "no_discount": 0
+  },
+  {
+    "name": "Pudding Dưa lưới Nguyên Khoa 1kg",
+    "price": 150000,
+    "no_discount": 0
+  },
+  {
+    "name": "Pudding Khoai Môn Nguyên Khoa 1kg",
+    "price": 150000,
+    "no_discount": 0
+  },
+  {
+    "name": "Pudding Socola Nguyên Khoa 1kg",
+    "price": 150000,
+    "no_discount": 0
+  },
+  {
+    "name": "Pudding Trứng Nguyên Khoa 1kg",
+    "price": 150000,
+    "no_discount": 0
+  },
+  {
+    "name": "Bột Khúc Bạch hoa đậu biếc Nguyên Khoa (1Kg)",
+    "price": 229000,
+    "no_discount": 0
+  },
+  {
+    "name": "Bột Khúc Bạch nguyên vị Nguyên Khoa (1Kg)",
+    "price": 160000,
+    "no_discount": 0
+  },
+  {
+    "name": "Bột Khúc Bạch dâu Nguyên Khoa (1Kg)",
+    "price": 229000,
+    "no_discount": 0
+  },
+  {
+    "name": "Bột Kem Trứng Nguyên Khoa 1kg (sử dụng nước lạnh)",
+    "price": 205000,
+    "no_discount": 0
+  },
+  {
+    "name": "Bột Kem Milk Foam Đa Năng 1kg (sử dụng nước lạnh)",
+    "price": 195000,
+    "no_discount": 0
+  },
+  {
+    "name": "Bột Mat Cha Nguyên Chất Nguyên Khoa 200g (Gu Đài Loan)",
+    "price": 150000,
+    "no_discount": 0
+  },
+  {
+    "name": "Bột Mat Cha Nguyên Chất Resso 500g (Gu Nhật)",
+    "price": 450000,
+    "no_discount": 0
+  },
+  {
+    "name": "Bột ca cao nguyên chất Meiko",
+    "price": 180000,
+    "no_discount": 1
+  },
+  {
+    "name": "Bột Mat Cha (500g) - MỦ ĐỎ",
+    "price": 365000,
+    "no_discount": 1
+  },
+  {
+    "name": "Bột Frappe Silver 1kg",
+    "price": 112000,
+    "no_discount": 1
+  },
+  {
+    "name": "Bột pho mai mặn Maylaysia (Verozyme)",
+    "price": 145000,
+    "no_discount": 1
+  },
+  {
+    "name": "Syrup Mật ong Nguyên Khoa 730ml",
+    "price": 56000,
+    "no_discount": 0
+  },
+  {
+    "name": "Syrup Đào Nguyên Khoa 730ml",
+    "price": 51000,
+    "no_discount": 0
+  },
+  {
+    "name": "Syrup Bạc Hà Nguyên Khoa 730ml",
+    "price": 51000,
+    "no_discount": 0
+  },
+  {
+    "name": "Syrup Lá Dứa",
+    "price": 51000,
+    "no_discount": 0
+  },
+  {
+    "name": "Syrup Blue Curacao Nguyên Khoa 730ml",
+    "price": 51000,
+    "no_discount": 0
+  },
+  {
+    "name": "Syrup Việt Quất RESSO 730ml",
+    "price": 85000,
+    "no_discount": 0
+  },
+  {
+    "name": "Syrup Xoài RESSO 2.5kg",
+    "price": 240000,
+    "no_discount": 0
+  },
+  {
+    "name": "Syrup Chanh Dây RESSO 2.5kg",
+    "price": 240000,
+    "no_discount": 0
+  },
+  {
+    "name": "Siro Đường Đen Nguyên Khoa 2.5kg",
+    "price": 185000,
+    "no_discount": 0
+  },
+  {
+    "name": "Cốt Bí Đao Nguyên Khoa 2.5kg",
+    "price": 155000,
+    "no_discount": 0
+  },
+  {
+    "name": "Syrup Đường Đen RESSO 2.5kg",
+    "price": 199000,
+    "no_discount": 0
+  },
+  {
+    "name": "Syrup Bí Đao RESSO 2.5kg",
+    "price": 163000,
+    "no_discount": 0
+  },
+  {
+    "name": "Syrup Lựu Zestty",
+    "price": 115000,
+    "no_discount": 1
+  },
+  {
+    "name": "Cà phê Hoàng Kim (Resso)",
+    "price": 340000,
+    "no_discount": 0
+  },
+  {
+    "name": "Mứt Chanh Dây Good Heart 1L",
+    "price": 115000,
+    "no_discount": 1
+  },
+  {
+    "name": "Mứt Vải 1L Good Heart 1L",
+    "price": 135000,
+    "no_discount": 1
+  },
+  {
+    "name": "Mứt Mận mộc châu 1L Good Heart 1L",
+    "price": 145000,
+    "no_discount": 1
+  },
+  {
+    "name": "Mứt Xoài 1L Good Heart 1L",
+    "price": 125000,
+    "no_discount": 1
+  },
+  {
+    "name": "Mứt Dâu tây 1L Good Heart 1L",
+    "price": 125000,
+    "no_discount": 1
+  },
+  {
+    "name": "Mứt Mãng cầu 1kg Good Heart 1L",
+    "price": 135000,
+    "no_discount": 1
+  },
+  {
+    "name": "Sinh tố Đào Nguyên Khoa 1L",
+    "price": 82000,
+    "no_discount": 1
+  },
+  {
+    "name": "Sinh tố Ổi Nguyên Khoa 1L",
+    "price": 95000,
+    "no_discount": 1
+  },
+  {
+    "name": "Sinh Tố Việt Quất Nguyên Khoa 1L",
+    "price": 109000,
+    "no_discount": 1
+  },
+  {
+    "name": "Sốt Đào Resso 1L",
+    "price": 99000,
+    "no_discount": 0
+  },
+  {
+    "name": "Sốt Xoài Resso 1L",
+    "price": 105000,
+    "no_discount": 0
+  },
+  {
+    "name": "Sốt Dâu Tây Resso 1L",
+    "price": 105000,
+    "no_discount": 0
+  },
+  {
+    "name": "Sốt Vải Resso 1L",
+    "price": 125000,
+    "no_discount": 0
+  },
+  {
+    "name": "Sốt Việt Quất Resso 1L",
+    "price": 125000,
+    "no_discount": 0
+  },
+  {
+    "name": "Trà đen thượng hạng 1kg Nguyên Khoa",
+    "price": 125000,
+    "no_discount": 0
+  },
+  {
+    "name": "Trà Đen Mộc Vị NK 500g",
+    "price": 75000,
+    "no_discount": 0
+  },
+  {
+    "name": "Trà Đen NK 500g",
+    "price": 65000,
+    "no_discount": 0
+  },
+  {
+    "name": "Lục Trà Lài Nguyên Khoa 500g",
+    "price": 70000,
+    "no_discount": 0
+  },
+  {
+    "name": "Trà Đào túi lọc 10g (Resso)",
+    "price": 170000,
+    "no_discount": 0
+  },
+  {
+    "name": "Hồng trà Cổ Phong (Resso)",
+    "price": 116000,
+    "no_discount": 0
+  },
+  {
+    "name": "Trà đen lài (Resso)",
+    "price": 72000,
+    "no_discount": 0
+  },
+  {
+    "name": "Trà Lài túi lọc 10g (Resso)",
+    "price": 265000,
+    "no_discount": 0
+  },
+  {
+    "name": "Trà Olong túi lọc 10g (Resso)",
+    "price": 305000,
+    "no_discount": 0
+  },
+  {
+    "name": "Trà đen Ngọc Tịnh túi lọc 10g (Resso)",
+    "price": 270000,
+    "no_discount": 0
+  },
+  {
+    "name": "Trà Thái Xanh Con Voi Vàng",
+    "price": 70000,
+    "no_discount": 1
+  },
+  {
+    "name": "Trà Thái Đỏ Con Voi Vàng",
+    "price": 60000,
+    "no_discount": 1
+  },
+  {
+    "name": "Trà Hibiscus 200g (Good heart)",
+    "price": 82000,
+    "no_discount": 1
+  },
+  {
+    "name": "Đường Tấn Phúc",
+    "price": 300000,
+    "no_discount": 1
+  },
+  {
+    "name": "Pho mai Rotana Ai Cập",
+    "price": 900000,
+    "no_discount": 1
+  },
+  {
+    "name": "Ca đong Đức 100ml",
+    "price": 55000,
+    "no_discount": 1
+  },
+  {
+    "name": "Ca đong Đức 250ml",
+    "price": 85000,
+    "no_discount": 1
+  },
+  {
+    "name": "Ca đong Đức 500ml",
+    "price": 95000,
+    "no_discount": 1
+  },
+  {
+    "name": "Ca đong Đức 3000ml",
+    "price": 350000,
+    "no_discount": 1
+  }
+]

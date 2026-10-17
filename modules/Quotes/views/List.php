@@ -110,7 +110,7 @@ class Quotes_List_View extends Inventory_List_View {
 			$_REQUEST['app'] = 'SALES';
 		}
 
-		// After SO→Quote duplicate redirect: show newest retail quote on page 1.
+		// After SO→Quote duplicate redirect: show newest quotes on page 1 (all scope).
 		if ($request->get('mk_highlight') !== '' && $request->get('mk_highlight') !== null) {
 			$request->set('mk_quote_scope', 'all');
 			$request->set('orderby', 'quote_no');

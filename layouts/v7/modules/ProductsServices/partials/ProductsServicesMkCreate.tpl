@@ -42,6 +42,7 @@
 		</div>
 	</header>
 
+	<script type="text/javascript">window.MK_PS_QTY_RULES = {$MK_KL_QTY_RULES_JSON|default:'{"sell_unit":"","per_thung":0,"rules":[]}' nofilter};</script>
 	<div class="mk-ps-create-body">
 		<div class="mk-ps-create-main">
 			<div class="mk-ps-form-host" id="mkPsFormHost">

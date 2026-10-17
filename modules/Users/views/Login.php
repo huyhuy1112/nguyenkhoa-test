@@ -92,6 +92,11 @@ class Users_Login_View extends Vtiger_View_Controller {
 		$viewer->assign('ERROR', $error);
 		$viewer->assign('MESSAGE', $message);
 		$viewer->assign('MAIL_STATUS', $mailStatus);
+		$rememberUser = '';
+		if (!empty($_COOKIE['nk_login_user'])) {
+			$rememberUser = substr((string) $_COOKIE['nk_login_user'], 0, 100);
+		}
+		$viewer->assign('REMEMBER_USER', $rememberUser);
 		$viewer->view('Login.tpl', 'Users');
 	}
 

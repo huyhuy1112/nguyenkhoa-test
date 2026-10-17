@@ -172,7 +172,11 @@ class SalesOrder_Save_Action extends Inventory_Save_Action {
 		} catch (Exception $e) {
 			// keep default save behavior
 		}
+		require_once 'modules/SalesOrder/helpers/PaymentLedger.php';
+		$existingId = (int) $request->get('record');
+		$previousPaid = $existingId > 0 ? SalesOrder_PaymentLedger_Helper::readReceived($existingId) : 0.0;
 		$recordModel = parent::saveRecord($request);
+		SalesOrder_PaymentLedger_Helper::recordIncrease((int) $recordModel->getId(), $previousPaid);
 		$this->ensurePotentialCommerceLink($request, $recordModel);
 		// Outbound (phiếu xuất kho) is created only when the order is confirmed,
 		// not on create — new orders stay as Phiếu tạm (Created).

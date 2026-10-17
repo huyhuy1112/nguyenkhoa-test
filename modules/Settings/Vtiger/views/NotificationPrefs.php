@@ -29,12 +29,16 @@ class Settings_Vtiger_NotificationPrefs_View extends Settings_Vtiger_Index_View 
 
 	public function process(Vtiger_Request $request) {
 		Vtiger_NotificationService::ensureInstalled();
+		require_once 'modules/Vtiger/models/R1ReminderSettings.php';
+		Vtiger_R1ReminderSettings::ensureSchema();
 		$qualifiedName = $request->getModule(false);
 		$user = Users_Record_Model::getCurrentUserModel();
 		$userId = (int) $user->getId();
 		$catalog = Vtiger_NotificationService::channelCatalog();
 		$prefs = Vtiger_NotificationService::getChannelPrefs($userId);
 		$sound = Vtiger_NotificationService::getSoundPref($userId);
+		$isAdmin = Vtiger_R1ReminderSettings::isAdminUser($user);
+		$r1Settings = Vtiger_R1ReminderSettings::get();
 
 		$groups = array();
 		foreach ($catalog as $key => $meta) {
@@ -54,6 +58,17 @@ class Settings_Vtiger_NotificationPrefs_View extends Settings_Vtiger_Index_View 
 		$viewer->assign('CURRENT_USER_MODEL', $user);
 		$viewer->assign('NK_NOTIF_GROUPS', $groups);
 		$viewer->assign('NK_NOTIF_SOUND', $sound);
+		$viewer->assign('NK_R1_IS_ADMIN', $isAdmin ? 1 : 0);
+		$viewer->assign('NK_R1_SETTINGS', $r1Settings);
+		$viewer->assign('NK_R1_DAY_LABELS', array(
+			'1' => 'T2',
+			'2' => 'T3',
+			'3' => 'T4',
+			'4' => 'T5',
+			'5' => 'T6',
+			'6' => 'T7',
+			'7' => 'CN',
+		));
 		$viewer->view('NotificationPrefs.tpl', $qualifiedName);
 	}
 

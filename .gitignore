@@ -7,6 +7,8 @@ config.inc.php
 # config.php - ALLOWED for production
 # config.inc.php.backup
 # config.db.php
+config.csrf-secret.php
+config.misa.local.php
 .env
 .env.local
 .env.*.local

@@ -60,9 +60,16 @@ class Warehouse_WhMgmt_Helper {
 		} catch (Exception $e) {
 			$userName = '';
 		}
+		$canAdmin = false;
+		try {
+			$canAdmin = Warehouse_WhMgmtService::isStockFillAdmin();
+		} catch (Exception $e) {
+			$canAdmin = false;
+		}
 		$viewer->assign('MK_WH_CAN_WRITE', $canWrite ? 1 : 0);
 		// No separate QC profile yet — warehouse write roles also handle QC.
 		$viewer->assign('MK_WH_CAN_QC', $canWrite ? 1 : 0);
+		$viewer->assign('MK_WH_CAN_ADMIN', $canAdmin ? 1 : 0);
 		$viewer->assign('MK_WH_USER_NAME', $userName);
 	}
 

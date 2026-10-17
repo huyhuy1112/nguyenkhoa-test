@@ -27,6 +27,7 @@ class ProductsServices_FormLayout_Helper {
 		'needs_qc',
 		'expiry_warn_days',
 		'price_tuibao',
+		'price_miutea',
 		'price_lt_1m',
 		'price_gte_1m',
 		'price_gte_3m',
@@ -55,7 +56,7 @@ class ProductsServices_FormLayout_Helper {
 		$moved = array();
 		$promoteNames = array(
 			'sku', 'specification', 'unit', 'needs_qc', 'expiry_warn_days',
-			'product_group', 'price_tuibao',
+			'product_group', 'price_tuibao', 'price_miutea',
 			'price_lt_1m', 'price_gte_1m', 'price_gte_3m', 'price_gte_5m', 'price_gte_7m',
 		);
 		foreach ($values as $blockLabel => $blockFields) {

@@ -215,7 +215,7 @@ class SalesOrder_List_View extends Inventory_List_View {
 		if ($paidField) {
 			$preferredHeaders[] = $paidField;
 		}
-		// Status before grand total — list column order: … | Khách đã trả | Trạng thái | Tổng cộng
+		// Status before grand total — list column order: … | Khách đã trả | Còn lại | Trạng thái | Tổng cộng
 		if ($statusField) {
 			$preferredHeaders[] = $statusField;
 		}
@@ -250,47 +250,53 @@ class SalesOrder_List_View extends Inventory_List_View {
 	protected function getPosStatusLabelMap() {
 		return array(
 			'Created' => 'Phiếu tạm',
-			'Approved' => 'Đã xác nhận',
-			'Delivered' => 'Hoàn thành',
-			'Cancelled' => 'Đã hủy',
-			'Pending' => 'Đang chờ',
-			'Paid' => 'Đã thanh toán',
-			'Sent' => 'Đã gửi',
-			'Rejected' => 'Từ chối',
-			'waiting_print' => 'Chờ soạn',
-			'picking' => 'Đang soạn',
-			'packed' => 'Đã soạn',
-			'shipped' => 'Đã giao',
-			'rejected' => 'Từ chối',
-			'Đã duyệt' => 'Đã xác nhận',
 			'Đã tạo' => 'Phiếu tạm',
-			'Đang chờ xử lý' => 'Đang chờ',
-			'Đang giao hàng' => 'Đang giao hàng',
+			'Draft' => 'Phiếu tạm',
+			'Nháp' => 'Phiếu tạm',
+			'Phiếu tạm' => 'Phiếu tạm',
+			'Paid' => 'Đã xác nhận',
+			'Approved' => 'Đã xác nhận',
+			'Đã xác nhận' => 'Đã xác nhận',
+			'Đã duyệt' => 'Đã xác nhận',
+			'Đã thanh toán' => 'Đã xác nhận',
+			'Delivered' => 'Hoàn thành',
+			'Đang sử dụng' => 'Hoàn thành',
+			'waiting_print' => 'Hoàn thành',
+			'picking' => 'Hoàn thành',
+			'packed' => 'Hoàn thành',
+			'Chờ soạn' => 'Hoàn thành',
+			'Đang soạn' => 'Hoàn thành',
+			'Đã soạn' => 'Hoàn thành',
 			'Hoàn thành' => 'Hoàn thành',
-			'Đã gửi' => 'Đã gửi',
-			'Đã thanh toán' => 'Đã thanh toán',
+			'Đã hoàn thành' => 'Hoàn thành',
+			'shipped' => 'Hoàn thành',
+			'Đã giao' => 'Hoàn thành',
+			'Đang giao hàng' => 'Hoàn thành',
+			'Cancelled' => 'Đã hủy',
 			'Đã hủy' => 'Đã hủy',
-			'Từ chối' => 'Từ chối',
-			'Chờ soạn' => 'Chờ soạn',
-			'Đang soạn' => 'Đang soạn',
-			'Đã soạn' => 'Đã soạn',
-			'Đã giao' => 'Đã giao',
+			'Đã huỷ' => 'Đã hủy',
 		);
 	}
 
 	protected function mapPosStatusFilterOptions(array $options) {
 		$map = $this->getPosStatusLabelMap();
-		$mapped = array();
+		$preferred = array(
+			'Đã xác nhận' => 'Paid',
+		);
+		$byLabel = array();
 		foreach ($options as $key => $label) {
-			if (isset($map[$key])) {
-				$mapped[$key] = $map[$key];
-			} elseif (isset($map[$label])) {
-				$mapped[$key] = $map[$label];
-			} else {
-				$mapped[$key] = $label;
+			$shown = isset($map[$key]) ? $map[$key] : (isset($map[$label]) ? $map[$label] : $label);
+			if (!isset($preferred[$shown]) || isset($byLabel[$shown])) {
+				continue;
 			}
+			$byLabel[$shown] = $key;
 		}
-		return $mapped;
+		$out = array();
+		foreach ($preferred as $shown => $fallbackKey) {
+			$key = isset($byLabel[$shown]) ? $byLabel[$shown] : $fallbackKey;
+			$out[$key] = $shown;
+		}
+		return $out;
 	}
 
 	protected function assignSalesListPosTemplateVars(Vtiger_Viewer $viewer, $posMeta) {
@@ -485,6 +491,8 @@ class SalesOrder_List_View extends Inventory_List_View {
 		$this->assignSalesAppCategory($request, $viewer);
 		$posMeta = null;
 		if ($this->isSalesListContext($request) && !$this->isToolsOrdersContext($request)) {
+			require_once 'modules/Invoice/models/MisaSyncService.php';
+			Invoice_MisaSyncService::ensureInvoicesForCompletedOrders();
 			$posMeta = $this->applySalesListPosDefaults($request);
 			$this->assignSalesListPosTemplateVars($viewer, $posMeta);
 			$this->resetSalesPosListViewState();
@@ -498,12 +506,38 @@ class SalesOrder_List_View extends Inventory_List_View {
 	public function initializeListViewContents(Vtiger_Request $request, Vtiger_Viewer $viewer) {
 		$this->applyToolsOrdersDefaults($request);
 		$posMeta = null;
-		if ($this->isSalesListContext($request) && !$this->isToolsOrdersContext($request)) {
+		$salesPos = $this->isSalesListContext($request) && !$this->isToolsOrdersContext($request);
+		if ($salesPos) {
 			$posMeta = $this->applySalesListPosDefaults($request);
 			$this->assignSalesListPosTemplateVars($viewer, $posMeta);
 			$this->resetSalesPosListViewState();
 		}
+		if ($salesPos) {
+			$scope = $this->resolveSoListScope($request);
+			if (!$this->listViewModel) {
+				$moduleName = $request->getModule();
+				$cvId = $this->viewName;
+				if (empty($cvId)) {
+					$customView = new CustomView();
+					$cvId = $customView->getViewId($moduleName);
+					$this->viewName = $cvId;
+				}
+				$listHeaders = $request->get('list_headers', array());
+				$this->listViewModel = Vtiger_ListView_Model::getInstance($moduleName, $cvId, $listHeaders);
+			}
+			$this->listViewModel->set('mk_so_scope', $scope);
+			$viewer->assign('MK_SO_SCOPE', $scope);
+		}
+		$this->ensureSalesOrderPageLimit($request);
 		parent::initializeListViewContents($request, $viewer);
+
+		if ($salesPos) {
+			$scope = $this->resolveSoListScope($request);
+			$viewer->assign('MK_SO_SCOPE', $scope);
+			if ($this->listViewModel) {
+				$this->listViewModel->set('mk_so_scope', $scope);
+			}
+		}
 
 		if (!$this->isToolsOrdersContext($request)) {
 			return;
@@ -523,5 +557,67 @@ class SalesOrder_List_View extends Inventory_List_View {
 			'needed_time' => 'Needed Time',
 			'createdtime' => 'Created Time',
 		));
+	}
+
+	/**
+	 * @return string all|franchise|retail
+	 */
+	protected function resolveSoListScope(Vtiger_Request $request) {
+		$raw = strtolower(trim((string) $request->get('mk_so_scope')));
+		if ($raw === '' && isset($_REQUEST['mk_so_scope'])) {
+			$raw = strtolower(trim((string) $_REQUEST['mk_so_scope']));
+		}
+		if ($raw === '' && isset($_GET['mk_so_scope'])) {
+			$raw = strtolower(trim((string) $_GET['mk_so_scope']));
+		}
+		if ($raw === '' && isset($_POST['mk_so_scope'])) {
+			$raw = strtolower(trim((string) $_POST['mk_so_scope']));
+		}
+		if ($raw === 'franchise' || $raw === 'nhuong_quyen' || $raw === 'nq') {
+			return 'franchise';
+		}
+		if ($raw === 'retail' || $raw === 'ban_le') {
+			return 'retail';
+		}
+		return 'all';
+	}
+
+	/** Sales POS list: 15 records per page (16th goes to next page). */
+	const SALES_LIST_PAGE_LIMIT = 15;
+
+	protected function ensureSalesOrderPageLimit(Vtiger_Request $request) {
+		if (!$this->isSalesListContext($request) && !$this->isToolsOrdersContext($request)) {
+			return;
+		}
+		$pageNumber = $request->get('page');
+		if (empty($pageNumber)) {
+			$pageNumber = '1';
+		}
+		if (!$this->pagingModel) {
+			$this->pagingModel = new Vtiger_Paging_Model();
+			$this->pagingModel->set('page', $pageNumber);
+			$this->pagingModel->set('viewid', $request->get('viewname'));
+		}
+		$this->pagingModel->set('limit', self::SALES_LIST_PAGE_LIMIT);
+	}
+
+	function getPageCount(Vtiger_Request $request) {
+		$listViewCount = $this->getListViewCount($request);
+		$pageLimit = self::SALES_LIST_PAGE_LIMIT;
+		if (!$this->isSalesListContext($request) && !$this->isToolsOrdersContext($request)) {
+			$pagingModel = new Vtiger_Paging_Model();
+			$pageLimit = $pagingModel->getPageLimit();
+		}
+		$pageCount = ceil((int) $listViewCount / (int) $pageLimit);
+		if ($pageCount == 0) {
+			$pageCount = 1;
+		}
+		$result = array(
+			'page' => $pageCount,
+			'numberOfRecords' => $listViewCount,
+		);
+		$response = new Vtiger_Response();
+		$response->setResult($result);
+		$response->emit();
 	}
 }

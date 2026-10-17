@@ -24,6 +24,10 @@
 	{/if}
 	{foreach key=moduleName item=moduleModel from=$SELECTED_CATEGORY_MENU_LIST}
 		{if $SELECTED_MENU_CATEGORY eq 'MANAGEMENT' && $moduleName eq 'Home'}{continue}{/if}
+		{* SUPPORT: ẩn Hỏi đáp *}
+		{if $SELECTED_MENU_CATEGORY eq 'SUPPORT' && $moduleName eq 'Faq'}{continue}{/if}
+		{* MANAGEMENT: ẩn Dự án / Nhiệm vụ dự án *}
+		{if $SELECTED_MENU_CATEGORY eq 'MANAGEMENT' && ($moduleName eq 'Project' || $moduleName eq 'ProjectTask' || $moduleName eq 'ProjectMilestone')}{continue}{/if}
 		{* SALES: hide legacy Products/Services; ProductsServices lives under Kho *}
 		{if $SELECTED_MENU_CATEGORY eq 'SALES' && ($moduleName eq 'Products' || $moduleName eq 'Services' || $moduleName eq 'ProductsServices')}{continue}{/if}
 		{assign var='translatedModuleLabel' value=vtranslate($moduleModel->get('label'),$moduleName )}
@@ -33,13 +37,13 @@
 		{elseif $moduleName eq 'Calendar' && $SELECTED_MENU_CATEGORY eq 'SUPPORT'}
 			{assign var='translatedModuleLabel' value=vtranslate('LBL_ACTIVITIES','Calendar')}
 		{elseif $moduleName eq 'Accounts'}
-			{assign var='translatedModuleLabel' value='Hợp đồng nhượng quyền'}
+			{assign var='translatedModuleLabel' value='Danh sách chủ quán'}
 		{elseif $moduleName eq 'Contacts'}
 			{assign var='translatedModuleLabel' value='Khách hàng'}
 		{elseif $moduleName eq 'ProductsServices'}
 			{assign var='translatedModuleLabel' value='Hàng hoá'}
 		{elseif $moduleName eq 'ServiceContracts'}
-			{assign var='translatedModuleLabel' value='Khách hàng nhượng quyền'}
+			{assign var='translatedModuleLabel' value='Khách hàng nhượng quyền tiềm năng'}
 		{elseif $moduleName eq 'SupportFAQ'}
 			{assign var='translatedModuleLabel' value='Cảnh báo'}
 		{/if}

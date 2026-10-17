@@ -27,6 +27,7 @@ class SalesOrder_TransferToMisa_Action extends Vtiger_Action_Controller {
 			if (getSalesEntityType($recordId) !== 'SalesOrder') {
 				throw new Exception('Bản ghi không phải đơn hàng.');
 			}
+			throw new Exception('Chuyển MISA chỉ thực hiện trên Hóa đơn.');
 
 			$soModel = Vtiger_Record_Model::getInstanceById($recordId, 'SalesOrder');
 			if (!$soModel || $soModel->getModuleName() !== 'SalesOrder') {
@@ -72,6 +73,9 @@ class SalesOrder_TransferToMisa_Action extends Vtiger_Action_Controller {
 				'salesorderid' => $recordId,
 				'salesorder_no' => $orderNo,
 				'message' => $message,
+				'misa_status' => isset($result['misa_status']) ? (string) $result['misa_status'] : 'Chờ kế toán',
+				'misa_refno' => isset($result['misa_refno']) ? (string) $result['misa_refno'] : '',
+				'misa_state' => isset($result['misa_state']) ? (string) $result['misa_state'] : 'pending',
 			));
 		} catch (Exception $e) {
 			$response->setError($e->getMessage());

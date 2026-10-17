@@ -9,6 +9,7 @@
 Vtiger_Edit_Js("Contacts_Edit_Js",{},{
 
 	PHONE_MAX_DIGITS: 10,
+	PHONE_MAX_LENGTH: 12,
 	PHONE_FIELD_SELECTOR: 'input[data-fieldtype="phone"], input[name="phone"], input[name="mobile"], input[name="homephone"], input[name="otherphone"], input[name="fax"], input[name="assistantphone"]',
 
 	sanitizePhoneValue: function (value) {
@@ -27,7 +28,7 @@ Vtiger_Edit_Js("Contacts_Edit_Js",{},{
 				return;
 			}
 			$input.data('mkPhoneLimit', true);
-			$input.attr('maxlength', thisInstance.PHONE_MAX_DIGITS);
+			$input.attr('maxlength', thisInstance.PHONE_MAX_LENGTH);
 			$input.attr('inputmode', 'numeric');
 			var current = thisInstance.sanitizePhoneValue($input.val());
 			if ($input.val() !== current) {

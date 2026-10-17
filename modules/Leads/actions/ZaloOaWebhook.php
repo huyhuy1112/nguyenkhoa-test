@@ -1,6 +1,6 @@
 <?php
 /*+***********************************************************************************
- * Public webhook endpoint for Zalo OA scripted chat -> Leads (test scope).
+ * Public webhook endpoint for Zalo OA contact form -> Leads.
  * URL: index.php?module=Leads&action=ZaloOaWebhook
  *************************************************************************************/
 

@@ -28,16 +28,40 @@
 		return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " ₫";
 	}
 
+	function hasValue(value) {
+		if (value == null) return false;
+		var s = String(value).trim();
+		return s !== "" && s !== "—" && s !== "-" && s !== "— Đang ẩn / chưa bật";
+	}
+
 	function field(label, value) {
-		var v = value == null || value === "" ? "—" : String(value);
+		if (!hasValue(value)) return "";
 		return (
 			'<div class="mk-sc-mk-detail__field">' +
 			'<span class="mk-sc-mk-detail__label">' +
 			escapeHtml(label) +
 			"</span>" +
 			'<strong class="mk-sc-mk-detail__value">' +
-			escapeHtml(v) +
+			escapeHtml(String(value)) +
 			"</strong></div>"
+		);
+	}
+
+	function panel(title, rows) {
+		var html = rows
+			.map(function (r) {
+				return field(r[0], r[1]);
+			})
+			.join("");
+		if (!html) return "";
+		return (
+			'<section class="mk-sc-mk-detail__panel">' +
+			"<h3>" +
+			escapeHtml(title) +
+			"</h3>" +
+			'<div class="mk-sc-mk-detail__grid">' +
+			html +
+			"</div></section>"
 		);
 	}
 
@@ -79,38 +103,54 @@
 		$aff.prop("hidden", !affVisible).text(affVisible ? aff : "");
 		$toggle.prop("checked", affVisible).prop("disabled", !recordId);
 
-		var rows = [
-			["Ngày tiếp nhận", data.received_date],
-			["Họ tên", data.full_name],
-			["SĐT", data.phone],
-			["Đ/c kinh doanh / Note", data.business_note],
-			["Trạng thái", data.franchise_status],
-			["Nguồn data", data.data_source],
-			["Người giới thiệu", data.referrer],
-			["Liên hệ", data.contact_status],
-			["Mã AFF (mã giới thiệu của khách)", affVisible ? aff : "— Đang ẩn / chưa bật"],
-			[
-				"Hạng mã AFF",
-				(data.affiliate_tier_prefix || "") +
-					(data.affiliate_tier_name ? " — " + data.affiliate_tier_name : ""),
-			],
-			["Tiền thưởng khi dùng mã của khách này", formatMoneyVnd(data.affiliate_reward_amount)],
-			["Mã giới thiệu đã chọn (người GT)", data.referral_code],
-			["Tiền thưởng phải trả", formatMoneyVnd(data.referral_reward_amount)],
-			["Ngày đăng ký", data.registration_date],
-			["Ngày hết hạn bảo lưu", data.retention_expires_at],
-			["Sale phụ trách", data.sale_owner],
-			["Ngày ký HĐ", data.contract_signed_date],
-			["Số cửa hàng", data.store_count != null ? data.store_count : ""],
-			["Điều kiện TT", data.payment_condition],
-			["Ngày đã thanh toán", data.payment_date],
-		];
+		var tier = [data.affiliate_tier_prefix || "", data.affiliate_tier_name || ""]
+			.filter(function (part) {
+				return String(part || "").trim() !== "";
+			})
+			.join(" — ");
+		$("#mkScMkIdentity").html(
+			'<div class="mk-sc-mk-detail__who">' +
+				"<strong>" +
+				escapeHtml(data.full_name || "Khách nhượng quyền") +
+				"</strong>" +
+				(hasValue(data.phone) ? "<span>" + escapeHtml(data.phone) + "</span>" : "") +
+			"</div>" +
+			'<div class="mk-sc-mk-detail__pills">' +
+				(hasValue(data.franchise_status)
+					? '<span class="mk-sc-mk-detail__pill">' + escapeHtml(data.franchise_status) + "</span>"
+					: "") +
+				(hasValue(data.data_source)
+					? '<span class="mk-sc-mk-detail__pill mk-sc-mk-detail__pill--source">' +
+						escapeHtml(data.data_source) +
+						"</span>"
+					: "") +
+				(hasValue(data.contact_status)
+					? '<span class="mk-sc-mk-detail__pill mk-sc-mk-detail__pill--care">' +
+						escapeHtml(data.contact_status) +
+						"</span>"
+					: "") +
+			"</div>"
+		);
 		$("#mkScMkFields").html(
-			rows
-				.map(function (r) {
-					return field(r[0], r[1]);
-				})
-				.join("")
+			panel("Hồ sơ", [
+				["Ngày tiếp nhận", data.received_date],
+				["Địa chỉ / ghi chú", data.business_note],
+				["Người giới thiệu", data.referrer],
+				["Ngày đăng ký", data.registration_date],
+				["Ngày hết hạn bảo lưu", data.retention_expires_at],
+				["Ngày ký hợp đồng", data.contract_signed_date],
+			]) +
+			panel("Giới thiệu và thanh toán", [
+				["Mã giới thiệu của khách", affVisible ? aff : ""],
+				["Hạng mã", tier],
+				["Tiền thưởng khi dùng mã này", formatMoneyVnd(data.affiliate_reward_amount)],
+				["Mã người đã giới thiệu", data.referral_code],
+				["Tiền thưởng phải trả", formatMoneyVnd(data.referral_reward_amount)],
+				["Sale phụ trách", data.sale_owner],
+				["Số cửa hàng", data.store_count != null && data.store_count !== "" ? data.store_count : ""],
+				["Điều kiện thanh toán", data.payment_condition],
+				["Ngày đã thanh toán", data.payment_date],
+			])
 		);
 
 		var lt = data.lastTouchCalls || {};
@@ -136,22 +176,25 @@
 					})
 					.join("")
 			: '<div class="mk-sc-mk-detail__ix-body">Chưa có cuộc gọi</div>';
-		var materials = data.interaction_materials || "";
+		var materials = String(data.interaction_materials || "").trim();
+		var materialsHtml = materials
+			? '<div class="mk-sc-mk-detail__ix">' +
+				'<span class="mk-sc-mk-detail__label">Tương tác nguyên liệu / máy móc</span>' +
+				'<div class="mk-sc-mk-detail__ix-body">' +
+				escapeHtml(materials) +
+				"</div></div>"
+			: "";
 		$("#mkScMkInteractions").html(
 			"<h3>Tương tác gần đây</h3>" +
 				'<div class="mk-sc-mk-detail__ix">' +
-				'<span class="mk-sc-mk-detail__label">Last Touch Call</span>' +
+				'<span class="mk-sc-mk-detail__label">Cuộc gọi</span>' +
 				callLogHtml +
 				"</div>" +
-				'<div class="mk-sc-mk-detail__ix is-materials">' +
-				'<span class="mk-sc-mk-detail__label">TƯƠNG TÁC TỰ MỞ NGUYÊN LIỆU MÁY MÓC</span>' +
-				'<div class="mk-sc-mk-detail__ix-body">' +
-				escapeHtml(materials || "—") +
-				"</div></div>"
+				materialsHtml
 		);
 
 		function hideStock() {
-			$(".detailViewInfo .block, .summaryView, .summaryWidgetContainer, .details .block")
+			$(".mk-sc-summary-grid, .detailViewInfo .block, .summaryView, .summaryWidgetContainer, .details .block")
 				.addClass("mk-sc-mk-detail-hide-stock");
 			$(".details .blockData").closest(".block").addClass("mk-sc-mk-detail-hide-stock");
 		}

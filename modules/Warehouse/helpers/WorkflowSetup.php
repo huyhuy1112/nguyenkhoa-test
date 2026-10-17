@@ -85,6 +85,7 @@ class Warehouse_WorkflowSetup_Helper {
 		self::ensureColumn($db, 'vtiger_goodsreceipt', 'status', "`status` VARCHAR(32) DEFAULT 'stored'");
 		self::ensureColumn($db, 'vtiger_goodsreceipt', 'mk_meta_json', "`mk_meta_json` TEXT");
 		self::ensureColumn($db, 'vtiger_goodsissue', 'mk_meta_json', "`mk_meta_json` TEXT");
+		self::ensureColumn($db, 'vtiger_warehouse', 'stock_fill_open', "`stock_fill_open` TINYINT(1) NOT NULL DEFAULT 0");
 	}
 
 	public static function isInstalled(PearDatabase $db) {

@@ -7,6 +7,12 @@ class ProductsServices_Detail_View extends Vtiger_Detail_View {
 		$this->exposeMethod('showListInlineDetail');
 	}
 
+	public function preProcess(Vtiger_Request $request, $display = true) {
+		require_once 'modules/ProductsServices/helpers/PriceSetup.php';
+		ProductsServices_PriceSetup_Helper::ensure();
+		parent::preProcess($request, $display);
+	}
+
 	/**
 	 * Expandable list-row detail panel (Leads / Accounts style) for Kho + Sales lists.
 	 */
@@ -54,6 +60,22 @@ class ProductsServices_Detail_View extends Vtiger_Detail_View {
 			array('assigned_user_id', 'Phụ trách'),
 			array('createdtime', 'Ngày tạo'),
 		));
+		require_once 'modules/ProductsServices/helpers/UnitOptions.php';
+		ProductsServices_UnitOptions_Helper::ensurePicklist();
+		foreach ($infoFields as &$infoField) {
+			if (!isset($infoField['name']) || $infoField['name'] !== 'unit') {
+				continue;
+			}
+			$norm = ProductsServices_UnitOptions_Helper::normalize(isset($infoField['raw_value']) ? $infoField['raw_value'] : '');
+			$infoField['raw_value'] = $norm;
+			$infoField['value'] = $norm !== '' ? $norm : '—';
+			$options = ProductsServices_UnitOptions_Helper::options();
+			if ($norm !== '' && !isset($options[$norm])) {
+				$options = array($norm => $norm) + $options;
+			}
+			$infoField['picklist_values'] = $options;
+		}
+		unset($infoField);
 
 		$viewer = $this->getViewer($request);
 		Vtiger_MkSalesInlineDetailHelper::assignCommon(

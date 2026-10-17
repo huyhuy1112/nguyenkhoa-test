@@ -25,7 +25,7 @@
 				<div class="mk-hd-edit-main-col">
 					<div class="mk-hd-detail-card">
 						<div class="mk-hd-detail-card__head">
-							<h2 class="mk-hd-detail-card__title">Ticket details</h2>
+							<h2 class="mk-hd-detail-card__title">Phiếu xử lý</h2>
 						</div>
 						<div class="mk-hd-detail-card__body">
 							<form method="post" action="index.php" enctype="multipart/form-data" class="mk-hd-edit-form" id="mkHdTicketForm">
@@ -37,7 +37,7 @@
 
 								<div class="mk-hd-edit-fields">
 									<div class="mk-hd-edit-field mk-hd-edit-field--wide">
-										<label class="mk-hd-edit-field__label" for="TicketsCustomerSelect">Customer (Contact) <span class="mk-hd-req">*</span></label>
+										<label class="mk-hd-edit-field__label" for="TicketsCustomerSelect">Khách hàng <span class="mk-hd-req">*</span></label>
 										<select name="customer_id" id="TicketsCustomerSelect" class="mk-hd-edit-input" required>
 											<option value="">-- Chọn contact --</option>
 											{foreach from=$CONTACTS item=C}
@@ -56,19 +56,39 @@
 										<p class="mk-hd-edit-hint">Tự động lấy theo Organization của Contact đã chọn.</p>
 									</div>
 
+									<div class="mk-hd-edit-field">
+										<label class="mk-hd-edit-field__label" for="mkHdTicketIssue">Loại việc</label>
+										{assign var=issue value=$TICKET.issue_type|default:'ho_tro'}
+										<select name="issue_type" id="mkHdTicketIssue" class="mk-hd-edit-input">
+											{foreach from=$ISSUE_TYPES key=CODE item=LABEL}
+												<option value="{$CODE}" {if $issue eq $CODE}selected="selected"{/if}>{$LABEL|escape}</option>
+											{/foreach}
+										</select>
+										<p class="mk-hd-edit-hint">Hàng lỗi và khiếu nại là phía khách. Giao thiếu, sai, hư, trả hàng là phía Sales và kho, cùng một phiếu.</p>
+									</div>
+									<div class="mk-hd-edit-field">
+										<label class="mk-hd-edit-field__label" for="mkHdTicketOrder">Đơn hàng</label>
+										{assign var=orderId value=$TICKET.salesorder_id|default:0}
+										<select name="salesorder_id" id="mkHdTicketOrder" class="mk-hd-edit-input">
+											<option value="">Không gắn đơn</option>
+											{foreach from=$ORDERS item=O}
+												<option value="{$O.salesorderid}" {if $orderId eq $O.salesorderid}selected="selected"{/if}>{$O.salesorder_no|escape}</option>
+											{/foreach}
+										</select>
+									</div>
 									<div class="mk-hd-edit-field mk-hd-edit-field--wide">
-										<label class="mk-hd-edit-field__label" for="mkHdTicketSubject">Subject <span class="mk-hd-req">*</span></label>
+										<label class="mk-hd-edit-field__label" for="mkHdTicketSubject">Tiêu đề <span class="mk-hd-req">*</span></label>
 										<input type="text" name="subject" id="mkHdTicketSubject" class="mk-hd-edit-input"
 											   value="{$TICKET.subject|default:''|escape}" required />
 									</div>
 
 									<div class="mk-hd-edit-field mk-hd-edit-field--wide">
-										<label class="mk-hd-edit-field__label" for="mkHdTicketDescription">Description</label>
+										<label class="mk-hd-edit-field__label" for="mkHdTicketDescription">Nội dung</label>
 										<textarea name="description" id="mkHdTicketDescription" class="mk-hd-edit-input mk-hd-edit-input--textarea" rows="4">{$TICKET.description|default:''}</textarea>
 									</div>
 
 									<div class="mk-hd-edit-field">
-										<label class="mk-hd-edit-field__label" for="mkHdTicketPriority">Priority</label>
+										<label class="mk-hd-edit-field__label" for="mkHdTicketPriority">Mức ưu tiên</label>
 										{assign var=prio value=$TICKET.priority|default:'Medium'}
 										<select name="priority" id="mkHdTicketPriority" class="mk-hd-edit-input">
 											{foreach from=['Critical','High','Medium','Low'] item=P}
@@ -78,7 +98,7 @@
 									</div>
 
 									<div class="mk-hd-edit-field">
-										<label class="mk-hd-edit-field__label" for="mkHdTicketStatus">Status</label>
+										<label class="mk-hd-edit-field__label" for="mkHdTicketStatus">Trạng thái</label>
 										{assign var=st value=$TICKET.status|default:'Open'}
 										<select name="status" id="mkHdTicketStatus" class="mk-hd-edit-input">
 											{foreach from=['Open','In Progress','Resolved','Closed'] item=S}
@@ -88,16 +108,33 @@
 									</div>
 
 									<div class="mk-hd-edit-field mk-hd-edit-field--wide">
-										<label class="mk-hd-edit-field__label" for="mkHdTicketAssignees">Assigned To</label>
-										<select name="assigned_users_ids[]" id="mkHdTicketAssignees" class="mk-hd-edit-input mk-hd-edit-input--multi" multiple="multiple">
-											{foreach from=$USERS item=U}
-												<option value="{$U.id}"
-													{if in_array($U.id, $ASSIGNED_USER_IDS)}selected="selected"{/if}>
-													{$U.first_name} {$U.last_name} (ID: {$U.id})
-												</option>
+										<label class="mk-hd-edit-field__label" for="mkHdTicketResolution">Kết quả xử lý</label>
+										{assign var=resolution value=$TICKET.resolution|default:''}
+										<select name="resolution" id="mkHdTicketResolution" class="mk-hd-edit-input">
+											{foreach from=$RESOLUTIONS key=CODE item=LABEL}
+												<option value="{$CODE}" {if $resolution eq $CODE}selected="selected"{/if}>{$LABEL|escape}</option>
 											{/foreach}
 										</select>
-										<p class="mk-hd-edit-hint">Giữ Ctrl / Cmd để chọn nhiều người xử lý.</p>
+										<p class="mk-hd-edit-hint">Giao bù, đổi hàng hoặc hoàn tiền thì tắt cảnh báo giao thiếu. Đã phản hồi khách thì tắt khiếu nại quá hạn.</p>
+									</div>
+									<div class="mk-hd-edit-field mk-hd-edit-field--wide">
+										<label class="mk-hd-edit-field__label" for="mkHdPeopleSearch">Người xử lý</label>
+										<div class="mk-hd-people" id="mkHdPeople">
+											<div class="mk-hd-people__chips" data-mk-people-chips>
+												<span class="mk-hd-people__empty" data-mk-people-empty>Chưa chọn ai</span>
+											</div>
+											<input type="search" id="mkHdPeopleSearch" class="mk-hd-edit-input" placeholder="Gõ tên để tìm Sales hoặc kho" autocomplete="off" />
+											<div class="mk-hd-people__list">
+												{foreach from=$USERS item=U}
+													{assign var=UNAME value=$U.first_name|cat:' '|cat:$U.last_name}
+													<label class="mk-hd-people__row" data-name="{$UNAME|escape}">
+														<input type="checkbox" name="assigned_users_ids[]" value="{$U.id}" {if in_array($U.id, $ASSIGNED_USER_IDS)}checked="checked"{/if} />
+														<span class="mk-hd-people__avatar">{$UNAME|truncate:1:"":true|escape}</span>
+														<span class="mk-hd-people__name">{$UNAME|escape}</span>
+													</label>
+												{/foreach}
+											</div>
+										</div>
 									</div>
 
 									<div class="mk-hd-edit-field mk-hd-edit-field--wide">
@@ -106,6 +143,46 @@
 										<p class="mk-hd-edit-hint">Hỗ trợ jpg, png, pdf, docx, xlsx, zip, ...</p>
 									</div>
 								</div>
+								{literal}
+								<script>
+								(function () {
+									var root = document.getElementById("mkHdPeople");
+									if (!root) return;
+									var chips = root.querySelector("[data-mk-people-chips]");
+									var empty = root.querySelector("[data-mk-people-empty]");
+									var search = document.getElementById("mkHdPeopleSearch");
+									function paint() {
+										chips.querySelectorAll("[data-chip]").forEach(function (node) { node.remove(); });
+										var chosen = root.querySelectorAll("input[type=checkbox]:checked");
+										empty.hidden = chosen.length > 0;
+										chosen.forEach(function (box) {
+											var row = box.closest(".mk-hd-people__row");
+											var chip = document.createElement("button");
+											chip.type = "button";
+											chip.className = "mk-hd-people__chip";
+											chip.setAttribute("data-chip", box.value);
+											chip.textContent = row ? row.getAttribute("data-name") : box.value;
+											chip.addEventListener("click", function () {
+												box.checked = false;
+												paint();
+											});
+											chips.appendChild(chip);
+										});
+									}
+									root.addEventListener("change", paint);
+									if (search) {
+										search.addEventListener("input", function () {
+											var q = search.value.toLowerCase();
+											root.querySelectorAll(".mk-hd-people__row").forEach(function (row) {
+												var name = (row.getAttribute("data-name") || "").toLowerCase();
+												row.hidden = q !== "" && name.indexOf(q) < 0;
+											});
+										});
+									}
+									paint();
+								})();
+								</script>
+								{/literal}
 
 								<div class="mk-hd-edit-actions">
 									<button type="submit" class="mk-hd-btn mk-hd-btn--primary">

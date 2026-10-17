@@ -8,11 +8,16 @@
 			<input type="text" placeholder="{vtranslate('LBL_SEARCH_FOR_SETTINGS', $QUALIFIED_MODULE|default:'Settings:Vtiger')}" class="search-list mk-settings-subnav-input" id="settingsMenuSearch" autocomplete="off">
 		</div>
 		<div class="mk-settings-subnav-groups settingsgroup" id="accordion">
+			{assign var=_mkHost value=$smarty.server.HTTP_HOST|default:$smarty.server.SERVER_NAME|default:''|lower}
 			{foreach item=BLOCK_MENUS from=$SETTINGS_MENUS}
 				{assign var=BLOCK_NAME value=$BLOCK_MENUS->getLabel()}
 				{assign var=BLOCK_MENU_ITEMS value=$BLOCK_MENUS->getMenuItems()}
 				{assign var=NUM_OF_MENU_ITEMS value=$BLOCK_MENU_ITEMS|@php7_sizeof}
-				{if $NUM_OF_MENU_ITEMS gt 0}
+				{assign var=_hideSettingsBlock value=false}
+				{if $_mkHost|strstr:'nguyenkhoa' && ($BLOCK_NAME eq 'LBL_AUTOMATION' || $BLOCK_NAME eq 'LBL_CONFIGURATION' || $BLOCK_NAME eq 'LBL_MODULE_MANAGER' || $BLOCK_NAME eq 'VTLIB_LBL_MODULE_MANAGER')}
+					{assign var=_hideSettingsBlock value=true}
+				{/if}
+				{if $NUM_OF_MENU_ITEMS gt 0 && !$_hideSettingsBlock}
 					{assign var=_blockOpen value=(isset($ACTIVE_BLOCK.block) && $ACTIVE_BLOCK.block eq $BLOCK_NAME)}
 					<div class="mk-settings-subnav-group instaSearch settingsgroup-panel">
 						<button type="button" class="mk-settings-subnav-group-toggle{if $_blockOpen} is-open{/if}" data-toggle="collapse" data-target="#mk-settings-block-{$BLOCK_NAME}" aria-expanded="{if $_blockOpen}true{else}false{/if}">
@@ -23,6 +28,9 @@
 							<ul class="mk-settings-subnav-links list-group widgetContainer">
 								{foreach item=MENUITEM from=$BLOCK_MENU_ITEMS}
 									{assign var=MENU value=$MENUITEM->get('name')}
+									{if $_mkHost|strstr:'nguyenkhoa' && ($MENU eq 'LBL_MODULE_MANAGER' || $MENU eq 'VTLIB_LBL_MODULE_MANAGER' || $MENU eq 'ModuleManager')}
+										{continue}
+									{/if}
 									{assign var=MENU_LABEL value=$MENU}
 									{if $MENU eq 'LBL_EDIT_FIELDS'}
 										{assign var=MENU_LABEL value='LBL_MODULE_CUSTOMIZATION'}

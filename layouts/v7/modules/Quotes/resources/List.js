@@ -97,7 +97,7 @@
       '<div class="mk-quote-convert-modal__body">' +
       '<div class="mk-quote-convert-modal__icon" aria-hidden="true"><i class="fa fa-shopping-cart"></i></div>' +
       '<p class="mk-quote-convert-modal__title">Chuyển báo giá thành đơn hàng?</p>' +
-      '<p class="mk-quote-convert-modal__hint">Hệ thống sẽ tạo phiếu đơn hàng tạm và ẩn báo giá này khỏi danh sách.</p>' +
+      '<p class="mk-quote-convert-modal__hint">Hệ thống sẽ tạo đơn hàng ở trạng thái Đã xác nhận và ẩn báo giá này khỏi danh sách.</p>' +
       "</div>";
 
     if (typeof bootbox !== "undefined" && bootbox.dialog) {
@@ -213,7 +213,7 @@
           app.helper.showSuccessNotification({
             message: result.already_exists
               ? "Đơn hàng đã tồn tại. Đang mở danh sách đơn hàng..."
-              : "Đã tạo đơn hàng (Phiếu tạm). Đang mở danh sách đơn hàng...",
+              : "Đã tạo đơn hàng (Đã xác nhận). Đang mở danh sách đơn hàng...",
           });
         }
         window.location.href = soUrl;
@@ -882,7 +882,7 @@
     html += '<div class="mk-so-excel-sheet__header">';
     html +=
       '<div class="mk-so-excel-sheet__logo"><img src="layouts/v7/modules/Quotes/resources/images/nguyenkhoa-excel-logo.png" alt="Nguyên Khoa" /></div>';
-    html += '<div class="mk-so-excel-sheet__company">nguyenlieuphachemt</div>';
+    html += '<div class="mk-so-excel-sheet__company">nguyenlieugiasi.vn</div>';
     html +=
       '<div class="mk-so-excel-sheet__company-meta">Địa chỉ: 6/24 Đường số 3, Cư Xá Lữ Gia, Phú Thọ, Hồ Chí Minh<br>Điện thoại: 0973969498</div>';
     html += '<div class="mk-so-excel-sheet__doc-title">BÁO GIÁ</div>';
@@ -1104,23 +1104,29 @@
       .done(function (html) {
         try {
           var frame = $frame.get(0);
-          var frameWindow = frame && frame.contentWindow;
-          if (!frameWindow || !frameWindow.document) {
+          if (!frame) {
             window.open(printUrl, "_blank");
             return;
           }
-          frameWindow.document.open();
-          frameWindow.document.write(html);
-          frameWindow.document.close();
-          setTimeout(function () {
-            try {
-              frameWindow.document.title = "";
-              frameWindow.focus();
-              frameWindow.print();
-            } catch (err) {
-              window.open(printUrl, "_blank");
-            }
-          }, 220);
+          var blob = new Blob([html], { type: "text/html;charset=utf-8" });
+          var blobUrl = URL.createObjectURL(blob);
+          frame.onload = function () {
+            setTimeout(function () {
+              try {
+                var win = frame.contentWindow;
+                if (win && win.document) {
+                  win.document.title = " ";
+                  win.focus();
+                  win.print();
+                } else {
+                  window.open(printUrl, "_blank");
+                }
+              } catch (errPrint) {
+                window.open(printUrl, "_blank");
+              }
+            }, 80);
+          };
+          frame.src = blobUrl;
         } catch (err) {
           window.open(printUrl, "_blank");
         }
@@ -1486,6 +1492,96 @@
       window.location.href = editUrl;
     });
 
+    $panel.on("click", ".mk-so-inline-detail__cancel-quote-btn", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!recordId) {
+        return;
+      }
+      var $btn = $(this);
+      if ($btn.data("mkBusy")) {
+        return;
+      }
+      var deferred = $.Deferred();
+      if (typeof bootbox !== "undefined" && bootbox.dialog) {
+        bootbox.dialog({
+          title: "Huỷ báo giá",
+          message:
+            '<div class="mk-quote-convert-modal__body">' +
+            '<p class="mk-quote-convert-modal__title">Huỷ báo giá này?</p>' +
+            '<p class="mk-quote-convert-modal__hint">Báo giá chuyển sang trạng thái Huỷ và vẫn nằm trong danh sách.</p>' +
+            "</div>",
+          className: "mk-quote-convert-modal",
+          closeButton: true,
+          buttons: {
+            cancel: {
+              label: "Không",
+              className:
+                "btn mk-quote-convert-modal__btn mk-quote-convert-modal__btn--ghost",
+              callback: function () {
+                deferred.reject();
+              },
+            },
+            confirm: {
+              label: "Huỷ đơn",
+              className:
+                "btn mk-quote-convert-modal__btn mk-quote-convert-modal__btn--primary",
+              callback: function () {
+                deferred.resolve();
+              },
+            },
+          },
+          onEscape: function () {
+            deferred.reject();
+          },
+        });
+      } else if (window.confirm("Huỷ báo giá này?")) {
+        deferred.resolve();
+      } else {
+        deferred.reject();
+      }
+      deferred
+        .then(function () {
+          $btn.data("mkBusy", 1).prop("disabled", true);
+          var postData = {
+            module: "Quotes",
+            action: "CancelQuote",
+            record: recordId,
+          };
+          var csrf = "";
+          if (typeof app !== "undefined" && typeof app.getCsrfToken === "function") {
+            csrf = app.getCsrfToken();
+          } else if (typeof csrfMagicToken !== "undefined") {
+            csrf = csrfMagicToken;
+          }
+          if (csrf) {
+            postData.__vtrftk = csrf;
+          }
+          $.ajax({
+            url: "index.php",
+            type: "POST",
+            dataType: "json",
+            data: postData,
+          })
+            .done(function (resp) {
+              var result = resp && resp.result ? resp.result : resp;
+              if (!result || result.success === false) {
+                var msg =
+                  (result && result.message) || "Không huỷ được báo giá.";
+                $btn.data("mkBusy", 0).prop("disabled", false);
+                window.alert(String(msg));
+                return;
+              }
+              window.location.reload();
+            })
+            .fail(function () {
+              $btn.data("mkBusy", 0).prop("disabled", false);
+              window.alert("Không huỷ được báo giá.");
+            });
+        })
+        .fail(function () {});
+    });
+
     $panel.on("click", ".mk-so-inline-detail__confirm-order-btn", function (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -1504,11 +1600,11 @@
         ) {
           app.helper.showErrorNotification({
             message:
-              "Chỉ báo giá ở trạng thái Báo giá mới được xác nhận đơn hàng.",
+              "Chỉ báo giá ở trạng thái Phiếu tạm mới được chuyển thành đơn hàng.",
           });
         } else {
           window.alert(
-            "Chỉ báo giá ở trạng thái Báo giá mới được xác nhận đơn hàng.",
+            "Chỉ báo giá ở trạng thái Phiếu tạm mới được chuyển thành đơn hàng.",
           );
         }
         return;
@@ -2166,16 +2262,26 @@
         );
       }
       if (!$row.length) {
-        if (attempt < 10) {
+        if (attempt < 16) {
           window.setTimeout(function () {
             applyMkHighlightFromQuery(attempt + 1);
           }, 250);
           return;
         }
+        // Stay on Quotes list — do not jump to stock Detail (looks empty in POS).
+        try {
+          if (app.helper && app.helper.showSuccessNotification) {
+            app.helper.showSuccessNotification({
+              message:
+                "Đã tạo Báo giá. Nếu chưa thấy dòng mới, mở tab Tất cả và tải lại.",
+            });
+          }
+        } catch (eNote) {
+          /* ignore */
+        }
         window.location.href =
-          "index.php?module=Quotes&view=Detail&record=" +
-          encodeURIComponent(highlightId) +
-          "&app=SALES";
+          "index.php?module=Quotes&view=List&app=SALES&mk_quote_scope=all&orderby=quote_no&sortorder=DESC&page=1&nolistcache=1&search_params=%5B%5D&mk_highlight=" +
+          encodeURIComponent(highlightId);
         return;
       }
       $row.addClass("mk-sales-row-selected");
@@ -2621,6 +2727,8 @@
           "mk-qt-col-phone",
           "mk-so-col-email",
           "mk-qt-col-email",
+          "mk-qt-col-address",
+          "mk-so-col-address",
           "mk-so-col-assigned",
           "mk-so-col-due",
           "mk-so-col-status",
@@ -2653,7 +2761,7 @@
       if ($empty.length) {
         $empty.before(html);
       } else {
-        $tbody.prepend(html);
+        $tbody.append(html);
       }
     } else {
       $headerRow.after(html);
@@ -2702,6 +2810,8 @@
       "mk-qt-col-phone": "11%",
       "mk-so-col-email": "13%",
       "mk-qt-col-email": "13%",
+      "mk-qt-col-address": "16%",
+      "mk-so-col-address": "16%",
       "mk-so-col-assigned": "13%",
       "mk-so-col-due": "12%",
       "mk-so-col-status": "11%",
@@ -2845,16 +2955,25 @@
 
   function enhanceQuoteStage(context) {
     var STAGE_LABELS = {
-      Created: "Nháp",
-      Draft: "Nháp",
-      "Đã tạo": "Nháp",
-      Nháp: "Nháp",
-      "Báo giá": "Báo giá",
-      Accepted: "Báo giá",
-      Confirmed: "Báo giá",
-      "Chấp nhận": "Báo giá",
-      "Xác nhận": "Báo giá",
-      Delivered: "Báo giá",
+      Created: "Phiếu tạm",
+      Draft: "Phiếu tạm",
+      "Đã tạo": "Phiếu tạm",
+      Nháp: "Phiếu tạm",
+      "Báo giá": "Phiếu tạm",
+      Accepted: "Phiếu tạm",
+      Confirmed: "Phiếu tạm",
+      "Chấp nhận": "Phiếu tạm",
+      "Xác nhận": "Phiếu tạm",
+      Delivered: "Phiếu tạm",
+      Rejected: "Huỷ",
+      "Huỷ": "Huỷ",
+      "Hủy": "Huỷ",
+      Cancelled: "Huỷ",
+      "Đã hủy": "Huỷ",
+      "Đã huỷ": "Huỷ",
+      "Đã từ chối": "Huỷ",
+      "Đã từ chối": "Huỷ",
+      "Từ chối": "Huỷ",
     };
     $(context)
       .find('td[data-name="quotestage"] .value')
@@ -2868,7 +2987,23 @@
         if (!text) {
           return;
         }
-        var label = STAGE_LABELS[text] || text;
+        var label = STAGE_LABELS[text];
+        if (!label) {
+          var plain = String(text || "").toLowerCase();
+          try {
+            plain = String(text || "")
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .toLowerCase();
+          } catch (ignoreNorm) {}
+          label =
+            plain.indexOf("tu choi") >= 0 ||
+            plain.indexOf("huy") >= 0 ||
+            plain.indexOf("cancel") >= 0 ||
+            plain.indexOf("reject") >= 0
+              ? "Huỷ"
+              : "Phiếu tạm";
+        }
         if ($link.length) {
           $link.addClass("mk-qt-stage-pill").text(label);
           return;
@@ -3170,6 +3305,27 @@
     });
   }
 
+  function bindQuoteImport() {
+    if (!window.MkQuickImport || typeof window.MkQuickImport.bind !== "function") {
+      return;
+    }
+    window.MkQuickImport.bind({
+      buttonId: "mk-qt-import-btn",
+      fileInputId: "mk-qt-import-file",
+      module: "Quotes",
+      xlsxOnly: true,
+      xlsxRejectMessage: "Chỉ hỗ trợ file .xlsx (chi tiết đặt hàng).",
+      confirmMessage:
+        "Import phiếu tạm vào Báo giá.\n" +
+        "Mỗi mã đặt hàng là một báo giá ở trạng thái Phiếu tạm.\n" +
+        "Nhập lại cùng mã sẽ cập nhật báo giá cũ.\n" +
+        "Không tạo đơn hàng và không tạo hàng hoá mới.",
+      onDone: function () {
+        window.location.reload();
+      },
+    });
+  }
+
   function init() {
     if (!isQuotesSalesList()) {
       return;
@@ -3181,6 +3337,7 @@
     ensureQtMassActionButtons();
     bindMassActionButtons();
     bindInlineDuplicateButton();
+    bindQuoteImport();
     bindQtSelectionEvents();
     bindInlineDetailCapture();
     patchInlineDetailRowClick();

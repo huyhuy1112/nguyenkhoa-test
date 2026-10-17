@@ -211,6 +211,15 @@
     "Đã thanh toán": "Đã thanh toán",
     "Đã hủy": "Đã hủy",
     "Từ chối": "Từ chối",
+    "Chờ kế toán": "Chờ kế toán",
+    "Kế toán đã duyệt": "Kế toán đã duyệt",
+    "Kế toán từ chối": "Kế toán từ chối",
+    "Hóa đơn mới": "Hóa đơn mới",
+    "Đã phát hành": "Đã phát hành",
+    "Đợi gửi": "Đợi gửi",
+    "Đang gửi": "Đang gửi",
+    "Phát hành lỗi": "Phát hành lỗi",
+    "Hóa đơn đã hủy": "Hóa đơn đã hủy",
   };
 
   var POS_COL_CLASS_BY_FIELD = {
@@ -1539,8 +1548,12 @@
       $notes.val(decodeHtmlEntities($notes.val()));
     }
 
-    // Always editable — no pencil toggle needed.
-    setInlineDetailEditMode($panel, true);
+    // Always editable — no pencil toggle needed (SalesOrder / Quotes).
+    // Invoice panel is read-focused (order → invoice snapshot).
+    var panelModule = String($panel.attr("data-module") || $panel.data("module") || "").toLowerCase();
+    if (panelModule !== "invoice") {
+      setInlineDetailEditMode($panel, true);
+    }
 
     $panel.on("click", ".mk-so-inline-detail__edit-toggle", function (e) {
       e.preventDefault();
@@ -3827,6 +3840,82 @@
     tick();
   }
 
+  function bindInvoiceMisa() {
+    $(document)
+      .off("click.mkInvMisa", ".mk-inv-inline-detail__misa-btn")
+      .on("click.mkInvMisa", ".mk-inv-inline-detail__misa-btn", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $btn = $(this);
+        var recordId = String($btn.attr("data-record-id") || "");
+        if (!recordId || $btn.data("mkBusy")) {
+          return;
+        }
+        var run = function () {
+          $btn.data("mkBusy", 1);
+          var postData = {
+            module: "Invoice",
+            action: "TransferToMisa",
+            record: recordId,
+            app: "SALES",
+          };
+          if (typeof app !== "undefined" && app.helper && app.helper.showProgress) {
+            app.helper.showProgress();
+          }
+          var finish = function () {
+            if (typeof app !== "undefined" && app.helper && app.helper.hideProgress) {
+              app.helper.hideProgress();
+            }
+            $btn.data("mkBusy", 0);
+          };
+          if (typeof app === "undefined" || !app.request || !app.request.post) {
+            finish();
+            window.alert("Không gọi được API chuyển MISA.");
+            return;
+          }
+          app.request.post({ data: postData }).then(function (err, res) {
+            finish();
+            if (err) {
+              var failMsg =
+                (err && err.message) || "Không chuyển được hóa đơn sang MISA.";
+              if (app.helper && app.helper.showErrorNotification) {
+                app.helper.showErrorNotification({ message: failMsg });
+              } else {
+                window.alert(failMsg);
+              }
+              return;
+            }
+            var okMsg =
+              (res && (res.message || res.msg)) ||
+              "Đã gửi hóa đơn sang MISA.";
+            var status = (res && res.misa_status) || "Chờ kế toán";
+            $btn
+              .closest(".mk-inv-inline-detail")
+              .find(".mk-inv-inline-detail__status-pill")
+              .text(status);
+            if (app.helper && app.helper.showSuccessNotification) {
+              app.helper.showSuccessNotification({ message: okMsg });
+            }
+            window.setTimeout(function () {
+              window.location.reload();
+            }, 600);
+          });
+        };
+        if (typeof app !== "undefined" && app.helper && app.helper.showConfirmationBox) {
+          app.helper
+            .showConfirmationBox({
+              message:
+                "Gửi hóa đơn này sang MISA thành Đơn đặt hàng? Nếu hóa đơn đang tính VAT, số tiền gửi đi sẽ trừ VAT đó.",
+            })
+            .then(run, function () {});
+          return;
+        }
+        if (window.confirm("Gửi hóa đơn này sang MISA? Số tiền sẽ trừ VAT nếu hóa đơn đang tính VAT.")) {
+          run();
+        }
+      });
+  }
+
   function init() {
     if (!isInvoiceSalesList()) {
       return;
@@ -3853,6 +3942,7 @@
     bindPosMassDuplicateButton();
     bindPosMassDeleteButton();
     bindInlineDuplicateButton();
+    bindInvoiceMisa();
     initDebugHelpers();
     scheduleInitialEnhancements();
   }

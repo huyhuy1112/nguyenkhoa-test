@@ -1,28 +1,28 @@
 /**
- * Import wizard — liquid glass / luxury CRM (B-ACE SALES)
+ * Import wizard — modern CRM (aligned with Leads / Contacts list)
  */
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-	--mk-imp-navy: #152238;
-	--mk-imp-navy-mid: #1e3352;
-	--mk-imp-navy-soft: #2a4568;
-	--mk-imp-gold: #d4af37;
-	--mk-imp-gold-light: #f3e3a3;
-	--mk-imp-gold-deep: #9a7b1a;
-	--mk-imp-ink: #1a1612;
-	--mk-imp-ink-soft: #3d3830;
-	--mk-imp-muted: #5c5348;
-	--mk-imp-line: rgba(212, 175, 55, 0.22);
-	--mk-imp-glass: rgba(255, 255, 255, 0.72);
-	--mk-imp-glass-strong: rgba(255, 255, 255, 0.92);
-	--mk-imp-shadow: 0 24px 60px rgba(21, 34, 56, 0.14);
-	--mk-imp-radius: 18px;
-	--mk-imp-modal-w: min(96vw, 1180px);
+	--mk-imp-navy: #0f172a;
+	--mk-imp-navy-mid: #1e293b;
+	--mk-imp-navy-soft: #334155;
+	--mk-imp-gold: #2563eb;
+	--mk-imp-gold-light: #dbeafe;
+	--mk-imp-gold-deep: #1d4ed8;
+	--mk-imp-ink: #0f172a;
+	--mk-imp-ink-soft: #334155;
+	--mk-imp-muted: #64748b;
+	--mk-imp-line: rgba(148, 163, 184, 0.35);
+	--mk-imp-glass: rgba(255, 255, 255, 0.92);
+	--mk-imp-glass-strong: rgba(255, 255, 255, 0.98);
+	--mk-imp-shadow: 0 20px 48px rgba(15, 23, 42, 0.12);
+	--mk-imp-radius: 16px;
+	--mk-imp-modal-w: min(96vw, 920px);
 	--mk-imp-modal-max-h: calc(100vh - var(--mk-dash-topbar-h, 64px) - 32px);
-	--mk-imp-font-base: 15px;
-	--mk-imp-font-sm: 14px;
-	--mk-imp-font-lg: 16px;
+	--mk-imp-font-base: 14px;
+	--mk-imp-font-sm: 13px;
+	--mk-imp-font-lg: 15px;
 }
 
 /* ---- Ambient background (photo + navy glass) ---- */
@@ -505,11 +505,12 @@ body[data-view="List"] #overlayPageContent.fade.in .mk-import-modern.fc-overlay-
 }
 
 .mk-import-modern .mk-import-panel__title {
-	font-family: 'Cormorant Garamond', 'Space Grotesk', serif;
-	font-size: 24px;
-	font-weight: 600;
+	font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	font-size: 20px;
+	font-weight: 700;
 	color: var(--mk-imp-ink) !important;
 	margin: 0 0 6px;
+	letter-spacing: -0.02em;
 }
 
 .mk-import-modern .mk-import-panel__sub {
@@ -1207,4 +1208,161 @@ body[data-view="List"][data-app="SALES"] .mk-import-modern .mk-import-hint {
 	border-radius: 50%;
 	background: radial-gradient(circle, rgba(212, 175, 55, 0.14) 0%, transparent 70%);
 	pointer-events: none;
+}
+
+/* ---- Modern dropzone + option cards (2026 redesign) ---- */
+.mk-import-modern .mk-import-fields {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.mk-import-modern .mk-import-dropzone {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	padding: 28px 20px 22px;
+	border: 1.5px dashed #94a3b8;
+	border-radius: 16px;
+	background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+	text-align: center;
+	transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mk-import-modern .mk-import-dropzone.is-dragover {
+	border-color: #2563eb;
+	background: #eff6ff;
+	box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.mk-import-modern .mk-import-dropzone__icon {
+	width: 56px;
+	height: 56px;
+	border-radius: 14px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #fff;
+	color: #2563eb;
+	border: 1px solid #bfdbfe;
+	box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+}
+
+.mk-import-modern .mk-import-dropzone__copy {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	color: #334155;
+}
+
+.mk-import-modern .mk-import-dropzone__copy strong {
+	font-size: 15px;
+	font-weight: 700;
+	color: #0f172a;
+}
+
+.mk-import-modern .mk-import-dropzone__copy span {
+	font-size: 13px;
+	color: #64748b;
+}
+
+.mk-import-modern .mk-import-dropzone__btn {
+	position: relative;
+	overflow: hidden;
+	margin: 4px 0 0;
+	border-radius: 10px !important;
+	border: none !important;
+	background: #2563eb !important;
+	color: #fff !important;
+	font-weight: 600 !important;
+	padding: 10px 16px !important;
+	box-shadow: 0 8px 20px rgba(37, 99, 235, 0.22);
+}
+
+.mk-import-modern .mk-import-dropzone__btn input[type="file"] {
+	position: absolute;
+	inset: 0;
+	opacity: 0;
+	cursor: pointer;
+	width: 100%;
+	height: 100%;
+}
+
+.mk-import-modern .mk-import-dropzone__file {
+	min-height: 20px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #475569;
+	padding: 0 !important;
+}
+
+.mk-import-modern .mk-import-dropzone__file.has-file {
+	color: #166534;
+}
+
+.mk-import-modern .mk-import-dropzone__hint {
+	margin: 0;
+	font-size: 12px;
+	color: #94a3b8;
+}
+
+.mk-import-modern .mk-import-option-card {
+	display: grid;
+	grid-template-columns: minmax(140px, 200px) 1fr;
+	gap: 12px 20px;
+	align-items: center;
+	padding: 14px 16px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	background: #fff;
+}
+
+.mk-import-modern .mk-import-option-card__label {
+	font-size: 13px;
+	font-weight: 600;
+	color: #334155;
+}
+
+.mk-import-modern .mk-import-check,
+.mk-import-modern .mk-import-radio {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	font-size: 13px;
+	font-weight: 500;
+	color: #334155;
+	cursor: pointer;
+}
+
+.mk-import-modern .mk-import-radio-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px 18px;
+}
+
+.mk-import-modern .mk-import-select,
+.mk-import-modern select.mk-import-select {
+	min-width: 180px;
+	max-width: 100%;
+}
+
+.mk-import-modern #navigation_links .crumbs li.step.active,
+.mk-import-modern #navigation_links .crumbs li.active {
+	background: #2563eb !important;
+	box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28) !important;
+}
+
+.mk-import-modern #navigation_links .crumbs li.step:not(.active):not(.completed),
+.mk-import-modern #navigation_links .crumbs li:not(.active):not(.completed) {
+	background: #f8fafc !important;
+	border: 1px solid #e2e8f0 !important;
+}
+
+@media (max-width: 720px) {
+	.mk-import-modern .mk-import-option-card {
+		grid-template-columns: 1fr;
+	}
 }

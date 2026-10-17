@@ -726,7 +726,7 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 }
 
 .mk-wh-proto-lines--catalog .mk-wh-proto-lines__table {
-	min-width: 1180px;
+	min-width: 1420px;
 	width: max-content;
 	max-width: none;
 	table-layout: auto;
@@ -738,8 +738,17 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 }
 
 .mk-wh-proto-lines__table .mk-wh-proto-col-sku {
-	min-width: 96px;
-	width: 9%;
+	min-width: 280px;
+	width: 280px;
+}
+
+.mk-wh-proto-lines__table .mk-wh-proto-col-sku input {
+	width: 100%;
+	min-width: 260px;
+	text-align: left;
+	white-space: nowrap;
+	overflow: visible;
+	text-overflow: clip;
 }
 
 .mk-wh-proto-lines__table .mk-wh-proto-col-unit {
@@ -1247,6 +1256,19 @@ body[data-module="Warehouse"][data-view="WhDetail"][data-app="INVENTORY"] .main-
 	justify-content: space-between;
 	gap: 12px;
 	margin-bottom: 10px;
+}
+
+.mk-wh-proto-stage__actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.mk-wh-proto-btn--outline {
+	background: #fff;
+	border: 1px solid #cbd5e1;
+	color: #0f172a;
 }
 
 .mk-wh-proto-stage__title {

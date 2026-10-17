@@ -165,3 +165,77 @@
 		padding: 16px 18px;
 	}
 }
+
+.nk-notif-prefs__card--r1 {
+	grid-column: 1 / -1;
+	margin-bottom: 18px;
+}
+
+.nk-notif-prefs__r1-desc {
+	margin: 0;
+	padding: 0 28px 12px;
+	font-size: 1.05rem;
+	color: #475569;
+	line-height: 1.5;
+}
+
+.nk-r1-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 14px 18px;
+	padding: 4px 28px 12px;
+}
+
+.nk-r1-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: #334155;
+}
+
+.nk-r1-field input {
+	height: 42px;
+	border: 1px solid #cbd5e1;
+	border-radius: 10px;
+	padding: 0 12px;
+	font-size: 1rem;
+	font-weight: 500;
+	color: #0f172a;
+}
+
+.nk-r1-days {
+	padding: 4px 28px 8px;
+}
+
+.nk-r1-days__label {
+	display: block;
+	margin-bottom: 8px;
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: #334155;
+}
+
+.nk-r1-days__row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.nk-r1-day {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 12px;
+	border: 1px solid #e2e8f0;
+	border-radius: 999px;
+	background: #f8fafc;
+	cursor: pointer;
+	font-weight: 600;
+	color: #334155;
+}
+
+.nk-r1-day input {
+	margin: 0;
+}

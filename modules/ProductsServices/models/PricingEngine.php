@@ -49,7 +49,7 @@ class ProductsServices_PricingEngine_Model {
 	}
 
 	/**
-	 * Channel: "tuibao" uses flat price_tuibao; "retail" (default) uses invoice-tier columns.
+	 * Channel: "tuibao" uses price_tuibao; "miutea" uses price_miutea when it is set; "retail" uses invoice tiers.
 	 *
 	 * @param string $channel tuibao|retail
 	 * @param string $tierKey invoice tier when retail
@@ -67,6 +67,13 @@ class ProductsServices_PricingEngine_Model {
 			}
 			$fallback = self::getPriceByInvoiceTier('gte_7m', $prices);
 			return $fallback;
+		}
+		if ($channel === 'miutea'
+			&& isset($prices['price_miutea'])
+			&& $prices['price_miutea'] !== ''
+			&& $prices['price_miutea'] !== null
+			&& (float) $prices['price_miutea'] > 0) {
+			return (float) $prices['price_miutea'];
 		}
 		$tierPrice = self::getPriceByInvoiceTier($tierKey, $prices);
 		if ($tierPrice !== null) {

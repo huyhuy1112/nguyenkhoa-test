@@ -60,10 +60,10 @@ class Home_MainPage_View extends Vtiger_Index_View {
 					$rows[] = array(
 						'id' => $id,
 						'url' => $rec ? $rec->getDetailViewUrl() : ('index.php?module=Project&view=Detail&record=' . $id),
-						'title' => $row['projectname'] ?: ('#' . $id),
-						'startdate' => $rec ? $rec->getDisplayValue('startdate') : $row['startdate'],
-						'enddate' => $rec ? $rec->getDisplayValue('enddate') : $row['enddate'],
-						'status' => $rec ? $rec->getDisplayValue('projectstatus') : $row['projectstatus'],
+						'title' => $this->decodeMainPageText($row['projectname'] ?: ('#' . $id)),
+						'startdate' => $this->decodeMainPageText($rec ? $rec->getDisplayValue('startdate') : $row['startdate']),
+						'enddate' => $this->decodeMainPageText($rec ? $rec->getDisplayValue('enddate') : $row['enddate']),
+						'status' => $this->decodeMainPageText($rec ? $rec->getDisplayValue('projectstatus') : $row['projectstatus']),
 						'status_raw' => $row['projectstatus'],
 					);
 				}
@@ -79,9 +79,9 @@ class Home_MainPage_View extends Vtiger_Index_View {
 					$rows[] = array(
 						'id' => $id,
 						'url' => $rec ? $rec->getDetailViewUrl() : ('index.php?module=ProjectTask&view=Detail&record=' . $id),
-						'title' => $row['projecttaskname'] ?: ('Task #' . $id),
-						'duedate' => $rec ? ($rec->getDisplayValue('enddate') ?: $rec->getDisplayValue('startdate')) : $row['enddate'],
-						'status' => $rec ? $rec->getDisplayValue('projecttaskprogress') : $row['projecttaskprogress'],
+						'title' => $this->decodeMainPageText($row['projecttaskname'] ?: ('Task #' . $id)),
+						'duedate' => $this->decodeMainPageText($rec ? ($rec->getDisplayValue('enddate') ?: $rec->getDisplayValue('startdate')) : $row['enddate']),
+						'status' => $this->decodeMainPageText($rec ? $rec->getDisplayValue('projecttaskprogress') : $row['projecttaskprogress']),
 						'status_raw' => $row['projecttaskprogress'],
 					);
 				}
@@ -164,19 +164,19 @@ class Home_MainPage_View extends Vtiger_Index_View {
 					$rows[] = array(
 						'id' => $recordId,
 						'url' => $url,
-						'title' => $recordModel->get('projectname') ?: ('#' . $recordId),
-						'startdate' => $recordModel->getDisplayValue('startdate'),
-						'enddate' => $recordModel->getDisplayValue('enddate'),
-						'status' => $recordModel->getDisplayValue('projectstatus'),
+						'title' => $this->decodeMainPageText($recordModel->get('projectname') ?: ('#' . $recordId)),
+						'startdate' => $this->decodeMainPageText($recordModel->getDisplayValue('startdate')),
+						'enddate' => $this->decodeMainPageText($recordModel->getDisplayValue('enddate')),
+						'status' => $this->decodeMainPageText($recordModel->getDisplayValue('projectstatus')),
 						'status_raw' => $recordModel->get('projectstatus'),
 					);
 				} elseif ($moduleName === 'ProjectTask') {
 					$rows[] = array(
 						'id' => $recordId,
 						'url' => $url,
-						'title' => $recordModel->get('projecttaskname') ?: ('Task #' . $recordId),
-						'duedate' => $recordModel->getDisplayValue('enddate') ?: $recordModel->getDisplayValue('startdate'),
-						'status' => $recordModel->getDisplayValue('projecttaskprogress') ?: '-',
+						'title' => $this->decodeMainPageText($recordModel->get('projecttaskname') ?: ('Task #' . $recordId)),
+						'duedate' => $this->decodeMainPageText($recordModel->getDisplayValue('enddate') ?: $recordModel->getDisplayValue('startdate')),
+						'status' => $this->decodeMainPageText($recordModel->getDisplayValue('projecttaskprogress') ?: '-'),
 						'status_raw' => $recordModel->get('projecttaskprogress'),
 					);
 				}
@@ -241,6 +241,22 @@ class Home_MainPage_View extends Vtiger_Index_View {
 	}
 
 	/**
+	 * Decode HTML entities once so Smarty escape:'html' does not double-encode.
+	 */
+	protected function decodeMainPageText($value) {
+		if ($value === null || $value === '') {
+			return '';
+		}
+		$text = (string) $value;
+		if (function_exists('decode_html')) {
+			$text = decode_html($text);
+		} else {
+			$text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
+		}
+		return $text;
+	}
+
+	/**
 	 * Build one agenda item from activity (date + time display for UI giống Today).
 	 */
 	/** Màu mặc định theo loại (Schedule): Task, Call, Meeting, ... */
@@ -254,29 +270,110 @@ class Home_MainPage_View extends Vtiger_Index_View {
 
 	protected function buildAgendaItem(Vtiger_Record_Model $activity) {
 		$id = $activity->getId();
-		$subject = $activity->get('subject');
+		$subject = $this->decodeMainPageText($activity->get('subject'));
 		$type = $activity->get('activitytype') ?: 'Events';
+		$dateKey = '';
+		$hour = null;
 		if ($activity->get('activitytype') === 'Task') {
-			$dateDisplay = $activity->getDisplayValue('due_date');
+			$dateDisplay = $this->decodeMainPageText($activity->getDisplayValue('due_date'));
 			$timeDisplay = '';
 			$dateTime = $dateDisplay;
+			$rawDue = $activity->get('due_date');
+			if ($rawDue) {
+				$dateKey = date('Y-m-d', strtotime($rawDue));
+			}
 		} else {
-			$dateDisplay = $activity->getDisplayValue('date_start');
-			$timeStart = $activity->getDisplayValue('time_start');
-			$timeEnd = $activity->getDisplayValue('time_end');
-			$timeDisplay = trim($timeStart . ($timeEnd ? ' ' . $timeEnd : ''));
+			$dateDisplay = $this->decodeMainPageText($activity->getDisplayValue('date_start'));
+			$timeStart = $this->decodeMainPageText($activity->getDisplayValue('time_start'));
+			$timeEnd = $this->decodeMainPageText($activity->getDisplayValue('time_end'));
+			$timeDisplay = trim($timeStart . ($timeEnd ? ' – ' . $timeEnd : ''));
 			$dateTime = $dateDisplay . ($timeDisplay ? ' ' . $timeDisplay : '');
+			$rawStart = $activity->get('date_start');
+			if ($rawStart) {
+				$dateKey = date('Y-m-d', strtotime($rawStart));
+			}
+			$rawTime = $activity->get('time_start');
+			if ($rawTime) {
+				$ts = strtotime('1970-01-01 ' . $rawTime);
+				if ($ts !== false) {
+					$hour = (int) date('G', $ts);
+				}
+			}
 		}
 		$color = isset(self::$agendaTypeColors[$type]) ? self::$agendaTypeColors[$type] : '#95a5a6';
 		return array(
 			'id' => $id,
 			'url' => $activity->getDetailViewUrl(),
-			'title' => $subject ?: ('#' . $id),
+			'title' => $subject !== '' ? $subject : ('#' . $id),
 			'dateTime' => $dateTime,
 			'dateDisplay' => $dateDisplay,
 			'timeDisplay' => $timeDisplay,
 			'type' => $type,
 			'color' => $color,
+			'dateKey' => $dateKey,
+			'hour' => $hour,
+		);
+	}
+
+	/**
+	 * Week strip (Mon–Sun) + events for Main Page calendar card.
+	 */
+	protected function buildWeekStrip(array $todayItems, array $upcomingItems) {
+		$byDay = array();
+		foreach (array_merge($todayItems, $upcomingItems) as $item) {
+			$key = isset($item['dateKey']) ? $item['dateKey'] : '';
+			if ($key === '') {
+				continue;
+			}
+			if (!isset($byDay[$key])) {
+				$byDay[$key] = array();
+			}
+			$byDay[$key][] = $item;
+		}
+		$labels = array('T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN');
+		$monday = new DateTime('monday this week');
+		$today = date('Y-m-d');
+		$days = array();
+		for ($i = 0; $i < 7; $i++) {
+			$d = clone $monday;
+			if ($i > 0) {
+				$d->modify('+' . $i . ' day');
+			}
+			$key = $d->format('Y-m-d');
+			$days[] = array(
+				'key' => $key,
+				'label' => $labels[$i],
+				'dayNum' => $d->format('j'),
+				'isToday' => ($key === $today),
+				'count' => isset($byDay[$key]) ? count($byDay[$key]) : 0,
+				'events' => isset($byDay[$key]) ? $byDay[$key] : array(),
+			);
+		}
+		return array(
+			'title' => 'Tuần ' . $monday->format('d/m') . ' – ' . (clone $monday)->modify('+6 day')->format('d/m/Y'),
+			'days' => $days,
+		);
+	}
+
+	protected function buildMainPageGreeting(Users_Record_Model $user) {
+		$hour = (int) date('G');
+		if ($hour < 12) {
+			$hello = 'Chào buổi sáng';
+		} elseif ($hour < 18) {
+			$hello = 'Chào buổi chiều';
+		} else {
+			$hello = 'Chào buổi tối';
+		}
+		$first = trim($this->decodeMainPageText($user->get('first_name')));
+		$last = trim($this->decodeMainPageText($user->get('last_name')));
+		$name = trim($first . ' ' . $last);
+		if ($name === '') {
+			$name = $this->decodeMainPageText($user->get('user_name'));
+		}
+		return array(
+			'hello' => $hello,
+			'name' => $name,
+			'subtitle' => 'Tổng quan công việc và lịch làm việc hôm nay trên Nguyên Khoa CRM.',
 		);
 	}
 
@@ -358,16 +455,6 @@ class Home_MainPage_View extends Vtiger_Index_View {
 	protected function buildMainPageShortcuts(array $links, $taskCount, $loggedTimeDisplay) {
 		$shortcuts = array();
 
-		if (Users_Privileges_Model::isPermitted('ProjectTask', 'DetailView')) {
-			$shortcuts[] = array(
-				'type' => 'link',
-				'icon' => 'tasks',
-				'label' => vtranslate('LBL_MK_SHORTCUT_MY_TASKS', 'Home'),
-				'url' => $links['projecttask_list'],
-				'badge' => (int) $taskCount,
-			);
-		}
-
 		if (Users_Privileges_Model::isPermitted('Calendar', 'DetailView')) {
 			$shortcuts[] = array(
 				'type' => 'link',
@@ -394,26 +481,20 @@ class Home_MainPage_View extends Vtiger_Index_View {
 		$viewer = $this->getViewer($request);
 		$currentUser = Users_Record_Model::getCurrentUserModel();
 
-		// Real data: projects and tasks (assigned to me only), agenda (my schedule)
-		$mainPageProjects = $this->getMainPageList('Project', 8);
-		$mainPageTasks = $this->getMainPageList('ProjectTask', 8);
-		$projectTaskCount = $this->getProjectTaskCount();
 		$mainPageAgenda = $this->getAgendaToday(10);
 		$mainPageAgendaUpcoming = $this->getAgendaUpcoming(10);
 
 		// Links for shortcuts (with app=MANAGEMENT)
 		$app = 'MANAGEMENT';
 		$mainPageLinks = array(
-			'projecttask_list' => 'index.php?module=ProjectTask&view=List&app=' . $app,
-			'project_list' => 'index.php?module=Project&view=List&app=' . $app,
 			'calendar' => 'index.php?module=Calendar&view=Calendar&app=' . $app,
 			'home' => 'index.php?module=Home&view=DashBoard&app=' . $app,
 		);
 
 		$viewer->assign('CURRENT_USER', $currentUser);
-		$viewer->assign('MAINPAGE_PROJECTS', $mainPageProjects);
-		$viewer->assign('MAINPAGE_TASKS', $mainPageTasks);
-		$viewer->assign('MAINPAGE_TASK_COUNT', $projectTaskCount);
+		$viewer->assign('MAINPAGE_PROJECTS', array());
+		$viewer->assign('MAINPAGE_TASKS', array());
+		$viewer->assign('MAINPAGE_TASK_COUNT', 0);
 		$viewer->assign('MAINPAGE_AGENDA', $mainPageAgenda);
 		$viewer->assign('MAINPAGE_AGENDA_UPCOMING', $mainPageAgendaUpcoming);
 		$viewer->assign('MAINPAGE_LINKS', $mainPageLinks);
@@ -433,10 +514,33 @@ class Home_MainPage_View extends Vtiger_Index_View {
 				$mainPageAccessibleGroups = array();
 			}
 		}
-		$viewer->assign('MAINPAGE_ANNOUNCEMENTS', $mainPageAnnouncements);
 		$viewer->assign('MAINPAGE_ASSIGNABLE_USERS', $mainPageAssignableUsers);
 		$viewer->assign('MAINPAGE_ACCESSIBLE_GROUPS', $mainPageAccessibleGroups);
 		$viewer->assign('MAINPAGE_CURRENT_USER_ID', $currentUser->getId());
+
+		foreach ($mainPageAnnouncements as &$annRow) {
+			if (isset($annRow['title'])) {
+				$annRow['title'] = $this->decodeMainPageText($annRow['title']);
+			}
+			if (isset($annRow['creatorName'])) {
+				$annRow['creatorName'] = $this->decodeMainPageText($annRow['creatorName']);
+			}
+			if (isset($annRow['timeAgo'])) {
+				$annRow['timeAgo'] = $this->decodeMainPageText($annRow['timeAgo']);
+			}
+		}
+		unset($annRow);
+		$viewer->assign('MAINPAGE_ANNOUNCEMENTS', $mainPageAnnouncements);
+
+		$greeting = $this->buildMainPageGreeting($currentUser);
+		$viewer->assign('MAINPAGE_GREETING', $greeting);
+		$viewer->assign('MAINPAGE_WEEK', $this->buildWeekStrip($mainPageAgenda, $mainPageAgendaUpcoming));
+		$viewer->assign('MAINPAGE_KPI', array(
+			'announcements' => count($mainPageAnnouncements),
+			'projects' => 0,
+			'tasks' => 0,
+			'agenda' => count($mainPageAgenda) + count($mainPageAgendaUpcoming),
+		));
 
 		// My logged time: tính từ lúc đăng nhập (session)
 		$loginTime = isset($_SESSION['user_login_time']) ? (int)$_SESSION['user_login_time'] : 0;
@@ -450,10 +554,10 @@ class Home_MainPage_View extends Vtiger_Index_View {
 		$viewer->assign('MAINPAGE_LOGGED_TIME_DISPLAY', $loggedTimeDisplay);
 		$viewer->assign('MAINPAGE_LOGGED_TIME_SECONDS', $loggedTimeSeconds);
 
-		// Shortcuts: chỉ module user có quyền; bỏ Stickies/Bookmarks (không có module)
-		$viewer->assign('MAINPAGE_SHORTCUTS', $this->buildMainPageShortcuts($mainPageLinks, $projectTaskCount, $loggedTimeDisplay));
+		// Shortcuts: chỉ module user có quyền; bỏ Stickies/Bookmarks / nhiệm vụ dự án
+		$viewer->assign('MAINPAGE_SHORTCUTS', $this->buildMainPageShortcuts($mainPageLinks, 0, $loggedTimeDisplay));
 
-		// Heartbeat: cập nhật login_time của phiên hiện tại để Team Status (30 phút) coi user đang có hoạt động
+		// Heartbeat: cập nhật login_time của phiên hiện tại để Team Status coi user đang có hoạt động
 		if (class_exists('LoginHeartbeat')) {
 			LoginHeartbeat::update($currentUser->get('user_name'));
 		}
@@ -462,7 +566,7 @@ class Home_MainPage_View extends Vtiger_Index_View {
 		$mainPageLoginHistory = self::getLoginHistoryForUser($currentUser->get('user_name'), 15);
 		$viewer->assign('MAINPAGE_LOGIN_HISTORY', $mainPageLoginHistory);
 
-		// Team Status: chỉ CEO/Admin xem danh sách thành viên (online/offline/ngày nghỉ) + bộ lọc
+		// Team Status: chỉ CEO/Admin xem danh sách thành viên (online/offline) + bộ lọc
 		$canSeeTeamStatus = self::isUserCEOOrAdmin($currentUser);
 		$mainPageTeamStatus = array();
 		$teamFilterOptions = array('users' => array(), 'departments' => array());
@@ -470,7 +574,6 @@ class Home_MainPage_View extends Vtiger_Index_View {
 			// Luôn lấy danh sách TẤT CẢ user (không lọc theo người phụ trách/phòng ban) để cả 2 acc đều thấy nhau online
 			$filterDate = $request->get('team_filter_date');
 			$mainPageTeamStatus = self::getTeamStatusForCEO('', '', $filterDate);
-			// Giữ lại giá trị filter cho form (hiển thị đúng dropdown, nhưng danh sách đã là tất cả)
 			$filterUser = isset($_REQUEST['team_filter_user']) ? trim((string) $_REQUEST['team_filter_user']) : '';
 			$filterDept = isset($_REQUEST['team_filter_department']) ? trim((string) $_REQUEST['team_filter_department']) : '';
 			if ($filterUser === '' || $filterUser === '0') $filterUser = '';
@@ -478,22 +581,21 @@ class Home_MainPage_View extends Vtiger_Index_View {
 			// User đang đăng nhập (có session) luôn hiển thị Online trong Team Status
 			$currentUserId = $currentUser->getId();
 			foreach ($mainPageTeamStatus as &$m) {
-				if (isset($m['id']) && (int)$m['id'] === (int)$currentUserId && (!isset($m['status']) || $m['status'] !== 'leave')) {
+				if (isset($m['id']) && (int)$m['id'] === (int)$currentUserId) {
 					$m['status'] = 'online';
 					$m['status_label'] = 'Online';
+					$m['last_seen_ago'] = '';
 				}
 			}
 			unset($m);
 			$teamFilterOptions = self::getTeamStatusFilterOptions();
-			$mainPageTeamStatusLeaveOnly = array_filter($mainPageTeamStatus, function ($m) { return isset($m['status']) && $m['status'] === 'leave'; });
 			$teamFilterDateDisplay = !empty($filterDate) ? date('d/m/Y', strtotime($filterDate)) : date('d/m/Y');
 		} else {
-			$mainPageTeamStatusLeaveOnly = array();
 			$teamFilterDateDisplay = date('d/m/Y');
 		}
 		$viewer->assign('MAINPAGE_CAN_SEE_TEAM_STATUS', $canSeeTeamStatus);
 		$viewer->assign('MAINPAGE_TEAM_STATUS', $mainPageTeamStatus);
-		$viewer->assign('MAINPAGE_TEAM_STATUS_LEAVE_ONLY', $mainPageTeamStatusLeaveOnly);
+		$viewer->assign('MAINPAGE_TEAM_STATUS_LEAVE_ONLY', array());
 		$viewer->assign('MAINPAGE_TEAM_FILTER_DATE_DISPLAY', $teamFilterDateDisplay);
 		$viewer->assign('MAINPAGE_TEAM_FILTER_USER', $request->get('team_filter_user'));
 		$viewer->assign('MAINPAGE_TEAM_FILTER_DEPARTMENT', $request->get('team_filter_department'));
@@ -575,15 +677,14 @@ class Home_MainPage_View extends Vtiger_Index_View {
 	}
 
 	/**
-	 * Lấy danh sách thành viên với trạng thái: online, offline, ngày nghỉ.
-	 * Chỉ gọi khi user là CEO/Admin.
+	 * Lấy danh sách thành viên với trạng thái online / offline (+ thời gian offline).
+	 * Chỉ gọi khi user là CEO/Admin. Không dùng ngày nghỉ phép.
 	 * @param string|int $filterUser Người phụ trách (reports_to_id) - chỉ lấy user thuộc quyền người này; rỗng = tất cả
 	 * @param string $filterDept Phòng ban; rỗng = tất cả
-	 * @param string $filterDate Ngày xem trạng thái (Y-m-d); rỗng = hôm nay
+	 * @param string $filterDate Ngày (giữ tham số tương thích; không còn dùng cho nghỉ phép)
 	 */
 	protected static function getTeamStatusForCEO($filterUser = '', $filterDept = '', $filterDate = '') {
 		$list = array();
-		$today = !empty($filterDate) ? date('Y-m-d', strtotime($filterDate)) : date('Y-m-d');
 		try {
 			$db = PearDatabase::getInstance();
 			$params = array();
@@ -603,7 +704,6 @@ class Home_MainPage_View extends Vtiger_Index_View {
 			if (!$resUsers) {
 				return $list;
 			}
-			$userNames = array();
 			while ($row = $db->fetchByAssoc($resUsers)) {
 				$id = (int) $row['id'];
 				$name = trim($row['first_name'] . ' ' . $row['last_name']);
@@ -621,17 +721,15 @@ class Home_MainPage_View extends Vtiger_Index_View {
 					'user_name' => $row['user_name'],
 					'status' => 'offline',
 					'status_label' => 'Offline',
+					'last_seen_ago' => '',
 					'leave_note' => '',
 				);
-				$userNames[$row['user_name']] = $id;
 			}
 			if (empty($list)) {
 				return $list;
 			}
 
-			// Online/Offline: dùng chung logic với Teams (bảng vtiger_user_activity, trường last_seen).
-			// - Current user: luôn Online nếu không Inactive.
-			// - Các user khác: Online nếu last_seen trong vòng 2 phút (120 giây), còn lại = Offline.
+			// Online nếu last_seen trong 2 phút; Offline kèm "X phút trước".
 			$userIds = array_keys($list);
 			if (!empty($userIds) && Vtiger_Utils::CheckTable('vtiger_user_activity')) {
 				$placeholders = generateQuestionMarks($userIds);
@@ -650,8 +748,8 @@ class Home_MainPage_View extends Vtiger_Index_View {
 					$isInactive = ($row['user_status'] === 'Inactive');
 					$lastSeen = $row['last_seen'];
 					$isOnline = false;
+					$ago = '';
 					if ($uid === (int)$currentUserId && !$isInactive) {
-						// User hiện tại luôn Online (giống Teams)
 						$isOnline = true;
 					} elseif (!$isInactive && !empty($lastSeen)) {
 						$ts = strtotime($lastSeen);
@@ -659,52 +757,52 @@ class Home_MainPage_View extends Vtiger_Index_View {
 							$diff = $now - $ts;
 							if ($diff >= 0 && $diff <= 120) {
 								$isOnline = true;
+							} elseif ($diff > 120) {
+								$ago = self::formatLastSeenAgo($diff);
 							}
 						}
 					}
 					if ($isOnline) {
 						$list[$uid]['status'] = 'online';
 						$list[$uid]['status_label'] = 'Online';
+						$list[$uid]['last_seen_ago'] = '';
 					} else {
 						$list[$uid]['status'] = 'offline';
-						$list[$uid]['status_label'] = 'Offline';
+						$list[$uid]['last_seen_ago'] = $ago;
+						$list[$uid]['status_label'] = $ago !== '' ? ('Offline · ' . $ago) : 'Offline';
 					}
 				}
 			}
-
-			// Ngày nghỉ phép: vtiger_leaverequest approved, hôm nay nằm trong [date_start, due_date]
-			if (Vtiger_Utils::CheckTable('vtiger_leaverequest')) {
-				$sqlLeave = "SELECT created_user_id, subject, leave_type FROM vtiger_leaverequest
-					WHERE approval_status = 'approved'
-					AND created_user_id > 0
-					AND date_start <= ? AND (due_date >= ? OR (due_date IS NULL AND date_start = ?))";
-				$resLeave = $db->pquery($sqlLeave, array($today, $today, $today));
-				if ($resLeave) {
-				while ($row = $db->fetchByAssoc($resLeave)) {
-					$uid = (int) $row['created_user_id'];
-					if (isset($list[$uid])) {
-						$list[$uid]['status'] = 'leave';
-						$list[$uid]['status_label'] = 'Ngày nghỉ';
-						$note = decode_html($row['subject']);
-						if (empty($note)) {
-							$note = $row['leave_type'] === 'unpaid' ? 'Nghỉ không lương' : 'Nghỉ phép';
-						}
-						$list[$uid]['leave_note'] = $note;
-					}
-				}
-				}
-			}
-			// Sắp xếp: Ngày nghỉ → Online → Offline (người nghỉ phép hiển thị trước)
-			$order = array('leave' => 0, 'online' => 1, 'offline' => 2);
+			$order = array('online' => 0, 'offline' => 1);
 			usort($list, function ($a, $b) use ($order) {
 				$oa = isset($order[$a['status']]) ? $order[$a['status']] : 2;
 				$ob = isset($order[$b['status']]) ? $order[$b['status']] : 2;
-				return $oa - $ob;
+				if ($oa !== $ob) {
+					return $oa - $ob;
+				}
+				return strcasecmp($a['name'], $b['name']);
 			});
 		} catch (Exception $e) {
 			// ignore
 		}
 		return array_values($list);
+	}
+
+	/**
+	 * Ví dụ: 5 phút trước, 2 giờ trước, 1 ngày trước.
+	 */
+	protected static function formatLastSeenAgo($seconds) {
+		$seconds = max(0, (int) $seconds);
+		if ($seconds < 60) {
+			return 'vừa xong';
+		}
+		if ($seconds < 3600) {
+			return floor($seconds / 60) . ' phút trước';
+		}
+		if ($seconds < 86400) {
+			return floor($seconds / 3600) . ' giờ trước';
+		}
+		return floor($seconds / 86400) . ' ngày trước';
 	}
 
 	/**

@@ -1,0 +1,21 @@
+<?php
+/*+***********************************************************************************
+ * Leads retention: Ngưng CSKH 30 ngày → thùng rác; thùng rác 30 ngày → xóa vĩnh viễn.
+ * Frequency: 1 ngày (86400s).
+ *************************************************************************************/
+
+require_once 'modules/Leads/models/ModernService.php';
+
+try {
+	global $current_user;
+	if (empty($current_user) || empty($current_user->id)) {
+		$current_user = Users::getActiveAdminUser();
+	}
+	Leads_ModernService::ensureRetentionColumns();
+	$result = Leads_ModernService::processRetentionLifecycle(200);
+	echo 'Lead retention: trashed=' . (isset($result['trashed']) ? (int) $result['trashed'] : 0)
+		. ' purged=' . (isset($result['purged']) ? (int) $result['purged'] : 0)
+		. ' backfilled=' . (isset($result['backfilled']) ? (int) $result['backfilled'] : 0);
+} catch (Exception $e) {
+	echo 'Lead retention exception: ' . $e->getMessage();
+}

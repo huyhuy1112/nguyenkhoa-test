@@ -18,44 +18,33 @@ class Teams_AddPerson_View extends Vtiger_Index_View {
 	}
 
 	public function process(Vtiger_Request $request) {
-		Teams_Module_Model::ensureGroupSchema();
 		Teams_Module_Model::ensureDateJoinedCompanyColumn();
 
 		$viewer = $this->getViewer($request);
 		$db = PearDatabase::getInstance();
 
-		// Roles
 		$roles = array();
 		$resRoles = $db->pquery("SELECT roleid, rolename FROM vtiger_role ORDER BY rolename", array());
 		while ($resRoles && ($row = $db->fetchByAssoc($resRoles))) {
 			$roles[] = $row;
 		}
 
-		// Timezones
 		$timezones = array();
 		$resTZ = $db->pquery("SELECT time_zone FROM vtiger_time_zone ORDER BY time_zone", array());
 		while ($resTZ && ($row = $db->fetchByAssoc($resTZ))) {
 			$timezones[] = $row['time_zone'];
 		}
+		if (empty($timezones)) {
+			$timezones = array('Asia/Ho_Chi_Minh', 'UTC');
+		}
 
-		$projects = Teams_Module_Model::getActiveProjectsList();
-		$existingGroups = Teams_Module_Model::getTeamGroupsList();
-		$viewer->assign('TEAM_GROUPS_LIST', $existingGroups);
 		$viewer->assign('ROLES', $roles);
 		$viewer->assign('TIMEZONES', $timezones);
-		$viewer->assign('PROJECTS', $projects);
-
 		$viewer->assign('MODULE', $request->getModule());
 		$viewer->assign('APP', $request->get('app'));
 		$viewer->assign('USER_MODEL', Users_Record_Model::getCurrentUserModel());
-		// Context team record for redirect back to Detail->Groups (optional)
-		$teamId = (int)$request->get('teamid');
-		if (empty($teamId)) {
-			$teamId = (int)$request->get('record');
-		}
-		$viewer->assign('TEAMID', $teamId);
+		$viewer->assign('TEAMID', 0);
 
 		$viewer->view('AddPerson.tpl', $request->getModule());
 	}
 }
-

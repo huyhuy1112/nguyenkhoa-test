@@ -1172,6 +1172,30 @@ class Reports_MktSaleReportService {
 		return round(($num / $den) * 100, 2);
 	}
 
+	/**
+	 * Dữ liệu thô cho báo cáo Marketing. Không giới hạn 93 ngày.
+	 * @return array
+	 */
+	public static function marketingBundle($from, $to) {
+		$db = PearDatabase::getInstance();
+		$range = array('from' => $from, 'to' => $to);
+		$leads = self::loadLeadFacts($db, $range, 0);
+		$appts = self::loadAppointmentFacts($db, $range, 0);
+		$opps = self::loadOppFacts($db, $range, 0);
+		if (empty($appts)) {
+			$appts = self::synthesizeAppointmentsFromLeads($range, $leads);
+		}
+		$daily = self::buildDailySheet($range, $leads);
+		$classes = self::buildClassDaySheet($range, $leads, $appts, $opps);
+		$status = self::buildStatusMatrix($classes, $appts, $leads, $opps);
+		return array(
+			'leads' => $leads,
+			'daily' => $daily['rows'],
+			'classes' => $classes,
+			'status' => $status,
+		);
+	}
+
 	protected static function decode($value) {
 		$value = trim(decode_html((string) $value));
 		if (function_exists('html_entity_decode')) {

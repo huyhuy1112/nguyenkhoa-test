@@ -46,20 +46,25 @@
     if (window.MK_SC_PREFILL && (window.MK_SC_PREFILL.id || window.MK_SC_PREFILL.account_id)) {
       return "tuibao";
     }
+    if (ch === "miutea") {
+      return "miutea";
+    }
     return "retail";
   }
 
   function setPriceChannel(channel, opts) {
     opts = opts || {};
-    var next = channel === "tuibao" || channel === "franchise" || channel === "chain"
-      ? "tuibao"
-      : "retail";
+    var next = "retail";
+    if (channel === "tuibao" || channel === "franchise" || channel === "chain") {
+      next = "tuibao";
+    } else if (channel === "miutea") {
+      next = "miutea";
+    }
     window.MK_PRICE_CHANNEL = next;
     if (next === "tuibao" && opts.scPrefill) {
       window.MK_SC_PREFILL = opts.scPrefill;
     }
-    if (next === "retail" && opts.clearScPrefill !== false) {
-      // Leaving franchise source → retail prices (Opp / Leads / Contacts).
+    if (next !== "tuibao" && opts.clearScPrefill !== false) {
       try {
         window.MK_SC_PREFILL = null;
       } catch (e) {}
@@ -114,11 +119,21 @@
 
   var UNIT_OPTIONS = [
     { value: "Cái", label: "Cái" },
+    { value: "Bịch", label: "Bịch" },
+    { value: "Bao", label: "Bao" },
+    { value: "Lon", label: "Lon" },
     { value: "Hộp", label: "Hộp" },
-    { value: "Tá", label: "Tá" },
+    { value: "Hũ", label: "Hũ" },
+    { value: "Gói", label: "Gói" },
+    { value: "Can", label: "Can" },
     { value: "Thùng", label: "Thùng" },
+    { value: "Bình", label: "Bình" },
+    { value: "Chai", label: "Chai" },
+    { value: "Cuộn", label: "Cuộn" },
+    { value: "Con", label: "Con" },
     { value: "Kg", label: "Kg" },
-    { value: "Mét", label: "Mét" },
+    { value: "Bộ", label: "Bộ" },
+    { value: "Lít", label: "Lít" },
   ];
 
   var ADDRESS_DETAIL_FIELDS = [
@@ -370,7 +385,9 @@
     shipText = shipText || "";
 
     if ($bill.length) {
-      if (billText || force) {
+      var currentBill = $.trim($bill.val() || "");
+      // Không ghi đè địa chỉ khách vừa chọn bằng chuỗi rỗng.
+      if (billText || (force && !currentBill)) {
         $bill.val(billText).trigger("change");
       }
     }
@@ -568,7 +585,12 @@
 
     var onOpp = function () {
       setTimeout(function () {
-        fillAddressFromPotential($form, { force: true });
+        var bill = $.trim($form.find('[name="bill_street"]').val() || "");
+        var rail = $.trim($("#mkQtBillStreetRail, #mkSoBillStreetRail").val() || "");
+        if (bill || rail) {
+          return;
+        }
+        fillAddressFromPotential($form, { force: false });
       }, 120);
     };
     var onAccount = function () {
@@ -881,6 +903,43 @@
     return sum;
   }
 
+  /** Khách lẻ: chọn cột giá theo tổng số lượng × giá dưới 1 triệu, không theo giá đã giảm. */
+  function sumKlListBase($form) {
+    var sum = 0;
+    $form.find("tr.lineItemRow").each(function () {
+      var $row = $(this);
+      if (!rowHasSelectedProduct($row)) {
+        return;
+      }
+      var qty = parseMoney($row.find("input.qty, .qty").first().val());
+      if (!(qty > 0)) {
+        return;
+      }
+      var meta = getProductMetaForRow($row);
+      var base = parseMoney(meta.price_lt_1m);
+      if (!(base > 0)) {
+        base = parseMoney(meta.price);
+      }
+      if (!(base > 0)) {
+        return;
+      }
+      sum += qty * base;
+    });
+    return sum;
+  }
+
+  function tierBasisTotal($form) {
+    if (getPriceChannel() === "retail") {
+      return sumKlListBase($form);
+    }
+    return sumLinePreTax($form);
+  }
+
+  function isRetailQuote($form) {
+    var moduleName = String(($form && $form.find('[name="module"]').first().val()) || "");
+    return moduleName === "Quotes" && getPriceChannel() === "retail";
+  }
+
   function sumLineGrossTotal($form) {
     var sum = 0;
     $form.find("tr.lineItemRow").each(function () {
@@ -904,6 +963,164 @@
       return "gte_1m";
     }
     return "lt_1m";
+  }
+
+  function encodeQtyRulesAttr(rules) {
+    if (!rules) {
+      return "";
+    }
+    try {
+      var text = typeof rules === "string" ? rules : JSON.stringify(rules);
+      return encodeURIComponent(text);
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function decodeQtyRulesAttr(raw) {
+    if (!raw) {
+      return null;
+    }
+    if (typeof raw === "object") {
+      return raw;
+    }
+    var text = String(raw);
+    try {
+      text = decodeURIComponent(text);
+    } catch (e) {}
+    try {
+      var data = JSON.parse(text);
+      return data && typeof data === "object" ? data : null;
+    } catch (e2) {
+      return null;
+    }
+  }
+
+  function normalizeSellUnit(raw) {
+    var s = String(raw || "").toLowerCase();
+    if (s.indexOf("thùng") >= 0 || s.indexOf("thung") >= 0) {
+      return "thung";
+    }
+    if (s.indexOf("bịch") >= 0 || s.indexOf("bich") >= 0) {
+      return "bich";
+    }
+    if (s.indexOf("hộp") >= 0 || s.indexOf("hop") >= 0) {
+      return "hop";
+    }
+    if (s.indexOf("lon") >= 0) {
+      return "lon";
+    }
+    if (s.indexOf("bao") >= 0) {
+      return "bao";
+    }
+    if (s.indexOf("bình") >= 0 || s.indexOf("binh") >= 0) {
+      return "binh";
+    }
+    if (s.indexOf("chai") >= 0) {
+      return "chai";
+    }
+    if (s.indexOf("gói") >= 0 || s.indexOf("goi") >= 0) {
+      return "goi";
+    }
+    return "";
+  }
+
+  var QTY_UNIT_WORD = {
+    lon: "lon",
+    bich: "bịch",
+    hop: "hộp",
+    bao: "bao",
+    thung: "thùng",
+    binh: "bình",
+    chai: "chai",
+    goi: "gói",
+  };
+  var QTY_TIER_PHRASE = {
+    gte_3m: "giá trên 3 triệu",
+    gte_5m: "giá trên 5 triệu",
+    gte_7m: "giá trên 7 triệu",
+  };
+
+  function qtySellUnit(meta, pack) {
+    return normalizeSellUnit((meta && meta.unit) || (pack && pack.sell_unit));
+  }
+
+  function qtyRuleNeed(rule, pack, sell) {
+    var min = Number(rule.min) || 0;
+    var need = min;
+    var ruleUnit = normalizeSellUnit(rule.unit);
+    var converted = false;
+    if (ruleUnit === "thung" && sell !== "thung" && Number(pack.per_thung) > 0) {
+      need = min * Number(pack.per_thung);
+      converted = true;
+    }
+    return { need: need, min: min, ruleUnit: ruleUnit, converted: converted };
+  }
+
+  function formatQtyStep(rule, pack, sell) {
+    var info = qtyRuleNeed(rule, pack, sell);
+    var phrase = QTY_TIER_PHRASE[rule.tier] || "";
+    if (!phrase || !(info.min > 0)) {
+      return "";
+    }
+    if (info.converted) {
+      var sellWord = QTY_UNIT_WORD[sell] || "đơn vị";
+      return "Từ " + info.need + " " + sellWord + " (" + info.min + " thùng): " + phrase;
+    }
+    var word = QTY_UNIT_WORD[info.ruleUnit] || QTY_UNIT_WORD[sell] || "đơn vị";
+    return "Từ " + info.min + " " + word + ": " + phrase;
+  }
+
+  function qtyPackHit(meta, qty) {
+    var pack = decodeQtyRulesAttr(meta && meta.kl_qty_rules);
+    if (!pack || !pack.rules || !pack.rules.length) {
+      return null;
+    }
+    var sell = qtySellUnit(meta, pack);
+    var rank = { gte_3m: 2, gte_5m: 3, gte_7m: 4 };
+    var best = null;
+    var bestRank = 0;
+    pack.rules.forEach(function (rule) {
+      var info = qtyRuleNeed(rule, pack, sell);
+      var ruleRank = rank[rule.tier] || 0;
+      if (qty >= info.need && ruleRank > bestRank) {
+        best = rule;
+        bestRank = ruleRank;
+      }
+    });
+    return { pack: pack, sell: sell, rule: best };
+  }
+
+  function qtyTierForLine(meta, qty) {
+    var hit = qtyPackHit(meta, qty);
+    return hit && hit.rule ? hit.rule.tier : "";
+  }
+
+  function describeQtyTier(meta, qty) {
+    var hit = qtyPackHit(meta, qty);
+    if (!hit) {
+      return "";
+    }
+    if (!hit.rule) {
+      return "Chưa tới mốc số lượng";
+    }
+    return formatQtyStep(hit.rule, hit.pack, hit.sell);
+  }
+
+  function describeQtySchedule(raw) {
+    var pack = decodeQtyRulesAttr(raw && raw.kl_qty_rules ? raw.kl_qty_rules : raw);
+    if (!pack || !pack.rules || !pack.rules.length) {
+      return "";
+    }
+    var sell = normalizeSellUnit(pack.sell_unit);
+    var parts = [];
+    pack.rules.forEach(function (rule) {
+      var text = formatQtyStep(rule, pack, sell);
+      if (text) {
+        parts.push(text);
+      }
+    });
+    return parts.join(". ");
   }
 
   function invoiceTierLabel(tierKey) {
@@ -969,6 +1186,9 @@
       }
       return parseMoney(meta.price || 0);
     }
+    if (getPriceChannel() === "miutea" && parseMoney(meta.price_miutea) > 0) {
+      return parseMoney(meta.price_miutea);
+    }
     var field = INVOICE_TIER_FIELDS[tierKey];
     if (field && meta[field] !== undefined && meta[field] !== null && meta[field] !== "") {
       return parseMoney(meta[field]);
@@ -985,7 +1205,10 @@
     if (!$listPrice.length) {
       return false;
     }
-    var tierChanged = !!opts.tierChange || !!opts.productPick;
+    if (opts.autoRetier && String($listPrice.attr("data-mk-price-manual") || "") === "1") {
+      return false;
+    }
+    var tierChanged = !!opts.tierChange || !!opts.productPick || !!opts.autoRetier;
     // Keep user-typed / already-saved unit price unless forced (tier dropdown / product pick).
     if (!opts.force && !tierChanged && String($listPrice.attr("data-mk-price-manual") || "") === "1") {
       return false;
@@ -1001,13 +1224,32 @@
       $listPrice.attr("data-mk-price-manual", "1");
       return false;
     }
-    var price = resolveInvoiceTierPrice(getProductMetaForRow($row), tierKey);
+    var meta = getProductMetaForRow($row);
+    var lineUnit = String($row.find(".mk-inv-unit-select").first().val() || "").trim();
+    if (lineUnit) {
+      meta.unit = lineUnit;
+    }
+    var tierForPrice = tierKey;
+    var tierSource = "invoice";
+    if (getPriceChannel() === "retail" && getInvoiceTierSelection($form) === "auto") {
+      var lineQty = parseMoney($row.find("input.qty, .qty").first().val());
+      var qtyTier = qtyTierForLine(meta, lineQty);
+      var invoicePrice = resolveInvoiceTierPrice(meta, tierKey);
+      var qtyPrice = qtyTier ? resolveInvoiceTierPrice(meta, qtyTier) : 0;
+      if (qtyPrice > 0 && (!(invoicePrice > 0) || qtyPrice < invoicePrice)) {
+        tierForPrice = qtyTier;
+        tierSource = "qty";
+      }
+    }
+    var price = resolveInvoiceTierPrice(meta, tierForPrice);
     // Don't wipe a good price with a zero catalog/tier default.
     if (price <= 0 && existingPrice > 0) {
       return false;
     }
     setListPriceValue($listPrice, price);
-    $listPrice.attr("data-mk-invoice-tier", tierKey);
+    $listPrice.attr("data-mk-invoice-tier", tierForPrice);
+    $listPrice.attr("data-mk-tier-source", tierSource);
+    $listPrice.attr("data-mk-tier-key", tierForPrice);
     if (opts.force && tierChanged) {
       $listPrice.removeAttr("data-mk-price-manual");
     }
@@ -1025,7 +1267,26 @@
     var $select = $form
       .find("#mkInvInvoicePriceTierSelect, [name='mk_invoice_price_tier']")
       .first();
-    var isTuibao = getPriceChannel() === "tuibao";
+    var channel = getPriceChannel();
+    var isTuibao = channel === "tuibao";
+    var isMiutea = channel === "miutea";
+    if (isMiutea) {
+      if ($select.length) {
+        $select.prop("disabled", true);
+      }
+      if ($wrap.length) {
+        $wrap
+          .addClass("is-miutea")
+          .removeClass("is-tuibao")
+          .find(".mk-inv-price-tier__label")
+          .text("Bảng giá: Miutea");
+        $wrap
+          .find(".mk-inv-price-tier__hint")
+          .text("Đơn giá lấy Giá Miutea trên hàng hoá. Chưa nhập thì tạm dùng giá bán lẻ theo tổng đơn.");
+        $wrap.find(".mk-inv-price-tier__status").text("Đang áp dụng: Giá Miutea");
+      }
+      return;
+    }
     if (isTuibao) {
       if ($select.length) {
         $select.prop("disabled", true);
@@ -1033,6 +1294,7 @@
       if ($wrap.length) {
         $wrap
           .addClass("is-tuibao")
+          .removeClass("is-miutea")
           .find(".mk-inv-price-tier__label")
           .text("Bảng giá: Tuibao");
         $wrap
@@ -1048,11 +1310,11 @@
       $select.prop("disabled", false);
     }
     if ($wrap.length) {
-      $wrap.removeClass("is-tuibao");
+      $wrap.removeClass("is-tuibao is-miutea");
       $wrap.find(".mk-inv-price-tier__label").text("Bảng giá");
       $wrap
         .find(".mk-inv-price-tier__hint")
-        .text("Đơn giá lấy từ Hàng hoá và cập nhật khi tổng đơn thay đổi");
+        .text("So giá theo tổng đơn với mốc số lượng từng món, lấy giá thấp hơn. Tổng tính bằng giá dưới 1 triệu.");
     }
     if ($select.length && String($select.val() || "") !== String(selectedValue || "")) {
       $select.val(selectedValue);
@@ -1076,7 +1338,7 @@
     var selectedValue = getInvoiceTierSelection($form);
     var resolvedTier =
       selectedValue === "auto"
-        ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
+        ? resolveInvoiceTierFromTotal(tierBasisTotal($form))
         : selectedValue;
     if (getPriceChannel() === "tuibao") {
       resolvedTier = "tuibao";
@@ -1117,7 +1379,8 @@
     }
     var timer = setTimeout(function () {
       $form.removeData("mkInvTierTimer");
-      applyInvoiceTierPricing($form);
+      var selected = getInvoiceTierSelection($form);
+      applyInvoiceTierPricing($form, { autoRetier: selected === "auto" });
     }, delay == null ? 160 : delay);
     $form.data("mkInvTierTimer", timer);
   }
@@ -1529,7 +1792,7 @@
       $row,
       $form,
       previewTier === "auto"
-        ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
+        ? resolveInvoiceTierFromTotal(tierBasisTotal($form))
         : previewTier,
       { force: true, productPick: true },
     );
@@ -1575,7 +1838,7 @@
           $row,
           $form,
           responseTier === "auto"
-            ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
+            ? resolveInvoiceTierFromTotal(tierBasisTotal($form))
             : responseTier,
           { force: true, productPick: true },
         );
@@ -1606,7 +1869,7 @@
         $row,
         $form,
         fallbackTier === "auto"
-          ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
+          ? resolveInvoiceTierFromTotal(tierBasisTotal($form))
           : fallbackTier,
         { force: true, productPick: true },
       );
@@ -1771,7 +2034,7 @@
     if ($form && $form.length) {
       tier = getInvoiceTierSelection($form);
       if (tier === "auto") {
-        tier = resolveInvoiceTierFromTotal(sumLinePreTax($form)) || DEFAULT_INVOICE_TIER;
+        tier = resolveInvoiceTierFromTotal(tierBasisTotal($form)) || DEFAULT_INVOICE_TIER;
       }
     }
     var price = resolveInvoiceTierPrice(meta, tier);
@@ -2092,6 +2355,9 @@
           .attr("data-price-gte-5m", p.price_gte_5m)
           .attr("data-price-gte-7m", p.price_gte_7m)
           .attr("data-price-tuibao", p.price_tuibao)
+          .attr("data-price-miutea", p.price_miutea)
+          .attr("data-kl-qty-rules", encodeQtyRulesAttr(p.kl_qty_rules))
+          .attr("data-mk-no-discount", String(p.mk_no_discount) === "1" || p.mk_no_discount === 1 ? "1" : "0")
           .attr("data-product-group", p.product_group || "")
           .attr("data-sku", p.sku || "")
           .attr("data-unit", p.unit || "")
@@ -3004,10 +3270,12 @@
       .css({ display: "", visibility: "" })
       .prop("disabled", false)
       .prop("readonly", false);
+    var $modeBtns = $row.find(".mk-inv-discount-mode");
+    $modeBtns.removeClass("is-on");
+    $modeBtns.filter('[data-mode="' + mode + '"]').addClass("is-on");
     $suffix
-      .css({ display: "", visibility: "", cursor: "pointer" })
-      .attr("title", "Bấm để đổi % / đ")
-      .text(mode === "amount" ? "đ" : "%");
+      .css({ display: "none", visibility: "hidden" })
+      .attr("title", "");
     $row.toggleClass("mk-inv-discount--amount", mode === "amount");
     if (mode === "amount") {
       var amount = value != null ? parseMoney(value) : getRowDiscountAmount($row);
@@ -3188,7 +3456,11 @@
         '<button type="button" class="mk-inv-discount-caret" tabindex="-1" title="Chọn % nhanh" aria-label="Chọn % nhanh">' +
         '<i class="fa fa-caret-down" aria-hidden="true"></i></button>' +
         '<select class="mk-inv-discount-select inputElement mk-inv-hide-legacy" title="Chọn % chiết khấu" tabindex="-1" aria-hidden="true"></select>' +
-        '<span class="mk-inv-discount-suffix" title="Bấm để đổi % / đ">%</span>' +
+        '<span class="mk-inv-discount-modes">' +
+        '<button type="button" class="mk-inv-discount-mode" data-mode="percentage" title="Chiết khấu theo phần trăm">%</button>' +
+        '<button type="button" class="mk-inv-discount-mode" data-mode="amount" title="Chiết khấu theo số tiền">đ</button>' +
+        '</span>' +
+        '<span class="mk-inv-discount-suffix" hidden>%</span>' +
         "</div>",
     );
     var $sel = $wrap.find(".mk-inv-discount-select");
@@ -3300,19 +3572,15 @@
         commitRowDiscount($row, $form, value, mode);
       },
     );
-    $suffix.on("mousedown.mkInvDisc click.mkInvDisc", function (e) {
+    $wrap.on("click.mkInvDisc", ".mk-inv-discount-mode", function (e) {
       e.preventDefault();
       e.stopPropagation();
-      var base = calcLineRowTotal($row, $form);
-      var mode = getDiscountMode($row);
-      if (mode === "percentage") {
-        var pct = getRowDiscountPercent($row);
-        commitRowDiscount($row, $form, Math.round((base * pct) / 100), "amount");
-      } else {
-        var amt = getRowDiscountAmount($row);
-        var nextPct = base > 0 ? (amt / base) * 100 : 0;
-        commitRowDiscount($row, $form, clampDiscountPercent(nextPct), "percentage");
+      var nextMode = String($(this).attr("data-mode") || "percentage");
+      if (nextMode !== "amount" && nextMode !== "percentage") {
+        nextMode = "percentage";
       }
+      var raw = $.trim(String($custom.val() || "0"));
+      commitRowDiscount($row, $form, raw, nextMode);
     });
 
     $taxTd
@@ -3924,58 +4192,81 @@
         $("<option></option>").attr("value", opt.value).text(opt.label),
       );
     });
-    $sel.append(
-      $("<option></option>")
-        .attr("value", "__search__")
-        .text("Tìm kiếm thêm..."),
-    );
     $unitTd.empty().append($sel);
-    $sel.on("change.mkInvUnit", function () {
-      if (this.value !== "__search__") {
-        return;
-      }
-      var custom = window.prompt("Nhập đơn vị:", "Đơn vị");
-      if (custom && String(custom).trim()) {
-        custom = String(custom).trim();
-        ensureUnitOptionOnSelect($sel, custom);
-        $sel.val(custom);
-      } else {
-        $sel.val("");
-      }
-    });
   }
 
-  function normalizeUnitToken(value) {
+  function foldUnitToken(value) {
     return String(value || "")
       .trim()
       .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
+      .replace(/[áàảãạăắằẳẵặâấầẩẫậ]/g, "a")
+      .replace(/[éèẻẽẹêếềểễệ]/g, "e")
+      .replace(/[íìỉĩị]/g, "i")
+      .replace(/[óòỏõọôốồổỗộơớờởỡợ]/g, "o")
+      .replace(/[úùủũụưứừửữự]/g, "u")
+      .replace(/[ýỳỷỹỵ]/g, "y")
+      .replace(/đ/g, "d");
+  }
+
+  function canonicalLineUnit(raw) {
+    var fold = foldUnitToken(raw);
+    if (!fold) {
+      return "";
+    }
+    var map = {
+      pcs: "Cái",
+      piece: "Cái",
+      cai: "Cái",
+      box: "Hộp",
+      hop: "Hộp",
+      set: "Bộ",
+      bo: "Bộ",
+      kg: "Kg",
+      bich: "Bịch",
+      bao: "Bao",
+      lon: "Lon",
+      hu: "Hũ",
+      goi: "Gói",
+      can: "Can",
+      thung: "Thùng",
+      binh: "Bình",
+      chai: "Chai",
+      cuon: "Cuộn",
+      con: "Con",
+      lit: "Lít",
+      liter: "Lít",
+      litre: "Lít",
+    };
+    if (map[fold]) {
+      return map[fold];
+    }
+    for (var i = 0; i < UNIT_OPTIONS.length; i++) {
+      if (foldUnitToken(UNIT_OPTIONS[i].label) === fold) {
+        return UNIT_OPTIONS[i].value;
+      }
+    }
+    return String(raw || "").trim();
   }
 
   function ensureUnitOptionOnSelect($sel, unit) {
-    unit = String(unit || "").trim();
+    unit = canonicalLineUnit(unit);
     if (!$sel || !$sel.length || !unit) {
       return "";
     }
-    var token = normalizeUnitToken(unit);
+    var token = foldUnitToken(unit);
     var resolved = "";
     $sel.find("option").each(function () {
       var val = String($(this).attr("value") || "");
-      if (!val || val === "__search__") {
+      if (!val) {
         return;
       }
-      var valToken = normalizeUnitToken(val);
-      var labelToken = normalizeUnitToken($(this).text());
-      if (valToken === token || labelToken.indexOf(token) >= 0) {
+      if (foldUnitToken(val) === token || foldUnitToken($(this).text()) === token) {
         resolved = val;
         return false;
       }
     });
     if (!resolved) {
-      $sel
-        .find('option[value="__search__"]')
-        .before($("<option></option>").attr("value", unit).text(unit));
+      $sel.append($("<option></option>").attr("value", unit).text(unit));
       resolved = unit;
     }
     return resolved;
@@ -5539,6 +5830,9 @@
         .attr("data-price-gte-5m", meta.price_gte_5m)
         .attr("data-price-gte-7m", meta.price_gte_7m)
         .attr("data-price-tuibao", meta.price_tuibao)
+        .attr("data-price-miutea", meta.price_miutea)
+        .attr("data-kl-qty-rules", encodeQtyRulesAttr(meta.kl_qty_rules))
+        .attr("data-mk-no-discount", String(meta.mk_no_discount) === "1" || meta.mk_no_discount === 1 ? "1" : "0")
         .attr("data-product-group", meta.product_group || "")
         .attr("data-sku", meta.sku || "")
         .attr("data-unit", meta.unit || "")
@@ -5587,6 +5881,12 @@
           meta.price_tuibao != null
             ? meta.price_tuibao
             : $opt.attr("data-price-tuibao"),
+        )
+        .attr(
+          "data-price-miutea",
+          meta.price_miutea != null
+            ? meta.price_miutea
+            : $opt.attr("data-price-miutea"),
         )
         .attr(
           "data-product-group",
@@ -5721,6 +6021,9 @@
       price_gte_5m: $opt.attr("data-price-gte-5m"),
       price_gte_7m: $opt.attr("data-price-gte-7m"),
       price_tuibao: $opt.attr("data-price-tuibao"),
+      price_miutea: $opt.attr("data-price-miutea"),
+      kl_qty_rules: decodeQtyRulesAttr($opt.attr("data-kl-qty-rules")),
+      mk_no_discount: $opt.attr("data-mk-no-discount"),
       product_group: $opt.attr("data-product-group") || "",
       sku: $opt.attr("data-sku") || "",
       unit: $opt.attr("data-unit") || "",
@@ -6284,8 +6587,10 @@
     var $existing = $form.find('[name="mk_invoice_price_tier"]').first();
     var currentValue = String($existing.val() || "").trim();
     var isCreate = !String($form.find('input[name="record"]').val() || "").trim();
-    // New documents default to Giá < 1 triệu (not auto / empty).
-    if (!currentValue || (isCreate && (currentValue === "auto" || !INVOICE_TIER_FIELDS[currentValue] && currentValue !== "auto"))) {
+    // Báo giá khách lẻ: tự chọn cột giá theo tổng đơn. Đơn khác vẫn mặc định dưới 1 triệu.
+    if (isRetailQuote($form) && isCreate) {
+      currentValue = "auto";
+    } else if (!currentValue || (isCreate && (currentValue === "auto" || (!INVOICE_TIER_FIELDS[currentValue] && currentValue !== "auto")))) {
       currentValue = DEFAULT_INVOICE_TIER;
     }
     if (currentValue !== "auto" && !INVOICE_TIER_FIELDS[currentValue]) {
@@ -6335,7 +6640,7 @@
 
     var resolved =
       currentValue === "auto"
-        ? resolveInvoiceTierFromTotal(sumLinePreTax($form))
+        ? resolveInvoiceTierFromTotal(tierBasisTotal($form))
         : currentValue;
     syncInvoiceTierUi($form, currentValue, resolved);
     // Ensure pricing applies with the default tier on first paint.
@@ -7376,6 +7681,16 @@
     integrateCommerceIntoQuoteInfo: integrateCommerceIntoQuoteInfo,
     getPriceChannel: getPriceChannel,
     setPriceChannel: setPriceChannel,
+    qtyTierForLine: qtyTierForLine,
+    describeQtyTier: describeQtyTier,
+    describeQtySchedule: describeQtySchedule,
+    getProductMetaForRow: getProductMetaForRow,
+    priceForTier: function (meta, tierKey) {
+      return resolveInvoiceTierPrice(meta, tierKey);
+    },
+    currentRetailInvoiceTier: function ($form) {
+      return resolveInvoiceTierFromTotal(tierBasisTotal($form));
+    },
     applyInvoiceTierPricing: applyInvoiceTierPricing,
     onInvoicePriceTierUserChange: onInvoicePriceTierUserChange,
     refreshTotals: function ($form) {

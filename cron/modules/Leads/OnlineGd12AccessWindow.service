@@ -1,0 +1,20 @@
+<?php
+/*+***********************************************************************************
+ * GD 1.2 Online — đồng hồ hạn 10 ngày: tag Sắp hết hạn / Hết hạn.
+ * Frequency: 1 giờ. Không gọi Edubit API.
+ *************************************************************************************/
+
+require_once 'modules/Leads/models/OnlineGd12Service.php';
+
+try {
+	global $current_user;
+	if (empty($current_user) || empty($current_user->id)) {
+		$current_user = Users::getActiveAdminUser();
+	}
+	Leads_OnlineGd12Service::installSchema();
+	$result = Leads_OnlineGd12Service::processAccessWindowTags(300);
+	echo 'Online GD1.2 access window: scanned=' . (isset($result['scanned']) ? $result['scanned'] : 0)
+		. ' updated=' . (isset($result['updated']) ? $result['updated'] : 0);
+} catch (Exception $e) {
+	echo 'Online GD1.2 access window exception: ' . $e->getMessage();
+}

@@ -30,6 +30,8 @@ class ProductsServices_Edit_View extends Vtiger_Edit_View {
 	}
 
 	public function preProcess(Vtiger_Request $request, $display = true) {
+		require_once 'modules/ProductsServices/helpers/PriceSetup.php';
+		ProductsServices_PriceSetup_Helper::ensure();
 		if ($this->isMkModernProductsServicesCreate($request)) {
 			parent::preProcess($request, false);
 			$this->assignModernContext($request);
@@ -61,8 +63,40 @@ class ProductsServices_Edit_View extends Vtiger_Edit_View {
 	public function process(Vtiger_Request $request) {
 		if ($this->isMkModernProductsServicesCreate($request)) {
 			$this->assignModernContext($request);
+			$this->assignQtyRules($request);
 		}
 		parent::process($request);
+	}
+
+	protected function assignQtyRules(Vtiger_Request $request) {
+		$viewer = $this->getViewer($request);
+		$payload = array('sell_unit' => '', 'per_thung' => 0, 'rules' => array());
+		$recordId = (int) $request->get('record');
+		if ($recordId > 0) {
+			$db = PearDatabase::getInstance();
+			$check = $db->pquery('SHOW COLUMNS FROM vtiger_productsservices LIKE ?', array('kl_qty_rules'));
+			if ($check && $db->num_rows($check) > 0) {
+				$rs = $db->pquery(
+					'SELECT kl_qty_rules, unit FROM vtiger_productsservices WHERE productsservicesid = ?',
+					array($recordId)
+				);
+				$row = ($rs && $db->num_rows($rs) > 0) ? $db->fetchByAssoc($rs, -1, false) : null;
+				if (is_array($row)) {
+					$decoded = json_decode((string) $row['kl_qty_rules'], true);
+					if (is_array($decoded)) {
+						$payload = $decoded;
+					}
+					if (empty($payload['sell_unit']) && !empty($row['unit'])) {
+						$payload['sell_unit'] = (string) $row['unit'];
+					}
+				}
+			}
+		}
+		$json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS);
+		if (!is_string($json) || $json === '') {
+			$json = '{"sell_unit":"","per_thung":0,"rules":[]}';
+		}
+		$viewer->assign('MK_KL_QTY_RULES_JSON', $json);
 	}
 
 	public function getHeaderCss(Vtiger_Request $request) {
